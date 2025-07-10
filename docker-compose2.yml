@@ -1,0 +1,188 @@
+services:
+#    laravel.test:
+#        build:
+#            context: './docker'
+#            dockerfile: Dockerfile
+#            args:
+#                WWWGROUP: '${WWWGROUP}'
+#        image: 'sail-8.4/app'
+#        extra_hosts:
+#            - 'host.docker.internal:host-gateway'
+#        ports:
+#            - '${APP_PORT:-8080}:80'
+#            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+#        environment:
+#            WWWUSER: '${WWWUSER}'
+#            LARAVEL_SAIL: 1
+#            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
+#            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
+#            IGNITION_LOCAL_SITES_PATH: '${PWD}'
+#        volumes:
+#            - '.:/var/www/html'
+#        networks:
+#            - chatvia
+#        depends_on:
+#            - mysql
+#            - redis
+            - minio
+#    mysql:
+#        image: 'mysql/mysql-server'
+#        ports:
+#            - '${FORWARD_DB_PORT:-3306}:3306'
+#        environment:
+#            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+#            MYSQL_ROOT_HOST: '%'
+#            MYSQL_DATABASE: '${DB_DATABASE}'
+#            MYSQL_USER: '${DB_USERNAME}'
+#            MYSQL_PASSWORD: '${DB_PASSWORD}'
+#            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+#        volumes:
+#            - 'chatvia-mysql:/var/lib/mysql'
+#            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+#        networks:
+#            - chatvia
+#        healthcheck:
+#            test:
+#                - CMD
+#                - mysqladmin
+#                - ping
+#                - '-p${DB_PASSWORD}'
+#            retries: 3
+#            timeout: 5s
+
+#    redis:
+#        image: 'redis:alpine'
+##        ports:
+##            - '${FORWARD_REDIS_PORT:-6379}:6379'
+#        volumes:
+#            - 'chatvia-redis:/data'
+#        networks:
+#            - chatvia
+#        healthcheck:
+#            test:
+#                - CMD
+#                - redis-cli
+#                - ping
+#            retries: 3
+#            timeout: 5s
+
+    minio:
+        image: 'minio/minio:latest'
+        ports:
+            - '${FORWARD_MINIO_PORT:-9000}:9000'
+            - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
+        environment:
+            MINIO_ROOT_USER: sail
+            MINIO_ROOT_PASSWORD: password
+        volumes:
+            - 'chatvia-minio:/data'
+        networks:
+            - chatvia
+        command: 'minio server /data --console-address ":8900"'
+        healthcheck:
+            test:
+                - CMD
+                - mc
+                - ready
+                - local
+            retries: 3
+            timeout: 5s
+
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:9.0.2
+        environment:
+            - cluster.name=chatvia-local
+            - node.name=chatvia-local-node
+            - discovery.type=single-node
+
+            # Memory settings - optimized for local development (8-16GB RAM machines)
+            - "ES_JAVA_OPTS=-Xms2g -Xmx4g"  # 4GB heap max for local development
+
+            # Security settings (disabled for local development)
+            - xpack.security.enabled=false
+            - xpack.security.http.ssl.enabled=false
+            - xpack.security.transport.ssl.enabled=false
+
+            # Basic performance settings for local development
+            - indices.memory.index_buffer_size=20%
+            - indices.queries.cache.size=10%
+            - indices.fielddata.cache.size=15%
+
+            # Network settings
+            - network.host=0.0.0.0
+            - http.port=9200
+            - transport.port=9300
+
+            # Basic cluster settings
+            - action.auto_create_index=true
+
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+
+        volumes:
+            - chatvia-elasticsearch:/usr/share/elasticsearch/data
+            - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+
+        networks:
+            - chatvia
+
+        restart: unless-stopped
+
+        # Resource limits optimized for local development
+        deploy:
+            resources:
+                limits:
+                    memory: 6G  # Reasonable for local development
+                reservations:
+                    memory: 2G
+
+    kibana:
+        image: docker.elastic.co/kibana/kibana:9.0.2
+        container_name: kibana-rag-local
+        environment:
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+            - SERVER_NAME=kibana-chatvia-local
+            - SERVER_HOST=0.0.0.0
+            - LOGGING_LEVEL=info  # More verbose for development
+            - xpack.security.enabled=false
+
+        ports:
+            - "5601:5601"
+
+        networks:
+            - chatvia
+
+        depends_on:
+            - elasticsearch
+
+        restart: unless-stopped
+
+        deploy:
+            resources:
+                limits:
+                    memory: 1G
+                reservations:
+                    memory: 512M
+
+networks:
+    chatvia:
+        driver: bridge
+
+volumes:
+    chatvia-mysql:
+        driver: local
+    chatvia-redis:
+        driver: local
+    chatvia-minio:
+        driver: local
+    chatvia-elasticsearch:
+        driver: local

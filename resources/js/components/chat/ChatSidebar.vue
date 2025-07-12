@@ -2,7 +2,7 @@
 import { Link, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import isMobile from 'is-mobile';
-import { Bot, Check, Download, FileText, FileDown, LogOut, MoreVertical, PanelLeft, Pencil, PlusCircle, Settings, Trash2, User, X } from 'lucide-vue-next';
+import { Bot, Check, Download, FileText, FileDown, LogOut, MoreVertical, PanelLeft, Pencil, Edit, PlusCircle, Settings, Trash2, User, X } from 'lucide-vue-next';
 import { inject, nextTick, onMounted, ref, watch, computed } from 'vue';
 
 import {
@@ -194,10 +194,10 @@ const exportConversation = async (id, format) => {
         const response = await axios.get(route('conversations.export', { conversationId: id, format }), {
             responseType: format === 'pdf' ? 'blob' : 'text'
         });
-        
+
         const conversation = conversations.value.find((chat) => chat.id === id);
         const filename = `${conversation?.title || 'conversation'}.${format}`;
-        
+
         if (format === 'pdf') {
             // Handle PDF download
             const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -211,8 +211,8 @@ const exportConversation = async (id, format) => {
             window.URL.revokeObjectURL(url);
         } else {
             // Handle text/markdown download
-            const blob = new Blob([response.data], { 
-                type: format === 'markdown' ? 'text/markdown' : 'text/plain' 
+            const blob = new Blob([response.data], {
+                type: format === 'markdown' ? 'text/markdown' : 'text/plain'
             });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -365,12 +365,12 @@ const deleteConversation = async (id) => {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" class="w-48">
                                             <DropdownMenuItem @click="editConversation(chat.id)">
-                                                <Pencil class="mr-2 h-4 w-4" />
+                                                <Edit class="mr-2 h-4 w-4" />
                                                 <span>Rename</span>
                                             </DropdownMenuItem>
                                             <DropdownMenuSub>
                                                 <DropdownMenuSubTrigger>
-                                                    <Download class="mr-2 h-4 w-4" />
+                                                    <Download class="mr-4 h-4 w-4" />
                                                     <span>Export</span>
                                                 </DropdownMenuSubTrigger>
                                                 <DropdownMenuSubContent>

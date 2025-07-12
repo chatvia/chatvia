@@ -7,8 +7,11 @@ use App\Data\Chunk;
 class AzureMarkdownSplitter
 {
     private const MIN_CHUNK_SIZE = 200;
+
     private const MAJOR_HEADING_MAX_LEVEL = 3;
+
     private const PAGE_NUMBER_PATTERN = '/<!-- PageNumber="([^"]+)"/';
+
     private const HEADER_PATTERN = '/^(#+)\s*(.+)/';
 
     // Page-related comment markers
@@ -16,7 +19,7 @@ class AzureMarkdownSplitter
         'PageNumber=',
         'PageBreak',
         'PageFooter',
-        'PageHeader'
+        'PageHeader',
     ];
 
     public function split(string $content): array
@@ -37,6 +40,7 @@ class AzureMarkdownSplitter
             $pageNumber = $this->extractPageNumber($line);
             if ($pageNumber !== null) {
                 $currentPage = $pageNumber;
+
                 continue;
             }
 
@@ -91,6 +95,7 @@ class AzureMarkdownSplitter
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -102,11 +107,12 @@ class AzureMarkdownSplitter
      */
     private function extractPageNumber(string $line): ?string
     {
-        if (!str_contains($line, 'PageNumber=')) {
+        if (! str_contains($line, 'PageNumber=')) {
             return null;
         }
 
         preg_match(self::PAGE_NUMBER_PATTERN, $line, $matches);
+
         return $matches ? $matches[1] : null;
     }
 
@@ -133,13 +139,13 @@ class AzureMarkdownSplitter
      */
     private function parseHeader(string $line): ?array
     {
-        if (!preg_match(self::HEADER_PATTERN, $line, $matches)) {
+        if (! preg_match(self::HEADER_PATTERN, $line, $matches)) {
             return null;
         }
 
         return [
             'level' => strlen($matches[1]),
-            'heading' => trim($matches[2])
+            'heading' => trim($matches[2]),
         ];
     }
 
@@ -190,7 +196,7 @@ class AzureMarkdownSplitter
         }
 
         // Format heading as markdown and include it in content only
-        $headerLine = str_repeat('#', $level) . ' ' . $heading;
+        $headerLine = str_repeat('#', $level).' '.$heading;
 
         return $this->createChunk(
             level: $level,
@@ -211,10 +217,11 @@ class AzureMarkdownSplitter
         string $heading,
         string $currentPage
     ): Chunk {
-        $headerLine = str_repeat('#', $level) . ' ' . $heading;
+        $headerLine = str_repeat('#', $level).' '.$heading;
 
         if ($currentChunk) {
             $this->appendContentToChunk($currentChunk, $headerLine, $currentPage);
+
             return $currentChunk;
         }
 
@@ -239,6 +246,7 @@ class AzureMarkdownSplitter
     ): Chunk {
         if ($currentChunk) {
             $this->appendContentToChunk($currentChunk, $line, $currentPage);
+
             return $currentChunk;
         }
 
@@ -280,7 +288,7 @@ class AzureMarkdownSplitter
      */
     private function appendContentToChunk(Chunk $chunk, string $content, string $currentPage): void
     {
-        if (!empty($chunk->original_content)) {
+        if (! empty($chunk->original_content)) {
             $chunk->original_content .= "\n";
             if (str_starts_with($content, '#')) {
                 $chunk->original_content .= "\n"; // Extra spacing for headers
@@ -301,7 +309,7 @@ class AzureMarkdownSplitter
             return;
         }
 
-        if (!in_array($page, $chunk->metadata['pages'], true)) {
+        if (! in_array($page, $chunk->metadata['pages'], true)) {
             $chunk->metadata['pages'][] = $page;
             // Sort pages to maintain order (as strings)
             sort($chunk->metadata['pages'], SORT_STRING);
@@ -329,14 +337,15 @@ class AzureMarkdownSplitter
         for ($i = 0; $i < count($chunks); $i++) {
             $chunk = $chunks[$i];
 
-            if (!$this->isChunkTooSmall($chunk)) {
+            if (! $this->isChunkTooSmall($chunk)) {
                 $merged[] = $chunk;
+
                 continue;
             }
 
             $mergedSuccessfully = $this->attemptChunkMerge($chunk, $merged, $chunks, $i);
 
-            if (!$mergedSuccessfully) {
+            if (! $mergedSuccessfully) {
                 $merged[] = $chunk;
             }
         }
@@ -355,17 +364,18 @@ class AzureMarkdownSplitter
     /**
      * Attempt to merge a small chunk with adjacent chunks.
      *
-     * @param Chunk $chunk The chunk to merge
-     * @param array &$merged Already processed chunks
-     * @param array $chunks All chunks being processed
-     * @param int &$currentIndex Current index in the chunks array (will be modified if merging with next)
+     * @param  Chunk  $chunk  The chunk to merge
+     * @param  array  &$merged  Already processed chunks
+     * @param  array  $chunks  All chunks being processed
+     * @param  int  &$currentIndex  Current index in the chunks array (will be modified if merging with next)
      * @return bool True if merge was successful
      */
     private function attemptChunkMerge(Chunk $chunk, array &$merged, array $chunks, int &$currentIndex): bool
     {
         // Try merging with previous chunk first
-        if (!empty($merged)) {
+        if (! empty($merged)) {
             $this->mergeWithPreviousChunk($chunk, $merged);
+
             return true;
         }
 
@@ -375,6 +385,7 @@ class AzureMarkdownSplitter
             $mergedChunk = $this->mergeWithNextChunk($chunk, $nextChunk);
             $merged[] = $mergedChunk;
             $currentIndex++; // Skip the next chunk since we merged it
+
             return true;
         }
 
@@ -411,7 +422,7 @@ class AzureMarkdownSplitter
             'heading' => $nextChunk->heading, // Preserve heading from next chunk
             'original_content' => $combinedContent,
             'metadata' => [
-                'pages' => $mergedPages
+                'pages' => $mergedPages,
             ],
             'chunk_id' => $nextChunk->chunk_id,
             'embedding' => [],
@@ -424,9 +435,9 @@ class AzureMarkdownSplitter
     private function combineChunkContent(Chunk $targetChunk, Chunk $sourceChunk): void
     {
         // Only add the original_content since headings are already in it
-        if (!empty($sourceChunk->original_content)) {
-            if (!empty($targetChunk->original_content)) {
-                $targetChunk->original_content .= "\n\n" . $sourceChunk->original_content;
+        if (! empty($sourceChunk->original_content)) {
+            if (! empty($targetChunk->original_content)) {
+                $targetChunk->original_content .= "\n\n".$sourceChunk->original_content;
             } else {
                 $targetChunk->original_content = $sourceChunk->original_content;
             }
@@ -441,11 +452,11 @@ class AzureMarkdownSplitter
         $parts = [];
 
         // Add original content only (headings are already included)
-        if (!empty($currentChunk->original_content)) {
+        if (! empty($currentChunk->original_content)) {
             $parts[] = $currentChunk->original_content;
         }
 
-        if (!empty($nextChunk->original_content)) {
+        if (! empty($nextChunk->original_content)) {
             $parts[] = $nextChunk->original_content;
         }
 
@@ -470,7 +481,7 @@ class AzureMarkdownSplitter
      */
     private function filterValidChunks(array $chunks): array
     {
-        return array_filter($chunks, function($chunk) {
+        return array_filter($chunks, function ($chunk) {
             $content = trim($chunk->original_content);
 
             return strlen($content) > self::MIN_CHUNK_SIZE;
@@ -508,7 +519,7 @@ class AzureMarkdownSplitter
      * Simple function to split markdown content by H1, H2, and H3 headers.
      * Also tracks page numbers from PageNumber comments.
      *
-     * @param string $markdownContent The markdown content to split
+     * @param  string  $markdownContent  The markdown content to split
      * @return array Array of chunks, each containing content under a header
      */
     public function splitByHeader(string $markdownContent): array
@@ -524,14 +535,15 @@ class AzureMarkdownSplitter
         foreach ($lines as $line) {
             // Check for page number comment
             if (preg_match('/<!-- PageNumber="([^"]+)"/', $line, $pageMatches)) {
-                ++$currentPage;
+                $currentPage++;
+
                 continue;
             }
 
             // Check if line is H1, H2, or H3 header
             if (preg_match('/^(#{1,3})\s+(.+)$/', $line, $matches)) {
                 // Save previous chunk if it has content
-                if (!empty(trim($currentChunk))) {
+                if (! empty(trim($currentChunk))) {
                     $chunks[] = [
                         'chunk_id' => $chunkId,
                         'heading' => $currentHeading,
@@ -543,26 +555,26 @@ class AzureMarkdownSplitter
 
                 // Start new chunk
                 $currentHeading = trim($matches[2]);
-                $currentChunk = $line . "\n";
+                $currentChunk = $line."\n";
                 $chunkPages = [$currentPage];
             } else {
                 // Add line to current chunk
-                $currentChunk .= $line . "\n";
+                $currentChunk .= $line."\n";
 
                 // Add current page to chunk pages if not already added
-                if (!in_array($currentPage, $chunkPages)) {
+                if (! in_array($currentPage, $chunkPages)) {
                     $chunkPages[] = $currentPage;
                 }
             }
         }
 
         // Add the last chunk if it has content
-        if (!empty(trim($currentChunk))) {
+        if (! empty(trim($currentChunk))) {
             $chunks[] = [
                 'chunk_id' => $chunkId,
                 'heading' => $currentHeading,
                 'content' => trim($currentChunk),
-                'page_numbers' => array_unique($chunkPages)
+                'page_numbers' => array_unique($chunkPages),
             ];
         }
 

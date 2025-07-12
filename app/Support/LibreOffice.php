@@ -6,14 +6,17 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
-use RuntimeException;
 use InvalidArgumentException;
+use RuntimeException;
 
 class LibreOffice
 {
     private string $libreOfficePath;
+
     private string $tempDir;
+
     private int $timeout;
+
     private array $allowedFormats;
 
     public function __construct(
@@ -32,7 +35,7 @@ class LibreOffice
             // PDF
             'pdf',
             // Images
-            'png', 'jpg', 'jpeg', 'svg'
+            'png', 'jpg', 'jpeg', 'svg',
         ];
 
         $this->validateInstallation();
@@ -52,7 +55,7 @@ class LibreOffice
         $outputPath = $this->generateOutputPath($inputPath, $outputFormat);
         $outputDir = dirname($outputPath);
 
-        if (!File::isDirectory($outputDir)) {
+        if (! File::isDirectory($outputDir)) {
             File::makeDirectory($outputDir, 0755, true);
         }
 
@@ -60,7 +63,7 @@ class LibreOffice
 
         $result = Process::timeout($this->timeout)->run($command);
 
-        if (!$result->successful()) {
+        if (! $result->successful()) {
             throw new RuntimeException(
                 "LibreOffice conversion failed: {$result->errorOutput()}"
             );
@@ -72,7 +75,7 @@ class LibreOffice
             File::move($actualOutputPath, $outputPath);
         }
 
-        if (!File::exists($outputPath)) {
+        if (! File::exists($outputPath)) {
             throw new RuntimeException("Conversion completed but output file not found: {$outputPath}");
         }
 
@@ -94,7 +97,7 @@ class LibreOffice
     {
         $this->validateInputFile($inputPath);
 
-        $tempOutput = tempnam($this->tempDir, 'libreoffice_text_') . '.txt';
+        $tempOutput = tempnam($this->tempDir, 'libreoffice_text_').'.txt';
 
         try {
             $this->convert($inputPath, 'txt', $tempOutput);
@@ -124,7 +127,7 @@ class LibreOffice
             '--norestore',
             '--convert-to', 'txt',
             '--outdir', $this->tempDir,
-            $inputPath
+            $inputPath,
         ];
 
         $result = Process::timeout($this->timeout)->run($command);
@@ -147,13 +150,12 @@ class LibreOffice
         } catch (\Exception $e) {
             Log::warning('Could not extract text for document info', [
                 'file' => $inputPath,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
 
         return $fileInfo;
     }
-
 
     public function batchConvert(
         array $inputPaths,
@@ -171,7 +173,7 @@ class LibreOffice
             } catch (\Exception $e) {
                 Log::error('Batch conversion failed for file', [
                     'file' => $inputPath,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
                 $results[$inputPath] = null;
             }
@@ -185,21 +187,19 @@ class LibreOffice
         return in_array(strtolower($format), $this->allowedFormats);
     }
 
-
     public function getSupportedFormats(): array
     {
         return $this->allowedFormats;
     }
 
-
     public function createFromTemplate(string $templatePath, array $replacements = []): string
     {
         $this->validateInputFile($templatePath);
 
-        $tempOutput = tempnam($this->tempDir, 'libreoffice_template_') . '.odt';
+        $tempOutput = tempnam($this->tempDir, 'libreoffice_template_').'.odt';
         File::copy($templatePath, $tempOutput);
 
-        if (!empty($replacements)) {
+        if (! empty($replacements)) {
             // For simple text replacements, convert to text and back
             $text = $this->extractText($tempOutput);
 
@@ -207,10 +207,10 @@ class LibreOffice
                 $text = str_replace($search, $replace, $text);
             }
 
-            $textFile = tempnam($this->tempDir, 'libreoffice_text_') . '.txt';
+            $textFile = tempnam($this->tempDir, 'libreoffice_text_').'.txt';
             File::put($textFile, $text);
 
-            $finalOutput = tempnam($this->tempDir, 'libreoffice_final_') . '.odt';
+            $finalOutput = tempnam($this->tempDir, 'libreoffice_final_').'.odt';
             $this->convert($textFile, 'odt', $finalOutput);
 
             File::delete($textFile);
@@ -225,10 +225,10 @@ class LibreOffice
     private function validateInstallation(): void
     {
         $result = Process::timeout(30)->run([
-            $this->libreOfficePath, '--headless', '--version'
+            $this->libreOfficePath, '--headless', '--version',
         ]);
 
-        if (!$result->successful()) {
+        if (! $result->successful()) {
             throw new RuntimeException("LibreOffice test run failed: {$result->errorOutput()}");
         }
     }
@@ -283,7 +283,7 @@ class LibreOffice
         // Look for any file with the expected extension in the output directory
         $files = File::glob("{$outputDir}/*.{$outputFormat}");
 
-        return !empty($files) ? $files[0] : null;
+        return ! empty($files) ? $files[0] : null;
     }
 
     private function generateOutputPath(
@@ -295,14 +295,13 @@ class LibreOffice
         return "{$this->tempDir}/{$baseName}.{$outputFormat}";
     }
 
-
     private function validateInputFile(string $path): void
     {
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             throw new InvalidArgumentException("Input file does not exist: {$path}");
         }
 
-        if (!File::isReadable($path)) {
+        if (! File::isReadable($path)) {
             throw new InvalidArgumentException("Input file is not readable: {$path}");
         }
 
@@ -316,9 +315,9 @@ class LibreOffice
      */
     private function validateFormat(string $format): void
     {
-        if (!$this->supportsFormat($format)) {
+        if (! $this->supportsFormat($format)) {
             throw new InvalidArgumentException(
-                "Unsupported format: {$format}. Supported formats: " .
+                "Unsupported format: {$format}. Supported formats: ".
                 implode(', ', $this->allowedFormats)
             );
         }
@@ -330,10 +329,10 @@ class LibreOffice
     public function getVersion(): string
     {
         $result = Process::timeout(30)->run([
-            $this->libreOfficePath, '--headless', '--version'
+            $this->libreOfficePath, '--headless', '--version',
         ]);
 
-        if (!$result->successful()) {
+        if (! $result->successful()) {
             throw new RuntimeException("Could not get LibreOffice version: {$result->errorOutput()}");
         }
 
@@ -345,7 +344,7 @@ class LibreOffice
      */
     public function cleanup(): void
     {
-        $tempFiles = File::glob($this->tempDir . '/libreoffice_*');
+        $tempFiles = File::glob($this->tempDir.'/libreoffice_*');
 
         foreach ($tempFiles as $file) {
             try {
@@ -353,7 +352,7 @@ class LibreOffice
             } catch (\Exception $e) {
                 Log::warning('Could not delete temporary file', [
                     'file' => $file,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -361,6 +360,6 @@ class LibreOffice
 
     public static function make(): self
     {
-        return new self();
+        return new self;
     }
 }

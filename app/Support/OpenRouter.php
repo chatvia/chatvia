@@ -29,7 +29,7 @@ class OpenRouter
     }
 
     /**
-     * @param array<Chunk> $chunks
+     * @param  array<Chunk>  $chunks
      */
     public function bulkEnhance(Collection $chunks): Collection
     {
@@ -44,7 +44,7 @@ class OpenRouter
                         'messages' => [
                             [
                                 'role' => 'system',
-                                'content' => config('prompts.enhance')
+                                'content' => config('prompts.enhance'),
                             ],
                             [
                                 'role' => 'user',
@@ -57,13 +57,14 @@ class OpenRouter
 
         return collect($chunks)->map(function (Chunk $chunk) use ($responses) {
             $chunk->enhanced_content = $responses[$chunk->chunk_id]->json('choices.0.message.content');
+
             return $chunk;
         });
     }
 
     public function pdf(string $contents)
     {
-        $dataUrl = "data:application/pdf;base64,".base64_encode($contents);
+        $dataUrl = 'data:application/pdf;base64,'.base64_encode($contents);
 
         return $this->completion([
             'model' => 'google/gemma-3-27b-it',
@@ -80,8 +81,8 @@ class OpenRouter
                             'file' => [
                                 'name' => 'document.pdf',
                                 'file' => $dataUrl,
-                            ]
-                        ]
+                            ],
+                        ],
                     ],
                 ],
             ],
@@ -103,12 +104,12 @@ class OpenRouter
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => config('prompts.enhance_function')
+                    'content' => config('prompts.enhance_function'),
                 ],
                 [
                     'role' => 'user',
-                    'content' => $content
-                ]
+                    'content' => $content,
+                ],
             ],
             'tools' => [
                 [
@@ -127,41 +128,42 @@ class OpenRouter
                                         'properties' => [
                                             'original_chunk' => [
                                                 'type' => 'string',
-                                                'description' => 'The content of the original chunk'
+                                                'description' => 'The content of the original chunk',
                                             ],
                                             'enhanced_chunk' => [
                                                 'type' => 'string',
-                                                'description' => 'The content of the enhanced chunk'
+                                                'description' => 'The content of the enhanced chunk',
                                             ],
                                             'pages' => [
                                                 'type' => 'array',
                                                 'description' => 'Array of page numbers this chunk belongs to',
                                                 'items' => [
-                                                    'type' => 'integer'
-                                                ]
-                                            ]
+                                                    'type' => 'integer',
+                                                ],
+                                            ],
                                         ],
-                                        'required' => ['chunk', 'pages']
-                                    ]
-                                ]
+                                        'required' => ['chunk', 'pages'],
+                                    ],
+                                ],
                             ],
-                            'required' => ['chunks']
-                        ]
-                    ]
-                ]
+                            'required' => ['chunks'],
+                        ],
+                    ],
+                ],
             ],
             'tool_choice' => [
                 'type' => 'function',
                 'function' => [
-                    'name' => 'create_chunks'
-                ]
-            ]
+                    'name' => 'create_chunks',
+                ],
+            ],
         ]);
 
         $toolCall = $response->json('choices.0.message.tool_calls.0');
 
         if ($toolCall && $toolCall['function']['name'] === 'create_chunks') {
             $arguments = json_decode($toolCall['function']['arguments'], true);
+
             return $arguments['chunks'] ?? [];
         }
 

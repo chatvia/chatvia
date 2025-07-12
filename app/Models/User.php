@@ -131,6 +131,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function remainingPages(): Attribute
     {
-        return Attribute::get(fn() => $this->quote->pages_limit - $this->quote->pages_used);
+        return Attribute::get(fn () => $this->quote->pages_limit - $this->quote->pages_used);
     }
 }

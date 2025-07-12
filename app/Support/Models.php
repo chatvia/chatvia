@@ -9,7 +9,7 @@ class Models
         return collect(config('llms'));
     }
 
-    public function getModelByExternalId(string $modelExternalId, string $key = null)
+    public function getModelByExternalId(string $modelExternalId, ?string $key = null)
     {
         $models = collect(config('llms'))
             ->where('external_id', $modelExternalId)

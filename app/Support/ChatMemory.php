@@ -2,9 +2,11 @@
 
 namespace App\Support;
 
+use App\Data\Chat\ChatInputPayload;
+use App\Data\Chat\ChatOutputPayload;
+use App\Models\Message;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
 class ChatMemory
@@ -13,9 +15,27 @@ class ChatMemory
 
     private const CONVERSATION_PREFIX = 'conversation';
 
-    public function updateMessage(string $conversationId, string $userMessageId, string $content): void
+    private string $conversationId = "";
+
+    private \App\Models\Agent $agent;
+
+    public function setConversationId($conversationId): self
     {
-        $messages = $this->getMessagesForConversation($conversationId);
+        $this->conversationId = $conversationId;
+
+        return $this;
+    }
+
+    public function setAgent(\App\Models\Agent $agent): self
+    {
+        $this->agent = $agent;
+
+        return $this;
+    }
+
+    public function updateMessage(string $userMessageId, string $content): void
+    {
+        $messages = $this->getMessagesForConversation($this->conversationId);
 
         foreach ($messages as &$message) {
             if ($message['id'] === $userMessageId) {
@@ -24,7 +44,7 @@ class ChatMemory
         }
 
         Cache::put(
-            key: $this->getConversationsKey($conversationId),
+            key: $this->getConversationsKey($this->conversationId),
             value: $messages,
             ttl: now()->addMinutes(15)
         );
@@ -100,18 +120,47 @@ class ChatMemory
         return $conversationId;
     }
 
-    public function addUserMessage(string $conversationId, string $message, string $llmMessage, string $model): string
+    public function addMessageViaPayload(ChatInputPayload|ChatOutputPayload $payload): string
     {
-        return $this->addMessage(
-            conversationId: $conversationId,
-            role: 'user',
-            message: $message,
-            model: $model,
-            append: ['llm_message' => $llmMessage],
+        $isInputMessage = $payload instanceof ChatInputPayload;
+
+        $append = [];
+
+        if ($isInputMessage) {
+            $append[] = [
+                'message_for_llm' => $payload->message_for_llm,
+            ];
+        }
+
+        $role = $isInputMessage ? 'user' : 'assistant';
+
+        $messageId = $this->addMessage(
+            role: $role,
+            message: $payload->message,
+            model: $payload->model,
+            append: $append,
         );
+
+        // Persist it
+        \Illuminate\Support\defer(function() use ($payload, $messageId, $isInputMessage, $role) {
+            Message::create([
+                'id' => $messageId,
+                'conversation_id' => $this->conversationId,
+                'agent_id' => $this->agent->id,
+                'member_id' => $isInputMessage ? $payload->member_id : null,
+                'content' => $payload->message,
+                'role' => $role,
+                'model' => $payload->model,
+                'response_time_ms' => $payload?->response_time_ms ?? 0,
+                'generation_id' => $payload?->generation_id ?? null,
+                'token_count' => $payload?->token_count ?? 0,
+            ]);
+        });
+
+        return $messageId;
     }
 
-    public function addMessage(string $conversationId, string $role, string $message, ?string $model = null, string $type = 'text', array $append = []): string
+    public function addMessage(string $role, string $message, ?string $model = null, string $type = 'text', array $append = []): string
     {
         $messageId = Str::uuid()->toString();
 
@@ -127,14 +176,14 @@ class ChatMemory
             $formattedMessage['model'] = $model;
         }
 
-        $this->saveMessage($conversationId, array_merge($formattedMessage, $append));
+        $this->saveMessage(array_merge($formattedMessage, $append));
 
         return $messageId;
     }
 
-    private function saveMessage($conversationId, array $message): void
+    private function saveMessage(array $message): void
     {
-        $cacheId = $this->getConversationsKey($conversationId);
+        $cacheId = $this->getConversationsKey();
 
         $messages = Cache::get($cacheId, []);
         $messages[] = $message;
@@ -144,30 +193,40 @@ class ChatMemory
 
     public function addFeedback() {}
 
-    public function conversationExist($conversationId): bool
+    public function conversationExist(): bool
     {
-        $cacheId = $this->getConversationsKey($conversationId);
+        $cacheId = $this->getConversationsKey($this->conversationId);
 
         return Cache::has($cacheId);
     }
 
-    private function getConversationsKey($conversationId): string
+    private function getConversationsKey(): string
     {
         $chatSession = $this->getOrGenerateSession();
 
-        return $chatSession.'.conversations.'.$conversationId;
+        return $chatSession.'.conversations.'.$this->conversationId;
     }
 
-    public function getMessagesForConversation(string $conversationId)
+    public function getMessagesForConversation(bool $includeLlmMessages = false): array
     {
-        $cacheId = $this->getConversationsKey($conversationId);
+        $cacheId = $this->getConversationsKey();
 
-        return Cache::get($cacheId, []);
+        $messages = collect(Cache::get($cacheId, []))->toArray();
+
+        if ($includeLlmMessages) {
+            return $messages;
+        }
+
+
+        return $messages->map(function (array $message) {
+            unset($message['message_for_llm']);
+            return $message;
+        })->toArray();
     }
 
-    public function getLlmMessages(string $conversationId): array
+    public function getLlmMessages(bool $asText = false): array|string
     {
-        $cacheId = $this->getConversationsKey($conversationId);
+        $cacheId = $this->getConversationsKey();
 
         $messages = Cache::get($cacheId, []);
 
@@ -175,12 +234,19 @@ class ChatMemory
             return [];
         }
 
-        return collect($messages)->map(function ($message) {
+        // message_for_llm is the message that LLM will receive, it might contain some LLM-specific details (rag responses)
+        $messages = collect($messages)->map(function ($message) {
             return [
                 'role' => $message['role'],
-                'content' => $message['llm_message'] ?? $message['content'],
+                'content' => $message['message_for_llm'] ?? $message['content'],
             ];
         })->toArray();
+
+        if ($asText) {
+            return collect($messages)->pluck('content')->join("\n");
+        }
+
+        return $messages;
     }
 
     public function getConversationsForCurrentSession(bool $onlyVisible = false, $orderByDate = false): array
@@ -218,12 +284,12 @@ class ChatMemory
         return Auth::check();
     }
 
-    public function updateConversationTitle(string $conversationId, string $title): void
+    public function updateConversationTitle(string $title): void
     {
         $conversations = $this->getConversationsForCurrentSession();
 
         foreach ($conversations as &$conversation) {
-            if ($conversation['id'] === $conversationId) {
+            if ($conversation['id'] === $this->conversationId) {
                 $conversation['title'] = Str::of($title)->replace('"', '')->toString();
                 $conversation['visible'] = true;
             }
@@ -234,9 +300,9 @@ class ChatMemory
         Cache::forever($chatSession, ['conversations' => $conversations]);
     }
 
-    public function updateConversationTitleFromMessages(string $conversationId, array $messages): void
+    public function updateConversationTitleFromMessages(): void
     {
-        $messages = collect($messages)->pluck('content')->implode(', ');
+        $messages = $this->getLlmMessages(asText: true);
 
         $newTitle = OpenRouter::completion([
             'model' => 'openai/gpt-4o-mini',
@@ -257,18 +323,18 @@ class ChatMemory
             ],
         ])->json('choices.0.message.content');
 
-        $this->updateConversationTitle($conversationId, $newTitle);
+        $this->updateConversationTitle($newTitle);
     }
 
-    public function deleteConversation(string $conversationId): void
+    public function deleteConversation(): void
     {
-        $cacheId = $this->getConversationsKey($conversationId);
+        $cacheId = $this->getConversationsKey();
         Cache::forget($cacheId);
 
         $conversations = $this->getConversationsForCurrentSession();
 
         foreach ($conversations as $key => $conversation) {
-            if ($conversation['id'] === $conversationId) {
+            if ($conversation['id'] === $this->conversationId) {
                 unset($conversations[$key]);
             }
         }
@@ -277,9 +343,9 @@ class ChatMemory
         Cache::forever($chatSession, ['conversations' => $conversations]);
     }
 
-    public function removeMessage($conversationId, $messageId): void
+    public function removeMessage($messageId): void
     {
-        $messages = $this->getMessagesForConversation($conversationId);
+        $messages = $this->getMessagesForConversation($this->conversationId);
 
         foreach ($messages as $key => $message) {
             if ($message['id'] === $messageId) {
@@ -287,13 +353,15 @@ class ChatMemory
             }
         }
 
-        $cacheId = $this->getConversationsKey($conversationId);
+        $cacheId = $this->getConversationsKey();
 
         Cache::put($cacheId, array_values($messages), now()->addMinutes(15));
     }
 
-    private function redis()
+    public function getLastMessageForLlm()
     {
-        return Redis::client();
+        $llmMessages = $this->getLlmMessages();
+
+        return $llmMessages[array_key_last($llmMessages)] ?? null;
     }
 }

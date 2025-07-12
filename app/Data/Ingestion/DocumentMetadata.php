@@ -2,7 +2,4 @@
 
 namespace App\Data\Ingestion;
 
-class DocumentMetadata
-{
-
-}
+class DocumentMetadata {}

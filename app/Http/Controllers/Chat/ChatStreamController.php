@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Chat;
 
+use App\Data\Chat\ChatInputPayload;
+use App\Data\Chat\ChatOutputPayload;
 use App\Models\Agent;
+use App\Rules\ModelRule;
 use App\Support\ChatMemory;
+use App\Support\KnowledgeBase;
 use App\Support\Models;
-use App\Support\Rag;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -17,67 +20,88 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ChatStreamController
 {
+    private Agent $agent;
+
+    private ChatInputPayload $payload;
+
     private bool $isClientConnected = true;
 
-    private string $receivedMessage = '';
+    private string $streamedMessage = '';
 
-    public function __construct(private readonly Client $httpClient, private readonly ChatMemory $memory) {}
+    private array $llmMessages = [];
+
+    private array $llmModel = [];
+
+    private ?string $userMessageId;
+
+    private float $startTime;
+
+    private ?string $generationId = null;
+
+    private ?int $tokenCount = 0;
+
+    public function __construct(
+        private readonly Client        $httpClient,
+        private readonly ChatMemory    $memory,
+        private readonly KnowledgeBase $knowledgeBase) {}
 
     public function __invoke(Request $request, Models $models, string $conversationId)
     {
-        $payload = $request->json();
-        $llmFormattedMessages = $this->memory->getLlmMessages($conversationId);
+        $request->validate([
+            'model' => ['required','string', new ModelRule],
+            'message' => ['required','string'],
+            'updated_message_info' => ['nullable', 'array'],
+        ]);
 
-        $agent = \App\Support\Agent::resolveAgentFromSubdomain($request->subdomain());
+        $agent = current_agent();
 
-        $modelExternalId = $payload->get('model');
-        $modelId = $models->getModelByExternalId($modelExternalId, 'id');
+        abort_if(boolean: ! $agent, code: 404);
 
-        $userMessageId = null;
+        $this->agent = $agent;
 
-        if (count($llmFormattedMessages) > 1) {
-            $userMessageId = $this->addUserMessageIfNeeded($agent, $conversationId, $payload);
+        $this->memory
+            ->setConversationId($conversationId)
+            ->setAgent($agent);
+
+        $this->payload = ChatInputPayload::fromRequest($request);
+
+        $this->llmMessages = $this->memory->getLlmMessages();
+
+        $this->llmModel = $models->getModelByExternalId($this->payload->model);
+
+        $this->userMessageId = null;
+
+        // Do not add a new message if the total number of messages is greater than 1
+        // Because when we create a conversation, a new message will be added automatically.
+        if (count($this->llmMessages) > 1) {
+            $this->userMessageId = $this->memory->addMessageViaPayload($this->payload);
         }
 
-        return $this->createStreamResponse($userMessageId, $payload, $llmFormattedMessages, $conversationId, $modelId, $modelExternalId);
+        $this->startTime = microtime(true);
+
+        return $this->createStreamResponse();
     }
 
-    private function addUserMessageIfNeeded($agent, string $conversationId, $payload): ?string
-    {
-        return $this->memory->addUserMessage(
-            conversationId: $conversationId,
-            message: $payload->get('content'),
-            llmMessage: app(Rag::class)->makeLlmMessageFromUserMessage($agent, $payload->get('content')),
-            model: $payload->get('model'),
-        );
-    }
 
-    private function createStreamResponse($userMessageId, $payload, array $messages, string $conversationId, string $modelId, string $modelExternalId): StreamedResponse
+    private function createStreamResponse(): StreamedResponse
     {
-        return new StreamedResponse(function () use ($userMessageId, $payload, $messages, $conversationId, $modelId, $modelExternalId) {
+        return new StreamedResponse(function ()  {
             $this->setupStreamHeaders();
 
             // Set up client cancellation detection
             ignore_user_abort(false);
 
             try {
-                $llmMessages = $this->prepareLlmMessages($messages, $payload);
-                $response = $this->makeOpenRouterRequest($modelId, $llmMessages);
-
+                $llmMessages = $this->prepareLlmMessages($this->llmMessages);
+                $response = $this->makeOpenRouterRequest($llmMessages);
                 $this->processStreamResponse(
                     $response,
-                    $messages,
-                    $conversationId,
-                    $modelExternalId
                 );
 
-                $this->handleCompletedResponse(
-                    $conversationId,
-                    $userMessageId
-                );
+                $this->handleCompletedResponse();
 
             } catch (RequestException $e) {
-                $this->handleRequestException($e, $modelExternalId, $conversationId, $userMessageId);
+                $this->handleRequestException($e);
             }
         }, 200, $this->getResponseHeaders());
     }
@@ -91,7 +115,6 @@ class ChatStreamController
         header('Connection: keep-alive');
         header('X-Accel-Buffering: no');
 
-        //        echo ': ' . str_repeat(' ', 2048) . "\n\n";
         flush();
 
         if (ob_get_level()) {
@@ -99,37 +122,39 @@ class ChatStreamController
         }
     }
 
-    private function prepareLlmMessages(array $messages, $payload): array
+    private function prepareLlmMessages(array $messages): array
     {
-        $agent = Agent::query()
-            ->select('sub_domain', 'system_instructions')
-            ->where('sub_domain', request()->subdomain())
-            ->firstOrFail();
+        $agent = $this->agent;
 
         $systemPrompt = [
             'role' => 'system',
             'content' => $agent->system_instructions,
         ];
 
-        $content = $payload->get('content');
+        $userMessageContent = $this->payload->message;
 
-        if ($agent->type == 'knowledge') {
-            $content = Str::of("### User Question:\n")
-                ->append($content)
-                ->append("### Retrieved Context\n")
-                ->append(app(Rag::class)->chunks($agent->id, $content))
-                ->toString();
+        if ($agent->isKnowledgeable()) {
+            $lastMessage = $this->memory->getLastMessageForLlm();
+            $lastMessageContent = $lastMessage['content'] ?? '';
+
+            if ($this->knowledgeBase->shouldContinueSearching($lastMessageContent, $userMessageContent)) {
+                $userMessageContent = Str::of("### User Question:\n")
+                    ->append($this->payload->message_for_llm)
+                    ->append("### Retrieved Context\n")
+                    ->append($this->knowledgeBase->chunks($agent, $userMessageContent))
+                    ->toString();
+            }
         }
 
         $userMessage = [
             'role' => 'user',
-            'content' => $content,
+            'content' => $userMessageContent,
         ];
 
         return array_merge([$systemPrompt], $messages, [$userMessage]);
     }
 
-    private function makeOpenRouterRequest(string $modelId, array $llmMessages): ResponseInterface
+    private function makeOpenRouterRequest(array $llmMessages): ResponseInterface
     {
         return $this->httpClient->post(config('services.openrouter.completion_endpoint'), [
             'headers' => [
@@ -137,7 +162,7 @@ class ChatStreamController
                 'Content-Type' => 'application/json',
             ],
             'json' => [
-                'model' => $modelId,
+                'model' => $this->llmModel['id'],
                 'messages' => $llmMessages,
                 'stream' => true,
             ],
@@ -148,7 +173,7 @@ class ChatStreamController
         ]);
     }
 
-    private function processStreamResponse($response, array &$messages, string $conversationId, string $modelExternalId): void
+    private function processStreamResponse($response): void
     {
         $buffer = '';
         $body = $response->getBody();
@@ -175,12 +200,14 @@ class ChatStreamController
 
                 // Lines starting with "data: " contain the event data
                 if (str_starts_with($line, 'data: ')) {
-                    $this->processDataLine(
+                    $dataLine = $this->processDataLine(
                         substr($line, 6), // Remove "data: " prefix
-                        $messages,
-                        $conversationId,
-                        $modelExternalId
                     );
+
+                    if (is_array($dataLine) && is_null($this->generationId)) {
+                        $this->generationId = $dataLine['id'] ?? null;
+                        $this->tokenCount = $dataLine['usage']['total_tokens'] ?? 0;
+                    }
                 }
             }
         }
@@ -188,12 +215,11 @@ class ChatStreamController
         flush();
     }
 
-    private function processDataLine(string $data, array &$messages, string $conversationId, string $modelExternalId): void
+    private function processDataLine(string $data)
     {
         // Check for the [DONE] message
         if ($data === '[DONE]') {
-            $this->handleDoneMessage($messages, $conversationId, $modelExternalId);
-
+            $this->handleDoneMessage();
             return;
         }
 
@@ -203,22 +229,27 @@ class ChatStreamController
 
             if (isset($json['choices'][0]['delta']['content'])) {
                 $content = $json['choices'][0]['delta']['content'];
-                $this->receivedMessage .= $content;
+                $this->streamedMessage .= $content;
+
                 echo 'data: '.json_encode(['content' => $content], JSON_THROW_ON_ERROR)."\n\n";
+
                 flush();
             }
+
+            return $json;
+
         } catch (Exception $e) {
             Log::error('Error processing SSE chunk: '.$e->getMessage());
         }
     }
 
-    private function handleDoneMessage(array &$messages, string $conversationId, string $modelExternalId): void
+    private function handleDoneMessage(): void
     {
         if ($this->isClientConnected) {
-            $this->saveAssistantMessage($messages, $conversationId, $modelExternalId);
+            $this->saveAssistantMessage();
 
-            if (count($messages) === 2) {
-                $this->memory->updateConversationTitleFromMessages($conversationId, $messages);
+            if (count($this->llmMessages) === 2) {
+                $this->memory->updateConversationTitleFromMessages();
             }
         }
 
@@ -226,40 +257,47 @@ class ChatStreamController
         flush();
     }
 
-    private function handleCompletedResponse(string $conversationId, ?string $userMessageId): void
+    private function handleCompletedResponse(): void
     {
-        if (! $this->isClientConnected && $userMessageId) {
-            $this->memory->removeMessage($conversationId, $userMessageId);
+        if (! $this->isClientConnected && $this->userMessageId) {
+            // Remove the user message if the client has disconnected
+            // We shouldn't save empty responses in the conversation
+            $this->memory->removeMessage($this->userMessageId);
         }
     }
 
-    private function saveAssistantMessage(array &$messages, string $conversationId, string $modelExternalId): void
+    private function saveAssistantMessage(): void
     {
-        $messages[] = [
+        $endTime = microtime(true);
+
+        $this->llmMessages[] = [
             'role' => 'assistant',
-            'content' => $this->receivedMessage,
+            'content' => $this->streamedMessage,
         ];
 
-        $this->memory->addMessage(
-            conversationId: $conversationId,
-            role: 'assistant',
-            message: $this->receivedMessage,
-            model: $modelExternalId
+        $this->memory->addMessageViaPayload(
+            new ChatOutputPayload(
+                role: 'assistant',
+                message: $this->streamedMessage,
+                model: $this->llmModel['external_id'],
+                generation_id: $this->generationId,
+                token_count: $this->tokenCount,
+                response_time_ms: (int) round(($endTime - $this->startTime) * 1000),
+            )
         );
     }
 
-    private function handleRequestException(RequestException $e, string $modelExternalId, string $conversationId, ?string $userMessageId): void
+    private function handleRequestException(RequestException $e): void
     {
-        echo 'data: '.json_encode(['content' => 'Error: Could not connect to '.$modelExternalId.' model. Please choose a different model'], JSON_THROW_ON_ERROR)."\n\n";
+        echo 'data: '.json_encode(['content' => 'Error: Could not connect to '.$this->llmModel['external_id'].' model. Please choose a different model'], JSON_THROW_ON_ERROR)."\n\n";
         echo "data: {\"content\":\"[DONE]\"}\n\n";
 
-        if ($userMessageId) {
-            $this->memory->removeMessage($conversationId, $userMessageId);
+        if ($this->userMessageId) {
+            $this->memory->removeMessage($this->userMessageId);
         }
 
         flush();
     }
-
 
     private function getResponseHeaders(): array
     {

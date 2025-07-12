@@ -21,7 +21,7 @@ class AgentFileObserver
         //
     }
 
-   public function restored(AgentFile $agentFile): void
+    public function restored(AgentFile $agentFile): void
     {
         //
     }

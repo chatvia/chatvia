@@ -10,17 +10,15 @@ use Spatie\LaravelData\Data;
 class KnowledgeFileData extends Data
 {
     public function __construct(
-        public int      $id,
-        public string   $name,
-        public int      $size_in_kb,
-        public string   $mime_type,
-        public string   $status,
-        public int      $number_of_pages,
-        public int      $ingestion_progress,
+        public int $id,
+        public string $name,
+        public int $size_in_kb,
+        public string $mime_type,
+        public string $status,
+        public int $number_of_pages,
+        public int $ingestion_progress,
         public DateTime $created_at
-    )
-    {
-    }
+    ) {}
 
     public static function fromFile(AgentFile $file): self
     {

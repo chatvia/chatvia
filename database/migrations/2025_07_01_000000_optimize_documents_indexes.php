@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -29,12 +28,12 @@ return new class extends Migration
 
         DB::statement('CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 200)');
 
-        DB::statement("
+        DB::statement('
         CREATE INDEX documents_embedding_bit_hamming_idx
         ON documents
         USING hnsw ((binary_quantize(embedding)::bit(1536)) bit_hamming_ops)
         WITH (m = 16, ef_construction = 200)
-        ");
+        ');
     }
 
     public function down(): void

@@ -14,7 +14,7 @@ class ResolveAgentFromSubdomain
         if ($subdomain) {
             $agent = \App\Support\Agent::resolveAgentFromSubdomain($request->subdomain());
 
-            abort_if(boolean: !$agent, code: 404);
+            abort_if(boolean: ! $agent, code: 404);
         }
 
         $request->merge(['agent' => $subdomain]);

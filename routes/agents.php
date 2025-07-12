@@ -13,7 +13,6 @@ use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFileDeleteController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFilesController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFilesProcessController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFileUploadController;
-use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeUploadController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeUploadedFilesDeleteController;
 use App\Http\Controllers\Agents\Settings\AgentShowSettingsController;
 use App\Http\Controllers\Agents\Settings\AgentUpdateSettingsController;
@@ -42,7 +41,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Knowledge
         Route::get('knowledge', AgentKnowledgeController::class)->name('knowledge');
-        Route::post('knowledge/upload', AgentKnowledgeUploadController::class)->name('knowledge.upload');
         Route::get('knowledge/files', AgentKnowledgeFilesController::class)->name('knowledge.files');
         Route::post('knowledge/files/upload', AgentKnowledgeFileUploadController::class)->name('knowledge.files.upload');
         Route::delete('knowledge/files/{file}', AgentKnowledgeFileDeleteController::class)->name('knowledge.files.delete');

@@ -16,7 +16,6 @@ class AgentKnowledgeFilesProcessController
             $agentFile->update([
                 'status' => 'processing',
                 'external_ingestion_job_id' => $response['job_id'],
-                'chunks' => $response['chunks'],
             ]);
         });
     }

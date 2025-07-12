@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Agent;
-use App\Models\Language;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,6 +12,7 @@ return new class extends Migration
         Schema::create('agent_files', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
+            $table->string('language_code')->nullable();
             $table->string('name');
             $table->string('path')->unique();
             $table->decimal('size_in_kb');
@@ -23,7 +23,8 @@ return new class extends Migration
             $table->unsignedInteger('minutes')->default(0);
             $table->enum('status', ['uploaded', 'pending', 'processing', 'failed', 'completed'])->default('pending')->index();
             $table->string('external_ingestion_job_id')->unique()->nullable();
-            $table->string('failure_reason')->nullable();
+            $table->string('document_type')->nullable();
+            $table->json('metadata')->nullable();
             $table->timestamps();
 
             $table->unique(['agent_id', 'md5_hash']);

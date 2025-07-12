@@ -18,13 +18,13 @@ class Cohere
                 'model' => 'embed-v4.0',
                 'texts' => [$text],
                 'input_type' => 'search_document',
-                'embedding_types' => ['float']
+                'embedding_types' => ['float'],
             ])->json('embeddings.float.0');
     }
 
-    private function endpoint(string $append = null): string
+    private function endpoint(?string $append = null): string
     {
-        return rtrim(config('services.cohere.api_endpoint'), "/").$append;
+        return rtrim(config('services.cohere.api_endpoint'), '/').$append;
     }
 
     public function bulkEmbed(Collection $chunks): Collection
@@ -40,7 +40,7 @@ class Cohere
                         'model' => 'embed-v4.0',
                         'texts' => [$chunk->original_content],
                         'input_type' => 'search_document',
-                        'embedding_types' => ['float']
+                        'embedding_types' => ['float'],
                     ]);
             }
         });
@@ -53,7 +53,7 @@ class Cohere
             if ($response->ok()) {
                 $chunk->embedding = $response->json('embeddings.float.0');
             } else {
-                throw new Exception("Failed to get embedding for chunk {$chunk->chunk_id}: " .
+                throw new Exception("Failed to get embedding for chunk {$chunk->chunk_id}: ".
                     ($response instanceof Exception ? $response->getMessage() : 'Unknown error'));
             }
 

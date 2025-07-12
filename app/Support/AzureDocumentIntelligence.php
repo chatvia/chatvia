@@ -4,12 +4,12 @@ namespace App\Support;
 
 use App\Models\AgentFile;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Http\Client\Response;
 use RuntimeException;
 
 class AzureDocumentIntelligence
 {
     private string $endpoint;
+
     private string $apiKey;
 
     public function __construct()
@@ -28,20 +28,20 @@ class AzureDocumentIntelligence
             'api-version' => '2024-11-30',
         ], $options);
 
-        $endpoint = $url . '?' . http_build_query($queryParams);
+        $endpoint = $url.'?'.http_build_query($queryParams);
 
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $this->apiKey,
             'Content-Type' => 'application/json',
         ])
-        ->timeout(600)
-        ->post($endpoint, [
-            'urlSource' => $documentUrl,
-        ]);
+            ->timeout(600)
+            ->post($endpoint, [
+                'urlSource' => $documentUrl,
+            ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new RuntimeException(
-                "Azure Document Intelligence API error: " . $response->status() . " - " . $response->body()
+                'Azure Document Intelligence API error: '.$response->status().' - '.$response->body()
             );
         }
 

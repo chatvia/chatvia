@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Chat\ChatController;
 use App\Http\Controllers\Chat\ChatHomeController;
+use App\Http\Controllers\Chat\ChatShowLoginController;
 use App\Http\Controllers\Chat\ChatStartersController;
 use App\Http\Controllers\Chat\ChatStreamController;
 use App\Http\Controllers\Chat\Conversations\ConversationCreateController;
@@ -9,7 +10,6 @@ use App\Http\Controllers\Chat\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Chat\Conversations\ConversationMessagesController;
 use App\Http\Controllers\Chat\Conversations\ConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
-use App\Http\Controllers\Chat\ChatShowLoginController;
 use App\Http\Controllers\ListModelsController;
 
 Route::prefix('/chat')

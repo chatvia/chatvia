@@ -7,13 +7,15 @@ use Exception;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
-use RuntimeException;
 use InvalidArgumentException;
+use RuntimeException;
 
 final class PdfInfo
 {
     private string $pdfInfoPath;
+
     private string $tempDir;
+
     private int $timeout;
 
     public function __construct()
@@ -67,12 +69,12 @@ final class PdfInfo
 
         Log::info('PDFInfo extraction started', [
             'input' => $pdfPath,
-            'command' => $command
+            'command' => $command,
         ]);
 
         $result = Process::timeout($this->timeout)->run($command);
 
-        if (!$result->successful()) {
+        if (! $result->successful()) {
             throw new RuntimeException(
                 "PDFInfo extraction failed: {$result->errorOutput()}"
             );
@@ -89,6 +91,7 @@ final class PdfInfo
     public function hasForm(string $pdfPath): bool
     {
         $data = $this->getInfo($pdfPath);
+
         return $data->form !== 'none';
     }
 
@@ -102,7 +105,7 @@ final class PdfInfo
             } catch (Exception $e) {
                 Log::error('Batch PDF info extraction failed for file', [
                     'file' => $pdfPath,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
                 $results[$pdfPath] = null;
             }
@@ -114,22 +117,21 @@ final class PdfInfo
     private function validateInstallation(): void
     {
         $result = Process::timeout(30)->run([
-            $this->pdfInfoPath, '-v'
+            $this->pdfInfoPath, '-v',
         ]);
 
-
-        if (!$result->successful()) {
+        if (! $result->successful()) {
             throw new RuntimeException("PDFInfo test run failed: {$result->errorOutput()}");
         }
     }
 
     private function validatePdfFile(string $path): void
     {
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             throw new InvalidArgumentException("PDF file does not exist: {$path}");
         }
 
-        if (!File::isReadable($path)) {
+        if (! File::isReadable($path)) {
             throw new InvalidArgumentException("PDF file is not readable: {$path}");
         }
 
@@ -175,7 +177,7 @@ final class PdfInfo
 
     private function parseDate(?string $date): ?string
     {
-        if (!$date) {
+        if (! $date) {
             return null;
         }
 
@@ -193,6 +195,6 @@ final class PdfInfo
 
     public static function make(): self
     {
-        return new self();
+        return new self;
     }
 }

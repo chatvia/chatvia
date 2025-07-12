@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 
 class ConversationsController
 {
-    public function __invoke(Request $request, ChatMemory $conversations)
+    public function __invoke(Request $request, ChatMemory $memory)
     {
-        return $conversations->getConversationsForCurrentSession(
+        return $memory->getConversationsForCurrentSession(
             onlyVisible: true,
             orderByDate: true,
         );

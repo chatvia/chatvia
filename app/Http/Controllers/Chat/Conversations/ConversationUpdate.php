@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 
 class ConversationUpdate
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $conversations)
+    public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
     {
-        $conversations->updateConversationTitle($conversationId, $request->input('title'));
+        $memory->setConversationId($conversationId)->updateConversationTitle($request->input('title'));
     }
 }

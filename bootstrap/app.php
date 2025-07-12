@@ -33,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/chat/*',
             '/webhooks/*',
             '/stripe/*',
-            '/ingestion/*'
+            '/ingestion/*',
         ]);
 
         $middleware->trustProxies([

@@ -23,10 +23,7 @@ class AgentObserver
         AgentHelper::cacheAgentName($agent->sub_domain);
     }
 
-    public function deleted(Agent $agent): void
-    {
-
-    }
+    public function deleted(Agent $agent): void {}
 
     /**
      * Handle the Agent "restored" event.

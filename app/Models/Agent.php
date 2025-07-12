@@ -4,14 +4,9 @@ namespace App\Models;
 
 use App\Enums\AgentFileStatusEnum;
 use App\Observers\AgentObserver;
-use App\Support\AzureDocumentIntelligence;
-use App\Support\Ingestion;
-use App\Support\Rag;
 use App\Traits\HasSettings;
 use Exception;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -65,7 +60,6 @@ class Agent extends Model
     {
         return $this->hasMany(AgentFile::class);
     }
-
 
     public function starters(): HasMany
     {

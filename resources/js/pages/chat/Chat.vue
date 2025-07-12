@@ -246,7 +246,7 @@ function scrollWhileStreaming() {
     }
 }
 
-function startSseStreaming(msg, modelId, message = {}, isNewConversation = false) {
+function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConversation = false) {
     messages.value.push({
         role: 'assistant',
         content: '',
@@ -257,8 +257,8 @@ function startSseStreaming(msg, modelId, message = {}, isNewConversation = false
         route('chat.stream', { conversationId: props.conversation_id }),
         JSON.stringify({
             model: modelId,
-            content: msg,
             message: message,
+            updated_message_info: updatedMessageInfo,
         }),
         {
             onMessage: (content) => {
@@ -310,6 +310,7 @@ const messageUpdated = (messageId, messageContent) => {
             userHasScrolledUp.value = false;
             isAutoScrollEnabled.value = true;
 
+            // updatedMessageInfo for edited message
             startSseStreaming(currentMessage.content, selectedModel.value.external_id, {
                 userMessageId: currentMessage.id,
                 assistantMessageId: messages.value[currentMessageIndex + 1].id,

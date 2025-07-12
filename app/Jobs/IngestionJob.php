@@ -6,8 +6,8 @@ use App\Data\Chunk;
 use App\Models\AgentFile;
 use App\Models\Document;
 use App\Support\AzureDocumentIntelligence;
-use App\Support\Cohere;
 use App\Support\AzureMarkdownSplitter;
+use App\Support\Cohere;
 use App\Support\OpenRouter;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,7 +15,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
-class IngestionJob implements ShouldQueue, ShouldBeUnique
+class IngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
@@ -23,15 +23,11 @@ class IngestionJob implements ShouldQueue, ShouldBeUnique
 
     public $timeout = 1800;
 
-    public function __construct(public AgentFile $agentFile)
-    {
-
-    }
+    public function __construct(public AgentFile $agentFile) {}
 
     public function handle(
         AzureDocumentIntelligence $azureDocumentIntelligence,
-    ): void
-    {
+    ): void {
         $startTime = microtime(true);
 
         $operationLocation = $this->agentFile->azure_operation_location;
@@ -40,7 +36,7 @@ class IngestionJob implements ShouldQueue, ShouldBeUnique
             'internal_job_id' => $jobId ?: null,
         ];
 
-        if (!$operationLocation) {
+        if (! $operationLocation) {
             $operationLocation = $azureDocumentIntelligence->analyzeDocument($this->agentFile->tempUrl());
             $updateValues['azure_operation_location'] = $operationLocation;
         }
@@ -75,42 +71,41 @@ class IngestionJob implements ShouldQueue, ShouldBeUnique
             }
 
             if (isset($result['status']) && $result['status'] === 'failed') {
-                throw new \Exception("Azure Document Intelligence processing failed: " . json_encode($result));
+                throw new \Exception('Azure Document Intelligence processing failed: '.json_encode($result));
             }
 
             sleep(5);
         }
 
-        $jsonDocCacheId = 'json_doc'. $this->agentFile->id;
+        $jsonDocCacheId = 'json_doc'.$this->agentFile->id;
 
-//        $jsonDoc = Cache::get($jsonDocCacheId);
+        //        $jsonDoc = Cache::get($jsonDocCacheId);
 
         $this->ingest($content);
 
         //        if (!$jsonDoc) {
-//        }
+        //        }
 
-//        $filePath = storage_path('tmp/'.$jsonDocCacheId.'.json');
-//
-//        if (!file_exists($filePath)) {
-//            file_put_contents(
-//                $filePath, $jsonDoc
-//            );
-//        }
-//
-//        Cache::put($jsonDocCacheId, 'true', now()->addHours(2));
+        //        $filePath = storage_path('tmp/'.$jsonDocCacheId.'.json');
+        //
+        //        if (!file_exists($filePath)) {
+        //            file_put_contents(
+        //                $filePath, $jsonDoc
+        //            );
+        //        }
+        //
+        //        Cache::put($jsonDocCacheId, 'true', now()->addHours(2));
 
-//        DB::statement("COPY public.documents (agent_id, agent_file_id, type, original, enhanced, md5_hash, embedding, metadata) FROM '{$filePath}' CSV QUOTE E'\b' DELIMITER E'\t' NULL AS '' ENCODING 'UTF8'");
+        //        DB::statement("COPY public.documents (agent_id, agent_file_id, type, original, enhanced, md5_hash, embedding, metadata) FROM '{$filePath}' CSV QUOTE E'\b' DELIMITER E'\t' NULL AS '' ENCODING 'UTF8'");
 
-
-//        $this->agentFile->ingest();
-//
-//        $processingTime = round(microtime(true) - $startTime);
-//
-//        $this->agentFile->update([
-//            'status' => 'completed',
-//            'ingested_doc_processing_time_in_sec' => $processingTime,
-//        ]);
+        //        $this->agentFile->ingest();
+        //
+        //        $processingTime = round(microtime(true) - $startTime);
+        //
+        //        $this->agentFile->update([
+        //            'status' => 'completed',
+        //            'ingested_doc_processing_time_in_sec' => $processingTime,
+        //        ]);
     }
 
     private function ingest($content)
@@ -141,7 +136,7 @@ class IngestionJob implements ShouldQueue, ShouldBeUnique
                     'original' => $chunk->original_content,
                     'enhanced' => $chunk->enhanced_content,
                     'md5_hash' => md5($chunk->original_content),
-                    'embedding' => '[' . implode(',', $chunk->embedding) . ']',
+                    'embedding' => '['.implode(',', $chunk->embedding).']',
                     'metadata' => json_encode($chunk->metadata),
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -160,7 +155,7 @@ class IngestionJob implements ShouldQueue, ShouldBeUnique
     public function tags(): array
     {
         return [
-            'agent_file:'. $this->agentFile->id,
+            'agent_file:'.$this->agentFile->id,
         ];
     }
 

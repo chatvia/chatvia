@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agents\Knowledge;
 use App\Models\Agent;
 use App\Support\PdfInfo;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class AgentKnowledgeFileUploadController
 {
@@ -15,7 +14,7 @@ class AgentKnowledgeFileUploadController
             'file' => [
                 'required',
                 'file',
-                'mimes:pdf,doc,docx,txt',
+                'mimes:pdf,doc,docx,txt,md',
             ],
         ]);
 
@@ -48,7 +47,7 @@ class AgentKnowledgeFileUploadController
         abort_if(
             boolean: $info->pages > $user->remaining_pages,
             code: 422,
-            message: 'You don\'t have enough pages to upload this file. You need '. $info->pages.' pages.'
+            message: 'You don\'t have enough pages to upload this file. You need '.$info->pages.' pages.'
         );
 
         $file = $agent->addFile(

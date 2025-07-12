@@ -16,7 +16,7 @@ class ModelRule implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         $allowedModels = app(Models::class)->getAllModelExternalIds();
-        if (!in_array($value, $allowedModels->toArray())) {
+        if (! in_array($value, $allowedModels->toArray())) {
             $fail('The selected model is invalid.');
         }
     }

@@ -2,7 +2,6 @@
 
 namespace App\Data\Ingestion;
 
-
 enum ChunkTypeEnum: string
 {
     case TEXT = 'text';

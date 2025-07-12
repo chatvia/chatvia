@@ -93,7 +93,7 @@ const sendMessage = () => {
     userInput.value = '';
 
     // Reset textarea height
-    if (messageInput.value) {
+    if (messageInput.value && messageInput.value.style) {
         messageInput.value.style.height = 'auto';
     }
 }

@@ -3,15 +3,12 @@
 namespace App\Providers;
 
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Schema\Grammars\PostgresGrammar;
+use Illuminate\Support\ServiceProvider;
 
 class DatabaseServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-
-    }
+    public function register(): void {}
 
     public function boot(): void
     {

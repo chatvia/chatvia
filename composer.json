@@ -18,7 +18,6 @@
         "laravel/horizon": "^5.33",
         "laravel/nightwatch": "^1.7",
         "laravel/octane": "^2.9",
-        "laravel/sail": "^1.43",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "league/commonmark": "^2.7",

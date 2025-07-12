@@ -13,10 +13,7 @@ class ChunkJob implements ShouldQueue
 
     public $timeout = 600;
 
-    public function __construct()
-    {
-
-    }
+    public function __construct() {}
 
     public function handle(): void
     {
@@ -31,10 +28,10 @@ class ChunkJob implements ShouldQueue
 
         dd($d);
 
-//        $content = file_get_contents(public_path('c1.txt'));
-//
-//       $res =  app(OpenRouter::class)->chunkWithPages($content);
-//
-//        file_put_contents(public_path('o.json'), json_encode($res, JSON_PRETTY_PRINT));
+        //        $content = file_get_contents(public_path('c1.txt'));
+        //
+        //       $res =  app(OpenRouter::class)->chunkWithPages($content);
+        //
+        //        file_put_contents(public_path('o.json'), json_encode($res, JSON_PRETTY_PRINT));
     }
 }

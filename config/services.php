@@ -68,4 +68,5 @@ return [
         'endpoint' => env('AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT'),
         'api_key' => env('AZURE_DOCUMENT_INTELLIGENCE_API_KEY'),
     ],
+
 ];

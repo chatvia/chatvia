@@ -2,9 +2,7 @@
 
 namespace App\Providers;
 
-use App\Support\Models;
 use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
 
             preg_match('/([a-z0-9\-]+\.[a-z]{2,})$/i', $host, $matches);
 
-            $host = $matches[1] ?? $host.($this->getPort() === 80 ? '' : ':'. $this->getPort());
+            $host = $matches[1] ?? $host.($this->getPort() === 80 ? '' : ':'.$this->getPort());
 
             return $host;
         });

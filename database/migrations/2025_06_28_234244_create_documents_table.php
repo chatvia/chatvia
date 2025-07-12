@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(AgentFile::class)->constrained()->cascadeOnDelete();
             $table->enum('type', ['text', 'image', 'table']);
+            $table->unsignedInteger('chunk_index');
             $table->text('chunk');
             $table->string('chunked_using_model')->nullable();
             $table->decimal('cost_in_cents', 10, 3)->default(0);
@@ -26,10 +27,10 @@ return new class extends Migration
             $table->string('md5_hash');
             $table->timestamps();
 
-            $table->unique(['agent_file_id','md5_hash']);
+            $table->unique(['agent_file_id', 'md5_hash']);
         });
 
-        DB::statement("CREATE INDEX documents_embedding_bm25 ON documents USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);");
+        DB::statement('CREATE INDEX documents_embedding_bm25 ON documents USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);');
     }
 
     public function down(): void

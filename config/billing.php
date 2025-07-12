@@ -13,7 +13,7 @@ return [
                 'Text, PDF, DOC, MD',
                 '1 instruction-based AI Agent',
                 '1 training-based AI Agent',
-                'Random subdomain'
+                'Random subdomain',
             ],
             'feature_flags' => [
                 'monthly_message_credits' => 100,

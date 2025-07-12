@@ -12,18 +12,19 @@ class MarkdownParser
     /**
      * Parse a markdown file and extract headings with their content
      *
-     * @param string $filePath Path to the markdown file
+     * @param  string  $filePath  Path to the markdown file
      * @return array Array of sections with headings and content
+     *
      * @throws \Exception If file doesn't exist or can't be read
      */
     public function parseFile(string $filePath): array
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             throw new \Exception("File not found: {$filePath}");
         }
 
         $markdown = file_get_contents($filePath);
-        
+
         if ($markdown === false) {
             throw new \Exception("Could not read file: {$filePath}");
         }
@@ -34,7 +35,7 @@ class MarkdownParser
     /**
      * Parse markdown content and extract headings with their content
      *
-     * @param string $markdown The markdown content to parse
+     * @param  string  $markdown  The markdown content to parse
      * @return array Array of sections with headings and content
      */
     public function parseContent(string $markdown): array
@@ -62,7 +63,7 @@ class MarkdownParser
                     'level' => $level,
                     'title' => $title,
                     'content' => '',
-                    'raw_heading' => $line
+                    'raw_heading' => $line,
                 ];
                 $contentLines = [];
             } else {
@@ -82,23 +83,18 @@ class MarkdownParser
         return $sections;
     }
 
-
-
     /**
      * Get only the headings from a markdown file (without content)
-     *
-     * @param string $filePath
-     * @return array
      */
     public function getHeadings(string $filePath): array
     {
         $sections = $this->parseFile($filePath);
-        
+
         return array_map(function ($section) {
             return [
                 'level' => $section['level'],
                 'title' => $section['title'],
-                'raw_heading' => $section['raw_heading']
+                'raw_heading' => $section['raw_heading'],
             ];
         }, $sections);
     }
@@ -106,18 +102,16 @@ class MarkdownParser
     /**
      * Get sections by heading level
      *
-     * @param string $filePath
-     * @param int $level Heading level (1, 2, or 3)
-     * @return array
+     * @param  int  $level  Heading level (1, 2, or 3)
      */
     public function getSectionsByLevel(string $filePath, int $level): array
     {
-        if (!in_array($level, [1, 2, 3])) {
+        if (! in_array($level, [1, 2, 3])) {
             throw new \InvalidArgumentException('Level must be 1, 2, or 3');
         }
 
         $sections = $this->parseFile($filePath);
-        
+
         return array_filter($sections, function ($section) use ($level) {
             return $section['level'] === $level;
         });
@@ -125,15 +119,11 @@ class MarkdownParser
 
     /**
      * Find a section by title
-     *
-     * @param string $filePath
-     * @param string $title
-     * @return array|null
      */
     public function findSectionByTitle(string $filePath, string $title): ?array
     {
         $sections = $this->parseFile($filePath);
-        
+
         foreach ($sections as $section) {
             if (strcasecmp($section['title'], $title) === 0) {
                 return $section;
@@ -142,4 +132,4 @@ class MarkdownParser
 
         return null;
     }
-} 
+}

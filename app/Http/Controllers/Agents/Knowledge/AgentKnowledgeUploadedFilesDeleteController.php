@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agents\Knowledge;
 
 use App\Models\Agent;
-use App\Models\AgentFile;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeUploadedFilesDeleteController

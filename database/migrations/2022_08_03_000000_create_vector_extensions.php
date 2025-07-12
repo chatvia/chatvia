@@ -13,8 +13,8 @@ return new class extends Migration
     public function up()
     {
         DB::statement('CREATE EXTENSION IF NOT EXISTS vector;');
-        DB::statement("CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;");
-        DB::statement("CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;");
+        DB::statement('CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;');
+        DB::statement('CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;');
 
         // Check if create_tokenizer function exists before calling it
         $functionExists = DB::selectOne("
@@ -26,7 +26,7 @@ return new class extends Migration
         if ($functionExists->found != 1) {
             DB::statement("SELECT create_tokenizer('llmlingua2', 'model = \"llmlingua2\"');");
         }
-//        DB::statement("SELECT create_tokenizer('llmlingua2', $$ model = \"llmlingua2\"  # using pre-trained model $$);")
+        //        DB::statement("SELECT create_tokenizer('llmlingua2', $$ model = \"llmlingua2\"  # using pre-trained model $$);")
     }
 
     /**

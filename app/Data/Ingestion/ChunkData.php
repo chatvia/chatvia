@@ -10,7 +10,5 @@ class ChunkData extends Data
         public ChunkTypeEnum $type,
         public string $original,
         public string $enhanced
-    )
-    {
-    }
+    ) {}
 }

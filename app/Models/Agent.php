@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AgentFileStatusEnum;
 use App\Observers\AgentObserver;
+use App\Support\Agents\Stats;
 use App\Traits\HasSettings;
 use Exception;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -69,5 +70,10 @@ class Agent extends Model
     public function isKnowledgeable(): bool
     {
         return $this->type === 'knowledge';
+    }
+
+    public function stats(): Stats
+    {
+        return app(Stats::class)->setAgent($this->id);
     }
 }

@@ -16,7 +16,5 @@ class LlmModelData extends Data
         public array $features,
         public string $location,
         public array $subscriptions = []
-    )
-    {
-    }
+    ) {}
 }

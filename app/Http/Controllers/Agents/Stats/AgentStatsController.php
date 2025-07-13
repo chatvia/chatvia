@@ -10,6 +10,11 @@ class AgentStatsController
 {
     public function __invoke(Request $request, Agent $agent)
     {
-        return Inertia::render('agents/Stats', ['agent' => $agent]);
+        $analytics = $agent->stats()->all();
+
+        return Inertia::render('agents/Stats', [
+            'agent' => $agent,
+            'analytics' => $analytics,
+        ]);
     }
 }

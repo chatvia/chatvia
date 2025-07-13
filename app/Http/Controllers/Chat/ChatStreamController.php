@@ -41,15 +41,15 @@ class ChatStreamController
     private ?int $tokenCount = 0;
 
     public function __construct(
-        private readonly Client        $httpClient,
-        private readonly ChatMemory    $memory,
+        private readonly Client $httpClient,
+        private readonly ChatMemory $memory,
         private readonly KnowledgeBase $knowledgeBase) {}
 
     public function __invoke(Request $request, Models $models, string $conversationId)
     {
         $request->validate([
-            'model' => ['required','string', new ModelRule],
-            'message' => ['required','string'],
+            'model' => ['required', 'string', new ModelRule],
+            'message' => ['required', 'string'],
             'updated_message_info' => ['nullable', 'array'],
         ]);
 
@@ -82,10 +82,9 @@ class ChatStreamController
         return $this->createStreamResponse();
     }
 
-
     private function createStreamResponse(): StreamedResponse
     {
-        return new StreamedResponse(function ()  {
+        return new StreamedResponse(function () {
             $this->setupStreamHeaders();
 
             // Set up client cancellation detection
@@ -220,6 +219,7 @@ class ChatStreamController
         // Check for the [DONE] message
         if ($data === '[DONE]') {
             $this->handleDoneMessage();
+
             return;
         }
 

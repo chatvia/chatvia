@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('external_ingestion_job_id')->unique()->nullable();
             $table->string('document_type')->nullable();
             $table->json('metadata')->nullable();
+            $table->unsignedInteger('retrieval_count')->default(0);
             $table->timestamps();
 
             $table->unique(['agent_id', 'md5_hash']);

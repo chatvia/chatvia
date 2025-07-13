@@ -15,7 +15,7 @@ class ChatMemory
 
     private const CONVERSATION_PREFIX = 'conversation';
 
-    private string $conversationId = "";
+    private string $conversationId = '';
 
     private \App\Models\Agent $agent;
 
@@ -142,7 +142,7 @@ class ChatMemory
         );
 
         // Persist it
-        \Illuminate\Support\defer(function() use ($payload, $messageId, $isInputMessage, $role) {
+        \Illuminate\Support\defer(function () use ($payload, $messageId, $isInputMessage, $role) {
             Message::create([
                 'id' => $messageId,
                 'conversation_id' => $this->conversationId,
@@ -217,9 +217,9 @@ class ChatMemory
             return $messages;
         }
 
-
         return $messages->map(function (array $message) {
             unset($message['message_for_llm']);
+
             return $message;
         })->toArray();
     }

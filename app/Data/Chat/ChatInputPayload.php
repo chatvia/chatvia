@@ -9,14 +9,12 @@ use Spatie\LaravelData\Data;
 class ChatInputPayload extends Data
 {
     public function __construct(
-        public string  $model,
-        public string  $message,
-        public array   $updated_message_info = [], // TODO: find a better name
+        public string $model,
+        public string $message,
+        public array $updated_message_info, // TODO: find a better name
         public ?string $message_for_llm,
-        public ?int    $member_id = null,
-    )
-    {
-    }
+        public ?int $member_id = null,
+    ) {}
 
     public static function fromRequest(Request $request): static
     {
@@ -26,7 +24,7 @@ class ChatInputPayload extends Data
         return new static(
             model: $data['model'],
             message: $data['message'],
-            updated_message_info: $data['updated_message_info']?? [],
+            updated_message_info: $data['updated_message_info'] ?? [],
             message_for_llm: $rag->searchInKnowledgeBaseIfNeeded(current_agent(), $request['message'])
         );
     }

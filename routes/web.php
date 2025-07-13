@@ -15,15 +15,9 @@ Route::post('/consent', [ConsentController::class, 'store'])->name('consent.stor
 Route::post('/webhooks/subscription', SubscriptionWebhook::class)->name('subscription.webhook');
 
 Route::get('/test', function () {
-    return \App\Support\OpenRouter::completion([
-        'model' => 'gpt-4o-mini',
-        'messages' => [
-            [
-                'role' => 'user',
-                'content' => 'The capital of the great Iraq.',
-            ]
-        ]
-    ]);
+    dd(app(\App\Support\KnowledgeBase::class)->search(
+        \App\Models\Agent::first(), 'Snowball'
+    ));
 });
 
 require __DIR__.'/settings.php';

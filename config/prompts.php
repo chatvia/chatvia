@@ -31,6 +31,6 @@ Rewrite the following query to maximize retrieval of relevant passages.
 You must only return the new query in plain text, without quotes or HTML tags or anything else.
 
 Query: <Query>{query}</Query>
-    '
+    ',
 
 ];

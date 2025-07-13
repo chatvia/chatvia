@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\AgentFile;
+use App\Models\Document;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -34,7 +36,7 @@ class KnowledgeBase
 
         $sql = "
     WITH vector_candidates AS (
-        SELECT id, chunk, embedding,
+        SELECT id, chunk, embedding, agent_file_id,
                binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536)) as binary_distance
         FROM documents
         WHERE agent_id = ?
@@ -42,7 +44,7 @@ class KnowledgeBase
         LIMIT ?
     ),
     vector_ranked AS (
-        SELECT id, chunk,
+        SELECT id, chunk, agent_file_id,
                embedding <=> ?::vector(1536) as vector_distance,
                'vector' as search_type
         FROM vector_candidates
@@ -50,7 +52,8 @@ class KnowledgeBase
         LIMIT ?
     ),
     bm25_ranked AS (
-        SELECT id, chunk,
+        SELECT id,
+            chunk, agent_file_id,
                embedding_bm25 <&> bm25_catalog.to_bm25query('documents_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS bm25_rank,
                'bm25' as search_type
         FROM documents
@@ -58,17 +61,17 @@ class KnowledgeBase
         ORDER BY bm25_rank
         LIMIT ?
     )
-    SELECT id, chunk, search_type
+    SELECT id, chunk, agent_file_id, search_type
     FROM (
-        SELECT id, chunk, vector_distance as score, search_type FROM vector_ranked
+        SELECT id, chunk, agent_file_id, vector_distance as score, search_type FROM vector_ranked
         UNION ALL
-        SELECT id, chunk, bm25_rank as score, search_type FROM bm25_ranked
+        SELECT id, chunk, agent_file_id, bm25_rank as score, search_type FROM bm25_ranked
     ) combined
     ORDER BY score
     LIMIT ?
     ";
 
-        return DB::select($sql, [
+        $results = DB::select($sql, [
             $vectorString,
             $agent,
             $vectorString,
@@ -81,6 +84,18 @@ class KnowledgeBase
             $limit,
             $limit + $limit,
         ]);
+
+        if ($results) {
+            Document::query()
+                ->whereIn('id', collect($results)->pluck('id')->toArray())
+                ->increment('retrieval_count');
+
+            AgentFile::query()
+                ->whereIn('id', collect($results)->pluck('agent_file_id')->unique()->toArray())
+                ->increment('retrieval_count');
+        }
+
+        return $results;
     }
 
     public function chunks(int|\App\Models\Agent $agent, string $query, int $limit = 3): string
@@ -132,7 +147,7 @@ class KnowledgeBase
 
     public function rewriteQuery(string $userQuery, $previousQuery = null): string
     {
-        return  app(OpenAI::class)->completion([
+        return app(OpenAI::class)->completion([
             'model' => 'gpt-4o-mini',
             'temperature' => 0.0,
             'messages' => [
@@ -151,7 +166,7 @@ If the query is already clear and unambiguous, return it as-is.
 
 Return only the rewritten query in plain text. Do not include any prefixes, suffixes, quotes, or formatting — just the clean, rewritten query.
 
-'
+',
                 ],
                 [
                     'role' => 'user',

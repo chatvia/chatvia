@@ -4,16 +4,19 @@ import ModelSelector from "@/components/chat/ModelSelector.vue";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Square, Send, Keyboard } from 'lucide-vue-next';
-import type { Model } from '@/types/chat';
+import type { AIModel } from '@/types/chat';
 
 interface Props {
     isThinking?: boolean,
     text?: string,
+    models?: AIModel[],
+    defaultModel?: AIModel | null,
+    isLoadingModels?: boolean,
 }
 
 const props = defineProps<Props>();
 
-const selectedModel = ref<Model | null>(null);
+const selectedModel = ref<AIModel | null>(props.defaultModel || null);
 const userInput = ref(props.text || '');
 const messageInput = ref<HTMLTextAreaElement>();
 const isComposing = ref(false);
@@ -31,10 +34,18 @@ watch(() => props.text, (newText) => {
     }
 }, { immediate: true });
 
+// Watch for changes in the defaultModel prop and update selectedModel
+watch(() => props.defaultModel, (newDefaultModel) => {
+    if (newDefaultModel && newDefaultModel !== selectedModel.value) {
+        selectedModel.value = newDefaultModel;
+        emit('modelSelected', newDefaultModel);
+    }
+}, { immediate: true });
+
 const emit = defineEmits<{
-    messageAdded: [content: string, model: Model]
+    messageAdded: [content: string, model: AIModel]
     stopStreaming: []
-    modelSelected: [model: Model]
+    modelSelected: [model: AIModel]
 }>();
 
 // Character count
@@ -74,7 +85,7 @@ const stopStreaming = () => {
     emit('stopStreaming');
 }
 
-const handleModelChange = (model: Model) => {
+const handleModelChange = (model: AIModel) => {
     emit('modelSelected', model);
     selectedModel.value = model;
 
@@ -165,7 +176,12 @@ const handleBlur = () => {
 
             <div class="flex items-center justify-between border-t border-border/50 px-3 py-2 sm:px-4">
                 <div class="flex items-center gap-2">
-                    <ModelSelector @modelChanged="handleModelChange" />
+                    <ModelSelector
+                        @modelChanged="handleModelChange"
+                        :models="models"
+                        :defaultModel="defaultModel"
+                        :isLoadingModels="isLoadingModels"
+                    />
 
                     <!-- Keyboard shortcuts hint -->
                     <div class="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">

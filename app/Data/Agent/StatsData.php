@@ -16,7 +16,5 @@ class StatsData extends Data
         public array $dailyMessages,
         public array $topKnowledge,
         public \DateTimeImmutable $lastUpdated,
-    )
-    {
-    }
+    ) {}
 }

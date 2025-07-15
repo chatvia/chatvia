@@ -31,6 +31,7 @@ import {
     Eye,
     EyeOff,
     Power,
+    PowerOff,
     Brain,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
@@ -64,7 +65,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const navigationItems = [
     { id: 'stats', label: 'Statistics', icon: BarChart3, route: 'agents.stats' },
-    { id: 'settings', label: 'General Settings', icon: Settings, route: 'agents.settings' },
+    { id: 'settings', label: 'Settings', icon: Settings, route: 'agents.settings' },
     { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models' },
     { id: 'knowledge', label: 'Knowledge Base', icon: Database, route: 'agents.knowledge' },
     { id: 'starters', label: 'Starter Messages', icon: MessageSquare, route: 'agents.starters' },
@@ -163,22 +164,23 @@ const isActiveRoute = (routeName: string) => {
                         <div class="flex flex-wrap items-center gap-3">
                             <!-- Active/Inactive Toggle -->
                             <div class="flex items-center gap-2">
-                                <span class="text-xs text-muted-foreground whitespace-nowrap">
-                                    Your agent is {{ agent.is_active ? 'accessible' : 'inaccessible' }}
+                                <span class="text-xs text-muted-foreground whitespace-nowrap font-bold">
+                                    {{ agent.is_active ? 'Accessible' : 'Inaccessible' }}
                                 </span>
                                 <Button
                                     @click="toggleAgentStatus"
                                     :disabled="isToggling"
-                                    :variant="agent.is_active ? 'default' : 'outline'"
+                                    variant="outline"
                                     size="sm"
-                                    class="gap-1.5 h-8 px-3"
+                                    class="gap-1.5 h-8 px-3 border"
                                     :class="[
                                         agent.is_active
-                                            ? 'bg-green-500 hover:bg-green-600'
-                                            : 'border-red-500 text-red-500 hover:bg-red-50'
+                                            ? 'border-red-500 text-red-500 hover:bg-red-50 bg-transparent'
+                                            : 'border-green-500 bg-green-500 text-white hover:bg-green-600'
                                     ]"
                                 >
-                                    <Power
+                                    <component
+                                        :is="agent.is_active ? PowerOff : Power"
                                         class="h-3.5 w-3.5"
                                         :class="[
                                             agent.is_active
@@ -186,7 +188,7 @@ const isActiveRoute = (routeName: string) => {
                                                 : ''
                                         ]"
                                     />
-                                    {{ agent.is_active ? 'Active' : 'Inactive' }}
+                                    {{ agent.is_active ? 'Disable' : 'Enable' }}
                                     <LoaderCircle v-if="isToggling" class="h-3.5 w-3.5 animate-spin" />
                                 </Button>
                             </div>

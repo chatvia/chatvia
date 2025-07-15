@@ -5,7 +5,7 @@ namespace App\Support\Agents;
 use App\Data\Agent\StatsData;
 use App\Models\AgentFile;
 use App\Models\Message;
-use App\Support\Models;
+use App\Support\Llms;
 
 class Stats
 {
@@ -96,10 +96,11 @@ class Stats
             ->orderByDesc('usage_count')
             ->get()
             ->map(function ($item) {
-                $model = app(Models::class)->getModelByExternalId($item->model);
+                $model = app(Llms::class)->getByExternalName($item->model);
+
                 return [
-                    'name' => $model['name'],
-                    'icon' => $model['icon'],
+                    'name' => $model->name,
+                    'icon' => $model->icon,
                     'count' => $item->usage_count,
                     'percentage' => $item->percentage,
                 ];
@@ -141,7 +142,6 @@ class Stats
             });
     }
 
-
     public function getTopAccessedFiles(int $limit = 5): array
     {
         return AgentFile::query()
@@ -163,7 +163,7 @@ class Stats
 
     private function getFileTypeLabel(?string $type): string
     {
-        if (!$type) {
+        if (! $type) {
             return 'Unknown';
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\Chat\LlmModelData;
 use App\Observers\UserObserver;
 use App\Support\Billing;
 use App\Traits\HasSettings;
@@ -133,4 +134,21 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Attribute::get(fn () => $this->quote->pages_limit - $this->quote->pages_used);
     }
+
+    public function llms()
+    {
+        $llms = Llm::all();
+        $subscribed = $this->subscribed();
+
+        return $llms->map(function (Llm $llm) use ($subscribed) {
+            $allowed = $llm->requires_paid_plan ? $subscribed : true;
+
+            $llmData = LlmModelData::fromLlmModel($llm);
+            $llmData->user_allowed_to_use = $allowed;
+
+            return $llmData;
+        });
+    }
+
+    public function allowedLLms() {}
 }

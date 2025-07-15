@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Chat\ChatController;
 use App\Http\Controllers\Chat\ChatHomeController;
+use App\Http\Controllers\Chat\ChatModelsListController;
 use App\Http\Controllers\Chat\ChatShowLoginController;
 use App\Http\Controllers\Chat\ChatStartersController;
 use App\Http\Controllers\Chat\ChatStreamController;
@@ -10,13 +11,12 @@ use App\Http\Controllers\Chat\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Chat\Conversations\ConversationMessagesController;
 use App\Http\Controllers\Chat\Conversations\ConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
-use App\Http\Controllers\ListModelsController;
 
 Route::prefix('/chat')
     ->middleware(['web'])
     ->group(function () {
         Route::get('/', ChatHomeController::class)->name('chat.home');
-        Route::get('/models', ListModelsController::class)->name('models.index');
+        Route::get('/models', ChatModelsListController::class)->name('chat.models.index');
         Route::post('/stream/{conversationId}', ChatStreamController::class)->name('chat.stream');
         Route::post('/conversations/create', ConversationCreateController::class)->name('conversations.create');
         Route::get('/conversations/{conversationId}/messages', ConversationMessagesController::class)->name('conversations.messages');

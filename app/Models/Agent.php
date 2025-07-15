@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\Chat\LlmModelData;
 use App\Enums\AgentFileStatusEnum;
 use App\Observers\AgentObserver;
 use App\Support\Agents\Stats;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -67,6 +69,26 @@ class Agent extends Model
         return $this->hasMany(Starter::class);
     }
 
+    public function llms(): BelongsToMany
+    {
+        return $this->belongsToMany(Llm::class);
+    }
+
+    public function llmsFormatted()
+    {
+        return $this->llms()->get()->map(function (Llm $llm) {
+            $data = LlmModelData::fromLlmModel($llm);
+            $data->user_allowed_to_use = true;
+
+            return $data;
+        });
+    }
+
+    public function activeLlms(): BelongsToMany
+    {
+        return $this->llms()->wherePivot('is_active', true);
+    }
+
     public function isKnowledgeable(): bool
     {
         return $this->type === 'knowledge';
@@ -75,5 +97,24 @@ class Agent extends Model
     public function stats(): Stats
     {
         return app(Stats::class)->setAgent($this->id);
+    }
+
+    public function llmSettings(): array
+    {
+        $settings = AgentLlm::where('agent_id', $this->id)
+            ->select(['temperature', 'top_k', 'top_p', 'frequency_penalty', 'presence_penalty', 'presence_penalty'])
+            ->first()->toArray();
+
+        if (! $settings) {
+            return [
+                'temperature' => 1.0,
+                'top_k' => 0,
+                'top_p' => 1.0,
+                'presence_penalty' => 0.0,
+                'frequency_penalty' => 0.0,
+            ];
+        }
+
+        return $settings;
     }
 }

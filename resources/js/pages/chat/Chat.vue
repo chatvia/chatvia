@@ -41,6 +41,12 @@ const isChatExpanded = ref(false);
 const userHasScrolledUp = ref(false);
 const lastScrollTop = ref(0);
 const scrollAnimationFrame = ref(null);
+const messageSources = ref(new Map()); // Store sources for each message
+
+// Add reactive refs for models
+const models = ref([]);
+const defaultModel = ref(null);
+const isLoadingModels = ref(true);
 
 const showScrollToBottom = computed(() => {
     if (!messagesContainer.value) return false;
@@ -65,6 +71,20 @@ const getQueryParam = (param) => {
     return urlParams.get(param);
 };
 
+// Add function to fetch models
+const fetchModels = async () => {
+    try {
+        isLoadingModels.value = true;
+        const response = await axios.get(route('chat.models.index'));
+        models.value = response.data.models;
+        defaultModel.value = response.data.default;
+    } catch (error) {
+        console.error('Failed to fetch models:', error);
+    } finally {
+        isLoadingModels.value = false;
+    }
+};
+
 async function messageAdded(message, model) {
     messages.value.push({
         role: 'user',
@@ -81,7 +101,7 @@ async function messageAdded(message, model) {
 
     await nextTick(() => {
         scrollToBottom();
-        startSseStreaming(message, model.external_id);
+        startSseStreaming(message, model.id);
     });
 }
 
@@ -168,7 +188,7 @@ function checkScrollPosition() {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
     nextTick();
     loadingMessages.value = true;
 
@@ -180,14 +200,24 @@ onMounted(() => {
         messagesContainer.value.addEventListener('scroll', handleChatScroll, { passive: true });
     }
 
+    // Wait for models to be loaded before loading messages
+    await fetchModels();
+
     axios
         .get(route('conversations.messages', { conversationId: props.conversation_id }))
         .then((response) => {
             messages.value = response.data;
+            
+            // Load sources from historical messages
+            messages.value.forEach((message, index) => {
+                if (message.role === 'assistant' && message.sources) {
+                    messageSources.value.set(index, message.sources);
+                }
+            });
+            
             loadingMessages.value = false;
 
-            const defaultModel = page.props.defaultModel;
-            const modelId = getQueryParam('model') || defaultModel.external_id;
+            const modelId = getQueryParam('model') || defaultModel.value?.id;
 
             if (messages.value.length === 1) {
                 startSseStreaming(messages.value[0].content, modelId, {}, true);
@@ -198,18 +228,17 @@ onMounted(() => {
             });
         })
         .catch((error) => {
-            router.visit(route('chat.home', { model: defaultModelId.value }));
+            router.visit(route('chat.home', { model: defaultModel.value?.id }));
         });
 
     nextTick(() => {
         const modelId = getQueryParam('model');
 
         if (!modelId) {
-            const defaultModel = page.props.defaultModel;
             router.visit(
                 route('chat.show', {
                     conversationId: props.conversation_id,
-                    model: defaultModel.external_id,
+                    model: defaultModel.value?.id,
                 }),
                 {
                     preserveScroll: true,
@@ -247,11 +276,12 @@ function scrollWhileStreaming() {
 }
 
 function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConversation = false) {
-    messages.value.push({
+    const newMessage = {
         role: 'assistant',
         content: '',
         model: modelId,
-    });
+    };
+    messages.value.push(newMessage);
 
     const stream = startStream(
         route('chat.stream', { conversationId: props.conversation_id }),
@@ -271,6 +301,16 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
                 messages.value[messageIndex].content += content;
 
                 scrollWhileStreaming();
+            },
+            onSources: (sources) => {
+                let messageIndex = messages.value.length - 1;
+
+                if (streamingForMessageIndex.value !== null) {
+                    messageIndex = streamingForMessageIndex.value;
+                }
+
+                // Store sources for this message using message index as key
+                messageSources.value.set(messageIndex, sources);
             },
             onDone: () => {
                 streamingForMessageIndex.value = null;
@@ -305,13 +345,16 @@ const messageUpdated = (messageId, messageContent) => {
 
             messages.value[currentMessageIndex + 1].content = '';
             streamingForMessageIndex.value = currentMessageIndex + 1;
+            
+            // Clear existing sources for the assistant message being regenerated
+            messageSources.value.delete(currentMessageIndex + 1);
 
             // Reset scroll state for edited message
             userHasScrolledUp.value = false;
             isAutoScrollEnabled.value = true;
 
             // updatedMessageInfo for edited message
-            startSseStreaming(currentMessage.content, selectedModel.value.external_id, {
+            startSseStreaming(currentMessage.content, selectedModel.value.id, {
                 userMessageId: currentMessage.id,
                 assistantMessageId: messages.value[currentMessageIndex + 1].id,
             });
@@ -401,6 +444,9 @@ const handleScrollToBottomClick = () => {
                                 <AssistantChatBubble
                                     v-else
                                     :message="message"
+                                    :models="models"
+                                    :defaultModel="defaultModel"
+                                    :sources="messageSources.get(index) || []"
                                     :hideFeedback="index === messages.length - 1 && isStreaming"
                                     :isThinking="index === messages.length - 1 && isStreaming && !message.content"
                                     @messageDeleted="messageDeleted"
@@ -455,6 +501,9 @@ const handleScrollToBottomClick = () => {
                     <div class="mx-auto max-w-3xl px-4 py-4 sm:px-8">
                         <Composer
                             :isThinking="isStreaming"
+                            :models="models"
+                            :defaultModel="defaultModel"
+                            :isLoadingModels="isLoadingModels"
                             @messageAdded="messageAdded"
                             @modelSelected="updateModel"
                             @stopStreaming="stopStreaming"

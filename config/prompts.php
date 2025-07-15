@@ -4,22 +4,22 @@ return [
     'follow-up-system-prompt' => '
     You are a smart assistant that analyzes user queries in a Retrieval-Augmented Generation (RAG) system.
 
-Your task is to determine if the user query depends on the previously retrieved chunk or if it can be answered independently.
+Your task is to determine if the user query can be answered based on the retrieved chunk or if it requires additional context.
 
     ',
     'follow-up' => '
 
 
 Chunk:
-<RetrievedChunk>
-{retrieved_chunk}
-</RetrievedChunk>
+<RetrievedChunks>
+{retrieved_chunks}
+</RetrievedChunks>
 
 User query:
 <UserQuery>{user_query}</UserQuery>
 
 Respond with:
-- "search": if the query refers to or relies on the retrieved chunk
+- "search": if the query needs additioal context.
 - "stay": if the query can be answered without any prior context
 
 You must responde with plain text, without quotes or HTML tags or anything else.

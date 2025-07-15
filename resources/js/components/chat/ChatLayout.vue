@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import {ref, onMounted, nextTick, provide, watch} from 'vue';
 import Sidebar from '@/components/chat/ChatSidebar.vue';
 import Header from '@/components/chat/Header.vue';
@@ -9,6 +9,33 @@ import { vOnClickOutside } from '@vueuse/components'
 import isMobile from 'is-mobile'
 import { Head } from '@inertiajs/vue3'
 
+interface AIModel {
+    id: string;
+    name: string;
+    context_window: number;
+    icon: string;
+    description: string;
+    features?: string[];
+    location: string;
+    reasoning: boolean;
+    user_allowed_to_use: boolean;
+    is_selected: boolean;
+}
+
+interface ModelSettings {
+    temperature: number;
+    top_k: number;
+    top_p: number;
+    presence_penalty: number;
+    frequency_penalty: number;
+}
+
+interface ModelsResponse {
+    models: AIModel[];
+    settings: ModelSettings;
+    default_settings: ModelSettings;
+}
+
 const isMobileDevice = isMobile()
 
 const isSidebarOpen = ref(false);
@@ -16,18 +43,26 @@ const isSidebarOpen = ref(false);
 const page = usePage();
 const isIncognitoMode = ref(false);
 
-const selectedModel = ref({
-    id: 'gpt-4o-mini',
-    name: '',
-    context: 0,
-    description: ''
-});
+const selectedModel = ref<AIModel | null>(null);
+const availableModels = ref<AIModel[]>([]);
+const isLoadingModels = ref(true);
 
-const availableModels = ref(page.props.models);
+// Fetch models from API
+const fetchModels = async () => {
+    try {
+        isLoadingModels.value = true;
+        const response = await axios.get<ModelsResponse>(route('chat.models.index'));
+        availableModels.value = response.data.models.filter(model => model.user_allowed_to_use);
+    } catch (error) {
+        console.error('Failed to fetch models:', error);
+    } finally {
+        isLoadingModels.value = false;
+    }
+};
 
-const findModelIdx = (modelId => {
-    return availableModels.value.find(m => m.external_id === modelId) || page.props.defaultModel;
-})
+const findModelById = (modelId: string): AIModel | undefined => {
+    return availableModels.value.find(m => m.id === modelId);
+}
 
 // Save sidebar state to localStorage when it changes
 watch(isSidebarOpen, (newValue) => {
@@ -48,18 +83,29 @@ function checkScreenSize() {
     }
 }
 
-const getQueryParam = (param) => {
+const getQueryParam = (param: string): string | null => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
 };
 
-onMounted(() => {
-    let model = getQueryParam('model');
+onMounted(async () => {
+    // Fetch models first
+    await fetchModels();
+    
+    const modelId = getQueryParam('model');
 
-    if (!model) {
-        model = findModelIdx(model) || page.props.defaultModel;
+    if (modelId) {
+        const foundModel = findModelById(modelId);
+        if (foundModel) {
+            selectedModel.value = foundModel;
+        } else if (availableModels.value.length > 0) {
+            selectedModel.value = availableModels.value[0];
+        }
+    } else if (availableModels.value.length > 0) {
+        selectedModel.value = availableModels.value[0];
+        // Redirect to include model in URL
         router.visit(
-            route(route().current(), { model: model.external_id }),
+            route(route().current()!, { model: selectedModel.value.id }),
         );
     }
 
@@ -77,9 +123,11 @@ onMounted(() => {
     window.addEventListener('resize', checkScreenSize);
 });
 
-const deleteConversation = (conversationId) => {
+const deleteConversation = (conversationId: string) => {
     axios.delete(route('conversations.delete', { conversationId })).then(() => {
-        router.visit(route('chat.home', { model: page.props.defaultModel.external_id }));
+        if (availableModels.value.length > 0) {
+            router.visit(route('chat.home', { model: availableModels.value[0].id }));
+        }
     })
 }
 
@@ -93,7 +141,7 @@ const toggleSidebar = () => {
     isSidebarOpen.value = !isSidebarOpen.value;
 }
 
-const handleToggleIncognito = (value) => {
+const handleToggleIncognito = (value: boolean) => {
     isIncognitoMode.value = value;
 }
 </script>
@@ -117,6 +165,9 @@ const handleToggleIncognito = (value) => {
         >
             <Sidebar
                 v-model:open="isSidebarOpen"
+                :models="availableModels"
+                :defaultModel="selectedModel"
+                :isLoadingModels="isLoadingModels"
                 class="h-full w-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
             />
         </div>
@@ -127,7 +178,7 @@ const handleToggleIncognito = (value) => {
         >
             <Header
                 :token-count="0"
-                :selected-model="selectedModel"
+                :selected-model="selectedModel || { id: '', name: 'Loading...', context: 0, description: '' }"
                 class="w-full border-b bg-white dark:bg-gray-900 flex-shrink-0"
                 @deleteConversation="deleteConversation"
                 @toggleIncognito="handleToggleIncognito"

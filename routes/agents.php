@@ -14,15 +14,17 @@ use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFilesController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFilesProcessController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFileUploadController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeUploadedFilesDeleteController;
+use App\Http\Controllers\Agents\Models\AgentModelsListController;
+use App\Http\Controllers\Agents\Models\AgentModelsShowController;
+use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
+use App\Http\Controllers\Agents\Models\AgentModelsToggleController;
 use App\Http\Controllers\Agents\Settings\AgentShowSettingsController;
 use App\Http\Controllers\Agents\Settings\AgentUpdateSettingsController;
-use App\Http\Controllers\Agents\ShowModelsController;
 use App\Http\Controllers\Agents\Starters\StarterDeleteController;
 use App\Http\Controllers\Agents\Starters\StartersShowController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
 use App\Http\Controllers\Agents\Stats\AgentStatsController;
 use App\Http\Controllers\GenerateRandomSubDomainController;
-use App\Http\Controllers\ListModelsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -62,9 +64,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::patch('settings/{group}', AgentUpdateSettingsController::class)->name('settings.update');
 
-        Route::get('/models/list', ListModelsController::class)->name('models.list');
-        Route::get('/models', ShowModelsController::class)->name('models');
-
+        // Models
+        Route::get('/models/list', AgentModelsListController::class)->name('models.list');
+        Route::get('/models', AgentModelsShowController::class)->name('models');
+        Route::patch('/models/settings', AgentModelsStoreSettings::class)->name('models.settings.update');
+        Route::patch('/models/toggle', AgentModelsToggleController::class)->name('models.toggle');
     });
 
     Route::get('generate-random-subdomain', GenerateRandomSubDomainController::class)->name('generate-random-subdomain');

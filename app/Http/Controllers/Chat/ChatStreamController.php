@@ -4,15 +4,17 @@ namespace App\Http\Controllers\Chat;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
+use App\Data\Chat\LlmModelData;
 use App\Models\Agent;
-use App\Rules\ModelRule;
+use App\Rules\AgentLLmChatRule;
 use App\Support\ChatMemory;
 use App\Support\KnowledgeBase;
-use App\Support\Models;
+use App\Support\Llms;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Log;
 use Psr\Http\Message\ResponseInterface;
@@ -30,7 +32,7 @@ class ChatStreamController
 
     private array $llmMessages = [];
 
-    private array $llmModel = [];
+    private LlmModelData $llmModel;
 
     private ?string $userMessageId;
 
@@ -40,15 +42,17 @@ class ChatStreamController
 
     private ?int $tokenCount = 0;
 
+    private Collection $sources;
+
     public function __construct(
         private readonly Client $httpClient,
         private readonly ChatMemory $memory,
         private readonly KnowledgeBase $knowledgeBase) {}
 
-    public function __invoke(Request $request, Models $models, string $conversationId)
+    public function __invoke(Request $request, Llms $models, string $conversationId)
     {
         $request->validate([
-            'model' => ['required', 'string', new ModelRule],
+            'model' => ['required', 'string', new AgentLLmChatRule],
             'message' => ['required', 'string'],
             'updated_message_info' => ['nullable', 'array'],
         ]);
@@ -67,7 +71,7 @@ class ChatStreamController
 
         $this->llmMessages = $this->memory->getLlmMessages();
 
-        $this->llmModel = $models->getModelByExternalId($this->payload->model);
+        $this->llmModel = $models->getByExternalName($this->payload->model);
 
         $this->userMessageId = null;
 
@@ -131,16 +135,40 @@ class ChatStreamController
         ];
 
         $userMessageContent = $this->payload->message;
+        $this->sources = collect(); // Initialize empty collection
 
         if ($agent->isKnowledgeable()) {
-            $lastMessage = $this->memory->getLastMessageForLlm();
-            $lastMessageContent = $lastMessage['content'] ?? '';
+            $lastMessages = $this->memory->getLastMessages(6);
 
-            if ($this->knowledgeBase->shouldContinueSearching($lastMessageContent, $userMessageContent)) {
+            if ($this->knowledgeBase->shouldContinueSearching($lastMessages, $userMessageContent)) {
+                $searchResults = $this->knowledgeBase->search($agent, $userMessageContent);
+
+                // Enrich sources with file metadata
+                $agentFileIds = collect($searchResults)->pluck('agent_file_id')->unique();
+                $agentFiles = \App\Models\AgentFile::whereIn('id', $agentFileIds)
+                    ->get()
+                    ->keyBy('id');
+
+                $this->sources = collect($searchResults)->map(function ($result) use ($agentFiles) {
+                    $agentFile = $agentFiles->get($result->agent_file_id);
+
+                    return [
+                        'content' => $result->chunk,
+                        'metadata' => [
+                            'file_name' => $agentFile?->name,
+                            'search_type' => $result->search_type,
+                            'document_id' => $result->id,
+                            'agent_file_id' => $result->agent_file_id,
+                        ],
+                    ];
+                });
+
+                $chunks = $this->sources->pluck('content');
+
                 $userMessageContent = Str::of("### User Question:\n")
                     ->append($this->payload->message_for_llm)
                     ->append("### Retrieved Context\n")
-                    ->append($this->knowledgeBase->chunks($agent, $userMessageContent))
+                    ->append($chunks->implode("\n\n"))
                     ->toString();
             }
         }
@@ -161,7 +189,7 @@ class ChatStreamController
                 'Content-Type' => 'application/json',
             ],
             'json' => [
-                'model' => $this->llmModel['id'],
+                'model' => $this->llmModel->internal_id,
                 'messages' => $llmMessages,
                 'stream' => true,
             ],
@@ -169,6 +197,7 @@ class ChatStreamController
             'provider' => [
                 'sort' => 'throughput', // https://openrouter.ai/docs/features/provider-routing
             ],
+            ...$this->agent->llmSettings(),
         ]);
     }
 
@@ -253,7 +282,12 @@ class ChatStreamController
             }
         }
 
+        $sources = $this->sources->toArray();
+
+        echo 'sources: '.json_encode($sources, JSON_THROW_ON_ERROR)."\n\n";
+
         echo "data: {\"content\":\"[DONE]\"}\n\n";
+
         flush();
     }
 
@@ -279,17 +313,18 @@ class ChatStreamController
             new ChatOutputPayload(
                 role: 'assistant',
                 message: $this->streamedMessage,
-                model: $this->llmModel['external_id'],
+                model: $this->llmModel->id,
                 generation_id: $this->generationId,
                 token_count: $this->tokenCount,
                 response_time_ms: (int) round(($endTime - $this->startTime) * 1000),
+                sources: $this->sources->toArray(),
             )
         );
     }
 
     private function handleRequestException(RequestException $e): void
     {
-        echo 'data: '.json_encode(['content' => 'Error: Could not connect to '.$this->llmModel['external_id'].' model. Please choose a different model'], JSON_THROW_ON_ERROR)."\n\n";
+        echo 'data: '.json_encode(['content' => 'Error: Could not connect to '.$this->llmModel->id.' model. Please choose a different model'], JSON_THROW_ON_ERROR)."\n\n";
         echo "data: {\"content\":\"[DONE]\"}\n\n";
 
         if ($this->userMessageId) {

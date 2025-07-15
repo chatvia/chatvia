@@ -42,12 +42,16 @@ import { markedHighlight } from 'marked-highlight'
 import markedKatex from 'marked-katex-extension'
 import hljs from 'highlight.js'
 import WaitingIndicator from './WaitingIndicator.vue'
-import type { Message, Model } from '@/types/chat'
+import SourcesDialog from './SourcesDialog.vue'
+import type { Message, AIModel } from '@/types/chat'
 
 const props = defineProps<{
   message: Message
   isThinking?: boolean
   hideFeedback?: boolean
+  models?: AIModel[]
+  defaultModel?: AIModel | null
+  sources?: any[]
 }>()
 
 const emit = defineEmits<{
@@ -57,9 +61,15 @@ const emit = defineEmits<{
 
 const page = usePage()
 const modelUsed = computed(() => {
-    const models = page.props.models as Model[]
-    const defaultModel = page.props.defaultModel as Model
-    return models.find((m) => m.external_id === props.message.model) || defaultModel
+    const models = props.models
+    const defaultModel = props.defaultModel
+    
+    // Handle case where models might not be loaded yet
+    if (!models || !Array.isArray(models)) {
+        return defaultModel || null
+    }
+    
+    return models.find((m) => m.id === props.message.model) || defaultModel
 })
 
 const messageContentRef = ref<HTMLElement>()
@@ -83,7 +93,8 @@ marked.use({ gfm: true })
   .use(markedAlert())
 
 function formatMessage(content: string): string {
-  return marked.parse(content)
+  const result = marked.parse(content)
+  return typeof result === 'string' ? result : ''
 }
 
 async function copyToClipboard() {
@@ -104,11 +115,15 @@ function provideFeedback(type: 'thumbs-up' | 'thumbs-down') {
   } else {
     feedback.value = type
   }
-  emit('feedbackProvided', props.message.id, type)
+  if (props.message.id !== undefined) {
+    emit('feedbackProvided', props.message.id, type)
+  }
 }
 
 function deleteMessage() {
-  emit('messageDeleted', props.message.id)
+  if (props.message.id !== undefined) {
+    emit('messageDeleted', props.message.id)
+  }
 }
 
 function exportAs(format: 'pdf' | 'markdown' | 'text') {
@@ -278,14 +293,21 @@ onMounted(() => {
           </DropdownMenu>
         </div>
 
-        <Badge variant="secondary" class="flex items-center gap-1">
-          <img
-            :src="`/images/llms/${modelUsed.icon}`"
-            :alt="modelUsed.name"
-            class="h-3 w-3"
+        <div class="flex items-center gap-2">
+          <SourcesDialog
+            v-if="sources && sources.length > 0"
+            :sources="sources"
           />
-          <span class="text-xs">{{ modelUsed.name }}</span>
-        </Badge>
+          
+          <Badge v-if="modelUsed" variant="secondary" class="flex items-center gap-1">
+            <img
+              :src="`/images/llms/${modelUsed.icon}`"
+              :alt="modelUsed.name"
+              class="h-3 w-3"
+            />
+            <span class="text-xs">{{ modelUsed.name }}</span>
+          </Badge>
+        </div>
       </div>
     </div>
   </div>

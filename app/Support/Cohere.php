@@ -22,6 +22,20 @@ class Cohere
             ])->json('embeddings.float.0');
     }
 
+    public function rerank(string $query, array $documents): array
+    {
+        $rerank = Http::withToken(config('services.cohere.api_key'))
+            ->throw()
+            ->post($this->endpoint('/rerank'), [
+                'model' => 'rerank-v3.5',
+                'query' => $query,
+                'max_tokens_per_doc' => 1000,
+                'documents' => $documents,
+            ])->json('results');
+
+        return collect($rerank)->pluck('index')->toArray();
+    }
+
     private function endpoint(?string $append = null): string
     {
         return rtrim(config('services.cohere.api_endpoint'), '/').$append;

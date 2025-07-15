@@ -34,6 +34,18 @@ const props = defineProps({
         type: String,
         default: '',
     },
+    models: {
+        type: Array,
+        default: () => [],
+    },
+    defaultModel: {
+        type: Object,
+        default: null,
+    },
+    isLoadingModels: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const isMobileDevice = isMobile();
@@ -42,9 +54,14 @@ const conversations = ref([]);
 const chatEventBus = inject('chatEventBus');
 const emit = defineEmits(['update:open']);
 const isSidebarOpen = ref(props.open);
-const defaultModel = ref(page.props.defaultModel);
+const defaultModel = ref(props.defaultModel);
 const editingId = ref(null);
 const editingTitle = ref('');
+
+// Watch for prop changes
+watch(() => props.defaultModel, (newDefaultModel) => {
+    defaultModel.value = newDefaultModel;
+}, { immediate: true });
 
 const loadConversations = () => {
     isLoadingConversations.value = true;
@@ -122,7 +139,7 @@ const newConversation = () => {
         isSidebarOpen.value = false;
     }
 
-    router.visit(route('chat.home', { model: page.props.defaultModel.external_id }), {
+    router.visit(route('chat.home', { model: props.defaultModel?.id }), {
         preserveState: false,
         preserveScroll: false,
     });
@@ -337,7 +354,7 @@ const deleteConversation = async (id) => {
                                             ? 'bg-accent text-accent-foreground font-medium'
                                             : 'hover:bg-accent/50 text-foreground/80 hover:text-foreground',
                                     ]"
-                                    :href="route('chat.show', { conversationId: chat.id, model: defaultModel.external_id })"
+                                    :href="route('chat.show', { conversationId: chat.id, model: defaultModel?.id })"
                                 >
                                     <TooltipProvider>
                                         <Tooltip>

@@ -18,7 +18,9 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
-        return [
+        $subDomain = $request->subdomain();
+
+        $data = [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
@@ -29,17 +31,24 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'defaultModel' => config('llms.0'),
             'chatSession' => app(ChatMemory::class)->getOrGenerateSession(),
-            'models' => config('llms'),
-            'domain' => $request->domain(),
-            'subdomain' => $request->subdomain(),
             'subscribed' => $request->user()?->subscribed(),
             'onTrial' => $request->user()?->onTrial(),
             'schema' => $request->getScheme(),
             'quote' => $request->user()?->quote,
             'environment' => app()->environment(),
+
+            'domain' => $request->domain(),
+            'subdomain' => $request->subdomain(),
         ];
+
+        if ($subDomain) {
+            $data['models'] = collect(config('llms'))->map(fn ($model) => $this->transformModel($model))->toArray();
+            //                'defaultModel' => $this->transformModel(config('llms.0')),
+
+        }
+
+        return $data;
     }
 
     private function subDomain(string $host): ?string
@@ -61,5 +70,18 @@ class HandleInertiaRequests extends Middleware
         }
 
         return $subdomain;
+    }
+
+    private function transformModel(array $model): array
+    {
+        return [
+            'id' => $model['external_name'],
+            'external_id' => $model['external_name'],
+            'name' => $model['descriptive_name'],
+            'context' => $model['context_window'],
+            'icon' => $model['icon'],
+            'description' => $model['description'],
+            'features' => $model['features'] ?? [],
+        ];
     }
 }

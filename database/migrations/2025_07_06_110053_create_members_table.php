@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('email');
             $table->string('password');
 
+            $table->rememberToken();
+
             $table->string('facebook_id')->nullable();
             $table->string('google_id')->nullable();
 

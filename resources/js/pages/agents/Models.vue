@@ -8,22 +8,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
 import {
     Brain,
     Zap,
     Settings,
     Thermometer,
     Target,
-    Hash,
-    Clock,
+
     RotateCcw,
     CheckCircle2,
     Sparkles,
@@ -33,20 +31,28 @@ import {
 interface AIModel {
     id: string;
     name: string;
-    context: number;
+    context_window: number;
     icon: string;
     description: string;
     features?: string[];
+    location: string;
+    reasoning: boolean;
+    user_allowed_to_use: boolean;
+    is_selected: boolean;
 }
 
 interface ModelSettings {
-    selected_models: string[];
     temperature: number;
     top_k: number;
     top_p: number;
-    max_tokens: number;
     presence_penalty: number;
     frequency_penalty: number;
+}
+
+interface ModelsResponse {
+    models: AIModel[];
+    settings: ModelSettings;
+    default_settings: ModelSettings;
 }
 
 const props = defineProps<{
@@ -57,34 +63,40 @@ const props = defineProps<{
         is_active: boolean;
         is_public: boolean;
     };
-    currentSettings?: ModelSettings;
 }>();
 
 // Reactive state for models
 const models = ref<AIModel[]>([]);
 const isLoadingModels = ref(true);
 const modelsError = ref<string | null>(null);
+const showSuccessMessage = ref(false);
+const currentSettings = ref<ModelSettings | null>(null);
+const defaultSettings = ref<ModelSettings | null>(null);
 
 const form = useForm({
-    selected_models: props.currentSettings?.selected_models || [],
-    temperature: props.currentSettings?.temperature || 0.7,
-    top_k: props.currentSettings?.top_k || 40,
-    top_p: props.currentSettings?.top_p || 0.9,
-    max_tokens: props.currentSettings?.max_tokens || 2048,
-    presence_penalty: props.currentSettings?.presence_penalty || 0,
-    frequency_penalty: props.currentSettings?.frequency_penalty || 0,
+    temperature: 1.0,
+    top_k: 0,
+    top_p: 1.0,
+    presence_penalty: 0.0,
+    frequency_penalty: 0.0,
 });
 
-const selectedModelsCount = computed(() => form.selected_models.length);
-
-// Fetch models from API
 const fetchModels = async () => {
     try {
         isLoadingModels.value = true;
         modelsError.value = null;
 
-        const response = await axios.get(route('agents.models.list', { agent: props.agent.id }));
-        models.value = response.data;
+        const response = await axios.get<ModelsResponse>(route('agents.models.list', { agent: props.agent.id }));
+        models.value = response.data.models;
+        currentSettings.value = response.data.settings;
+        defaultSettings.value = response.data.default_settings;
+        
+        // Update form with settings from API
+        form.temperature = response.data.settings.temperature;
+        form.top_k = response.data.settings.top_k;
+        form.top_p = response.data.settings.top_p;
+        form.presence_penalty = response.data.settings.presence_penalty;
+        form.frequency_penalty = response.data.settings.frequency_penalty;
     } catch (error) {
         console.error('Failed to fetch models:', error);
         modelsError.value = 'Failed to load available models. Please try again.';
@@ -93,30 +105,64 @@ const fetchModels = async () => {
     }
 };
 
-const toggleModel = (modelId: string) => {
-    const index = form.selected_models.indexOf(modelId);
-    if (index > -1) {
-        form.selected_models.splice(index, 1);
-    } else {
-        form.selected_models.push(modelId);
+const toggleModel = async (model: AIModel) => {
+    if (!model.user_allowed_to_use) return;
+
+    try {
+        // Send PATCH request to toggle model status
+        const newStatus = !model.is_selected;
+        await axios.patch(route('agents.models.toggle', { agent: props.agent.id }), {
+            model_id: model.id,
+            status: newStatus
+        });
+
+        // Update the local model state
+        const modelIndex = models.value.findIndex(m => m.id === model.id);
+        if (modelIndex !== -1) {
+            models.value[modelIndex].is_selected = newStatus;
+        }
+    } catch (error) {
+        console.error('Failed to toggle model:', error);
+        // You could add a toast notification here to inform the user of the error
     }
 };
 
-const isModelSelected = (modelId: string) => {
-    return form.selected_models.includes(modelId);
+const isModelSelected = (model: AIModel) => {
+    return model.is_selected && model.user_allowed_to_use;
+};
+
+const isModelDisabled = (model: AIModel) => {
+    return !model.user_allowed_to_use;
 };
 
 const submit = () => {
-    form.post(route('agents.models.update', { agent: props.agent.id }));
+    // Include selected models in the form data
+    const selectedModelIds = models.value
+        .filter(model => model.is_selected && model.user_allowed_to_use)
+        .map(model => model.id);
+
+    form.transform((data) => ({
+        ...data,
+        selected_models: selectedModelIds,
+    })).patch(route('agents.models.settings.update', { agent: props.agent.id }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            showSuccessMessage.value = true;
+            setTimeout(() => {
+                showSuccessMessage.value = false;
+            }, 3000);
+        }
+    });
 };
 
 const resetToDefaults = () => {
-    form.temperature = 0.7;
-    form.top_k = 40;
-    form.top_p = 0.9;
-    form.max_tokens = 2048;
-    form.presence_penalty = 0;
-    form.frequency_penalty = 0;
+    if (defaultSettings.value) {
+        form.temperature = defaultSettings.value.temperature;
+        form.top_k = defaultSettings.value.top_k;
+        form.top_p = defaultSettings.value.top_p;
+        form.presence_penalty = defaultSettings.value.presence_penalty;
+        form.frequency_penalty = defaultSettings.value.frequency_penalty;
+    }
 };
 
 const getTemperatureColor = (temp: number) => {
@@ -129,6 +175,50 @@ const getTemperatureLabel = (temp: number) => {
     if (temp <= 0.3) return 'Conservative';
     if (temp <= 0.7) return 'Balanced';
     return 'Creative';
+};
+
+const getTopKColor = (topK: number) => {
+    if (topK === 0) return 'text-purple-500';
+    if (topK <= 20) return 'text-blue-500';
+    if (topK <= 60) return 'text-green-500';
+    return 'text-orange-500';
+};
+
+const getTopKLabel = (topK: number) => {
+    if (topK === 0) return 'Disabled';
+    if (topK <= 20) return 'Focused';
+    if (topK <= 60) return 'Balanced';
+    return 'Diverse';
+};
+
+const getTopPColor = (topP: number) => {
+    if (topP <= 0.5) return 'text-blue-500';
+    if (topP <= 0.8) return 'text-green-500';
+    return 'text-orange-500';
+};
+
+const getTopPLabel = (topP: number) => {
+    if (topP <= 0.5) return 'Focused';
+    if (topP <= 0.8) return 'Balanced';
+    return 'Broad';
+};
+
+const getPenaltyColor = (penalty: number) => {
+    if (penalty < -0.1) return 'text-red-500';
+    if (penalty <= 0.1) return 'text-gray-500';
+    return 'text-green-500';
+};
+
+const getPresencePenaltyLabel = (penalty: number) => {
+    if (penalty < -0.1) return 'Repetitive';
+    if (penalty <= 0.1) return 'Neutral';
+    return 'Diverse';
+};
+
+const getFrequencyPenaltyLabel = (penalty: number) => {
+    if (penalty < -0.1) return 'Repetitive';
+    if (penalty <= 0.1) return 'Neutral';
+    return 'Varied';
 };
 
 const getFeatureBadgeVariant = (feature: string) => {
@@ -167,6 +257,13 @@ onMounted(() => {
                             <CardDescription class="text-base text-foreground/80">
                                 Select one or more AI models for your agent. The parameters configured below will be applied to all selected models. Each model has unique capabilities and performance characteristics.
                             </CardDescription>
+
+                            <!-- Info about disabled models -->
+                            <div v-if="models.some(m => !m.user_allowed_to_use)" class="mt-4 p-3 bg-muted/50 rounded-lg border">
+                                <p class="text-sm text-muted-foreground">
+                                    <strong>Note:</strong> Some models may show as "Not Available" based on your current subscription plan or account settings.
+                                </p>
+                            </div>
                         </CardHeader>
                         <CardContent class="p-6">
                             <!-- Loading State -->
@@ -194,26 +291,30 @@ onMounted(() => {
                                     class="group relative"
                                 >
                                     <div
-                                        class="border-2 rounded-xl p-6 transition-all duration-200 cursor-pointer hover:shadow-lg"
+                                        class="border-2 rounded-xl p-6 transition-all duration-200"
                                         :class="[
-                                            isModelSelected(model.id)
-                                                ? 'border-primary bg-primary/5 shadow-lg ring-4 ring-primary/20'
-                                                : 'border-border hover:border-primary/30 hover:bg-accent/20'
+                                            isModelDisabled(model)
+                                                ? 'border-muted bg-muted/30 opacity-60 cursor-not-allowed'
+                                                : isModelSelected(model)
+                                                    ? 'border-primary bg-primary/5 shadow-md cursor-pointer'
+                                                    : 'border-border hover:border-primary/30 hover:bg-accent/20 cursor-pointer hover:shadow-lg'
                                         ]"
-                                        @click="toggleModel(model.id)"
+                                        @click="toggleModel(model)"
                                     >
                                         <!-- Selection Indicator -->
                                         <div class="absolute top-4 right-4">
                                             <div
                                                 class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
                                                 :class="[
-                                                    isModelSelected(model.id)
-                                                        ? 'border-primary bg-primary text-primary-foreground'
-                                                        : 'border-muted-foreground/30 group-hover:border-primary/50'
+                                                    isModelDisabled(model)
+                                                        ? 'border-muted-foreground/20 bg-muted/50'
+                                                        : isModelSelected(model)
+                                                            ? 'border-primary bg-primary text-primary-foreground'
+                                                            : 'border-muted-foreground/30 group-hover:border-primary/50'
                                                 ]"
                                             >
                                                 <CheckCircle2
-                                                    v-if="isModelSelected(model.id)"
+                                                    v-if="isModelSelected(model) && !isModelDisabled(model)"
                                                     class="h-4 w-4"
                                                 />
                                             </div>
@@ -225,9 +326,11 @@ onMounted(() => {
                                                 <div
                                                     class="w-12 h-12 rounded-lg flex items-center justify-center transition-all"
                                                     :class="[
-                                                        isModelSelected(model.id)
-                                                            ? 'bg-primary/10'
-                                                            : 'bg-muted group-hover:bg-primary/10'
+                                                        isModelDisabled(model)
+                                                            ? 'bg-muted/50'
+                                                            : isModelSelected(model)
+                                                                ? 'bg-primary/10'
+                                                                : 'bg-muted group-hover:bg-primary/10'
                                                     ]"
                                                 >
                                                     <img
@@ -239,7 +342,9 @@ onMounted(() => {
                                                     <Brain v-else class="h-6 w-6" />
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <h3 class="font-semibold text-lg">{{ model.name }}</h3>
+                                                    <div class="flex items-center gap-2">
+                                                        <h3 class="font-semibold text-lg">{{ model.name }}</h3>
+                                                    </div>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <p class="text-sm text-muted-foreground mt-1 line-clamp-2 cursor-help">
@@ -259,12 +364,14 @@ onMounted(() => {
                                                         variant="secondary"
                                                         class="text-[10px] font-medium px-1.5 py-0.5 h-auto"
                                                         :class="[
-                                                            isModelSelected(model.id)
-                                                                ? 'bg-primary/20 text-primary'
-                                                                : ''
+                                                            isModelDisabled(model)
+                                                                ? 'bg-muted/50 text-muted-foreground/50'
+                                                                : isModelSelected(model)
+                                                                    ? 'bg-primary/20 text-primary'
+                                                                    : ''
                                                         ]"
                                                     >
-                                                        {{ model.context.toLocaleString() }} tokens
+                                                        {{ model.context_window.toLocaleString() }} tokens
                                                     </Badge>
 
                                                     <!-- Features -->
@@ -272,8 +379,9 @@ onMounted(() => {
                                                         <Badge
                                                             v-for="feature in model.features.slice(0, 2)"
                                                             :key="feature"
-                                                            :variant="getFeatureBadgeVariant(feature)"
+                                                            :variant="isModelDisabled(model) ? 'outline' : getFeatureBadgeVariant(feature)"
                                                             class="text-[10px] capitalize px-1.5 py-0.5 h-auto"
+                                                            :class="isModelDisabled(model) ? 'opacity-50' : ''"
                                                         >
                                                             {{ feature }}
                                                         </Badge>
@@ -281,6 +389,7 @@ onMounted(() => {
                                                             v-if="model.features.length > 2"
                                                             variant="outline"
                                                             class="text-[10px] px-1.5 py-0.5 h-auto"
+                                                            :class="isModelDisabled(model) ? 'opacity-50' : ''"
                                                         >
                                                             +{{ model.features.length - 2 }}
                                                         </Badge>
@@ -297,6 +406,11 @@ onMounted(() => {
                                 <Brain class="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                                 <p class="text-muted-foreground">No models available</p>
                             </div>
+                            
+                            <!-- Model selection errors -->
+                            <div v-if="(form.errors as any)['selected_models']" class="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                                <p class="text-sm text-destructive">{{ (form.errors as any)['selected_models'] }}</p>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -305,25 +419,25 @@ onMounted(() => {
                         <CardHeader class="bg-gradient-to-r from-secondary/5 to-secondary/10">
                             <CardTitle class="flex items-center gap-3">
                                 <Settings class="h-6 w-6 text-secondary-foreground" />
-                                Model Parameters
+                                Response Settings
                             </CardTitle>
                             <CardDescription class="text-base text-foreground/80">
-                                Configure general parameters that will be applied to all AI models used by this agent. These settings control how models behave and generate responses.
+                                Control how your AI agent responds. These settings will be applied to all selected models above and affect the style and creativity of all responses.
                             </CardDescription>
                         </CardHeader>
                         <CardContent class="p-6">
                             <div class="grid gap-8 lg:grid-cols-2">
-                                <!-- Response Behavior -->
+                                <!-- Creativity & Style -->
                                 <div class="space-y-6">
                                     <div class="flex items-center gap-2 mb-4">
                                         <Thermometer class="h-5 w-5 text-primary" />
-                                        <h3 class="text-lg font-semibold">Response Behavior</h3>
+                                        <h3 class="text-lg font-semibold">Creativity & Style</h3>
                                     </div>
 
                                     <!-- Temperature -->
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
-                                            <Label class="text-base font-medium">Temperature</Label>
+                                            <Label class="text-base font-medium">Creativity Level <span class="text-sm text-muted-foreground">(Temperature)</span></Label>
                                             <div class="flex items-center gap-2">
                                                 <span
                                                     class="text-sm font-medium px-2 py-1 rounded"
@@ -335,14 +449,18 @@ onMounted(() => {
                                             </div>
                                         </div>
                                         <div class="relative">
-                                            <Input
-                                                v-model.number="form.temperature"
-                                                type="range"
-                                                :min="0"
-                                                :max="2"
-                                                :step="0.1"
-                                                class="w-full h-2 rounded-lg appearance-none cursor-pointer range-slider"
-                                            />
+                                                                                    <Input
+                                            v-model.number="form.temperature"
+                                            type="range"
+                                            :min="0"
+                                            :max="2"
+                                            :step="0.1"
+                                            class="w-full h-2 rounded-lg appearance-none cursor-pointer range-slider"
+                                            :class="{ 'border-destructive': form.errors.temperature }"
+                                        />
+                                        <p v-if="form.errors.temperature" class="text-sm text-destructive mt-1">
+                                            {{ form.errors.temperature }}
+                                        </p>
                                             <div class="flex justify-between text-xs text-muted-foreground mt-1">
                                                 <span>Focused</span>
                                                 <span>Balanced</span>
@@ -350,109 +468,170 @@ onMounted(() => {
                                             </div>
                                         </div>
                                         <p class="text-sm text-muted-foreground">
-                                            Controls randomness. Lower values make responses more focused and deterministic.
+                                            Low = predictable, consistent responses. High = more creative, varied answers.
                                         </p>
                                     </div>
 
                                     <!-- Top-K -->
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
-                                            <Label class="text-base font-medium">Top-K Sampling</Label>
-                                            <Badge variant="outline">{{ form.top_k }}</Badge>
+                                            <Label class="text-base font-medium">Word Choice Variety <span class="text-sm text-muted-foreground">(Top-K)</span></Label>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="text-sm font-medium px-2 py-1 rounded"
+                                                    :class="getTopKColor(form.top_k)"
+                                                >
+                                                    {{ getTopKLabel(form.top_k) }}
+                                                </span>
+                                                <Badge variant="outline">{{ form.top_k }}</Badge>
+                                            </div>
                                         </div>
-                                        <Input
-                                            v-model.number="form.top_k"
-                                            type="range"
-                                            :min="1"
-                                            :max="100"
-                                            :step="1"
-                                            class="w-full range-slider"
-                                        />
+                                        <div class="relative">
+                                            <Input
+                                                v-model.number="form.top_k"
+                                                type="range"
+                                                :min="0"
+                                                :max="100"
+                                                :step="1"
+                                                class="w-full range-slider"
+                                                :class="{ 'border-destructive': form.errors.top_k }"
+                                            />
+                                            <div class="flex justify-between text-xs text-muted-foreground mt-1">
+                                                <span>Disabled</span>
+                                                <span>Focused</span>
+                                                <span>Balanced</span>
+                                                <span>Diverse</span>
+                                            </div>
+                                        </div>
+                                        <p v-if="form.errors.top_k" class="text-sm text-destructive mt-1">
+                                            {{ form.errors.top_k }}
+                                        </p>
                                         <p class="text-sm text-muted-foreground">
-                                            Limits model to consider only the K most likely next tokens.
+                                            0 = disabled. Lower = uses more common words. Higher = considers more word options.
                                         </p>
                                     </div>
 
                                     <!-- Top-P -->
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
-                                            <Label class="text-base font-medium">Top-P (Nucleus)</Label>
-                                            <Badge variant="outline">{{ form.top_p }}</Badge>
+                                            <Label class="text-base font-medium">Response Focus <span class="text-sm text-muted-foreground">(Top-P)</span></Label>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="text-sm font-medium px-2 py-1 rounded"
+                                                    :class="getTopPColor(form.top_p)"
+                                                >
+                                                    {{ getTopPLabel(form.top_p) }}
+                                                </span>
+                                                <Badge variant="outline">{{ form.top_p }}</Badge>
+                                            </div>
                                         </div>
-                                        <Input
-                                            v-model.number="form.top_p"
-                                            type="range"
-                                            :min="0.1"
-                                            :max="1"
-                                            :step="0.05"
-                                            class="w-full range-slider"
-                                        />
+                                        <div class="relative">
+                                            <Input
+                                                v-model.number="form.top_p"
+                                                type="range"
+                                                :min="0.1"
+                                                :max="1"
+                                                :step="0.05"
+                                                class="w-full range-slider"
+                                                :class="{ 'border-destructive': form.errors.top_p }"
+                                            />
+                                            <div class="flex justify-between text-xs text-muted-foreground mt-1">
+                                                <span>Focused</span>
+                                                <span>Balanced</span>
+                                                <span>Broad</span>
+                                            </div>
+                                        </div>
+                                        <p v-if="form.errors.top_p" class="text-sm text-destructive mt-1">
+                                            {{ form.errors.top_p }}
+                                        </p>
                                         <p class="text-sm text-muted-foreground">
-                                            Considers tokens with cumulative probability up to P.
+                                            Lower = more focused responses. Higher = broader, more diverse responses.
                                         </p>
                                     </div>
                                 </div>
 
-                                <!-- Limits & Penalties -->
+                                <!-- Repetition Control -->
                                 <div class="space-y-6">
                                     <div class="flex items-center gap-2 mb-4">
                                         <Target class="h-5 w-5 text-primary" />
-                                        <h3 class="text-lg font-semibold">Limits & Penalties</h3>
+                                        <h3 class="text-lg font-semibold">Repetition Control</h3>
                                     </div>
 
-                                    <!-- Max Tokens -->
-                                    <div class="space-y-4">
-                                        <div class="flex items-center justify-between">
-                                            <Label class="text-base font-medium">Max Tokens</Label>
-                                            <Badge variant="outline">{{ form.max_tokens.toLocaleString() }}</Badge>
-                                        </div>
-                                        <Input
-                                            v-model.number="form.max_tokens"
-                                            type="number"
-                                            :min="1"
-                                            :max="8192"
-                                            class="w-full"
-                                        />
-                                        <p class="text-sm text-muted-foreground">
-                                            Maximum number of tokens in the response.
-                                        </p>
-                                    </div>
+
 
                                     <!-- Presence Penalty -->
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
-                                            <Label class="text-base font-medium">Presence Penalty</Label>
-                                            <Badge variant="outline">{{ form.presence_penalty }}</Badge>
+                                            <Label class="text-base font-medium">Avoid Repeating Topics <span class="text-sm text-muted-foreground">(Presence Penalty)</span></Label>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="text-sm font-medium px-2 py-1 rounded"
+                                                    :class="getPenaltyColor(form.presence_penalty)"
+                                                >
+                                                    {{ getPresencePenaltyLabel(form.presence_penalty) }}
+                                                </span>
+                                                <Badge variant="outline">{{ form.presence_penalty }}</Badge>
+                                            </div>
                                         </div>
-                                        <Input
-                                            v-model.number="form.presence_penalty"
-                                            type="range"
-                                            :min="-2"
-                                            :max="2"
-                                            :step="0.1"
-                                            class="w-full range-slider"
-                                        />
+                                        <div class="relative">
+                                            <Input
+                                                v-model.number="form.presence_penalty"
+                                                type="range"
+                                                :min="-2"
+                                                :max="2"
+                                                :step="0.1"
+                                                class="w-full range-slider"
+                                                :class="{ 'border-destructive': form.errors.presence_penalty }"
+                                            />
+                                            <div class="flex justify-between text-xs text-muted-foreground mt-1">
+                                                <span>Repetitive</span>
+                                                <span>Neutral</span>
+                                                <span>Diverse</span>
+                                            </div>
+                                        </div>
+                                        <p v-if="form.errors.presence_penalty" class="text-sm text-destructive mt-1">
+                                            {{ form.errors.presence_penalty }}
+                                        </p>
                                         <p class="text-sm text-muted-foreground">
-                                            Reduces repetition by penalizing tokens that already appeared.
+                                            Higher values discourage repeating the same topics or ideas.
                                         </p>
                                     </div>
 
                                     <!-- Frequency Penalty -->
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
-                                            <Label class="text-base font-medium">Frequency Penalty</Label>
-                                            <Badge variant="outline">{{ form.frequency_penalty }}</Badge>
+                                            <Label class="text-base font-medium">Avoid Repeating Words <span class="text-sm text-muted-foreground">(Frequency Penalty)</span></Label>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="text-sm font-medium px-2 py-1 rounded"
+                                                    :class="getPenaltyColor(form.frequency_penalty)"
+                                                >
+                                                    {{ getFrequencyPenaltyLabel(form.frequency_penalty) }}
+                                                </span>
+                                                <Badge variant="outline">{{ form.frequency_penalty }}</Badge>
+                                            </div>
                                         </div>
-                                        <Input
-                                            v-model.number="form.frequency_penalty"
-                                            type="range"
-                                            :min="-2"
-                                            :max="2"
-                                            :step="0.1"
-                                            class="w-full range-slider"
-                                        />
+                                        <div class="relative">
+                                            <Input
+                                                v-model.number="form.frequency_penalty"
+                                                type="range"
+                                                :min="-2"
+                                                :max="2"
+                                                :step="0.1"
+                                                class="w-full range-slider"
+                                                :class="{ 'border-destructive': form.errors.frequency_penalty }"
+                                            />
+                                            <div class="flex justify-between text-xs text-muted-foreground mt-1">
+                                                <span>Repetitive</span>
+                                                <span>Neutral</span>
+                                                <span>Varied</span>
+                                            </div>
+                                        </div>
+                                        <p v-if="form.errors.frequency_penalty" class="text-sm text-destructive mt-1">
+                                            {{ form.errors.frequency_penalty }}
+                                        </p>
                                         <p class="text-sm text-muted-foreground">
-                                            Reduces repetition based on token frequency.
+                                            Higher values discourage using the same words multiple times.
                                         </p>
                                     </div>
                                 </div>
@@ -469,19 +648,31 @@ onMounted(() => {
                             class="gap-2"
                         >
                             <RotateCcw class="h-4 w-4" />
-                            Reset Parameters to Defaults
+                            Reset to Recommended Settings
                         </Button>
 
-                        <Button
-                            type="submit"
-                            :disabled="form.processing"
-                            class="gap-2 min-w-[160px]"
-                            size="lg"
-                        >
-                            <Zap v-if="!form.processing" class="h-4 w-4" />
-                            <div v-else class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                            {{ form.processing ? 'Saving...' : 'Save Configuration' }}
-                        </Button>
+                                                <div class="flex items-center gap-3">
+                            <FormSuccessMessage 
+                                :show="showSuccessMessage"
+                                message="Settings saved successfully"
+                            />
+                            
+                            <!-- General form errors -->
+                            <div v-if="Object.keys(form.errors).length > 0 && !showSuccessMessage" class="text-sm text-destructive">
+                                Please fix the errors above and try again.
+                            </div>
+                            
+                            <Button
+                                type="submit"
+                                :disabled="form.processing"
+                                class="gap-2 min-w-[160px]"
+                                size="lg"
+                            >
+                                <Zap v-if="!form.processing" class="h-4 w-4" />
+                                <div v-else class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                                {{ form.processing ? 'Saving...' : 'Save Settings' }}
+                            </Button>
+                        </div>
                     </div>
                 </form>
             </div>

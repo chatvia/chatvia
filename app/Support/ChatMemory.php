@@ -4,29 +4,27 @@ namespace App\Support;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
+use App\Models\Agent;
 use App\Models\Message;
+use App\Support\Chat\ChatSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class ChatMemory
 {
-    private const CHAT_SESSION_PREFIX = 'chat-session:';
-
-    private const CONVERSATION_PREFIX = 'conversation';
-
     private string $conversationId = '';
 
-    private \App\Models\Agent $agent;
+    private Agent $agent;
 
-    public function setConversationId($conversationId): self
+    public function setConversationId(string $conversationId): self
     {
         $this->conversationId = $conversationId;
 
         return $this;
     }
 
-    public function setAgent(\App\Models\Agent $agent): self
+    public function setAgent(Agent $agent): self
     {
         $this->agent = $agent;
 
@@ -44,7 +42,7 @@ class ChatMemory
         }
 
         Cache::put(
-            key: $this->getConversationsKey($this->conversationId),
+            key: $this->getConversationsKey(),
             value: $messages,
             ttl: now()->addMinutes(15)
         );
@@ -52,45 +50,7 @@ class ChatMemory
 
     public function getOrGenerateSession(): string
     {
-        $chatSession = request()->session()->get(self::CHAT_SESSION_PREFIX);
-
-        if ($chatSession) {
-            return $chatSession;
-        }
-
-        $chatSessionId = $this->generateSessionId();
-
-        if ($this->isUserAuth()) {
-
-            if ($chatSession = Cache::get($chatSessionId)) {
-                request()->session()->put(self::CHAT_SESSION_PREFIX, $chatSession);
-
-                return $chatSession;
-            }
-
-            request()->session()->put(self::CHAT_SESSION_PREFIX, $chatSession);
-
-            Cache::forever($chatSessionId, ['conversations' => []]);
-
-            return $chatSession;
-        }
-
-        Cache::put(
-            key: $chatSessionId,
-            value: ['conversations' => []],
-            ttl: now()->addDays(3)
-        );
-
-        request()->session()->put(self::CHAT_SESSION_PREFIX, $chatSessionId);
-
-        return $chatSessionId;
-    }
-
-    private function conversationsKey(): string
-    {
-        $session = $this->getOrGenerateSession();
-
-        return $session.'.'.self::CONVERSATION_PREFIX;
+        return app(ChatSession::class)->getOrGenerateSession();
     }
 
     public function createConversation(string $title, bool $incognito = false): string
@@ -108,7 +68,7 @@ class ChatMemory
             'incognito' => $incognito,
         ];
 
-        if ($this->isUserAuth()) {
+        if ($this->isMemberAuth()) {
             Cache::forever(
                 key: $session,
                 value: ['conversations' => $conversations]
@@ -127,8 +87,12 @@ class ChatMemory
         $append = [];
 
         if ($isInputMessage) {
-            $append[] = [
+            $append = [
                 'message_for_llm' => $payload->message_for_llm,
+            ];
+        } else {
+            $append = [
+                'sources' => $payload->sources,
             ];
         }
 
@@ -211,10 +175,10 @@ class ChatMemory
     {
         $cacheId = $this->getConversationsKey();
 
-        $messages = collect(Cache::get($cacheId, []))->toArray();
+        $messages = collect(Cache::get($cacheId, []));
 
         if ($includeLlmMessages) {
-            return $messages;
+            return $messages->toArray();
         }
 
         return $messages->map(function (array $message) {
@@ -270,16 +234,7 @@ class ChatMemory
         return $conversations->values()->toArray();
     }
 
-    public function generateSessionId(): string
-    {
-        if ($this->isUserAuth()) {
-            return 'chat-session.user.'.Auth::id();
-        }
-
-        return 'chat-session.guest.'.Str::uuid()->toString();
-    }
-
-    public function isUserAuth(): bool
+    public function isMemberAuth(): bool
     {
         return Auth::check();
     }
@@ -358,10 +313,10 @@ class ChatMemory
         Cache::put($cacheId, array_values($messages), now()->addMinutes(15));
     }
 
-    public function getLastMessageForLlm()
+    public function getLastMessages(int $number = 3): array
     {
         $llmMessages = $this->getLlmMessages();
 
-        return $llmMessages[array_key_last($llmMessages)] ?? null;
+        return array_reverse(array_slice($llmMessages, -$number));
     }
 }

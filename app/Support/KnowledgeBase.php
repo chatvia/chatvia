@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\AgentFile;
 use App\Models\Document;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -35,41 +36,42 @@ class KnowledgeBase
         DB::statement('SET search_path = public, bm25_catalog, tokenizer_catalog');
 
         $sql = "
-    WITH vector_candidates AS (
-        SELECT id, chunk, embedding, agent_file_id,
-               binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536)) as binary_distance
-        FROM documents
-        WHERE agent_id = ?
-        ORDER BY binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536))
-        LIMIT ?
-    ),
-    vector_ranked AS (
-        SELECT id, chunk, agent_file_id,
-               embedding <=> ?::vector(1536) as vector_distance,
-               'vector' as search_type
-        FROM vector_candidates
-        ORDER BY embedding <=> ?::vector(1536)
-        LIMIT ?
-    ),
-    bm25_ranked AS (
-        SELECT id,
-            chunk, agent_file_id,
-               embedding_bm25 <&> bm25_catalog.to_bm25query('documents_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS bm25_rank,
-               'bm25' as search_type
-        FROM documents
-        WHERE agent_id = ?
-        ORDER BY bm25_rank
-        LIMIT ?
-    )
-    SELECT id, chunk, agent_file_id, search_type
-    FROM (
-        SELECT id, chunk, agent_file_id, vector_distance as score, search_type FROM vector_ranked
-        UNION ALL
-        SELECT id, chunk, agent_file_id, bm25_rank as score, search_type FROM bm25_ranked
-    ) combined
-    ORDER BY score
+WITH vector_candidates AS (
+    SELECT id, chunk, embedding, agent_file_id,
+           binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536)) as binary_distance
+    FROM documents
+    WHERE agent_id = ?
+    ORDER BY binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536))
     LIMIT ?
-    ";
+),
+vector_ranked AS (
+    SELECT id, chunk, agent_file_id,
+           embedding <=> ?::vector(1536) as vector_distance,
+           'vector' as search_type
+    FROM vector_candidates
+    ORDER BY embedding <=> ?::vector(1536)
+    LIMIT ?
+),
+bm25_ranked AS (
+    SELECT id,
+        chunk, agent_file_id,
+           embedding_bm25 <&> bm25_catalog.to_bm25query('documents_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS bm25_rank,
+           'bm25' as search_type
+    FROM documents
+    WHERE agent_id = ?
+    ORDER BY bm25_rank
+    LIMIT ?
+),
+combined_results AS (
+    SELECT id, chunk, agent_file_id, vector_distance as score, search_type FROM vector_ranked
+    UNION ALL
+    SELECT id, chunk, agent_file_id, bm25_rank as score, search_type FROM bm25_ranked
+)
+SELECT DISTINCT ON (id) id, chunk, agent_file_id, search_type
+FROM combined_results
+ORDER BY id, score
+LIMIT ?
+";
 
         $results = DB::select($sql, [
             $vectorString,
@@ -95,10 +97,44 @@ class KnowledgeBase
                 ->increment('retrieval_count');
         }
 
-        return $results;
+        $rerankedDocumentsIds = app(Cohere::class)->rerank(
+            $query,
+            collect($results)->pluck('chunk')->toArray(),
+        );
+
+        return collect($results)
+            ->filter(function ($result, $index) use ($rerankedDocumentsIds) {
+                return in_array($index, $rerankedDocumentsIds, true);
+            })
+            ->sortBy(function ($result, $index) use ($rerankedDocumentsIds) {
+                return array_search($index, $rerankedDocumentsIds, true);
+            })
+            ->map(function ($result) {
+                $result->chunk = $this->removeXmlTags($result->chunk);
+                return $result;
+            })
+            ->values()
+            ->toArray();
     }
 
-    public function chunks(int|\App\Models\Agent $agent, string $query, int $limit = 3): string
+    private function removeXmlTags(string $text): string
+    {
+        // Remove XML tags and their content using regex
+        // This pattern matches opening tag, content, and closing tag
+        $pattern = '/<[^>]+>.*?<\/[^>]+>/s';
+        $text = preg_replace($pattern, '', $text);
+
+        // Also remove self-closing tags
+        $text = preg_replace('/<[^>]+\/>/s', '', $text);
+
+        // Clean up extra whitespace that might be left behind
+        $text = preg_replace('/\s+/', ' ', $text);
+        $text = trim($text);
+
+        return $text;
+    }
+
+    public function chunks(int|\App\Models\Agent $agent, string $query, int $limit = 3): Collection
     {
         if ($agent instanceof \App\Models\Agent) {
             $agent = $agent->id;
@@ -106,7 +142,7 @@ class KnowledgeBase
 
         $results = $this->search($agent, $query, $limit);
 
-        return collect($results)->pluck('chunk')->implode("\n\n");
+        return collect($results)->pluck('chunk');
     }
 
     public function searchInKnowledgeBaseIfNeeded(\App\Models\Agent $agent, string $userMessage)
@@ -117,13 +153,13 @@ class KnowledgeBase
             return Str::of("### User Question:\n")
                 ->append($userMessage."\n")
                 ->append("### Retrieved Context:\n")
-                ->append($chunks);
+                ->append($chunks->implode("\n\n"));
         }
 
         return $userMessage;
     }
 
-    public function shouldContinueSearching($chunk, $userQuery): bool
+    public function shouldContinueSearching(array $chunks, $userQuery): bool
     {
         $res = app(OpenAI::class)->completion([
             'model' => 'gpt-4o-mini',
@@ -135,7 +171,7 @@ class KnowledgeBase
                 [
                     'role' => 'user',
                     'content' => template(config('prompts.follow-up'), [
-                        'retrieved_chunk' => $chunk,
+                        'retrieved_chunks' => collect($chunks)->implode("\n\n"),
                         'user_query' => $userQuery,
                     ]),
                 ],

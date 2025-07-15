@@ -14,6 +14,8 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('sub_domain');
+            $table->string('domain')->nullable();
+            $table->string('default_model')->default('gpt-4o-mini');
             $table->text('system_instructions');
             $table->boolean('is_public')->default(false);
             $table->boolean('is_active')->default(true);

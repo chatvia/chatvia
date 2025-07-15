@@ -7,7 +7,8 @@ export function useSSE() {
     const startStream = (url: string, payload: string, callbacks: {
         onMessage?: (content: string) => void,
         onDone?: () => void,
-        onError?: (error: any) => void
+        onError?: (error: any) => void,
+        onSources?: (sources: any[]) => void
     }) => {
         return () => {
             // Abort any existing connection
@@ -62,6 +63,8 @@ export function useSSE() {
 
                             // Extract data from SSE format
                             const dataMatch = line.match(/^data: (.+)$/m);
+                            const sourcesMatch = line.match(/^sources: (.+)$/m);
+                            
                             if (dataMatch) {
                                 try {
                                     const data = JSON.parse(dataMatch[1]);
@@ -76,6 +79,14 @@ export function useSSE() {
                                     }
                                 } catch (e) {
                                     console.error('Error parsing SSE data:', e);
+                                }
+                            } else if (sourcesMatch) {
+                                try {
+                                    const sources = JSON.parse(sourcesMatch[1]);
+                                    console.log('Received SSE sources:', sources);
+                                    if (callbacks.onSources) callbacks.onSources(sources);
+                                } catch (e) {
+                                    console.error('Error parsing SSE sources:', e);
                                 }
                             }
                         }

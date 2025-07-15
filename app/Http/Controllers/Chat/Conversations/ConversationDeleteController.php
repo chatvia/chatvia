@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 
 class ConversationDeleteController
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $conversations)
+    public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
     {
-        $conversations->deleteConversation($conversationId);
+        $memory->setConversationId($conversationId)->deleteConversation();
     }
 }

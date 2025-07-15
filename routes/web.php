@@ -15,9 +15,11 @@ Route::post('/consent', [ConsentController::class, 'store'])->name('consent.stor
 Route::post('/webhooks/subscription', SubscriptionWebhook::class)->name('subscription.webhook');
 
 Route::get('/test', function () {
-    dd(app(\App\Support\KnowledgeBase::class)->search(
-        \App\Models\Agent::first(), 'Snowball'
-    ));
+    $chunks = app(\App\Support\KnowledgeBase::class)->chunks(
+        \App\Models\Agent::first(), 'What is this book about?'
+    );
+
+    dd(app(\App\Support\Cohere::class)->rerank('What is this book about?', $chunks->toArray()));
 });
 
 require __DIR__.'/settings.php';

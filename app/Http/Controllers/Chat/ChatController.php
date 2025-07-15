@@ -8,10 +8,10 @@ use Inertia\Inertia;
 
 final class ChatController
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $conversations)
+    public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
     {
         return Inertia::render('chat/Chat', [
-            'chat_session' => $conversations->getOrGenerateSession(),
+            'chat_session' => $memory->getOrGenerateSession(),
             'conversation_id' => $conversationId,
         ]);
     }

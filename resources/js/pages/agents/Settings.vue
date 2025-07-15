@@ -51,7 +51,7 @@ const generateNewSubdomain = () => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="General Settings">
+    <AgentLayout :agent="agent" title="Settings">
         <form @submit.prevent="updateGeneralSettings" class="space-y-6">
             <Card>
                 <CardHeader>

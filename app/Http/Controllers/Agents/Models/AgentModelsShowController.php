@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Agents;
+namespace App\Http\Controllers\Agents\Models;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class ShowModelsController extends Controller
+class AgentModelsShowController extends Controller
 {
     public function __invoke(Request $request, Agent $agent)
     {

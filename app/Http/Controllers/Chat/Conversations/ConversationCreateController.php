@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Chat\Conversations;
 
 use App\Data\Chat\ChatInputPayload;
-use App\Rules\ModelRule;
+use App\Rules\AgentLLmChatRule;
 use App\Support\ChatMemory;
-use App\Support\Models;
+use App\Support\Llms;
 use Illuminate\Http\Request;
 
 final class ConversationCreateController
 {
-    public function __invoke(Request $request, Models $models, ChatMemory $memory)
+    public function __invoke(Request $request, Llms $models, ChatMemory $memory)
     {
         $request->validate([
-            'model' => ['required', 'string', new ModelRule],
+            'model' => ['required', 'string', new AgentLLmChatRule],
             'message' => ['required', 'string'],
         ]);
 

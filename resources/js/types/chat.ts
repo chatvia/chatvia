@@ -7,13 +7,17 @@ export interface Message {
   updated_at?: string
 }
 
-export interface Model {
-  external_id: string
-  name: string
-  description: string
-  context: number
-  icon: string
-  features?: string[]
+export interface AIModel {
+  id: string;
+  name: string;
+  context_window: number;
+  icon: string;
+  description: string;
+  features?: string[];
+  location: string;
+  reasoning: boolean;
+  user_allowed_to_use: boolean;
+  is_selected: boolean;
 }
 
 export interface Conversation {
@@ -29,4 +33,4 @@ export interface User {
   name: string
   email: string
   avatar?: string
-} 
+}

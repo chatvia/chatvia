@@ -18,12 +18,12 @@ onMounted(() => {
 
 function updateSelectedModel(newModel) {
   selectedModel.value = newModel;
-  localStorage.setItem('selectedModel', newModel.external_id);
+  localStorage.setItem('selectedModel', newModel.id);
 }
 
 async function createNewConversation(message, model) {
-  await axios.post(route('conversations.create'), { message: message, model: model.external_id }).then(response => {
-    router.visit(route('chat.show', { conversationId: response.data.id, model: model.external_id }));
+  await axios.post(route('conversations.create'), { message: message, model: model.id }).then(response => {
+    router.visit(route('chat.show', { conversationId: response.data.id, model: model.id }));
   });
 }
 

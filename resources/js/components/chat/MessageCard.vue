@@ -54,7 +54,7 @@ const marked = new Marked(
 
 const availableModels = ref(page.props.models);
 const findModelIdx = (modelId) => {
-    return availableModels.value.find((m) => m.external_id === modelId) || page.props.defaultModel;
+    return availableModels.value.find((m) => m.id === modelId) || page.props.defaultModel;
 };
 
 function formatMessage(content) {

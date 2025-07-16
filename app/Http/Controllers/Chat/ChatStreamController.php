@@ -7,7 +7,7 @@ use App\Data\Chat\ChatOutputPayload;
 use App\Data\Chat\LlmModelData;
 use App\Models\Agent;
 use App\Rules\AgentLLmChatRule;
-use App\Support\ChatMemory;
+use App\Support\Chat\ChatMemory;
 use App\Support\KnowledgeBase;
 use App\Support\Llms;
 use Exception;

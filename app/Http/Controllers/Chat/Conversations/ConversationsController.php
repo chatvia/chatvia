@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
-use App\Support\ChatMemory;
+use App\Support\Chat\ChatMemory;
 use Illuminate\Http\Request;
 
 class ConversationsController

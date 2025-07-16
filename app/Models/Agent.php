@@ -117,4 +117,9 @@ class Agent extends Model
 
         return $settings;
     }
+
+    public function contextWindowEnabled(): bool
+    {
+        return $this->settings('message_history')->get('context_window_enabled') === 'true';
+    }
 }

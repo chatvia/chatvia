@@ -15,11 +15,14 @@ Route::post('/consent', [ConsentController::class, 'store'])->name('consent.stor
 Route::post('/webhooks/subscription', SubscriptionWebhook::class)->name('subscription.webhook');
 
 Route::get('/test', function () {
-    $chunks = app(\App\Support\KnowledgeBase::class)->chunks(
-        \App\Models\Agent::first(), 'What is this book about?'
-    );
+    $agent = \App\Models\Agent::first();
+    //    $chunks = app(\App\Support\KnowledgeBase::class)->chunks(
+    //        \App\Models\Agent::first(), 'What is this book about?'
+    //    );
+    //
+    //    dd(app(\App\Support\Cohere::class)->rerank('What is this book about?', $chunks->toArray()));
 
-    dd(app(\App\Support\Cohere::class)->rerank('What is this book about?', $chunks->toArray()));
+    dd($agent->messageHistoryEnabled());
 });
 
 require __DIR__.'/settings.php';

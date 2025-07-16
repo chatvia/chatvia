@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, LoaderCircle, Save, MessageSquare, Database, Trash2, Download } from 'lucide-vue-next';
+import { Clock, LoaderCircle, Save, MessageSquare, Database, Trash2, Download, AlertCircle } from 'lucide-vue-next';
 import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
 import { usePage} from '@inertiajs/vue3';
 
@@ -17,13 +17,20 @@ interface Props {
     agent: any
 }
 
+interface Settings {
+    retention: number;
+    context_window_enabled: boolean;
+    context_window_size: number;
+}
+
 const props = defineProps<Props>();
 
+const settings = page.props.settings as Settings;
+
 const form = useForm({
-    enabled: page.props.settings.enabled,
-    retention:  page.props.settings.retention,
-    context_window_enabled: page.props.settings.context_window_enabled,
-    context_window_size: page.props.settings.context_window_size,
+    retention: settings.retention,
+    context_window_enabled: settings.context_window_enabled,
+    context_window_size: settings.context_window_size,
 });
 
 const isSubmitting = ref(false);
@@ -56,7 +63,6 @@ const retentionOptions = [
     { value: 90, label: '90 days' },
     { value: 180, label: '6 months' },
     { value: 365, label: '1 year' },
-    { value: -1, label: 'Forever' },
 ];
 
 </script>
@@ -75,21 +81,10 @@ const retentionOptions = [
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-6">
-                    <!-- Enable History -->
-                    <div class="flex items-center justify-between space-x-2">
-                        <div>
-                            <Label class="text-base" for="enable_history">Enable message history</Label>
-                            <p class="text-sm text-muted-foreground">
-                                Store conversation history for this agent
-                            </p>
-                        </div>
-                        <Switch id="enable_history" v-model="form.enabled" />
-                    </div>
-
                     <!-- Retention Period -->
                     <div class="space-y-2">
                         <Label for="retention_days">Message retention period</Label>
-                        <Select v-model="form.retention" :disabled="!form.enabled">
+                        <Select v-model="form.retention">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select retention period" />
                             </SelectTrigger>
@@ -126,13 +121,13 @@ const retentionOptions = [
                                 Allow the agent to reference previous messages in the conversation
                             </p>
                         </div>
-                        <Switch id="enable_context" v-model="form.context_window_enabled" :disabled="!form.enabled" />
+                        <Switch id="enable_context" v-model="form.context_window_enabled" />
                     </div>
 
                     <!-- Context Window Size -->
                     <div class="space-y-2">
                         <Label for="context_window_size">Context window size</Label>
-                        <Select v-model="form.context_window_size" :disabled="!form.context_window_enabled || !form.enabled">
+                        <Select v-model="form.context_window_size" :disabled="!form.context_window_enabled">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select context window size" />
                             </SelectTrigger>

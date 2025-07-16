@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Support\ChatMemory;
+use App\Support\Chat\ChatMemory;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;

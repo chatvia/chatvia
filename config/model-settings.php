@@ -64,19 +64,12 @@ return [
     'defaults' => [
         \App\Models\Agent::class => [
             'message_history' => [
-                'enabled' => true,
                 'retention' => -1,
                 'context_window_enabled' => true,
                 'context_window_size' => -1,
             ],
-            'models' => [
-                'list' => [
-                    'free' => '',
-                ],
-                'top-k' => '',
-                'temperature' => 0.7,
-                'top-p' => '',
-                'max_tokens' => 4096,
+            'appearance' => [
+                
             ],
         ],
     ],

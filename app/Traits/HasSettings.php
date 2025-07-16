@@ -16,7 +16,7 @@ trait HasSettings
             ->toArray();
 
         return collect($modelDefaultSettings)->mapWithKeys(function ($value, $key) use ($modelSettings) {
-            return [$key => array_key_exists($key, $modelSettings) ? $modelSettings[$key] : $value];
+            return [$key => array_key_exists($key, $modelSettings) ? $modelSettings[$key] : json_decode($value)];
         });
     }
 

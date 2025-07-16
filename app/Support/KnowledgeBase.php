@@ -111,6 +111,7 @@ LIMIT ?
             })
             ->map(function ($result) {
                 $result->chunk = $this->removeXmlTags($result->chunk);
+
                 return $result;
             })
             ->values()

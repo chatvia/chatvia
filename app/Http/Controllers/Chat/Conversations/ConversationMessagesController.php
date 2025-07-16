@@ -15,6 +15,7 @@ class ConversationMessagesController
             boolean: ! $memory->conversationExist(),
             code: 404
         );
+
         return $memory->getMessagesForConversation();
     }
 }

@@ -25,6 +25,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 
+
 const props = defineProps({
     open: {
         type: Boolean,
@@ -57,6 +58,9 @@ const isSidebarOpen = ref(props.open);
 const defaultModel = ref(props.defaultModel);
 const editingId = ref(null);
 const editingTitle = ref('');
+const deleteDialogOpen = ref(false);
+const conversationToDelete = ref(null);
+
 
 // Watch for prop changes
 watch(() => props.defaultModel, (newDefaultModel) => {
@@ -147,8 +151,10 @@ const newConversation = () => {
 
 const deleteAllConversations = async () => {
     try {
-        await axios.delete(route('conversations.destroy-all'));
-        router.reload({ only: ['conversations'] });
+        await axios.delete(route('conversations.delete.all'));
+        
+        // After clearing all conversations, redirect to chat home
+        router.visit(route('chat.home', { model: defaultModel.value?.id }));
     } catch (error) {
         console.error('Failed to delete all conversations:', error);
     }
@@ -245,13 +251,40 @@ const exportConversation = async (id, format) => {
     }
 };
 
-const deleteConversation = async (id) => {
+const openDeleteDialog = (id) => {
+    conversationToDelete.value = id;
+    deleteDialogOpen.value = true;
+};
+
+const deleteConversation = async () => {
+    if (!conversationToDelete.value) return;
+    
     try {
-        await axios.delete(route('chat.destroy', { conversationId: id }));
-        router.reload({ only: ['conversations'] });
+        const deletedConversationId = conversationToDelete.value;
+        await axios.delete(route('conversations.delete', { conversationId: deletedConversationId }));
+        
+        // Check if we're currently viewing the conversation we just deleted
+        const currentRoute = route().current();
+        const currentConversationId = route().params?.conversationId;
+        
+        if (currentRoute === 'chat.show' && currentConversationId === deletedConversationId) {
+            // Redirect to chat home if we deleted the current conversation
+            router.visit(route('chat.home', { model: defaultModel.value?.id }));
+        } else {
+            // Just reload the conversations list if we're not viewing the deleted conversation
+            router.reload({ only: ['conversations'] });
+        }
     } catch (error) {
         console.error('Failed to delete conversation:', error);
+    } finally {
+        deleteDialogOpen.value = false;
+        conversationToDelete.value = null;
     }
+};
+
+const cancelDelete = () => {
+    deleteDialogOpen.value = false;
+    conversationToDelete.value = null;
 };
 </script>
 
@@ -406,7 +439,7 @@ const deleteConversation = async (id) => {
                                                 </DropdownMenuSubContent>
                                             </DropdownMenuSub>
                                             <DropdownMenuSeparator />
-                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @click="deleteConversation(chat.id)">
+                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @click="openDeleteDialog(chat.id)">
                                                 <Trash2 class="mr-2 h-4 w-4" />
                                                 <span>Delete</span>
                                             </DropdownMenuItem>
@@ -516,6 +549,27 @@ const deleteConversation = async (id) => {
             </div>
         </div>
     </div>
+
+    <!-- Delete Conversation Confirmation Dialog -->
+    <AlertDialog v-model:open="deleteDialogOpen">
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Are you sure you want to delete this conversation? This action cannot be undone.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel @click="cancelDelete">Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                    class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    @click="deleteConversation"
+                >
+                    Delete
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
 </template>
 
 <style scoped>

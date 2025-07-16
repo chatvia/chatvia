@@ -35,6 +35,7 @@ import {
   Sparkles
 } from 'lucide-vue-next'
 import { usePage } from '@inertiajs/vue3'
+import axios from 'axios'
 import { Marked } from 'marked'
 import markedAlert from 'marked-alert'
 import markedCodePreview from 'marked-code-preview'
@@ -52,6 +53,7 @@ const props = defineProps<{
   models?: AIModel[]
   defaultModel?: AIModel | null
   sources?: any[]
+  conversationId?: string
 }>()
 
 const emit = defineEmits<{
@@ -109,20 +111,48 @@ async function copyToClipboard() {
   }
 }
 
-function provideFeedback(type: 'thumbs-up' | 'thumbs-down') {
+async function provideFeedback(type: 'thumbs-up' | 'thumbs-down') {
   if (feedback.value === type) {
     feedback.value = null
   } else {
     feedback.value = type
   }
-  if (props.message.id !== undefined) {
-    emit('feedbackProvided', props.message.id, type)
+  
+  if (props.message.id !== undefined && props.conversationId) {
+    try {
+      const feedbackValue = type === 'thumbs-up';
+      
+      await axios.patch(route('chat.messages.feedback'), {
+        conversation_id: props.conversationId,
+        message_id: props.message.id,
+        feedback: feedbackValue
+      });
+      
+      console.log('Feedback sent successfully:', props.message.id, type);
+      emit('feedbackProvided', props.message.id, type);
+    } catch (error) {
+      console.error('Failed to send feedback:', error);
+      // Reset feedback state on error
+      feedback.value = null;
+    }
   }
 }
 
-function deleteMessage() {
-  if (props.message.id !== undefined) {
-    emit('messageDeleted', props.message.id)
+async function deleteMessage() {
+  if (props.message.id !== undefined && props.conversationId) {
+    try {
+      await axios.delete(route('chat.messages.delete'), {
+        data: {
+          conversation_id: props.conversationId,
+          message_id: props.message.id
+        }
+      });
+      
+      console.log('Message deleted successfully:', props.message.id);
+      emit('messageDeleted', props.message.id);
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+    }
   }
 }
 
@@ -175,6 +205,13 @@ function setupCodeBlockCopyButtons() {
 watch(() => props.message.content, () => {
   if (props.message.content) {
     nextTick(() => setupCodeBlockCopyButtons())
+  }
+}, { immediate: true })
+
+// Initialize feedback from message data
+watch(() => props.message, (newMessage) => {
+  if (newMessage.feedback !== undefined) {
+    feedback.value = newMessage.feedback ? 'thumbs-up' : 'thumbs-down'
   }
 }, { immediate: true })
 

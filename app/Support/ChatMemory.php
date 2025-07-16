@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Support\Chat\ChatSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
 class ChatMemory
@@ -31,13 +32,21 @@ class ChatMemory
         return $this;
     }
 
-    public function updateMessage(string $userMessageId, string $content): void
+    public function updateMessage(string $userMessageId, array $values): void
     {
         $messages = $this->getMessagesForConversation($this->conversationId);
 
         foreach ($messages as &$message) {
             if ($message['id'] === $userMessageId) {
-                $message['content'] = $content;
+                foreach ($values as $key => $value) {
+                    $message[$key] = $value;
+
+                    if ($key === 'feedback') {
+                        Message::where('id', $message['id'])->update([
+                            'feedback' => $value ? 'positive' : 'negative',
+                        ]);
+                    }
+                }
             }
         }
 
@@ -155,7 +164,10 @@ class ChatMemory
         Cache::forever($cacheId, $messages);
     }
 
-    public function addFeedback() {}
+    public function feedback($messageId, bool $satisfied): void
+    {
+        $this->updateMessage($messageId, ['satisfied' => $satisfied]);
+    }
 
     public function conversationExist(): bool
     {
@@ -298,6 +310,21 @@ class ChatMemory
         Cache::forever($chatSession, ['conversations' => $conversations]);
     }
 
+    public function deleteAllConversations()
+    {
+        $prefix = config('database.redis.options.prefix');
+        $cachePrefix = config('cache.prefix');
+        $chatSession = $this->getOrGenerateSession();
+
+        $pattern = $prefix.$cachePrefix.$chatSession.'*';
+
+        //        $res = Redis::connection('cache')->command()->scan(0, [
+        //            'match' => $pattern,
+        //            'count' => 1000,
+        //        ]);
+
+    }
+
     public function removeMessage($messageId): void
     {
         $messages = $this->getMessagesForConversation($this->conversationId);
@@ -318,5 +345,21 @@ class ChatMemory
         $llmMessages = $this->getLlmMessages();
 
         return array_reverse(array_slice($llmMessages, -$number));
+    }
+
+    public function deleteMessage(string $messageId): void
+    {
+        $messages = $this->getMessagesForConversation($this->conversationId);
+
+        foreach ($messages as $key => $message) {
+            if ($message['id'] === $messageId) {
+                unset($messages[$key], $messages[$key - 1]);
+            }
+        }
+
+        Cache::forever(
+            key: $this->getConversationsKey(),
+            value: $messages,
+        );
     }
 }

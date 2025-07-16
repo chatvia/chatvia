@@ -22,7 +22,7 @@ class Cohere
             ])->json('embeddings.float.0');
     }
 
-    public function rerank(string $query, array $documents): array
+    public function rerank(string $query, array $documents, int $topN = 6): array
     {
         $rerank = Http::withToken(config('services.cohere.api_key'))
             ->throw()
@@ -31,6 +31,7 @@ class Cohere
                 'query' => $query,
                 'max_tokens_per_doc' => 1000,
                 'documents' => $documents,
+                'top_n' => $topN,
             ])->json('results');
 
         return collect($rerank)->pluck('index')->toArray();

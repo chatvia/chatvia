@@ -22,7 +22,7 @@ class ChatSession
 
         if ($this->isUserAuth()) {
 
-            if ($chatSession = Cache::get($chatSessionId)) {
+            if ($chatSession = Cache::tags([$chatSessionId])->get($chatSessionId)) {
                 request()->session()->put(self::CHAT_SESSION_PREFIX, $chatSession);
 
                 return $chatSession;
@@ -30,12 +30,12 @@ class ChatSession
 
             request()->session()->put(self::CHAT_SESSION_PREFIX, $chatSession);
 
-            Cache::forever($chatSessionId, ['conversations' => []]);
+            Cache::tags([$chatSessionId])->forever($chatSessionId, ['conversations' => []]);
 
             return $chatSession;
         }
 
-        Cache::put(
+        Cache::tags([$chatSessionId])->put(
             key: $chatSessionId,
             value: ['conversations' => []],
             ttl: now()->addDays(3)

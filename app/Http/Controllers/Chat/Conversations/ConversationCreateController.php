@@ -26,6 +26,7 @@ final class ConversationCreateController
         $conversationId = $memory
             ->setAgent($agent)
             ->createConversation(title: 'New Chat');
+
         $memory->setConversationId($conversationId);
 
         $memory->addMessageViaPayload($payload);

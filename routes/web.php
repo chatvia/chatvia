@@ -22,7 +22,16 @@ Route::get('/test', function () {
     //
     //    dd(app(\App\Support\Cohere::class)->rerank('What is this book about?', $chunks->toArray()));
 
-    dd($agent->messageHistoryEnabled());
+    $memory = app(\App\Support\Chat\ChatMemory::class)
+        ->setAgent($agent)
+        ->setConversationId('260e07e2-3b01-4336-bd6e-0235a58804e6');
+
+    dd($memory->getLlmMessages());
+
+    dd(
+
+        $memory->updateConversationTitle('Hello')
+    );
 });
 
 require __DIR__.'/settings.php';

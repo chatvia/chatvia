@@ -9,6 +9,9 @@ class ConversationUpdate
 {
     public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
     {
-        $memory->setConversationId($conversationId)->updateConversationTitle($request->input('title'));
+        $memory
+            ->setAgent(current_agent())
+            ->setConversationId($conversationId)
+            ->updateConversationTitle($request->input('title'));
     }
 }

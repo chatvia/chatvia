@@ -7,8 +7,10 @@ use App\Data\Chat\ChatOutputPayload;
 use App\Models\Agent;
 use App\Models\Message;
 use App\Support\OpenRouter;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
 class ChatMemory
@@ -31,9 +33,14 @@ class ChatMemory
         return $this;
     }
 
+    private function getMessageRetention(): Carbon
+    {
+        return now()->addDays($this->agent->messageRetentionInDays());
+    }
+
     public function updateMessage(string $userMessageId, array $values): void
     {
-        $messages = $this->getMessagesForConversation($this->conversationId);
+        $messages = $this->getMessagesForConversation();
 
         foreach ($messages as &$message) {
             if ($message['id'] === $userMessageId) {
@@ -49,10 +56,9 @@ class ChatMemory
             }
         }
 
-        Cache::put(
+        $this->cache(
             key: $this->getConversationsKey(),
             value: $messages,
-            ttl: now()->addMinutes(15)
         );
     }
 
@@ -61,7 +67,7 @@ class ChatMemory
         return app(ChatSession::class)->getOrGenerateSession();
     }
 
-    public function createConversation(string $title, bool $incognito = false): string
+    public function createConversation(string $title): string
     {
         $conversationId = Str::uuid()->toString();
 
@@ -74,17 +80,14 @@ class ChatMemory
             'title' => $title,
             'timestamp' => now()->timestamp,
             'visible' => false,
-            'incognito' => $incognito,
         ];
 
-        if ($this->isMemberAuth()) {
-            Cache::forever(
-                key: $session,
-                value: ['conversations' => $conversations]
-            );
-        } else {
-            Cache::put($session, ['conversations' => $conversations], now()->addDays(3));
-        }
+        $this->cache(
+            key: $session,
+            value: [
+                'conversations' => $conversations,
+            ],
+        );
 
         return $conversationId;
     }
@@ -93,14 +96,14 @@ class ChatMemory
     {
         $isInputMessage = $payload instanceof ChatInputPayload;
 
+        $append = [
+            'include_in_conversation' => $this->agent->contextWindowEnabled(),
+        ];
+
         if ($isInputMessage) {
-            $append = [
-                'message_for_llm' => $payload->message_for_llm,
-            ];
+            $append['message_for_llm'] = $payload->message_for_llm;
         } else {
-            $append = [
-                'sources' => $payload->sources,
-            ];
+            $append['sources'] = $payload->sources;
         }
 
         $role = $isInputMessage ? 'user' : 'assistant';
@@ -156,10 +159,13 @@ class ChatMemory
     {
         $cacheId = $this->getConversationsKey();
 
-        $messages = Cache::get($cacheId, []);
+        $messages = Cache::tags([$this->getOrGenerateSession()])->get($cacheId, []);
         $messages[] = $message;
 
-        Cache::forever($cacheId, $messages);
+        $this->cache(
+            key: $cacheId,
+            value: $messages,
+        );
     }
 
     public function feedback($messageId, bool $satisfied): void
@@ -169,9 +175,9 @@ class ChatMemory
 
     public function conversationExist(): bool
     {
-        $cacheId = $this->getConversationsKey($this->conversationId);
+        $cacheId = $this->getConversationsKey();
 
-        return Cache::has($cacheId);
+        return Cache::tags([$this->getOrGenerateSession()])->has($cacheId);
     }
 
     private function getConversationsKey(): string
@@ -185,7 +191,9 @@ class ChatMemory
     {
         $cacheId = $this->getConversationsKey();
 
-        $messages = collect(Cache::get($cacheId, []));
+        $messages = Cache::tags([$this->getOrGenerateSession()])->get($cacheId, []);
+
+        $messages = collect($messages);
 
         if ($includeLlmMessages) {
             return $messages->toArray();
@@ -198,18 +206,26 @@ class ChatMemory
         })->toArray();
     }
 
+    /**
+     * The messages that the llm will receive based on the conversation history and context window size.
+     */
     public function getLlmMessages(bool $asText = false): array|string
     {
-        if (! $this->agent->contextWindowEnabled()) {
-            return [];
-        }
+//        if (! $this->agent->contextWindowEnabled()) {
+//            return [];
+//        }
 
         $cacheId = $this->getConversationsKey();
 
-        $messages = Cache::get($cacheId, []);
+        $messages = Cache::tags([$this->getOrGenerateSession()])->get($cacheId, []);
 
         if (! $messages) {
             return [];
+        }
+
+        if ($this->agent->contextWindowSize() !== -1) {
+            // adjust the context window size
+            $messages = array_slice($messages, -$this->agent->contextWindowSize());
         }
 
         // message_for_llm is the message that LLM will receive, it might contain some LLM-specific details (rag responses)
@@ -218,7 +234,14 @@ class ChatMemory
                 'role' => $message['role'],
                 'content' => $message['message_for_llm'] ?? $message['content'],
             ];
-        })->toArray();
+        })
+            ->filter(function($item) {
+                if (!isset($item['include_in_conversation'])) {
+                    return true;
+                }
+                return $item['include_in_conversation'] === true;
+            })
+            ->toArray();
 
         if ($asText) {
             return collect($messages)->pluck('content')->join("\n");
@@ -231,9 +254,9 @@ class ChatMemory
     {
         $currentSession = $this->getOrGenerateSession();
 
-        $session = Cache::get($currentSession);
+        $session = Cache::tags([$currentSession])->get($currentSession);
 
-        $conversations = collect($session['conversations'] ?? [])->values();
+        $conversations = collect($session['conversations'] ?? []);
 
         if ($conversations) {
             if ($onlyVisible) {
@@ -244,8 +267,7 @@ class ChatMemory
                 $conversations = $conversations->sortByDesc('timestamp');
             }
         }
-
-        return $conversations->values()->toArray();
+        return $conversations->toArray();
     }
 
     public function isMemberAuth(): bool
@@ -266,15 +288,27 @@ class ChatMemory
 
         $chatSession = $this->getOrGenerateSession();
 
-        Cache::forever($chatSession, ['conversations' => $conversations]);
+        $this->cache(
+            key: $chatSession,
+            value: [
+                'conversations' => $conversations,
+            ],
+        );
     }
 
-    public function updateConversationTitleFromMessages(): void
+    public function updateConversationTitleFromMessages(array|string $messages = []): void
     {
-        $messages = $this->getLlmMessages(asText: true);
+        if (!$messages) {
+            $messages = $this->getLlmMessages(true);
+        }
+
+        if (is_array($messages)) {
+            $messages = implode("\n", $messages);
+        }
 
         $newTitle = OpenRouter::completion([
             'model' => 'openai/gpt-4o-mini',
+            'max_tokens' => 50,
             'messages' => [
                 [
                     'role' => 'system',
@@ -287,10 +321,9 @@ class ChatMemory
                 [
                     'role' => 'user',
                     'content' => 'The text is: '.$messages,
-                    'max_tokens' => 50,
                 ],
             ],
-        ])->json('choices.0.message.content');
+        ])->throw()->json('choices.0.message.content');
 
         $this->updateConversationTitle($newTitle);
     }
@@ -298,7 +331,8 @@ class ChatMemory
     public function deleteConversation(): void
     {
         $cacheId = $this->getConversationsKey();
-        Cache::forget($cacheId);
+
+        Cache::tags([$this->getOrGenerateSession()])->forget($cacheId);
 
         $conversations = $this->getConversationsForCurrentSession();
 
@@ -309,22 +343,16 @@ class ChatMemory
         }
 
         $chatSession = $this->getOrGenerateSession();
-        Cache::forever($chatSession, ['conversations' => $conversations]);
+
+        $this->cache(
+            key: $chatSession,
+            value: ['conversations' => $conversations],
+        );
     }
 
-    public function deleteAllConversations()
+    public function deleteAllConversations(): void
     {
-        $prefix = config('database.redis.options.prefix');
-        $cachePrefix = config('cache.prefix');
-        $chatSession = $this->getOrGenerateSession();
-
-        $pattern = $prefix.$cachePrefix.$chatSession.'*';
-
-        //        $res = Redis::connection('cache')->command()->scan(0, [
-        //            'match' => $pattern,
-        //            'count' => 1000,
-        //        ]);
-
+        Cache::tags([$this->getOrGenerateSession()])->flush();
     }
 
     public function removeMessage($messageId): void
@@ -339,7 +367,7 @@ class ChatMemory
 
         $cacheId = $this->getConversationsKey();
 
-        Cache::put($cacheId, array_values($messages), now()->addMinutes(15));
+        $this->cache($cacheId, array_values($messages));
     }
 
     public function getLastMessages(int $number = 3): array
@@ -359,9 +387,18 @@ class ChatMemory
             }
         }
 
-        Cache::forever(
+        $this->cache(
             key: $this->getConversationsKey(),
             value: $messages,
+        );
+    }
+
+    public function cache($key, $value): void
+    {
+        Cache::tags([$this->getOrGenerateSession()])->put(
+            key: $key,
+            value: $value,
+            ttl: $this->getMessageRetention(),
         );
     }
 }

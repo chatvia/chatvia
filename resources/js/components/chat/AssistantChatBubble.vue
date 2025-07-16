@@ -65,12 +65,12 @@ const page = usePage()
 const modelUsed = computed(() => {
     const models = props.models
     const defaultModel = props.defaultModel
-    
+
     // Handle case where models might not be loaded yet
     if (!models || !Array.isArray(models)) {
         return defaultModel || null
     }
-    
+
     return models.find((m) => m.id === props.message.model) || defaultModel
 })
 
@@ -117,17 +117,17 @@ async function provideFeedback(type: 'thumbs-up' | 'thumbs-down') {
   } else {
     feedback.value = type
   }
-  
+
   if (props.message.id !== undefined && props.conversationId) {
     try {
       const feedbackValue = type === 'thumbs-up';
-      
+
       await axios.patch(route('chat.messages.feedback'), {
         conversation_id: props.conversationId,
         message_id: props.message.id,
         feedback: feedbackValue
       });
-      
+
       console.log('Feedback sent successfully:', props.message.id, type);
       emit('feedbackProvided', props.message.id, type);
     } catch (error) {
@@ -147,7 +147,7 @@ async function deleteMessage() {
           message_id: props.message.id
         }
       });
-      
+
       console.log('Message deleted successfully:', props.message.id);
       emit('messageDeleted', props.message.id);
     } catch (error) {
@@ -235,6 +235,7 @@ onMounted(() => {
         <div v-if="message.content"
              id="chat-ai-responses"
              ref="messageContentRef"
+
              v-html="formatMessage(message.content)">
         </div>
         <div v-else class="flex items-center gap-2">
@@ -335,7 +336,7 @@ onMounted(() => {
             v-if="sources && sources.length > 0"
             :sources="sources"
           />
-          
+
           <Badge v-if="modelUsed" variant="secondary" class="flex items-center gap-1">
             <img
               :src="`/images/llms/${modelUsed.icon}`"

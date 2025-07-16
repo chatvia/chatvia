@@ -2,4 +2,4 @@
 
 namespace App\Support\Chat;
 
-class Stream {}
+class ChatPersistence {}

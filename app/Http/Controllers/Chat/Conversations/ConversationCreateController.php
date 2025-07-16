@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Chat\Conversations;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Rules\AgentLLmChatRule;
-use App\Support\ChatMemory;
+use App\Support\Chat\ChatMemory;
 use App\Support\Llms;
 use Illuminate\Http\Request;
 
@@ -23,8 +23,10 @@ final class ConversationCreateController
 
         $payload = ChatInputPayload::fromRequest($request);
 
-        $conversationId = $memory->createConversation(title: 'New Chat');
-        $memory->setConversationId($conversationId)->setAgent($agent);
+        $conversationId = $memory
+            ->setAgent($agent)
+            ->createConversation(title: 'New Chat');
+        $memory->setConversationId($conversationId);
 
         $memory->addMessageViaPayload($payload);
 

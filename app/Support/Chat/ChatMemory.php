@@ -1,15 +1,14 @@
 <?php
 
-namespace App\Support;
+namespace App\Support\Chat;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Models\Agent;
 use App\Models\Message;
-use App\Support\Chat\ChatSession;
+use App\Support\OpenRouter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
 class ChatMemory
@@ -65,6 +64,7 @@ class ChatMemory
     public function createConversation(string $title, bool $incognito = false): string
     {
         $conversationId = Str::uuid()->toString();
+
         $session = $this->getOrGenerateSession();
 
         $conversations = $this->getConversationsForCurrentSession();
@@ -92,8 +92,6 @@ class ChatMemory
     public function addMessageViaPayload(ChatInputPayload|ChatOutputPayload $payload): string
     {
         $isInputMessage = $payload instanceof ChatInputPayload;
-
-        $append = [];
 
         if ($isInputMessage) {
             $append = [
@@ -202,6 +200,10 @@ class ChatMemory
 
     public function getLlmMessages(bool $asText = false): array|string
     {
+        if (! $this->agent->contextWindowEnabled()) {
+            return [];
+        }
+
         $cacheId = $this->getConversationsKey();
 
         $messages = Cache::get($cacheId, []);

@@ -5,6 +5,8 @@ export interface Message {
   model?: string
   created_at?: string
   updated_at?: string
+  feedback?: boolean
+  sources?: any[]
 }
 
 export interface AIModel {

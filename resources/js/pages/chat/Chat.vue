@@ -363,8 +363,83 @@ const messageUpdated = (messageId, messageContent) => {
 };
 
 const messageDeleted = (messageId) => {
-    // TODO: Implement message deletion
-    console.log('Delete message:', messageId);
+    const messageIndex = messages.value.findIndex(m => m.id === messageId);
+    
+    if (messageIndex === -1) return;
+    
+    const message = messages.value[messageIndex];
+    
+    if (message.role === 'user') {
+        // If deleting a user message, also remove the subsequent assistant message
+        const assistantMessageIndex = messageIndex + 1;
+        if (assistantMessageIndex < messages.value.length && 
+            messages.value[assistantMessageIndex].role === 'assistant') {
+            // Remove both user and assistant messages
+            messages.value.splice(messageIndex, 2);
+            // Clear sources for the assistant message
+            messageSources.value.delete(assistantMessageIndex);
+            // Update source indices for remaining messages
+            const newSources = new Map();
+            messageSources.value.forEach((sources, index) => {
+                if (index > assistantMessageIndex) {
+                    newSources.set(index - 2, sources);
+                } else if (index < messageIndex) {
+                    newSources.set(index, sources);
+                }
+            });
+            messageSources.value = newSources;
+        } else {
+            // Remove only the user message
+            messages.value.splice(messageIndex, 1);
+            // Update source indices
+            const newSources = new Map();
+            messageSources.value.forEach((sources, index) => {
+                if (index > messageIndex) {
+                    newSources.set(index - 1, sources);
+                } else if (index < messageIndex) {
+                    newSources.set(index, sources);
+                }
+            });
+            messageSources.value = newSources;
+        }
+    } else {
+        // If deleting an assistant message, also remove the previous user message
+        const userMessageIndex = messageIndex - 1;
+        if (userMessageIndex >= 0 && 
+            messages.value[userMessageIndex].role === 'user') {
+            // Remove both user and assistant messages
+            messages.value.splice(userMessageIndex, 2);
+            // Clear sources for the assistant message
+            messageSources.value.delete(messageIndex);
+            // Update source indices for remaining messages
+            const newSources = new Map();
+            messageSources.value.forEach((sources, index) => {
+                if (index > messageIndex) {
+                    newSources.set(index - 2, sources);
+                } else if (index < userMessageIndex) {
+                    newSources.set(index, sources);
+                }
+            });
+            messageSources.value = newSources;
+        } else {
+            // Remove only the assistant message if no previous user message
+            messages.value.splice(messageIndex, 1);
+            // Clear sources for this message
+            messageSources.value.delete(messageIndex);
+            // Update source indices for remaining messages
+            const newSources = new Map();
+            messageSources.value.forEach((sources, index) => {
+                if (index > messageIndex) {
+                    newSources.set(index - 1, sources);
+                } else if (index < messageIndex) {
+                    newSources.set(index, sources);
+                }
+            });
+            messageSources.value = newSources;
+        }
+    }
+    
+    console.log('Message deleted from UI:', messageId);
 };
 
 const feedbackProvided = (messageId, type) => {
@@ -439,7 +514,9 @@ const handleScrollToBottomClick = () => {
                                 <UserChatBubble
                                     v-if="message.role === 'user'"
                                     :message="message"
+                                    :conversationId="conversation_id"
                                     @messageUpdated="messageUpdated"
+                                    @messageDeleted="messageDeleted"
                                 />
                                 <AssistantChatBubble
                                     v-else
@@ -447,6 +524,7 @@ const handleScrollToBottomClick = () => {
                                     :models="models"
                                     :defaultModel="defaultModel"
                                     :sources="messageSources.get(index) || []"
+                                    :conversationId="conversation_id"
                                     :hideFeedback="index === messages.length - 1 && isStreaming"
                                     :isThinking="index === messages.length - 1 && isStreaming && !message.content"
                                     @messageDeleted="messageDeleted"

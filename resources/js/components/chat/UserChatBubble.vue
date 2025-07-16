@@ -3,20 +3,34 @@ import { ref, nextTick } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
-import { Copy, Check, Edit3, X, Send } from 'lucide-vue-next'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Copy, Check, Edit3, X, Send, Trash2 } from 'lucide-vue-next'
 import { usePage } from '@inertiajs/vue3'
+import axios from 'axios'
 import type { Message } from '@/types/chat'
 
 const props = defineProps<{
   message: Message
+  conversationId?: string
 }>()
 
 const emit = defineEmits<{
   messageUpdated: [id: string | number, content: string]
+  messageDeleted: [id: string | number]
 }>()
 
 const page = usePage()
-const user = page.props.auth?.user
+const user = (page.props as any).auth?.user
 
 const isEditing = ref(false)
 const editedContent = ref('')
@@ -41,7 +55,7 @@ function cancelEditing() {
 }
 
 function saveEditedMessage() {
-  if (!editedContent.value.trim()) return
+  if (!editedContent.value.trim() || !props.message.id) return
   
   emit('messageUpdated', props.message.id, editedContent.value.trim())
   isEditing.value = false
@@ -65,6 +79,24 @@ async function copyToClipboard() {
     }, 2000)
   } catch (err) {
     console.error('Failed to copy text:', err)
+  }
+}
+
+async function deleteMessage() {
+  if (props.message.id !== undefined && props.conversationId) {
+    try {
+      await axios.delete(route('chat.messages.delete'), {
+        data: {
+          conversation_id: props.conversationId,
+          message_id: props.message.id
+        }
+      });
+      
+      console.log('Message deleted successfully:', props.message.id);
+      emit('messageDeleted', props.message.id);
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+    }
   }
 }
 </script>
@@ -124,6 +156,32 @@ async function copyToClipboard() {
         >
           <Edit3 class="h-4 w-4" />
         </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              v-if="!isEditing"
+              size="icon"
+              variant="ghost"
+              class="h-8 w-8 hover:text-red-600"
+            >
+              <Trash2 class="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this message?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. The message and any subsequent response will be permanently deleted.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction @click="deleteMessage" class="bg-red-600 hover:bg-red-700">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   </div>

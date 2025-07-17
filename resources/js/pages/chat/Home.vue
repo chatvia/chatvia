@@ -10,10 +10,51 @@ const selectedStarter = ref('');
 
 const starters = ref([]);
 
+// Add loading state
+const isLoadingAppearance = ref(true);
+
+// Add reactive ref for appearance
+const appearance = ref({
+    primary_color: null,
+    chat_bubble_color: null,
+    chat_text_color: null,
+    welcome_message: null,
+    chat_window_title: null,
+    chat_footer_text: null,
+    avatar: null
+});
+
+// Add function to fetch appearance
+const fetchAppearance = async () => {
+    try {
+        const response = await axios.get(route('chat.appearance'));
+        appearance.value = response.data;
+        
+        // Apply CSS custom properties for colors if they exist
+        if (appearance.value.primary_color) {
+            document.documentElement.style.setProperty('--primary', appearance.value.primary_color);
+        }
+        if (appearance.value.chat_bubble_color) {
+            document.documentElement.style.setProperty('--chat-bubble-color', appearance.value.chat_bubble_color);
+        }
+        if (appearance.value.chat_text_color) {
+            document.documentElement.style.setProperty('--chat-text-color', appearance.value.chat_text_color);
+        }
+    } catch (error) {
+        console.error('Failed to fetch appearance:', error);
+    } finally {
+        isLoadingAppearance.value = false;
+    }
+};
+
 onMounted(() => {
-    axios.get(route('chat.starters')).then(response => {
-        starters.value = response.data;
-    })
+    // Fetch both starters and appearance
+    Promise.all([
+        axios.get(route('chat.starters')).then(response => {
+            starters.value = response.data;
+        }),
+        fetchAppearance()
+    ]);
 })
 
 function updateSelectedModel(newModel) {
@@ -38,8 +79,14 @@ function handleStarterClick(starter) {
             <template #content>
           <div class="flex h-screen items-center justify-center px-4">
               <div class="w-full max-w-4xl mx-auto">
-                  <h1 class="mb-8 text-center text-4xl font-medium text-gray-800 dark:text-white">
-                      What can I help with?
+                  <!-- Loading skeleton for title -->
+                  <div v-if="isLoadingAppearance" class="mb-8 text-center">
+                      <div class="h-12 bg-muted rounded-lg w-96 mx-auto animate-pulse"></div>
+                  </div>
+                  
+                  <!-- Dynamic welcome message -->
+                  <h1 v-else class="mb-8 text-center text-4xl font-medium text-gray-800 dark:text-white">
+                      {{ appearance.welcome_message }}
                   </h1>
 
                   <!-- Conversation Starters -->
@@ -72,6 +119,18 @@ function handleStarterClick(starter) {
                           @modelSelected="updateSelectedModel"
                           @messageAdded="createNewConversation"
                       />
+                      
+                      <!-- Loading skeleton for footer -->
+                      <div v-if="isLoadingAppearance" class="text-center mt-4">
+                          <div class="h-4 bg-muted rounded w-80 mx-auto animate-pulse"></div>
+                      </div>
+                      
+                      <!-- Dynamic footer text -->
+                      <div v-else-if="appearance.chat_footer_text" class="text-center mt-4">
+                          <p class="text-xs text-muted-foreground">
+                              {{ appearance.chat_footer_text }}
+                          </p>
+                      </div>
                   </div>
               </div>
           </div>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Agents;
+namespace App\Http\Controllers\Agents\Team;
 
 use App\Models\Agent;
 use Illuminate\Http\Request;
@@ -10,6 +10,8 @@ class AgentTeamController
 {
     public function __invoke(Request $request, Agent $agent)
     {
-        return Inertia::render('agents/Team', ['agent' => $agent]);
+        return Inertia::render('agents/Team', [
+            'agent' => $agent,
+        ]);
     }
 }

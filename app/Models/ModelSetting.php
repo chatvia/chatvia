@@ -12,10 +12,6 @@ class ModelSetting extends Model
 {
     protected $guarded = ['id'];
 
-    protected $casts = [
-        'value' => 'json',
-    ];
-
     /**
      * Get the parent model that owns the setting.
      */

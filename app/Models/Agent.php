@@ -9,6 +9,7 @@ use App\Support\Agents\Stats;
 use App\Traits\HasSettings;
 use Exception;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -103,7 +104,8 @@ class Agent extends Model
     {
         $settings = AgentLlm::where('agent_id', $this->id)
             ->select(['temperature', 'top_k', 'top_p', 'frequency_penalty', 'presence_penalty', 'presence_penalty'])
-            ->first()->toArray();
+            ->first()
+            ?->toArray();
 
         if (! $settings) {
             return [
@@ -131,5 +133,19 @@ class Agent extends Model
     public function messageRetentionInDays(): int
     {
         return (int) $this->settings('message_history')->get('retention', 30);
+    }
+
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(Member::class);
+    }
+
+    public function url(): Attribute
+    {
+        return Attribute::get(function () {
+            $url = parse_url(config('app.url'));
+
+            return $url['scheme'].'://'.$this->sub_domain.'.'.$url['host'];
+        });
     }
 }

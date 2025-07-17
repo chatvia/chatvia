@@ -12,6 +12,8 @@
         "php": "^8.2",
         "google/cloud-document-ai": "^2.2",
         "inertiajs/inertia-laravel": "^2.0",
+        "intervention/image": "^3.11",
+        "intervention/image-laravel": "^1.5",
         "kreait/laravel-firebase": "^6.0",
         "laravel/cashier": "^15.6",
         "laravel/framework": "^12.0",
@@ -25,6 +27,7 @@
         "pgvector/pgvector": "^0.2.2",
         "spatie/laravel-data": "^4.15",
         "spatie/laravel-login-link": "^1.6",
+        "spatie/laravel-pdf": "^1.6",
         "spatie/laravel-ray": "^1.40",
         "tightenco/ziggy": "^2.5"
     },

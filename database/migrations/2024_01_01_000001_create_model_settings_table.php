@@ -11,9 +11,10 @@ return new class extends Migration
         Schema::create('model_settings', function (Blueprint $table) {
             $table->id();
             $table->morphs('model');
-            $table->string('group');
+            $table->string('group')->index();
             $table->string('key');
-            $table->json('value');
+            $table->string('value');
+            $table->string('data_type');
             $table->timestamps();
         });
     }

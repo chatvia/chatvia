@@ -10,7 +10,7 @@ class ChatModelsListController
 
         return [
             'models' => $models,
-            'default' => $models[0],
+            'default' => $models[0] ?? null,
         ];
     }
 }

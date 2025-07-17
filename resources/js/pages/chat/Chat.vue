@@ -12,8 +12,6 @@ import { ChevronDown } from 'lucide-vue-next';
 
 const chatEventBus = inject('chatEventBus');
 
-const page = usePage();
-
 const { isStreaming, startStream, stopStream } = useSSE();
 
 const props = defineProps({
@@ -47,6 +45,17 @@ const messageSources = ref(new Map()); // Store sources for each message
 const models = ref([]);
 const defaultModel = ref(null);
 const isLoadingModels = ref(true);
+
+// Add reactive ref for appearance
+const appearance = ref({
+    primary_color: null,
+    chat_bubble_color: null,
+    chat_text_color: null,
+    welcome_message: null,
+    chat_window_title: null,
+    chat_footer_text: null,
+    avatar: null
+});
 
 const showScrollToBottom = computed(() => {
     if (!messagesContainer.value) return false;
@@ -82,6 +91,27 @@ const fetchModels = async () => {
         console.error('Failed to fetch models:', error);
     } finally {
         isLoadingModels.value = false;
+    }
+};
+
+// Add function to fetch appearance
+const fetchAppearance = async () => {
+    try {
+        const response = await axios.get(route('chat.appearance'));
+        appearance.value = response.data;
+
+        // Apply CSS custom properties for colors if they exist
+        if (appearance.value.primary_color) {
+            document.documentElement.style.setProperty('--primary', appearance.value.primary_color);
+        }
+        if (appearance.value.chat_bubble_color) {
+            document.documentElement.style.setProperty('--chat-bubble-color', appearance.value.chat_bubble_color);
+        }
+        if (appearance.value.chat_text_color) {
+            document.documentElement.style.setProperty('--chat-text-color', appearance.value.chat_text_color);
+        }
+    } catch (error) {
+        console.error('Failed to fetch appearance:', error);
     }
 };
 
@@ -201,20 +231,20 @@ onMounted(async () => {
     }
 
     // Wait for models to be loaded before loading messages
-    await fetchModels();
+    await Promise.all([fetchModels(), fetchAppearance()]);
 
     axios
         .get(route('conversations.messages', { conversationId: props.conversation_id }))
         .then((response) => {
             messages.value = response.data;
-            
+
             // Load sources from historical messages
             messages.value.forEach((message, index) => {
                 if (message.role === 'assistant' && message.sources) {
                     messageSources.value.set(index, message.sources);
                 }
             });
-            
+
             loadingMessages.value = false;
 
             const modelId = getQueryParam('model') || defaultModel.value?.id;
@@ -345,7 +375,7 @@ const messageUpdated = (messageId, messageContent) => {
 
             messages.value[currentMessageIndex + 1].content = '';
             streamingForMessageIndex.value = currentMessageIndex + 1;
-            
+
             // Clear existing sources for the assistant message being regenerated
             messageSources.value.delete(currentMessageIndex + 1);
 
@@ -364,15 +394,15 @@ const messageUpdated = (messageId, messageContent) => {
 
 const messageDeleted = (messageId) => {
     const messageIndex = messages.value.findIndex(m => m.id === messageId);
-    
+
     if (messageIndex === -1) return;
-    
+
     const message = messages.value[messageIndex];
-    
+
     if (message.role === 'user') {
         // If deleting a user message, also remove the subsequent assistant message
         const assistantMessageIndex = messageIndex + 1;
-        if (assistantMessageIndex < messages.value.length && 
+        if (assistantMessageIndex < messages.value.length &&
             messages.value[assistantMessageIndex].role === 'assistant') {
             // Remove both user and assistant messages
             messages.value.splice(messageIndex, 2);
@@ -405,7 +435,7 @@ const messageDeleted = (messageId) => {
     } else {
         // If deleting an assistant message, also remove the previous user message
         const userMessageIndex = messageIndex - 1;
-        if (userMessageIndex >= 0 && 
+        if (userMessageIndex >= 0 &&
             messages.value[userMessageIndex].role === 'user') {
             // Remove both user and assistant messages
             messages.value.splice(userMessageIndex, 2);
@@ -438,7 +468,7 @@ const messageDeleted = (messageId) => {
             messageSources.value = newSources;
         }
     }
-    
+
     console.log('Message deleted from UI:', messageId);
 };
 
@@ -483,9 +513,9 @@ const handleScrollToBottomClick = () => {
                     <!-- Empty state -->
                     <div v-else-if="messages.length === 0 && !loadingMessages" class="flex flex-col items-center justify-center h-full px-4">
                         <div class="text-center max-w-md">
-                            <h3 class="text-lg font-semibold mb-2">Start a conversation</h3>
+                            <h3 class="text-lg font-semibold mb-2">{{ appearance.chat_window_title }}</h3>
                             <p class="text-muted-foreground text-sm">
-                                Ask me anything! I'm here to help with questions, creative tasks, analysis, and more.
+                                {{ appearance.welcome_message }}
                             </p>
                         </div>
                     </div>
@@ -527,6 +557,7 @@ const handleScrollToBottomClick = () => {
                                     :conversationId="conversation_id"
                                     :hideFeedback="index === messages.length - 1 && isStreaming"
                                     :isThinking="index === messages.length - 1 && isStreaming && !message.content"
+                                    :avatar="appearance.avatar"
                                     @messageDeleted="messageDeleted"
                                     @feedbackProvided="feedbackProvided"
                                 />
@@ -586,6 +617,9 @@ const handleScrollToBottomClick = () => {
                             @modelSelected="updateModel"
                             @stopStreaming="stopStreaming"
                         />
+                        <div v-if="appearance.chat_footer_text" class="text-center mt-2">
+                            <p class="text-xs text-muted-foreground">{{ appearance.chat_footer_text }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1071,5 +1105,19 @@ body,
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+
+/* Custom appearance colors */
+.chat-assistant-bubble {
+    background-color: var(--chat-bubble-color, rgb(243 244 246)) !important;
+    color: var(--chat-text-color, inherit) !important;
+}
+
+.chat-primary-button {
+    background-color: var(--chat-primary-color, hsl(var(--primary))) !important;
+}
+
+.dark .chat-assistant-bubble {
+    background-color: var(--chat-bubble-color, rgb(31 41 55)) !important;
 }
 </style>

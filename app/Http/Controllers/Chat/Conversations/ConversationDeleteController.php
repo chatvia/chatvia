@@ -9,6 +9,6 @@ class ConversationDeleteController
 {
     public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
     {
-        $memory->setConversationId($conversationId)->deleteConversation();
+        $memory->setAgent(current_agent())->setConversationId($conversationId)->deleteConversation();
     }
 }

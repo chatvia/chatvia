@@ -220,13 +220,8 @@ const handleBlur = () => {
             </div>
         </div>
 
-        <p class="mt-3 text-center text-xs text-muted-foreground sm:mt-4">
-            <span v-if="isOverLimit" class="text-destructive">
-                Message exceeds character limit
-            </span>
-            <span v-else>
-                Chat can make mistakes. Consider checking important information.
-            </span>
+        <p v-if="isOverLimit" class="mt-3 text-center text-xs text-destructive sm:mt-4">
+            Message exceeds character limit
         </p>
     </div>
 </template>

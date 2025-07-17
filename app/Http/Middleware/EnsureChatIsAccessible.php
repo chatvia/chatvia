@@ -2,24 +2,22 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Agent;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureChatIsAccessible
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
         $subdomain = $request->subdomain();
         $path = $request->path();
 
         if (str_starts_with($path, 'chat')) {
-            $agent = \App\Support\Agent::resolveAgentFromSubdomain($subdomain);
+            $agent = Agent::resolveAgentFromSubdomain($subdomain);
+
+            abort_if(boolean: ! $agent, code: 404);
 
             if (! $agent->is_public) {
                 if ($request->route()->getName() !== 'chat.login') {

@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\Agents\AgentAppearanceController;
+use App\Http\Controllers\AgentDeleteSettingsController;
 use App\Http\Controllers\Agents\AgentCreateController;
 use App\Http\Controllers\Agents\AgentsController;
 use App\Http\Controllers\Agents\AgentsIndexController;
 use App\Http\Controllers\Agents\AgentStoreController;
-use App\Http\Controllers\Agents\AgentTeamController;
 use App\Http\Controllers\Agents\AgentUpdateActivityController;
+use App\Http\Controllers\Agents\Appearance\AgentAppearanceController;
 use App\Http\Controllers\Agents\Files\AgentKnowledgeController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFileDeleteController;
@@ -24,6 +24,12 @@ use App\Http\Controllers\Agents\Starters\StarterDeleteController;
 use App\Http\Controllers\Agents\Starters\StartersShowController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
 use App\Http\Controllers\Agents\Stats\AgentStatsController;
+use App\Http\Controllers\Agents\Team\AgentMemberInvitationSendController;
+use App\Http\Controllers\Agents\Team\AgentMembersDeleteController;
+use App\Http\Controllers\Agents\Team\AgentMembersInvitationAcceptController;
+use App\Http\Controllers\Agents\Team\AgentMembersInvitationCreateAccountController;
+use App\Http\Controllers\Agents\Team\AgentMembersListController;
+use App\Http\Controllers\Agents\Team\AgentTeamController;
 use App\Http\Controllers\GenerateRandomSubDomainController;
 use Illuminate\Support\Facades\Route;
 
@@ -58,18 +64,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('appearance', AgentAppearanceController::class)->name('appearance');
 
-        Route::get('team', AgentTeamController::class)->name('team');
-
         Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
 
-        Route::patch('settings/{group}', AgentUpdateSettingsController::class)->name('settings.update');
+        // Settings
+        Route::post('settings/{group}', AgentUpdateSettingsController::class)->name('settings.update');
+        Route::delete('settings/{group}', AgentDeleteSettingsController::class)->name('settings.delete');
 
         // Models
         Route::get('/models/list', AgentModelsListController::class)->name('models.list');
         Route::get('/models', AgentModelsShowController::class)->name('models');
         Route::patch('/models/settings', AgentModelsStoreSettings::class)->name('models.settings.update');
         Route::patch('/models/toggle', AgentModelsToggleController::class)->name('models.toggle');
+
+        // Members
+        Route::get('team', AgentTeamController::class)->name('team');
+        Route::post('team/invite', AgentMemberInvitationSendController::class)->name('team.invite');
+        Route::get('team/list', AgentMembersListController::class)->name('team.list');
+        Route::delete('team/member', AgentMembersDeleteController::class)->name('team.member.delete');
     });
 
     Route::get('generate-random-subdomain', GenerateRandomSubDomainController::class)->name('generate-random-subdomain');
 });
+
+Route::get('agents/{agent}/invitations/{token}', AgentMembersInvitationCreateAccountController::class)
+    ->name('agents.invitations');
+
+Route::post('agents/{agent}/invitations/{token}/accept', AgentMembersInvitationAcceptController::class)
+    ->name('agents.invitations.accept');

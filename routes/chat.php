@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Chat\ChatAppearanceController;
 use App\Http\Controllers\Chat\ChatController;
 use App\Http\Controllers\Chat\ChatDeleteAllConversationsController;
 use App\Http\Controllers\Chat\ChatHomeController;
@@ -31,6 +32,8 @@ Route::prefix('/chat')
         Route::get('starters', ChatStartersController::class)->name('chat.starters');
         Route::patch('/messages/feedback', ChatMessageFeedbackController::class)->name('chat.messages.feedback');
         Route::delete('/messages', ChatMessageDeleteController::class)->name('chat.messages.delete');
+        Route::get('/appearance', ChatAppearanceController::class)->name('chat.appearance');
+
         // Should be the last route in the group
         Route::get('/{conversationId}', ChatController::class)->name('chat.show');
     });

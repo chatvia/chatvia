@@ -54,6 +54,7 @@ const props = defineProps<{
   defaultModel?: AIModel | null
   sources?: any[]
   conversationId?: string
+  avatar?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -225,17 +226,17 @@ onMounted(() => {
 <template>
   <div class="flex items-start gap-3 group w-full">
     <Avatar class="h-8 w-8 flex-shrink-0">
+      <AvatarImage v-if="avatar" :src="avatar" alt="Agent avatar" />
       <AvatarFallback class="bg-gradient-to-br from-violet-500 to-purple-600">
         <Bot class="h-4 w-4 text-white" />
       </AvatarFallback>
     </Avatar>
 
     <div class="flex-1 min-w-0 max-w-full">
-      <div class="prose prose-sm dark:prose-invert max-w-none w-full">
+      <div class="prose prose-sm dark:prose-invert max-w-none w-full chat-assistant-bubble rounded-lg p-3">
         <div v-if="message.content"
              id="chat-ai-responses"
              ref="messageContentRef"
-
              v-html="formatMessage(message.content)">
         </div>
         <div v-else class="flex items-center gap-2">

@@ -263,6 +263,9 @@ const deleteConversation = async () => {
         const deletedConversationId = conversationToDelete.value;
         await axios.delete(route('conversations.delete', { conversationId: deletedConversationId }));
         
+        // Refresh the conversations list after successful deletion
+        loadConversations();
+        
         // Check if we're currently viewing the conversation we just deleted
         const currentRoute = route().current();
         const currentConversationId = route().params?.conversationId;
@@ -270,9 +273,6 @@ const deleteConversation = async () => {
         if (currentRoute === 'chat.show' && currentConversationId === deletedConversationId) {
             // Redirect to chat home if we deleted the current conversation
             router.visit(route('chat.home', { model: defaultModel.value?.id }));
-        } else {
-            // Just reload the conversations list if we're not viewing the deleted conversation
-            router.reload({ only: ['conversations'] });
         }
     } catch (error) {
         console.error('Failed to delete conversation:', error);

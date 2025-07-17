@@ -150,5 +150,8 @@ class User extends Authenticatable implements MustVerifyEmail
         });
     }
 
-    public function allowedLLms() {}
+    public function members(): HasMany
+    {
+        return $this->hasMany(Member::class);
+    }
 }

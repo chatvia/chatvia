@@ -62,6 +62,7 @@
         "vue": "^3.5.13",
         "vue-loading-overlay": "^6.0.6",
         "vue-sonner": "^2.0.0",
+        "vue3-colorpicker": "^2.3.0",
         "ziggy-js": "^2.4.2"
     },
     "optionalDependencies": {

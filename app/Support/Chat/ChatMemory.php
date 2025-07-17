@@ -10,7 +10,6 @@ use App\Support\OpenRouter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
 class ChatMemory
@@ -56,7 +55,7 @@ class ChatMemory
             }
         }
 
-        $this->cache(
+        $this->cachePut(
             key: $this->getConversationsKey(),
             value: $messages,
         );
@@ -82,7 +81,7 @@ class ChatMemory
             'visible' => false,
         ];
 
-        $this->cache(
+        $this->cachePut(
             key: $session,
             value: [
                 'conversations' => $conversations,
@@ -159,10 +158,10 @@ class ChatMemory
     {
         $cacheId = $this->getConversationsKey();
 
-        $messages = Cache::tags([$this->getOrGenerateSession()])->get($cacheId, []);
+        $messages = $this->cacheGet($cacheId);
         $messages[] = $message;
 
-        $this->cache(
+        $this->cachePut(
             key: $cacheId,
             value: $messages,
         );
@@ -177,7 +176,7 @@ class ChatMemory
     {
         $cacheId = $this->getConversationsKey();
 
-        return Cache::tags([$this->getOrGenerateSession()])->has($cacheId);
+        return $this->cacheHas($cacheId);
     }
 
     private function getConversationsKey(): string
@@ -191,7 +190,7 @@ class ChatMemory
     {
         $cacheId = $this->getConversationsKey();
 
-        $messages = Cache::tags([$this->getOrGenerateSession()])->get($cacheId, []);
+        $messages = $this->cacheGet($cacheId);
 
         $messages = collect($messages);
 
@@ -211,13 +210,13 @@ class ChatMemory
      */
     public function getLlmMessages(bool $asText = false): array|string
     {
-//        if (! $this->agent->contextWindowEnabled()) {
-//            return [];
-//        }
+        //        if (! $this->agent->contextWindowEnabled()) {
+        //            return [];
+        //        }
 
         $cacheId = $this->getConversationsKey();
 
-        $messages = Cache::tags([$this->getOrGenerateSession()])->get($cacheId, []);
+        $messages = $this->cacheGet($cacheId);
 
         if (! $messages) {
             return [];
@@ -235,10 +234,11 @@ class ChatMemory
                 'content' => $message['message_for_llm'] ?? $message['content'],
             ];
         })
-            ->filter(function($item) {
-                if (!isset($item['include_in_conversation'])) {
+            ->filter(function ($item) {
+                if (! isset($item['include_in_conversation'])) {
                     return true;
                 }
+
                 return $item['include_in_conversation'] === true;
             })
             ->toArray();
@@ -254,7 +254,7 @@ class ChatMemory
     {
         $currentSession = $this->getOrGenerateSession();
 
-        $session = Cache::tags([$currentSession])->get($currentSession);
+        $session = $this->cacheGet($currentSession);
 
         $conversations = collect($session['conversations'] ?? []);
 
@@ -264,9 +264,10 @@ class ChatMemory
             }
 
             if ($orderByDate) {
-                $conversations = $conversations->sortByDesc('timestamp');
+                $conversations = $conversations->sortByDesc('timestamp')->values();
             }
         }
+
         return $conversations->toArray();
     }
 
@@ -288,7 +289,7 @@ class ChatMemory
 
         $chatSession = $this->getOrGenerateSession();
 
-        $this->cache(
+        $this->cachePut(
             key: $chatSession,
             value: [
                 'conversations' => $conversations,
@@ -298,7 +299,7 @@ class ChatMemory
 
     public function updateConversationTitleFromMessages(array|string $messages = []): void
     {
-        if (!$messages) {
+        if (! $messages) {
             $messages = $this->getLlmMessages(true);
         }
 
@@ -332,7 +333,7 @@ class ChatMemory
     {
         $cacheId = $this->getConversationsKey();
 
-        Cache::tags([$this->getOrGenerateSession()])->forget($cacheId);
+        $this->cacheForget($cacheId);
 
         $conversations = $this->getConversationsForCurrentSession();
 
@@ -344,7 +345,7 @@ class ChatMemory
 
         $chatSession = $this->getOrGenerateSession();
 
-        $this->cache(
+        $this->cachePut(
             key: $chatSession,
             value: ['conversations' => $conversations],
         );
@@ -352,7 +353,7 @@ class ChatMemory
 
     public function deleteAllConversations(): void
     {
-        Cache::tags([$this->getOrGenerateSession()])->flush();
+        $this->cacheFlush();
     }
 
     public function removeMessage($messageId): void
@@ -367,7 +368,7 @@ class ChatMemory
 
         $cacheId = $this->getConversationsKey();
 
-        $this->cache($cacheId, array_values($messages));
+        $this->cachePut($cacheId, array_values($messages));
     }
 
     public function getLastMessages(int $number = 3): array
@@ -387,18 +388,43 @@ class ChatMemory
             }
         }
 
-        $this->cache(
+        $this->cachePut(
             key: $this->getConversationsKey(),
             value: $messages,
         );
     }
 
-    public function cache($key, $value): void
+    public function getChatCache()
     {
-        Cache::tags([$this->getOrGenerateSession()])->put(
+        return Cache::driver('chat');
+    }
+
+    public function cachePut($key, $value): void
+    {
+        $this->getChatCache()->put(
             key: $key,
             value: $value,
             ttl: $this->getMessageRetention(),
         );
+    }
+
+    public function cacheGet($cacheId)
+    {
+        return $this->getChatCache()->get($cacheId, []);
+    }
+
+    public function cacheHas($cacheId): bool
+    {
+        return $this->getChatCache()->has($cacheId);
+    }
+
+    public function cacheForget($cacheId): bool
+    {
+        return $this->getChatCache()->forget($cacheId);
+    }
+
+    public function cacheFlush(): bool
+    {
+        return $this->getChatCache()->flush();
     }
 }

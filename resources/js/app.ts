@@ -7,6 +7,8 @@ import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 import { createChatEventBus } from './utils/eventBus'
+import Vue3ColorPicker from "vue3-colorpicker";
+import "vue3-colorpicker/style.css";
 
 const chatEventBus = createChatEventBus()
 
@@ -32,6 +34,7 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .use(Vue3ColorPicker)
             .provide('chatEventBus', chatEventBus)
             .mount(el);
     },

@@ -64,12 +64,18 @@ return [
     'defaults' => [
         \App\Models\Agent::class => [
             'message_history' => [
-                'retention' => -1,
+                'retention' => 30,
                 'context_window_enabled' => true,
                 'context_window_size' => -1,
             ],
             'appearance' => [
-                
+                'avatar' => null,
+                'primary_color' => '#000000',
+                'chat_bubble_color' => '#ffffff',
+                'chat_text_color' => '#000000',
+                'welcome_message' => 'What can I help with? ',
+                'chat_window_title' => 'Chat',
+                'chat_footer_text' => 'Consider checking important information',
             ],
         ],
     ],
@@ -84,17 +90,19 @@ return [
     |
     */
     'validation' => [
-        'theme' => 'in:light,dark',
-        'notifications_enabled' => 'boolean',
-        'timezone' => 'string|timezone',
-        'language' => 'string|size:2',
-        'items_per_page' => 'integer|min:10|max:100',
-        'dashboard_layout' => 'in:grid,list',
-        'message_history_enabled' => 'boolean',
-        'message_history_retention' => 'integer|min:-1',
-        'context_window_enabled' => 'boolean',
-        'context_window_size' => 'integer|min:-1',
-        'temperature' => 'numeric|min:0|max:2',
-        'max_tokens' => 'integer|min:1|max:32000',
+        'message_history' => [
+            'retention' => ['nullable', 'integer'],
+            'context_window_enabled' => ['nullable', 'boolean'],
+            'context_window_size' => ['nullable', 'integer'],
+        ],
+        'appearance' => [
+            'avatar' => ['nullable', 'image'],
+            'primary_color' => ['nullable', 'hex_color'],
+            'chat_bubble_color' => ['nullable', 'hex_color'],
+            'chat_text_color' => ['nullable', 'hex_color'],
+            'welcome_message' => ['nullable', 'string'],
+            'chat_window_title' => ['nullable', 'string'],
+            'chat_footer_text' => ['nullable', 'string'],
+        ],
     ],
 ];

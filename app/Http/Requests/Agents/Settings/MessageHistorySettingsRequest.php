@@ -14,7 +14,6 @@ class MessageHistorySettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'enabled' => ['sometimes', 'boolean'],
             'retention' => ['sometimes', 'integer'],
             'context_window_enabled' => ['sometimes', 'boolean'],
             'context_window_size' => ['sometimes', 'integer'],

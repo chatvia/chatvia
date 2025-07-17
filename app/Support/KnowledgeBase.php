@@ -97,18 +97,29 @@ LIMIT ?
                 ->increment('retrieval_count');
         }
 
-        $rerankedDocumentsIds = app(Cohere::class)->rerank(
-            $query,
-            collect($results)->pluck('chunk')->toArray(),
-        );
+        if ($results) {
+            $rerankedDocumentsIds = app(Cohere::class)->rerank(
+                $query,
+                collect($results)->pluck('chunk')->toArray(),
+            );
+
+            return collect($results)
+                ->filter(function ($result, $index) use ($rerankedDocumentsIds) {
+                    return in_array($index, $rerankedDocumentsIds, true);
+                })
+                ->sortBy(function ($result, $index) use ($rerankedDocumentsIds) {
+                    return array_search($index, $rerankedDocumentsIds, true);
+                })
+                ->map(function ($result) {
+                    $result->chunk = $this->removeXmlTags($result->chunk);
+
+                    return $result;
+                })
+                ->values()
+                ->toArray();
+        }
 
         return collect($results)
-            ->filter(function ($result, $index) use ($rerankedDocumentsIds) {
-                return in_array($index, $rerankedDocumentsIds, true);
-            })
-            ->sortBy(function ($result, $index) use ($rerankedDocumentsIds) {
-                return array_search($index, $rerankedDocumentsIds, true);
-            })
             ->map(function ($result) {
                 $result->chunk = $this->removeXmlTags($result->chunk);
 
@@ -150,6 +161,10 @@ LIMIT ?
     {
         if ($agent->isKnowledgeable()) {
             $chunks = $this->chunks($agent->id, $userMessage);
+
+            if ($chunks->isEmpty()) {
+                return $userMessage;
+            }
 
             return Str::of("### User Question:\n")
                 ->append($userMessage."\n")

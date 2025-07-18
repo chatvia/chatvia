@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('conversation_id')->index();
             $table->string('generation_id')->nullable();
 
-            $table->foreignIdFor(Agent::class)->constrained()->nullOnDelete();
+            $table->foreignIdFor(Agent::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(Member::class)->nullable()->constrained()->nullOnDelete();
 
             $table->text('content');

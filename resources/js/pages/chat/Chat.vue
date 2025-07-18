@@ -342,6 +342,18 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
                 // Store sources for this message using message index as key
                 messageSources.value.set(messageIndex, sources);
             },
+            onMessageId: (messageId) => {
+                let messageIndex = messages.value.length - 1;
+
+                if (streamingForMessageIndex.value !== null) {
+                    messageIndex = streamingForMessageIndex.value;
+                }
+
+                // Assign the message ID to the assistant message
+                if (messages.value[messageIndex] && messages.value[messageIndex].role === 'assistant') {
+                    messages.value[messageIndex].id = messageId;
+                }
+            },
             onDone: () => {
                 streamingForMessageIndex.value = null;
                 if (isNewConversation) {

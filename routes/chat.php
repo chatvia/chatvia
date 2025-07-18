@@ -15,6 +15,7 @@ use App\Http\Controllers\Chat\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Chat\Conversations\ConversationMessagesController;
 use App\Http\Controllers\Chat\Conversations\ConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
+use App\Http\Controllers\Chat\Export\ChatExportController;
 
 Route::prefix('/chat')
     ->middleware(['web'])
@@ -33,6 +34,8 @@ Route::prefix('/chat')
         Route::patch('/messages/feedback', ChatMessageFeedbackController::class)->name('chat.messages.feedback');
         Route::delete('/messages', ChatMessageDeleteController::class)->name('chat.messages.delete');
         Route::get('/appearance', ChatAppearanceController::class)->name('chat.appearance');
+
+        Route::get('/conversations/{conversationId}/export', ChatExportController::class)->name('conversations.export');
 
         // Should be the last route in the group
         Route::get('/{conversationId}', ChatController::class)->name('chat.show');

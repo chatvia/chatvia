@@ -157,9 +157,17 @@ async function deleteMessage() {
   }
 }
 
-function exportAs(format: 'pdf' | 'markdown' | 'text') {
-  // TODO: Implement export functionality
-  console.log(`Exporting as ${format}`)
+async function exportAs(format: 'pdf' | 'markdown' | 'text') {
+    try {
+      const url = route('conversations.export', {
+        conversationId: props.conversationId,
+        messageId: props.message.id,
+        type: format,
+      })
+      window.open(url, '_blank')
+    } catch (error) {
+      console.error('Failed to export PDF:', error)
+    }
 }
 
 function setupCodeBlockCopyButtons() {

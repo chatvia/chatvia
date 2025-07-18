@@ -152,7 +152,7 @@ const newConversation = () => {
 const deleteAllConversations = async () => {
     try {
         await axios.delete(route('conversations.delete.all'));
-        
+
         // After clearing all conversations, redirect to chat home
         router.visit(route('chat.home', { model: defaultModel.value?.id }));
     } catch (error) {
@@ -214,41 +214,15 @@ const handleKeyDown = (event) => {
 
 const exportConversation = async (id, format) => {
     try {
-        const response = await axios.get(route('conversations.export', { conversationId: id, format }), {
-            responseType: format === 'pdf' ? 'blob' : 'text'
-        });
-
-        const conversation = conversations.value.find((chat) => chat.id === id);
-        const filename = `${conversation?.title || 'conversation'}.${format}`;
-
-        if (format === 'pdf') {
-            // Handle PDF download
-            const blob = new Blob([response.data], { type: 'application/pdf' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } else {
-            // Handle text/markdown download
-            const blob = new Blob([response.data], {
-                type: format === 'markdown' ? 'text/markdown' : 'text/plain'
-            });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        }
+        const url = route('conversations.export', {
+            conversationId: id,
+            type: format,
+        })
+        window.open(url, '_blank')
     } catch (error) {
-        console.error(`Failed to export conversation as ${format}:`, error);
+        console.error('Failed to export', error)
     }
+
 };
 
 const openDeleteDialog = (id) => {
@@ -258,18 +232,18 @@ const openDeleteDialog = (id) => {
 
 const deleteConversation = async () => {
     if (!conversationToDelete.value) return;
-    
+
     try {
         const deletedConversationId = conversationToDelete.value;
         await axios.delete(route('conversations.delete', { conversationId: deletedConversationId }));
-        
+
         // Refresh the conversations list after successful deletion
         loadConversations();
-        
+
         // Check if we're currently viewing the conversation we just deleted
         const currentRoute = route().current();
         const currentConversationId = route().params?.conversationId;
-        
+
         if (currentRoute === 'chat.show' && currentConversationId === deletedConversationId) {
             // Redirect to chat home if we deleted the current conversation
             router.visit(route('chat.home', { model: defaultModel.value?.id }));

@@ -186,6 +186,13 @@ class ChatMemory
         return $chatSession.'.conversations.'.$this->conversationId;
     }
 
+    public function getMessageById(string $messageId)
+    {
+        $messages = collect($this->getMessagesForConversation());
+
+        return $messages->firstWhere('id', $messageId);
+    }
+
     public function getMessagesForConversation(bool $includeLlmMessages = false): array
     {
         $cacheId = $this->getConversationsKey();
@@ -426,5 +433,12 @@ class ChatMemory
     public function cacheFlush(): bool
     {
         return $this->getChatCache()->flush();
+    }
+
+    public function getConversationById(string $conversationId)
+    {
+        $conversations = collect($this->getConversationsForCurrentSession(true));
+
+        return $conversations->firstWhere('id', $conversationId);
     }
 }

@@ -44,6 +44,8 @@ class ChatStreamController
 
     private Collection $sources;
 
+    private string $assistantMessageId = '';
+
     public function __construct(
         private readonly Client $httpClient,
         private readonly ChatMemory $memory,
@@ -284,9 +286,11 @@ class ChatStreamController
 
         $sources = $this->sources->toArray();
 
+        echo 'message_id: '.json_encode(['message_id' => $this->assistantMessageId])."\n\n";
+
         echo 'sources: '.json_encode($sources, JSON_THROW_ON_ERROR)."\n\n";
 
-        echo "data: {\"content\":\"[DONE]\"}\n\n";
+        echo 'data: '.json_encode(['content' => '[DONE]'])."\n\n";
 
         flush();
     }
@@ -309,7 +313,7 @@ class ChatStreamController
             'content' => $this->streamedMessage,
         ];
 
-        $this->memory->addMessageViaPayload(
+        $this->assistantMessageId = $this->memory->addMessageViaPayload(
             new ChatOutputPayload(
                 role: 'assistant',
                 message: $this->streamedMessage,

@@ -5,11 +5,11 @@ namespace App\Http\Middleware;
 use App\Support\Agent;
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Inertia\Inertia;
 
 class EnsureChatIsAccessible
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
         $subdomain = $request->subdomain();
         $path = $request->path();
@@ -17,7 +17,9 @@ class EnsureChatIsAccessible
         if (str_starts_with($path, 'chat')) {
             $agent = Agent::resolveAgentFromSubdomain($subdomain);
 
-            abort_if(boolean: ! $agent, code: 404);
+            if (!$agent) {
+                return Inertia::render('agents/chat/AgentNotFound');
+            }
 
             if (! $agent->is_public) {
                 if ($request->route()->getName() !== 'chat.login') {
@@ -30,7 +32,7 @@ class EnsureChatIsAccessible
             }
 
             if (! $agent->is_active) {
-                abort(403);
+                return Inertia::render('agents/chat/AgentDisabled');
             }
         }
 

@@ -3,21 +3,33 @@
 namespace App\Observers;
 
 use App\Models\Agent;
+use App\Models\Llm;
+use App\Models\User;
 use App\Support\Agent as AgentHelper;
 
 class AgentObserver
 {
-    /**
-     * Handle the Agent "created" event.
-     */
     public function created(Agent $agent): void
     {
         AgentHelper::cacheAgentName($agent->sub_domain);
+
+        /** @var User $user */
+        $user = $agent->user;
+
+        $llms = $user->llms();
+
+        $agentLlms = $llms->pluck('id')->toArray();
+
+        $agent->llms()->attach(
+            Llm::query()
+                ->select('id')
+                ->whereIn('id', $agentLlms)
+                ->get()
+                ->pluck('id')
+                ->toArray()
+        );
     }
 
-    /**
-     * Handle the Agent "updated" event.
-     */
     public function updated(Agent $agent): void
     {
         AgentHelper::cacheAgentName($agent->sub_domain);
@@ -25,9 +37,6 @@ class AgentObserver
 
     public function deleted(Agent $agent): void {}
 
-    /**
-     * Handle the Agent "restored" event.
-     */
     public function restored(Agent $agent): void
     {
         //

@@ -135,7 +135,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return Attribute::get(fn () => $this->quote->pages_limit - $this->quote->pages_used);
     }
 
-    public function llms()
+    public function formattedLlms()
     {
         $llms = Llm::all();
         $subscribed = $this->subscribed();
@@ -148,6 +148,13 @@ class User extends Authenticatable implements MustVerifyEmail
 
             return $llmData;
         });
+    }
+
+    public function llms()
+    {
+        return Llm::query()->when(! $this->subscribed(), function ($query) {
+            $query->where('requires_paid_plan', false);
+        })->get();
     }
 
     public function members(): HasMany

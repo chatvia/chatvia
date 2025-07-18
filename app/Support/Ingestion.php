@@ -17,10 +17,17 @@ class Ingestion
         $url = rtrim(config('services.ingestion.api_endpoint'), '/');
         $file = $agentFile->isWordFile() ? $agentFile->convertToPdf() : $agentFile->readFile();
 
-        return Http::attach('file', $file->getContent(), $file->getFilename())
+        $response = Http::attach('file', $file->getContent(), $file->getFilename())
             ->post($url.'/ingest?agent_id='.$agentFile->agent_id.'&file_id='.$agentFile->id)
             ->throw()
             ->json();
+
+        $agentFile->update([
+            'status' => 'processing',
+            'external_ingestion_job_id' => $response['job_id'],
+        ]);
+
+        return $response;
     }
 
     public function cancelJob(AgentFile $agentFile)

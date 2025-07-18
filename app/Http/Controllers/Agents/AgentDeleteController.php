@@ -10,7 +10,7 @@ class AgentDeleteController
     public function __invoke(Request $request, Agent $agent)
     {
         $agent->delete();
-        
+
         return redirect()->route('agents.index');
     }
 }

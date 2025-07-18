@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Database, FileText, Upload, X, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Search, ArrowUpDown, Check, Info, Play } from 'lucide-vue-next';
+import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play } from 'lucide-vue-next';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import FileUploader from '@/components/FileUploader.vue';
+import type { UploadingFileData as BaseUploadingFileData, FileUploaderConfig } from '@/composables/useFileUploader';
 
 import { usePage } from '@inertiajs/vue3';
 
@@ -47,24 +49,8 @@ interface UploadedFile {
     encrypted?: boolean;
 }
 
-interface FileStats {
-    pages?: number;
-    mime_type: string;
-    encrypted: boolean;
-}
-
-interface UploadingFileData {
-    file: File;
-    uploading: boolean;
-    error?: string;
-    stats?: FileStats;
-    id: string;
-    progress: number;
-    uploadSpeed: number;
-    startTime?: number;
-    bytesLoaded: number;
-    phase?: 'uploading' | 'processing' | 'complete';
-    processingInterval?: number;
+// Extend the base interface with Knowledge.vue specific properties
+interface UploadingFileData extends BaseUploadingFileData {
     isUploaded?: boolean;
     uploadedFile?: UploadedFile;
 }
@@ -76,19 +62,34 @@ const props = defineProps<Props>();
 
 // Core state
 const uploadingFiles = ref<UploadingFileData[]>([]);
-const fileInputRef = ref<HTMLInputElement | null>(null);
+const fileUploaderRef = ref<InstanceType<typeof FileUploader> | null>(null);
 const knowledgeFiles = ref<KnowledgeFile[]>([]);
 const uploadedFiles = ref<UploadedFile[]>([]);
+
+// File uploader configuration for Knowledge page
+const fileUploaderConfig: FileUploaderConfig = {
+    maxFiles: maxFilesToUpload,
+    acceptedTypes: '.pdf,.doc,.docx,.txt,.md',
+    analyzeEndpoint: (file: File) => route('agents.knowledge.files.upload', { agent: props.agent.id }),
+    onFileAnalyzed: (file: BaseUploadingFileData, data: any) => {
+        // For Knowledge.vue, the upload endpoint uploads the file
+        // Remove the file from FileUploader since it's now uploaded and will show in "Ready to Train"
+        if (fileUploaderRef.value) {
+            fileUploaderRef.value.removeFileById(file.id);
+        }
+        // Refresh the knowledge files list to show in "Ready to Train"
+        fetchKnowledgeFiles();
+    },
+    onFileError: (file: BaseUploadingFileData, error: string) => {
+        console.error('File upload error:', error);
+    }
+};
 const isLoadingFiles = ref(false);
 const isInitialLoad = ref(true);
 const isProcessingFiles = ref(false);
 
 // Auto-refresh for processing files
 const refreshInterval = ref<number | null>(null);
-
-// Drag and drop state
-const isDragOver = ref(false);
-const dragCounter = ref(0);
 
 // Selection state - using Set for better performance
 const selectedFileIds = ref<Set<string>>(new Set());
@@ -337,216 +338,13 @@ const calculateETA = (file: UploadingFileData): string => {
     }
 };
 
-const generateFileId = (): string => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-};
+// File ID generation now handled by FileUploader component
 
-// File upload handlers
-const triggerFileInput = () => {
-    fileInputRef.value?.click();
-};
+// File upload handlers - now handled by FileUploader component
 
-// Drag and drop handlers
-const handleDragEnter = (e: DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.value++;
+// File upload now handled by FileUploader component
 
-    if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
-        isDragOver.value = true;
-    }
-};
-
-const handleDragLeave = (e: DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.value--;
-
-    if (dragCounter.value === 0) {
-        isDragOver.value = false;
-    }
-};
-
-const handleDragOver = (e: DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-};
-
-const handleDrop = (e: DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    isDragOver.value = false;
-    dragCounter.value = 0;
-
-    const files = e.dataTransfer?.files;
-    if (files && files.length > 0) {
-        // Create a mock event to reuse existing upload logic
-        const mockEvent = {
-            target: {
-                files: files,
-                value: ''
-            }
-        } as unknown as Event;
-
-        handleFileUpload(mockEvent);
-    }
-};
-
-const handleFileUpload = async (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    const files = target.files;
-    if (!files?.length) return;
-
-    // Check file limit
-    const totalFiles = uploadingFiles.value.length + uploadedFiles.value.length + files.length;
-    if (totalFiles > maxFilesToUpload) {
-        alert(`You can only upload up to ${maxFilesToUpload} files at once. Please remove some files or upload in smaller batches.`);
-        target.value = '';
-        return;
-    }
-
-    // Check if user has any pages remaining
-    if (pagesRemaining.value <= 0) {
-        alert(`You have reached your page limit of ${props.quote.pages_limit} pages. Please upgrade your plan or remove some files to continue.`);
-        target.value = '';
-        return;
-    }
-
-    // Estimate total pages for new files (assuming average of 10 pages per file for estimation)
-    const estimatedPages = files.length * 10;
-    if (totalUploadedPages.value + estimatedPages > pagesRemaining.value) {
-        toast.warning('Page Quota Warning', {
-            description: `These files might exceed your remaining page quota of ${pagesRemaining.value} pages. You can still upload them, but processing may be limited.`,
-            duration: 5000,
-            closeButton: true,
-        });
-    }
-
-    // Add files to the array and start uploading them
-    for (let i = 0; i < files.length; i++) {
-        const originalFile = files[i];
-        const fileData: UploadingFileData = {
-            file: originalFile,
-            uploading: true,
-            id: generateFileId(),
-            phase: 'uploading',
-            progress: 0,
-            uploadSpeed: 0,
-            bytesLoaded: 0,
-            startTime: Date.now()
-        };
-
-        uploadingFiles.value.push(fileData);
-
-        // Start uploading the file with a small delay to ensure UI updates
-        setTimeout(() => {
-            uploadFile(fileData);
-        }, 100 * i);
-    }
-
-    // Reset the input to allow selecting the same file again
-    target.value = '';
-};
-
-const uploadFile = async (file: UploadingFileData) => {
-    let progressInterval: number | undefined;
-
-    try {
-        // Initialize progress tracking
-        file.startTime = Date.now();
-        file.progress = 0;
-        file.bytesLoaded = 0;
-        file.uploadSpeed = 0;
-        file.phase = 'uploading';
-
-        const formData = new FormData();
-        formData.append('file', file.file);
-
-        const uploadUrl = route('agents.knowledge.files.upload', { agent: props.agent.id });
-
-        console.log(`Uploading file: ${file.file.name} to ${uploadUrl}`);
-
-        const response = await axios.post(
-            uploadUrl,
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                timeout: 30000,
-                onUploadProgress: (progressEvent) => {
-                    if (progressEvent.total && file.startTime) {
-                        clearInterval(progressInterval);
-
-                        const uploadPercent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        const newProgress = uploadPercent;
-                        const bytesLoaded = progressEvent.loaded;
-
-                        const elapsed = (Date.now() - file.startTime) / 1000;
-                        const uploadSpeed = elapsed > 0 ? progressEvent.loaded / elapsed : 0;
-
-                        const fileIndex = uploadingFiles.value.findIndex(f => f.id === file.id);
-                        if (fileIndex !== -1) {
-                            uploadingFiles.value[fileIndex] = {
-                                ...uploadingFiles.value[fileIndex],
-                                progress: newProgress,
-                                bytesLoaded: bytesLoaded,
-                                uploadSpeed: uploadSpeed
-                            };
-                        }
-                    }
-                },
-            }
-        );
-
-        console.log(`Successfully uploaded: ${file.file.name}`, response);
-
-        clearInterval(progressInterval);
-        if (file.processingInterval) {
-            clearInterval(file.processingInterval);
-        }
-
-        // Remove from uploading files after successful upload
-        uploadingFiles.value = uploadingFiles.value.filter(f => f.id !== file.id);
-
-        // Refresh the files list to show the newly uploaded file
-        await fetchKnowledgeFiles();
-    } catch (error: any) {
-        if (progressInterval) {
-            clearInterval(progressInterval);
-        }
-        if (file.processingInterval) {
-            clearInterval(file.processingInterval);
-        }
-
-        console.error(`Failed to upload file: ${file.file.name}`, error);
-
-        let errorMessage = 'Failed to upload file';
-
-        if (error.code === 'ECONNABORTED') {
-            errorMessage = 'Upload timed out - file may be too large';
-        } else if (error.response?.data?.message) {
-            errorMessage = error.response.data.message;
-        } else if (error.response?.data?.errors) {
-            const errors = Object.values(error.response.data.errors).flat();
-            if (errors.length > 0) {
-                errorMessage = errors[0] as string;
-            }
-        }
-
-        const fileIndex = uploadingFiles.value.findIndex(f => f.id === file.id);
-        if (fileIndex !== -1) {
-            uploadingFiles.value[fileIndex] = {
-                ...uploadingFiles.value[fileIndex],
-                uploading: false,
-                progress: 0,
-                phase: undefined,
-                error: errorMessage
-            };
-        }
-    }
-};
+// Upload functionality now handled by FileUploader component
 
 // File management functions
 const confirmDeleteUploadingFile = (fileId: string) => {
@@ -575,8 +373,11 @@ const deleteUploadingFile = () => {
     if (!uploadingFileToDelete.value) return;
 
     const fileId = uploadingFileToDelete.value.id;
-    uploadingFiles.value = uploadingFiles.value.filter(file => file.id !== fileId);
-    removeFromSelection(fileId);
+    
+    // Remove from FileUploader
+    if (fileUploaderRef.value) {
+        fileUploaderRef.value.removeFileById(fileId);
+    }
 
     uploadingFileToDelete.value = null;
     deleteUploadingFileDialogOpen.value = false;
@@ -590,19 +391,23 @@ const clearAllFiles = async () => {
             await axios.delete(deleteUrl);
         }
 
-        // Clear local state for both uploading and uploaded files
-        uploadingFiles.value = [];
+        // Clear FileUploader's state
+        if (fileUploaderRef.value) {
+            fileUploaderRef.value.clearAllFiles();
+        }
+
+        // Clear local state for uploaded files
         uploadedFiles.value = [];
-        clearSelection();
 
         // Refresh the knowledge files list
         await fetchKnowledgeFiles();
     } catch (error: any) {
         console.error('Error clearing files:', error);
 
-        // If server deletion failed, still clear local uploading files
-        uploadingFiles.value = [];
-        clearSelection();
+        // If server deletion failed, still clear FileUploader
+        if (fileUploaderRef.value) {
+            fileUploaderRef.value.clearAllFiles();
+        }
 
         // Show user-friendly error message
         alert(`Failed to clear uploaded files from server: ${error.response?.data?.message || error.message}`);
@@ -612,9 +417,10 @@ const clearAllFiles = async () => {
 };
 
 const clearFailedFiles = () => {
-    const failedFileIds = uploadingFiles.value.filter(file => file.error).map(file => file.id);
-    uploadingFiles.value = uploadingFiles.value.filter(file => !file.error);
-    removeFromSelection(failedFileIds);
+    // Use FileUploader's clearFailedFiles method
+    if (fileUploaderRef.value) {
+        fileUploaderRef.value.clearFailedFiles();
+    }
 };
 
 const confirmDeleteSelectedFiles = () => {
@@ -624,14 +430,22 @@ const confirmDeleteSelectedFiles = () => {
 };
 
 const confirmClearAllFiles = () => {
-    if (uploadingFiles.value.length > 0 || uploadedFiles.value.length > 0) {
+    const hasUploadingFiles = (fileUploaderRef.value?.totalFiles ?? 0) > 0;
+    if (hasUploadingFiles || uploadedFiles.value.length > 0) {
         clearAllDialogOpen.value = true;
     }
 };
 
 const deleteSelectedFiles = () => {
     const selectedIds = Array.from(selectedFileIds.value);
-    uploadingFiles.value = uploadingFiles.value.filter(file => !selectedIds.includes(file.id));
+    
+    // Remove selected files from FileUploader
+    if (fileUploaderRef.value) {
+        selectedIds.forEach(id => {
+            fileUploaderRef.value?.removeFileById(id);
+        });
+    }
+    
     clearSelection();
     bulkDeleteDialogOpen.value = false;
 };
@@ -850,300 +664,114 @@ onUnmounted(() => {
     <AgentLayout :agent="agent" title="Knowledge Base">
         <div class="space-y-6">
             <!-- Upload Section -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Upload class="h-5 w-5" />
-                        Upload New Documents
-                    </CardTitle>
-                    <CardDescription>
-                        Add documents to your agent's knowledge base. Supported formats: PDF, Word, Text
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div class="space-y-4">
-                        <!-- File count and page quota indicators -->
+            <FileUploader
+                ref="fileUploaderRef"
+                :config="fileUploaderConfig"
+                title="Upload New Documents"
+                description="Add documents to your agent's knowledge base. Supported formats: PDF, Word, Text"
+                :show-quota="true"
+                :quota-used="props.quote.pages_used"
+                :quota-limit="props.quote.pages_limit"
+                @files-changed="(files) => uploadingFiles = files"
+            />
+
+            <!-- PDF Note -->
+            <Alert>
+                <AlertCircle class="h-4 w-4" />
+                <AlertDescription>
+                    If you are uploading a PDF, make sure you can select/highlight the text.
+                </AlertDescription>
+            </Alert>
+
+            <!-- Uploaded files ready for processing -->
+            <div v-if="uploadedFiles.length > 0" class="mt-4">
+                <Card>
+                    <CardHeader class="pb-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm text-muted-foreground">
-                                {{ uploadingFiles.length + uploadedFiles.length }} / {{ maxFilesToUpload }} files
-                            </span>
+                            <div>
+                                <CardTitle class="text-base">Ready to Train</CardTitle>
+                                <CardDescription>
+                                    {{ uploadedFiles.length }} file{{ uploadedFiles.length !== 1 ? 's' : '' }} uploaded and ready for training
+                                    <span v-if="totalUploadedPages > 0" class="ml-1">
+                                        • {{ totalUploadedPages }} page{{ totalUploadedPages !== 1 ? 's' : '' }}
+                                    </span>
+                                    <span v-if="wouldExceedQuota" class="ml-1 text-destructive font-medium">
+                                        • Exceeds quota by {{ totalUploadedPages - pagesRemaining }} pages
+                                    </span>
+                                </CardDescription>
+                            </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-sm text-muted-foreground">
-                                    {{ props.quote.pages_used + totalUploadedPages }} / {{ props.quote.pages_limit }} pages
-                                </span>
-                                <div class="w-20 bg-muted rounded-full h-2">
-                                    <div
-                                        class="h-2 rounded-full transition-all duration-300"
-                                        :class="{
-                                            'bg-green-500': quotaUtilization < 70,
-                                            'bg-yellow-500': quotaUtilization >= 70 && quotaUtilization < 90,
-                                            'bg-red-500': quotaUtilization >= 90
-                                        }"
-                                        :style="{ width: `${quotaUtilization}%` }"
-                                    ></div>
-                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    @click="confirmClearAllFiles"
+                                    class="text-destructive hover:text-destructive/90"
+                                >
+                                    <Trash2 class="h-4 w-4 mr-2" />
+                                    Clear All
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    @click="processAllFiles"
+                                    :disabled="isProcessingFiles || uploadedFiles.length === 0 || wouldExceedQuota"
+                                >
+                                    <LoaderCircle v-if="isProcessingFiles" class="h-4 w-4 mr-2 animate-spin" />
+                                    <Play v-else class="h-4 w-4 mr-2" />
+                                    {{ isProcessingFiles ? 'Training...' : 'Train' }}
+                                </Button>
                             </div>
                         </div>
-
-                        <!-- Page quota warning -->
-                        <Alert v-if="pagesRemaining <= 0" variant="destructive">
-                            <AlertCircle class="h-4 w-4" />
-                            <AlertDescription>
-                                You have reached your page limit of {{ props.quote.pages_limit }} pages. Please upgrade your plan to process more documents.
-                            </AlertDescription>
-                        </Alert>
-                        <Alert v-else-if="pagesRemaining <= 50" class="border-yellow-200 bg-yellow-50">
-                            <AlertCircle class="h-4 w-4 text-yellow-600" />
-                            <AlertDescription class="text-yellow-800">
-                                You have {{ pagesRemaining }} pages remaining. Consider upgrading your plan if you need to process more documents.
-                            </AlertDescription>
-                        </Alert>
-
-                        <input
-                            ref="fileInputRef"
-                            accept=".pdf,.doc,.docx,.txt,.md"
-                            class="hidden"
-                            multiple
-                            type="file"
-                            @change="handleFileUpload"
-                        />
-
-                        <div
-                            class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center hover:bg-muted/50"
-                            :class="{
-                                'opacity-50 cursor-not-allowed': uploadingFiles.length + uploadedFiles.length >= maxFilesToUpload || pagesRemaining <= 0,
-                                'border-destructive bg-destructive/5': pagesRemaining <= 0,
-                                'border-primary bg-primary/5': isDragOver && !(uploadingFiles.length + uploadedFiles.length >= maxFilesToUpload || pagesRemaining <= 0)
-                            }"
-                            @click="uploadingFiles.length + uploadedFiles.length < maxFilesToUpload && pagesRemaining > 0 ? triggerFileInput() : null"
-                            @dragenter="handleDragEnter"
-                            @dragleave="handleDragLeave"
-                            @dragover="handleDragOver"
-                            @drop="handleDrop"
-                        >
-                            <Upload class="mb-3 h-8 w-8 text-muted-foreground" />
-                            <div class="mb-1 text-base font-medium">
-                                {{ pagesRemaining <= 0
-                                    ? 'Page limit reached'
-                                    : uploadingFiles.length + uploadedFiles.length >= maxFilesToUpload
-                                        ? 'File limit reached'
-                                        : 'Select files'
-                                }}
-                            </div>
-                            <p class="text-sm text-muted-foreground">
-                                {{ pagesRemaining <= 0
-                                    ? `You've used all ${props.quote.pages_limit} pages. Upgrade your plan to continue.`
-                                    : uploadingFiles.length + uploadedFiles.length >= maxFilesToUpload
-                                        ? `Maximum ${maxFilesToUpload} files allowed. Remove some files to add more.`
-                                        : 'Drag and drop or click to select PDF, Word, Text'
-                                }}
-                            </p>
-                        </div>
-
-                        <!-- PDF Note -->
-                        <Alert>
-                            <AlertCircle class="h-4 w-4" />
-                            <AlertDescription>
-                                If you are uploading a PDF, make sure you can select/highlight the text.
-                            </AlertDescription>
-                        </Alert>
-
-                        <!-- Separator -->
-                        <Separator v-if="uploadingFiles.length > 0 || uploadedFiles.length > 0" />
-
-                        <!-- Files Ready to Process Section -->
-                        <div v-if="uploadingFiles.length > 0 || uploadedFiles.length > 0" class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-
-                                    <p class="text-sm text-muted-foreground">
-                                        <span v-if="totalUploadedPages > 0" class="ml-2">
-                                            {{ totalUploadedPages }} page{{ totalUploadedPages !== 1 ? 's' : '' }} total
-                                        </span>
-                                        <span v-if="wouldExceedQuota" class="ml-2 text-destructive font-medium">
-                                            • Exceeds quota by {{ totalUploadedPages - pagesRemaining }} pages
-                                        </span>
-                                    </p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <Button
-                                        v-if="uploadingFiles.length > 0 || uploadedFiles.length > 0"
-                                        variant="outline"
-                                        @click="confirmClearAllFiles"
-                                        class="text-destructive hover:text-destructive/90 border-destructive/20 hover:border-destructive/30"
-                                    >
-                                        <Trash2 class="h-4 w-4 mr-2" />
-                                        Clear All
-                                    </Button>
-                                    <Button
-                                        v-if="uploadingFiles.length > 0 || uploadedFiles.length > 0"
-                                        @click="processAllFiles"
-                                        :disabled="isProcessingFiles || uploadedFiles.length === 0 || wouldExceedQuota"
-                                    >
-                                        <LoaderCircle v-if="isProcessingFiles" class="h-4 w-4 mr-2 animate-spin" />
-                                        <Play v-else class="h-4 w-4 mr-2" />
-                                        {{ isProcessingFiles ? 'Training...' : 'Train' }}
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <!-- File List -->
-                            <template v-if="allUploadingFiles.length > 0">
-                                <ScrollArea v-if="allUploadingFiles.length > 5" class="h-[400px] pr-4">
-                                    <div class="space-y-2">
-                                        <template v-for="(file, index) in allUploadingFiles" :key="file.id">
-                                            <div class="flex items-center justify-between border rounded-lg p-3">
-                                                <div class="flex items-center gap-3 min-w-0 flex-1">
-                                                    <File class="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                                    <div class="min-w-0 flex-1">
-                                                        <div class="flex items-center gap-2 mb-1">
-                                                            <span class="font-medium truncate">{{ file.file.name }}</span>
-                                                            <Badge v-if="file.isUploaded" variant="secondary" class="text-xs">
-                                                                {{ formatFileType(file.uploadedFile?.mime_type || file.file.type) }}
-                                                            </Badge>
-                                                            <Badge v-if="file.isUploaded" variant="outline" class="text-xs">
-                                                                <CheckCircle class="h-3 w-3 mr-1" />
-                                                                Uploaded
-                                                            </Badge>
-                                                            <Badge v-if="file.uploading" variant="outline" class="text-xs">
-                                                                <LoaderCircle class="h-3 w-3 mr-1 animate-spin" />
-                                                                Uploading
-                                                            </Badge>
-                                                            <Badge v-if="file.error" variant="destructive" class="text-xs">
-                                                                <AlertCircle class="h-3 w-3 mr-1" />
-                                                                Failed
-                                                            </Badge>
-                                                        </div>
-                                                        <div class="text-xs text-muted-foreground">
-                                                            {{ formatFileSize(file.file.size) }}
-                                                            <span v-if="file.isUploaded && file.uploadedFile?.pages" class="ml-2">
-                                                                • {{ file.uploadedFile.pages }} page{{ file.uploadedFile.pages !== 1 ? 's' : '' }}
-                                                            </span>
-                                                            <span v-if="file.uploading && file.progress > 0" class="ml-2">
-                                                                • {{ file.progress }}% uploaded
-                                                            </span>
-                                                            <span v-if="file.uploading && file.uploadSpeed > 0" class="ml-2">
-                                                                • {{ formatSpeed(file.uploadSpeed) }}
-                                                            </span>
-                                                            <span v-if="file.error" class="ml-2 text-destructive">
-                                                                • {{ file.error }}
-                                                            </span>
-                                                        </div>
-                                                        <!-- Progress bar for uploading files -->
-                                                        <div v-if="file.uploading && file.progress > 0" class="mt-2">
-                                                            <div class="w-full bg-muted rounded-full h-1.5">
-                                                                <div
-                                                                    class="bg-primary h-1.5 rounded-full transition-all duration-300"
-                                                                    :style="{ width: `${file.progress}%` }"
-                                                                ></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                @click="file.isUploaded ? confirmDeleteUploadedFile(file.uploadedFile!) : confirmDeleteUploadingFile(file.id)"
-                                                            >
-                                                                <span class="sr-only">Remove file</span>
-                                                                <Trash2 class="h-4 w-4" />
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Delete from knowledge base</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
+                    </CardHeader>
+                    <CardContent>
+                        <!-- Uploaded files list -->
+                        <div class="space-y-2">
+                            <template v-for="file in uploadedFiles" :key="file.id">
+                                <div class="flex items-center justify-between border rounded-lg p-3">
+                                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                                        <File class="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-medium truncate">{{ file.name }}</span>
+                                                <Badge variant="secondary" class="text-xs">
+                                                    {{ formatFileType(file.mime_type) }}
+                                                </Badge>
+                                                <Badge variant="outline" class="text-xs">
+                                                    <CheckCircle class="h-3 w-3 mr-1" />
+                                                    Uploaded
+                                                </Badge>
                                             </div>
-                                        </template>
-                                    </div>
-                                </ScrollArea>
-                                <div v-else class="space-y-2">
-                                    <template v-for="(file, index) in allUploadingFiles" :key="file.id">
-                                        <div class="flex items-center justify-between border rounded-lg p-3">
-                                            <div class="flex items-center gap-3 min-w-0 flex-1">
-                                                <File class="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                                <div class="min-w-0 flex-1">
-                                                    <div class="flex items-center gap-2 mb-1">
-                                                        <span class="font-medium truncate">{{ file.file.name }}</span>
-                                                        <Badge v-if="file.isUploaded" variant="secondary" class="text-xs">
-                                                            {{ formatFileType(file.uploadedFile?.mime_type || file.file.type) }}
-                                                        </Badge>
-                                                        <Badge v-if="file.isUploaded" variant="outline" class="text-xs">
-                                                            <CheckCircle class="h-3 w-3 mr-1" />
-                                                            Uploaded
-                                                        </Badge>
-                                                        <Badge v-if="file.uploading" variant="outline" class="text-xs">
-                                                            <LoaderCircle class="h-3 w-3 mr-1 animate-spin" />
-                                                            Uploading
-                                                        </Badge>
-                                                        <Badge v-if="file.error" variant="destructive" class="text-xs">
-                                                            <AlertCircle class="h-3 w-3 mr-1" />
-                                                            Failed
-                                                        </Badge>
-                                                    </div>
-                                                    <div class="text-xs text-muted-foreground">
-                                                        {{ formatFileSize(file.file.size) }}
-                                                        <span v-if="file.isUploaded && file.uploadedFile?.pages" class="ml-2">
-                                                            • {{ file.uploadedFile.pages }} page{{ file.uploadedFile.pages !== 1 ? 's' : '' }}
-                                                        </span>
-                                                        <span v-if="file.uploading && file.progress > 0" class="ml-2">
-                                                            • {{ file.progress }}% uploaded
-                                                        </span>
-                                                        <span v-if="file.uploading && file.uploadSpeed > 0" class="ml-2">
-                                                            • {{ formatSpeed(file.uploadSpeed) }}
-                                                        </span>
-                                                        <span v-if="file.error" class="ml-2 text-destructive">
-                                                            • {{ file.error }}
-                                                        </span>
-                                                    </div>
-                                                    <!-- Progress bar for uploading files -->
-                                                    <div v-if="file.uploading && file.progress > 0" class="mt-2">
-                                                        <div class="w-full bg-muted rounded-full h-1.5">
-                                                            <div
-                                                                class="bg-primary h-1.5 rounded-full transition-all duration-300"
-                                                                :style="{ width: `${file.progress}%` }"
-                                                            ></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            <div class="text-xs text-muted-foreground">
+                                                {{ formatFileSize(file.size) }}
+                                                <span v-if="file.pages" class="ml-2">
+                                                    • {{ file.pages }} page{{ file.pages !== 1 ? 's' : '' }}
+                                                </span>
                                             </div>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            @click="file.isUploaded ? confirmDeleteUploadedFile(file.uploadedFile!) : confirmDeleteUploadingFile(file.id)"
-                                                        >
-                                                            <span class="sr-only">Remove file</span>
-                                                            <Trash2 class="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Delete from knowledge base</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
                                         </div>
-                                    </template>
+                                    </div>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    @click="confirmDeleteUploadedFile(file)"
+                                                >
+                                                    <span class="sr-only">Remove file</span>
+                                                    <Trash2 class="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Remove file</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
                             </template>
-
-                            <!-- No results message -->
-                            <div v-if="filteredAndSortedFiles.length === 0 && searchQuery" class="p-8 text-center text-muted-foreground">
-                                <Search class="mx-auto h-12 w-12 mb-3 opacity-20" />
-                                <p>No files found matching "{{ searchQuery }}"</p>
-                            </div>
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            </div>
 
             <!-- Current Knowledge Base -->
             <Card>

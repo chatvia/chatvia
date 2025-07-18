@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
+import FileUploader from '@/components/FileUploader.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertCircle, BookOpen, Bot, Brain, Database, FileText, Lightbulb, LoaderCircle, Upload } from 'lucide-vue-next';
+import { AlertCircle, BookOpen, Bot, Brain, Database, FileText, Lightbulb, LoaderCircle } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
+import type { UploadingFileData, FileUploaderConfig } from '@/composables/useFileUploader';
 
 enum AgentType {
     INSTRUCTION_BASED = 'instruction',
@@ -40,62 +42,54 @@ const form = useForm({
     type: AgentType.INSTRUCTION_BASED,
 });
 
-const fileInputRef = ref<HTMLInputElement | null>(null);
 const isSubmitting = ref(false);
-const uploadedFiles = ref<File[]>([]);
 const isGeneratingSubdomain = ref(false);
-const maxFiles = 2;
+const fileUploaderRef = ref<InstanceType<typeof FileUploader> | null>(null);
 
 const showFileUpload = computed(() => form.type === AgentType.KNOWLEDGE_BASED);
 
-// Clear files when switching away from document-based training
+// Clear files when switching away from knowledge-based training
 watch(
     () => form.type,
     (newType) => {
         if (newType === AgentType.INSTRUCTION_BASED) {
-            uploadedFiles.value = [];
             form.files = [];
-            if (fileInputRef.value) {
-                fileInputRef.value.value = '';
-            }
+            fileUploaderRef.value?.clearAllFiles();
         }
     },
 );
 
-const handleFileUpload = (event: Event) => {
-    const input = event.target as HTMLInputElement;
-
-    if (!input.files) return;
-
-    const newFiles = Array.from(input.files);
-
-    if (form.files.length === maxFiles || newFiles.length > maxFiles) {
-        toast.error('Maximum file limit reached', {
-            description: 'You can only upload a maximum of ' + maxFiles + ' files.',
-            duration: 5000,
-            position: 'top-center',
-        });
-    } else {
-        uploadedFiles.value = [...uploadedFiles.value, ...newFiles];
-        form.files = uploadedFiles.value;
+// File uploader configuration for CreateAgent - uses analyze endpoint
+const fileUploaderConfig: FileUploaderConfig = {
+    maxFiles: 10,
+    acceptedTypes: '.pdf,.doc,.docx,.txt,.md',
+    analyzeEndpoint: (file: File) => route('agents.knowledge.files.analyze'),
+    onFileAnalyzed: (file: UploadingFileData, data: any) => {
+        // Update form.files with analyzed files
+        updateFormFiles();
+    },
+    onFileError: (file: UploadingFileData, error: string) => {
+        console.error('File analysis error:', error);
     }
 };
 
-const removeFile = (index: number) => {
-    uploadedFiles.value.splice(index, 1);
-    form.files = uploadedFiles.value;
+const updateFormFiles = () => {
+    if (fileUploaderRef.value) {
+        const analyzedFiles = fileUploaderRef.value.uploadingFiles
+            .filter(f => f.isAnalyzed && !f.error)
+            .map(f => f.file);
+        form.files = analyzedFiles;
+    }
 };
 
-const triggerFileInput = () => {
-    fileInputRef.value?.click();
-};
+
 
 const submit = () => {
     isSubmitting.value = true;
 
     if (form.type === AgentType.KNOWLEDGE_BASED && form.files.length === 0) {
         toast.error('No files', {
-            description: 'Please upload at least one file to train your document-based agent.',
+            description: 'Please upload at least one file to train your knowledge-based agent.',
             duration: 5000,
         });
         isSubmitting.value = false;
@@ -106,7 +100,7 @@ const submit = () => {
         preserveScroll: true,
         onSuccess: () => {
             isSubmitting.value = false;
-            uploadedFiles.value = [];
+            fileUploaderRef.value?.clearAllFiles();
         },
         onError: () => {
             isSubmitting.value = false;
@@ -135,7 +129,6 @@ onMounted(() => {
 <template>
     <Head title="Create Agent" />
     <AppLayout :breadcrumbs="breadcrumbs">
-    {{ form }}
         <div class="container mx-auto max-w-4xl py-8">
             <div class="mb-8">
                 <h1 class="text-3xl font-bold tracking-tight">Create Agent</h1>
@@ -376,11 +369,11 @@ onMounted(() => {
                                     id="instructions"
                                     v-model="form.system_instructions"
                                     :error="form.errors.system_instructions"
-                                    :placeholder="
-                                        form.type === 'document_based'
-                                            ? 'You are a specialized assistant trained on our company knowledge base. Use the uploaded documents to provide accurate and detailed answers...'
-                                            : 'You are a helpful assistant that specializes in customer support. Be friendly, professional, and always aim to solve problems efficiently...'
-                                    "
+                                                                    :placeholder="
+                                    form.type === AgentType.KNOWLEDGE_BASED
+                                        ? 'You are a specialized assistant trained on our company knowledge base. Use the uploaded documents to provide accurate and detailed answers...'
+                                        : 'You are a helpful assistant that specializes in customer support. Be friendly, professional, and always aim to solve problems efficiently...'
+                                "
                                     rows="6"
                                 />
                                 <p v-if="form.errors.system_instructions" class="text-destructive text-sm">
@@ -393,87 +386,22 @@ onMounted(() => {
                         </CardContent>
                     </Card>
 
-                    <Card v-if="showFileUpload">
-                        <CardHeader>
-                            <CardTitle class="flex items-center gap-2">
-                                <FileText class="h-5 w-5" />
-                                Knowledge Base
-                            </CardTitle>
-                            <CardDescription>
-                                Upload documents to train your agent. Your agent will learn from these files to provide specialized knowledge and
-                                accurate answers. Maximum 10 files, each up to 10MB in size.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="grid gap-6">
-                                <div>
-                                    <input
-                                        ref="fileInputRef"
-                                        accept=".pdf,.doc,.docx,.txt,.md"
-                                        class="hidden"
-                                        multiple
-                                        type="file"
-                                        @change="handleFileUpload"
-                                    />
+                    <div v-if="showFileUpload">
+                        <FileUploader
+                            ref="fileUploaderRef"
+                            :config="fileUploaderConfig"
+                            title="Knowledge Base"
+                            description="Upload documents to train your agent. Your agent will learn from these files to provide specialized knowledge and accurate answers."
+                            @files-changed="updateFormFiles"
+                        />
 
-                                    <div
-                                        class="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-neutral-300 p-12 text-center hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800/50"
-                                        @click="triggerFileInput"
-                                    >
-                                        <Upload class="mb-4 h-10 w-10 text-neutral-400" />
-                                        <div class="mb-2 text-lg font-medium">Upload files</div>
-                                        <p class="text-muted-foreground text-sm">
-                                            Drag and drop or click to upload PDF, Word, Text, or Markdown files
-                                        </p>
-                                    </div>
-                                </div>
+                        <!-- Knowledge base extension note -->
+                        <div class="mt-4 text-muted-foreground flex items-center gap-2 text-sm">
+                            <p>You can extend your AI Agent's knowledge base later by adding or removing files from this folder.</p>
+                        </div>
 
-                                <!-- Uploaded files list -->
-                                <div v-if="uploadedFiles.length > 0" class="space-y-2">
-                                    <div class="text-sm font-medium">Uploaded Files</div>
-                                    <div class="rounded-md border border-neutral-200 dark:border-neutral-800">
-                                        <div
-                                            v-for="(file, index) in uploadedFiles"
-                                            :key="index"
-                                            class="flex items-center justify-between border-b border-neutral-200 p-3 last:border-0 dark:border-neutral-800"
-                                        >
-                                            <div class="flex items-center gap-3">
-                                                <FileText class="h-5 w-5 text-neutral-400" />
-                                                <div>
-                                                    <div class="font-medium">{{ file.name }}</div>
-                                                    <div class="text-muted-foreground text-xs">{{ (file.size / 1024).toFixed(1) }} KB</div>
-                                                </div>
-                                            </div>
-                                            <Button class="h-8 w-8 p-0" size="sm" variant="ghost" @click="removeFile(index)">
-                                                <span class="sr-only">Remove file</span>
-                                                <svg
-                                                    class="lucide lucide-x"
-                                                    fill="none"
-                                                    height="16"
-                                                    stroke="currentColor"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    viewBox="0 0 24 24"
-                                                    width="16"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                >
-                                                    <path d="M18 6 6 18" />
-                                                    <path d="m6 6 12 12" />
-                                                </svg>
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <p v-if="form.errors.name" class="text-destructive text-sm">{{ form.errors.files }}</p>
-                                <!-- Knowledge base extension note -->
-                                <div class="text-muted-foreground flex items-center gap-2 text-sm">
-                                    <p>You can extend your AI Agent's knowledge base later by adding or removing files from this folder.</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                        <p v-if="form.errors.files" class="text-destructive text-sm mt-2">{{ form.errors.files }}</p>
+                    </div>
 
                     <!-- Visibility Settings -->
                     <Card>

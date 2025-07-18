@@ -177,8 +177,8 @@ LIMIT ?
 
     public function shouldContinueSearching(array $chunks, $userQuery): bool
     {
-        $res = app(OpenAI::class)->completion([
-            'model' => 'gpt-4o-mini',
+        $res = app(OpenRouter::class)->completion([
+            'model' => 'amazon/nova-micro-v1',
             'messages' => [
                 [
                     'role' => 'system',

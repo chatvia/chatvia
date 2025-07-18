@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgentDeleteSettingsController;
+use App\Http\Controllers\AgentKnowledgeFilesAnalyzeController;
 use App\Http\Controllers\Agents\AgentCreateController;
 use App\Http\Controllers\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\AgentsController;
@@ -55,7 +56,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('knowledge/files/{file}', AgentKnowledgeFileDeleteController::class)->name('knowledge.files.delete');
         Route::delete('knowledge/uploaded-files', AgentKnowledgeUploadedFilesDeleteController::class)->name('knowledge.uploaded-files');
         Route::post('knowledge/files/process', AgentKnowledgeFilesProcessController::class)->name('knowledge.files.process');
-
         // Starters
         Route::get('starters', StartersShowController::class)->name('starters');
         Route::post('starters', StartersStoreController::class)->name('starters.store');
@@ -86,6 +86,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Delete Agent
         Route::delete('/', AgentDeleteController::class)->name('delete');
     });
+
+    Route::post('agents/knowledge/files/analyze', AgentKnowledgeFilesAnalyzeController::class)->name('agents.knowledge.files.analyze');
 
     Route::get('generate-random-subdomain', GenerateRandomSubDomainController::class)->name('generate-random-subdomain');
 });

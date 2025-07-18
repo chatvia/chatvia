@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AgentDeleteSettingsController;
 use App\Http\Controllers\Agents\AgentCreateController;
+use App\Http\Controllers\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\AgentsController;
 use App\Http\Controllers\Agents\AgentsIndexController;
 use App\Http\Controllers\Agents\AgentStoreController;
@@ -81,6 +82,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('team/invite', AgentMemberInvitationSendController::class)->name('team.invite');
         Route::get('team/list', AgentMembersListController::class)->name('team.list');
         Route::delete('team/member', AgentMembersDeleteController::class)->name('team.member.delete');
+
+        // Delete Agent
+        Route::delete('/', AgentDeleteController::class)->name('delete');
     });
 
     Route::get('generate-random-subdomain', GenerateRandomSubDomainController::class)->name('generate-random-subdomain');

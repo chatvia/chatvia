@@ -13,6 +13,17 @@ if (! function_exists('temp_dir')) {
     }
 }
 
+if (! function_exists('create_temp_file')) {
+    function create_temp_file(string $filename, string $content): string
+    {
+        $tempFile = temp_dir().'/'.uniqid('', true).'.'.File::extension($filename);
+
+        file_put_contents($tempFile, $content);
+
+        return $tempFile;
+    }
+}
+
 if (! function_exists('is_word_file')) {
     function is_word_file(UploadedFile $file): bool
     {

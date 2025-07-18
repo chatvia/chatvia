@@ -11,6 +11,7 @@ import {
     DialogHeader,
     DialogTitle
 } from '@/components/ui/dialog';
+import { toast } from 'vue-sonner';
 import type { BreadcrumbItem } from '@/types';
 
 import {
@@ -76,17 +77,32 @@ const navigationItems = [
 
 const showDeleteDialog = ref(false);
 const isDeleting = ref(false);
+const agentNameConfirmation = ref('');
 
 const deleteAgent = () => {
+    if (agentNameConfirmation.value !== props.agent.name) {
+        return;
+    }
+    
     isDeleting.value = true;
-    // In a real app, you would call an API to delete the agent
-    setTimeout(() => {
-        isDeleting.value = false;
-        showDeleteDialog.value = false;
-        // Redirect to agents list
-        window.location.href = route('agents.index');
-    }, 1500);
+    
+    router.delete(route('agents.delete', { agent: props.agent.id }), {
+        onSuccess: () => {
+            isDeleting.value = false;
+            showDeleteDialog.value = false;
+            agentNameConfirmation.value = '';
+            toast.success('Agent deleted successfully');
+        },
+        onError: (errors) => {
+            isDeleting.value = false;
+            toast.error('Failed to delete agent. Please try again.');
+        }
+    });
 };
+
+const canDelete = computed(() => {
+    return agentNameConfirmation.value === props.agent.name;
+});
 
 const toggleAgentStatus = () => {
     // Optimistically update the UI
@@ -262,10 +278,33 @@ const isActiveRoute = (routeName: string) => {
                 <DialogHeader>
                     <DialogTitle>Delete Agent</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete this agent? This action cannot be undone.
-                        All data associated with this agent will be permanently removed.
+                        This action cannot be undone. This will permanently delete the agent
+                        <strong>{{ agent.name }}</strong> and all of its data.
                     </DialogDescription>
                 </DialogHeader>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="agent-name-confirmation" class="block text-sm font-medium text-foreground mb-2">
+                            Please type <strong>{{ agent.name }}</strong> to confirm
+                        </label>
+                        <input
+                            id="agent-name-confirmation"
+                            v-model="agentNameConfirmation"
+                            type="text"
+                            class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                            placeholder="Enter agent name to confirm"
+                            :class="{
+                                'border-red-500 focus:ring-red-500': agentNameConfirmation && !canDelete,
+                                'border-green-500 focus:ring-green-500': canDelete
+                            }"
+                        />
+                        <p v-if="agentNameConfirmation && !canDelete" class="mt-1 text-sm text-red-500">
+                            Agent name does not match
+                        </p>
+                    </div>
+                </div>
+                
                 <DialogFooter>
                     <Button variant="outline" @click="showDeleteDialog = false">
                         Cancel
@@ -273,7 +312,7 @@ const isActiveRoute = (routeName: string) => {
                     <Button
                         variant="destructive"
                         @click="deleteAgent"
-                        :disabled="isDeleting"
+                        :disabled="isDeleting || !canDelete"
                     >
                         <LoaderCircle v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
                         Delete Agent

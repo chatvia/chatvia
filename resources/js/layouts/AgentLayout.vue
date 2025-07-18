@@ -83,9 +83,9 @@ const deleteAgent = () => {
     if (agentNameConfirmation.value !== props.agent.name) {
         return;
     }
-    
+
     isDeleting.value = true;
-    
+
     router.delete(route('agents.delete', { agent: props.agent.id }), {
         onSuccess: () => {
             isDeleting.value = false;
@@ -210,7 +210,7 @@ const isActiveRoute = (routeName: string) => {
                             </div>
 
                             <Button
-                                :href="`http://${agent.sub_domain}.${page.props.domain}`"
+                                :href="`${agent.url}`"
                                 as="a"
                                 class="gap-2"
                                 target="_blank"
@@ -282,7 +282,7 @@ const isActiveRoute = (routeName: string) => {
                         <strong>{{ agent.name }}</strong> and all of its data.
                     </DialogDescription>
                 </DialogHeader>
-                
+
                 <div class="space-y-4">
                     <div>
                         <label for="agent-name-confirmation" class="block text-sm font-medium text-foreground mb-2">
@@ -304,7 +304,7 @@ const isActiveRoute = (routeName: string) => {
                         </p>
                     </div>
                 </div>
-                
+
                 <DialogFooter>
                     <Button variant="outline" @click="showDeleteDialog = false">
                         Cancel

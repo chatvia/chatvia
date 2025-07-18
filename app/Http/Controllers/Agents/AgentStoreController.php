@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agents;
 
 use App\Http\Requests\Agents\CreateAgentRequest;
-use App\Jobs\IngestionJob;
 use App\Models\Agent;
 use App\Support\Ingestion;
 use Illuminate\Http\UploadedFile;
@@ -38,7 +37,7 @@ class AgentStoreController
 
                 foreach ($files as $file) {
                     $agentFile = $agent->addFile($file);
-                    IngestionJob::dispatch($agentFile);
+                    $agentFile->ingest();
                 }
             }
 

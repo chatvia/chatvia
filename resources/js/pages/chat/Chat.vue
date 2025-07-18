@@ -119,6 +119,7 @@ async function messageAdded(message, model) {
     messages.value.push({
         role: 'user',
         content: message,
+        id: 0, // Default ID that will be overwritten by real ID
     });
 
     if (window.innerWidth < 768 && isSidebarOpen.value) {
@@ -146,13 +147,13 @@ function scrollToBottom(smooth = false) {
     scrollAnimationFrame.value = requestAnimationFrame(() => {
         if (messagesContainer.value) {
             if (smooth) {
-                // Use smooth scrolling only when explicitly needed (e.g., button click)
+                // Use smooth scrolling for user interactions
                 messagesContainer.value.scrollTo({
                     top: messagesContainer.value.scrollHeight,
                     behavior: 'smooth'
                 });
             } else {
-                // Instant scroll for streaming and other cases
+                // Instant scroll for streaming to avoid interrupting flow
                 messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
             }
         }
@@ -310,6 +311,7 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
         role: 'assistant',
         content: '',
         model: modelId,
+        id: 0, // Default ID that will be overwritten by real ID
     };
     messages.value.push(newMessage);
 
@@ -533,21 +535,19 @@ const handleScrollToBottomClick = () => {
                     </div>
 
                     <!-- Messages -->
-                    <TransitionGroup
+                    <div
                         v-else
-                        name="message-list"
-                        tag="div"
                         class="min-h-full"
                     >
                         <div v-for="(message, index) in messages"
                              :id="`message-${index}`"
                              :key="`message-${message.id || index}`"
                              :class="[
-                                 'w-full transition-all duration-300',
+                                 'w-full',
                                  message.role === 'assistant' ? 'bg-muted/30' : ''
                              ]">
                             <div :class="[
-                                'mx-auto px-4 sm:px-8 transition-all duration-300',
+                                'mx-auto px-4 sm:px-8',
                                 isChatExpanded ? 'max-w-6xl' : 'max-w-3xl',
                                 index === 0 ? 'pt-6' : '',
                                 index > 0 && messages[index - 1].role !== message.role ? 'pt-6' : 'pt-3',
@@ -575,48 +575,25 @@ const handleScrollToBottomClick = () => {
                                 />
                             </div>
                         </div>
-                    </TransitionGroup>
+                    </div>
 
                     <!-- Add bottom padding to last message -->
                     <div class="pb-6"></div>
                 </div>
 
                 <!-- Auto-scroll paused indicator -->
-                <Transition
-                    name="fade"
-                    enter-active-class="transition ease-out duration-200"
-                    enter-from-class="opacity-0"
-                    enter-to-class="opacity-100"
-                    leave-active-class="transition ease-in duration-150"
-                    leave-from-class="opacity-100"
-                    leave-to-class="opacity-0"
-                >
-                    <div v-if="isStreaming && userHasScrolledUp" class="absolute bottom-24 left-1/2 transform -translate-x-1/2 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border shadow-sm text-xs text-muted-foreground">
-                        Auto-scroll paused
-                    </div>
-                </Transition>
+                <div v-if="isStreaming && userHasScrolledUp" class="absolute bottom-24 left-1/2 transform -translate-x-1/2 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border shadow-sm text-xs text-muted-foreground">
+                    Auto-scroll paused
+                </div>
 
-                <Transition
-                    name="scroll-button"
-                    enter-active-class="transition ease-out duration-200"
-                    enter-from-class="opacity-0 translate-y-2"
-                    enter-to-class="opacity-100 translate-y-0"
-                    leave-active-class="transition ease-in duration-150"
-                    leave-from-class="opacity-100 translate-y-0"
-                    leave-to-class="opacity-0 translate-y-2"
-                >
-                    <div v-if="showScrollToBottom && messages.length > 0" class="relative flex justify-center -mt-20 mb-4 pointer-events-none">
-                        <button
-                            :class="[
-                                'pointer-events-auto flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-card border border-border shadow-md hover:shadow-lg transition-all',
-                                isStreaming && userHasScrolledUp ? 'animate-pulse' : 'hover:scale-110'
-                            ]"
-                            @click="handleScrollToBottomClick"
-                        >
-                            <ChevronDown class="h-5 w-5" />
-                        </button>
-                    </div>
-                </Transition>
+                <div v-if="showScrollToBottom && messages.length > 0" class="relative flex justify-center -mt-20 mb-4 pointer-events-none">
+                    <button
+                        class="pointer-events-auto flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-card border border-border shadow-md"
+                        @click="handleScrollToBottomClick"
+                    >
+                        <ChevronDown class="h-5 w-5" />
+                    </button>
+                </div>
 
                 <div class="flex-shrink-0 border-t bg-background/95 backdrop-blur-sm">
                     <div class="mx-auto max-w-3xl px-4 py-4 sm:px-8">
@@ -666,7 +643,6 @@ const handleScrollToBottomClick = () => {
     border-radius: 20px;
     border: 2px solid transparent;
     background-clip: content-box;
-    transition: background-color 0.2s ease; /* Smooth color transition only */
 }
 
 .dark #messages-container::-webkit-scrollbar-thumb {
@@ -691,24 +667,7 @@ const handleScrollToBottomClick = () => {
     scrollbar-color: rgba(155, 155, 155, 0.3) transparent;
 }
 
-/* Smooth transitions */
-#messages-container > div > div {
-    transition: max-width 0.3s ease;
-}
-
-/* Feedback animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-}
+/* Remove transitions */
 
 /* Reset some bulky defaults from Tailwind typography */
 .prose ul,
@@ -960,66 +919,14 @@ const handleScrollToBottomClick = () => {
     }
 }
 
-.message-fade-enter-active {
-    transition: all 0.5s ease;
-}
-
-.message-fade-leave-active {
-    transition: all 0.3s ease;
-}
-
-.message-fade-enter-from {
-    opacity: 0;
-    transform: translateY(10px);
-}
-
-.message-fade-leave-to {
-    opacity: 0;
-}
-
-/* For streaming effect on the latest message */
-@keyframes typing-pulse {
-    0% {
-        opacity: 0.5;
-    }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0.5;
-    }
-}
-
-.message-item:last-child .typing-indicator {
-    animation: typing-pulse 1.5s infinite;
-}
-
-/* Improve the typing indicator animation */
-.animate-pulse span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.animate-pulse span:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-@keyframes highlight {
-    0% {
-        background-color: rgba(59, 130, 246, 0.1);
-    }
-    100% {
-        background-color: transparent;
-    }
-}
+/* Animations removed */
 
 .chat-expanded-content {
     max-width: 100% !important;
-    transition: all 0.3s ease;
 }
 
 .chat-expanded-content > div > div {
     max-width: 100% !important;
-    transition: padding 0.3s ease;
 }
 
 /* Adjust padding for expanded mode */
@@ -1043,12 +950,7 @@ const handleScrollToBottomClick = () => {
     }
 }
 
-/* Transition for smooth expansion/collapse */
-#messages-container,
-#messages-container > div,
-#messages-container > div > div {
-    transition: all 0.3s ease;
-}
+/* Transitions removed */
 
 html,
 body,
@@ -1056,24 +958,7 @@ body,
     height: 100%;
 }
 
-/* New animations */
-.message-list-enter-active {
-    transition: all 0.5s ease;
-}
-
-.message-list-leave-active {
-    transition: all 0.3s ease;
-}
-
-.message-list-enter-from {
-    opacity: 0;
-    transform: translateY(20px);
-}
-
-.message-list-leave-to {
-    opacity: 0;
-    transform: translateX(-20px);
-}
+/* Message list animations removed */
 
 /* Smooth scrolling */
 #messages-container {
@@ -1089,12 +974,7 @@ body,
     will-change: transform;
 }
 
-/* Stabilize message containers during streaming */
-.message-list-enter-active,
-.message-list-leave-active {
-    position: relative;
-    z-index: 1;
-}
+/* Streaming stabilization removed */
 
 /* Optimize rendering for streaming messages */
 #messages-container [id^="message-"]:last-child {
@@ -1108,16 +988,7 @@ body,
     outline-offset: 2px;
 }
 
-/* Fade transition for auto-scroll indicator */
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
+/* Fade transitions removed */
 
 /* Custom appearance colors */
 .chat-assistant-bubble {

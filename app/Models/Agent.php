@@ -26,6 +26,8 @@ class Agent extends Model
 
     protected $guarded = ['id'];
 
+    protected $appends = ['url'];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

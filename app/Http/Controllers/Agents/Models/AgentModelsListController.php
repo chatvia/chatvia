@@ -12,7 +12,7 @@ final class AgentModelsListController
     {
         $agentLlms = $agent->llms;
 
-        $models = $request->user()->llms()->map(function (LlmModelData $llm) use ($agentLlms) {
+        $models = $request->user()->formattedLlms()->map(function (LlmModelData $llm) use ($agentLlms) {
             $llm->is_selected = $agentLlms->where('external_name', $llm->id)->first() !== null;
 
             return $llm;

@@ -2,6 +2,30 @@
 
 return [
     [
+        'internal_name' => 'amazon/nova-micro-v1',
+        'external_name' => 'nova-micro-v1',
+        'descriptive_name' => 'Nova Micro 1.0',
+        'description' => 'Amazon\'s most compact model. Ultra-fast responses for simple queries and instant assistance.',
+        'context_window' => 300000,
+        'icon' => 'nova.svg',
+        'features' => ['superfast'],
+        'location' => 'us',
+        'requires_paid_plan' => false, // Fast model - free access
+        'reasoning' => false,
+    ],
+    [
+        'internal_name' => 'amazon/nova-lite-v1',
+        'external_name' => 'nova-lite-v1',
+        'descriptive_name' => 'Nova Lite 1.0',
+        'description' => 'Amazon\'s lightweight AI model. Fast and efficient for everyday conversations and quick tasks.',
+        'context_window' => 300000,
+        'icon' => 'nova.svg',
+        'features' => ['superfast'],
+        'location' => 'us',
+        'requires_paid_plan' => false, // Fast model - free access
+        'reasoning' => false,
+    ],
+    [
         'internal_name' => 'openai/gpt-4o-mini',
         'external_name' => 'gpt4o-mini',
         'descriptive_name' => 'GPT-4o mini',
@@ -205,30 +229,6 @@ return [
         'features' => ['pro', 'pro'],
         'location' => 'us',
         'requires_paid_plan' => true, // Advanced + Pro model - paid only
-        'reasoning' => false,
-    ],
-    [
-        'internal_name' => 'amazon/nova-lite-v1',
-        'external_name' => 'nova-lite-v1',
-        'descriptive_name' => 'Nova Lite 1.0',
-        'description' => 'Amazon\'s lightweight AI model. Fast and efficient for everyday conversations and quick tasks.',
-        'context_window' => 300000,
-        'icon' => 'nova.svg',
-        'features' => ['fast'],
-        'location' => 'us',
-        'requires_paid_plan' => false, // Fast model - free access
-        'reasoning' => false,
-    ],
-    [
-        'internal_name' => 'amazon/nova-micro-v1',
-        'external_name' => 'nova-micro-v1',
-        'descriptive_name' => 'Nova Micro 1.0',
-        'description' => 'Amazon\'s most compact model. Ultra-fast responses for simple queries and instant assistance.',
-        'context_window' => 300000,
-        'icon' => 'nova.svg',
-        'features' => ['fast'],
-        'location' => 'us',
-        'requires_paid_plan' => false, // Fast model - free access
         'reasoning' => false,
     ],
     [

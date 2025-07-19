@@ -6,10 +6,11 @@ use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Data\Chat\LlmModelData;
 use App\Models\Agent;
-use App\Rules\AgentLLmChatRule;
+use App\Models\AgentFile;
 use App\Support\Chat\ChatMemory;
 use App\Support\KnowledgeBase;
 use App\Support\Llms;
+use App\Support\OpenRouter;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -46,20 +47,30 @@ class ChatStreamController
 
     private string $assistantMessageId = '';
 
+    private $endTime;
+
+    private bool $playground = false;
+
     public function __construct(
-        private readonly Client $httpClient,
         private readonly ChatMemory $memory,
         private readonly KnowledgeBase $knowledgeBase) {}
 
     public function __invoke(Request $request, Llms $models, string $conversationId)
     {
         $request->validate([
-            'model' => ['required', 'string', new AgentLLmChatRule],
+            'model' => ['required', 'string', 'exists:llms,external_name'],
             'message' => ['required', 'string'],
             'updated_message_info' => ['nullable', 'array'],
+            'playground' => ['nullable', 'bool'],
+            'agent' => ['nullable', 'required_if:playground,true'],
         ]);
 
-        $agent = current_agent();
+        if ($request->has('playground')) {
+            $agent = Agent::find($request->input('agent'));
+            $this->playground = true;
+        } else {
+            $agent = current_agent();
+        }
 
         abort_if(boolean: ! $agent, code: 404);
 
@@ -83,13 +94,13 @@ class ChatStreamController
             $this->userMessageId = $this->memory->addMessageViaPayload($this->payload);
         }
 
-        $this->startTime = microtime(true);
-
         return $this->createStreamResponse();
     }
 
     private function createStreamResponse(): StreamedResponse
     {
+        $this->startTime = microtime(true);
+
         return new StreamedResponse(function () {
             $this->setupStreamHeaders();
 
@@ -97,8 +108,7 @@ class ChatStreamController
             ignore_user_abort(false);
 
             try {
-                $llmMessages = $this->prepareLlmMessages($this->llmMessages);
-                $response = $this->makeOpenRouterRequest($llmMessages);
+                $response = $this->makeOpenRouterRequest();
                 $this->processStreamResponse(
                     $response,
                 );
@@ -140,14 +150,14 @@ class ChatStreamController
         $this->sources = collect(); // Initialize empty collection
 
         if ($agent->isKnowledgeable()) {
-            $lastMessages = $this->memory->getLastMessages(6);
+            $lastMessages = collect($this->memory->getLastMessages(6))->pluck('content')->toArray();
 
             if ($this->knowledgeBase->shouldContinueSearching($lastMessages, $userMessageContent)) {
                 $searchResults = $this->knowledgeBase->search($agent, $userMessageContent);
 
                 // Enrich sources with file metadata
                 $agentFileIds = collect($searchResults)->pluck('agent_file_id')->unique();
-                $agentFiles = \App\Models\AgentFile::whereIn('id', $agentFileIds)
+                $agentFiles = AgentFile::whereIn('id', $agentFileIds)
                     ->get()
                     ->keyBy('id');
 
@@ -158,7 +168,7 @@ class ChatStreamController
                         'content' => $result->chunk,
                         'metadata' => [
                             'file_name' => $agentFile?->name,
-                            'search_type' => $result->search_type,
+                            //                            'search_type' => $result->search_type,
                             'document_id' => $result->id,
                             'agent_file_id' => $result->agent_file_id,
                         ],
@@ -183,24 +193,30 @@ class ChatStreamController
         return array_merge([$systemPrompt], $messages, [$userMessage]);
     }
 
-    private function makeOpenRouterRequest(array $llmMessages): ResponseInterface
+    private function makeOpenRouterRequest(): ResponseInterface
     {
-        return $this->httpClient->post(config('services.openrouter.completion_endpoint'), [
-            'headers' => [
-                'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
-                'Content-Type' => 'application/json',
-            ],
-            'json' => [
-                'model' => $this->llmModel->internal_id,
-                'messages' => $llmMessages,
-                'stream' => true,
-            ],
-            'stream' => true,
-            'provider' => [
-                'sort' => 'throughput', // https://openrouter.ai/docs/features/provider-routing
-            ],
-            ...$this->agent->llmSettings(),
-        ]);
+        $llmMessages = $this->prepareLlmMessages($this->llmMessages);
+
+        $this->endTime = microtime(true);
+
+        return app(OpenRouter::class)->stream($this->llmModel->internal_id, $llmMessages, $this->agent->llmSettings());
+
+        //        return $this->httpClient->post(config('services.openrouter.completion_endpoint'), [
+        //            'headers' => [
+        //                'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
+        //                'Content-Type' => 'application/json',
+        //            ],
+        //            'json' => [
+        //                'model' => $this->llmModel->internal_id,
+        //                'messages' => $llmMessages,
+        //                'stream' => true,
+        //            ],
+        //            'stream' => true,
+        //            'provider' => [
+        //                'sort' => 'latency', // https://openrouter.ai/docs/features/provider-routing
+        //            ],
+        //            ...$this->agent->llmSettings(),
+        //        ]);
     }
 
     private function processStreamResponse($response): void
@@ -277,9 +293,11 @@ class ChatStreamController
     private function handleDoneMessage(): void
     {
         if ($this->isClientConnected) {
-            $this->saveAssistantMessage();
+            if (! $this->playground) {
+                $this->saveAssistantMessage();
+            }
 
-            if (count($this->llmMessages) === 2) {
+            if (! $this->playground && count($this->llmMessages) === 2) {
                 $this->memory->updateConversationTitleFromMessages();
             }
         }
@@ -306,8 +324,6 @@ class ChatStreamController
 
     private function saveAssistantMessage(): void
     {
-        $endTime = microtime(true);
-
         $this->llmMessages[] = [
             'role' => 'assistant',
             'content' => $this->streamedMessage,
@@ -320,7 +336,7 @@ class ChatStreamController
                 model: $this->llmModel->id,
                 generation_id: $this->generationId,
                 token_count: $this->tokenCount,
-                response_time_ms: (int) round(($endTime - $this->startTime) * 1000),
+                response_time_ms: (int) round(($this->endTime - $this->startTime) * 1000),
                 sources: $this->sources->toArray(),
             )
         );

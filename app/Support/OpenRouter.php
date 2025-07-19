@@ -3,12 +3,35 @@
 namespace App\Support;
 
 use App\Data\Chunk;
+use GuzzleHttp\Client;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 class OpenRouter
 {
+    public function stream($model, $llmMessages, array $settings = [])
+    {
+        $client = app(Client::class);
+
+        return $client->post(config('services.openrouter.completion_endpoint'), [
+            'headers' => [
+                'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
+                'Content-Type' => 'application/json',
+            ],
+            'json' => [
+                'model' => $model,
+                'messages' => $llmMessages,
+                'stream' => true,
+            ],
+            'stream' => true,
+            'provider' => [
+                'sort' => 'latency', // https://openrouter.ai/docs/features/provider-routing
+            ],
+            ...$settings,
+        ]);
+    }
+
     public static function completion(array $data)
     {
         return Http::withHeaders([

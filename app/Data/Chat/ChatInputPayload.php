@@ -2,6 +2,7 @@
 
 namespace App\Data\Chat;
 
+use App\Models\Agent;
 use App\Support\KnowledgeBase;
 use Illuminate\Http\Request;
 use Spatie\LaravelData\Data;
@@ -21,11 +22,13 @@ class ChatInputPayload extends Data
         $data = $request->all();
         $rag = app(KnowledgeBase::class);
 
+        $agent = $request->has('playground') ? Agent::find($request->input('agent')) : current_agent();
+
         return new static(
             model: $data['model'],
             message: $data['message'],
             updated_message_info: $data['updated_message_info'] ?? [],
-            message_for_llm: $rag->searchInKnowledgeBaseIfNeeded(current_agent(), $request['message'])
+            message_for_llm: $rag->searchInKnowledgeBaseIfNeeded($agent, $request['message'])
         );
     }
 }

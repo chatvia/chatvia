@@ -1,4 +1,5 @@
 import {ref} from 'vue';
+import { usePage } from '@inertiajs/vue3';
 
 export function useSSE() {
     const isStreaming = ref(false);
@@ -21,6 +22,10 @@ export function useSSE() {
             isStreaming.value = true;
             let isDone = false;
 
+            // Get CSRF token from page props
+            const page = usePage();
+            const csrfToken = (page.props as any).csrf_token || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
             // Create POST request with payload
             fetch(url, {
                 method: 'POST',
@@ -28,6 +33,7 @@ export function useSSE() {
                     'Content-Type': 'application/json',
                     'Accept': 'text/event-stream',
                     'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
                 },
                 body: payload,
                 credentials: 'same-origin',

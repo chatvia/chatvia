@@ -7,6 +7,7 @@ use App\Http\Controllers\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\AgentsController;
 use App\Http\Controllers\Agents\AgentsIndexController;
 use App\Http\Controllers\Agents\AgentStoreController;
+use App\Http\Controllers\Agents\AgentTestingController;
 use App\Http\Controllers\Agents\AgentUpdateActivityController;
 use App\Http\Controllers\Agents\Appearance\AgentAppearanceController;
 use App\Http\Controllers\Agents\Files\AgentKnowledgeController;
@@ -20,6 +21,9 @@ use App\Http\Controllers\Agents\Models\AgentModelsListController;
 use App\Http\Controllers\Agents\Models\AgentModelsShowController;
 use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
 use App\Http\Controllers\Agents\Models\AgentModelsToggleController;
+use App\Http\Controllers\Agents\Playground\AgentPlaygroundConversationCreateController;
+use App\Http\Controllers\Agents\Playground\AgentPlaygroundShowController;
+use App\Http\Controllers\Agents\Playground\AgentPlaygroundStreamController;
 use App\Http\Controllers\Agents\Settings\AgentShowSettingsController;
 use App\Http\Controllers\Agents\Settings\AgentUpdateSettingsController;
 use App\Http\Controllers\Agents\Starters\StarterDeleteController;
@@ -27,6 +31,7 @@ use App\Http\Controllers\Agents\Starters\StartersShowController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
 use App\Http\Controllers\Agents\Stats\AgentStatsController;
 use App\Http\Controllers\Agents\Team\AgentMemberInvitationSendController;
+use App\Http\Controllers\Agents\Team\AgentMembersAccessGrantController;
 use App\Http\Controllers\Agents\Team\AgentMembersDeleteController;
 use App\Http\Controllers\Agents\Team\AgentMembersInvitationAcceptController;
 use App\Http\Controllers\Agents\Team\AgentMembersInvitationCreateAccountController;
@@ -46,6 +51,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('agents/{agent}')->name('agents.')->group(function () {
         Route::get('stats', AgentStatsController::class)->name('stats');
+
+        // Playground routes
+        Route::post('playground/conversations/create', AgentPlaygroundConversationCreateController::class)->name('playground.conversations.create');
+        Route::post('playground/stream', AgentPlaygroundStreamController::class)->name('playground.stream');
 
         Route::get('settings', AgentShowSettingsController::class)->name('settings');
 
@@ -82,9 +91,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('team/invite', AgentMemberInvitationSendController::class)->name('team.invite');
         Route::get('team/list', AgentMembersListController::class)->name('team.list');
         Route::delete('team/member', AgentMembersDeleteController::class)->name('team.member.delete');
+        Route::post('team/member/grant', AgentMembersAccessGrantController::class)->name('team.member.grant');
 
         // Delete Agent
         Route::delete('/', AgentDeleteController::class)->name('delete');
+
+        // Playground
+        Route::get('playground', AgentPlaygroundShowController::class)->name('playground');
+
+        Route::post('playground/conversations/create', AgentPlaygroundConversationCreateController::class)->name('playground.conversations.create');
+        Route::post('playground/{conversationId}/stream', AgentPlaygroundStreamController::class)->name('playground.stream');
     });
 
     Route::post('agents/knowledge/files/analyze', AgentKnowledgeFilesAnalyzeController::class)->name('agents.knowledge.files.analyze');

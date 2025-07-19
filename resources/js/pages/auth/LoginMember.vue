@@ -39,18 +39,6 @@ const submit = () => {
 
         <!-- Clean, spacious container -->
         <div class="w-full max-w-lg mx-auto space-y-8">
-            <!-- Agent/Team Header -->
-            <div v-if="agentName" class="flex items-center justify-center gap-3 p-4 bg-muted/30 rounded-lg border">
-                <div class="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
-                    <Users class="h-5 w-5 text-primary" />
-                </div>
-                <div class="text-center">
-                    <p class="text-sm text-muted-foreground">Accessing workspace</p>
-                    <p class="font-semibold text-foreground">{{ agentName }}</p>
-                </div>
-            </div>
-
-            <!-- Status Message -->
             <div v-if="status" class="p-4 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg">
                 <p class="text-center text-sm font-medium text-green-600 dark:text-green-400">
                     {{ status }}
@@ -83,17 +71,7 @@ const submit = () => {
 
                 <!-- Password Field -->
                 <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <Label for="password" class="text-base font-medium">Password</Label>
-                        <TextLink
-                            v-if="canResetPassword"
-                            :href="route('password.request')"
-                            class="text-sm text-primary hover:text-primary/80 font-medium"
-                            :tabindex="5"
-                        >
-                            Forgot password?
-                        </TextLink>
-                    </div>
+
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
                             <Lock class="h-5 w-5" />
@@ -145,17 +123,6 @@ const submit = () => {
                         Team member access only. Contact your administrator if you need an account.
                     </p>
                 </div>
-
-                <p class="text-sm text-muted-foreground">
-                    Need access to other workspaces?
-                    <TextLink
-                        :href="route('login')"
-                        :tabindex="6"
-                        class="font-medium text-primary hover:text-primary/80 ml-1"
-                    >
-                        Main Login
-                    </TextLink>
-                </p>
             </div>
         </div>
     </AuthBase>

@@ -25,6 +25,7 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                'member' => $request->user('member'),
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),

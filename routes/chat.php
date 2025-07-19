@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Chat\Auth\ChatLoginController;
+use App\Http\Controllers\Chat\Auth\ChatLogoutController;
+use App\Http\Controllers\Chat\Auth\ChatShowLoginController;
 use App\Http\Controllers\Chat\ChatAppearanceController;
 use App\Http\Controllers\Chat\ChatController;
 use App\Http\Controllers\Chat\ChatDeleteAllConversationsController;
@@ -7,7 +10,6 @@ use App\Http\Controllers\Chat\ChatHomeController;
 use App\Http\Controllers\Chat\ChatMessageDeleteController;
 use App\Http\Controllers\Chat\ChatMessageFeedbackController;
 use App\Http\Controllers\Chat\ChatModelsListController;
-use App\Http\Controllers\Chat\ChatShowLoginController;
 use App\Http\Controllers\Chat\ChatStartersController;
 use App\Http\Controllers\Chat\ChatStreamController;
 use App\Http\Controllers\Chat\Conversations\ConversationCreateController;
@@ -18,7 +20,7 @@ use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
 use App\Http\Controllers\Chat\Export\ChatExportController;
 
 Route::prefix('/chat')
-    ->middleware(['web'])
+    ->middleware(['chat'])
     ->group(function () {
         Route::get('/', ChatHomeController::class)->name('chat.home');
         Route::get('/models', ChatModelsListController::class)->name('chat.models.index');
@@ -29,7 +31,16 @@ Route::prefix('/chat')
         Route::patch('/conversations/{conversationId}', ConversationUpdate::class)->name('conversations.update');
         Route::delete('/conversations/{conversationId}', ConversationDeleteController::class)->name('conversations.delete');
         Route::delete('/conversations', ChatDeleteAllConversationsController::class)->name('conversations.delete.all');
-        Route::get('login', ChatShowLoginController::class)->name('chat.login');
+
+        Route::middleware('guest.member')->group(function () {
+            Route::get('login', ChatShowLoginController::class)->name('chat.login.show');
+            Route::post('login', ChatLoginController::class)->name('chat.login');
+        });
+
+        Route::middleware('auth.member')->group(function () {
+            Route::post('logout', ChatLogoutController::class)->name('chat.logout');
+        });
+
         Route::get('starters', ChatStartersController::class)->name('chat.starters');
         Route::patch('/messages/feedback', ChatMessageFeedbackController::class)->name('chat.messages.feedback');
         Route::delete('/messages', ChatMessageDeleteController::class)->name('chat.messages.delete');

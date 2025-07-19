@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Middleware\AuthenticateMember;
+use App\Http\Middleware\ChatHandleInertiaRequests;
 use App\Http\Middleware\EnsureChatIsAccessible;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\MemberGuestMiddleware;
 use App\Http\Middleware\RedirectToAgent;
 use App\Http\Middleware\ResolveAgentFromSubdomain;
 use Illuminate\Foundation\Application;
@@ -21,12 +24,22 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
-            ResolveAgentFromSubdomain::class,
             RedirectToAgent::class,
-            EnsureChatIsAccessible::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+        ]);
+
+        $middleware->group('chat', [
+            ResolveAgentFromSubdomain::class,
+            RedirectToAgent::class,
+            EnsureChatIsAccessible::class,
+            ChatHandleInertiaRequests::class,
+        ]);
+
+        $middleware->alias([
+            'auth.member' => AuthenticateMember::class,
+            'guest.member' => MemberGuestMiddleware::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
@@ -34,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/webhooks/*',
             '/stripe/*',
             '/ingestion/*',
+            '/agents/*/playground/*',
         ]);
 
         $middleware->trustProxies([

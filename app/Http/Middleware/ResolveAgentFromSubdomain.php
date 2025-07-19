@@ -2,8 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Agent;
 use Closure;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ResolveAgentFromSubdomain
 {
@@ -12,12 +14,16 @@ class ResolveAgentFromSubdomain
         $subdomain = $request->subdomain();
 
         if ($subdomain) {
-            $agent = \App\Support\Agent::resolveAgentFromSubdomain($request->subdomain());
+            $agent = Agent::resolveAgentFromSubdomain($request->subdomain());
 
-            abort_if(boolean: ! $agent, code: 404);
+            if (! $agent) {
+                return Inertia::render('agents/chat/AgentNotFound');
+            }
         }
 
-        $request->merge(['agent' => $subdomain]);
+        $request->merge([
+            'agent' => $subdomain,
+        ]);
 
         return $next($request);
     }

@@ -15,7 +15,7 @@ class ChatMessageFeedbackController
             'feedback' => ['required', 'bool'],
         ]);
 
-        $memory->setConversationId($request->input('conversation_id'))->updateMessage($request->input('message_id'), [
+        $memory->setAgent(current_agent())->setConversationId($request->input('conversation_id'))->updateMessage($request->input('message_id'), [
             'feedback' => $request->input('feedback'),
         ]);
     }

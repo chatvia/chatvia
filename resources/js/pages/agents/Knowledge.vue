@@ -630,7 +630,7 @@ const startRefreshInterval = () => {
         if (hasProcessingFiles.value) {
             fetchKnowledgeFiles(true); // Pass true for background refresh
         }
-    }, 5000); // Refresh every 5 seconds
+    }, 3000); // Refresh every 3 seconds
 };
 
 const stopRefreshInterval = () => {

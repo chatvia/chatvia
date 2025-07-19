@@ -26,7 +26,7 @@ class Agent extends Model
 
     protected $guarded = ['id'];
 
-    protected $appends = ['url'];
+    protected $appends = ['url', 'chat_url'];
 
     public function user(): BelongsTo
     {
@@ -149,5 +149,10 @@ class Agent extends Model
 
             return $url['scheme'].'://'.$this->sub_domain.'.'.$url['host'];
         });
+    }
+
+    public function chatUrl(): Attribute
+    {
+        return Attribute::get(fn () => $this->url.'/chat');
     }
 }

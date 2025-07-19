@@ -175,10 +175,10 @@ LIMIT ?
         return $userMessage;
     }
 
-    public function shouldContinueSearching(array $chunks, $userQuery): bool
+    public function shouldContinueSearching(array $chunks, string $userQuery): bool
     {
-        $res = app(OpenRouter::class)->completion([
-            'model' => 'amazon/nova-micro-v1',
+        $res = app(OpenAI::class)->completion([
+            'model' => 'gpt-4.1-nano',
             'messages' => [
                 [
                     'role' => 'system',

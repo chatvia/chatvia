@@ -66,9 +66,22 @@ class ChatMemory
         return app(ChatSession::class)->getOrGenerateSession();
     }
 
-    public function createConversation(string $title): string
+    public function createPlaygroundConversation(): string
     {
-        $conversationId = Str::uuid()->toString();
+        $conversations = $this->getConversationsForCurrentSession();
+
+        foreach ($conversations as $conversation) {
+            if ($conversation['title'] === 'Playground') {
+                return $conversation['id'];
+            }
+        }
+
+        return $this->createConversation('Playground', 'playground.');
+    }
+
+    public function createConversation(string $title, string $prefix = ''): string
+    {
+        $conversationId = $prefix.Str::uuid()->toString();
 
         $session = $this->getOrGenerateSession();
 

@@ -44,9 +44,7 @@ class AgentMemberInvitationSendController
             ]);
         }
 
-        if (! is_null($member->invitation_accepted_at)) {
-            $agent->members()->attach($member);
-        }
+        $agent->members()->attach($member->id);
 
         $member->invite($agent);
     }

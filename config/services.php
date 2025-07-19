@@ -69,4 +69,9 @@ return [
         'api_key' => env('AZURE_DOCUMENT_INTELLIGENCE_API_KEY'),
     ],
 
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'completion_endpoint' => env('GROQ_COMPLETION_ENDPOINT', 'https://api.groq.com/openai/v1/chat/completions'),
+    ],
+
 ];

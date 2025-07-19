@@ -14,7 +14,7 @@ return new class extends Migration
         DB::statement('CREATE INDEX IF NOT EXISTS documents_md5_hash_idx ON documents (md5_hash)');
 
         // Optimize existing binary quantization index with better parameters
-        DB::statement('DROP INDEX IF EXISTS documents_embedding_bit_hamming_idx');
+        //        DB::statement('DROP INDEX IF EXISTS documents_embedding_bit_hamming_idx');
 
         DB::statement('
         CREATE INDEX documents_embedding_bit_hamming_optimized_idx

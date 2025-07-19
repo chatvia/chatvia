@@ -97,7 +97,7 @@ watch(isSidebarOpen, (newValue) => {
 });
 
 const handleLogout = () => {
-    router.post(route('logout'));
+    router.post(route('chat.logout'));
 };
 const isLoadingConversations = ref(true);
 
@@ -489,11 +489,11 @@ const cancelDelete = () => {
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <Avatar class="h-8 w-8">
-                            <AvatarImage :src="page.props.auth?.user?.avatar || ''" />
-                            <AvatarFallback>{{ page.props.auth?.user?.name?.charAt(0) || 'U' }}</AvatarFallback>
+                            <AvatarImage :src="page.props.auth?.member?.avatar || ''" />
+                            <AvatarFallback>{{ page.props.auth?.member?.name?.charAt(0) || 'U' }}</AvatarFallback>
                         </Avatar>
                         <div class="max-w-[140px] truncate text-sm font-medium">
-                            {{ page.props.auth?.user?.name || 'User' }}
+                            {{ page.props.auth?.member?.name || 'User' }}
                         </div>
                     </div>
                     <DropdownMenu>

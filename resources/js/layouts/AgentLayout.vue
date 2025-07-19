@@ -24,6 +24,7 @@ import {
     MessageSquare,
     Palette,
     Settings,
+    TestTube,
     Trash2,
     Users,
     BarChart3,
@@ -66,6 +67,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const navigationItems = [
     { id: 'stats', label: 'Statistics', icon: BarChart3, route: 'agents.stats' },
+    { id: 'playground', label: 'Playground', icon: TestTube, route: 'agents.playground' },
     { id: 'settings', label: 'Settings', icon: Settings, route: 'agents.settings' },
     { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models' },
     { id: 'knowledge', label: 'Knowledge Base', icon: Database, route: 'agents.knowledge' },
@@ -210,7 +212,7 @@ const isActiveRoute = (routeName: string) => {
                             </div>
 
                             <Button
-                                :href="`${agent.url}`"
+                                :href="`${agent.url}/chat`"
                                 as="a"
                                 class="gap-2"
                                 target="_blank"

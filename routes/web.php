@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Billing\SubscriptionWebhook;
 use App\Http\Controllers\ConsentController;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,9 +15,9 @@ Route::post('/consent', [ConsentController::class, 'store'])->name('consent.stor
 Route::post('/webhooks/subscription', SubscriptionWebhook::class)->name('subscription.webhook');
 
 Route::get('/test', function () {
-    Cache::driver('chat')->put('xx', 'xxx');
-    app(\App\Support\Chat\ChatMemory::class)->setAgent(\App\Models\Agent::first())
-        ->createConversation('New title');
+    $m = \App\Models\Member::first();
+
+    dd($m->hasAccessToAgent(12));
 });
 
 require __DIR__.'/settings.php';

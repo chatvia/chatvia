@@ -245,9 +245,10 @@ onMounted(() => {
         <div v-if="message.content"
              id="chat-ai-responses"
              ref="messageContentRef"
+             class="transition-opacity duration-200"
              v-html="formatMessage(message.content)">
         </div>
-        <div v-else class="flex items-center gap-2">
+        <div v-else class="flex items-center gap-2 py-2 transition-all duration-500 ease-in-out">
           <WaitingIndicator />
         </div>
       </div>

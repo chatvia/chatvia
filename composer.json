@@ -20,6 +20,7 @@
         "laravel/horizon": "^5.33",
         "laravel/nightwatch": "^1.7",
         "laravel/octane": "^2.9",
+        "laravel/pulse": "^1.4",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "league/commonmark": "^2.7",
@@ -30,7 +31,8 @@
         "spatie/laravel-markdown": "*",
         "spatie/laravel-pdf": "^1.6",
         "spatie/laravel-ray": "^1.40",
-        "tightenco/ziggy": "^2.5"
+        "tightenco/ziggy": "^2.5",
+        "laravel/telescope": "^5.10"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -87,7 +89,9 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+
+            ]
         }
     },
     "config": {

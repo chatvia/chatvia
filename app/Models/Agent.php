@@ -45,7 +45,7 @@ class Agent extends Model
             $agentFile = $this->files()->create(array_merge([
                 'name' => $file->getClientOriginalName(),
                 'path' => $path,
-                'size_in_kb' => $file->getSize() / 1024,
+                'size_in_kb' => round($file->getSize() / 1024),
                 'mime_type' => $file->getClientMimeType(),
                 'md5_hash' => md5_file($file->getPathname()),
                 'status' => $status->value,

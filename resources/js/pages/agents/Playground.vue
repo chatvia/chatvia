@@ -277,6 +277,12 @@ const selectedModel = computed(() => {
     return availableModels.value.find(model => model.id === selectedModelId.value);
 });
 
+const sortedModelStats = computed(() => {
+    return Object.entries(stats.value.modelStats)
+        .sort(([, a], [, b]) => a.averageResponseTime - b.averageResponseTime)
+        .map(([modelId, modelStat]) => ({ modelId, ...modelStat }));
+});
+
 // Methods
 const sendMessage = async () => {
     if (!canSendMessage.value || !conversationId.value || !selectedModelId.value) return;
@@ -302,6 +308,8 @@ const sendMessage = async () => {
 
     // Start timing for response
     const requestStartTime = Date.now();
+    let firstChunkReceived = false;
+    let responseTime = 0;
 
     if (!playgroundStartTime.value) {
         playgroundStartTime.value = new Date();
@@ -332,19 +340,34 @@ const sendMessage = async () => {
         }),
         {
             onMessage: (content) => {
+                // Calculate response time on first chunk (time to first response)
+                if (!firstChunkReceived) {
+                    firstChunkReceived = true;
+                    responseTime = (Date.now() - requestStartTime) / 1000;
+                    
+                    if (streamingMessageIndex.value !== null && streamingMessageIndex.value < messages.value.length) {
+                        messages.value[streamingMessageIndex.value].responseTime = responseTime;
+                    }
+                    
+                    // Update stats with time to first response
+                    updateStats(responseTime);
+                }
+
                 if (streamingMessageIndex.value !== null && streamingMessageIndex.value < messages.value.length) {
                     messages.value[streamingMessageIndex.value].content += content;
                     scrollWhileStreaming();
                 }
             },
             onDone: () => {
-                const responseTime = (Date.now() - requestStartTime) / 1000;
-                if (streamingMessageIndex.value !== null && streamingMessageIndex.value < messages.value.length) {
-                    messages.value[streamingMessageIndex.value].responseTime = responseTime;
+                // If no chunks were received, calculate response time here (error case)
+                if (!firstChunkReceived) {
+                    responseTime = (Date.now() - requestStartTime) / 1000;
+                    if (streamingMessageIndex.value !== null && streamingMessageIndex.value < messages.value.length) {
+                        messages.value[streamingMessageIndex.value].responseTime = responseTime;
+                    }
+                    updateStats(responseTime);
                 }
 
-                // Update stats
-                updateStats(responseTime);
                 streamingMessageIndex.value = null;
 
                 if (isAutoScrollEnabled.value) {
@@ -355,11 +378,18 @@ const sendMessage = async () => {
             },
             onError: (error) => {
                 console.error('SSE streaming error:', error);
-                const responseTime = (Date.now() - requestStartTime) / 1000;
+                
+                // Calculate response time for error case if not already done
+                if (!firstChunkReceived) {
+                    responseTime = (Date.now() - requestStartTime) / 1000;
+                    if (streamingMessageIndex.value !== null && streamingMessageIndex.value < messages.value.length) {
+                        messages.value[streamingMessageIndex.value].responseTime = responseTime;
+                    }
+                    updateStats(responseTime);
+                }
 
                 if (streamingMessageIndex.value !== null && streamingMessageIndex.value < messages.value.length) {
                     messages.value[streamingMessageIndex.value].content = 'Sorry, I encountered an error while processing your message. Please try again.';
-                    messages.value[streamingMessageIndex.value].responseTime = responseTime;
                 }
 
                 streamingMessageIndex.value = null;
@@ -698,7 +728,7 @@ const formatTime = (date: Date) => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent class="space-y-3">
-                            <div v-for="(modelStat, modelId) in stats.modelStats" :key="modelId" class="space-y-2">
+                            <div v-for="(modelStat, index) in sortedModelStats" :key="modelStat.modelId" class="space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm font-medium">{{ modelStat.name }}</span>
                                     <Badge variant="secondary" class="text-xs">{{ modelStat.totalMessages }} messages</Badge>
@@ -713,10 +743,10 @@ const formatTime = (date: Date) => {
                                         <span>{{ modelStat.fastestResponse.toFixed(2) }}s</span>
                                     </div>
                                 </div>
-                                <div v-if="modelId === stats.bestPerformingModel?.id" class="text-xs text-green-600 dark:text-green-400 font-medium">
+                                <div v-if="modelStat.modelId === stats.bestPerformingModel?.id" class="text-xs text-green-600 dark:text-green-400 font-medium">
                                     ⭐ Fastest
                                 </div>
-                                <Separator v-if="Object.keys(stats.modelStats).length > 1" />
+                                <Separator v-if="sortedModelStats.length > 1 && index < sortedModelStats.length - 1" />
                             </div>
                         </CardContent>
                     </Card>

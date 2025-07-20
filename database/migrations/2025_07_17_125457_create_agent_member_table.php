@@ -14,6 +14,8 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Member::class)->constrained()->cascadeOnDelete();
+
+            $table->unique(['agent_id', 'member_id']);
         });
     }
 

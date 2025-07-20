@@ -15,9 +15,9 @@ Route::post('/consent', [ConsentController::class, 'store'])->name('consent.stor
 Route::post('/webhooks/subscription', SubscriptionWebhook::class)->name('subscription.webhook');
 
 Route::get('/test', function () {
-    $m = \App\Models\Member::first();
+    $user = \App\Models\User::first();
 
-    dd($m->hasAccessToAgent(12));
+    dd($user->remaining_pages);
 });
 
 require __DIR__.'/settings.php';

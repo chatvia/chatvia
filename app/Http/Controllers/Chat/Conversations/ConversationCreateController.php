@@ -21,7 +21,10 @@ final class ConversationCreateController
 
         abort_if(boolean: ! $agent, code: 404);
 
-        $payload = ChatInputPayload::fromRequest($request);
+        $payload = ChatInputPayload::from([
+            'model' => $request->input('model'),
+            'message' => $request->input('message'),
+        ]);
 
         $conversationId = $memory
             ->setAgent($agent)

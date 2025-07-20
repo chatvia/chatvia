@@ -5,7 +5,9 @@ namespace App\Support;
 use App\Models\AgentFile;
 use App\Models\Document;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class KnowledgeBase
@@ -16,11 +18,14 @@ class KnowledgeBase
 
     private int $candidateLimit;
 
+    private array $vectorChordConfig;
+
     public function __construct()
     {
-        $this->cacheTtl = config('vector_search.cache.ttl', 3600);
-        $this->cachePrefix = config('vector_search.cache.prefix', 'rag_search:');
-        $this->candidateLimit = config('vector_search.search.candidate_limit', 500);
+        $this->cacheTtl = config('vector.cache.ttl', 3600);
+        $this->cachePrefix = config('vector.cache.prefix', 'rag_search:');
+        $this->candidateLimit = config('vector.search.candidate_limit', 100);
+        $this->vectorChordConfig = config('vector', []);
     }
 
     public function search(int|\App\Models\Agent $agent, string $query, int $limit = 3): array
@@ -32,29 +37,53 @@ class KnowledgeBase
         $embedding = embed($query);
         $vectorString = '['.implode(',', $embedding).']';
 
-        // Set search path to include required schemas for BM25
-        DB::statement('SET search_path = public, bm25_catalog, tokenizer_catalog');
+        // Configure search parameters based on options
+        $accuracyLevel = $options['accuracy'] ?? 'default';
+        $useHybrid = $options['hybrid'] ?? true;
+        $enableReranking = $options['rerank'] ?? true;
 
-        $sql = "
-WITH vector_candidates AS (
+        $this->configureSearchParameters($accuracyLevel);
+
+        // Use VectorChord optimized hybrid search
+        $results = $this->hybridSearch($agent, $query, $vectorString, $limit, $useHybrid);
+
+        if ($results) {
+            $this->updateRetrievalStats($results);
+
+            if ($enableReranking && count($results) > 1) {
+                $results = $this->performIntelligentReranking($query, $results);
+            }
+
+            $results = $this->processResults($results);
+        }
+
+        return $results;
+    }
+
+    /**
+     * Perform VectorChord optimized hybrid search
+     */
+    private function hybridSearch(int $agentId, string $query, string $vectorString, int $limit): array
+    {
+        try {
+            $sql = "
+WITH vectorchord_candidates AS (
     SELECT id, chunk, embedding, agent_file_id,
-           binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536)) as binary_distance
+           embedding <-> ?::vector(1536) as vector_distance
     FROM documents
     WHERE agent_id = ?
-    ORDER BY binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536))
+    ORDER BY embedding <-> ?::vector(1536)
     LIMIT ?
 ),
 vector_ranked AS (
-    SELECT id, chunk, agent_file_id,
-           embedding <=> ?::vector(1536) as vector_distance,
+    SELECT id, chunk, agent_file_id, vector_distance,
            'vector' as search_type
-    FROM vector_candidates
-    ORDER BY embedding <=> ?::vector(1536)
+    FROM vectorchord_candidates
+    ORDER BY vector_distance
     LIMIT ?
 ),
 bm25_ranked AS (
-    SELECT id,
-        chunk, agent_file_id,
+    SELECT id, chunk, agent_file_id,
            embedding_bm25 <&> bm25_catalog.to_bm25query('documents_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS bm25_rank,
            'bm25' as search_type
     FROM documents
@@ -67,58 +96,241 @@ combined_results AS (
     UNION ALL
     SELECT id, chunk, agent_file_id, bm25_rank as score, search_type FROM bm25_ranked
 )
-SELECT DISTINCT ON (id) id, chunk, agent_file_id, search_type
+SELECT DISTINCT ON (id) id, chunk, agent_file_id, search_type, score
 FROM combined_results
 ORDER BY id, score
 LIMIT ?
 ";
 
-        $results = DB::select($sql, [
-            $vectorString,
-            $agent,
-            $vectorString,
-            $this->candidateLimit,
-            $vectorString,
-            $vectorString,
-            $limit,
-            $query,
-            $agent,
-            $limit,
-            $limit + $limit,
-        ]);
-
-        if ($results) {
-            Document::query()
-                ->whereIn('id', collect($results)->pluck('id')->toArray())
-                ->increment('retrieval_count');
-
-            AgentFile::query()
-                ->whereIn('id', collect($results)->pluck('agent_file_id')->unique()->toArray())
-                ->increment('retrieval_count');
-        }
-
-        if ($results) {
-            $rerankedDocumentsIds = app(Cohere::class)->rerank(
+            return DB::select($sql, [
+                $vectorString,
+                $agentId,
+                $vectorString,
+                $this->getOptimalCandidateLimit($limit),
+                $limit,
                 $query,
-                collect($results)->pluck('chunk')->toArray(),
-            );
+                $agentId,
+                $limit,
+                $limit * 2, // Get more candidates for better hybrid results
+            ]);
 
-            return collect($results)
-                ->filter(function ($result, $index) use ($rerankedDocumentsIds) {
-                    return in_array($index, $rerankedDocumentsIds, true);
-                })
-                ->sortBy(function ($result, $index) use ($rerankedDocumentsIds) {
-                    return array_search($index, $rerankedDocumentsIds, true);
-                })
-                ->map(function ($result) {
-                    $result->chunk = $this->removeXmlTags($result->chunk);
+        } catch (\Exception $e) {
+            // If VectorChord hybrid search fails due to probe configuration, fall back to simple search
+            Log::warning('VectorChord hybrid search failed, falling back to simple search', [
+                'error' => $e->getMessage(),
+                'agent_id' => $agentId,
+                'query' => $query,
+            ]);
 
-                    return $result;
-                })
-                ->values()
-                ->toArray();
+            return $this->performFallbackSearch($agentId, $query, $vectorString, $limit);
+        }
+    }
+
+    /**
+     * Perform vector-only search using VectorChord
+     */
+    private function vectorSearch(int $agentId, string $vectorString, int $limit): array
+    {
+        try {
+            $sql = "
+SELECT id, chunk, agent_file_id,
+       embedding <-> ?::vector(1536) as score,
+       'vector' as search_type
+FROM documents
+WHERE agent_id = ?
+ORDER BY embedding <-> ?::vector(1536)
+LIMIT ?
+";
+
+            return DB::select($sql, [
+                $vectorString,
+                $agentId,
+                $vectorString,
+                $limit,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::warning('VectorChord vector search failed, falling back to basic search', [
+                'error' => $e->getMessage(),
+                'agent_id' => $agentId,
+            ]);
+
+            return $this->performBasicVectorSearch($agentId, $vectorString, $limit);
+        }
+    }
+
+    /**
+     * Fallback search when VectorChord optimization fails
+     */
+    private function performFallbackSearch(int $agentId, string $query, string $vectorString, int $limit): array
+    {
+        try {
+            // Try basic vector search first
+            $vectorResults = $this->performBasicVectorSearch($agentId, $vectorString, $limit);
+
+            // Try to add BM25 results if possible
+            try {
+                DB::statement('SET search_path = public, bm25_catalog, tokenizer_catalog');
+
+                $bm25Results = DB::select("
+                    SELECT id, chunk, agent_file_id,
+                           embedding_bm25 <&> bm25_catalog.to_bm25query('documents_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS score,
+                           'bm25' as search_type
+                    FROM documents
+                    WHERE agent_id = ?
+                    ORDER BY score
+                    LIMIT ?
+                ", [$query, $agentId, $limit]);
+
+                // Combine results if BM25 worked
+                $combined = array_merge($vectorResults, $bm25Results);
+
+                return array_slice($combined, 0, $limit);
+
+            } catch (\Exception $bm25Error) {
+                Log::debug('BM25 search also failed in fallback, using vector only', [
+                    'error' => $bm25Error->getMessage(),
+                ]);
+
+                return $vectorResults;
+            }
+
+        } catch (\Exception $e) {
+            Log::error('All search methods failed', [
+                'error' => $e->getMessage(),
+                'agent_id' => $agentId,
+            ]);
+
+            return [];
+        }
+    }
+
+    /**
+     * Basic vector search without VectorChord optimizations
+     * Falls back to standard pgvector operations when VectorChord fails
+     */
+    private function performBasicVectorSearch(int $agentId, string $vectorString, int $limit): array
+    {
+        // Reset to minimal probe configuration for this query
+        try {
+            DB::statement('SET vchordrq.probes = 0');
+        } catch (\Exception $e) {
+            // Ignore probe setting errors in basic search
+            Log::debug('Could not set probes to 0 in basic search', ['error' => $e->getMessage()]);
         }
 
+        $sql = "
+SELECT id, chunk, agent_file_id,
+       embedding <=> ?::vector(1536) as score,
+       'vector' as search_type
+FROM documents
+WHERE agent_id = ?
+ORDER BY embedding <=> ?::vector(1536)
+LIMIT ?
+";
+
+        return DB::select($sql, [
+            $vectorString,
+            $agentId,
+            $vectorString,
+            $limit,
+        ]);
+    }
+
+    /**
+     * Configure VectorChord search parameters based on accuracy level
+     */
+    private function configureSearchParameters(string $accuracyLevel): void
+    {
+        try {
+            $probes = $this->vectorChordConfig['search']['probes'][$accuracyLevel]
+                ?? $this->vectorChordConfig['search']['probes']['default']
+                ?? 20;
+
+            // Set VectorChord runtime parameters
+            DB::statement("SET vchordrq.probes = {$probes}");
+
+            // Configure MaxSim if enabled
+            if ($this->vectorChordConfig['search']['maxsim']['enabled'] ?? false) {
+                $maxsimRefine = $this->vectorChordConfig['search']['maxsim']['refine'] ?? 2000;
+                DB::statement("SET vchordrq.maxsim_refine = {$maxsimRefine}");
+            }
+        } catch (\Exception $e) {
+            // If configuration fails, try with minimal probes
+            Log::warning('Failed to configure VectorChord parameters, trying minimal configuration', [
+                'error' => $e->getMessage(),
+                'accuracy_level' => $accuracyLevel,
+            ]);
+
+            try {
+                DB::statement('SET vchordrq.probes = 1');
+            } catch (\Exception $e2) {
+                // If even minimal configuration fails, log and continue
+                Log::warning('VectorChord probe configuration failed completely', [
+                    'error' => $e2->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Update retrieval statistics for documents and agent files
+     */
+    private function updateRetrievalStats(array $results): void
+    {
+        if (empty($results)) {
+            return;
+        }
+
+        $documentIds = collect($results)->pluck('id')->toArray();
+        $agentFileIds = collect($results)->pluck('agent_file_id')->unique()->toArray();
+
+        Document::query()
+            ->whereIn('id', $documentIds)
+            ->increment('retrieval_count');
+
+        AgentFile::query()
+            ->whereIn('id', $agentFileIds)
+            ->increment('retrieval_count');
+    }
+
+    /**
+     * Perform intelligent reranking with caching
+     */
+    private function performIntelligentReranking(string $query, array $results): array
+    {
+        $cacheKey = $this->cachePrefix.'rerank:'.md5($query.serialize($results));
+
+        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($query, $results) {
+            try {
+                $chunks = collect($results)->pluck('chunk')->toArray();
+                $rerankedDocumentsIds = app(Cohere::class)->rerank($query, $chunks);
+
+                return collect($results)
+                    ->filter(function ($result, $index) use ($rerankedDocumentsIds) {
+                        return in_array($index, $rerankedDocumentsIds, true);
+                    })
+                    ->sortBy(function ($result, $index) use ($rerankedDocumentsIds) {
+                        return array_search($index, $rerankedDocumentsIds, true);
+                    })
+                    ->values()
+                    ->toArray();
+            } catch (\Exception $e) {
+                Log::warning('Reranking failed, using original results', [
+                    'error' => $e->getMessage(),
+                    'query' => $query,
+                ]);
+
+                return $results;
+            }
+        });
+    }
+
+    /**
+     * Process and clean search results
+     */
+    private function processResults(array $results): array
+    {
         return collect($results)
             ->map(function ($result) {
                 $result->chunk = $this->removeXmlTags($result->chunk);
@@ -127,6 +339,26 @@ LIMIT ?
             })
             ->values()
             ->toArray();
+    }
+
+    /**
+     * Calculate optimal candidate limit for initial vector search
+     * Uses configuration with sensible fallbacks
+     */
+    private function getOptimalCandidateLimit(int $requestedLimit): int
+    {
+        // Use a multiplier to get more candidates for better results
+        $multiplier = $this->vectorChordConfig['performance']['candidate_multiplier'] ?? 10;
+        $calculated = $requestedLimit * $multiplier;
+
+        // Apply reasonable limits
+        $maxCandidates = min(
+            $this->vectorChordConfig['performance']['max_candidates'] ?? 5000,
+            $this->candidateLimit,
+            10000 // Absolute maximum to prevent excessive memory usage
+        );
+
+        return min($calculated, $maxCandidates);
     }
 
     private function removeXmlTags(string $text): string
@@ -141,20 +373,65 @@ LIMIT ?
 
         // Clean up extra whitespace that might be left behind
         $text = preg_replace('/\s+/', ' ', $text);
-        $text = trim($text);
 
-        return $text;
+        return trim($text);
     }
 
-    public function chunks(int|\App\Models\Agent $agent, string $query, int $limit = 3): Collection
+    /**
+     * Get optimized chunks using VectorChord search
+     */
+    public function chunks(int|\App\Models\Agent $agent, string $query, int $limit = 3, array $options = []): Collection
     {
         if ($agent instanceof \App\Models\Agent) {
             $agent = $agent->id;
         }
 
-        $results = $this->search($agent, $query, $limit);
+        $results = $this->search($agent, $query, $limit, $options);
 
         return collect($results)->pluck('chunk');
+    }
+
+    /**
+     * Get chunks with metadata and scores for advanced use cases
+     */
+    public function chunksWithMetadata(int|\App\Models\Agent $agent, string $query, int $limit = 3, array $options = []): Collection
+    {
+        if ($agent instanceof \App\Models\Agent) {
+            $agent = $agent->id;
+        }
+
+        $results = $this->search($agent, $query, $limit, $options);
+
+        return collect($results)->map(function ($result) {
+            return [
+                'chunk' => $result->chunk,
+                'score' => $result->score ?? null,
+                'search_type' => $result->search_type ?? 'unknown',
+                'agent_file_id' => $result->agent_file_id,
+                'document_id' => $result->id,
+            ];
+        });
+    }
+
+    /**
+     * Batch search for multiple queries (VectorChord optimized)
+     */
+    public function batchSearch(int|\App\Models\Agent $agent, array $queries, int $limit = 3, array $options = []): array
+    {
+        if ($agent instanceof \App\Models\Agent) {
+            $agent = $agent->id;
+        }
+
+        $results = [];
+        $batchSize = $this->vectorChordConfig['performance']['batch']['search_batch_size'] ?? 100;
+
+        foreach (array_chunk($queries, $batchSize) as $queryBatch) {
+            foreach ($queryBatch as $query) {
+                $results[$query] = $this->search($agent, $query, $limit, $options);
+            }
+        }
+
+        return $results;
     }
 
     public function searchInKnowledgeBaseIfNeeded(\App\Models\Agent $agent, string $userMessage)

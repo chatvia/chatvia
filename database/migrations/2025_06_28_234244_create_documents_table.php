@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(AgentFile::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Agent::class)->index()->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(AgentFile::class)->index()->constrained()->cascadeOnDelete();
             $table->enum('type', ['text', 'image', 'table']);
             $table->unsignedInteger('chunk_index');
             $table->text('chunk');
@@ -32,10 +32,47 @@ return new class extends Migration
         });
 
         DB::statement('CREATE INDEX documents_embedding_bm25 ON documents USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);');
+
+        $this->createOptimizedVectorChordIndex();
+
+        // Update table statistics for optimal query planning
+        DB::statement('ANALYZE documents');
     }
 
     public function down(): void
     {
         Schema::dropIfExists('documents');
+    }
+
+    /**
+     * Create optimized VectorChord index using best practices
+     */
+    private function createOptimizedVectorChordIndex(): void
+    {
+        // Use safe defaults for migration - don't rely on application state
+        $residualQuantization = 'true';
+        $sphericalCentroids = 'false';
+        $buildThreads = min(8, (int) shell_exec('nproc 2>/dev/null') ?: 4);
+
+        // Use a reasonable default for initial index creation
+        // This can be optimized later using the optimization commands
+        $lists = 1000;
+
+        // Build the optimized index configuration
+        $indexOptions = <<<EOT
+residual_quantization = {$residualQuantization}
+[build.internal]
+lists = [{$lists}]
+build_threads = {$buildThreads}
+spherical_centroids = {$sphericalCentroids}
+EOT;
+
+        // Create the index with optimized configuration
+        DB::statement("
+CREATE INDEX documents_embedding_vchordrq_optimized
+ON documents
+USING vchordrq (embedding vector_l2_ops)
+WITH (options = '{$indexOptions}');
+        ");
     }
 };

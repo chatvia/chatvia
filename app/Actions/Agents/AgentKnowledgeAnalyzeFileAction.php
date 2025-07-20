@@ -39,6 +39,8 @@ class AgentKnowledgeAnalyzeFileAction
             $info->pages *= 3;
         }
 
+        $user->with('quote');
+
         abort_if(
             boolean: $info->pages > $user->remaining_pages,
             code: 422,

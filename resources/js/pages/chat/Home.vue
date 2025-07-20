@@ -15,9 +15,7 @@ const isLoadingAppearance = ref(true);
 
 // Add reactive ref for appearance
 const appearance = ref({
-    primary_color: null,
-    chat_bubble_color: null,
-    chat_text_color: null,
+    color_theme: 'black',
     welcome_message: null,
     chat_window_title: null,
     chat_footer_text: null,
@@ -30,8 +28,14 @@ const fetchAppearance = async () => {
         const response = await axios.get(route('chat.appearance'));
         appearance.value = response.data;
 
-
-        // Not applying dynamic colors - using default colors from app.css
+        // Apply color theme if available
+        if (appearance.value.color_theme) {
+            const theme = appearance.value.color_theme;
+            const shade = appearance.value.color_shade || 500;
+            document.documentElement.style.setProperty('--primary', `var(--${theme}-${shade})`);
+            document.documentElement.style.setProperty('--chat-bubble-color', `var(--${theme}-chat-bubble)`);
+            document.documentElement.style.setProperty('--chat-text-color', `var(--${theme}-chat-text)`);
+        }
     } catch (error) {
         console.error('Failed to fetch appearance:', error);
     } finally {

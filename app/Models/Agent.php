@@ -99,7 +99,7 @@ class Agent extends Model
 
     public function stats(): Stats
     {
-        return app(Stats::class)->setAgent($this->id);
+        return app(Stats::class)->setAgent($this);
     }
 
     public function llmSettings(): array
@@ -154,5 +154,10 @@ class Agent extends Model
     public function chatUrl(): Attribute
     {
         return Attribute::get(fn () => $this->url.'/chat');
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
     }
 }

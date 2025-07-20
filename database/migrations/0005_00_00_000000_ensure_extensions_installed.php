@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -11,17 +9,14 @@ return new class extends Migration
         $this->checkRequiredExtensions();
     }
 
-    public function down(): void
-    {
-
-    }
+    public function down(): void {}
 
     private function listInstalledExtensions(): array
     {
-        $extensions = DB::select("
+        $extensions = DB::select('
         SELECT extname
         FROM pg_extension
-    ");
+    ');
 
         return collect($extensions)->pluck('extname')->toArray();
     }
@@ -44,7 +39,7 @@ return new class extends Migration
         $missing = array_diff($required, $installed);
 
         if (count($missing) !== 0) {
-            throw new Exception('Missing required PostgreSQL extensions: '. implode(', ', $missing));
+            throw new Exception('Missing required PostgreSQL extensions: '.implode(', ', $missing));
         }
     }
 };

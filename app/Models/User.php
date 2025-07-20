@@ -125,9 +125,9 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->subscription()?->cancel();
     }
 
-    public function quote(): HasOne
+    public function quota(): HasOne
     {
-        return $this->hasOne(UserQuote::class);
+        return $this->hasOne(UserQuota::class);
     }
 
     public function remainingPages(): Attribute
@@ -160,5 +160,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function members(): HasMany
     {
         return $this->hasMany(Member::class);
+    }
+
+    public function agentFiles(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(
+            AgentFile::class,    // Final model we want
+            Agent::class,        // Intermediate model
+            'user_id',          // Foreign key on agents table (agents.user_id)
+            'agent_id',        // Foreign key on agent_files table (agent_files.agent_id)
+            'id',               // Local key on users table (users.id)
+            'id'          // Local key on agents table (agents.id)
+        );
     }
 }

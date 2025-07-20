@@ -34,6 +34,13 @@ return new class extends Migration
             $table->index(['conversation_id', 'created_at']);
             $table->index(['agent_id', 'created_at']);
         });
+
+        // PostgreSQL-specific date indexes for optimal performance
+        DB::statement('CREATE INDEX messages_created_at_date_idx ON messages USING btree (date(created_at))');
+        DB::statement('CREATE INDEX messages_created_at_year_month_idx ON messages USING btree (extract(year from created_at), extract(month from created_at))');
+        DB::statement('CREATE INDEX messages_agent_created_date_idx ON messages USING btree (agent_id, date(created_at))');
+        DB::statement('CREATE INDEX messages_role_created_date_idx ON messages USING btree (role, date(created_at))');
+
     }
 
     public function down(): void

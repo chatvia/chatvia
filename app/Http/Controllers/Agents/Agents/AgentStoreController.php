@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Agents;
+namespace App\Http\Controllers\Agents\Agents;
 
 use App\Http\Requests\Agents\CreateAgentRequest;
 use App\Models\Agent;

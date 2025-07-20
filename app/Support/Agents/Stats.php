@@ -3,17 +3,18 @@
 namespace App\Support\Agents;
 
 use App\Data\Agent\StatsData;
+use App\Models\Agent;
 use App\Models\AgentFile;
 use App\Models\Message;
 use App\Support\Llms;
 
 class Stats
 {
-    public int $agentId;
+    public Agent $agent;
 
-    public function setAgent($agentId): static
+    public function setAgent(Agent $agent): static
     {
-        $this->agentId = $agentId;
+        $this->agent = $agent;
 
         return $this;
     }
@@ -21,20 +22,20 @@ class Stats
     public function getTotalMessages(): int
     {
         return Message::query()
-            ->where('agent_id', $this->agentId)
+            ->where('agent_id', $this->agent->id)
             ->where('role', 'assistant')
             ->count();
     }
 
     public function getTotalMembers(): int
     {
-        return 0;
+        return $this->agent->members()->count();
     }
 
     public function averageResponseTime()
     {
         return Message::query()
-            ->where('agent_id', $this->agentId)
+            ->where('agent_id', $this->agent->id)
             ->where('role', 'assistant')
             ->selectRaw('ROUND(AVG(response_time_ms) / 1000, 1) as avg_response_time')
             ->value('avg_response_time');
@@ -43,7 +44,7 @@ class Stats
     public function satisfactionRate()
     {
         $result = Message::query()
-            ->where('agent_id', $this->agentId)
+            ->where('agent_id', $this->agent->id)
             ->where('role', 'assistant')
             ->whereNotNull('feedback')
             ->selectRaw('
@@ -63,10 +64,10 @@ class Stats
         return $result->satisfaction_rate ?? 0;
     }
 
-    public function getMessagesLastWeek()
+    public function getMessagesLastWeek(): int
     {
         return Message::query()
-            ->where('agent_id', $this->agentId)
+            ->where('agent_id', $this->agent->id)
             ->where('role', 'assistant')
             ->where('created_at', '>=', now()->subWeek())
             ->count();
@@ -75,7 +76,7 @@ class Stats
     public function getMostUsedModels()
     {
         return Message::query()
-            ->where('agent_id', $this->agentId)
+            ->where('agent_id', $this->agent->id)
             ->where('role', 'assistant')
             ->whereNotNull('model')
             ->selectRaw('
@@ -91,7 +92,7 @@ class Stats
                 ),
                 1
             ) as percentage
-        ', [$this->agentId, 'assistant'])
+        ', [$this->agent->id, 'assistant'])
             ->groupBy('model')
             ->orderByDesc('usage_count')
             ->get()
@@ -127,7 +128,7 @@ class Stats
         $startDate = now()->subDays($days)->startOfDay();
 
         return Message::query()
-            ->where('agent_id', $this->agentId)
+            ->where('agent_id', $this->agent->id)
             ->where('role', 'assistant')
             ->where('created_at', '>=', $startDate)
             ->selectRaw('DATE(created_at) as date, COUNT(*) as messages')
@@ -146,7 +147,7 @@ class Stats
     {
         return AgentFile::query()
             ->select(['name', 'agent_id', 'retrieval_count', 'mime_type'])
-            ->where('agent_id', $this->agentId)
+            ->where('agent_id', $this->agent->id)
             ->where('retrieval_count', '>', 0)
             ->orderByDesc('retrieval_count')
             ->limit($limit)

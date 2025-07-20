@@ -25,7 +25,7 @@ const props = defineProps({
     },
 });
 
-const loadingMessages = ref(false);
+const loadingMessages = ref(true);
 const messages = ref([]);
 const defaultModelId = ref();
 const isSidebarOpen = ref(false);
@@ -507,17 +507,15 @@ const handleScrollToBottomClick = () => {
                     ref="messagesContainer"
                     :class="['flex-1 overflow-y-auto overflow-x-hidden', { 'flex flex-col justify-between': messages.length === 0 }]"
                 >
-                    <!-- Loading skeleton -->
-                    <div v-if="loadingMessages" class="mx-auto max-w-3xl px-4 sm:px-8 py-6">
-                        <div v-for="i in 3" :key="i" class="mb-6 animate-pulse">
-                            <div class="flex gap-3" :class="i % 2 === 0 ? 'justify-end' : ''">
-                                <div v-if="i % 2 !== 0" class="h-8 w-8 rounded-full bg-muted"></div>
-                                <div class="max-w-[70%] space-y-2">
-                                    <div class="h-4 bg-muted rounded w-3/4"></div>
-                                    <div class="h-4 bg-muted rounded w-full"></div>
-                                    <div class="h-4 bg-muted rounded w-2/3"></div>
+                    <!-- Loading popup -->
+                    <div v-if="loadingMessages" class="flex items-center justify-center h-full">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 max-w-sm mx-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">Loading messages...</h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Please wait while we fetch your conversation</p>
                                 </div>
-                                <div v-if="i % 2 === 0" class="h-8 w-8 rounded-full bg-muted"></div>
                             </div>
                         </div>
                     </div>
@@ -545,7 +543,7 @@ const handleScrollToBottomClick = () => {
                                  message.role === 'assistant' ? '' : ''
                              ]">
                             <div :class="[
-                                'mx-auto px-4 sm:px-8',
+                                'mx-auto px-4 sm:px-8 transition-all duration-300 ease-in-out',
                                 isChatExpanded ? 'max-w-6xl' : 'max-w-3xl',
                                 index === 0 ? 'pt-6' : '',
                                 index > 0 && messages[index - 1].role !== message.role ? 'pt-6' : 'pt-3',
@@ -917,7 +915,10 @@ const handleScrollToBottomClick = () => {
     }
 }
 
-/* Animations removed */
+/* Message container expansion animation */
+.mx-auto.px-4.sm\\:px-8 {
+    transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 .chat-expanded-content {
     max-width: 100% !important;

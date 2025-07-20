@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Palette, Upload, Trash2, LoaderCircle, Save, User, RotateCcw } from 'lucide-vue-next';
 import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
 
@@ -21,9 +22,8 @@ const props = defineProps<Props>();
 
 // Form for appearance settings
 const appearanceForm = useForm({
-    primary_color: props.settings.primary_color,
-    chat_bubble_color: props.settings.chat_bubble_color,
-    chat_text_color: props.settings.chat_text_color,
+    color_theme: props.settings.color_theme || 'black',
+    color_shade: props.settings.color_shade || 500,
     welcome_message: props.settings.welcome_message,
     chat_window_title: props.settings.chat_window_title,
     chat_footer_text: props.settings.chat_footer_text,
@@ -33,6 +33,7 @@ const appearanceForm = useForm({
 // States
 const isSubmitting = ref(false);
 const showSuccessMessage = ref(false);
+const showColorPicker = ref(false);
 const avatarPreview = ref<string | null>(props.settings.avatar || null);
 const avatarInputRef = ref<HTMLInputElement | null>(null);
 
@@ -106,9 +107,8 @@ const removeAvatar = () => {
 
 const restoreDefaults = () => {
     // Reset all form fields to default values
-    appearanceForm.primary_color = props.default_settings.primary_color;
-    appearanceForm.chat_bubble_color = props.default_settings.chat_bubble_color;
-    appearanceForm.chat_text_color = props.default_settings.chat_text_color;
+    appearanceForm.color_theme = props.default_settings.color_theme || 'blue';
+    appearanceForm.color_shade = props.default_settings.color_shade || 500;
     appearanceForm.welcome_message = props.default_settings.welcome_message;
     appearanceForm.chat_window_title = props.default_settings.chat_window_title;
     appearanceForm.chat_footer_text = props.default_settings.chat_footer_text;
@@ -137,64 +137,54 @@ const restoreDefaults = () => {
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="grid gap-2">
-                                <Label for="primary_color">Primary Color</Label>
-                                <div class="flex items-center gap-2">
-                                    <color-picker 
-                                        v-model:pureColor="appearanceForm.primary_color"
-                                        format="hex"
-                                        shape="circle"
-                                        :pickerType="['chrome']"
-                                        useType="pure"
-                                    />
+                        <div class="grid gap-2">
+                            <Label for="color_theme">Color Theme</Label>
+                            <div class="flex items-center gap-3">
+                                <!-- Selected Color Preview -->
+                                <div class="relative cursor-pointer" @click="showColorPicker = true">
+                                    <div
+                                        class="h-12 w-12 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                                        :style="{
+                                            backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
+                                        }"
+                                    >
+                                        <div class="flex h-full items-center justify-center">
+                                            <div class="h-6 w-6 rounded-full bg-white/90 shadow-sm flex items-center justify-center">
+                                                <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p v-if="appearanceForm.errors.primary_color" class="text-sm text-destructive">
-                                    {{ appearanceForm.errors.primary_color }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    Used for buttons and accents
-                                </p>
-                            </div>
-
-                            <div class="grid gap-2">
-                                <Label for="chat_bubble_color">Chat Bubble Color</Label>
-                                <div class="flex items-center gap-2">
-                                    <color-picker 
-                                        v-model:pureColor="appearanceForm.chat_bubble_color"
-                                        format="hex"
-                                        shape="circle"
-                                        :pickerType="['chrome']"
-                                        useType="pure"
-                                    />
+                                
+                                <!-- Color Info and Button -->
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <p class="text-sm font-medium capitalize">{{ appearanceForm.color_theme }}</p>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="showColorPicker = true"
+                                            class="h-7 px-3 text-xs"
+                                        >
+                                            Choose Color Theme
+                                        </Button>
+                                    </div>
+                                    <p class="text-xs text-muted-foreground">
+                                        Current theme: {{ appearanceForm.color_theme.charAt(0).toUpperCase() + appearanceForm.color_theme.slice(1) }}
+                                    </p>
                                 </div>
-                                <p v-if="appearanceForm.errors.chat_bubble_color" class="text-sm text-destructive">
-                                    {{ appearanceForm.errors.chat_bubble_color }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    Background color of chat bubbles
-                                </p>
                             </div>
-
-                            <div class="grid gap-2">
-                                <Label for="chat_text_color">Chat Text Color</Label>
-                                <div class="flex items-center gap-2">
-                                    <color-picker 
-                                        v-model:pureColor="appearanceForm.chat_text_color"
-                                        format="hex"
-                                        shape="circle"
-                                        :pickerType="['chrome']"
-                                        useType="pure"
-                                    />
-                                </div>
-                                <p v-if="appearanceForm.errors.chat_text_color" class="text-sm text-destructive">
-                                    {{ appearanceForm.errors.chat_text_color }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    Text color in chat bubbles
-                                </p>
-                            </div>
+                            
+                            <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
+                                {{ appearanceForm.errors.color_theme }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Choose a color theme for your agent.
+                            </p>
                         </div>
+
+
 
                         <div class="grid gap-2">
                             <Label for="avatar">Agent Avatar</Label>
@@ -325,5 +315,102 @@ const restoreDefaults = () => {
                 </div>
             </div>
         </form>
+
+        <!-- Color Picker Dialog -->
+        <Dialog :open="showColorPicker" @update:open="showColorPicker = false">
+            <DialogContent class="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Select Color Theme</DialogTitle>
+                    <DialogDescription>
+                        Choose from 23 carefully crafted color themes. Each theme is optimized for both light and dark modes.
+                    </DialogDescription>
+                </DialogHeader>
+                
+                <div class="grid grid-cols-8 gap-2">
+                    <div
+                        v-for="theme in ['black', 'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose', 'slate', 'gray', 'zinc', 'neutral', 'stone']"
+                        :key="theme"
+                        class="relative cursor-pointer group"
+                        @click="appearanceForm.color_theme = theme"
+                    >
+                        <div
+                            class="h-12 w-full rounded-lg border-2 transition-all duration-200 shadow-sm"
+                            :class="{
+                                'border-primary ring-2 ring-primary/20': appearanceForm.color_theme === theme,
+                                'border-border hover:border-primary/50 hover:shadow-md': appearanceForm.color_theme !== theme
+                            }"
+                            :style="{
+                                background: `linear-gradient(135deg, var(--${theme}-primary), var(--${theme}-accent))`
+                            }"
+                        >
+                            <div class="flex h-full items-center justify-center">
+                                <div
+                                    v-if="appearanceForm.color_theme === theme"
+                                    class="h-6 w-6 rounded-full bg-white shadow-lg flex items-center justify-center transform scale-100 transition-transform duration-200"
+                                >
+                                    <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-primary)` }"></div>
+                                </div>
+                                <div
+                                    v-else
+                                    class="h-6 w-6 rounded-full bg-white/80 shadow-sm flex items-center justify-center transform scale-75 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200"
+                                >
+                                    <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-primary)` }"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-center text-xs font-medium capitalize transition-colors duration-200" :class="{
+                            'text-primary': appearanceForm.color_theme === theme,
+                            'text-muted-foreground': appearanceForm.color_theme !== theme
+                        }">{{ theme }}</p>
+                    </div>
+                </div>
+
+                <!-- Color Shade Slider -->
+                <div class="mt-6 pt-6 border-t">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <Label class="text-sm font-medium">Adjust Shade</Label>
+                            <span class="text-xs text-muted-foreground">Light to Dark</span>
+                        </div>
+                        <div class="relative">
+                            <input
+                                type="range"
+                                min="50"
+                                max="950"
+                                step="50"
+                                v-model="appearanceForm.color_shade"
+                                class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                                :style="{
+                                    background: `linear-gradient(to right, var(--${appearanceForm.color_theme}-50), var(--${appearanceForm.color_theme}-950))`
+                                }"
+                                @input="(e: Event) => {
+                                    const target = e.target as HTMLInputElement;
+                                    const value = parseInt(target.value);
+                                    const validShades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+                                    const closest = validShades.reduce((prev, curr) => 
+                                        Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+                                    );
+                                    appearanceForm.color_shade = closest;
+                                }"
+                            />
+                        </div>
+                        <div class="flex justify-between text-xs text-muted-foreground">
+                            <span>Light</span>
+                            <span>Medium</span>
+                            <span>Dark</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <DialogFooter>
+                    <Button variant="outline" @click="showColorPicker = false">
+                        Cancel
+                    </Button>
+                    <Button @click="showColorPicker = false">
+                        Apply
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AgentLayout>
 </template>

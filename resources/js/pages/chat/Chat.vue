@@ -100,16 +100,7 @@ const fetchAppearance = async () => {
         const response = await axios.get(route('chat.appearance'));
         appearance.value = response.data;
 
-        // Apply CSS custom properties for colors if they exist
-        if (appearance.value.primary_color) {
-            document.documentElement.style.setProperty('--primary', appearance.value.primary_color);
-        }
-        if (appearance.value.chat_bubble_color) {
-            document.documentElement.style.setProperty('--chat-bubble-color', appearance.value.chat_bubble_color);
-        }
-        if (appearance.value.chat_text_color) {
-            document.documentElement.style.setProperty('--chat-text-color', appearance.value.chat_text_color);
-        }
+        // Not applying dynamic colors - using default colors from app.css
     } catch (error) {
         console.error('Failed to fetch appearance:', error);
     }

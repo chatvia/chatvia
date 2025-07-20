@@ -29,17 +29,9 @@ const fetchAppearance = async () => {
     try {
         const response = await axios.get(route('chat.appearance'));
         appearance.value = response.data;
-        
-        // Apply CSS custom properties for colors if they exist
-        if (appearance.value.primary_color) {
-            document.documentElement.style.setProperty('--primary', appearance.value.primary_color);
-        }
-        if (appearance.value.chat_bubble_color) {
-            document.documentElement.style.setProperty('--chat-bubble-color', appearance.value.chat_bubble_color);
-        }
-        if (appearance.value.chat_text_color) {
-            document.documentElement.style.setProperty('--chat-text-color', appearance.value.chat_text_color);
-        }
+
+
+        // Not applying dynamic colors - using default colors from app.css
     } catch (error) {
         console.error('Failed to fetch appearance:', error);
     } finally {
@@ -55,6 +47,7 @@ onMounted(() => {
         }),
         fetchAppearance()
     ]);
+
 })
 
 function updateSelectedModel(newModel) {
@@ -83,7 +76,7 @@ function handleStarterClick(starter) {
                   <div v-if="isLoadingAppearance" class="mb-8 text-center">
                       <div class="h-12 bg-muted rounded-lg w-96 mx-auto animate-pulse"></div>
                   </div>
-                  
+
                   <!-- Dynamic welcome message -->
                   <h1 v-else class="mb-8 text-center text-4xl font-medium text-gray-800 dark:text-white">
                       {{ appearance.welcome_message }}
@@ -119,12 +112,12 @@ function handleStarterClick(starter) {
                           @modelSelected="updateSelectedModel"
                           @messageAdded="createNewConversation"
                       />
-                      
+
                       <!-- Loading skeleton for footer -->
                       <div v-if="isLoadingAppearance" class="text-center mt-4">
                           <div class="h-4 bg-muted rounded w-80 mx-auto animate-pulse"></div>
                       </div>
-                      
+
                       <!-- Dynamic footer text -->
                       <div v-else-if="appearance.chat_footer_text" class="text-center mt-4">
                           <p class="text-xs text-muted-foreground">

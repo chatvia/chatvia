@@ -20,11 +20,11 @@ return new class extends Migration
             $table->string('pm_last_four', 4)->after('pm_type')->nullable();
             $table->timestamp('trial_ends_at')->after('pm_last_four')->nullable();
 
-            $table->string('facebook_id')->nullable();
-            $table->string('google_id')->nullable();
+            $table->string('facebook_id')->index()->nullable();
+            $table->string('google_id')->index()->nullable();
 
             $table->ipAddress('registered_ip')->nullable();
-            $table->char('country_code', 2)->nullable();
+            $table->char('country_code', 5)->nullable();
 
             $table->timestamps();
         });

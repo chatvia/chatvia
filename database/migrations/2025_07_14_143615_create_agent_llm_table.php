@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('agent_llm', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Agent::class)->index()->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Llm::class)->constrained()->cascadeOnDelete();
 
             // Additional fields for better management

@@ -80,7 +80,12 @@ class ChatStreamController
             ->setConversationId($conversationId)
             ->setAgent($agent);
 
-        $this->payload = ChatInputPayload::fromRequest($request);
+        $this->payload = ChatInputPayload::from([
+            'model' => $request->input('model'),
+            'message' => $request->input('message'),
+            'updated_message_info' => $request->input('updated_message_info', []),
+            'message_for_llm' => $this->knowledgeBase->searchInKnowledgeBaseIfNeeded($agent, $request['message']),
+        ]);
 
         $this->llmMessages = $this->memory->getLlmMessages();
 

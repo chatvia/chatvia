@@ -7,7 +7,6 @@ use App\Http\Controllers\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\AgentsController;
 use App\Http\Controllers\Agents\AgentsIndexController;
 use App\Http\Controllers\Agents\AgentStoreController;
-use App\Http\Controllers\Agents\AgentTestingController;
 use App\Http\Controllers\Agents\AgentUpdateActivityController;
 use App\Http\Controllers\Agents\Appearance\AgentAppearanceController;
 use App\Http\Controllers\Agents\Files\AgentKnowledgeController;

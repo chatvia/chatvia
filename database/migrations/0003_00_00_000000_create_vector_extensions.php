@@ -7,7 +7,7 @@ return new class extends Migration
 {
     public function up()
     {
-        rescue(fn() => DB::statement('SET search_path = public, bm25_catalog, tokenizer_catalog'));
+        rescue(fn () => DB::statement('SET search_path = public, bm25_catalog, tokenizer_catalog'));
 
         DB::statement('CREATE EXTENSION IF NOT EXISTS vector');
         DB::statement('CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE');

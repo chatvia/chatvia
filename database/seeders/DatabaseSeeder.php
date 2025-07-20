@@ -18,11 +18,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $user->quote()->create([
+        $user->quota()->create([
             'pages_limit' => 1000,
-            'pages_used' => 0,
             'messages_limit' => 1000,
-            'messages_used' => 0,
         ]);
 
         User::factory()->create([

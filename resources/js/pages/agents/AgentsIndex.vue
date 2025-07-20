@@ -42,7 +42,7 @@ const searchQuery = ref('');
 
 onMounted(async () => {
     try {
-        const response = await axios.get(route('agents.index'));
+        const response = await axios.get(route('agents.list'));
         agents.value = response.data;
     } catch (error) {
         console.error('Failed to fetch agents:', error);
@@ -172,8 +172,8 @@ const getAgentTypeBadgeClass = (type: string) => {
                                 <span class="text-lg font-medium">{{ agent.total_messages || 0 }}</span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-muted-foreground">Users</span>
-                                <span class="text-lg font-medium">{{ agent.unique_users || 0 }}</span>
+                                <span class="text-muted-foreground">Members</span>
+                                <span class="text-lg font-medium">{{ agent.total_members || 0 }}</span>
                             </div>
                             <div class="flex flex-col col-span-2">
                                 <span class="text-muted-foreground">Created</span>

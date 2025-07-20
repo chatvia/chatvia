@@ -13,13 +13,13 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->string('sub_domain');
+            $table->string('sub_domain')->unique();
             $table->string('domain')->nullable();
-            $table->string('default_model')->default('gpt-4o-mini');
             $table->text('system_instructions');
             $table->boolean('is_public')->default(false);
             $table->boolean('is_active')->default(true);
             $table->enum('type', ['knowledge', 'instruction']);
+            $table->unsignedInteger('messages_used_all_time')->default(0);
             $table->timestamps();
         });
     }

@@ -28,7 +28,7 @@ class KnowledgeBase
         $this->vectorChordConfig = config('vector', []);
     }
 
-    public function search(int|\App\Models\Agent $agent, string $query, int $limit = 3): array
+    public function search(int|\App\Models\Agent $agent, string $query, int $limit = 3, array $options = []): array
     {
         if ($agent instanceof \App\Models\Agent) {
             $agent = $agent->id;
@@ -41,11 +41,12 @@ class KnowledgeBase
         $accuracyLevel = $options['accuracy'] ?? 'default';
         $useHybrid = $options['hybrid'] ?? true;
         $enableReranking = $options['rerank'] ?? true;
+        $quantize = $options['quantize'] ?? false;
 
         $this->configureSearchParameters($accuracyLevel);
 
         // Use VectorChord optimized hybrid search
-        $results = $this->hybridSearch($agent, $query, $vectorString, $limit, $useHybrid);
+        $results = $this->hybridSearch($agent, $query, $vectorString, $limit, $quantize);
 
         if ($results) {
             $this->updateRetrievalStats($results);
@@ -63,23 +64,27 @@ class KnowledgeBase
     /**
      * Perform VectorChord optimized hybrid search
      */
-    private function hybridSearch(int $agentId, string $query, string $vectorString, int $limit): array
+    private function hybridSearch(int $agentId, string $query, string $vectorString, int $limit, bool $quantize = true): array
     {
         try {
+            $distanceOperator = $quantize
+                ? 'binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536) as binary_distance'
+                : 'embedding <-> ?::vector(1536) as vector_distance';
+
             $sql = "
 WITH vectorchord_candidates AS (
     SELECT id, chunk, embedding, agent_file_id,
-           embedding <-> ?::vector(1536) as vector_distance
+           {$distanceOperator}
     FROM documents
     WHERE agent_id = ?
-    ORDER BY embedding <-> ?::vector(1536)
+    ORDER BY ".($quantize ? 'binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536)' : 'embedding <-> ?::vector(1536)').'
     LIMIT ?
 ),
 vector_ranked AS (
-    SELECT id, chunk, agent_file_id, vector_distance,
+    SELECT id, chunk, agent_file_id, '.($quantize ? 'binary_distance' : 'vector_distance').",
            'vector' as search_type
     FROM vectorchord_candidates
-    ORDER BY vector_distance
+    ORDER BY ".($quantize ? 'binary_distance' : 'vector_distance')."
     LIMIT ?
 ),
 bm25_ranked AS (
@@ -92,7 +97,7 @@ bm25_ranked AS (
     LIMIT ?
 ),
 combined_results AS (
-    SELECT id, chunk, agent_file_id, vector_distance as score, search_type FROM vector_ranked
+    SELECT id, chunk, agent_file_id, ".($quantize ? 'binary_distance' : 'vector_distance').' as score, search_type FROM vector_ranked
     UNION ALL
     SELECT id, chunk, agent_file_id, bm25_rank as score, search_type FROM bm25_ranked
 )
@@ -100,7 +105,7 @@ SELECT DISTINCT ON (id) id, chunk, agent_file_id, search_type, score
 FROM combined_results
 ORDER BY id, score
 LIMIT ?
-";
+';
 
             return DB::select($sql, [
                 $vectorString,

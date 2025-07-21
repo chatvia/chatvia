@@ -60,7 +60,7 @@ const toggleConfirmPasswordVisibility = () => {
 
             <!-- Password Form -->
             <form @submit.prevent="submit" class="space-y-6">
-                
+
                 <div class="space-y-2">
                     <Label for="email" class="text-base font-medium">Email Address</Label>
                     <div class="relative">
@@ -188,4 +188,4 @@ const toggleConfirmPasswordVisibility = () => {
             </div>
         </div>
     </AuthBase>
-</template> 
+</template>

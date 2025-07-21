@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Agents\Team;
 
-use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\Member;
 use Inertia\Inertia;
 
-class AgentMembersInvitationCreateAccountController extends Controller
+class AgentMembersInvitationCreateAccountController
 {
     public function __invoke(Agent $agent, string $token)
     {
+
         /** @var Member $member */
         $member = Member::query()
             ->select(['verification_token', 'name', 'email'])
@@ -19,8 +19,8 @@ class AgentMembersInvitationCreateAccountController extends Controller
 
         return Inertia::render('agents/MemberPassword', [
             'agent' => $agent->id,
-            'token' => $token,
             'member' => $member->toArray(),
+            'token' => $token,
         ]);
     }
 }

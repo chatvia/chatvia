@@ -39,7 +39,37 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
-  --color-border: var(--border);
+  /* Dynamically set border color based on color_theme */
+  --color-border: var(--border); /* fallback */
+  /*
+    The following line will be dynamically set by JS depending on color_theme, e.g.:
+    document.documentElement.style.setProperty('--color-border', `var(--${theme}-border)`);
+    You can define border variables for each color below.
+  */
+  /* Example border variables for each color (add more as needed): */
+  --black-border: var(--black-200);
+  --red-border: var(--red-200);
+  --orange-border: var(--orange-200);
+  --amber-border: var(--amber-200);
+  --yellow-border: var(--yellow-200);
+  --lime-border: var(--lime-200);
+  --green-border: var(--green-200);
+  --emerald-border: var(--emerald-200);
+  --teal-border: var(--teal-200);
+  --cyan-border: var(--cyan-200);
+  --sky-border: var(--sky-200);
+  --blue-border: var(--blue-200);
+  --indigo-border: var(--indigo-200);
+  --violet-border: var(--violet-200);
+  --purple-border: var(--purple-200);
+  --fuchsia-border: var(--fuchsia-200);
+  --pink-border: var(--pink-200);
+  --rose-border: var(--rose-200);
+  --slate-border: var(--slate-200);
+  --gray-border: var(--gray-200);
+  --zinc-border: var(--zinc-200);
+  --neutral-border: var(--neutral-200);
+  --stone-border: var(--stone-200);
   --color-input: var(--input);
   --color-ring: var(--ring);
 

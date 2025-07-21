@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,9 @@ import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Mail, Lock, Users } from 'lucide-vue-next';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
+import {onMounted, ref} from "vue";
+import axios from "axios";
+import { useFetchAppearance } from '@/composables/useAppearance';
 
 defineProps<{
     status?: string;
@@ -22,11 +24,17 @@ const form = useForm({
     remember: false,
 });
 
+const { appearance, fetchAppearance } = useFetchAppearance();
+
 const submit = () => {
     form.post(route('chat.login'), {
         onFinish: () => form.reset('password'),
     });
 };
+
+onMounted(() => {
+    fetchAppearance();
+});
 </script>
 
 <template>

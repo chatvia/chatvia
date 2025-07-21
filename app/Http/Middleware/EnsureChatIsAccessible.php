@@ -25,8 +25,14 @@ class EnsureChatIsAccessible
             return Inertia::render('agents/chat/AgentNotFound');
         }
 
+        $allowedRoutesWithoutAuth = [
+            'chat.appearance',
+        ];
+
+        $currentRouteName = $request->route()?->getName();
+
         if (! $agent->is_public && ! Auth::guard('member')->check()) {
-            if (! str_starts_with($request->route()?->getName(), 'chat.login')) {
+            if (! str_starts_with($currentRouteName, 'chat.login') && !in_array($currentRouteName, $allowedRoutesWithoutAuth, true)) {
                 return to_route('chat.login.show');
             }
         }

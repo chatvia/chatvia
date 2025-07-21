@@ -129,4 +129,4 @@ const getModelDetails = (modelId: string) => {
             </CardContent>
         </Card>
     </div>
-</template> 
+</template>

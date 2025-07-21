@@ -311,7 +311,6 @@ const cancelDelete = () => {
                     <X class="h-6 w-6 fill-current" />
                 </button>
             </div>
-
             <!-- New Chat Button -->
             <div class="p-4">
                 <Button class="w-full justify-start gap-2" variant="default" @click="newConversation">
@@ -484,42 +483,43 @@ const cancelDelete = () => {
                     </AlertDialogContent>
                 </AlertDialog>
 
-                <Separator />
-
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <Avatar class="h-8 w-8">
-                            <AvatarImage :src="page.props.auth?.member?.avatar || ''" />
-                            <AvatarFallback>{{ page.props.auth?.member?.name?.charAt(0) || 'U' }}</AvatarFallback>
-                        </Avatar>
-                        <div class="max-w-[140px] truncate text-sm font-medium">
-                            {{ page.props.auth?.member?.name || 'User' }}
+                <template v-if="$page.props.auth.member">
+                    <Separator/>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <Avatar class="h-8 w-8">
+                                <AvatarImage :src="page.props.auth?.member?.avatar || ''"/>
+                                <AvatarFallback>{{ page.props.auth?.member?.name?.charAt(0) || 'U' }}</AvatarFallback>
+                            </Avatar>
+                            <div class="max-w-[140px] truncate text-sm font-medium">
+                                {{ page.props.auth?.member?.name || 'User' }}
+                            </div>
                         </div>
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button class="h-8 w-8" size="icon" variant="ghost">
-                                <Settings class="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem :href="route('profile.edit')" as="a">
-                                <User class="mr-2 h-4 w-4" />
-                                <span>Profile</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem :href="route('agents.index')" as="a">
-                                <Bot class="mr-2 h-4 w-4" />
-                                <span>My Agents</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button class="h-8 w-8" size="icon" variant="ghost">
+                                    <Settings class="h-4 w-4"/>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem :href="route('profile.edit')" as="a">
+                                    <User class="mr-2 h-4 w-4"/>
+                                    <span>Profile</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem :href="route('agents.index')" as="a">
+                                    <Bot class="mr-2 h-4 w-4"/>
+                                    <span>My Agents</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator/>
 
-                            <DropdownMenuItem @click="handleLogout">
-                                <LogOut class="mr-2 h-4 w-4" />
-                                <span>Log out</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                                <DropdownMenuItem @click="handleLogout">
+                                    <LogOut class="mr-2 h-4 w-4"/>
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </template>
             </div>
         </div>
     </div>

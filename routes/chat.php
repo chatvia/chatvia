@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Chat\Auth\ChatLoginController;
 use App\Http\Controllers\Chat\Auth\ChatLogoutController;
+use App\Http\Controllers\Chat\Auth\ChatMemberAgentsController;
+use App\Http\Controllers\Chat\Auth\ChatMemberSwitchAgentController;
+use App\Http\Controllers\Chat\Auth\ChatProfileUpdateController;
 use App\Http\Controllers\Chat\Auth\ChatShowLoginController;
 use App\Http\Controllers\Chat\ChatAppearanceController;
 use App\Http\Controllers\Chat\ChatController;
@@ -21,11 +24,20 @@ use App\Http\Controllers\Chat\Export\ChatExportController;
 
 Route::get('/chat/appearance', ChatAppearanceController::class)->name('chat.appearance');
 
+Route::middleware('guest.member')->group(function () {
+    Route::get('chat/login', ChatShowLoginController::class)->name('chat.login.show');
+    Route::post('chat/login', ChatLoginController::class)->name('chat.login');
+});
+
 Route::prefix('/chat')
     ->middleware(['chat'])
     ->group(function () {
         Route::get('/', ChatHomeController::class)->name('chat.home');
         Route::get('/models', ChatModelsListController::class)->name('chat.models.index');
+        Route::get('/agents', ChatMemberAgentsController::class)->name('chat.member.agents');
+
+        Route::post('/agents/switch/{agent}', ChatMemberSwitchAgentController::class)->name('chat.member.agents.switch');
+
         Route::post('/stream/{conversationId}', ChatStreamController::class)->name('chat.stream');
         Route::post('/conversations/create', ConversationCreateController::class)->name('conversations.create');
         Route::get('/conversations/{conversationId}/messages', ConversationMessagesController::class)->name('conversations.messages');
@@ -33,11 +45,6 @@ Route::prefix('/chat')
         Route::patch('/conversations/{conversationId}', ConversationUpdate::class)->name('conversations.update');
         Route::delete('/conversations/{conversationId}', ConversationDeleteController::class)->name('conversations.delete');
         Route::delete('/conversations', ChatDeleteAllConversationsController::class)->name('conversations.delete.all');
-
-        Route::middleware('guest.member')->group(function () {
-            Route::get('login', ChatShowLoginController::class)->name('chat.login.show');
-            Route::post('login', ChatLoginController::class)->name('chat.login');
-        });
 
         Route::middleware('auth.member')->group(function () {
             Route::post('logout', ChatLogoutController::class)->name('chat.logout');
@@ -51,6 +58,6 @@ Route::prefix('/chat')
 
         // Should be the last route in the group
         Route::get('/c/{conversationId}', ChatController::class)->name('chat.show');
+
+        Route::patch('/profile', ChatProfileUpdateController::class)->name('chat.profile.update');
     });
-
-

@@ -160,4 +160,11 @@ class Agent extends Model
     {
         return $this->hasMany(Message::class);
     }
+
+    protected function casts(): array
+    {
+        return [
+            'is_public' => 'boolean',
+        ];
+    }
 }

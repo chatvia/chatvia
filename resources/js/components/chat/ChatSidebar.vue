@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import isMobile from 'is-mobile';
-import { Bot, Check, Download, FileText, FileDown, LogOut, MoreVertical, PanelLeft, Pencil, Edit, PlusCircle, Settings, Trash2, User, X } from 'lucide-vue-next';
+import { Bot, Check, Download, FileText, FileDown, LogOut, MoreVertical, PanelLeft, Edit, Settings, Trash2, User, X, Eye, EyeOff, Mail, Lock } from 'lucide-vue-next';
 import { inject, nextTick, onMounted, ref, watch, computed } from 'vue';
 
 import {
@@ -18,13 +18,29 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Separator } from '@/components/ui/separator';    // TODO: Implement agent switching functionality
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import InputError from '@/components/InputError.vue';
 
+interface Conversation {
+    id: string | number;
+    title: string;
+}
+
+interface Agent {
+    id: number;
+    name: string;
+    sub_domain: string;
+    url: string;
+    chat_url: string;
+}
 
 const props = defineProps({
     open: {
@@ -51,15 +67,37 @@ const props = defineProps({
 
 const isMobileDevice = isMobile();
 const page = usePage();
-const conversations = ref([]);
-const chatEventBus = inject('chatEventBus');
+const conversations = ref<Conversation[]>([]);
+const chatEventBus = inject('chatEventBus') as any;
 const emit = defineEmits(['update:open']);
 const isSidebarOpen = ref(props.open);
 const defaultModel = ref(props.defaultModel);
-const editingId = ref(null);
+const editingId = ref<string | number | null>(null);
 const editingTitle = ref('');
 const deleteDialogOpen = ref(false);
-const conversationToDelete = ref(null);
+const conversationToDelete = ref<string | number | null>(null);
+
+// Profile dialog state
+const profileDialogOpen = ref(false);
+const profileForm = useForm({
+    name: '',
+    email: '',
+    current_password: '',
+    password: '',
+    password_confirmation: ''
+});
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
+
+// Agents dialog state
+const agentsDialogOpen = ref(false);
+const selectedAgent = ref<Agent | null>(null);
+const agents = ref<Agent[]>([]);
+const isLoadingAgents = ref(false);
+
+// Agent switching form
+const agentSwitchForm = useForm({});
 
 
 // Watch for prop changes
@@ -160,7 +198,7 @@ const deleteAllConversations = async () => {
     }
 };
 
-const editConversation = (id) => {
+const editConversation = (id: string | number) => {
     const conversation = conversations.value.find((chat) => chat.id === id);
     if (conversation) {
         editingId.value = id;
@@ -168,7 +206,7 @@ const editConversation = (id) => {
 
         // Focus the input field after the DOM updates
         nextTick(() => {
-            const inputElement = document.getElementById(`edit-conversation-${id}`);
+            const inputElement = document.getElementById(`edit-conversation-${id}`) as HTMLInputElement;
             if (inputElement) {
                 inputElement.focus();
                 inputElement.select();
@@ -204,7 +242,7 @@ const cancelEditing = () => {
     editingTitle.value = '';
 };
 
-const handleKeyDown = (event) => {
+const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
         saveEditedConversation();
     } else if (event.key === 'Escape') {
@@ -212,7 +250,7 @@ const handleKeyDown = (event) => {
     }
 };
 
-const exportConversation = async (id, format) => {
+const exportConversation = async (id: string | number, format: string) => {
     try {
         const url = route('conversations.export', {
             conversationId: id,
@@ -225,7 +263,7 @@ const exportConversation = async (id, format) => {
 
 };
 
-const openDeleteDialog = (id) => {
+const openDeleteDialog = (id: string | number) => {
     conversationToDelete.value = id;
     deleteDialogOpen.value = true;
 };
@@ -259,6 +297,118 @@ const deleteConversation = async () => {
 const cancelDelete = () => {
     deleteDialogOpen.value = false;
     conversationToDelete.value = null;
+};
+
+// Profile dialog functions
+const openProfileDialog = () => {
+    const auth = page.props.auth as any;
+    profileForm.name = auth?.member?.name || '';
+    profileForm.email = auth?.member?.email || '';
+    profileForm.current_password = '';
+    profileForm.password = '';
+    profileForm.password_confirmation = '';
+    profileDialogOpen.value = true;
+};
+
+const closeProfileDialog = () => {
+    profileDialogOpen.value = false;
+    showCurrentPassword.value = false;
+    showNewPassword.value = false;
+    showConfirmPassword.value = false;
+};
+
+const saveProfile = () => {
+    profileForm.patch(route('chat.profile.update'), {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            closeProfileDialog();
+            // Clear password fields
+            profileForm.current_password = '';
+            profileForm.password = '';
+            profileForm.password_confirmation = '';
+        },
+        onError: () => {
+            // Inertia will handle validation errors automatically
+        }
+    });
+};
+
+const getCurrentSubdomain = () => {
+    if (typeof window === 'undefined') return null;
+    
+    const hostname = window.location.hostname;
+    const parts = hostname.split('.');
+    
+    // Return the subdomain if it exists (e.g., "translation" from "translation.chatvia.test")
+    return parts.length > 2 ? parts[0] : null;
+};
+
+const loadAgents = async () => {
+    if (isLoadingAgents.value) return;
+    
+    isLoadingAgents.value = true;
+    try {
+        const response = await axios.get(route('chat.member.agents'));
+        agents.value = response.data;
+        
+        // Set the current agent as selected based on subdomain
+        if (!selectedAgent.value && agents.value.length > 0) {
+            const currentSubdomain = getCurrentSubdomain();
+            
+            if (currentSubdomain) {
+                // Find agent matching current subdomain
+                const currentAgent = agents.value.find(agent => agent.sub_domain === currentSubdomain);
+                selectedAgent.value = currentAgent || agents.value[0];
+            } else {
+                // Fallback to first agent if no subdomain
+                selectedAgent.value = agents.value[0];
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load agents:', error);
+    } finally {
+        isLoadingAgents.value = false;
+    }
+};
+
+// Agents dialog functions
+const openAgentsDialog = () => {
+    loadAgents();
+    agentsDialogOpen.value = true;
+};
+
+const closeAgentsDialog = () => {
+    agentsDialogOpen.value = false;
+};
+
+const selectAgent = (agent: Agent) => {
+    selectedAgent.value = agent;
+    // TODO: Implement agent switching functionality
+    console.log('Switching to agent:', agent.name);
+};
+
+const switchToSelectedAgent = () => {
+    if (!selectedAgent.value || agentSwitchForm.processing) return;
+    
+    console.log('Sending switch request for agent:', selectedAgent.value.id);
+    
+    agentSwitchForm.post(route('chat.member.agents.switch', {
+        agent: selectedAgent.value.id
+    }), {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            console.log('Successfully switched to agent:', selectedAgent.value?.name);
+            closeAgentsDialog();
+        },
+        onError: (errors) => {
+            console.error('Failed to switch agent:', errors);
+        },
+        onFinish: () => {
+            console.log('Agent switch request completed');
+        }
+    });
 };
 </script>
 
@@ -483,16 +633,16 @@ const cancelDelete = () => {
                     </AlertDialogContent>
                 </AlertDialog>
 
-                <template v-if="$page.props.auth.member">
+                <template v-if="(page.props.auth as any)?.member">
                     <Separator/>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <Avatar class="h-8 w-8">
-                                <AvatarImage :src="page.props.auth?.member?.avatar || ''"/>
-                                <AvatarFallback>{{ page.props.auth?.member?.name?.charAt(0) || 'U' }}</AvatarFallback>
+                                <AvatarImage :src="(page.props.auth as any)?.member?.avatar || ''"/>
+                                <AvatarFallback>{{ (page.props.auth as any)?.member?.name?.charAt(0) || 'U' }}</AvatarFallback>
                             </Avatar>
                             <div class="max-w-[140px] truncate text-sm font-medium">
-                                {{ page.props.auth?.member?.name || 'User' }}
+                                {{ (page.props.auth as any)?.member?.name || 'User' }}
                             </div>
                         </div>
                         <DropdownMenu>
@@ -502,11 +652,11 @@ const cancelDelete = () => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem :href="route('profile.edit')" as="a">
+                                <DropdownMenuItem @click="openProfileDialog">
                                     <User class="mr-2 h-4 w-4"/>
                                     <span>Profile</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem :href="route('agents.index')" as="a">
+                                <DropdownMenuItem @click="openAgentsDialog">
                                     <Bot class="mr-2 h-4 w-4"/>
                                     <span>My Agents</span>
                                 </DropdownMenuItem>
@@ -544,6 +694,187 @@ const cancelDelete = () => {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
+
+    <!-- Profile Dialog -->
+    <Dialog v-model:open="profileDialogOpen">
+        <DialogContent class="sm:max-w-[600px]">
+            <DialogHeader>
+                <DialogTitle>Profile Settings</DialogTitle>
+                <DialogDescription>
+                    Update your account information and password.
+                </DialogDescription>
+            </DialogHeader>
+            <div class="grid gap-6 py-4">
+                <div class="grid grid-cols-4 items-center gap-4">
+                    <Label for="name" class="text-right">Name</Label>
+                    <div class="col-span-3 space-y-1">
+                        <div class="relative">
+                            <User class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input id="name" v-model="profileForm.name" class="pl-10" placeholder="Enter your name" />
+                        </div>
+                        <InputError :message="profileForm.errors.name" class="text-xs" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-4 items-center gap-4">
+                    <Label for="email" class="text-right">Email</Label>
+                    <div class="col-span-3 relative">
+                        <Mail class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            id="email" 
+                            v-model="profileForm.email" 
+                            type="email" 
+                            class="pl-10 bg-muted cursor-not-allowed" 
+                            placeholder="Enter your email" 
+                            readonly
+                            disabled
+                        />
+                    </div>
+                </div>
+                <Separator />
+                <div class="grid grid-cols-4 items-center gap-4">
+                    <Label for="current-password" class="text-right">Current Password</Label>
+                    <div class="col-span-3 space-y-1">
+                        <div class="relative">
+                            <Lock class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="current-password"
+                                v-model="profileForm.current_password"
+                                :type="showCurrentPassword ? 'text' : 'password'"
+                                class="pl-10 pr-10"
+                                placeholder="Enter current password"
+                            />
+                            <button
+                                type="button"
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                @click="showCurrentPassword = !showCurrentPassword"
+                            >
+                                <Eye v-if="!showCurrentPassword" class="h-4 w-4" />
+                                <EyeOff v-else class="h-4 w-4" />
+                            </button>
+                        </div>
+                        <InputError :message="profileForm.errors.current_password" class="text-xs" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-4 items-center gap-4">
+                    <Label for="new-password" class="text-right">New Password</Label>
+                    <div class="col-span-3 space-y-1">
+                        <div class="relative">
+                            <Lock class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="new-password"
+                                v-model="profileForm.password"
+                                :type="showNewPassword ? 'text' : 'password'"
+                                class="pl-10 pr-10"
+                                placeholder="Enter new password"
+                            />
+                            <button
+                                type="button"
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                @click="showNewPassword = !showNewPassword"
+                            >
+                                <Eye v-if="!showNewPassword" class="h-4 w-4" />
+                                <EyeOff v-else class="h-4 w-4" />
+                            </button>
+                        </div>
+                        <InputError :message="profileForm.errors.password" class="text-xs" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-4 items-center gap-4">
+                    <Label for="confirm-password" class="text-right">Confirm Password</Label>
+                    <div class="col-span-3 space-y-1">
+                        <div class="relative">
+                            <Lock class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="confirm-password"
+                                v-model="profileForm.password_confirmation"
+                                :type="showConfirmPassword ? 'text' : 'password'"
+                                class="pl-10 pr-10"
+                                placeholder="Confirm new password"
+                            />
+                            <button
+                                type="button"
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                @click="showConfirmPassword = !showConfirmPassword"
+                            >
+                                <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
+                                <EyeOff v-else class="h-4 w-4" />
+                            </button>
+                        </div>
+                        <InputError :message="profileForm.errors.password_confirmation" class="text-xs" />
+                    </div>
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" @click="closeProfileDialog">Cancel</Button>
+                <Button @click="saveProfile" :disabled="profileForm.processing">
+                    {{ profileForm.processing ? 'Saving...' : 'Save Changes' }}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
+    <!-- Agents Dialog -->
+    <Dialog v-model:open="agentsDialogOpen">
+        <DialogContent class="sm:max-w-[600px]">
+            <DialogHeader>
+                <DialogTitle>My Agents</DialogTitle>
+                <DialogDescription>
+                    Manage your AI agents and their configurations.
+                </DialogDescription>
+            </DialogHeader>
+            <ScrollArea class="max-h-[400px] py-4">
+                                <div class="space-y-4">
+                    <div v-if="isLoadingAgents" class="text-center py-8">
+                        <svg class="h-6 w-6 mx-auto animate-spin text-muted-foreground mb-4" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+                        </svg>
+                        <p class="text-muted-foreground text-sm">Loading agents...</p>
+                    </div>
+                    <div v-else-if="agents.length === 0" class="text-center py-8">
+                        <Bot class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p class="text-muted-foreground">No agents found.</p>
+                    </div>
+                    <div v-else class="space-y-3">
+                        <div v-for="agent in agents" :key="agent.id" 
+                             :class="[
+                                 'flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-colors',
+                                 selectedAgent?.id === agent.id ? 'border-primary bg-primary/5' : 'hover:bg-accent'
+                             ]"
+                             @click="selectAgent(agent)">
+                            <div class="flex items-center gap-3 flex-1">
+                                <div :class="[
+                                    'w-4 h-4 rounded-full border-2',
+                                    selectedAgent?.id === agent.id 
+                                        ? 'border-primary bg-primary' 
+                                        : 'border-muted-foreground'
+                                ]">
+                                    <div v-if="selectedAgent?.id === agent.id" class="w-2 h-2 bg-white rounded-full m-0.5"></div>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold">{{ agent.name }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ScrollArea>
+                         <DialogFooter class="flex-col sm:flex-row gap-2">
+                                 <Button 
+                    @click="switchToSelectedAgent" 
+                    :disabled="!selectedAgent || agentSwitchForm.processing"
+                    class="w-full sm:w-auto">
+                    <svg v-if="agentSwitchForm.processing" class="h-4 w-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+                    </svg>
+                    <Bot v-else class="h-4 w-4 mr-2" />
+                    {{ agentSwitchForm.processing ? 'Switching...' : `Switch to ${selectedAgent?.name || 'Selected Agent'}` }}
+                </Button>
+                 <Button variant="outline" @click="closeAgentsDialog" class="w-full sm:w-auto">Close</Button>
+             </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </template>
 
 <style scoped>

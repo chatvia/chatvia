@@ -121,3 +121,42 @@ const applyThemeColors = (appearance: AppearanceData) => {
     document.documentElement.style.setProperty('--border', `var(--${theme}-${borderShade})`);
     document.documentElement.style.setProperty('--ring', `var(--${theme}-${shade})`);
 };
+
+/**
+ * Composable for fetching and managing appearance data
+ */
+export function useFetchAppearance() {
+    const appearance = ref<AppearanceData | null>(null);
+    const isLoading = ref(false);
+    const error = ref<string | null>(null);
+
+    const fetchAppearance = async () => {
+        if (isLoading.value) return;
+        
+        isLoading.value = true;
+        error.value = null;
+        
+        try {
+            // You can modify this route based on your API endpoint
+            const response = await axios.get(route('chat.appearance'));
+            appearance.value = response.data;
+            
+            // Apply theme colors if appearance data is available
+            if (appearance.value) {
+                applyThemeColors(appearance.value);
+            }
+        } catch (err: any) {
+            error.value = err.response?.data?.message || 'Failed to fetch appearance data';
+            console.error('Failed to fetch appearance:', err);
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    return {
+        appearance,
+        isLoading,
+        error,
+        fetchAppearance,
+    };
+}

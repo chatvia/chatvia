@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
 
 class AgentMembersInvitationAcceptController
 {
@@ -29,6 +30,6 @@ class AgentMembersInvitationAcceptController
             ]
         );
 
-        return redirect()->to($agent->url);
+        return Inertia::location($agent->chat_url);
     }
 }

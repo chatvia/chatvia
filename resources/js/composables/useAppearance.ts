@@ -1,4 +1,5 @@
 import { onMounted, ref } from 'vue';
+import axios from 'axios';
 
 type Appearance = 'light' | 'dark' | 'system';
 
@@ -90,3 +91,33 @@ export function useAppearance() {
         updateAppearance,
     };
 }
+
+// Add interface for appearance data
+export interface AppearanceData {
+    avatar: string | null;
+    color_theme: string | null;
+    color_shade: number | null;
+    welcome_message: string | null;
+    chat_window_title: string | null;
+    chat_footer_text: string | null;
+}
+
+/**
+ * Apply theme colors based on current appearance data and dark mode state
+ */
+const applyThemeColors = (appearance: AppearanceData) => {
+    if (!appearance.color_theme) return;
+    
+    const theme = appearance.color_theme;
+    const shade = appearance.color_shade || 500;
+    
+    // Check if dark mode is active
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    // In dark mode, use lighter borders for visibility; in light mode, use subtle borders
+    const borderShade = isDarkMode ? '400' : '200';
+    
+    document.documentElement.style.setProperty('--primary', `var(--${theme}-${shade})`);
+    document.documentElement.style.setProperty('--color-border', `var(--${theme}-border)`);
+    document.documentElement.style.setProperty('--border', `var(--${theme}-${borderShade})`);
+    document.documentElement.style.setProperty('--ring', `var(--${theme}-${shade})`);
+};

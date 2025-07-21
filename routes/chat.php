@@ -19,6 +19,8 @@ use App\Http\Controllers\Chat\Conversations\ConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
 use App\Http\Controllers\Chat\Export\ChatExportController;
 
+Route::get('/chat/appearance', ChatAppearanceController::class)->name('chat.appearance');
+
 Route::prefix('/chat')
     ->middleware(['chat'])
     ->group(function () {
@@ -44,10 +46,11 @@ Route::prefix('/chat')
         Route::get('starters', ChatStartersController::class)->name('chat.starters');
         Route::patch('/messages/feedback', ChatMessageFeedbackController::class)->name('chat.messages.feedback');
         Route::delete('/messages', ChatMessageDeleteController::class)->name('chat.messages.delete');
-        Route::get('/appearance', ChatAppearanceController::class)->name('chat.appearance');
 
         Route::get('/conversations/{conversationId}/export', ChatExportController::class)->name('conversations.export');
 
         // Should be the last route in the group
-        Route::get('/{conversationId}', ChatController::class)->name('chat.show');
+        Route::get('/c/{conversationId}', ChatController::class)->name('chat.show');
     });
+
+

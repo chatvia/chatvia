@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateMember;
+use App\Http\Middleware\AuthenticateMemberUsingToken;
 use App\Http\Middleware\ChatHandleInertiaRequests;
 use App\Http\Middleware\EnsureChatIsAccessible;
 use App\Http\Middleware\HandleAppearance;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('chat', [
             ResolveAgentFromSubdomain::class,
             RedirectToAgent::class,
+            AuthenticateMemberUsingToken::class,
             EnsureChatIsAccessible::class,
             ChatHandleInertiaRequests::class,
         ]);

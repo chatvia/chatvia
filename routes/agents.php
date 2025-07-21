@@ -8,6 +8,7 @@ use App\Http\Controllers\Agents\Agents\AgentsIndexController;
 use App\Http\Controllers\Agents\Agents\AgentsListController;
 use App\Http\Controllers\Agents\Agents\AgentStoreController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateActivityController;
+use App\Http\Controllers\Agents\Agents\AgentUpdateController;
 use App\Http\Controllers\Agents\Appearance\AgentAppearanceController;
 use App\Http\Controllers\Agents\Files\AgentKnowledgeController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
@@ -52,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('agents/{agent}')->name('agents.')->group(function () {
         Route::get('stats', AgentStatsController::class)->name('stats');
+        Route::patch('/', AgentUpdateController::class)->name('update');
 
         // Playground routes
         Route::post('playground/conversations/create', AgentPlaygroundConversationCreateController::class)->name('playground.conversations.create');

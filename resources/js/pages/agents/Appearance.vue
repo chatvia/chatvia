@@ -340,7 +340,7 @@ const restoreDefaults = () => {
                                 'border-border hover:border-primary/50 hover:shadow-md': appearanceForm.color_theme !== theme
                             }"
                             :style="{
-                                background: `linear-gradient(135deg, var(--${theme}-primary), var(--${theme}-accent))`
+                                backgroundColor: `var(--${theme}-${appearanceForm.color_shade})`
                             }"
                         >
                             <div class="flex h-full items-center justify-center">
@@ -348,13 +348,13 @@ const restoreDefaults = () => {
                                     v-if="appearanceForm.color_theme === theme"
                                     class="h-6 w-6 rounded-full bg-white shadow-lg flex items-center justify-center transform scale-100 transition-transform duration-200"
                                 >
-                                    <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-primary)` }"></div>
+                                    <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"></div>
                                 </div>
                                 <div
                                     v-else
                                     class="h-6 w-6 rounded-full bg-white/80 shadow-sm flex items-center justify-center transform scale-75 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200"
                                 >
-                                    <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-primary)` }"></div>
+                                    <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"></div>
                                 </div>
                             </div>
                         </div>

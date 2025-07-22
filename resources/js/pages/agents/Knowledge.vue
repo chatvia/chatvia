@@ -21,7 +21,7 @@ const page = usePage();
 
 interface Props {
     agent: any
-    quote: {
+    quota: {
         pages_used: number
         pages_limit: number
     }
@@ -215,7 +215,7 @@ const hasFailedFiles = computed(() => {
 
 // Page quota computed properties
 const pagesRemaining = computed(() => {
-    return props.quote.pages_limit - props.quote.pages_used;
+    return props.quota.pages_limit - props.quota.pages_used;
 });
 
 const totalUploadedPages = computed(() => {
@@ -228,8 +228,8 @@ const wouldExceedQuota = computed(() => {
 });
 
 const quotaUtilization = computed(() => {
-    const used = props.quote.pages_used + totalUploadedPages.value;
-    return Math.min((used / props.quote.pages_limit) * 100, 100);
+    const used = props.quota.pages_used + totalUploadedPages.value;
+    return Math.min((used / props.quota.pages_limit) * 100, 100);
 });
 
 // Selection methods
@@ -373,7 +373,7 @@ const deleteUploadingFile = () => {
     if (!uploadingFileToDelete.value) return;
 
     const fileId = uploadingFileToDelete.value.id;
-    
+
     // Remove from FileUploader
     if (fileUploaderRef.value) {
         fileUploaderRef.value.removeFileById(fileId);
@@ -438,14 +438,14 @@ const confirmClearAllFiles = () => {
 
 const deleteSelectedFiles = () => {
     const selectedIds = Array.from(selectedFileIds.value);
-    
+
     // Remove selected files from FileUploader
     if (fileUploaderRef.value) {
         selectedIds.forEach(id => {
             fileUploaderRef.value?.removeFileById(id);
         });
     }
-    
+
     clearSelection();
     bulkDeleteDialogOpen.value = false;
 };
@@ -590,7 +590,7 @@ const fetchKnowledgeFiles = async (isBackgroundRefresh = false) => {
     if (!isBackgroundRefresh) {
         isLoadingFiles.value = true;
     }
-    
+
     try {
         const response = await axios.get(
             route('agents.knowledge.files', { agent: props.agent.id })
@@ -670,8 +670,8 @@ onUnmounted(() => {
                 title="Upload New Documents"
                 description="Add documents to your agent's knowledge base. Supported formats: PDF, Word, Text"
                 :show-quota="true"
-                :quota-used="props.quote.pages_used"
-                :quota-limit="props.quote.pages_limit"
+                :quota-used="props.quota.pages_used"
+                :quota-limit="props.quota.pages_limit"
                 @files-changed="(files) => uploadingFiles = files"
             />
 

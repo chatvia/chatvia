@@ -485,6 +485,12 @@ const messageDeleted = (messageId) => {
         }
     }
 
+    // Check if all messages are deleted, redirect to home
+    if (messages.value.length === 0) {
+        router.visit(route('chat.home'));
+        return;
+    }
+
     console.log('Message deleted from UI:', messageId);
 };
 

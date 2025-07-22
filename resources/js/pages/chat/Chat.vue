@@ -48,9 +48,7 @@ const isLoadingModels = ref(true);
 
 // Add reactive ref for appearance
 const appearance = ref({
-    primary_color: null,
-    chat_bubble_color: null,
-    chat_text_color: null,
+    color_theme: 'black',
     welcome_message: null,
     chat_window_title: null,
     chat_footer_text: null,
@@ -219,7 +217,12 @@ function checkScrollPosition() {
 
 onMounted(async () => {
     nextTick();
-    loadingMessages.value = true;
+    
+    // Check if this is a new conversation from Home page
+    const isNewConversation = getQueryParam('new') === '1';
+    
+    // Only show loading if it's not a new conversation
+    loadingMessages.value = !isNewConversation;
 
     // Initialize from chatEventBus
     isChatExpanded.value = chatEventBus.isChatExpanded.value;
@@ -352,6 +355,14 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
                 if (isNewConversation) {
                     chatEventBus.emitConversationCreated(props.conversation_id)
                 }
+                
+                // Remove 'new' query parameter after streaming is done
+                if (getQueryParam('new') === '1') {
+                    const url = new URL(window.location);
+                    url.searchParams.delete('new');
+                    window.history.replaceState({}, '', url);
+                }
+                
                 // Final scroll to ensure we're at the bottom if auto-scroll is enabled
                 if (isAutoScrollEnabled.value) {
                     nextTick(() => {
@@ -513,15 +524,7 @@ const handleScrollToBottomClick = () => {
                         </div>
                     </div>
 
-                    <!-- Empty state -->
-                    <div v-else-if="messages.length === 0 && !loadingMessages" class="flex flex-col items-center justify-center h-full px-4">
-                        <div class="text-center max-w-md">
-                            <h3 class="text-lg font-semibold mb-2">{{ appearance.chat_window_title }}</h3>
-                            <p class="text-muted-foreground text-sm">
-                                {{ appearance.welcome_message }}
-                            </p>
-                        </div>
-                    </div>
+                   
 
                     <!-- Messages -->
                     <div

@@ -2,7 +2,7 @@
 import { Link, router, usePage, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import isMobile from 'is-mobile';
-import { Bot, Check, Download, FileText, FileDown, LogOut, MoreVertical, PanelLeft, Edit, Settings, Trash2, User, X, Eye, EyeOff, Mail, Lock } from 'lucide-vue-next';
+import { Bot, Check, Download, FileText, FileDown, LogOut, MoreVertical, PanelLeft, Edit, Settings, Trash2, User, X, Eye, EyeOff, Mail, Lock, PlusCircle } from 'lucide-vue-next';
 import { inject, nextTick, onMounted, ref, watch, computed } from 'vue';
 
 import {

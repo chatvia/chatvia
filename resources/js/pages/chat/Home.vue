@@ -61,7 +61,7 @@ function updateSelectedModel(newModel) {
 
 async function createNewConversation(message, model) {
   await axios.post(route('conversations.create'), { message: message, model: model.id }).then(response => {
-    router.visit(route('chat.show', { conversationId: response.data.id, model: model.id }));
+    router.visit(route('chat.show', { conversationId: response.data.id, model: model.id, new: '1' }));
   });
 }
 

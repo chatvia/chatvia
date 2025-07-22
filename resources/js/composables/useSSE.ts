@@ -6,11 +6,10 @@ export function useSSE() {
     let abortController: AbortController | null = null;
 
     const startStream = (url: string, payload: string, callbacks: {
-        onMessage?: (content: string) => void,
+        onMessage?: (content: string, messageId?: string) => void,
         onDone?: () => void,
         onError?: (error: any) => void,
-        onSources?: (sources: any[]) => void,
-        onMessageId?: (messageId: string) => void
+        onSources?: (sources: any[]) => void
     }) => {
         return () => {
             // Abort any existing connection
@@ -71,7 +70,6 @@ export function useSSE() {
                             // Extract data from SSE format
                             const dataMatch = line.match(/^data: (.+)$/m);
                             const sourcesMatch = line.match(/^sources: (.+)$/m);
-                            const messageIdMatch = line.match(/^message_id: (.+)$/m);
                             
                             if (dataMatch) {
                                 try {
@@ -83,7 +81,9 @@ export function useSSE() {
                                         if (callbacks.onDone) callbacks.onDone();
                                         return Promise.resolve(); // Stop processing after [DONE]
                                     } else if (data.content) {
-                                        if (callbacks.onMessage) callbacks.onMessage(data.content);
+                                        if (callbacks.onMessage) {
+                                            callbacks.onMessage(data.content, data.message_id);
+                                        }
                                     }
                                 } catch (e) {
                                     console.error('Error parsing SSE data:', e);
@@ -95,16 +95,6 @@ export function useSSE() {
                                     if (callbacks.onSources) callbacks.onSources(sources);
                                 } catch (e) {
                                     console.error('Error parsing SSE sources:', e);
-                                }
-                            } else if (messageIdMatch) {
-                                try {
-                                    const messageIdData = JSON.parse(messageIdMatch[1]);
-                                    console.log('Received SSE message_id:', messageIdData);
-                                    if (messageIdData.message_id && callbacks.onMessageId) {
-                                        callbacks.onMessageId(messageIdData.message_id);
-                                    }
-                                } catch (e) {
-                                    console.error('Error parsing SSE message_id:', e);
                                 }
                             }
                         }

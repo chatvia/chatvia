@@ -24,13 +24,13 @@ class AgentObserver
         $agent
             ->llms()
             ->attach(
-            Llm::query()
-                ->select('id')
-                ->whereIn('id', $agentLlms)
-                ->get()
-                ->pluck('id')
-                ->toArray()
-        );
+                Llm::query()
+                    ->select('id')
+                    ->whereIn('id', $agentLlms)
+                    ->get()
+                    ->pluck('id')
+                    ->toArray()
+            );
 
         $this->decreaseAgentLimit($agent);
     }

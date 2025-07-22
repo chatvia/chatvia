@@ -91,7 +91,7 @@ class User extends Authenticatable implements MustVerifyEmail
         $packageConfig = $this->getPackageConfig();
         $capabilities = $packageConfig['capabilities'] ?? [];
 
-        if (!isset($capabilities[$capability])) {
+        if (! isset($capabilities[$capability])) {
             return false;
         }
 
@@ -114,11 +114,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Handle array capabilities (non-empty means enabled)
         if (is_array($value)) {
-            return !empty($value);
+            return ! empty($value);
         }
 
         // For 'unlimited' string or other truthy values
-        return !empty($value);
+        return ! empty($value);
     }
 
     /**
@@ -177,6 +177,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getAllCapabilities(): array
     {
         $packageConfig = $this->getPackageConfig();
+
         return $packageConfig['capabilities'] ?? [];
     }
 

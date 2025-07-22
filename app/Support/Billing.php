@@ -56,6 +56,7 @@ class Billing
     public static function getCapabilitiesForPackage(string $packageKey): array
     {
         $packages = static::getPackages();
+
         return $packages[$packageKey]['capabilities'] ?? [];
     }
 
@@ -65,8 +66,8 @@ class Billing
     public static function packageHasCapability(string $packageKey, string $capability): bool
     {
         $capabilities = static::getCapabilitiesForPackage($packageKey);
-        
-        if (!isset($capabilities[$capability])) {
+
+        if (! isset($capabilities[$capability])) {
             return false;
         }
 
@@ -89,10 +90,10 @@ class Billing
 
         // Handle array capabilities
         if (is_array($value)) {
-            return !empty($value);
+            return ! empty($value);
         }
 
-        return !empty($value);
+        return ! empty($value);
     }
 
     /**
@@ -102,8 +103,9 @@ class Billing
     {
         $packages = static::getPackages();
         $featuresConfig = $packages[$packageKey]['features'] ?? [];
-        
+
         $billingCycle = $isYearly ? 'yearly' : 'monthly';
+
         return $featuresConfig[$billingCycle] ?? $featuresConfig['monthly'] ?? [];
     }
 
@@ -114,8 +116,6 @@ class Billing
     {
         return config('billing.comparison_features', []);
     }
-
-
 
     public function getAvailablePackages(): Collection
     {

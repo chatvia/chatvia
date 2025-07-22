@@ -14,12 +14,12 @@ class OpenRouter
     {
         $client = app(Client::class);
 
-//        $options = [
-//            'reasoning' => [
-//                'effort' => 'high',
-//                'exclude' => false,
-//            ],
-//        ];
+        //        $options = [
+        //            'reasoning' => [
+        //                'effort' => 'high',
+        //                'exclude' => false,
+        //            ],
+        //        ];
 
         return $client->post(config('services.openrouter.completion_endpoint'), [
             'headers' => [
@@ -30,7 +30,7 @@ class OpenRouter
                 'model' => $model,
                 'messages' => $llmMessages,
                 'stream' => true,
-//                ...$options,
+                //                ...$options,
             ],
             'stream' => true,
             'provider' => [

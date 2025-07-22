@@ -23,19 +23,19 @@ class CheckQuota
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
         // Check if user has remaining quota
-        if (!$this->quotaService->hasQuotaRemaining($user, $quotaType, $amount)) {
-            
+        if (! $this->quotaService->hasQuotaRemaining($user, $quotaType, $amount)) {
+
             // For API requests, return JSON error
             if ($request->expectsJson()) {
                 $quota = $this->quotaService->getUserQuota($user);
                 $used = $quota->getAttribute("{$quotaType}_used");
                 $limit = $quota->getAttribute("{$quotaType}_limit");
-                
+
                 return response()->json([
                     'error' => 'Quota exceeded',
                     'message' => "You have exceeded your {$quotaType} quota.",
@@ -50,11 +50,11 @@ class CheckQuota
             }
 
             // For web requests, redirect with error
-            return redirect()->back()->with('error', 
+            return redirect()->back()->with('error',
                 "You have exceeded your {$quotaType} quota. Please upgrade your plan to continue."
             );
         }
 
         return $next($request);
     }
-} 
+}

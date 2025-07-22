@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 class QuotaService
 {
     private const CACHE_TTL = 300; // 5 minutes
+
     private const CACHE_PREFIX = 'user_quota:';
 
     /**
@@ -18,8 +19,8 @@ class QuotaService
      */
     public function getUserQuota(User $user): UserQuota
     {
-        $cacheKey = self::CACHE_PREFIX . $user->id;
-        
+        $cacheKey = self::CACHE_PREFIX.$user->id;
+
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($user) {
             return $user->quota ?? $this->createDefaultQuota($user);
         });
@@ -31,12 +32,13 @@ class QuotaService
     public function incrementUsage(User $user, string $type, int $amount = 1): bool
     {
         // Check if user would exceed limit before attempting increment
-        if (!$this->hasQuotaRemaining($user, $type, $amount)) {
+        if (! $this->hasQuotaRemaining($user, $type, $amount)) {
             Log::warning("User {$user->id} would exceed {$type} quota", [
                 'user_id' => $user->id,
                 'type' => $type,
-                'amount' => $amount
+                'amount' => $amount,
             ]);
+
             return false;
         }
 
@@ -52,13 +54,13 @@ class QuotaService
         if ($updated) {
             // Clear cache to force refresh
             $this->clearUserQuotaCache($user);
-            
+
             Log::info("Incremented {$type} usage for user {$user->id}", [
                 'user_id' => $user->id,
                 'type' => $type,
-                'amount' => $amount
+                'amount' => $amount,
             ]);
-            
+
             return true;
         }
 
@@ -78,12 +80,13 @@ class QuotaService
         foreach ($changes as $type => $amount) {
             if ($amount > 0) {
                 // For positive amounts, check quota before updating
-                if (!$this->hasQuotaRemaining($user, $type, $amount)) {
+                if (! $this->hasQuotaRemaining($user, $type, $amount)) {
                     Log::warning("User {$user->id} would exceed {$type} quota in bulk update", [
                         'user_id' => $user->id,
                         'type' => $type,
-                        'amount' => $amount
+                        'amount' => $amount,
                     ]);
+
                     return false;
                 }
             }
@@ -100,8 +103,9 @@ class QuotaService
             $this->clearUserQuotaCache($user);
             Log::info("Bulk updated usage for user {$user->id}", [
                 'user_id' => $user->id,
-                'changes' => $changes
+                'changes' => $changes,
             ]);
+
             return true;
         }
 
@@ -122,13 +126,13 @@ class QuotaService
 
         if ($updated) {
             $this->clearUserQuotaCache($user);
-            
+
             Log::info("Tracked {$type} removal for user {$user->id}", [
                 'user_id' => $user->id,
                 'type' => $type,
-                'amount' => $amount
+                'amount' => $amount,
             ]);
-            
+
             return true;
         }
 
@@ -141,16 +145,16 @@ class QuotaService
     public function hasQuotaRemaining(User $user, string $type, int $amount = 1): bool
     {
         $quota = $this->getUserQuota($user);
-        
+
         // Check if billing period needs reset
         if ($this->needsBillingPeriodReset($quota)) {
             $this->resetBillingPeriod($user);
             $quota = $this->getUserQuota($user); // Refresh after reset
         }
-        
+
         $currentUsage = $quota->getAttribute("{$type}_used");
         $limit = $quota->getAttribute("{$type}_limit");
-        
+
         return ($currentUsage + $amount) <= $limit;
     }
 
@@ -162,7 +166,7 @@ class QuotaService
         $quota = $this->getUserQuota($user);
         $currentUsage = $quota->getAttribute("{$type}_used");
         $limit = $quota->getAttribute("{$type}_limit");
-        
+
         return max(0, $limit - $currentUsage);
     }
 
@@ -174,11 +178,11 @@ class QuotaService
         $quota = $this->getUserQuota($user);
         $currentUsage = $quota->getAttribute("{$type}_used");
         $limit = $quota->getAttribute("{$type}_limit");
-        
+
         if ($limit === 0) {
             return 0;
         }
-        
+
         return min(100, ($currentUsage / $limit) * 100);
     }
 
@@ -188,7 +192,7 @@ class QuotaService
     public function resetBillingPeriod(User $user): void
     {
         $quota = $this->getUserQuota($user);
-        
+
         // Store current period in history if you implement the history table
         // $this->archiveCurrentPeriod($quota);
 
@@ -207,7 +211,7 @@ class QuotaService
         ]);
 
         $this->clearUserQuotaCache($user);
-        
+
         Log::info("Reset billing period for user {$user->id}");
     }
 
@@ -228,15 +232,15 @@ class QuotaService
     public function updateQuotaLimits(User $user, array $limits): bool
     {
         $quota = $this->getUserQuota($user);
-        
+
         $updated = $quota->update($limits);
-        
+
         if ($updated) {
             $this->clearUserQuotaCache($user);
-            
+
             Log::info("Updated quota limits for user {$user->id}", $limits);
         }
-        
+
         return $updated;
     }
 
@@ -248,11 +252,11 @@ class QuotaService
         $quota = $this->getUserQuota($user);
         $types = config('billing.quota.quota_types', ['pages', 'minutes', 'messages']);
         $summary = [];
-        
+
         foreach ($types as $type) {
             $used = $quota->getAttribute("{$type}_used");
             $limit = $quota->getAttribute("{$type}_limit");
-            
+
             $summary[$type] = [
                 'used' => $used,
                 'limit' => $limit,
@@ -262,13 +266,13 @@ class QuotaService
                 'is_near_limit' => $limit > 0 && ($used / $limit) >= (config('billing.quota.warning_thresholds.warning', 80) / 100),
             ];
         }
-        
+
         // Add agent-specific quotas
         $summary['agents'] = [
             'instruction_limit' => $quota->agents_instruction_limit,
             'knowledge_limit' => $quota->agents_knowledge_limit,
         ];
-        
+
         return $summary;
     }
 
@@ -278,11 +282,11 @@ class QuotaService
     public function hasQuotaRemainingForMultiple(User $user, array $requirements): bool
     {
         foreach ($requirements as $type => $amount) {
-            if (!$this->hasQuotaRemaining($user, $type, $amount)) {
+            if (! $this->hasQuotaRemaining($user, $type, $amount)) {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -291,10 +295,10 @@ class QuotaService
      */
     private function needsBillingPeriodReset(UserQuota $quota): bool
     {
-        if (!$quota->billing_period_ends_at) {
+        if (! $quota->billing_period_ends_at) {
             return true;
         }
-        
+
         return now()->greaterThan($quota->billing_period_ends_at);
     }
 
@@ -311,7 +315,7 @@ class QuotaService
             'user_id' => $user->id,
             'billing_period_starts_at' => now()->startOfMonth(),
             'billing_period_ends_at' => now()->endOfMonth(),
-            ...$quotaLimits
+            ...$quotaLimits,
         ]);
     }
 
@@ -321,14 +325,14 @@ class QuotaService
     private function getQuotaLimitsForUser(User $user, array $packageConfig): array
     {
         $quotaLimitsConfig = $packageConfig['quota_limits'] ?? [];
-        
+
         // Determine if user is on yearly or monthly billing
         $isYearly = $this->isUserOnYearlyBilling($user);
         $billingCycle = $isYearly ? 'yearly' : 'monthly';
-        
+
         // Get limits for the appropriate billing cycle
         $quotaLimits = $quotaLimitsConfig[$billingCycle] ?? $quotaLimitsConfig['monthly'] ?? [];
-        
+
         // Fallback to default limits if nothing found
         if (empty($quotaLimits)) {
             $defaultLimitsConfig = config('billing.quota.default_limits', []);
@@ -340,7 +344,7 @@ class QuotaService
                 'agents_knowledge_limit' => 1,
             ];
         }
-        
+
         return $quotaLimits;
     }
 
@@ -350,21 +354,21 @@ class QuotaService
     private function isUserOnYearlyBilling(User $user): bool
     {
         $subscription = $user->subscription();
-        
-        if (!$subscription) {
+
+        if (! $subscription) {
             return false;
         }
-        
+
         // Check if the current subscription is yearly based on price ID
         $currentPriceId = $subscription->stripe_price;
         $packages = config('billing.packages', []);
-        
+
         foreach ($packages as $package) {
             if ($package['stripe_yearly_price_id'] === $currentPriceId) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -375,7 +379,7 @@ class QuotaService
     {
         $cacheConfig = config('billing.quota.cache', []);
         $prefix = $cacheConfig['prefix'] ?? self::CACHE_PREFIX;
-        Cache::forget($prefix . $user->id);
+        Cache::forget($prefix.$user->id);
     }
 
     /**
@@ -385,8 +389,8 @@ class QuotaService
     {
         $cacheConfig = config('billing.quota.cache', []);
         $tags = $cacheConfig['tags'] ?? ['user_quotas'];
-        
+
         // This is a simple approach - in production you might want a more sophisticated cache invalidation
         Cache::tags($tags)->flush();
     }
-} 
+}

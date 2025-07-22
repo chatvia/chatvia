@@ -14,7 +14,7 @@ class BillingQuotaService
     /**
      * Handle subscription plan change for a user
      */
-    public function handlePlanChange(User $user, string $oldPlan = null, string $newPlan = null): bool
+    public function handlePlanChange(User $user, ?string $oldPlan = null, ?string $newPlan = null): bool
     {
         try {
             // Update quota limits based on new plan
@@ -48,7 +48,7 @@ class BillingQuotaService
     {
         $quotaLimitsConfig = config("billing.packages.{$planName}.quota_limits", []);
         $billingCycle = $isYearly ? 'yearly' : 'monthly';
-        
+
         return $quotaLimitsConfig[$billingCycle] ?? $quotaLimitsConfig['monthly'] ?? [];
     }
 
@@ -63,7 +63,7 @@ class BillingQuotaService
 
         foreach ($planLimits as $type => $limit) {
             $used = $quota->getAttribute("{$type}_used") ?? 0;
-            
+
             if ($used > $limit) {
                 $violations[] = [
                     'type' => $type,
@@ -83,7 +83,7 @@ class BillingQuotaService
     public function canDowngradeToPlan(User $user, string $planName, bool $isYearly = false): array
     {
         $violations = $this->validateQuotaAgainstPlan($user, $planName, $isYearly);
-        
+
         return [
             'can_downgrade' => empty($violations),
             'violations' => $violations,
@@ -96,7 +96,7 @@ class BillingQuotaService
     public function handleDowngradeViolations(User $user, string $newPlan, bool $isYearly = false): array
     {
         $violations = $this->validateQuotaAgainstPlan($user, $newPlan, $isYearly);
-        
+
         if (empty($violations)) {
             return ['success' => true, 'violations' => []];
         }
@@ -106,7 +106,7 @@ class BillingQuotaService
         // - Archive excess data
         // - Disable excess agents
         // - Provide grace period
-        
+
         return [
             'success' => false,
             'violations' => $violations,
@@ -129,7 +129,7 @@ class BillingQuotaService
             'billing_period' => [
                 'starts_at' => $quota->billing_period_starts_at,
                 'ends_at' => $quota->billing_period_ends_at,
-                'days_remaining' => $quota->billing_period_ends_at 
+                'days_remaining' => $quota->billing_period_ends_at
                     ? now()->diffInDays($quota->billing_period_ends_at, false)
                     : null,
             ],
@@ -147,7 +147,7 @@ class BillingQuotaService
         $packages = config('billing.packages', []);
 
         foreach ($quotaSummary as $type => $data) {
-            if ($type === 'agents' || !is_array($data)) {
+            if ($type === 'agents' || ! is_array($data)) {
                 continue;
             }
 
@@ -155,7 +155,7 @@ class BillingQuotaService
             if ($data['percentage'] >= 80) {
                 // Find next tier plan
                 $nextPlan = $this->findNextTierPlan($currentPlan, $type, $data['used']);
-                
+
                 if ($nextPlan) {
                     $recommendations[] = [
                         'type' => $type,
@@ -179,10 +179,10 @@ class BillingQuotaService
     {
         $packages = config('billing.packages', []);
         $planOrder = ['free', 'starter', 'standard', 'pro']; // Define upgrade path
-        
+
         $currentPlanKey = strtolower($currentPlan['name']);
         $currentIndex = array_search($currentPlanKey, $planOrder);
-        
+
         if ($currentIndex === false) {
             return null;
         }
@@ -191,13 +191,13 @@ class BillingQuotaService
         for ($i = $currentIndex + 1; $i < count($planOrder); $i++) {
             $planKey = $planOrder[$i];
             $plan = $packages[$planKey] ?? null;
-            
-            if (!$plan) {
+
+            if (! $plan) {
                 continue;
             }
 
             $quotaLimit = $plan['quota_limits'][$quotaType] ?? 0;
-            
+
             if ($quotaLimit > $currentUsage) {
                 return array_merge($plan, ['key' => $planKey]);
             }
@@ -205,4 +205,4 @@ class BillingQuotaService
 
         return null;
     }
-} 
+}

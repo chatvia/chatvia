@@ -15,7 +15,7 @@ class AgentFileObserver
     {
         $user = $agentFile->user;
 
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
@@ -32,7 +32,7 @@ class AgentFileObserver
     {
         $user = $agentFile->user;
 
-        if (!$user || !$agentFile->wasChanged(['pages', 'minutes'])) {
+        if (! $user || ! $agentFile->wasChanged(['pages', 'minutes'])) {
             return;
         }
 
@@ -43,7 +43,7 @@ class AgentFileObserver
             $oldPages = $agentFile->getOriginal('pages') ?? 0;
             $newPages = $agentFile->pages ?? 0;
             $pagesDiff = $newPages - $oldPages;
-            
+
             if ($pagesDiff !== 0) {
                 $changes['pages'] = $pagesDiff;
             }
@@ -53,13 +53,13 @@ class AgentFileObserver
             $oldMinutes = $agentFile->getOriginal('minutes') ?? 0;
             $newMinutes = $agentFile->minutes ?? 0;
             $minutesDiff = $newMinutes - $oldMinutes;
-            
+
             if ($minutesDiff !== 0) {
                 $changes['minutes'] = $minutesDiff;
             }
         }
 
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             $this->quotaService->bulkUpdateUsage($user, $changes);
         }
     }
@@ -68,7 +68,7 @@ class AgentFileObserver
     {
         $user = $agentFile->user;
 
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
@@ -83,7 +83,7 @@ class AgentFileObserver
             $changes['minutes'] = -$agentFile->minutes; // Negative to decrement
         }
 
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             $this->quotaService->bulkUpdateUsage($user, $changes);
         }
     }

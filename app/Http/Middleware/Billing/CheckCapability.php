@@ -18,16 +18,16 @@ class CheckCapability
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return $this->handleUnauthorized($request);
         }
 
         // Check if user has the capability
-        $hasCapability = $requiredValue !== null 
+        $hasCapability = $requiredValue !== null
             ? $user->capabilityAllows($capability, $requiredValue)
             : $user->hasCapability($capability);
 
-        if (!$hasCapability) {
+        if (! $hasCapability) {
             return $this->handleInsufficientCapability($request, $capability, $requiredValue);
         }
 
@@ -48,7 +48,7 @@ class CheckCapability
 
     private function handleInsufficientCapability(Request $request, string $capability, $requiredValue = null): Response
     {
-        $message = $requiredValue !== null 
+        $message = $requiredValue !== null
             ? "Your plan doesn't support {$capability} with the required level ({$requiredValue})."
             : "Your plan doesn't include {$capability} capability.";
 
@@ -62,6 +62,6 @@ class CheckCapability
             ], 403);
         }
 
-        return redirect()->back()->with('error', $message . ' Please upgrade your plan to continue.');
+        return redirect()->back()->with('error', $message.' Please upgrade your plan to continue.');
     }
-} 
+}

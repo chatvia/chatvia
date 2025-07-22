@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\Models\Message;
 use App\Models\User;
 use App\Models\UserQuota;
 use Illuminate\Http\Request;
@@ -25,8 +26,8 @@ class DashboardStatsController
             'messages' => $quota->messages_used_all_time,
             'minutes' => $quota->minutes_used_all_time,
             'performance' => [
-                'avg_response_time' => 0,
-                'members' => 0,
+                'avg_response_time' => '',
+                'members' => $user->members()->count(),
                 'files' => $user->agentFiles()->count(),
             ],
             'weekly_usage' => $this->getWeeklyMessagesVolume($user),

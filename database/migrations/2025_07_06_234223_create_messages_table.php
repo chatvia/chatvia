@@ -2,6 +2,7 @@
 
 use App\Models\Agent;
 use App\Models\Member;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,8 @@ return new class extends Migration
             $table->uuid('conversation_id')->index();
             $table->string('generation_id')->nullable();
 
-            $table->foreignIdFor(Agent::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(Agent::class)->index()->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class)->constrained()->nullOnDelete();
             $table->foreignIdFor(Member::class)->nullable()->constrained()->nullOnDelete();
 
             $table->text('content');

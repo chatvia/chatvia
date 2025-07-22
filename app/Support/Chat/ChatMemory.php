@@ -123,6 +123,7 @@ class ChatMemory
         $messageId = $this->addMessage(
             role: $role,
             message: $payload->message,
+            messageId: $payload->message_id ?? null,
             model: $payload->model,
             append: $append,
         );
@@ -134,6 +135,7 @@ class ChatMemory
                 'conversation_id' => $this->conversationId,
                 'agent_id' => $this->agent->id,
                 'member_id' => $isInputMessage ? $payload->member_id : null,
+                'user_id' => $this->agent->user_id,
                 'content' => $payload->message,
                 'role' => $role,
                 'model' => $payload->model,
@@ -146,9 +148,9 @@ class ChatMemory
         return $messageId;
     }
 
-    public function addMessage(string $role, string $message, ?string $model = null, string $type = 'text', array $append = []): string
+    public function addMessage(string $role, string $message, ?string $messageId = null, ?string $model = null, string $type = 'text', array $append = []): string
     {
-        $messageId = Str::uuid()->toString();
+        $messageId = $messageId ?? Str::uuid()->toString();
 
         $formattedMessage = [
             'id' => $messageId,

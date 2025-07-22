@@ -51,6 +51,7 @@ class ChatStreamController
 
     private bool $playground = false;
 
+
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly KnowledgeBase $knowledgeBase) {}
@@ -98,6 +99,8 @@ class ChatStreamController
         if (count($this->llmMessages) > 1) {
             $this->userMessageId = $this->memory->addMessageViaPayload($this->payload);
         }
+
+        $this->assistantMessageId = Str::uuid()->toString();
 
         return $this->createStreamResponse();
     }
@@ -173,7 +176,6 @@ class ChatStreamController
                         'content' => $result->chunk,
                         'metadata' => [
                             'file_name' => $agentFile?->name,
-                            //                            'search_type' => $result->search_type,
                             'document_id' => $result->id,
                             'agent_file_id' => $result->agent_file_id,
                         ],
@@ -205,23 +207,6 @@ class ChatStreamController
         $this->endTime = microtime(true);
 
         return app(OpenRouter::class)->stream($this->llmModel->internal_id, $llmMessages, $this->agent->llmSettings());
-
-        //        return $this->httpClient->post(config('services.openrouter.completion_endpoint'), [
-        //            'headers' => [
-        //                'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
-        //                'Content-Type' => 'application/json',
-        //            ],
-        //            'json' => [
-        //                'model' => $this->llmModel->internal_id,
-        //                'messages' => $llmMessages,
-        //                'stream' => true,
-        //            ],
-        //            'stream' => true,
-        //            'provider' => [
-        //                'sort' => 'latency', // https://openrouter.ai/docs/features/provider-routing
-        //            ],
-        //            ...$this->agent->llmSettings(),
-        //        ]);
     }
 
     private function processStreamResponse($response): void
@@ -239,7 +224,8 @@ class ChatStreamController
             $chunk = $body->read(1024);
             $buffer .= $chunk;
 
-            // Process complete lines
+            $n = 0;
+
             while (($newlinePos = strpos($buffer, "\n")) !== false) {
                 $line = substr($buffer, 0, $newlinePos);
                 $buffer = substr($buffer, $newlinePos + 1);
@@ -249,10 +235,11 @@ class ChatStreamController
                     continue;
                 }
 
-                // Lines starting with "data: " contain the event data
+                // Lines starting with "data:" contain the event data
                 if (str_starts_with($line, 'data: ')) {
                     $dataLine = $this->processDataLine(
-                        substr($line, 6), // Remove "data: " prefix
+                        $n,
+                        substr($line, 6),
                     );
 
                     if (is_array($dataLine) && is_null($this->generationId)) {
@@ -260,13 +247,15 @@ class ChatStreamController
                         $this->tokenCount = $dataLine['usage']['total_tokens'] ?? 0;
                     }
                 }
+
+                ++$n;
             }
         }
 
         flush();
     }
 
-    private function processDataLine(string $data)
+    private function processDataLine(int $lineNumber, string $data)
     {
         // Check for the [DONE] message
         if ($data === '[DONE]') {
@@ -283,7 +272,14 @@ class ChatStreamController
                 $content = $json['choices'][0]['delta']['content'];
                 $this->streamedMessage .= $content;
 
-                echo 'data: '.json_encode(['content' => $content], JSON_THROW_ON_ERROR)."\n\n";
+
+                $messagePayload = ['content' => $content];
+
+                if ($lineNumber === 0) {
+                    $messagePayload['message_id'] = $this->assistantMessageId;
+                }
+
+                echo 'data: '.json_encode($messagePayload, JSON_THROW_ON_ERROR)."\n\n";
 
                 flush();
             }
@@ -309,8 +305,6 @@ class ChatStreamController
 
         $sources = $this->sources->toArray();
 
-        echo 'message_id: '.json_encode(['message_id' => $this->assistantMessageId])."\n\n";
-
         echo 'sources: '.json_encode($sources, JSON_THROW_ON_ERROR)."\n\n";
 
         echo 'data: '.json_encode(['content' => '[DONE]'])."\n\n";
@@ -334,8 +328,9 @@ class ChatStreamController
             'content' => $this->streamedMessage,
         ];
 
-        $this->assistantMessageId = $this->memory->addMessageViaPayload(
+        $this->memory->addMessageViaPayload(
             new ChatOutputPayload(
+                message_id: $this->assistantMessageId,
                 role: 'assistant',
                 message: $this->streamedMessage,
                 model: $this->llmModel->id,

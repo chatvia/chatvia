@@ -49,22 +49,17 @@ return new class extends Migration
      */
     private function createOptimizedVectorChordIndex(): void
     {
-        // Use safe defaults for migration - don't rely on application state
-        $residualQuantization = 'true';
-        $sphericalCentroids = 'false';
         $buildThreads = min(8, (int) shell_exec('nproc 2>/dev/null') ?: 4);
 
-        // Use a reasonable default for initial index creation
-        // This can be optimized later using the optimization commands
-        $lists = 1000;
-
-        // Build the optimized index configuration
         $indexOptions = <<<EOT
-residual_quantization = {$residualQuantization}
+residual_quantization = true
 [build.internal]
-lists = [{$lists}]
+lists = [4096]
 build_threads = {$buildThreads}
-spherical_centroids = {$sphericalCentroids}
+spherical_centroids = false
+sampling_factor = 512
+kmeans_iterations = 50
+
 EOT;
 
         // Create the index with optimized configuration

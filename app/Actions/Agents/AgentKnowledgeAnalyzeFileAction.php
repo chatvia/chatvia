@@ -39,7 +39,7 @@ class AgentKnowledgeAnalyzeFileAction
             $info->pages *= 3;
         }
 
-        $user->with('quote');
+        $user->with('quota');
 
         abort_if(
             boolean: $info->pages > $user->remaining_pages,

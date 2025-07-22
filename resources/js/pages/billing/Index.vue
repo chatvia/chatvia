@@ -27,7 +27,10 @@ interface CurrentPackage {
     id: string;
     name: string;
     description: string;
-    features: string[];
+    features: {
+        monthly: string[];
+        yearly: string[];
+    };
     monthly_price: string;
     monthly_price_formatted: string;
     yearly_price_formatted: string;
@@ -97,6 +100,12 @@ const getStatusLabel = (status: string) => {
 
 const isSubscriptionActive = computed(() => {
     return props.subscription?.status === 'active' || props.on_trial;
+});
+
+const currentFeatures = computed(() => {
+    return props.current_package.subscribed_to_yearly 
+        ? props.current_package.features.yearly 
+        : props.current_package.features.monthly;
 });
 
 const cancelSubscription = (immediately = false) => {
@@ -270,7 +279,7 @@ const resumeSubscription = () => {
                                     <h4 class="font-semibold">Plan Features</h4>
                                     <div class="grid gap-2">
                                         <div
-                                            v-for="feature in current_package.features"
+                                            v-for="feature in currentFeatures"
                                             :key="feature"
                                             class="flex items-center gap-2"
                                         >

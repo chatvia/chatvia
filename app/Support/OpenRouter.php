@@ -14,6 +14,13 @@ class OpenRouter
     {
         $client = app(Client::class);
 
+//        $options = [
+//            'reasoning' => [
+//                'effort' => 'high',
+//                'exclude' => false,
+//            ],
+//        ];
+
         return $client->post(config('services.openrouter.completion_endpoint'), [
             'headers' => [
                 'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
@@ -23,6 +30,7 @@ class OpenRouter
                 'model' => $model,
                 'messages' => $llmMessages,
                 'stream' => true,
+//                ...$options,
             ],
             'stream' => true,
             'provider' => [

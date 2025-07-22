@@ -109,8 +109,8 @@ const usageTrend = ref<Array<{day: string; value: number}>>([]);
 const quickActions = [
   { title: 'Create New Agent', icon: Plus, href: route('agents.create'), color: 'text-emerald-500' },
   { title: 'View All Agents', icon: Bot, href: route('agents.index'), color: 'text-blue-500' },
-  { title: 'Knowledge Base', icon: Database, href: '#', color: 'text-amber-500' },
-  { title: 'Team Settings', icon: Users, href: '#', color: 'text-purple-500' },
+  { title: 'Knowledge Base', icon: Database, href: route('knowledge-base.show'), color: 'text-amber-500' },
+  { title: 'Members', icon: Users, href: route('members.show'), color: 'text-purple-500' },
 ];
 
 // Fetch dashboard data from API
@@ -118,9 +118,9 @@ const fetchDashboardData = async () => {
   try {
     const response = await fetch(route('dashboard.stats'));
     const data: DashboardData = await response.json();
-    
+
     dashboardData.value = data;
-    
+
     // Update computed values
     totalStats.value = {
       totalAgents: data.agents.total,
@@ -128,7 +128,7 @@ const fetchDashboardData = async () => {
       totalUsers: parseInt(data.performance.members) || 0,
       avgResponseTime: data.performance.avg_response_time || '0s'
     };
-    
+
     recentAgents.value = data.agents.recent.map((agent: Agent) => ({
       id: agent.id,
       name: agent.name,
@@ -139,9 +139,9 @@ const fetchDashboardData = async () => {
       url: agent.url,
       chatUrl: agent.chat_url
     }));
-    
+
     usageTrend.value = data.weekly_usage;
-    
+
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
   } finally {

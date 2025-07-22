@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Billing;
 
 use Illuminate\Http\Request;
+use Laravel\Cashier\SubscriptionBuilder;
 
 class CheckoutController
 {
@@ -23,9 +24,18 @@ class CheckoutController
 
         $stripePriceId = $yearly ? $packages[$package]['stripe_monthly_price_id'] : $packages[$package]['stripe_yearly_price_id'];
 
-        return $request->user()
+        return $request
+            ->user()
             ->newSubscription(type: 'default', prices: $stripePriceId)
-            ->trialDays(config('billing.trial.days'))
+            ->withMetadata([
+                'package' => $package,
+                'is_yearly' => $yearly,
+                'from_package' => '',
+                'to_package' => '',
+            ])
+            ->when(config('billing.trial.days') !== 0, function (SubscriptionBuilder $subscription) {
+                $subscription->trialDays(config('billing.trial.days'));
+            })
             ->allowPromotionCodes()
             ->alwaysInvoice()
             ->checkout([

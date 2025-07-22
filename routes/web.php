@@ -20,10 +20,10 @@ Route::get('/test', function () {
     dd($user->remaining_pages);
 });
 
+require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/chat.php';
-require __DIR__.'/dashboard.php';
 require __DIR__.'/agents.php';
 require __DIR__.'/billing.php';
 require __DIR__.'/ingestion.php';

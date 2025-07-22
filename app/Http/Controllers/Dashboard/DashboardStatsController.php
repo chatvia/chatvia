@@ -23,8 +23,8 @@ class DashboardStatsController
                 'total' => $user->agents()->count(),
                 'recent' => $user->agents()->select(['id', 'name', 'sub_domain'])->latest()->limit(5)->get(),
             ],
-            'messages' => $quota->messages_used_all_time,
-            'minutes' => $quota->minutes_used_all_time,
+            'messages' => '',
+            'minutes' => '',
             'performance' => [
                 'avg_response_time' => '',
                 'members' => $user->members()->count(),

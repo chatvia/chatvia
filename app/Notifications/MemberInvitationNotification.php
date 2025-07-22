@@ -27,7 +27,7 @@ class MemberInvitationNotification extends Notification
         return (new MailMessage)
             ->subject('Invitation to join the chat agent '.$this->agent->name)
             ->line('This is an invitation to join the chat agent '.$this->agent->name.'.')
-            ->when(is_null($this->member->invitation_accepted_at), function (MailMessage $message) {
+            ->when(is_null($this->member->email_verified_at), function (MailMessage $message) {
                 $message
                     ->line('You can accept or this invitation on the button below:')
                     ->action('Accept Invitation', route('agents.invitations', [

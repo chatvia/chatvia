@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('facebook_id')->nullable();
             $table->string('google_id')->nullable();
 
-            $table->timestamp('invitation_accepted_at')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
 
             $table->timestamps();
 

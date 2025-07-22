@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[ObservedBy(AgentFileObserver::class)]
 class AgentFile extends Model
@@ -88,6 +89,12 @@ class AgentFile extends Model
         return $this->mime_type === 'application/pdf';
     }
 
+    public function isAudioFile(): false
+    {
+        // TODO: fix
+        return false;
+    }
+
     public function convertToPdf(): ?File
     {
         $file = $this->readFile();
@@ -97,5 +104,15 @@ class AgentFile extends Model
         }
 
         return new File(office()->convert($file->getPathname(), 'pdf'));
+    }
+
+    public function download(): StreamedResponse
+    {
+        return Storage::download($this->path);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

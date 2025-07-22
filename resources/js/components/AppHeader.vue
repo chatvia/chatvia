@@ -17,7 +17,7 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem, Auth } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search, BotMessageSquare, CreditCard, Zap } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Menu, Search, BotMessageSquare, CreditCard, Zap, Database } from 'lucide-vue-next';
 import { computed } from 'vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 
@@ -41,17 +41,22 @@ const activeItemStyles = computed(
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: route('dashboard'),
         icon: LayoutGrid,
     },
     {
         title: 'Agents',
-        href: '/agents',
+        href: route('agents.index'),
         icon: BotMessageSquare,
     },
     {
+        title: 'Knowledge',
+        href: route('knowledge-base.show'),
+        icon: Database,
+    },
+    {
         title: 'Billing',
-        href: '/billing',
+        href: route('billing.index'),
         icon: CreditCard,
     },
 ];

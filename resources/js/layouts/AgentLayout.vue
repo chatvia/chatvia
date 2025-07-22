@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import {
     Dialog,
     DialogContent,
@@ -32,8 +33,6 @@ import {
     Lock,
     Eye,
     EyeOff,
-    Power,
-    PowerOff,
     Brain,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
@@ -106,31 +105,32 @@ const canDelete = computed(() => {
     return agentNameConfirmation.value === props.agent.name;
 });
 
-const toggleAgentStatus = () => {
-    // Optimistically update the UI
-    const newStatus = !props.agent.is_active;
-    props.agent.is_active = newStatus;
-    isToggling.value = true;
-
-    router.patch(route('agents.activity', {
-        agent: props.agent.id,
-        is_active: newStatus
-    }), {}, {
-        onSuccess: () => {
-            isToggling.value = false;
-        },
-        onError: () => {
-            // Revert the optimistic update on error
-            props.agent.is_active = !newStatus;
-            isToggling.value = false;
-        }
-    });
-};
-
 const isActiveRoute = (routeName: string) => {
     const routeSuffix = routeName.split('.')[1]; // Extract 'stats', 'settings', etc.
     return currentRoute.value === `agents/${routeSuffix.charAt(0).toUpperCase() + routeSuffix.slice(1)}`;
 };
+
+// Watch for changes to agent.is_active and make API call
+watch(() => props.agent.is_active, (newValue, oldValue) => {
+    // Only make API call if the value actually changed and it's not the initial load
+    if (oldValue !== undefined && newValue !== oldValue) {
+        isToggling.value = true;
+        
+        router.patch(route('agents.activity', {
+            agent: props.agent.id,
+            is_active: newValue
+        }), {}, {
+            onSuccess: () => {
+                isToggling.value = false;
+            },
+            onError: () => {
+                // Revert the change on error
+                props.agent.is_active = oldValue;
+                isToggling.value = false;
+            }
+        });
+    }
+});
 </script>
 
 <template>
@@ -154,26 +154,26 @@ const isActiveRoute = (routeName: string) => {
                                     </span>
                                 </div>
 
-                                <!-- Public/Private Status -->
+                                <!-- Public/Protected Status -->
                                 <div class="flex items-center gap-1.5">
                                     <component
-                                        :is="agent.is_public ? Eye : EyeOff"
+                                        :is="agent.is_public ? Eye : Lock"
                                         class="h-4 w-4"
                                         :class="[
                                             agent.is_public
-                                                ? 'text-green-500'
-                                                : 'text-red-500'
+                                                ? 'text-red-500'
+                                                : 'text-green-500'
                                         ]"
                                     />
                                     <span
                                         class="text-sm font-medium"
                                         :class="[
                                             agent.is_public
-                                                ? 'text-green-500'
-                                                : 'text-red-500'
+                                                ? 'text-red-500'
+                                                : 'text-green-500'
                                         ]"
                                     >
-                                        {{ agent.is_public ? 'Public' : 'Private' }}
+                                        {{ agent.is_public ? 'Public' : 'Protected' }}
                                     </span>
                                 </div>
                             </div>
@@ -181,34 +181,18 @@ const isActiveRoute = (routeName: string) => {
 
                         <div class="flex flex-wrap items-center gap-3">
                             <!-- Active/Inactive Toggle -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-muted-foreground whitespace-nowrap font-bold">
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm font-medium text-foreground whitespace-nowrap">
                                     {{ agent.is_active ? 'Accessible' : 'Inaccessible' }}
                                 </span>
-                                <Button
-                                    @click="toggleAgentStatus"
-                                    :disabled="isToggling"
-                                    variant="outline"
-                                    size="sm"
-                                    class="gap-1.5 h-8 px-3 border"
-                                    :class="[
-                                        agent.is_active
-                                            ? 'border-red-500 text-red-500 hover:bg-red-50 bg-transparent'
-                                            : 'border-green-500 bg-green-500 text-white hover:bg-green-600'
-                                    ]"
-                                >
-                                    <component
-                                        :is="agent.is_active ? PowerOff : Power"
-                                        class="h-3.5 w-3.5"
-                                        :class="[
-                                            agent.is_active
-                                                ? 'animate-pulse'
-                                                : ''
-                                        ]"
+                                <div class="flex items-center gap-2">
+                                    <Switch
+                                        v-model="agent.is_active"
+                                        :disabled="isToggling"
+                                        class="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-200"
                                     />
-                                    {{ agent.is_active ? 'Disable' : 'Enable' }}
-                                    <LoaderCircle v-if="isToggling" class="h-3.5 w-3.5 animate-spin" />
-                                </Button>
+                                    <LoaderCircle v-if="isToggling" class="h-4 w-4 animate-spin text-muted-foreground" />
+                                </div>
                             </div>
 
                             <Button

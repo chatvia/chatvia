@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Billing;
+namespace App\Http\Controllers\Billing\Checkout;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Laravel\Cashier\SubscriptionBuilder;
 
@@ -16,22 +17,24 @@ class CheckoutController
             return to_route('dashboard');
         }
 
-        $packages = config('billing.packages');
+        $plans = config('billing.packages');
 
-        if (! isset($packages[$package])) {
+        if (! isset($plans[$package])) {
             return to_route('dashboard');
         }
 
-        $stripePriceId = $yearly ? $packages[$package]['stripe_monthly_price_id'] : $packages[$package]['stripe_yearly_price_id'];
+        /** @var User $user */
+        $user = $request->user();
+
+        $stripePriceId = $yearly ? $plans[$package]['stripe_monthly_price_id'] : $plans[$package]['stripe_yearly_price_id'];
 
         return $request
             ->user()
             ->newSubscription(type: 'default', prices: $stripePriceId)
             ->withMetadata([
-                'package' => $package,
+                'from_package' => $user->plan,
+                'to_package' => $package,
                 'is_yearly' => $yearly,
-                'from_package' => '',
-                'to_package' => '',
             ])
             ->when(config('billing.trial.days') !== 0, function (SubscriptionBuilder $subscription) {
                 $subscription->trialDays(config('billing.trial.days'));

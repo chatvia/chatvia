@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Billing;
+namespace App\Http\Controllers\Billing\Subscriptions;
 
 use Illuminate\Http\Request;
 
-class ResumeSubscriptionController
+class BillingSubscriptionResumeController
 {
     public function __invoke(Request $request)
     {

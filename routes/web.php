@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Billing\SubscriptionWebhook;
 use App\Http\Controllers\ConsentController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,12 +11,8 @@ Route::get('/', function () {
 Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show');
 Route::post('/consent', [ConsentController::class, 'store'])->name('consent.store');
 
-Route::post('/webhooks/subscription', SubscriptionWebhook::class)->name('subscription.webhook');
-
 Route::get('/test', function () {
-    $user = \App\Models\User::first();
-
-    dd($user->remaining_pages);
+    $user = \App\Models\User::find(1);
 });
 
 require __DIR__.'/dashboard.php';

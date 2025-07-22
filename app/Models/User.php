@@ -28,6 +28,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $guarded = ['id'];
 
+    protected $appends = ['plan'];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -249,5 +251,10 @@ class User extends Authenticatable implements MustVerifyEmail
             'id',               // Local key on users table (users.id)
             'id'          // Local key on agents table (agents.id)
         );
+    }
+
+    public function plan(): Attribute
+    {
+        return Attribute::get(fn () => $this->getCurrentPackage()['id']);
     }
 }

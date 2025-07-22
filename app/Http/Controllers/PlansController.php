@@ -7,7 +7,7 @@ use App\Support\Billing;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class PackagesController
+class PlansController
 {
     public function __invoke(Request $request, Billing $billing)
     {
@@ -19,7 +19,7 @@ class PackagesController
 
         $llms = Llm::query()->select(['descriptive_name', 'icon', 'requires_paid_plan'])->get();
 
-        return Inertia::render('billing/Packages', [
+        return Inertia::render('billing/Plans', [
             'packages' => $billing->getAvailablePackages(),
             'addons' => $addons,
             'currentPackage' => $currentPackage['id'],

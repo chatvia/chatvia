@@ -25,9 +25,7 @@ class BillingSubscriptionChangeController
         }
 
         if ($requestedPackage === 'free') {
-            $user->subscription()?->cancel();
-
-            return to_route('billing.index');
+            return to_route('billing.index')->with('error', 'You cannot downgrade to the free plan. Please cancel your subscription from the billing page if you want to stop your subscription at the end of your billing cycle.');
         }
 
         $package = $billing->getPackageByName(
@@ -39,5 +37,7 @@ class BillingSubscriptionChangeController
         $priceId = $isYearly === 0 ? $package['stripe_monthly_price_id'] : $package['stripe_yearly_price_id'];
 
         $user->subscription()?->swap($priceId);
+
+        return to_route('billing.index')->with('success', 'Your subscription plan has been updated successfully!');
     }
 }

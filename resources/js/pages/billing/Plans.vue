@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
-import axios from 'axios';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -172,25 +171,21 @@ const subscribeToPlan = (packageId: string) => {
     window.location.href = route('checkout', { package: packageId, yearly: isYearly.value });
 };
 
-const changeSubscription = async (packageId: string) => {
-    try {
-        isSubscribing.value = true;
-        subscribingPackage.value = packageId;
+const changeSubscription = (packageId: string) => {
+    isSubscribing.value = true;
+    subscribingPackage.value = packageId;
 
-        await axios.post(route('billing.subscription.change'), {
-            package: packageId,
-            is_yearly: isYearly.value
-        }).then(() => {
-            window.location.reload();
-        });
+    const form = useForm({
+        package: packageId,
+        is_yearly: isYearly.value
+    });
 
-    } catch (error) {
-        console.error('Subscription change error:', error);
-        // Handle error (you might want to show a toast notification)
-    } finally {
-        isSubscribing.value = false;
-        subscribingPackage.value = '';
-    }
+    form.post(route('billing.subscription.change'), {
+        onFinish: () => {
+            isSubscribing.value = false;
+            subscribingPackage.value = '';
+        }
+    });
 };
 
 // Determine if a package is an upgrade or downgrade
@@ -504,11 +499,11 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                                 class="flex items-start gap-2"
                                             >
                                                 <Check class="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                                                <span 
+                                                <span
                                                     :class="[
                                                         'text-sm leading-relaxed',
-                                                        (index === 0 && (String(packageKey) === 'free' || String(packageKey) === 'starter')) 
-                                                            ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer underline decoration-dotted underline-offset-2' 
+                                                        (index === 0 && (String(packageKey) === 'free' || String(packageKey) === 'starter'))
+                                                            ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer underline decoration-dotted underline-offset-2'
                                                             : ''
                                                     ]"
                                                     @click="handleFeatureClick(feature, index, String(packageKey))"
@@ -645,7 +640,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                         Choose from our comprehensive selection of state-of-the-art language models
                     </DialogDescription>
                 </DialogHeader>
-                
+
                 <div class="grid gap-3 mt-4 max-h-96 overflow-y-auto">
                     <div
                         v-for="llm in currentLLMs"
@@ -653,7 +648,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                         class="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
                         <div class="w-8 h-8 flex-shrink-0">
-                            <img 
+                            <img
                                 :src="`/images/llms/${llm.icon}`"
                                 :alt="llm.name"
                                 class="w-full h-full object-contain"
@@ -664,7 +659,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                             <div class="font-medium text-sm">{{ llm.name }}</div>
                         </div>
                     </div>
-                    
+
                     <div v-if="currentLLMs.length === 0" class="text-center py-8 text-muted-foreground">
                         <Bot class="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p>No models available</p>

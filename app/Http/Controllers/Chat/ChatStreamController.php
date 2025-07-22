@@ -51,7 +51,6 @@ class ChatStreamController
 
     private bool $playground = false;
 
-
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly KnowledgeBase $knowledgeBase) {}
@@ -248,7 +247,7 @@ class ChatStreamController
                     }
                 }
 
-                ++$n;
+                $n++;
             }
         }
 
@@ -271,7 +270,6 @@ class ChatStreamController
             if (isset($json['choices'][0]['delta']['content'])) {
                 $content = $json['choices'][0]['delta']['content'];
                 $this->streamedMessage .= $content;
-
 
                 $messagePayload = ['content' => $content];
 

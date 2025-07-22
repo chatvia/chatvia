@@ -43,6 +43,7 @@ class Agent extends Model
             $operationId = null;
 
             $agentFile = $this->files()->create(array_merge([
+                'user_id' => $this->user_id,
                 'name' => $file->getClientOriginalName(),
                 'path' => $path,
                 'size_in_kb' => round($file->getSize() / 1024),
@@ -95,6 +96,11 @@ class Agent extends Model
     public function isKnowledgeable(): bool
     {
         return $this->type === 'knowledge';
+    }
+
+    public function isInstruction(): bool
+    {
+        return $this->type === 'instruction';
     }
 
     public function stats(): Stats

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Llm;
 use App\Support\Billing;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,6 +17,8 @@ class PackagesController
             return array_merge($addon, ['id' => $key]);
         })->values();
 
+        $llms = Llm::query()->select(['descriptive_name', 'icon', 'requires_paid_plan'])->get();
+
         return Inertia::render('billing/Packages', [
             'packages' => $billing->getAvailablePackages(),
             'addons' => $addons,
@@ -28,6 +31,13 @@ class PackagesController
                 'currencySymbol' => config('billing.currency_symbol'),
                 'trial' => config('billing.trial'),
             ],
+            'llms' => $llms->map(function ($llm) {
+                return [
+                    'name' => $llm->descriptive_name,
+                    'icon' => $llm->icon,
+                    'paid' => $llm->requires_paid_plan,
+                ];
+            }),
         ]);
     }
 }

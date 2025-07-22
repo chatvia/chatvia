@@ -50,6 +50,73 @@ class Billing
         return config('billing.packages');
     }
 
+    /**
+     * Get capabilities for a specific package
+     */
+    public static function getCapabilitiesForPackage(string $packageKey): array
+    {
+        $packages = static::getPackages();
+        return $packages[$packageKey]['capabilities'] ?? [];
+    }
+
+    /**
+     * Check if a package has a specific capability
+     */
+    public static function packageHasCapability(string $packageKey, string $capability): bool
+    {
+        $capabilities = static::getCapabilitiesForPackage($packageKey);
+        
+        if (!isset($capabilities[$capability])) {
+            return false;
+        }
+
+        $value = $capabilities[$capability];
+
+        // Handle boolean capabilities
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        // Handle string capabilities
+        if (is_string($value)) {
+            return $value !== false && $value !== 'false' && $value !== '';
+        }
+
+        // Handle numeric capabilities
+        if (is_numeric($value)) {
+            return $value > 0;
+        }
+
+        // Handle array capabilities
+        if (is_array($value)) {
+            return !empty($value);
+        }
+
+        return !empty($value);
+    }
+
+    /**
+     * Get UI features for a specific package and billing cycle
+     */
+    public static function getFeaturesForPackage(string $packageKey, bool $isYearly = false): array
+    {
+        $packages = static::getPackages();
+        $featuresConfig = $packages[$packageKey]['features'] ?? [];
+        
+        $billingCycle = $isYearly ? 'yearly' : 'monthly';
+        return $featuresConfig[$billingCycle] ?? $featuresConfig['monthly'] ?? [];
+    }
+
+    /**
+     * Get comparison features with their capability mappings
+     */
+    public static function getComparisonFeatures(): array
+    {
+        return config('billing.comparison_features', []);
+    }
+
+
+
     public function getAvailablePackages(): Collection
     {
         $packages = config('billing.packages');
@@ -60,6 +127,11 @@ class Billing
                 'monthly_price_formatted' => $this->formatPrice($package['monthly_price']),
                 'yearly_price_formatted' => $this->formatPrice($package['yearly_price']),
                 'monthly_savings' => $this->calculateSavings($package['monthly_price'], $package['yearly_price']),
+                // Ensure capabilities are explicitly passed through
+                'capabilities' => $package['capabilities'] ?? [],
+                // Include both monthly and yearly features
+                'features_monthly' => $package['features']['monthly'] ?? [],
+                'features_yearly' => $package['features']['yearly'] ?? [],
             ]);
         });
     }
@@ -112,6 +184,7 @@ class Billing
                 'key' => $key,
                 'name' => $feature['name'],
                 'description' => $feature['description'],
+                'capability_key' => $feature['capability_key'],
             ];
         })->toArray();
     }

@@ -83,41 +83,112 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->subscribed('default') || $this->onTrial();
     }
 
-    public function canAccessFeature(string $feature, $value = null): bool
+    /**
+     * Check if user has a specific capability
+     */
+    public function hasCapability(string $capability): bool
     {
         $packageConfig = $this->getPackageConfig();
-        $limits = $packageConfig['limits'] ?? [];
+        $capabilities = $packageConfig['capabilities'] ?? [];
 
-        if (! isset($limits[$feature])) {
-            return true; // No limit defined means unlimited access
+        if (!isset($capabilities[$capability])) {
+            return false;
         }
 
-        $limit = $limits[$feature];
+        $value = $capabilities[$capability];
 
-        // If limit is 'unlimited', allow access
-        if ($limit === 'unlimited') {
+        // Handle boolean capabilities
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        // Handle string capabilities (like support levels)
+        if (is_string($value)) {
+            return $value !== false && $value !== 'false' && $value !== '';
+        }
+
+        // Handle numeric capabilities (greater than 0 means enabled)
+        if (is_numeric($value)) {
+            return $value > 0;
+        }
+
+        // Handle array capabilities (non-empty means enabled)
+        if (is_array($value)) {
+            return !empty($value);
+        }
+
+        // For 'unlimited' string or other truthy values
+        return !empty($value);
+    }
+
+    /**
+     * Get the value of a specific capability
+     */
+    public function getCapability(string $capability, $default = null)
+    {
+        $packageConfig = $this->getPackageConfig();
+        $capabilities = $packageConfig['capabilities'] ?? [];
+
+        return $capabilities[$capability] ?? $default;
+    }
+
+    /**
+     * Check if capability allows a specific value/amount
+     */
+    public function capabilityAllows(string $capability, $value = null): bool
+    {
+        $capabilityValue = $this->getCapability($capability);
+
+        if ($capabilityValue === null || $capabilityValue === false) {
+            return false;
+        }
+
+        // If no specific value to check, just check if capability exists
+        if ($value === null) {
+            return $this->hasCapability($capability);
+        }
+
+        // Handle 'unlimited' capability
+        if ($capabilityValue === 'unlimited') {
             return true;
         }
 
-        // If it's an array (like models), check if value is in the array
-        if (is_array($limit)) {
-            return $value === null || in_array($value, $limit);
+        // Handle array capabilities (check if value is in allowed array)
+        if (is_array($capabilityValue)) {
+            return in_array($value, $capabilityValue);
         }
 
-        // If value is provided, check if it's within the limit
-        if ($value !== null) {
-            return $value <= $limit;
+        // Handle numeric capabilities (check if value is within limit)
+        if (is_numeric($capabilityValue) && is_numeric($value)) {
+            return $value <= $capabilityValue;
         }
 
-        // Otherwise, just return if the feature exists
-        return true;
+        // Handle string capabilities (exact match or level comparison)
+        if (is_string($capabilityValue)) {
+            return $capabilityValue === $value;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get all capabilities for this user's plan
+     */
+    public function getAllCapabilities(): array
+    {
+        $packageConfig = $this->getPackageConfig();
+        return $packageConfig['capabilities'] ?? [];
+    }
+
+    // Legacy methods for backward compatibility
+    public function canAccessFeature(string $feature, $value = null): bool
+    {
+        return $this->capabilityAllows($feature, $value);
     }
 
     public function getFeatureLimit(string $feature)
     {
-        $packageConfig = $this->getPackageConfig();
-
-        return $packageConfig['limits'][$feature] ?? null;
+        return $this->getCapability($feature);
     }
 
     public function cancelSubscription(): void
@@ -125,14 +196,19 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->subscription()?->cancel();
     }
 
+    public function quotas(): HasMany
+    {
+        return $this->hasMany(UserQuota::class);
+    }
+
     public function quota(): HasOne
     {
-        return $this->hasOne(UserQuota::class);
+        return $this->hasOne(UserQuota::class)->latestOfMany('billing_period_ends_at');
     }
 
     public function remainingPages(): Attribute
     {
-        return Attribute::get(fn () => $this->quote->pages_limit - $this->quote->pages_used);
+        return Attribute::get(fn () => $this->quota->pages_limit - $this->quota->pages_used);
     }
 
     public function formattedLlms()

@@ -20,13 +20,13 @@ class AgentMembersListController
                 'id' => $member->id,
                 'name' => $member->name,
                 'email' => $member->email,
-                'invitation_accepted_at' => $member->invitation_accepted_at,
+                'email_verified_at' => $member->email_verified_at,
                 'agents' => $member->agents->pluck('url', 'id')->toArray(),
             ];
         });
 
         return $agent->members()->get()->collect()->map(function ($member) {
-            return $member->only(['id', 'name', 'email', 'invitation_accepted_at']);
+            return $member->only(['id', 'name', 'email', 'email_verified_at']);
         });
     }
 }

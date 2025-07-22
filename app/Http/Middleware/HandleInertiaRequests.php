@@ -25,7 +25,7 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
-                'member' => $request->user('member'),
+                //                'member' => $request->user('member'),
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
@@ -36,18 +36,12 @@ class HandleInertiaRequests extends Middleware
             'subscribed' => $request->user()?->subscribed(),
             'onTrial' => $request->user()?->onTrial(),
             'schema' => $request->getScheme(),
-            'quote' => $request->user()?->quote,
+            'quota' => $request->user()?->quota,
             'environment' => app()->environment(),
 
             'domain' => $request->domain(),
             'subdomain' => $request->subdomain(),
         ];
-
-        if ($subDomain) {
-            $data['models'] = collect(config('llms'))->map(fn ($model) => $this->transformModel($model))->toArray();
-            //                'defaultModel' => $this->transformModel(config('llms.0')),
-
-        }
 
         return $data;
     }

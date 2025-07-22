@@ -10,6 +10,8 @@ class AgentKnowledgeController
 {
     public function __invoke(Request $request, Agent $agent)
     {
-        return Inertia::render('agents/Knowledge', ['agent' => $agent]);
+        return Inertia::render('agents/Knowledge', [
+            'agent' => $agent,
+        ]);
     }
 }

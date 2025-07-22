@@ -63,7 +63,7 @@ const filteredMembers = computed(() => {
     // Apply search filter
     if (searchQuery.value.trim()) {
         const query = searchQuery.value.toLowerCase();
-        filtered = filtered.filter(member => 
+        filtered = filtered.filter(member =>
             member.name.toLowerCase().includes(query) ||
             member.email.toLowerCase().includes(query)
         );
@@ -264,7 +264,7 @@ const cancelDelete = () => {
                                     class="w-full sm:w-64"
                                 />
                             </div>
-                            
+
                             <!-- Access Filter -->
                             <Select v-model="accessFilter">
                                 <SelectTrigger class="w-full sm:w-48">
@@ -277,7 +277,7 @@ const cancelDelete = () => {
                                 </SelectContent>
                             </Select>
                         </div>
-                        
+
                         <Button @click="openInviteDialog" variant="outline" class="gap-2 w-full sm:w-auto">
                             <PlusCircle class="h-4 w-4" />
                             Invite Member
@@ -322,11 +322,11 @@ const cancelDelete = () => {
                                             <span
                                                 class="text-xs px-2 py-0.5 rounded-full"
                                                 :class="{
-                                                    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': member.invitation_accepted_at,
-                                                    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400': !member.invitation_accepted_at
+                                                    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': member.email_verified_at,
+                                                    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400': !member.email_verified_at
                                                 }"
                                             >
-                                                {{ member.invitation_accepted_at ? 'Active' : 'Pending' }}
+                                                {{ member.email_verified_at ? 'Active' : 'Pending' }}
                                             </span>
                                             <!-- Access indicator -->
                                             <span
@@ -367,7 +367,7 @@ const cancelDelete = () => {
                                     </Button>
                                     <!-- Grant access button (only if member does not have access AND has verified their account) -->
                                     <Button
-                                        v-else-if="member.invitation_accepted_at"
+                                        v-else-if="member.email_verified_at"
                                         @click="grantAccess(member)"
                                         variant="outline"
                                         size="sm"

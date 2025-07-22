@@ -26,7 +26,7 @@ class AgentMembersInvitationAcceptController
                 'name' => $request->input('name'),
                 'password' => Hash::make($request->input('password')),
                 'verification_token' => null,
-                'invitation_accepted_at' => now(),
+                'email_verified_at' => now(),
             ]
         );
 

@@ -63,8 +63,26 @@ const cancelForm = useForm({
 
 const resumeForm = useForm({});
 
-const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toDateString();
+const formatDate = (timestamp: number | string | null | undefined) => {
+    if (!timestamp || timestamp === 0) return 'N/A';
+    
+    let ts: number;
+    
+    // Convert to number if it's a string
+    if (typeof timestamp === 'string') {
+        ts = parseInt(timestamp);
+        if (isNaN(ts)) return 'N/A';
+    } else {
+        ts = timestamp;
+    }
+    
+    // Handle both seconds and milliseconds timestamps
+    const date = new Date(ts > 1000000000000 ? ts : ts * 1000);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) return 'N/A';
+    
+    return date.toDateString();
 };
 
 const getStatusBadgeVariant = (status: string) => {
@@ -210,7 +228,7 @@ const resumeSubscription = () => {
                                 </div>
 
                                 <!-- Subscription Status -->
-                                <div v-if="on_trial" class="space-y-4">
+                                <div v-if="subscribed || on_trial" class="space-y-4">
                                     <Separator />
 
                                     <div class="flex items-center justify-between">

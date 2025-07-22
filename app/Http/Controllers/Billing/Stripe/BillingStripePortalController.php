@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Billing;
+namespace App\Http\Controllers\Billing\Stripe;
 
 use Illuminate\Http\Request;
 
-class StripePortalController
+class BillingStripePortalController
 {
     public function __invoke(Request $request)
     {

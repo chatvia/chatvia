@@ -1,16 +1,19 @@
 <?php
 
-use App\Http\Controllers\Billing\AddPaymentMethodController;
 use App\Http\Controllers\Billing\BillingController;
-use App\Http\Controllers\Billing\CancelSubscriptionController;
-use App\Http\Controllers\Billing\ChangeSubscriptionController;
-use App\Http\Controllers\Billing\CheckoutController;
-use App\Http\Controllers\Billing\CheckoutFailureController;
-use App\Http\Controllers\Billing\PaymentMethodsController;
-use App\Http\Controllers\Billing\ResumeSubscriptionController;
-use App\Http\Controllers\Billing\StripePortalController;
+use App\Http\Controllers\Billing\BillingPaymentMethodAddController;
+use App\Http\Controllers\Billing\BillingUpdateInformationController;
+use App\Http\Controllers\Billing\Checkout\CheckoutController;
+use App\Http\Controllers\Billing\Checkout\CheckoutFailureController;
+use App\Http\Controllers\Billing\Payments\BillingPaymentMethodsController;
+use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDefaultController;
+use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDeleteController;
+use App\Http\Controllers\Billing\Stripe\BillingStripePortalController;
+use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionCancelController;
+use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionChangeController;
+use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionResumeController;
 use App\Http\Controllers\InvoicesController;
-use App\Http\Controllers\PackagesController;
+use App\Http\Controllers\PlansController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('checkout', CheckoutController::class)
@@ -25,45 +28,25 @@ Route::middleware(['auth', 'verified'])->prefix('billing')->name('billing.')->gr
     Route::get('/', BillingController::class)->name('index');
 
     // Package selection
-    Route::get('/packages', PackagesController::class)->name('packages');
+    Route::get('/plans', PlansController::class)->name('packages');
 
-    Route::post('/cancel', CancelSubscriptionController::class)->name('cancel');
+    // Subscription management
+    Route::post('/subscriptions/change', BillingSubscriptionChangeController::class)->name('subscription.change');
+    Route::post('/subscription/cancel', BillingSubscriptionCancelController::class)->name('cancel');
+    Route::post('/subscription/resume', BillingSubscriptionResumeController::class)->name('resume');
 
-    Route::post('/resume', ResumeSubscriptionController::class)->name('resume');
-
-    Route::get('/portal', StripePortalController::class)->name('portal');
+    Route::get('/portal', BillingStripePortalController::class)->name('portal');
 
     Route::get('/invoices', InvoicesController::class)->name('invoices');
 
-    Route::get('/payment-methods', PaymentMethodsController::class)->name('payment-methods');
-
-    Route::get('/payment-methods/create', AddPaymentMethodController::class)->name('payment-methods.create');
-
-    Route::post('/subscription/change', ChangeSubscriptionController::class)->name('subscription.change');
+    // Payment method management
+    Route::get('/payments', BillingPaymentMethodsController::class)->name('payment-methods');
+    Route::get('/payments/create', BillingPaymentMethodAddController::class)->name('payment-methods.create');
 
     // Payment method management
-    Route::delete('/payment-method/remove', [BillingController::class, 'removePaymentMethod'])->name('payment-method.remove');
-    Route::post('/payment-method/default', [BillingController::class, 'setDefaultPaymentMethod'])->name('payment-method.default');
+    Route::delete('/payments', BillingPaymentMethodDeleteController::class)->name('payment-method.remove');
+    Route::post('/payments/default', BillingPaymentMethodDefaultController::class)->name('payment-method.default');
 
     // Billing information management
-    Route::patch('/information/update', [BillingController::class, 'updateBillingInformation'])->name('information.update');
-
-    // Subscription management
-    //    Route::post('/subscribe', [BillingController::class, 'subscribe'])->name('subscribe');
-    //    Route::get('/success', [BillingController::class, 'success'])->name('success');
-    //    Route::post('/cancel', [BillingController::class, 'cancelSubscription'])->name('cancel');
-    //    Route::post('/resume', [BillingController::class, 'resumeSubscription'])->name('resume');
-    //
-    //    // Trial management
-    //    Route::post('/trial/start', [BillingController::class, 'startTrial'])->name('trial.start');
-    //
-    //    // Payment methods
-    //    Route::get('/payment-methods', [BillingController::class, 'paymentMethods'])->name('payment-methods');
-    //    Route::post('/payment-method/update', [BillingController::class, 'updatePaymentMethod'])->name('payment-method.update');
-    //    Route::delete('/payment-method/remove', [BillingController::class, 'removePaymentMethod'])->name('payment-method.remove');
-    //    Route::post('/payment-method/default', [BillingController::class, 'setDefaultPaymentMethod'])->name('payment-method.default');
-    //
-    //    // Invoices
-    //    Route::get('/invoices', [BillingController::class, 'invoices'])->name('invoices');
-    //    Route::get('/invoice/{invoiceId}/download', [BillingController::class, 'downloadInvoice'])->name('invoice.download');
+    Route::patch('/info', BillingUpdateInformationController::class)->name('information.update');
 });

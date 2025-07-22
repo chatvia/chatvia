@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Billing;
+namespace App\Http\Controllers\Billing\Payments;
 
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class PaymentMethodsController
+class BillingPaymentMethodsController
 {
     public function __invoke(Request $request)
     {

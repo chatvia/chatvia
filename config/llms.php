@@ -48,7 +48,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
-    ],[
+    ], [
         'internal_name' => 'openai/o4-mini-high',
         'external_name' => 'o4-mini',
         'descriptive_name' => 'o4 Mini',

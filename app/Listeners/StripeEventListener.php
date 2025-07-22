@@ -20,8 +20,7 @@ class StripeEventListener
             $isYearly = (bool) $metadata['is_yearly'];
             $package = $metadata['package'];
 
-
-            $period = $isYearly? 'yearly' :'monthly';
+            $period = $isYearly ? 'yearly' : 'monthly';
 
             $fromPackage = $metadata['from_package'];
             $toPackage = $metadata['to_package'];

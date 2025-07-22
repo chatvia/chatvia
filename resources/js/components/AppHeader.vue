@@ -17,7 +17,7 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem, Auth } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search, BotMessageSquare, CreditCard, Zap, Database } from 'lucide-vue-next';
+import { LayoutGrid, Menu, BotMessageSquare, CreditCard, Zap, Database } from 'lucide-vue-next';
 import { computed } from 'vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 
@@ -32,7 +32,32 @@ const props = withDefaults(defineProps<Props>(), {
 const page = usePage();
 const auth = computed(() => page.props.auth as Auth);
 
-const isCurrentRoute = computed(() => (url: string) => page.url === url);
+const isCurrentRoute = computed(() => (url: string) => {
+    const currentUrl = page.url;
+
+    // Extract pathname from both URLs to handle absolute vs relative URLs
+    const getCurrentPath = (fullUrl: string) => {
+        try {
+            return new URL(fullUrl, window.location.origin).pathname;
+        } catch {
+            return fullUrl.startsWith('/') ? fullUrl : '/' + fullUrl;
+        }
+    };
+
+    const currentPath = getCurrentPath(currentUrl);
+    const targetPath = getCurrentPath(url);
+
+    // Exact match
+    if (currentPath === targetPath) return true;
+
+    // For sub-routes, check if current path starts with the menu path
+    // But exclude dashboard to avoid false positives
+    if (targetPath !== '/' && targetPath !== '/dashboard' && currentPath.startsWith(targetPath)) {
+        return true;
+    }
+
+    return false;
+});
 
 const activeItemStyles = computed(
     () => (url: string) => (isCurrentRoute.value(url) ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100' : ''),
@@ -61,8 +86,7 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const rightNavItems: NavItem[] = [
-];
+const rightNavItems: NavItem[] = [];
 </script>
 
 <template>

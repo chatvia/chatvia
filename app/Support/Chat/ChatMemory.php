@@ -452,8 +452,6 @@ class ChatMemory
 
     public function getConversationById(string $conversationId)
     {
-        $conversations = collect($this->getConversationsForCurrentSession(true));
-
-        return $conversations->firstWhere('id', $conversationId);
+        return collect($this->getConversationsForCurrentSession(true))->firstWhere('id', $conversationId);
     }
 }

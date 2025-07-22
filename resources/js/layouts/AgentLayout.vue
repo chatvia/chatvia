@@ -34,6 +34,7 @@ import {
     Eye,
     EyeOff,
     Brain,
+    Copy,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
@@ -131,6 +132,18 @@ watch(() => props.agent.is_active, (newValue, oldValue) => {
         });
     }
 });
+
+// Copy agent URL to clipboard
+const copyAgentUrl = async () => {
+    try {
+        const agentUrl = `${props.agent.url}/chat`;
+        await navigator.clipboard.writeText(agentUrl);
+        toast.success('Agent URL copied to clipboard!');
+    } catch (error) {
+        console.error('Failed to copy URL:', error);
+        toast.error('Failed to copy URL. Please try again.');
+    }
+};
 </script>
 
 <template>
@@ -205,6 +218,16 @@ watch(() => props.agent.is_active, (newValue, oldValue) => {
                                 <Bot class="h-4 w-4" />
                                 View Agent
                                 <ChevronRight class="h-4 w-4" />
+                            </Button>
+                            
+                            <Button
+                                @click="copyAgentUrl"
+                                variant="outline"
+                                size="sm"
+                                class="gap-2"
+                            >
+                                <Copy class="h-4 w-4" />
+                                Copy
                             </Button>
                         </div>
                     </div>

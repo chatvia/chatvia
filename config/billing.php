@@ -186,9 +186,9 @@ return [
                     'agents_knowledge_limit' => 2,
                 ],
                 'yearly' => [
-                    'pages_limit' => 600, // 20% bonus for yearly
-                    'minutes_limit' => 360,
-                    'messages_limit' => 1200,
+                    'pages_limit' => 7000,
+                    'minutes_limit' => 4000,
+                    'messages_limit' => 13000,
                     'agents_instruction_limit' => 2,
                     'agents_knowledge_limit' => 2,
                 ],

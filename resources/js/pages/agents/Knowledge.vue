@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play } from 'lucide-vue-next';
+import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play, Zap } from 'lucide-vue-next';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Badge } from '@/components/ui/badge';
@@ -16,15 +16,13 @@ import FileUploader from '@/components/FileUploader.vue';
 import type { UploadingFileData as BaseUploadingFileData, FileUploaderConfig } from '@/composables/useFileUploader';
 
 import { usePage } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 
 const page = usePage();
 
 interface Props {
     agent: any
-    quota: {
-        pages_used: number
-        pages_limit: number
-    }
+    // Removed quota and usage props - will fetch from API
 }
 
 interface KnowledgeFile {
@@ -55,6 +53,14 @@ interface UploadingFileData extends BaseUploadingFileData {
     uploadedFile?: UploadedFile;
 }
 
+// Usage data interface
+interface UsageData {
+    pages: {
+        limit: number;
+        used: number;
+    };
+}
+
 // Constants
 const maxFilesToUpload = 20;
 
@@ -65,6 +71,15 @@ const uploadingFiles = ref<UploadingFileData[]>([]);
 const fileUploaderRef = ref<InstanceType<typeof FileUploader> | null>(null);
 const knowledgeFiles = ref<KnowledgeFile[]>([]);
 const uploadedFiles = ref<UploadedFile[]>([]);
+
+// Usage data state
+const usageData = ref<UsageData>({
+    pages: {
+        limit: 0,
+        used: 0
+    }
+});
+const isLoadingUsage = ref(false);
 
 // File uploader configuration for Knowledge page
 const fileUploaderConfig: FileUploaderConfig = {
@@ -215,7 +230,7 @@ const hasFailedFiles = computed(() => {
 
 // Page quota computed properties
 const pagesRemaining = computed(() => {
-    return props.quota.pages_limit - props.quota.pages_used;
+    return usageData.value.pages.limit - usageData.value.pages.used;
 });
 
 const totalUploadedPages = computed(() => {
@@ -228,8 +243,8 @@ const wouldExceedQuota = computed(() => {
 });
 
 const quotaUtilization = computed(() => {
-    const used = props.quota.pages_used + totalUploadedPages.value;
-    return Math.min((used / props.quota.pages_limit) * 100, 100);
+    const used = usageData.value.pages.used + totalUploadedPages.value;
+    return Math.min((used / usageData.value.pages.limit) * 100, 100);
 });
 
 // Selection methods
@@ -492,11 +507,15 @@ const processAllFiles = async () => {
 
         // Refresh the knowledge files list to show processed files
         await fetchKnowledgeFiles();
+        // Refresh usage data since pages were consumed
+        await fetchUsageData();
     } catch (error) {
         console.error('Some files failed to process:', error);
 
         // Still refresh to show any successfully processed files
         await fetchKnowledgeFiles();
+        // Still refresh usage data in case some files were processed
+        await fetchUsageData();
     } finally {
         isProcessingFiles.value = false;
     }
@@ -652,12 +671,27 @@ watch(hasProcessingFiles, (hasProcessing) => {
 // Load files when component mounts
 onMounted(() => {
     fetchKnowledgeFiles();
+    fetchUsageData(); // Fetch usage data on mount
 });
 
 // Clean up interval when component unmounts
 onUnmounted(() => {
     stopRefreshInterval();
 });
+
+// Function to fetch usage data
+const fetchUsageData = async () => {
+    isLoadingUsage.value = true;
+    try {
+        const response = await axios.get(route('usage'));
+        usageData.value = response.data;
+    } catch (error) {
+        console.error('Error fetching usage data:', error);
+        toast.error('Failed to load usage data.');
+    } finally {
+        isLoadingUsage.value = false;
+    }
+};
 </script>
 
 <template>
@@ -669,19 +703,41 @@ onUnmounted(() => {
                 :config="fileUploaderConfig"
                 title="Upload New Documents"
                 description="Add documents to your agent's knowledge base. Supported formats: PDF, Word, Text"
-                :show-quota="true"
-                :quota-used="props.quota.pages_used"
-                :quota-limit="props.quota.pages_limit"
+                :show-quota="!isLoadingUsage"
+                :quota-used="totalUploadedPages"
+                :quota-limit="usageData.pages.limit"
                 @files-changed="(files) => uploadingFiles = files"
             />
 
-            <!-- PDF Note -->
-            <Alert>
-                <AlertCircle class="h-4 w-4" />
-                <AlertDescription>
-                    If you are uploading a PDF, make sure you can select/highlight the text.
-                </AlertDescription>
-            </Alert>
+            <!-- Important Notes and Warnings -->
+            <div class="space-y-3">
+                <!-- PDF Note -->
+                <Alert>
+                    <AlertCircle class="h-4 w-4" />
+                    <AlertDescription>
+                        <strong>PDF Tip:</strong> Ensure your PDF has selectable text (not scanned images).
+                    </AlertDescription>
+                </Alert>
+
+                <!-- Quota Exceeded -->
+                <Alert v-if="!isLoadingUsage && pagesRemaining <= 0" variant="destructive">
+                    <AlertCircle class="h-4 w-4" />
+                    <AlertDescription>
+                        Quota limit reached.
+                        <Link :href="route('billing.packages')" class="underline font-medium hover:no-underline text-white">
+                            Upgrade to upload more
+                        </Link>.
+                    </AlertDescription>
+                </Alert>
+
+                <!-- Loading Usage Data -->
+                <Alert v-if="isLoadingUsage">
+                    <LoaderCircle class="h-4 w-4 animate-spin" />
+                    <AlertDescription>
+                        Loading usage information...
+                    </AlertDescription>
+                </Alert>
+            </div>
 
             <!-- Uploaded files ready for processing -->
             <div v-if="uploadedFiles.length > 0" class="mt-4">

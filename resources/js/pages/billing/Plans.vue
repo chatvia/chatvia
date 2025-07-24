@@ -168,7 +168,7 @@ const getSavingsText = (pkg: Package) => {
 const subscribeToPlan = (packageId: string) => {
     isSubscribing.value = true;
     subscribingPackage.value = packageId;
-    window.location.href = route('checkout', { package: packageId, yearly: isYearly.value });
+    window.location.href = route('subscribe', { package: packageId, yearly: isYearly.value });
 };
 
 const changeSubscription = (packageId: string) => {

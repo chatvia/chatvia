@@ -2,12 +2,9 @@
 
 namespace App\Models;
 
-use App\Observers\ModelSettingObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-#[ObservedBy(ModelSettingObserver::class)]
 class ModelSetting extends Model
 {
     protected $guarded = ['id'];

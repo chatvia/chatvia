@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Billing\Checkout;
+namespace App\Http\Controllers\Billing\Subscriptions;
 
 use Illuminate\Http\Request;
 
-class CheckoutFailureController
+class SubscribeFailureController
 {
     public function __invoke(Request $request) {}
 }

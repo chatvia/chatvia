@@ -41,6 +41,11 @@ const lastScrollTop = ref(0);
 const scrollAnimationFrame = ref(null);
 const messageSources = ref(new Map()); // Store sources for each message
 
+// Usage checking
+const USAGE_CHECK_INTERVAL = 2000; // 2 seconds
+const canSendMessages = ref(true);
+const usageCheckInterval = ref(null);
+
 // Add reactive refs for models
 const models = ref([]);
 const defaultModel = ref(null);
@@ -108,6 +113,35 @@ const fetchAppearance = async () => {
         }
     } catch (error) {
         console.error('Failed to fetch appearance:', error);
+    }
+};
+
+// Function to check usage status
+const checkUsage = async () => {
+    try {
+        const response = await axios.get(route('chat.usage'));
+        canSendMessages.value = response.data.can_send_messages;
+    } catch (error) {
+        console.error('Failed to check usage:', error);
+        // On error, allow sending messages to prevent blocking the user
+        canSendMessages.value = true;
+    }
+};
+
+// Start periodic usage checking
+const startUsageChecking = () => {
+    // Check immediately
+    checkUsage();
+    
+    // Then check at regular intervals
+    usageCheckInterval.value = setInterval(checkUsage, USAGE_CHECK_INTERVAL);
+};
+
+// Stop periodic usage checking
+const stopUsageChecking = () => {
+    if (usageCheckInterval.value) {
+        clearInterval(usageCheckInterval.value);
+        usageCheckInterval.value = null;
     }
 };
 
@@ -197,6 +231,9 @@ onUnmounted(() => {
     if (scrollTimeout.value) clearTimeout(scrollTimeout.value);
     if (scrollAnimationFrame.value) cancelAnimationFrame(scrollAnimationFrame.value);
 
+    // Stop usage checking
+    stopUsageChecking();
+
     // Remove scroll listener
     if (messagesContainer.value) {
         messagesContainer.value.removeEventListener('scroll', handleChatScroll);
@@ -231,6 +268,9 @@ onMounted(async () => {
     if (messagesContainer.value) {
         messagesContainer.value.addEventListener('scroll', handleChatScroll, { passive: true });
     }
+
+    // Start usage checking
+    startUsageChecking();
 
     // Wait for models to be loaded before loading messages
     await Promise.all([fetchModels(), fetchAppearance()]);
@@ -595,7 +635,9 @@ const handleScrollToBottomClick = () => {
 
                 <div class="flex-shrink-0 border-t bg-background/95 backdrop-blur-sm">
                     <div class="mx-auto max-w-3xl px-4 py-4 sm:px-8">
+                        <!-- Show composer if user can send messages -->
                         <Composer
+                            v-if="canSendMessages"
                             :isThinking="isStreaming"
                             :models="models"
                             :defaultModel="defaultModel"
@@ -604,6 +646,19 @@ const handleScrollToBottomClick = () => {
                             @modelSelected="updateModel"
                             @stopStreaming="stopStreaming"
                         />
+                        
+                        <!-- Show limit message if user cannot send messages -->
+                        <div v-else class="flex items-center justify-center p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                            <div class="text-center">
+                                <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
+                                    You've reached your message limit
+                                </p>
+                                <p class="text-xs text-orange-600 dark:text-orange-300 mt-1">
+                                    Please upgrade your plan to continue chatting
+                                </p>
+                            </div>
+                        </div>
+                        
                         <div v-if="appearance.chat_footer_text" class="text-center mt-2">
                             <p class="text-xs text-muted-foreground">{{ appearance.chat_footer_text }}</p>
                         </div>

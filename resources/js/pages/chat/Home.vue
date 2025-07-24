@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import axios from "axios";
 import {Head, router} from '@inertiajs/vue3';
 import AppLayout from "@/components/chat/ChatLayout.vue";
@@ -12,6 +12,11 @@ const starters = ref([]);
 
 // Add loading state
 const isLoadingAppearance = ref(true);
+
+// Usage checking
+const USAGE_CHECK_INTERVAL = 60000; // 1 minute
+const canSendMessages = ref(true);
+const usageCheckInterval = ref(null);
 
 // Add reactive ref for appearance
 const appearance = ref({
@@ -43,7 +48,39 @@ const fetchAppearance = async () => {
     }
 };
 
+// Function to check usage status
+const checkUsage = async () => {
+    try {
+        const response = await axios.get(route('chat.usage'));
+        canSendMessages.value = response.data.can_send_messages;
+    } catch (error) {
+        console.error('Failed to check usage:', error);
+        // On error, allow sending messages to prevent blocking the user
+        canSendMessages.value = true;
+    }
+};
+
+// Start periodic usage checking
+const startUsageChecking = () => {
+    // Check immediately
+    checkUsage();
+    
+    // Then check at regular intervals
+    usageCheckInterval.value = setInterval(checkUsage, USAGE_CHECK_INTERVAL);
+};
+
+// Stop periodic usage checking
+const stopUsageChecking = () => {
+    if (usageCheckInterval.value) {
+        clearInterval(usageCheckInterval.value);
+        usageCheckInterval.value = null;
+    }
+};
+
 onMounted(() => {
+    // Start usage checking
+    startUsageChecking();
+    
     // Fetch both starters and appearance
     Promise.all([
         axios.get(route('chat.starters')).then(response => {
@@ -51,8 +88,12 @@ onMounted(() => {
         }),
         fetchAppearance()
     ]);
+});
 
-})
+onUnmounted(() => {
+    // Stop usage checking
+    stopUsageChecking();
+});
 
 function updateSelectedModel(newModel) {
   selectedModel.value = newModel;
@@ -111,11 +152,25 @@ function handleStarterClick(starter) {
                   </div>
 
                   <div class="mx-auto w-full px-2 sm:px-4">
+                      <!-- Show composer if user can send messages -->
                       <Composer
+                          v-if="canSendMessages"
                           :text="selectedStarter"
                           @modelSelected="updateSelectedModel"
                           @messageAdded="createNewConversation"
                       />
+                      
+                      <!-- Show limit message if user cannot send messages -->
+                      <div v-else class="flex items-center justify-center p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg max-w-md mx-auto">
+                          <div class="text-center">
+                              <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
+                                  You've reached your message limit
+                              </p>
+                              <p class="text-xs text-orange-600 dark:text-orange-300 mt-1">
+                                  Please upgrade your plan to continue chatting
+                              </p>
+                          </div>
+                      </div>
 
                       <!-- Loading skeleton for footer -->
                       <div v-if="isLoadingAppearance" class="text-center mt-4">

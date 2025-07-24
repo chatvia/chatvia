@@ -2,6 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Agent;
+use App\Models\AgentFile;
+use App\Models\ModelSetting;
+use App\Models\User;
+use App\Observers\AgentFileObserver;
+use App\Observers\AgentObserver;
+use App\Observers\ModelSettingObserver;
+use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,9 +36,7 @@ class AppServiceProvider extends ServiceProvider
 
             preg_match('/([a-z0-9\-]+\.[a-z]{2,})$/i', $host, $matches);
 
-            $host = $matches[1] ?? $host.($this->getPort() === 80 ? '' : ':'.$this->getPort());
-
-            return $host;
+            return $matches[1] ?? $host.($this->getPort() === 80 ? '' : ':'.$this->getPort());
         });
     }
 
@@ -40,5 +46,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //        Cashier::calculateTaxes();
+        User::observe(UserObserver::class);
+        Agent::observe(AgentObserver::class);
+        AgentFile::observe(AgentFileObserver::class);
+        ModelSetting::observe(ModelSettingObserver::class);
     }
 }

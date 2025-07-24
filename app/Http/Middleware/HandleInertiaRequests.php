@@ -38,11 +38,10 @@ class HandleInertiaRequests extends Middleware
                 'info' => $request->session()->get('info'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'chatSession' => app(ChatMemory::class)->getOrGenerateSession(),
+            //            'chatSession' => app(ChatMemory::class)->getOrGenerateSession(),
             'subscribed' => $request->user()?->subscribed(),
             'onTrial' => $request->user()?->onTrial(),
             'schema' => $request->getScheme(),
-            'quota' => $request->user()?->quota,
             'environment' => app()->environment(),
 
             'domain' => $request->domain(),

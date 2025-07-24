@@ -70,8 +70,9 @@ return [
             ],
             'appearance' => [
                 'avatar' => null,
+                'logo' => null,
                 'color_theme' => 'black',
-                'color_shade' => 500,
+                'color_shade' => 700,
                 'welcome_message' => 'What can I help with? ',
                 'chat_window_title' => 'Chat',
                 'chat_footer_text' => 'Consider checking important information',
@@ -96,6 +97,7 @@ return [
         ],
         'appearance' => [
             'avatar' => ['nullable', 'image'],
+            'logo' => ['nullable', 'image'],
             'color_theme' => ['nullable', 'string'],
             'color_shade' => ['nullable', 'integer', 'min:50', 'max:950'],
             'welcome_message' => ['nullable', 'string'],

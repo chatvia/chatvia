@@ -13,6 +13,8 @@ Route::post('/consent', [ConsentController::class, 'store'])->name('consent.stor
 
 Route::get('/test', function () {
     $user = \App\Models\User::find(1);
+
+    dd($user->usage);
 });
 
 require __DIR__.'/dashboard.php';

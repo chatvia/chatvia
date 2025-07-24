@@ -25,6 +25,8 @@ class EnsureChatIsAccessible
             return Inertia::render('agents/chat/AgentNotFound');
         }
 
+        $request->attributes->set('agent_user_id', $agent->user_id);
+
         $allowedRoutesWithoutAuth = [
             'chat.appearance',
         ];

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Data\Chat\LlmModelData;
-use App\Observers\UserObserver;
 use App\Support\Billing;
 use App\Traits\HasSettings;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -11,11 +10,11 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Cashier\Billable;
 
-#[ObservedBy(UserObserver::class)]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -28,7 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $guarded = ['id'];
 
-    protected $appends = ['plan'];
+    protected $appends = ['plan', 'is_paid'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -199,19 +198,9 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->subscription()?->cancel();
     }
 
-    public function quotas(): HasMany
+    public function canUploadPages(int $amount): bool
     {
-        return $this->hasMany(UserQuota::class);
-    }
-
-    public function quota(): HasOne
-    {
-        return $this->hasOne(UserQuota::class)->latestOfMany('billing_period_ends_at');
-    }
-
-    public function remainingPages(): Attribute
-    {
-        return Attribute::get(fn () => $this->quota->pages_limit - $this->quota->pages_used);
+        return ($this->credit->pages - $this->usage->pages) <= $amount;
     }
 
     public function formattedLlms()
@@ -256,5 +245,37 @@ class User extends Authenticatable implements MustVerifyEmail
     public function plan(): Attribute
     {
         return Attribute::get(fn () => $this->getCurrentPackage()['id']);
+    }
+
+    public function isPaid(): Attribute
+    {
+        return Attribute::get(fn () => $this->getCurrentPackage()['id'] !== 'free');
+    }
+
+    public function credits(): HasMany
+    {
+        return $this->hasMany(Credit::class);
+    }
+
+    public function credit(): HasOne
+    {
+        return $this->hasOne(Credit::class)->latestOfMany('ends_at');
+    }
+
+    public function addons(): HasMany
+    {
+        return $this->hasMany(Addon::class);
+    }
+
+    public function usage(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Usage::class,           // Final model we want
+            Credit::class,          // Intermediate model
+            'user_id',             // Foreign key on credits table (credits.user_id)
+            'credit_id',           // Foreign key on usages table (usages.credit_id)
+            'id',                  // Local key on users table (users.id)
+            'id'                   // Local key on credits table (credits.id)
+        );
     }
 }

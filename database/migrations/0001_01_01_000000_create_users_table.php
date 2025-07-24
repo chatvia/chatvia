@@ -16,11 +16,12 @@ return new class extends Migration
             $table->string('password');
             $table->boolean('is_admin')->index()->default(false);
             $table->rememberToken();
-            $table->string('stripe_id')->after('remember_token')->nullable()->index();
-            $table->string('pm_type')->after('stripe_id')->nullable();
-            $table->string('pm_last_four', 4)->after('pm_type')->nullable();
-            $table->timestamp('trial_ends_at')->after('pm_last_four')->nullable();
-
+            $table->string('stripe_id')->nullable()->index();
+            $table->string('pm_type')->nullable();
+            $table->string('pm_last_four', 4)->nullable();
+            $table->timestamp('trial_ends_at')->nullable();
+            $table->unsignedInteger('agents_instruction_limit')->index()->default(0);
+            $table->unsignedInteger('agents_knowledge_limit')->index()->default(0);
             $table->string('facebook_id')->index()->nullable();
             $table->string('google_id')->index()->nullable();
 

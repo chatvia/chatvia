@@ -165,20 +165,14 @@ const rightNavItems: NavItem[] = [];
 
                 <div class="ml-auto flex items-center space-x-2">
                     <div class="relative flex items-center space-x-1">
-                        <Button
+                        <Link
+                            v-if="!auth.user.is_paid"
                             :href="route('billing.packages')"
-                            size="sm"
-                            class="hidden lg:flex upgrade-button relative overflow-hidden font-medium px-4 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 group border-0"
+                            class="hidden lg:flex items-center gap-1.5 font-medium px-4 py-2 text-sm rounded-md transition-all duration-300 ease-out bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 hover:shadow-lg transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 group"
                         >
-                            <div class="gradient-border absolute inset-0 rounded-md"></div>
-                            <div class="absolute inset-0 bg-gradient-to-r from-primary to-blue-600 dark:from-blue-500 dark:to-indigo-600 m-[1px] rounded-[3px]"></div>
-                            <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-500 dark:from-indigo-600 dark:to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 m-[1px] rounded-[3px]"></div>
-                            <div class="absolute inset-0 shine-effect m-[1px] rounded-[3px]"></div>
-                            <span class="relative flex items-center z-10 text-white">
-        <Zap class="mr-1.5 h-3.5 w-3.5" />
-        Upgrade
-    </span>
-                        </Button>
+                            <Zap class="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-12" />
+                            Upgrade
+                        </Link>
 
                         <div class="hidden space-x-1 lg:flex">
                             <template v-for="item in rightNavItems" :key="item.title">
@@ -235,26 +229,5 @@ const rightNavItems: NavItem[] = [];
 </template>
 
 <style scoped>
-.gradient-border {
-    background: linear-gradient(90deg, #ff6b6b, #ffa07a, #ffd700, #4ade80, #06b6d4, #3b82f6, #8b5cf6, #d946ef);
-    background-size: 200% 200%;
-    animation: gradient-animation 6s linear infinite;
-}
-
-@keyframes gradient-animation {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-.upgrade-button {
-    border: none;
-    background: transparent;
-}
+/* No custom styles needed */
 </style>

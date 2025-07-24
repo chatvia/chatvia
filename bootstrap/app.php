@@ -3,6 +3,7 @@
 use App\Http\Middleware\AuthenticateMember;
 use App\Http\Middleware\AuthenticateMemberUsingToken;
 use App\Http\Middleware\ChatHandleInertiaRequests;
+use App\Http\Middleware\EnsureAgentHasMessagesCapacity;
 use App\Http\Middleware\EnsureChatIsAccessible;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -24,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (Schedule $schedule) {
         $schedule->command('telescope:prune --hours=48')->daily();
+        $schedule->command('app:update-free-users-quotas')->dailyAt('00:00');
+        $schedule->command('app:cache-message-usage')->everyFiveMinutes();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
@@ -38,8 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('chat', [
             ResolveAgentFromSubdomain::class,
             RedirectToAgent::class,
-            AuthenticateMemberUsingToken::class,
             EnsureChatIsAccessible::class,
+            EnsureAgentHasMessagesCapacity::class,
+            AuthenticateMemberUsingToken::class,
             ChatHandleInertiaRequests::class,
         ]);
 
@@ -60,6 +64,4 @@ return Application::configure(basePath: dirname(__DIR__))
             'chatvia.ai',
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
+    ->withExceptions(function (Exceptions $exceptions) {})->create();

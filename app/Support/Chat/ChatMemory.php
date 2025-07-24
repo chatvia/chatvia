@@ -6,6 +6,7 @@ use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Models\Agent;
 use App\Models\Message;
+use App\Services\Billing\Credit;
 use App\Support\OpenRouter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -107,6 +108,10 @@ class ChatMemory
     public function addMessageViaPayload(ChatInputPayload|ChatOutputPayload $payload): string
     {
         $isInputMessage = $payload instanceof ChatInputPayload;
+
+        if ($isInputMessage) {
+            $this->cacheMessageCount();
+        }
 
         $append = [
             'include_in_conversation' => $this->agent->contextWindowEnabled(),
@@ -452,6 +457,14 @@ class ChatMemory
 
     public function getConversationById(string $conversationId)
     {
-        return collect($this->getConversationsForCurrentSession(true))->firstWhere('id', $conversationId);
+        return collect($this->getConversationsForCurrentSession(true))
+            ->firstWhere('id', $conversationId);
+    }
+
+    public function cacheMessageCount(): void
+    {
+        app(Credit::class)
+            ->setUserId($this->agent->user->id)
+            ->incrementMessagesUsage($this->agent->user_id);
     }
 }

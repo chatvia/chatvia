@@ -6,13 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { 
-    Upload, 
-    File, 
-    Trash2, 
-    LoaderCircle, 
-    AlertCircle, 
-    CheckCircle 
+import {
+    Upload,
+    File,
+    Trash2,
+    LoaderCircle,
+    AlertCircle,
+    CheckCircle
 } from 'lucide-vue-next';
 import { useFileUploader, type FileUploaderConfig, type UploadingFileData } from '@/composables/useFileUploader';
 
@@ -99,8 +99,8 @@ const wouldExceedQuota = computed(() => {
 
 // UI state
 const canUpload = computed(() => {
-    return !props.disabled && 
-           totalFiles.value < props.config.maxFiles && 
+    return !props.disabled &&
+           totalFiles.value < props.config.maxFiles &&
            (!props.showQuota || quotaRemaining.value > 0);
 });
 
@@ -190,12 +190,7 @@ defineExpose({
                         You have reached your page limit of {{ quotaLimit }} pages. Please upgrade your plan to process more documents.
                     </AlertDescription>
                 </Alert>
-                <Alert v-else-if="showQuota && quotaRemaining <= 50" class="border-yellow-200 bg-yellow-50">
-                    <AlertCircle class="h-4 w-4 text-yellow-600" />
-                    <AlertDescription class="text-yellow-800">
-                        You have {{ quotaRemaining }} pages remaining. Consider upgrading your plan if you need to process more documents.
-                    </AlertDescription>
-                </Alert>
+
 
                 <!-- File input -->
                 <input
@@ -224,8 +219,8 @@ defineExpose({
                     <Upload class="mb-3 h-8 w-8 text-muted-foreground" />
                     <div class="mb-1 text-base font-medium">
                         {{ !canUpload
-                            ? (disabled ? 'Upload disabled' : 
-                               totalFiles >= config.maxFiles ? 'File limit reached' : 
+                            ? (disabled ? 'Upload disabled' :
+                               totalFiles >= config.maxFiles ? 'File limit reached' :
                                'Page limit reached')
                             : 'Select files'
                         }}
@@ -424,4 +419,4 @@ defineExpose({
             </div>
         </CardContent>
     </Card>
-</template> 
+</template>

@@ -39,12 +39,10 @@ class AgentKnowledgeAnalyzeFileAction
             $info->pages *= 3;
         }
 
-        $user->with('quota');
-
         abort_if(
-            boolean: $info->pages > $user->remaining_pages,
+            boolean: $user->canUploadPages($info->pages),
             code: 422,
-            message: 'You don\'t have enough pages to upload this file. You need '.$info->pages.' pages.'
+            message: 'File upload limit exceeded. This document requires '.$info->pages.' pages.'
         );
 
         return KnowledgeAnalyzeData::from([

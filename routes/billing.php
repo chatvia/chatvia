@@ -3,8 +3,7 @@
 use App\Http\Controllers\Billing\BillingController;
 use App\Http\Controllers\Billing\BillingPaymentMethodAddController;
 use App\Http\Controllers\Billing\BillingUpdateInformationController;
-use App\Http\Controllers\Billing\Checkout\CheckoutController;
-use App\Http\Controllers\Billing\Checkout\CheckoutFailureController;
+use App\Http\Controllers\Billing\Checkout\CheckoutExtraMessagesController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDefaultController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDeleteController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodsController;
@@ -12,18 +11,24 @@ use App\Http\Controllers\Billing\Stripe\BillingStripePortalController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionCancelController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionChangeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionResumeController;
+use App\Http\Controllers\Billing\Subscriptions\SubscribeController;
+use App\Http\Controllers\Billing\Subscriptions\SubscribeFailureController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\PlansController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('checkout', CheckoutController::class)
+Route::get('subscribe', SubscribeController::class)
     ->middleware(['auth', 'verified'])
-    ->name('checkout');
+    ->name('subscribe');
 
-Route::get('checkout/failure', CheckoutFailureController::class)
-    ->name('checkout.failure');
+Route::get('subscribe/failure', SubscribeFailureController::class)
+    ->name('subscribe.failure');
 
 Route::middleware(['auth', 'verified'])->prefix('billing')->name('billing.')->group(function () {
+
+    Route::get('addons/extra-message-credits', CheckoutExtraMessagesController::class)
+        ->name('addons.extra-message-credits');
+
     // Main billing dashboard
     Route::get('/', BillingController::class)->name('index');
 

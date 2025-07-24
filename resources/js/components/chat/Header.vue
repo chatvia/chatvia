@@ -113,8 +113,8 @@ function toggleChatExpand() {
                     size="icon"
                     :class="cn(
                         'group relative overflow-hidden rounded-xl transition-all duration-200 hover:scale-105',
-                        isIncognitoMode 
-                            ? 'bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 dark:text-purple-400' 
+                        isIncognitoMode
+                            ? 'bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 dark:text-purple-400'
                             : 'hover:bg-accent/80'
                     )"
                     :title="isIncognitoMode ? 'Disable incognito mode' : 'Enable incognito mode'"
@@ -148,15 +148,15 @@ function toggleChatExpand() {
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter class="mt-6 gap-2 sm:gap-0">
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 @click="showDeleteDialog = false"
                                 class="hover:bg-accent transition-colors duration-200"
                             >
                                 Cancel
                             </Button>
-                            <Button 
-                                variant="destructive" 
+                            <Button
+                                variant="destructive"
                                 @click="handleConfirm"
                                 class="bg-red-600 hover:bg-red-700 transition-colors duration-200"
                             >

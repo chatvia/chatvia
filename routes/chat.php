@@ -12,6 +12,7 @@ use App\Http\Controllers\Chat\ChatDeleteAllConversationsController;
 use App\Http\Controllers\Chat\ChatHomeController;
 use App\Http\Controllers\Chat\ChatMessageDeleteController;
 use App\Http\Controllers\Chat\ChatMessageFeedbackController;
+use App\Http\Controllers\Chat\ChatMessagesUsage;
 use App\Http\Controllers\Chat\ChatModelsListController;
 use App\Http\Controllers\Chat\ChatStartersController;
 use App\Http\Controllers\Chat\ChatStreamController;
@@ -60,4 +61,6 @@ Route::prefix('/chat')
         Route::get('/c/{conversationId}', ChatController::class)->name('chat.show');
 
         Route::patch('/profile', ChatProfileUpdateController::class)->name('chat.profile.update');
+
+        Route::get('/usage', ChatMessagesUsage::class)->name('chat.usage');
     });

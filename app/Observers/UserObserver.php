@@ -3,20 +3,26 @@
 namespace App\Observers;
 
 use App\Models\User;
+use App\Services\Billing\Credit;
 
 class UserObserver
 {
-    /**
-     * Handle the User "created" event.
-     */
     public function created(User $user): void
     {
-        //
+        $freeQuotaLimit = config('billing.packages.free.quota_limits.monthly');
+        $fixed = config('billing.packages.free.quota_limits.fixed');
+
+        $user->update([
+            'agents_instruction_limit' => $fixed['agents_instruction_limit'],
+            'agents_knowledge_limit' => $fixed['agents_knowledge_limit'],
+        ]);
+
+        app(Credit::class)->setUserId($user->id)->addCreditForSubscription(
+            $freeQuotaLimit,
+            now()->addMonth(),
+        );
     }
 
-    /**
-     * Handle the User "updated" event.
-     */
     public function updated(User $user): void
     {
         if ($user->hasStripeId()) {
@@ -24,27 +30,14 @@ class UserObserver
         }
     }
 
-    /**
-     * Handle the User "deleted" event.
-     */
     public function deleted(User $user): void
     {
-        //
+        if ($user->hasStripeId() && $user->subscribed()) {
+            $user->cancelSubscription();
+        }
     }
 
-    /**
-     * Handle the User "restored" event.
-     */
-    public function restored(User $user): void
-    {
-        //
-    }
+    public function restored(User $user): void {}
 
-    /**
-     * Handle the User "force deleted" event.
-     */
-    public function forceDeleted(User $user): void
-    {
-        //
-    }
+    public function forceDeleted(User $user): void {}
 }

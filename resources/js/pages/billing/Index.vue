@@ -1,11 +1,14 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { Head, useForm, Link, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import ConfirmationDialog from '@/components/chat/ConfirmationDialog.vue';
 import type { BreadcrumbItem } from '@/types';
 import {
@@ -20,7 +23,12 @@ import {
     Zap,
     Trash2,
     Receipt,
-    CreditCardIcon
+    CreditCardIcon,
+    Loader2,
+    MessageSquare,
+    FileText,
+    Bot,
+    Database
 } from 'lucide-vue-next';
 
 interface CurrentPackage {
@@ -38,6 +46,34 @@ interface CurrentPackage {
     subscribed_to_yearly: boolean;
     limits: Record<string, any>;
 };
+
+interface UsageData {
+    subscription: {
+        plan: string;
+    };
+    agents: {
+        knowledge: {
+            limit: number;
+            created: number;
+            remaining: number;
+        };
+        instruction: {
+            limit: number;
+            created: number;
+            remaining: number;
+        };
+    };
+    pages: {
+        limit: number;
+        used: number;
+        remaining: number;
+    };
+    messages: {
+        sent: number;
+        limit: number;
+        remaining: number;
+    };
+}
 
 const props = defineProps<{
     current_package: CurrentPackage;
@@ -62,6 +98,84 @@ const cancelForm = useForm({
 });
 
 const resumeForm = useForm({});
+
+// Usage data
+const usageData = ref<UsageData | null>(null);
+const isLoadingUsage = ref(true);
+
+// Message credits dialog state
+const isCreditsDialogOpen = ref(false);
+const creditsQuantity = ref(1);
+const basePrice = 10; // $10 USD per 1000 messages
+const isPurchasing = ref(false);
+
+const totalPrice = computed(() => {
+    return (creditsQuantity.value * basePrice).toFixed(2);
+});
+
+const isValidQuantity = computed(() => {
+    return creditsQuantity.value >= 1;
+});
+
+const fetchUsageData = async () => {
+    try {
+        isLoadingUsage.value = true;
+        const response = await fetch(route('usage'), {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+        
+        if (response.ok) {
+            usageData.value = await response.json();
+        }
+    } catch (error) {
+        console.error('Failed to fetch usage data:', error);
+    } finally {
+        isLoadingUsage.value = false;
+    }
+};
+
+const getUsagePercentage = (used: number, limit: number) => {
+    if (limit === 0) return 0;
+    return Math.min(100, Math.round((used / limit) * 100));
+};
+
+const getUsageColor = (percentage: number) => {
+    if (percentage >= 90) return 'bg-red-500';
+    if (percentage >= 75) return 'bg-orange-500';
+    if (percentage >= 50) return 'bg-yellow-500';
+    return 'bg-green-500';
+};
+
+onMounted(() => {
+    fetchUsageData();
+});
+
+const purchaseCredits = () => {
+    isPurchasing.value = true;
+    // Small delay to show loading state before navigation
+    setTimeout(() => {
+        window.location.href = route('billing.addons.extra-message-credits', { quantity: creditsQuantity.value });
+    }, 100);
+};
+
+const handleKeyPress = (event: KeyboardEvent) => {
+    // Allow: backspace, delete, tab, escape, enter
+    if ([8, 9, 27, 13, 46].indexOf(event.keyCode) !== -1 ||
+        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+        (event.keyCode === 65 && event.ctrlKey === true) ||
+        (event.keyCode === 67 && event.ctrlKey === true) ||
+        (event.keyCode === 86 && event.ctrlKey === true) ||
+        (event.keyCode === 88 && event.ctrlKey === true)) {
+        return;
+    }
+    // Ensure that it is a number and stop the keypress if not
+    if ((event.shiftKey || (event.keyCode < 48 || event.keyCode > 57)) && (event.keyCode < 96 || event.keyCode > 105)) {
+        event.preventDefault();
+    }
+};
 
 const formatDate = (timestamp: number | string | null | undefined) => {
     if (!timestamp || timestamp === 0) return 'N/A';
@@ -370,31 +484,179 @@ const resumeSubscription = () => {
                             </CardContent>
                         </Card>
 
-                        <!-- Quick Stats -->
+                        <!-- Addons -->
+                        <Card>
+                            <CardHeader>
+                                <CardTitle class="text-lg">Addons</CardTitle>
+                            </CardHeader>
+                            <CardContent class="space-y-4">
+                                <Dialog v-model:open="isCreditsDialogOpen">
+                                    <DialogTrigger as-child>
+                                        <Button variant="outline" class="w-full gap-2 justify-start">
+                                            <Zap class="h-4 w-4" />
+                                            Buy Extra Messages
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent class="sm:max-w-md">
+                                        <DialogHeader>
+                                            <DialogTitle class="flex items-center gap-2">
+                                                <Zap class="h-5 w-5 text-primary" />
+                                                Purchase Message Credits
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                Purchase additional message credits for your account. Each bundle includes 1000 messages that must be consumed within one month of purchase.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div class="space-y-4 py-4">
+                                            <div class="space-y-2">
+                                                <Label for="quantity">Quantity (1000 messages per bundle)</Label>
+                                                <Input
+                                                    id="quantity"
+                                                    v-model.number="creditsQuantity"
+                                                    type="number"
+                                                    min="1"
+                                                    max="100"
+                                                    class="w-full"
+                                                    @keydown="handleKeyPress"
+                                                />
+                                            </div>
+                                            <div class="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="font-medium">Total Messages:</span>
+                                                    <span class="font-bold">{{ (creditsQuantity * 1000).toLocaleString() }}</span>
+                                                </div>
+                                                <div class="flex justify-between items-center mt-2">
+                                                    <span class="font-medium">Total Price:</span>
+                                                    <span class="font-bold text-primary">${{ totalPrice }}</span>
+                                                </div>
+                                                <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+                                                    <p class="text-xs text-muted-foreground">
+                                                        ⚠️ Credits expire 30 days after purchase
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <DialogFooter class="gap-2">
+                                            <Button variant="outline" @click="isCreditsDialogOpen = false; isPurchasing = false;">
+                                                Cancel
+                                            </Button>
+                                            <Button @click="purchaseCredits" :disabled="isPurchasing || !isValidQuantity" class="gap-2">
+                                                <Loader2 v-if="isPurchasing" class="h-4 w-4 animate-spin" />
+                                                <CreditCard v-else class="h-4 w-4" />
+                                                {{ isPurchasing ? 'Processing...' : `Purchase for $${totalPrice}` }}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Usage Stats -->
                         <Card>
                             <CardHeader>
                                 <CardTitle class="text-lg">Usage</CardTitle>
                             </CardHeader>
                             <CardContent class="space-y-4">
-                                <div class="space-y-3">
-                                    <div class="flex justify-between">
-                                        <span class="text-sm">AI Agents</span>
-                                        <span class="text-sm font-medium">
-                                            1
-                                        </span>
+                                <div v-if="isLoadingUsage" class="flex items-center justify-center py-8">
+                                    <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
+                                </div>
+                                
+                                <div v-else-if="usageData" class="space-y-4">
+                                    <!-- Messages Usage -->
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <MessageSquare class="h-4 w-4 text-blue-500" />
+                                                <span class="text-sm font-medium">Messages</span>
+                                            </div>
+                                            <span class="text-sm text-muted-foreground">
+                                                {{ usageData.messages.sent.toLocaleString() }} / {{ usageData.messages.limit.toLocaleString() }}
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                            <div
+                                                class="h-2 rounded-full transition-all duration-300"
+                                                :class="getUsageColor(getUsagePercentage(usageData.messages.sent, usageData.messages.limit))"
+                                                :style="{ width: `${getUsagePercentage(usageData.messages.sent, usageData.messages.limit)}%` }"
+                                            ></div>
+                                        </div>
+                                        <div class="text-xs text-muted-foreground">
+                                            {{ usageData.messages.remaining.toLocaleString() }} remaining
+                                        </div>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-sm">Messages/Month</span>
-                                        <span class="text-sm font-medium">
-                                            1
-                                        </span>
+
+                                    <!-- Pages Usage -->
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <FileText class="h-4 w-4 text-green-500" />
+                                                <span class="text-sm font-medium">Pages</span>
+                                            </div>
+                                            <span class="text-sm text-muted-foreground">
+                                                {{ usageData.pages.used.toLocaleString() }} / {{ usageData.pages.limit.toLocaleString() }}
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                            <div
+                                                class="h-2 rounded-full transition-all duration-300"
+                                                :class="getUsageColor(getUsagePercentage(usageData.pages.used, usageData.pages.limit))"
+                                                :style="{ width: `${getUsagePercentage(usageData.pages.used, usageData.pages.limit)}%` }"
+                                            ></div>
+                                        </div>
+                                        <div class="text-xs text-muted-foreground">
+                                            {{ usageData.pages.remaining.toLocaleString() }} remaining
+                                        </div>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-sm">Storage</span>
-                                        <span class="text-sm font-medium">
-                                            1
-                                        </span>
+
+                                    <!-- Knowledge Agents -->
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <Database class="h-4 w-4 text-purple-500" />
+                                                <span class="text-sm font-medium">Knowledge Agents</span>
+                                            </div>
+                                            <span class="text-sm text-muted-foreground">
+                                                {{ usageData.agents.knowledge.created }} / {{ usageData.agents.knowledge.limit }}
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                            <div
+                                                class="h-2 rounded-full transition-all duration-300"
+                                                :class="getUsageColor(getUsagePercentage(usageData.agents.knowledge.created, usageData.agents.knowledge.limit))"
+                                                :style="{ width: `${getUsagePercentage(usageData.agents.knowledge.created, usageData.agents.knowledge.limit)}%` }"
+                                            ></div>
+                                        </div>
+                                        <div class="text-xs text-muted-foreground">
+                                            {{ usageData.agents.knowledge.remaining }} remaining
+                                        </div>
                                     </div>
+
+                                    <!-- Instruction Agents -->
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <Bot class="h-4 w-4 text-orange-500" />
+                                                <span class="text-sm font-medium">Instruction Agents</span>
+                                            </div>
+                                            <span class="text-sm text-muted-foreground">
+                                                {{ usageData.agents.instruction.created }} / {{ usageData.agents.instruction.limit }}
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                            <div
+                                                class="h-2 rounded-full transition-all duration-300"
+                                                :class="getUsageColor(getUsagePercentage(usageData.agents.instruction.created, usageData.agents.instruction.limit))"
+                                                :style="{ width: `${getUsagePercentage(usageData.agents.instruction.created, usageData.agents.instruction.limit)}%` }"
+                                            ></div>
+                                        </div>
+                                        <div class="text-xs text-muted-foreground">
+                                            {{ usageData.agents.instruction.remaining }} remaining
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-else class="text-center py-4">
+                                    <p class="text-sm text-muted-foreground">Unable to load usage data</p>
                                 </div>
                             </CardContent>
                         </Card>

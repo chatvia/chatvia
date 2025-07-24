@@ -77,8 +77,8 @@ class AgentObserver
 
         $operator = $increment ? '+' : '-';
 
-        $user->quota()->rawUpdate([
-            $agentTypeField => DB::raw($agentTypeField.' '.$operator.' 1'),
-        ]);
+//        $user->update([
+//            $agentTypeField => DB::raw($agentTypeField.' '.$operator.' 1'),
+//        ]);
     }
 }

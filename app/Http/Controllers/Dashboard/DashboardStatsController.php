@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Models\Message;
 use App\Models\User;
-use App\Models\UserQuota;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -14,9 +13,6 @@ class DashboardStatsController
     {
         /** @var User $user */
         $user = $request->user();
-
-        /** @var UserQuota $quota */
-        $quota = $user->quota;
 
         return [
             'agents' => [

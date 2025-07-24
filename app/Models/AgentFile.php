@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-use App\Observers\AgentFileObserver;
 use App\Support\Ingestion;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +11,6 @@ use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-#[ObservedBy(AgentFileObserver::class)]
 class AgentFile extends Model
 {
     protected $guarded = ['id'];
@@ -89,10 +86,25 @@ class AgentFile extends Model
         return $this->mime_type === 'application/pdf';
     }
 
-    public function isAudioFile(): false
+    public function isAudioFile(): bool
     {
-        // TODO: fix
-        return false;
+        $audioMimeTypes = [
+            'audio/mpeg',           // .mp3
+            'audio/mp4',            // .m4a
+            'audio/wav',            // .wav
+            'audio/wave',           // .wav (alternative)
+            'audio/x-wav',          // .wav (alternative)
+            'audio/ogg',            // .ogg
+            'audio/webm',           // .webm
+            'audio/flac',           // .flac
+            'audio/aac',            // .aac
+            'audio/x-ms-wma',       // .wma
+            'audio/amr',            // .amr
+            'audio/3gpp',           // .3gp
+            'audio/x-m4a',          // .m4a (alternative)
+        ];
+
+        return in_array($this->mime_type, $audioMimeTypes, true);
     }
 
     public function convertToPdf(): ?File

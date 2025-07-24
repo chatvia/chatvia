@@ -4,11 +4,9 @@ namespace App\Models;
 
 use App\Data\Chat\LlmModelData;
 use App\Enums\AgentFileStatusEnum;
-use App\Observers\AgentObserver;
 use App\Support\Agents\Stats;
 use App\Traits\HasSettings;
 use Exception;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +17,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-#[ObservedBy(AgentObserver::class)]
 class Agent extends Model
 {
     use HasFactory, HasSettings;

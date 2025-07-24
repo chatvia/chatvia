@@ -70,7 +70,6 @@ return [
             | Array values: Lists of allowed items like models, file types
             */
             'capabilities' => [
-                'monthly_message_credits' => 100,
                 'advanced_pdf' => false,
                 'ocr' => false,
                 'audio_video' => false,
@@ -82,9 +81,6 @@ return [
                 'white_label' => false,
                 'custom_domains' => false,
                 'sla_guarantee' => false,
-                'storage_gb' => 1,
-                'max_agents' => 2,
-                'max_file_types' => 4, // Text, PDF, DOC, MD
             ],
             'stripe_monthly_price_id' => null,
             'stripe_yearly_price_id' => null,
@@ -103,13 +99,13 @@ return [
                     'pages_limit' => 100,
                     'minutes_limit' => 30,
                     'messages_limit' => 100,
-                    'agents_instruction_limit' => 1,
-                    'agents_knowledge_limit' => 1,
                 ],
                 'yearly' => [
                     'pages_limit' => 100, // Same as monthly for free plan
                     'minutes_limit' => 30,
                     'messages_limit' => 100,
+                ],
+                'fixed' => [
                     'agents_instruction_limit' => 1,
                     'agents_knowledge_limit' => 1,
                 ],
@@ -154,7 +150,6 @@ return [
             ],
 
             'capabilities' => [
-                'monthly_message_credits' => 1000,
                 'advanced_pdf' => true,
                 'ocr' => true,
                 'audio_video' => false,
@@ -166,10 +161,6 @@ return [
                 'white_label' => false,
                 'custom_domains' => false,
                 'sla_guarantee' => false,
-                'storage_gb' => 2,
-                'max_agents' => 5,
-                'max_file_types' => 20,
-                'integrations_limit' => 3,
             ],
             'stripe_monthly_price_id' => env('STRIPE_STARTER_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STARTER_YEARLY_PRICE_ID'),
@@ -182,13 +173,13 @@ return [
                     'pages_limit' => 500,
                     'minutes_limit' => 300,
                     'messages_limit' => 1000,
-                    'agents_instruction_limit' => 2,
-                    'agents_knowledge_limit' => 2,
                 ],
                 'yearly' => [
                     'pages_limit' => 7000,
                     'minutes_limit' => 4000,
                     'messages_limit' => 13000,
+                ],
+                'fixed' => [
                     'agents_instruction_limit' => 2,
                     'agents_knowledge_limit' => 2,
                 ],
@@ -239,7 +230,6 @@ return [
             ],
 
             'capabilities' => [
-                'monthly_message_credits' => 5000,
                 'advanced_pdf' => true,
                 'ocr' => true,
                 'audio_video' => false,
@@ -251,10 +241,6 @@ return [
                 'white_label' => false,
                 'custom_domains' => false,
                 'sla_guarantee' => false,
-                'storage_gb' => 25,
-                'max_agents' => 25,
-                'max_file_types' => 44,
-                'integrations_limit' => 'unlimited',
             ],
             'stripe_monthly_price_id' => env('STRIPE_STANDARD_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STANDARD_YEARLY_PRICE_ID'),
@@ -267,13 +253,13 @@ return [
                     'pages_limit' => 1000,
                     'minutes_limit' => 1200,
                     'messages_limit' => 5000,
-                    'agents_instruction_limit' => 4,
-                    'agents_knowledge_limit' => 4,
                 ],
                 'yearly' => [
                     'pages_limit' => 1300, // 30% bonus for yearly
                     'minutes_limit' => 1500,
                     'messages_limit' => 6500,
+                ],
+                'fixed' => [
                     'agents_instruction_limit' => 5,
                     'agents_knowledge_limit' => 5,
                 ],
@@ -352,15 +338,15 @@ return [
                     'pages_limit' => 10000,
                     'minutes_limit' => 6000,
                     'messages_limit' => 25000,
-                    'agents_instruction_limit' => 10,
-                    'agents_knowledge_limit' => 10,
                 ],
                 'yearly' => [
                     'pages_limit' => 15000, // 50% bonus for yearly
                     'minutes_limit' => 9000,
                     'messages_limit' => 35000,
-                    'agents_instruction_limit' => 15,
-                    'agents_knowledge_limit' => 15,
+                ],
+                'fixed' => [
+                    'agents_instruction_limit' => 10,
+                    'agents_knowledge_limit' => 10,
                 ],
             ],
         ],
@@ -473,6 +459,8 @@ return [
             'price_formatted' => '$9',
             'billing_unit' => 'per 1000 credits / month',
             'icon' => 'message-circle',
+            'stripe_price_id' => env('STRIPE_EXTRA_1000_MESSAGES_PRICE_ID'),
+
         ],
         'extra_agents' => [
             'name' => 'Extra agents',

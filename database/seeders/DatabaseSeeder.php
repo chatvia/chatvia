@@ -18,15 +18,15 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $user->quota()->create([
-            'pages_limit' => 1000,
-            'messages_limit' => 1000,
-        ]);
+        //        $user->quota()->create([
+        //            'pages_limit' => 1000,
+        //            'messages_limit' => 1000,
+        //        ]);
 
-        User::factory()->create([
-            'name' => 'Test User 2',
-            'email' => 'test2@example.com',
-        ]);
+        //        User::factory()->create([
+        //            'name' => 'Test User 2',
+        //            'email' => 'test2@example.com',
+        //        ]);
 
         Agent::factory()->create([
             'user_id' => User::first()->id,

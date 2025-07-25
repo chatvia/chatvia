@@ -206,8 +206,9 @@ defineExpose({
                 <div
                     class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center hover:bg-muted/50"
                     :class="{
-                        'opacity-50 cursor-not-allowed': !canUpload,
-                        'border-destructive bg-destructive/5': disabled || (showQuota && quotaRemaining <= 0),
+                        'opacity-50 cursor-not-allowed': disabled,
+                        'cursor-not-allowed': !canUpload && !disabled,
+                        'border-destructive bg-destructive/5': !disabled && (showQuota && quotaRemaining <= 0),
                         'border-primary bg-primary/5': isDragOver && canUpload
                     }"
                     @click="triggerFileInput"
@@ -218,17 +219,15 @@ defineExpose({
                 >
                     <Upload class="mb-3 h-8 w-8 text-muted-foreground" />
                     <div class="mb-1 text-base font-medium">
-                        {{ !canUpload
-                            ? (disabled ? 'Upload disabled' :
-                               totalFiles >= config.maxFiles ? 'File limit reached' :
+                        {{ !canUpload && !disabled
+                            ? (totalFiles >= config.maxFiles ? 'File limit reached' :
                                'Page limit reached')
                             : 'Select files'
                         }}
                     </div>
                     <p class="text-sm text-muted-foreground">
-                        {{ !canUpload
-                            ? (disabled ? disabledMessage :
-                               totalFiles >= config.maxFiles ? `Maximum ${config.maxFiles} files allowed. Remove some files to add more.` :
+                        {{ !canUpload && !disabled
+                            ? (totalFiles >= config.maxFiles ? `Maximum ${config.maxFiles} files allowed. Remove some files to add more.` :
                                showQuota ? `You've used all ${quotaLimit} pages. Upgrade your plan to continue.` :
                                'Upload not available')
                             : 'Drag and drop or click to select files'

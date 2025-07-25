@@ -46,7 +46,7 @@ class VectorChordServiceProvider extends ServiceProvider
         DB::statement('SET seq_page_cost = 1.0');
 
         // Set search path for VectorChord extensions
-        //        DB::statement('SET search_path = public, bm25_catalog, tokenizer_catalog');
+        DB::statement('SET search_path = public, bm25_catalog, tokenizer_catalog');
     }
 
     /**

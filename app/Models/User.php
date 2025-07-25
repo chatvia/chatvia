@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Data\Chat\LlmModelData;
+use App\Data\StripeScheduleData;
+use App\Enums\UserCapabilityEnum;
+use App\Services\Billing\UserCapabilities;
 use App\Support\Billing;
 use App\Traits\HasSettings;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -267,15 +270,64 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Addon::class);
     }
 
+    public function syncPendingPlanChanges(): ?array
+    {
+        $subscription = $this->subscription();
+
+        if (!$subscription) {
+            return null;
+        }
+
+        try {
+            // Sync subscription data first
+            $subscription->syncStripeSubscription();
+
+            // Get fresh metadata from Stripe
+            $stripeSubscription = $subscription->asStripeSubscription();
+            $metadata = $stripeSubscription->metadata->toArray();
+
+            if (isset($metadata['pending_change']) && $metadata['pending_change'] === 'true') {
+                return [
+                    'from_package' => $metadata['from_package'] ?? null,
+                    'to_package' => $metadata['to_package'] ?? null,
+                    'new_price_id' => $metadata['new_price_id'] ?? null,
+                    'is_yearly' => ($metadata['is_yearly'] ?? 'false') === 'true',
+                    'scheduled_at' => $metadata['scheduled_at'] ?? null,
+                    'effective_date' => $stripeSubscription->current_period_end * 1000, // Convert to milliseconds for JS
+                ];
+            }
+
+            return null;
+
+        } catch (\Exception $e) {
+            \Log::warning('Failed to sync pending plan changes', [
+                'user_id' => $this->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return null;
+        }
+    }
+
     public function usage(): HasOneThrough
     {
         return $this->hasOneThrough(
             Usage::class,           // Final model we want
             Credit::class,          // Intermediate model
             'user_id',             // Foreign key on credits table (credits.user_id)
-            'credit_id',           // Foreign key on usages table (usages.credit_id)
+            'credit_id',          // Foreign key on usages table (usages.credit_id)
             'id',                  // Local key on users table (users.id)
-            'id'                   // Local key on credits table (credits.id)
+            'id'              // Local key on credits table (credits.id)
         );
+    }
+
+    public function canPerform(UserCapabilityEnum $capability): bool
+    {
+        return app(UserCapabilities::class)->setUser($this)->can($capability);
+    }
+
+    public function capabilities()
+    {
+
     }
 }

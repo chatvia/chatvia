@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\Billing\Credit;
+use App\Services\Billing\UserCreditSystem;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,7 +17,7 @@ class EnsureAgentHasMessagesCapacity
             return Inertia::render('agents/chat/AgentNotFound');
         }
 
-        if (app(Credit::class)->setUserId($agentUserId)->canSendMessages() === false) {
+        if (app(UserCreditSystem::class)->setUserId($agentUserId)->canSendMessages() === false) {
             return Inertia::render('agents/chat/AgentNoMessages');
         }
 

@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Models\User;
 use App\Services\Billing\Credit;
+use App\Services\Billing\UserCreditSystem;
 use Laravel\Cashier\Events\WebhookReceived;
 
 class StripeEventListener
@@ -48,10 +49,27 @@ class StripeEventListener
             'agents_instruction_limit' => $agentsLimit['agents_instruction_limit'],
         ]);
 
-        app(Credit::class)->setUserId($user->id)->addCreditForSubscription(
+        app(UserCreditSystem::class)->setUserId($user->id)->addCreditForSubscription(
             $quotaLimit,
             $endsAt
         );
+
+        // Clean up the metadata if this was a scheduled change
+        if (isset($metadata['pending_change']) && $metadata['pending_change'] === 'true') {
+            $subscription = $user->subscription();
+            $subscription?->updateStripeSubscription([
+                'metadata' => [
+                    'pending_change' => 'false',
+                    'applied_at' => now()->toISOString(),
+                    'from_package' => null,
+                    'to_package' => null,
+                    'new_price_id' => null,
+                    'is_yearly' => null,
+                    'scheduled_at' => null,
+                    'effective_date' => null,
+                ]
+            ]);
+        }
     }
 
     private function handleAddOns(array $data): void
@@ -66,7 +84,7 @@ class StripeEventListener
             if ($id === 'extra_message_credits') {
                 $user->addons()->create([
                     'type' => $id,
-                    'quantity' => $metadata['messages'],
+                    'amount' => $metadata['messages'],
                     'stripe_id' => $data['id'],
                     'started_at' => now(),
                     'ends_at' => now()->addMonth(),

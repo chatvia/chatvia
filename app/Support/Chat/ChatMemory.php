@@ -6,7 +6,7 @@ use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Models\Agent;
 use App\Models\Message;
-use App\Services\Billing\Credit;
+use App\Services\Billing\UserCreditSystem;
 use App\Support\OpenRouter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -463,7 +463,7 @@ class ChatMemory
 
     public function cacheMessageCount(): void
     {
-        app(Credit::class)
+        app(UserCreditSystem::class)
             ->setUserId($this->agent->user->id)
             ->incrementMessagesUsage($this->agent->user_id);
     }

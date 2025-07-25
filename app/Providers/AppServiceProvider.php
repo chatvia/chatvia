@@ -12,6 +12,8 @@ use App\Observers\ModelSettingObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
+use Stripe\Stripe;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -45,7 +47,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //        Cashier::calculateTaxes();
+//        Cashier::calculateTaxes();
+
+//        Cashier::keepIncompleteSubscriptionsActive();
+
+        Stripe::setApiKey(config('cashier.secret'));
+
         User::observe(UserObserver::class);
         Agent::observe(AgentObserver::class);
         AgentFile::observe(AgentFileObserver::class);

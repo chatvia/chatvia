@@ -66,12 +66,11 @@ class KnowledgeBase
      */
     private function hybridSearch(int $agentId, string $query, string $vectorString, int $limit, bool $quantize = true): array
     {
-        try {
-            $distanceOperator = $quantize
-                ? 'binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536) as binary_distance'
-                : 'embedding <-> ?::vector(1536) as vector_distance';
+        $distanceOperator = $quantize
+            ? 'binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536) as binary_distance'
+            : 'embedding <-> ?::vector(1536) as vector_distance';
 
-            $sql = "
+        $sql = "
 WITH vectorchord_candidates AS (
     SELECT id, chunk, embedding, agent_file_id,
            {$distanceOperator}
@@ -107,28 +106,17 @@ ORDER BY id, score
 LIMIT ?
 ';
 
-            return DB::select($sql, [
-                $vectorString,
-                $agentId,
-                $vectorString,
-                $this->getOptimalCandidateLimit($limit),
-                $limit,
-                $query,
-                $agentId,
-                $limit,
-                $limit * 2, // Get more candidates for better hybrid results
-            ]);
-
-        } catch (\Exception $e) {
-            // If VectorChord hybrid search fails due to probe configuration, fall back to simple search
-            Log::warning('VectorChord hybrid search failed, falling back to simple search', [
-                'error' => $e->getMessage(),
-                'agent_id' => $agentId,
-                'query' => $query,
-            ]);
-
-            return $this->performFallbackSearch($agentId, $query, $vectorString, $limit);
-        }
+        return DB::select($sql, [
+            $vectorString,
+            $agentId,
+            $vectorString,
+            $this->getOptimalCandidateLimit($limit),
+            $limit,
+            $query,
+            $agentId,
+            $limit,
+            $limit * 2, // Get more candidates for better hybrid results
+        ]);
     }
 
     /**

@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Billing\Subscriptions;
 use App\Data\StripeScheduleData;
 use App\Models\User;
 use App\Support\Billing;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Stripe\Stripe;
 use Stripe\Subscription;
 use Stripe\SubscriptionSchedule;
 
@@ -45,7 +43,7 @@ class BillingSubscriptionChangeController
 
         $subscription = $user->subscription();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return to_route('billing.index')->with('error', 'There is an issue with your subscription. Please try again later.');
         }
 
@@ -55,7 +53,7 @@ class BillingSubscriptionChangeController
 
         $metadata = $stripeSubscription->metadata->toArray();
 
-        if (!isset($metadata['pending_change']) || $metadata['pending_change'] === 'true') {
+        if (! isset($metadata['pending_change']) || $metadata['pending_change'] === 'true') {
             $schedule = SubscriptionSchedule::retrieve($metadata['schedule_id']);
             $schedule->release();
         }

@@ -2,7 +2,6 @@
 
 namespace App\Data;
 
-
 use Spatie\LaravelData\Data;
 
 class StripeScheduleData extends Data
@@ -17,8 +16,6 @@ class StripeScheduleData extends Data
         public ?string $effective_date,
         public ?string $requested_at,
         public ?string $canceled_at,
-    )
-    {
-    }
+    ) {}
 
 }

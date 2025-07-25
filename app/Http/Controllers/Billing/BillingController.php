@@ -90,7 +90,7 @@ class BillingController
         } catch (Exception $e) {
             \Log::warning('Failed to detect pending plan changes', [
                 'error' => $e->getMessage(),
-                'subscription_id' => $stripeSubscription->id
+                'subscription_id' => $stripeSubscription->id,
             ]);
         }
 

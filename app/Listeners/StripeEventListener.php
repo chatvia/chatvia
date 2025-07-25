@@ -3,7 +3,6 @@
 namespace App\Listeners;
 
 use App\Models\User;
-use App\Services\Billing\Credit;
 use App\Services\Billing\UserCreditSystem;
 use Laravel\Cashier\Events\WebhookReceived;
 
@@ -67,7 +66,7 @@ class StripeEventListener
                     'is_yearly' => null,
                     'scheduled_at' => null,
                     'effective_date' => null,
-                ]
+                ],
             ]);
         }
     }

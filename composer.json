@@ -9,7 +9,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "google/cloud-document-ai": "^2.2",
         "inertiajs/inertia-laravel": "^2.0",
         "intervention/image": "^3.11",

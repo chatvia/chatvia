@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Data\Chat\LlmModelData;
 use App\Enums\UserCapabilityEnum;
 use App\Services\Billing\UserCapabilities;
+use App\Services\Billing\UserCreditSystem;
 use App\Support\Billing;
 use App\Traits\HasSettings;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -325,5 +326,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return app(UserCapabilities::class)->setUser($this)->can($capability);
     }
 
-    public function capabilities() {}
+    public function creditSystem(): UserCreditSystem
+    {
+        return app(UserCreditSystem::class)->setUserId($this->id);
+    }
 }

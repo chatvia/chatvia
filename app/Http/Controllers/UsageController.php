@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Usage;
 use App\Models\User;
-use App\Services\Billing\Credit;
+use App\Services\Billing\UserCreditSystem;
 use Illuminate\Http\Request;
 
 class UsageController
@@ -20,7 +20,7 @@ class UsageController
         /** @var Usage $usage */
         $usage = $user->usage;
 
-        $totalSentMessage = app(Credit::class)
+        $totalSentMessage = app(UserCreditSystem::class)
             ->setUserId($user->id)
             ->getTotalSentMessages();
 
@@ -31,6 +31,8 @@ class UsageController
 
         $knowledgeAgentLimit = $user->agents_knowledge_limit;
         $instructionAgentLimit = $user->agents_instruction_limit;
+
+        $availableMessages = app(UserCreditSystem::class)->setUserId($user->id)->availableMessages();
 
         return [
             'subscription' => [
@@ -54,9 +56,9 @@ class UsageController
                 'remaining' => ($credit->pages - $usage->pages),
             ],
             'messages' => [
+                'limit' => $availableMessages,
                 'sent' => $totalSentMessage,
-                'limit' => $credit->messages,
-                'remaining' => ($credit->messages - $totalSentMessage),
+                'remaining' => ($availableMessages - $totalSentMessage),
             ],
             'cycle' => [
                 'started_at' => $credit->started_at,

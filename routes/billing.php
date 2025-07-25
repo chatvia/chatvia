@@ -11,6 +11,7 @@ use App\Http\Controllers\Billing\Stripe\BillingStripePortalController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionCancelController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionChangeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionResumeController;
+use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionScheduleCancelController;
 use App\Http\Controllers\Billing\Subscriptions\SubscribeController;
 use App\Http\Controllers\Billing\Subscriptions\SubscribeFailureController;
 use App\Http\Controllers\InvoicesController;
@@ -37,6 +38,7 @@ Route::middleware(['auth', 'verified'])->prefix('billing')->name('billing.')->gr
 
     // Subscription management
     Route::post('/subscriptions/change', BillingSubscriptionChangeController::class)->name('subscription.change');
+    Route::post('/subscription/schedule/cancel', BillingSubscriptionScheduleCancelController::class)->name('schedule.cancel');
     Route::post('/subscription/cancel', BillingSubscriptionCancelController::class)->name('cancel');
     Route::post('/subscription/resume', BillingSubscriptionResumeController::class)->name('resume');
 

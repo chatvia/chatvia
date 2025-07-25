@@ -11,7 +11,7 @@ class Billing
         $packages = collect(config('billing.packages'));
 
         $package = $packages->filter(function ($package) use ($priceId) {
-            return $package['stripe_monthly_price_id'] == $priceId || $package['stripe_yearly_price_id'] === $priceId;
+            return $package['stripe_monthly_price_id'] === $priceId || $package['stripe_yearly_price_id'] === $priceId;
         })->map(function ($package) use ($priceId) {
             $package['is_yearly'] = $package['stripe_yearly_price_id'] === $priceId;
 
@@ -42,7 +42,7 @@ class Billing
     {
         $packages = $this->getAvailablePackages();
 
-        return $packages->where('name', $name)->first();
+        return $packages->where('name', ucfirst($name))->first();
     }
 
     public static function getPackages()

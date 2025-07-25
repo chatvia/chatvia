@@ -42,7 +42,7 @@ const scrollAnimationFrame = ref(null);
 const messageSources = ref(new Map()); // Store sources for each message
 
 // Usage checking
-const USAGE_CHECK_INTERVAL = 2000; // 2 seconds
+const USAGE_CHECK_INTERVAL = 60000; // 1 minute
 const canSendMessages = ref(true);
 const usageCheckInterval = ref(null);
 

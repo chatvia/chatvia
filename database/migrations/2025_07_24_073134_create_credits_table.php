@@ -39,7 +39,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('type')->index(); // 'extra_message_credits', 'extra_agents'
-            $table->integer('quantity')->default(0); // e.g., 1000 messages, 1 agent
+            $table->integer('amount')->default(0); // e.g., 1000 messages, 1 agent
             $table->string('stripe_id')->nullable()->index(); // Links to Cashier
             $table->timestamp('started_at')->nullable(); // When add-on is active
             $table->timestamp('ends_at')->nullable(); // When add-on expires (if canceled)

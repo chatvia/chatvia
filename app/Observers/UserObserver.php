@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Models\User;
-use App\Services\Billing\Credit;
+use App\Services\Billing\UserCreditSystem;
 
 class UserObserver
 {
@@ -17,7 +17,7 @@ class UserObserver
             'agents_knowledge_limit' => $fixed['agents_knowledge_limit'],
         ]);
 
-        app(Credit::class)->setUserId($user->id)->addCreditForSubscription(
+        app(UserCreditSystem::class)->setUserId($user->id)->addCreditForSubscription(
             $freeQuotaLimit,
             now()->addMonth(),
         );

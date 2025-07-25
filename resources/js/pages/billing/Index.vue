@@ -75,6 +75,15 @@ interface UsageData {
     };
 }
 
+interface PendingPlanChange {
+    from_package?: string;
+    to_package?: string;
+    is_yearly?: boolean;
+    effective_date?: number;
+    scheduled_at?: string;
+    has_pending_update?: boolean;
+}
+
 const props = defineProps<{
     current_package: CurrentPackage;
     on_trial: boolean;
@@ -82,6 +91,7 @@ const props = defineProps<{
     subscription: any;
     subscribed: boolean;
     subscription_canceled: boolean;
+    pending_plan_change?: PendingPlanChange | null;
 }>();
 
 const page = usePage();
@@ -98,6 +108,8 @@ const cancelForm = useForm({
 });
 
 const resumeForm = useForm({});
+
+const cancelScheduleForm = useForm({});
 
 // Usage data
 const usageData = ref<UsageData | null>(null);
@@ -126,7 +138,7 @@ const fetchUsageData = async () => {
                 'X-Requested-With': 'XMLHttpRequest',
             },
         });
-        
+
         if (response.ok) {
             usageData.value = await response.json();
         }
@@ -179,9 +191,9 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
 const formatDate = (timestamp: number | string | null | undefined) => {
     if (!timestamp || timestamp === 0) return 'N/A';
-    
+
     let ts: number;
-    
+
     // Convert to number if it's a string
     if (typeof timestamp === 'string') {
         ts = parseInt(timestamp);
@@ -189,13 +201,13 @@ const formatDate = (timestamp: number | string | null | undefined) => {
     } else {
         ts = timestamp;
     }
-    
+
     // Handle both seconds and milliseconds timestamps
     const date = new Date(ts > 1000000000000 ? ts : ts * 1000);
-    
+
     // Check if date is valid
     if (isNaN(date.getTime())) return 'N/A';
-    
+
     return date.toDateString();
 };
 
@@ -235,8 +247,8 @@ const isSubscriptionActive = computed(() => {
 });
 
 const currentFeatures = computed(() => {
-    return props.current_package.subscribed_to_yearly 
-        ? props.current_package.features.yearly 
+    return props.current_package.subscribed_to_yearly
+        ? props.current_package.features.yearly
         : props.current_package.features.monthly;
 });
 
@@ -247,6 +259,10 @@ const cancelSubscription = (immediately = false) => {
 
 const resumeSubscription = () => {
     resumeForm.post(route('billing.resume'));
+};
+
+const cancelScheduledPlanChange = () => {
+    cancelScheduleForm.post(route('billing.schedule.cancel'));
 };
 
 </script>
@@ -320,6 +336,52 @@ const resumeSubscription = () => {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-6">
+                                <!-- Pending Plan Change Notice -->
+                                <div v-if="pending_plan_change" class="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                    <div class="flex items-start gap-3">
+                                        <Calendar class="h-5 w-5 text-blue-500 mt-0.5" />
+                                        <div>
+                                            <h4 class="font-medium text-blue-800 dark:text-blue-200">
+                                                Plan Change Scheduled
+                                            </h4>
+                                            <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                                                <template v-if="pending_plan_change.from_package && pending_plan_change.to_package">
+                                                    Your plan will change from <span class="font-medium">{{ pending_plan_change.from_package }}</span> to
+                                                    <span class="font-medium">{{ pending_plan_change.to_package }}</span>
+                                                    {{ pending_plan_change.is_yearly ? ' (Yearly)' : ' (Monthly)' }}
+                                                    on {{ formatDate(pending_plan_change.effective_date) }}.
+                                                </template>
+                                                <template v-else>
+                                                    You have a plan change scheduled for {{ formatDate(pending_plan_change.effective_date) }}.
+                                                </template>
+                                            </p>
+                                                                        <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                                You'll continue to have access to your current plan features until then.
+                            </p>
+                            <div class="mt-3">
+                                <ConfirmationDialog
+                                    title="Cancel Scheduled Plan Change"
+                                    description="Are you sure you want to cancel your scheduled plan change? You will remain on your current plan."
+                                    confirm-text="Yes, Cancel Schedule"
+                                    cancel-text="Keep Schedule"
+                                    @confirm="cancelScheduledPlanChange"
+                                >
+                                    <template #trigger>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            :disabled="cancelScheduleForm.processing"
+                                            class="gap-2"
+                                        >
+                                            <Trash2 class="h-4 w-4" />
+                                            Cancel Schedule
+                                        </Button>
+                                    </template>
+                                </ConfirmationDialog>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                                 <!-- Plan Info -->
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-4">
@@ -454,13 +516,15 @@ const resumeSubscription = () => {
                                     <Separator class="my-2" />
                                 </div>
 
-                                <Button class="w-full gap-2 justify-start" as-child>
-                                    <Link :href="route('billing.packages')">
-                                        <Zap class="h-4 w-4" />
-                                        Change Plan
-                                    </Link>
-                                </Button>
+
                                 <template v-if="subscription">
+                                    <Button class="w-full gap-2 justify-start" as-child>
+                                        <Link :href="route('billing.packages')">
+                                            <Package class="h-4 w-4" />
+                                            Change Plan
+                                        </Link>
+                                    </Button>
+
                                     <ConfirmationDialog
                                         v-if="!subscription_canceled"
                                         title="Cancel Subscription"
@@ -560,7 +624,7 @@ const resumeSubscription = () => {
                                 <div v-if="isLoadingUsage" class="flex items-center justify-center py-8">
                                     <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
                                 </div>
-                                
+
                                 <div v-else-if="usageData" class="space-y-4">
                                     <!-- Messages Usage -->
                                     <div class="space-y-2">

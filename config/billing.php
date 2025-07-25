@@ -70,6 +70,7 @@ return [
             | Array values: Lists of allowed items like models, file types
             */
             'capabilities' => [
+                'custom_sub_domain' => false,
                 'advanced_pdf' => false,
                 'ocr' => false,
                 'audio_video' => false,
@@ -150,6 +151,7 @@ return [
             ],
 
             'capabilities' => [
+                'custom_sub_domain' => true,
                 'advanced_pdf' => true,
                 'ocr' => true,
                 'audio_video' => false,
@@ -230,6 +232,7 @@ return [
             ],
 
             'capabilities' => [
+                'custom_sub_domain' => true,
                 'advanced_pdf' => true,
                 'ocr' => true,
                 'audio_video' => false,
@@ -310,27 +313,20 @@ return [
             ],
 
             'capabilities' => [
-                'monthly_message_credits' => 25000,
+                'custom_sub_domain' => true,
                 'advanced_pdf' => true,
                 'ocr' => true,
                 'audio_video' => true,
                 'api_access' => true,
-                'priority_support' => 'dedicated',
                 'custom_integrations' => true,
                 'team_collaboration' => true,
-                'advanced_analytics' => 'enterprise',
                 'white_label' => true,
                 'custom_domains' => true,
-                'sla_guarantee' => '99.9%',
-                'storage_gb' => 100,
-                'max_agents' => 100,
-                'max_file_types' => 'unlimited',
-                'integrations_limit' => 'unlimited',
             ],
             'stripe_monthly_price_id' => env('STRIPE_PRO_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_PRO_YEARLY_PRICE_ID'),
-            'monthly_price' => 14900, // $149.00
-            'yearly_price' => 149000, // $1,490.00 (2 months free)
+            'monthly_price' => 24900, // $249.00
+            'yearly_price' => 249000, // $2,490.00 (2 months free)
             'is_popular' => false,
 
             'quota_limits' => [

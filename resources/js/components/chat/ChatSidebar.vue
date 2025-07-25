@@ -336,26 +336,26 @@ const saveProfile = () => {
 
 const getCurrentSubdomain = () => {
     if (typeof window === 'undefined') return null;
-    
+
     const hostname = window.location.hostname;
     const parts = hostname.split('.');
-    
+
     // Return the subdomain if it exists (e.g., "translation" from "translation.chatvia.test")
     return parts.length > 2 ? parts[0] : null;
 };
 
 const loadAgents = async () => {
     if (isLoadingAgents.value) return;
-    
+
     isLoadingAgents.value = true;
     try {
         const response = await axios.get(route('chat.member.agents'));
         agents.value = response.data;
-        
+
         // Set the current agent as selected based on subdomain
         if (!selectedAgent.value && agents.value.length > 0) {
             const currentSubdomain = getCurrentSubdomain();
-            
+
             if (currentSubdomain) {
                 // Find agent matching current subdomain
                 const currentAgent = agents.value.find(agent => agent.sub_domain === currentSubdomain);
@@ -390,9 +390,9 @@ const selectAgent = (agent: Agent) => {
 
 const switchToSelectedAgent = () => {
     if (!selectedAgent.value || agentSwitchForm.processing) return;
-    
+
     console.log('Sending switch request for agent:', selectedAgent.value.id);
-    
+
     agentSwitchForm.post(route('chat.member.agents.switch', {
         agent: selectedAgent.value.id
     }), {
@@ -719,12 +719,12 @@ const switchToSelectedAgent = () => {
                     <Label for="email" class="text-right">Email</Label>
                     <div class="col-span-3 relative">
                         <Mail class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            id="email" 
-                            v-model="profileForm.email" 
-                            type="email" 
-                            class="pl-10 bg-muted cursor-not-allowed" 
-                            placeholder="Enter your email" 
+                        <Input
+                            id="email"
+                            v-model="profileForm.email"
+                            type="email"
+                            class="pl-10 bg-muted cursor-not-allowed"
+                            placeholder="Enter your email"
                             readonly
                             disabled
                         />
@@ -836,7 +836,7 @@ const switchToSelectedAgent = () => {
                         <p class="text-muted-foreground">No agents found.</p>
                     </div>
                     <div v-else class="space-y-3">
-                        <div v-for="agent in agents" :key="agent.id" 
+                        <div v-for="agent in agents" :key="agent.id"
                              :class="[
                                  'flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-colors',
                                  selectedAgent?.id === agent.id ? 'border-primary bg-primary/5' : 'hover:bg-accent'
@@ -845,8 +845,8 @@ const switchToSelectedAgent = () => {
                             <div class="flex items-center gap-3 flex-1">
                                 <div :class="[
                                     'w-4 h-4 rounded-full border-2',
-                                    selectedAgent?.id === agent.id 
-                                        ? 'border-primary bg-primary' 
+                                    selectedAgent?.id === agent.id
+                                        ? 'border-primary bg-primary'
                                         : 'border-muted-foreground'
                                 ]">
                                     <div v-if="selectedAgent?.id === agent.id" class="w-2 h-2 bg-white rounded-full m-0.5"></div>
@@ -860,8 +860,8 @@ const switchToSelectedAgent = () => {
                 </div>
             </ScrollArea>
                          <DialogFooter class="flex-col sm:flex-row gap-2">
-                                 <Button 
-                    @click="switchToSelectedAgent" 
+                                 <Button
+                    @click="switchToSelectedAgent"
                     :disabled="!selectedAgent || agentSwitchForm.processing"
                     class="w-full sm:w-auto">
                     <svg v-if="agentSwitchForm.processing" class="h-4 w-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

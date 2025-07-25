@@ -496,26 +496,35 @@ const processAllFiles = async () => {
     isProcessingFiles.value = true;
     console.log(`Starting to process ${uploadedFiles.value.length} files...`);
 
-    // Track processing state
-    const processingPromises: Promise<void>[] = [];
-
-    // Process each file (using process endpoint)
-    uploadedFiles.value.forEach(file => {
-        const processPromise = processFile(file);
-        processingPromises.push(processPromise);
-    });
-
-    // Wait for all files to be processed
     try {
-        await Promise.all(processingPromises);
-        console.log('All files processed successfully');
+        // Send single request to process all files
+        const processUrl = route('agents.knowledge.files.process', {
+            agent: props.agent.id
+        });
+
+        console.log(`PROCESS URL: ${processUrl}`);
+
+        const response = await axios.post(processUrl);
+
+        console.log('All files processed successfully', response);
 
         // Refresh the knowledge files list to show processed files
         await fetchKnowledgeFiles();
         // Refresh usage data since pages were consumed
         await fetchUsageData();
-    } catch (error) {
-        console.error('Some files failed to process:', error);
+    } catch (error: any) {
+        console.error('Failed to process files:', error);
+
+        // Log detailed error information
+        if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response data:', error.response.data);
+            console.error('Response headers:', error.response.headers);
+        }
+
+        // Show user-friendly error message
+        const errorMessage = error.response?.data?.message || error.message;
+        alert(`Failed to process files: ${errorMessage}`);
 
         // Still refresh to show any successfully processed files
         await fetchKnowledgeFiles();
@@ -526,46 +535,7 @@ const processAllFiles = async () => {
     }
 };
 
-// Process a single file (using process endpoint)
-const processFile = async (file: UploadedFile): Promise<void> => {
-    try {
-        console.log(`Processing file: ${file.name} (ID: ${file.id})`);
 
-        const processUrl = route('agents.knowledge.files.process', {
-            agent: props.agent.id,
-            file: file.id
-        });
-
-        console.log(`PROCESS URL: ${processUrl}`);
-
-        const response = await axios.post(processUrl);
-
-        console.log(`Successfully processed: ${file.name}`, response);
-    } catch (error: any) {
-        console.error(`Failed to process file ${file.name}:`, error);
-
-        // Log detailed error information
-        if (error.response) {
-            console.error('Response status:', error.response.status);
-            console.error('Response data:', error.response.data);
-            console.error('Response headers:', error.response.headers);
-        } else if (error.request) {
-            console.error('Request made but no response:', error.request);
-        } else {
-            console.error('Error setting up request:', error.message);
-        }
-
-        // Log the specific error for debugging
-        if (error.response?.data?.message) {
-            console.error(`Error message: ${error.response.data.message}`);
-        }
-
-        // Show user-friendly error message
-        alert(`Failed to process ${file.name}: ${error.response?.data?.message || error.message}`);
-
-        throw error;
-    }
-};
 
 const removeKnowledgeFile = async () => {
     if (!fileToDelete.value) return;
@@ -723,6 +693,8 @@ const fetchUsageData = async () => {
                 :show-quota="!isLoadingUsage"
                 :quota-used="totalUploadedPages"
                 :quota-limit="usageData.pages.limit"
+                :disabled="isProcessingFiles"
+                disabled-message="File uploads are disabled while training is in progress"
                 @files-changed="(files) => uploadingFiles = files"
             />
 
@@ -778,6 +750,7 @@ const fetchUsageData = async () => {
                                     variant="outline"
                                     size="sm"
                                     @click="confirmClearAllFiles"
+                                    :disabled="isProcessingFiles"
                                     class="text-destructive hover:text-destructive/90"
                                 >
                                     <Trash2 class="h-4 w-4 mr-2" />
@@ -828,6 +801,7 @@ const fetchUsageData = async () => {
                                                     class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
                                                     size="sm"
                                                     variant="ghost"
+                                                    :disabled="isProcessingFiles"
                                                     @click="confirmDeleteUploadedFile(file)"
                                                 >
                                                     <span class="sr-only">Remove file</span>
@@ -932,6 +906,7 @@ const fetchUsageData = async () => {
                                                             class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
                                                             size="sm"
                                                             variant="ghost"
+                                                            :disabled="isProcessingFiles"
                                                             @click="confirmDeleteFile(file)"
                                                         >
                                                             <span class="sr-only">Remove file</span>
@@ -1011,6 +986,7 @@ const fetchUsageData = async () => {
                                                         class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
                                                         size="sm"
                                                         variant="ghost"
+                                                        :disabled="isProcessingFiles"
                                                         @click="confirmDeleteFile(file)"
                                                     >
                                                         <span class="sr-only">Remove file</span>

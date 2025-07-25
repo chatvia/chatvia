@@ -12,20 +12,20 @@ class BillingSubscriptionScheduleCancelController
     {
         $user = $request->user();
 
-        if (!$user->subscribed()) {
+        if (! $user->subscribed()) {
             return to_route('billing.index')->with('error', 'You are not currently subscribed to any plan.');
         }
 
         $subscription = $user->subscription();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return to_route('billing.index')->with('error', 'No active subscription found.');
         }
 
         $stripeSubscription = $subscription->asStripeSubscription();
         $metadata = $stripeSubscription->metadata->toArray();
 
-        if (!isset($metadata['pending_change']) || $metadata['pending_change'] !== 'true') {
+        if (! isset($metadata['pending_change']) || $metadata['pending_change'] !== 'true') {
             return to_route('billing.index')->with('error', 'No pending plan change found to cancel.');
         }
 
@@ -43,7 +43,7 @@ class BillingSubscriptionScheduleCancelController
                 'effective_date' => null,
                 'canceled_at' => now()->toISOString(),
                 'requested_at' => '',
-            ])->toArray())
+            ])->toArray()),
         ]);
 
         return to_route('billing.index')->with('success', 'Your scheduled plan change has been cancelled successfully.');

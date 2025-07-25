@@ -228,6 +228,11 @@ const hasFailedFiles = computed(() => {
     return uploadingFiles.value.some(file => file.error);
 });
 
+// Check if agent supports knowledge base functionality
+const isKnowledgeAgent = computed(() => {
+    return props.agent.type === 'knowledge';
+});
+
 // Page quota computed properties
 const pagesRemaining = computed(() => {
     return usageData.value.pages.limit - usageData.value.pages.used;
@@ -659,19 +664,21 @@ const stopRefreshInterval = () => {
     }
 };
 
-// Watch for processing files to start/stop auto-refresh
+// Watch for processing files to start/stop auto-refresh (only for knowledge agents)
 watch(hasProcessingFiles, (hasProcessing) => {
-    if (hasProcessing) {
+    if (isKnowledgeAgent.value && hasProcessing) {
         startRefreshInterval();
     } else {
         stopRefreshInterval();
     }
 });
 
-// Load files when component mounts
+// Load files when component mounts (only for knowledge agents)
 onMounted(() => {
-    fetchKnowledgeFiles();
-    fetchUsageData(); // Fetch usage data on mount
+    if (isKnowledgeAgent.value) {
+        fetchKnowledgeFiles();
+        fetchUsageData(); // Fetch usage data on mount
+    }
 });
 
 // Clean up interval when component unmounts
@@ -697,8 +704,18 @@ const fetchUsageData = async () => {
 <template>
     <AgentLayout :agent="agent" title="Knowledge Base">
         <div class="space-y-6">
-            <!-- Upload Section -->
+            <!-- Knowledge Agent Type Required Alert -->
+            <Alert v-if="!isKnowledgeAgent">
+                <AlertCircle class="h-4 w-4" />
+                <AlertDescription>
+                    <strong>Knowledge Base Not Available</strong> This agent is configured as an instruction-based agent. Document uploading and knowledge base functionality is only available for knowledge-based agents.
+                    
+                </AlertDescription>
+            </Alert>
+
+            <!-- Upload Section (only for knowledge agents) -->
             <FileUploader
+                v-if="isKnowledgeAgent"
                 ref="fileUploaderRef"
                 :config="fileUploaderConfig"
                 title="Upload New Documents"
@@ -709,8 +726,8 @@ const fetchUsageData = async () => {
                 @files-changed="(files) => uploadingFiles = files"
             />
 
-            <!-- Important Notes and Warnings -->
-            <div class="space-y-3">
+            <!-- Important Notes and Warnings (only for knowledge agents) -->
+            <div v-if="isKnowledgeAgent" class="space-y-3">
                 <!-- PDF Note -->
                 <Alert>
                     <AlertCircle class="h-4 w-4" />
@@ -739,8 +756,8 @@ const fetchUsageData = async () => {
                 </Alert>
             </div>
 
-            <!-- Uploaded files ready for processing -->
-            <div v-if="uploadedFiles.length > 0" class="mt-4">
+            <!-- Uploaded files ready for processing (only for knowledge agents) -->
+            <div v-if="isKnowledgeAgent && uploadedFiles.length > 0" class="mt-4">
                 <Card>
                     <CardHeader class="pb-3">
                         <div class="flex items-center justify-between">
@@ -829,8 +846,8 @@ const fetchUsageData = async () => {
                 </Card>
             </div>
 
-            <!-- Current Knowledge Base -->
-            <Card>
+            <!-- Current Knowledge Base (only for knowledge agents) -->
+            <Card v-if="isKnowledgeAgent">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Database class="h-5 w-5" />

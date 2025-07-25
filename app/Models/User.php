@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Data\Chat\LlmModelData;
-use App\Data\StripeScheduleData;
 use App\Enums\UserCapabilityEnum;
 use App\Services\Billing\UserCapabilities;
 use App\Support\Billing;
@@ -274,7 +273,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $subscription = $this->subscription();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return null;
         }
 
@@ -302,7 +301,7 @@ class User extends Authenticatable implements MustVerifyEmail
         } catch (\Exception $e) {
             \Log::warning('Failed to sync pending plan changes', [
                 'user_id' => $this->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return null;
@@ -326,8 +325,5 @@ class User extends Authenticatable implements MustVerifyEmail
         return app(UserCapabilities::class)->setUser($this)->can($capability);
     }
 
-    public function capabilities()
-    {
-
-    }
+    public function capabilities() {}
 }

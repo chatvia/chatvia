@@ -47,9 +47,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-//        Cashier::calculateTaxes();
+        //        Cashier::calculateTaxes();
 
-//        Cashier::keepIncompleteSubscriptionsActive();
+        //        Cashier::keepIncompleteSubscriptionsActive();
 
         Stripe::setApiKey(config('cashier.secret'));
 

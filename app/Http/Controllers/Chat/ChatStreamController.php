@@ -84,7 +84,7 @@ class ChatStreamController
             'model' => $request->input('model'),
             'message' => $request->input('message'),
             'updated_message_info' => $request->input('updated_message_info', []),
-            'message_for_llm' => $this->knowledgeBase->searchInKnowledgeBaseIfNeeded($agent, $request['message']),
+            'message_for_llm' => $this->knowledgeBase->rewriteQuery($request->input('message')),
         ]);
 
         $this->llmMessages = $this->memory->getLlmMessages();
@@ -154,12 +154,18 @@ class ChatStreamController
         ];
 
         $userMessageContent = $this->payload->message;
-        $this->sources = collect(); // Initialize empty collection
+        $this->sources = collect();
 
         if ($agent->isKnowledgeable()) {
             $lastMessages = collect($this->memory->getLastMessages(6))->pluck('content')->toArray();
 
-            if ($this->knowledgeBase->shouldContinueSearching($lastMessages, $userMessageContent)) {
+            $searchKnowledgeBase = true;
+
+            if (count($lastMessages) > 1) {
+                $searchKnowledgeBase = $this->knowledgeBase->shouldContinueSearching($lastMessages, $userMessageContent);
+            }
+
+            if ($searchKnowledgeBase) {
                 $searchResults = $this->knowledgeBase->search($agent, $userMessageContent);
 
                 // Enrich sources with file metadata

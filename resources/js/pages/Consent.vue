@@ -49,10 +49,33 @@ const submitConsent = () => {
                 <div class="text-center">
                     <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Data Processing Consent</h2>
                     <p class="mt-4 text-lg text-muted-foreground">
-                        Please review our data processing practices and make your preferences
+                        Before you start using ChatVia, we need to know how you want your data to be processed. This page will help you understand your rights and choices.
+                    </p>
+                    <p class="mt-2 text-sm text-muted-foreground">
+                        Please note that this page describes the data processing, which is a preliminary stage to make your data ready for your agent.
                     </p>
                 </div>
-                
+
+                <div class="rounded-lg border bg-muted/50 p-6">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        How ChatVia Works
+                    </h3>
+                    <div class="text-sm text-muted-foreground space-y-3">
+                        <p>
+                            When you create a training-based agent, ChatVia will send your data to different providers for processing. Here are the key points about our data processing:
+                        </p>
+                        <ul class="list-disc list-inside space-y-2 ml-4">
+                            <li><strong>Data Processing Providers:</strong> We use Cohere (<a href="https://cohere.com/privacy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">privacy policy</a>), Mistral for EU users, and Google/OpenAI for US users.</li>
+                            <li><strong>Data Storage:</strong> Your data will be stored and encrypted locally in the EU (Germany/Finland).</li>
+                            <li><strong>No Training:</strong> We don't train models on your data. Instead, we use RAG (Retrieval-Augmented Generation) and GraphRAG to find relevant information and send it to your chosen model for processing.</li>
+                            <li><strong>Data Control:</strong> You can easily delete your data at any time through your account settings.</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <!-- Data Storage Region Selection -->
                 <div class="rounded-lg border bg-card p-6 shadow-sm">
                     <h3 class="text-xl font-semibold mb-4">Choose Your Data Storage Region</h3>
@@ -85,7 +108,7 @@ const submitConsent = () => {
                                         <h4 class="text-lg font-semibold">European Union (EU)</h4>
                                     </div>
                                     <p class="text-sm text-muted-foreground mt-2">
-                                        Your data will be stored and processed within the European Union, ensuring full GDPR compliance and maximum privacy protection. Note that some third-party AI providers may still process data outside the EU.
+                                        Your data will be stored and processed within the European Union, ensuring full GDPR compliance and maximum privacy protection.
                                     </p>
                                     <div class="mt-3 space-y-1">
                                         <div class="flex items-center text-sm text-green-600">
@@ -98,13 +121,13 @@ const submitConsent = () => {
                                             <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Enhanced privacy rights
+                                            Data remains within EU borders
                                         </div>
                                         <div class="flex items-center text-sm text-green-600">
                                             <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Data stays in EU
+                                            Processed using Mistral AI
                                         </div>
                                     </div>
                                 </div>
@@ -135,26 +158,26 @@ const submitConsent = () => {
                                         <h4 class="text-lg font-semibold">United States (US)</h4>
                                     </div>
                                     <p class="text-sm text-muted-foreground mt-2">
-                                        Your data will be stored and processed in the United States, with strong privacy protections and potentially faster performance. This region provides direct access to leading AI providers like OpenAI and others.
+                                        Your data will be stored and processed in the United States, with strong privacy protections and access to the latest AI infrastructure. This region provides direct access to leading AI providers.
                                     </p>
                                     <div class="mt-3 space-y-1">
                                         <div class="flex items-center text-sm text-blue-600">
                                             <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Optimized performance
+                                            Access to OpenAI and Google AI
                                         </div>
                                         <div class="flex items-center text-sm text-blue-600">
                                             <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Strong data protection
+                                            Optimized performance and speed
                                         </div>
                                         <div class="flex items-center text-sm text-blue-600">
                                             <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Latest AI infrastructure
+                                            Strong data protection standards
                                         </div>
                                     </div>
                                 </div>
@@ -226,11 +249,13 @@ const submitConsent = () => {
                             <li><strong>Right to Portability:</strong> Transfer your data to another service</li>
                             <li><strong>Right to Object:</strong> Object to processing of your personal data</li>
                         </ul>
+                        <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <p class="text-amber-800">
+                                <strong>Important:</strong> When using AI models from third-party providers (such as OpenAI, Google, or Mistral), your chat interactions may be subject to their respective privacy policies and data processing practices. We recommend reviewing their privacy policies for complete transparency.
+                            </p>
+                        </div>
                         <p class="mt-3">
-                            <strong>Important:</strong> When using AI models from third-party providers (such as OpenAI, Anthropic), your chat data may be subject to their respective privacy policies and data processing practices.
-                        </p>
-                        <p class="mt-2">
-                            To exercise these rights or for any privacy-related questions, contact us at privacy@chatvia.com
+                            To exercise these rights or for any privacy-related questions, contact us at <a href="mailto:privacy@chatvia.com" class="text-primary hover:underline">privacy@chatvia.com</a>
                         </p>
                     </div>
                 </div>

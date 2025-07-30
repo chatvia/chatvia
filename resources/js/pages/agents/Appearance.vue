@@ -124,7 +124,8 @@ const restoreDefaults = () => {
 
 <template>
     <AgentLayout :agent="agent" title="Appearance Settings">
-        <form @submit.prevent="updateAppearance">
+        <div class="space-y-6">
+            <form @submit.prevent="updateAppearance">
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
@@ -315,6 +316,7 @@ const restoreDefaults = () => {
                 </div>
             </div>
         </form>
+        </div>
 
         <!-- Color Picker Dialog -->
         <Dialog :open="showColorPicker" @update:open="showColorPicker = false">

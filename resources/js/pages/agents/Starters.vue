@@ -56,8 +56,7 @@ const removeStarter = (id) => {
 
 <template>
     <AgentLayout :agent="agent" title="Starter Messages">
-
-        <div>
+        <div class="space-y-6">
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">

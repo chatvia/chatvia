@@ -48,7 +48,8 @@ const stats = computed(() => ({
 
 <template>
     <AgentLayout :agent="agent" title="Agent Statistics">
-        <Card>
+        <div class="space-y-6">
+            <Card>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <BarChart3 class="h-5 w-5" />
@@ -210,7 +211,8 @@ const stats = computed(() => ({
                         </div>
                     </div>
                 </div>
-            </CardContent>
+                            </CardContent>
         </Card>
+        </div>
     </AgentLayout>
 </template>

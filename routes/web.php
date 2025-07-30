@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ConsentController;
+use App\Http\Controllers\PrivacyController;
+use App\Http\Controllers\TermsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -10,12 +12,8 @@ Route::get('/', function () {
 // Consent routes
 Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show');
 Route::post('/consent', [ConsentController::class, 'store'])->name('consent.store');
-
-Route::get('/test', function () {
-    $user = \App\Models\User::find(1);
-
-    dd($user->usage);
-});
+Route::get('/privacy', PrivacyController::class)->name('privacy');
+Route::get('/terms', TermsController::class)->name('terms');
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

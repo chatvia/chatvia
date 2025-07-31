@@ -7,19 +7,13 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Psr\Http\Message\ResponseInterface;
 
 class OpenRouter
 {
-    public function stream($model, $llmMessages, array $settings = [])
+    public function stream($model, $llmMessages, array $settings = []): ResponseInterface
     {
         $client = app(Client::class);
-
-        //        $options = [
-        //            'reasoning' => [
-        //                'effort' => 'high',
-        //                'exclude' => false,
-        //            ],
-        //        ];
 
         return $client->post(config('services.openrouter.completion_endpoint'), [
             'headers' => [
@@ -27,15 +21,15 @@ class OpenRouter
                 'Content-Type' => 'application/json',
             ],
             'json' => [
-                'model' => $model,
+                'model' => $model.':nitro',
                 'messages' => $llmMessages,
                 'stream' => true,
                 //                ...$options,
             ],
             'stream' => true,
-            'provider' => [
-                'sort' => 'latency', // https://openrouter.ai/docs/features/provider-routing
-            ],
+            //            'provider' => [
+            //                'sort' => 'latency', // https://openrouter.ai/docs/features/provider-routing
+            //            ],
             ...$settings,
         ]);
     }

@@ -344,11 +344,11 @@ const sendMessage = async () => {
                 if (!firstChunkReceived) {
                     firstChunkReceived = true;
                     responseTime = (Date.now() - requestStartTime) / 1000;
-                    
+
                     if (streamingMessageIndex.value !== null && streamingMessageIndex.value < messages.value.length) {
                         messages.value[streamingMessageIndex.value].responseTime = responseTime;
                     }
-                    
+
                     // Update stats with time to first response
                     updateStats(responseTime);
                 }
@@ -378,7 +378,7 @@ const sendMessage = async () => {
             },
             onError: (error) => {
                 console.error('SSE streaming error:', error);
-                
+
                 // Calculate response time for error case if not already done
                 if (!firstChunkReceived) {
                     responseTime = (Date.now() - requestStartTime) / 1000;
@@ -543,18 +543,7 @@ const formatTime = (date: Date) => {
                                         <p class="text-sm text-muted-foreground">Send a message to begin experimenting with the agent's responses and performance.</p>
 
                                         <!-- Playground Note -->
-                                        <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                            <div class="flex items-start gap-3">
-                                                <Info class="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                                                <div class="text-left">
-                                                    <p class="text-sm text-blue-800 dark:text-blue-200 font-medium mb-1">Playground Testing Environment</p>
-                                                    <p class="text-xs text-blue-700 dark:text-blue-300">
-                                                        This playground is only meant to test the service. The playground doesn't preserve the window context.
-                                                        If you have any questions, please don't hesitate to reach out to us.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
+
                                     </div>
 
                                     <!-- Messages -->

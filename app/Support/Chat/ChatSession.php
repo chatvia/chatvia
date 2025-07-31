@@ -16,7 +16,6 @@ class ChatSession
         // Here, we're storing the chat session ID in the session storage, and also in the cache storage.
         // The session id will be used to access the chat session data in the cache storage.
 
-
         $existingChatSessionId = Session::get(self::CHAT_SESSION_PREFIX);
 
         if ($existingChatSessionId) {

@@ -33,10 +33,10 @@
             <section class="space-y-4">
                 <h2 class="text-2xl font-semibold text-gray-900">1. Introduction</h2>
                 <p class="text-gray-700 leading-relaxed">
-                    Welcome to ChatVia ("we," "our," or "us"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Retrieval-Augmented Generation (RAG) application and AI-powered chat agents.
+                    Welcome to ChatVia ("we," "our," or "us"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.
                 </p>
                 <p class="text-gray-700 leading-relaxed">
-                    ChatVia is designed to help you create intelligent agents by ingesting your documents and using advanced AI technologies to provide contextual responses. We are committed to protecting your privacy and ensuring transparency about our data practices.
+                    ChatVia is designed to help you create AI agents by ingesting your documents and using advanced AI technologies to provide contextual responses. We are committed to protecting your privacy and ensuring transparency about our data practices.
                 </p>
             </section>
 
@@ -48,7 +48,6 @@
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
                     <li>Name and email address (for account creation)</li>
                     <li>Password (encrypted and stored securely)</li>
-                    <li>Data processing region preference (EU or US)</li>
                     <li>Account settings and preferences</li>
                 </ul>
 

@@ -147,9 +147,9 @@
                     <div class="max-w-4xl mx-auto">
                         <div class="text-center">
                             <h1 class="font-inter-tight text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-zinc-500 via-zinc-900 to-zinc-900 pb-4 mb-6">
-                                AI agents trained on
+                                AI Agents Trained On
                                 <em class="italic relative inline-flex justify-center items-center text-zinc-900">
-                                    your data
+                                    Your Data
                                     <svg class="absolute fill-zinc-300 w-[calc(100%+1rem)] -z-10"
                                          xmlns="http://www.w3.org/2000/svg" width="223" height="62" viewBox="0 0 223 62"
                                          aria-hidden="true" preserveAspectRatio="none">

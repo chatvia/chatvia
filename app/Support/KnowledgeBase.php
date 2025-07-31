@@ -35,7 +35,7 @@ class KnowledgeBase
         }
 
         $query = $this->rewriteQuery($query);
-            ray('Rewriting query: '.$query);
+        ray('Rewriting query: '.$query);
         $embedding = embed($query);
         $vectorString = '['.implode(',', $embedding).']';
 

@@ -14,13 +14,16 @@ class Ingestion
 
     public function ingest(AgentFile $agentFile): array
     {
-        $url = rtrim(config('services.ingestion.api_endpoint'), '/');
+        $endpoint = rtrim(config('services.ingestion.api_endpoint'), '/');
+
+        $url = $endpoint.'/ingest?agent_id='.$agentFile->agent_id.'&file_id='.$agentFile->id;
 
         $file = $agentFile->isWordFile() ? $agentFile->convertToPdf() : $agentFile->readFile();
-dd($url);
+
         $response = Http::attach('file', $file->getContent(), $file->getFilename())
-            ->post($url.'/ingest?agent_id='.$agentFile->agent_id.'&file_id='.$agentFile->id)
             ->timeout(600)
+            ->withoutVerifying()
+            ->post($url)
             ->throw()
             ->json();
 

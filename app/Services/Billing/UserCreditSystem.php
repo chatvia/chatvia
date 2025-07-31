@@ -11,11 +11,11 @@ class UserCreditSystem
 {
     private int $userId;
 
-    private const string CREDIT_CACHE_PREFIX = 'user:credit:current:';
+    private const string CREDIT_CACHE_PREFIX = 'user:{id}:credit:current';
 
-    private const string MESSAGES_SENT_CACHE_PREFIX = 'user:credit:messages:sent:';
+    private const string MESSAGES_SENT_CACHE_PREFIX = 'user:{id}:credit:messages:sent';
 
-    private const string MESSAGES_AVAILABLE_CACHE_PREFIX = 'user:credit:messages:available:';
+    private const string MESSAGES_AVAILABLE_CACHE_PREFIX = 'user:{id}:credit:messages:available';
 
     public function setUserId(int $userId): static
     {
@@ -43,7 +43,7 @@ class UserCreditSystem
         $credit->usage()->create();
 
         Cache::put(
-            key: self::CREDIT_CACHE_PREFIX.$this->userId,
+            key: template(self::CREDIT_CACHE_PREFIX, ['id' => $this->userId]),
             value: [
                 'started_at' => $startedAt,
                 'ends_at' => $endsAt,
@@ -53,7 +53,7 @@ class UserCreditSystem
 
         $this->refreshAvailableMessages();
 
-        Cache::put(self::MESSAGES_SENT_CACHE_PREFIX.$this->userId, 0, $endsAt);
+        Cache::put(template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]), 0, $endsAt);
 
         return $credit;
     }
@@ -61,12 +61,12 @@ class UserCreditSystem
     public function incrementMessagesUsage(int $amount = 1): void
     {
         Cache::increment(
-            key: self::MESSAGES_SENT_CACHE_PREFIX.$this->userId,
+            key: template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]),
             value: $amount
         );
 
         Cache::decrement(
-            key: self::MESSAGES_AVAILABLE_CACHE_PREFIX.$this->userId,
+            key: template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]),
             value: $amount
         );
     }
@@ -74,14 +74,14 @@ class UserCreditSystem
     public function getTotalSentMessages(): int
     {
         return Cache::get(
-            key: self::MESSAGES_SENT_CACHE_PREFIX.$this->userId,
+            key: template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]),
             default: 0
         );
     }
 
     public function resetSentMessages(): void
     {
-        Cache::put(self::MESSAGES_SENT_CACHE_PREFIX.$this->userId, 0);
+        Cache::put(template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]), 0);
     }
 
     public function canSendMessages(): bool
@@ -91,8 +91,10 @@ class UserCreditSystem
 
     public function availableMessages($refresh = false): int
     {
-        if ($refresh === false && Cache::has(self::MESSAGES_AVAILABLE_CACHE_PREFIX.$this->userId)) {
-            return Cache::get(self::MESSAGES_AVAILABLE_CACHE_PREFIX.$this->userId);
+        $key = template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]);
+
+        if ($refresh === false && Cache::has($key)) {
+            return Cache::get($key);
         }
 
         /** @var \App\Models\User $credit */
@@ -112,7 +114,7 @@ class UserCreditSystem
         $total = $addons + $messages;
 
         Cache::put(
-            key: self::MESSAGES_AVAILABLE_CACHE_PREFIX.$this->userId,
+            key: $key,
             value: $total,
             ttl: now()->addDay(),
         );

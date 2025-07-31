@@ -6,8 +6,7 @@ use App\Data\StripeScheduleData;
 use App\Models\User;
 use App\Support\Billing;
 use Illuminate\Http\Request;
-use Stripe\Subscription;
-use Stripe\SubscriptionSchedule;
+use Laravel\Cashier\Cashier;
 
 class BillingSubscriptionChangeController
 {
@@ -54,17 +53,19 @@ class BillingSubscriptionChangeController
         $metadata = $stripeSubscription->metadata->toArray();
 
         if (! isset($metadata['pending_change']) || $metadata['pending_change'] === 'true') {
-            $schedule = SubscriptionSchedule::retrieve($metadata['schedule_id']);
-            $schedule->release();
+            if (isset($metadata['schedule_id'])) {
+                $schedule = Cashier::stripe()->subscriptionSchedules->retrieve($metadata['schedule_id']);
+                $schedule->release();
+            }
         }
 
         // Create a subscription schedule to change the plan at the end of current period
-        $schedule = SubscriptionSchedule::create([
+        $schedule = Cashier::stripe()->subscriptionSchedules->create([
             'from_subscription' => $stripeSubscription->id,
         ]);
 
         // Now update the schedule with the new phases
-        $schedule = SubscriptionSchedule::update($schedule->id, [
+        $schedule = Cashier::stripe()->subscriptionSchedules->update($schedule->id, [
             'phases' => [
                 [
                     'items' => [
@@ -88,7 +89,7 @@ class BillingSubscriptionChangeController
             ],
         ]);
 
-        Subscription::update($stripeSubscription->id, [
+        Cashier::stripe()->subscriptions->update($stripeSubscription->id, [
             'metadata' => StripeScheduleData::from([
                 'pending_change' => 'true',
                 'from_package' => $user->plan,

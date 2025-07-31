@@ -17,6 +17,8 @@ class ChatMemory
 {
     private string $conversationId = '';
 
+    private bool $isPlayground = false;
+
     private Agent $agent;
 
     public function setConversationId(string $conversationId): self
@@ -64,7 +66,7 @@ class ChatMemory
 
     public function getOrGenerateSession(): string
     {
-        return app(ChatSession::class)->getOrGenerateSession();
+        return app(ChatSession::class)->getOrGenerateSession($this->isPlayground);
     }
 
     public function createPlaygroundConversation(): string
@@ -84,7 +86,7 @@ class ChatMemory
     {
         $conversationId = $prefix.Str::uuid()->toString();
 
-        $session = $this->getOrGenerateSession();
+        $sessionId = $this->getOrGenerateSession();
 
         $conversations = $this->getConversationsForCurrentSession();
 
@@ -96,7 +98,7 @@ class ChatMemory
         ];
 
         $this->cachePut(
-            key: $session,
+            key: $sessionId,
             value: [
                 'conversations' => $conversations,
             ],
@@ -249,12 +251,9 @@ class ChatMemory
             return [];
         }
 
-        if ($this->agent->contextWindowSize() !== -1) {
-            // adjust the context window size
-            $messages = array_slice($messages, -$this->agent->contextWindowSize());
-        }
+        $messages = array_slice($messages, -5);
 
-        // message_for_llm is the message that LLM will receive, it might contain some LLM-specific details (rag responses)
+        // message_for_llm is the message that LLM will receive. It might contain some LLM-specific details (rag responses)
         $messages = collect($messages)->map(function ($message) {
             return [
                 'role' => $message['role'],
@@ -466,5 +465,12 @@ class ChatMemory
         app(UserCreditSystem::class)
             ->setUserId($this->agent->user->id)
             ->incrementMessagesUsage($this->agent->user_id);
+    }
+
+    public function setIsPlayground(bool $status): static
+    {
+        $this->isPlayground = $status;
+
+        return $this;
     }
 }

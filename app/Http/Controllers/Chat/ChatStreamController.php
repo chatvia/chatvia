@@ -72,19 +72,25 @@ class ChatStreamController
             $agent = current_agent();
         }
 
-        abort_if(boolean: ! $agent, code: 404);
+        abort_if(
+            boolean: ! $agent,
+            code: 404
+        );
 
         $this->agent = $agent;
 
-        $this->memory
+        $this
+            ->memory
             ->setConversationId($conversationId)
+            ->setIsPlayground($this->playground)
             ->setAgent($agent);
 
         $this->payload = ChatInputPayload::from([
             'model' => $request->input('model'),
             'message' => $request->input('message'),
             'updated_message_info' => $request->input('updated_message_info', []),
-            'message_for_llm' => $this->knowledgeBase->rewriteQuery($request->input('message')),
+            //            'message_for_llm' => $this->knowledgeBase->rewriteQuery($request->input('message')),
+            'message_for_llm' => $request->input('message'),
         ]);
 
         $this->llmMessages = $this->memory->getLlmMessages();

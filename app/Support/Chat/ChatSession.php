@@ -4,59 +4,78 @@ namespace App\Support\Chat;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class ChatSession
 {
-    private const CHAT_SESSION_PREFIX = 'chat-session:';
+    private const CHAT_SESSION_PREFIX = 'chat-session';
 
-    public function getOrGenerateSession(): string
+    public function getOrGenerateSession(bool $playground = false): string
     {
-        $chatSession = request()->session()->get(self::CHAT_SESSION_PREFIX);
+        // Here, we're storing the chat session ID in the session storage, and also in the cache storage.
+        // The session id will be used to access the chat session data in the cache storage.
 
-        if ($chatSession) {
-            return $chatSession;
+
+        $existingChatSessionId = Session::get(self::CHAT_SESSION_PREFIX);
+
+        if ($existingChatSessionId) {
+            return $existingChatSessionId;
         }
 
-        $chatSessionId = $this->generateSessionId();
+        $newChatSessionId = $this->generateSessionId($playground);
 
-        if ($this->isUserAuth()) {
+        if ($this->isMemberAuth()) {
 
-            if ($chatSession = Cache::tags([$chatSessionId])->get($chatSessionId)) {
-                request()->session()->put(self::CHAT_SESSION_PREFIX, $chatSession);
+            if ($this->getChatCache()->has($newChatSessionId)) {
+                Session::put(self::CHAT_SESSION_PREFIX, $newChatSessionId);
 
-                return $chatSession;
+                return $newChatSessionId;
             }
 
-            request()->session()->put(self::CHAT_SESSION_PREFIX, $chatSession);
+            $this->getChatCache()->forever($newChatSessionId, ['conversations' => []]);
 
-            Cache::tags([$chatSessionId])->forever($chatSessionId, ['conversations' => []]);
+            Session::put(self::CHAT_SESSION_PREFIX, $newChatSessionId);
 
-            return $chatSession;
+            return $newChatSessionId;
         }
 
-        Cache::tags([$chatSessionId])->put(
-            key: $chatSessionId,
+        $this->getChatCache()->put(
+            key: $newChatSessionId,
             value: ['conversations' => []],
-            ttl: now()->addDays(3)
+            ttl: now()->addDays(3),
         );
 
-        request()->session()->put(self::CHAT_SESSION_PREFIX, $chatSessionId);
+        Session::put(self::CHAT_SESSION_PREFIX, $newChatSessionId);
 
-        return $chatSessionId;
+        return $newChatSessionId;
     }
 
-    public function generateSessionId(): string
+    public function generateSessionId(bool $playground = false): string
     {
-        if ($this->isUserAuth()) {
-            return 'chat-session.user.'.Auth::id();
+        if ($playground) {
+            return 'chat-session.playground.'.Str::uuid()->toString();
+        }
+
+        if ($this->isMemberAuth()) {
+            return 'chat-session.member.'.Auth::guard('member')->id();
         }
 
         return 'chat-session.guest.'.Str::uuid()->toString();
     }
 
-    public function isUserAuth(): bool
+    public function isMemberAuth(): bool
     {
-        return Auth::check();
+        return Auth::guard('member')->check();
+    }
+
+    public function member()
+    {
+        return Auth::guard('member')->user();
+    }
+
+    public function getChatCache()
+    {
+        return Cache::driver('chat');
     }
 }

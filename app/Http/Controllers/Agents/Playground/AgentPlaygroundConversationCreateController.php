@@ -3,21 +3,15 @@
 namespace App\Http\Controllers\Agents\Playground;
 
 use App\Models\Agent;
-use App\Support\Chat\ChatMemory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class AgentPlaygroundConversationCreateController
 {
-    public function __invoke(Request $request, Agent $agent, ChatMemory $memory)
+    public function __invoke(Request $request, Agent $agent)
     {
-        $conversationId = $memory
-            ->setAgent($agent)
-            ->createPlaygroundConversation();
-
-        $memory->setConversationId($conversationId);
-
         return [
-            'id' => $conversationId,
+            'id' => Str::uuid()->toString(),
         ];
     }
 }

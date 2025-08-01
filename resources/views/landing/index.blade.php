@@ -8,6 +8,13 @@
     @vite(['resources/css/landing.css'])
 
     <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="832171b1-3e2c-434c-baa9-3f9b189ba015";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+
+    <link rel="icon" type="image/png" href="{{ asset('favicons/favicon-96x96.png') }}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicons/favicon.svg') }}" />
+    <link rel="shortcut icon" href="{{ asset('favicons/favicon.ico') }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicons/apple-touch-icon.png') }}" />
+    <meta name="apple-mobile-web-app-title" content="ChatVia.ai" />
+    <link rel="manifest" href="{{ asset('favicons/site.webmanifest') }}" />
 </head>
 
 <body class="font-inter antialiased bg-white text-zinc-900 tracking-tight scroll-smooth">

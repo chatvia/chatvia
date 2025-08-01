@@ -12,8 +12,8 @@ Route::get('/', function () {
 // Consent routes
 Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show');
 Route::post('/consent', [ConsentController::class, 'store'])->name('consent.store');
-Route::get('/privacy', PrivacyController::class)->name('privacy');
-Route::get('/terms', TermsController::class)->name('terms');
+Route::get('/privacy-policy', PrivacyController::class)->name('privacy');
+Route::get('/terms-of-service', TermsController::class)->name('terms');
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

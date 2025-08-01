@@ -61,6 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->trustProxies([
             'chatvia.ai',
+            '127.0.0.1',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {})->create();

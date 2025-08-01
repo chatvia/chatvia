@@ -30,6 +30,7 @@
         "league/flysystem-aws-s3-v3": "^3.0",
         "pgvector/pgvector": "^0.2.2",
         "resend/resend-php": "^0.18.1",
+        "sentry/sentry-laravel": "^4.15",
         "spatie/laravel-data": "^4.15",
         "spatie/laravel-login-link": "^1.6",
         "spatie/laravel-markdown": "*",

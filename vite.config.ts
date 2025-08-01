@@ -9,7 +9,7 @@ import compression from 'vite-plugin-compression';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/js/app.ts', 'resources/css/landing/landing.css'],
+            input: ['resources/js/app.ts', 'resources/css/landing.css'],
             ssr: 'resources/js/ssr.ts',
             refresh: true,
         }),

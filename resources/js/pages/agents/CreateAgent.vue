@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FileUploader from '@/components/FileUploader.vue';
 import type { BreadcrumbItem } from '@/types';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { AlertCircle, BookOpen, Bot, Brain, Database, FileText, Lightbulb, LoaderCircle, AlertTriangle } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -89,7 +89,7 @@ const showFileUpload = computed(() => form.type === AgentType.KNOWLEDGE_BASED);
 // Compute whether user can create the selected agent type
 const canCreateAgent = computed(() => {
     if (!usageData.value) return false;
-    
+
     const agentType = form.type === AgentType.KNOWLEDGE_BASED ? 'knowledge' : 'instruction';
     return usageData.value.agents[agentType].remaining > 0;
 });
@@ -97,14 +97,14 @@ const canCreateAgent = computed(() => {
 // Check if user cannot create any agents at all
 const canCreateAnyAgent = computed(() => {
     if (!usageData.value) return false;
-    
+
     return usageData.value.agents.knowledge.remaining > 0 || usageData.value.agents.instruction.remaining > 0;
 });
 
 // Get current agent quota info
 const currentAgentQuota = computed(() => {
     if (!usageData.value) return null;
-    
+
     const agentType = form.type === AgentType.KNOWLEDGE_BASED ? 'knowledge' : 'instruction';
     return usageData.value.agents[agentType];
 });
@@ -126,7 +126,7 @@ const fetchUsageData = async () => {
         isLoadingUsage.value = true;
         const response = await axios.get(route('usage'));
         usageData.value = response.data;
-        
+
         // Auto-switch to available agent type if current selection is at limit
         autoSwitchToAvailableAgentType();
     } catch (error) {
@@ -140,17 +140,17 @@ const fetchUsageData = async () => {
 // Automatically switch to available agent type if current selection is at limit
 const autoSwitchToAvailableAgentType = (showNotification = false) => {
     if (!usageData.value) return;
-    
+
     const currentType = form.type === AgentType.KNOWLEDGE_BASED ? 'knowledge' : 'instruction';
     const otherType = form.type === AgentType.KNOWLEDGE_BASED ? 'instruction' : 'knowledge';
-    
+
     // If current type is at limit but other type has quota, switch to it
     if (usageData.value.agents[currentType].remaining === 0 && usageData.value.agents[otherType].remaining > 0) {
         const previousType = form.type === AgentType.KNOWLEDGE_BASED ? 'knowledge-based' : 'instruction-based';
         const newType = form.type === AgentType.KNOWLEDGE_BASED ? 'instruction-based' : 'knowledge-based';
-        
+
         form.type = form.type === AgentType.KNOWLEDGE_BASED ? AgentType.INSTRUCTION_BASED : AgentType.KNOWLEDGE_BASED;
-        
+
         // Notify user about the automatic switch only when requested
         if (showNotification) {
             toast.info('Agent type switched', {
@@ -187,9 +187,9 @@ const updateFormFiles = () => {
 // Handle manual agent type selection
 const selectAgentType = (targetType: AgentType) => {
     if (!usageData.value) return;
-    
+
     const agentTypeKey = targetType === AgentType.KNOWLEDGE_BASED ? 'knowledge' : 'instruction';
-    
+
     // Check if the target type has quota available
     if (usageData.value.agents[agentTypeKey].remaining === 0) {
         const agentTypeName = targetType === AgentType.KNOWLEDGE_BASED ? 'knowledge-based' : 'instruction-based';
@@ -199,7 +199,7 @@ const selectAgentType = (targetType: AgentType) => {
         });
         return;
     }
-    
+
     // Switch to the target type
     form.type = targetType;
 };
@@ -290,7 +290,7 @@ onMounted(() => {
                                 You've reached your agent limit. Please upgrade your plan or delete existing agents to create new ones.
                             </p>
                             <div class="mt-3">
-                                <Button 
+                                <Button
                                     size="sm"
                                     class="bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
                                     @click="router.visit(route('billing.index'))"
@@ -330,7 +330,7 @@ onMounted(() => {
                         </CardHeader>
                         <CardContent>
                             <div class="grid gap-6">
-                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 items-start">
                                     <div class="grid gap-2">
                                         <Label for="name" required>Name</Label>
                                         <Input id="name" v-model="form.name" :error="form.errors.name" :disabled="!canCreateAnyAgent" autofocus placeholder="E.g., Meetings" />
@@ -387,14 +387,12 @@ onMounted(() => {
                                             {{ form.errors.sub_domain }}
                                         </p>
                                         <p v-if="!props.can_register_custom_sub_domain" class="text-muted-foreground text-sm mt-1">
-                                            Want a custom subdomain? 
-                                            <button 
-                                                type="button"
+                                            <Link
+                                                :href="route('billing.packages')"
                                                 class="text-primary hover:underline font-medium"
-                                                @click="router.visit(route('billing.index'))"
                                             >
-                                                Upgrade your plan
-                                            </button> 
+                                                Upgrade
+                                        </Link>
                                             to create custom subdomains.
                                         </p>
                                     </div>

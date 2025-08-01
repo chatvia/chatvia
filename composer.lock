@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7f3f30021d673a96a9273b9045fe329f",
+    "content-hash": "bacb1cc69abb71cae64d28a054a1b624",
     "packages": [
         {
             "name": "amphp/amp",
@@ -870,16 +870,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.351.7",
+            "version": "3.351.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "9506d7fdb3cb84f8d7b175c594db9993264814be"
+                "reference": "8f376246010c34cc310fbab71e82befc76678fff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/9506d7fdb3cb84f8d7b175c594db9993264814be",
-                "reference": "9506d7fdb3cb84f8d7b175c594db9993264814be",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/8f376246010c34cc310fbab71e82befc76678fff",
+                "reference": "8f376246010c34cc310fbab71e82befc76678fff",
                 "shasum": ""
             },
             "require": {
@@ -961,9 +961,9 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.351.7"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.351.12"
             },
-            "time": "2025-07-25T18:06:34+00:00"
+            "time": "2025-07-31T18:03:40+00:00"
         },
         {
             "name": "beste/clock",
@@ -7450,6 +7450,63 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.0"
             },
             "time": "2025-06-25T14:20:11+00:00"
+        },
+        {
+            "name": "resend/resend-php",
+            "version": "v0.18.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/resend/resend-php.git",
+                "reference": "f20a9a50a7f705294af1662995c93bfd806fed3e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/resend/resend-php/zipball/f20a9a50a7f705294af1662995c93bfd806fed3e",
+                "reference": "f20a9a50a7f705294af1662995c93bfd806fed3e",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.5",
+                "php": "^8.1.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.13",
+                "mockery/mockery": "^1.6",
+                "pestphp/pest": "^2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/Resend.php"
+                ],
+                "psr-4": {
+                    "Resend\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Resend and contributors",
+                    "homepage": "https://github.com/resend/resend-php/contributors"
+                }
+            ],
+            "description": "Resend PHP library.",
+            "homepage": "https://resend.com/",
+            "keywords": [
+                "api",
+                "client",
+                "php",
+                "resend",
+                "sdk"
+            ],
+            "support": {
+                "issues": "https://github.com/resend/resend-php/issues",
+                "source": "https://github.com/resend/resend-php/tree/v0.18.1"
+            },
+            "time": "2025-07-04T00:12:53+00:00"
         },
         {
             "name": "revolt/event-loop",

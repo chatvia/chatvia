@@ -104,7 +104,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('playground', AgentPlaygroundShowController::class)->name('playground');
 
         Route::post('playground/conversations/create', AgentPlaygroundConversationCreateController::class)->name('playground.conversations.create');
-        Route::post('playground/{conversationId}/stream', AgentPlaygroundStreamController::class)->name('playground.stream');
     });
 
     Route::post('agents/knowledge/files/analyze', AgentKnowledgeFilesAnalyzeController::class)->name('agents.knowledge.files.analyze');

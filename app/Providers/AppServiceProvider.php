@@ -10,6 +10,7 @@ use App\Observers\AgentFileObserver;
 use App\Observers\AgentObserver;
 use App\Observers\ModelSettingObserver;
 use App\Observers\UserObserver;
+use Illuminate\Auth\Access\Gate;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -62,5 +63,9 @@ class AppServiceProvider extends ServiceProvider
         if (app()->isProduction()) {
             URL::forceScheme('https');
         }
+
+        Gate::define('viewPulse', function (User $user) {
+            return $user->is_admin;
+        });
     }
 }

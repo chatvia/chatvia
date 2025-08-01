@@ -11,6 +11,7 @@ use App\Observers\AgentObserver;
 use App\Observers\ModelSettingObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
 use Stripe\Stripe;
@@ -57,5 +58,9 @@ class AppServiceProvider extends ServiceProvider
         Agent::observe(AgentObserver::class);
         AgentFile::observe(AgentFileObserver::class);
         ModelSetting::observe(ModelSettingObserver::class);
+
+        if (app()->isProduction()) {
+            URL::forceScheme('https');
+        }
     }
 }

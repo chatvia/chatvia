@@ -59,9 +59,6 @@ return Application::configure(basePath: dirname(__DIR__))
             '/agents/*/playground/*',
         ]);
 
-        $middleware->trustProxies([
-            'chatvia.ai',
-            '127.0.0.1',
-        ]);
+        $middleware->trustProxies('*');
     })
     ->withExceptions(function (Exceptions $exceptions) {})->create();

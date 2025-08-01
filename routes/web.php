@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\Social\GoogleAuthController;
+use App\Http\Controllers\Auth\Social\GoogleCallbackAuthController;
 use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\TermsController;
@@ -14,6 +16,9 @@ Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show')
 Route::post('/consent', [ConsentController::class, 'store'])->name('consent.store');
 Route::get('/privacy-policy', PrivacyController::class)->name('privacy');
 Route::get('/terms-of-service', TermsController::class)->name('terms');
+
+Route::get('/auth/google', GoogleAuthController::class)->name('auth.google');
+Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->name('auth.google.callback');
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

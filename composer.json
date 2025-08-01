@@ -23,6 +23,7 @@
         "laravel/octane": "^2.9",
         "laravel/pulse": "^1.4",
         "laravel/sanctum": "^4.0",
+        "laravel/socialite": "^5.23",
         "laravel/telescope": "^5.10",
         "laravel/tinker": "^2.10.1",
         "league/commonmark": "^2.7",

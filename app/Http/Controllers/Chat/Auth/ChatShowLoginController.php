@@ -17,6 +17,10 @@ class ChatShowLoginController
     {
         $agent = Agent::resolveAgentFromSubdomain($request->subdomain());
 
+        if ($agent->is_public) {
+            return to_route('chat.home');
+        }
+
         return Inertia::render('auth/LoginMember', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),

@@ -87,12 +87,7 @@ const getUsageColor = (percentage: number) => {
     return 'bg-green-500';
 };
 
-const getUsageStatus = (percentage: number) => {
-    if (percentage >= 90) return { text: 'Critical', color: 'text-red-600 dark:text-red-400' };
-    if (percentage >= 75) return { text: 'High', color: 'text-orange-600 dark:text-orange-400' };
-    if (percentage >= 50) return { text: 'Moderate', color: 'text-yellow-600 dark:text-yellow-400' };
-    return { text: 'Good', color: 'text-green-600 dark:text-green-400' };
-};
+
 
 onMounted(() => {
     fetchUsageData();
@@ -167,9 +162,6 @@ onMounted(() => {
                                 </div>
                                 <div class="flex items-center justify-between text-sm">
                                     <span class="text-muted-foreground">{{ usageData.messages.remaining.toLocaleString() }} remaining</span>
-                                    <span :class="getUsageStatus(getUsagePercentage(usageData.messages.sent, usageData.messages.limit)).color">
-                                        {{ getUsageStatus(getUsagePercentage(usageData.messages.sent, usageData.messages.limit)).text }}
-                                    </span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -201,9 +193,6 @@ onMounted(() => {
                                 </div>
                                 <div class="flex items-center justify-between text-sm">
                                     <span class="text-muted-foreground">{{ usageData.pages.remaining.toLocaleString() }} remaining</span>
-                                    <span :class="getUsageStatus(getUsagePercentage(usageData.pages.used, usageData.pages.limit)).color">
-                                        {{ getUsageStatus(getUsagePercentage(usageData.pages.used, usageData.pages.limit)).text }}
-                                    </span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -235,9 +224,6 @@ onMounted(() => {
                                 </div>
                                 <div class="flex items-center justify-between text-sm">
                                     <span class="text-muted-foreground">{{ usageData.agents.knowledge.remaining }} remaining</span>
-                                    <span :class="getUsageStatus(getUsagePercentage(usageData.agents.knowledge.created, usageData.agents.knowledge.limit)).color">
-                                        {{ getUsageStatus(getUsagePercentage(usageData.agents.knowledge.created, usageData.agents.knowledge.limit)).text }}
-                                    </span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -269,9 +255,6 @@ onMounted(() => {
                                 </div>
                                 <div class="flex items-center justify-between text-sm">
                                     <span class="text-muted-foreground">{{ usageData.agents.instruction.remaining }} remaining</span>
-                                    <span :class="getUsageStatus(getUsagePercentage(usageData.agents.instruction.created, usageData.agents.instruction.limit)).color">
-                                        {{ getUsageStatus(getUsagePercentage(usageData.agents.instruction.created, usageData.agents.instruction.limit)).text }}
-                                    </span>
                                 </div>
                             </CardContent>
                         </Card>

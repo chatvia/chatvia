@@ -662,6 +662,37 @@
                                 </div>
                             </div>
                         </article>
+                        <article
+                                class="flex flex-col border border-transparent [background:linear-gradient(var(--color-white),var(--color-zinc-50))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] rounded-lg">
+                            <div class="flex flex-col p-6 pt-7 h-full">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <svg class="inline-flex fill-zinc-400" xmlns="http://www.w3.org/2000/svg" width="20"
+                                         height="20">
+                                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                                    </svg>
+                                    <h3 class="font-inter-tight text-lg font-semibold text-zinc-900">Enterprise-grade data security</h3>
+                                </div>
+
+                                <p class="text-base text-zinc-600 mb-6 leading-relaxed">
+                                    Your data is protected with enterprise-grade security measures. GDPR compliant, encrypted storage, and secure access controls keep your information safe.
+                                </p>
+
+                                <!-- Security Icon -->
+                                <div class="flex-1 flex items-center justify-center mb-6">
+                                    <div class="w-20 h-20 bg-white rounded-lg shadow-sm border border-zinc-100 flex items-center justify-center">
+                                        <svg class="w-10 h-10 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div class="mt-auto">
+                                    <p class="text-sm text-zinc-500 font-medium">
+                                        GDPR compliant • Encrypted • Secure access
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
                     </div>
                 </div>
             </div>

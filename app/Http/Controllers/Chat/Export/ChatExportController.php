@@ -55,7 +55,7 @@ class ChatExportController
 
     private function toPdf(array $messages, string $filename)
     {
-        if (config('services.bin.node')) {
+        if (app()->isProduction()) {
             Browsershot::html('Foo')
                 ->setNodeBinary(config('services.bin.node'))
                 ->setNpmBinary(config('services.bin.npm'));

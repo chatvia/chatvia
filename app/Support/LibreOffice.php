@@ -21,7 +21,7 @@ class LibreOffice
 
     public function __construct(
     ) {
-        $this->libreOfficePath = config('services.libreoffice.bin');
+        $this->libreOfficePath = config('services.bin.libreoffice');
         $this->tempDir = temp_dir();
         $this->timeout = 3600;
 

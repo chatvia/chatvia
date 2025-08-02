@@ -166,8 +166,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STARTER_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STARTER_YEARLY_PRICE_ID'),
-            'monthly_price' => 2900, // $29/month
-            'yearly_price' => 28900, // $190/year (2 months free)
+            'monthly_price' => 2999, // $29/month
+            'yearly_price' => 28999, // $190/year (2 months free)
             'is_popular' => false,
 
             'quota_limits' => [
@@ -247,8 +247,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STANDARD_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STANDARD_YEARLY_PRICE_ID'),
-            'monthly_price' => 9900, // $49.00
-            'yearly_price' => 99000, // $490.00 (2 months free)
+            'monthly_price' => 9999, // $49.00
+            'yearly_price' => 99999, // $490.00 (2 months free)
             'is_popular' => true,
 
             'quota_limits' => [
@@ -325,8 +325,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_PRO_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_PRO_YEARLY_PRICE_ID'),
-            'monthly_price' => 24900, // $249.00
-            'yearly_price' => 249000, // $2,490.00 (2 months free)
+            'monthly_price' => 49999, // $499,99
+            'yearly_price' => 499999, // $2,490.00 (2 months free)
             'is_popular' => false,
 
             'quota_limits' => [

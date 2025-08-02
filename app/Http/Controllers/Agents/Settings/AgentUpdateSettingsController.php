@@ -30,15 +30,15 @@ class AgentUpdateSettingsController
         $keysToDelete = [];
 
         foreach ($data as $key => $value) {
-//            if (is_null($value)) {
-//                $keysToDelete[] = $key;
-//            } else {
-                $agent->setSetting(
-                    key: $key,
-                    value: $value,
-                    group: $group,
-                );
-//            }
+            //            if (is_null($value)) {
+            //                $keysToDelete[] = $key;
+            //            } else {
+            $agent->setSetting(
+                key: $key,
+                value: $value,
+                group: $group,
+            );
+            //            }
         }
 
         $agent->settingsDelete($group, $keysToDelete);

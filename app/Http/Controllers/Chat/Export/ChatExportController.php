@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Chat\Export;
 
 use App\Support\Chat\ChatMemory;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
@@ -10,9 +11,9 @@ use Spatie\LaravelMarkdown\MarkdownRenderer;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ChatExportController
+readonly class ChatExportController
 {
-    public function __construct(private readonly ChatMemory $memory) {}
+    public function __construct(private ChatMemory $memory) {}
 
     public function __invoke(Request $request, string $conversationId)
     {
@@ -42,7 +43,7 @@ class ChatExportController
             'pdf' => $this->toPdf($messages, $this->filename($conversationId)),
             'markdown' => $this->toMarkdown($messages, $this->filename($conversationId)),
             'text' => $this->toText($messages, $this->filename($conversationId)),
-            'default' => throw new \Exception('Unsupported export type'),
+            'default' => throw new Exception('Unsupported export type'),
         };
     }
 
@@ -53,7 +54,7 @@ class ChatExportController
         return Str::slug($conversation['title']);
     }
 
-    private function toPdf(array $messages, string $filename)
+    private function toPdf(array $messages, string $filename): Pdf
     {
         if (app()->isProduction()) {
             Browsershot::html('Foo')
@@ -77,7 +78,7 @@ class ChatExportController
         return response()->download($file, $filename.'.md');
     }
 
-    private function toText(array $messages, string $filename)
+    private function toText(array $messages, string $filename): BinaryFileResponse
     {
         $content = collect($messages)->map(function ($message) {
             return strip_tags(app(MarkdownRenderer::class)->toHtml($message['content']));

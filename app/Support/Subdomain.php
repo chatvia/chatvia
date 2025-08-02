@@ -13,7 +13,7 @@ class Subdomain
                     'role' => 'user',
                     'content' => '
 Generate a unique, clever, and meaningful name for a chat app.
-- Combine 1–2 real, relevant English words.
+- Combine 1–3 real, relevant English words.
 - Make it subdomain-safe: use only lowercase letters, numbers, and dashes.
 - Dashes are optional but can be used for clarity.
 - Be creative and witty—think metaphor, function, or vibe.

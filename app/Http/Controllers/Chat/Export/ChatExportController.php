@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Chat\Export;
 use App\Support\Chat\ChatMemory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelMarkdown\MarkdownRenderer;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -54,6 +55,12 @@ class ChatExportController
 
     private function toPdf(array $messages, string $filename)
     {
+        if (config('services.bin.node')) {
+            Browsershot::html('Foo')
+                ->setNodeBinary(config('services.bin.node'))
+                ->setNpmBinary(config('services.bin.npm'));
+        }
+
         return Pdf::view('chat.export.pdf', [
             'messages' => $messages,
         ])->download($filename.'.pdf');

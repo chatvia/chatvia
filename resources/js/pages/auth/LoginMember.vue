@@ -10,12 +10,20 @@ import { LoaderCircle, Mail, Lock, Users } from 'lucide-vue-next';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import {onMounted, ref} from "vue";
 import axios from "axios";
-import { useFetchAppearance } from '@/composables/useAppearance';
+import { useColorTheme } from '@/composables/useColorTheme';
 
-defineProps<{
+
+const props = defineProps<{
     status?: string;
     canResetPassword: boolean;
     agentName?: string;
+    appearance?: {
+        color_theme?: string;
+        welcome_message?: string;
+        chat_window_title?: string;
+        chat_footer_text?: string;
+        avatar?: string;
+    };
 }>();
 
 const form = useForm({
@@ -24,7 +32,7 @@ const form = useForm({
     remember: false,
 });
 
-const { appearance, fetchAppearance } = useFetchAppearance();
+const { applyColorTheme } = useColorTheme();
 
 const submit = () => {
     form.post(route('chat.login'), {
@@ -33,7 +41,7 @@ const submit = () => {
 };
 
 onMounted(() => {
-    fetchAppearance();
+    applyColorTheme(props.appearance);
 });
 </script>
 

@@ -9,12 +9,12 @@
 
     <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="832171b1-3e2c-434c-baa9-3f9b189ba015";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 
-    <link rel="icon" type="image/png" href="{{ asset('favicons/favicon-96x96.png') }}" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicons/favicon.svg') }}" />
-    <link rel="shortcut icon" href="{{ asset('favicons/favicon.ico') }}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicons/apple-touch-icon.png') }}" />
+    <link rel="icon" type="image/png" href="{{ asset('images/favicons/favicon-96x96.png') }}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicons/favicon.svg') }}" />
+    <link rel="shortcut icon" href="{{ asset('images/favicons/favicon.ico') }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicons/apple-touch-icon.png') }}" />
     <meta name="apple-mobile-web-app-title" content="ChatVia.ai" />
-    <link rel="manifest" href="{{ asset('favicons/site.webmanifest') }}" />
+    <link rel="manifest" href="{{ asset('images/favicons/site.webmanifest') }}" />
 </head>
 
 <body class="font-inter antialiased bg-white text-zinc-900 tracking-tight scroll-smooth overflow-x-hidden">
@@ -600,6 +600,68 @@
                                 </div>
                             </div>
                         </article>
+                        <article
+                                class="flex flex-col border border-transparent [background:linear-gradient(var(--color-white),var(--color-zinc-50))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] rounded-lg">
+                            <div class="flex flex-col p-6 pt-7 h-full">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <svg class="inline-flex fill-zinc-400" xmlns="http://www.w3.org/2000/svg" width="20"
+                                         height="20">
+                                        <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 2h10v2H7V7zm0 4h10v2H7v-2zm0 4h6v2H7v-2z"/>
+                                    </svg>
+                                    <h3 class="font-inter-tight text-lg font-semibold text-zinc-900">Complex Layouts</h3>
+                                </div>
+
+                                <p class="text-base text-zinc-600 mb-6 leading-relaxed">
+                                    Our advanced RAG system understands complex document layouts, extracts data from tables, and processes images with OCR. Perfect for technical documents, reports, and structured data.
+                                </p>
+
+                                <!-- Table Icon -->
+                                <div class="flex-1 flex items-center justify-center mb-6">
+                                    <div class="w-20 h-20 bg-white rounded-lg shadow-sm border border-zinc-100 flex items-center justify-center">
+                                        <svg class="w-10 h-10 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 2h10v2H7V7zm0 4h10v2H7v-2zm0 4h6v2H7v-2z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div class="mt-auto">
+                                    <p class="text-sm text-zinc-500 font-medium">
+                                        Advanced document processing
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+                        <article
+                                class="flex flex-col border border-transparent [background:linear-gradient(var(--color-white),var(--color-zinc-50))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] rounded-lg">
+                            <div class="flex flex-col p-6 pt-7 h-full">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <svg class="inline-flex fill-zinc-400" xmlns="http://www.w3.org/2000/svg" width="20"
+                                         height="20">
+                                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                    </svg>
+                                    <h3 class="font-inter-tight text-lg font-semibold text-zinc-900">LLM Image Parsing</h3>
+                                </div>
+
+                                <p class="text-base text-zinc-600 mb-6 leading-relaxed">
+                                    Advanced AI models that can see, understand, and analyze images with human-like comprehension. Extract text, understand diagrams, and process visual content.
+                                </p>
+
+                                <!-- Image Analysis Icon -->
+                                <div class="flex-1 flex items-center justify-center mb-6">
+                                    <div class="w-20 h-20 bg-white rounded-lg shadow-sm border border-zinc-100 flex items-center justify-center">
+                                        <svg class="w-10 h-10 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div class="mt-auto">
+                                    <p class="text-sm text-zinc-500 font-medium">
+                                        Visual content analysis • OCR • Multi-modal AI
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
                     </div>
                 </div>
             </div>
@@ -740,10 +802,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Gear illustration -->
-                            <img class="absolute left-0 bottom-0 translate-y-1/3 mix-blend-exclusion max-lg:w-32 lg:-translate-x-1/2"
-                                 src="{{ asset('images/landing/features-illustration.png') }}"
-                                 alt="Features 02 illustration" width="173" height="167" aria-hidden="true">
                         </div>
 
                     </div>

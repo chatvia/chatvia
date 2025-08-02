@@ -4,49 +4,32 @@ import axios from "axios";
 import {Head, router} from '@inertiajs/vue3';
 import AppLayout from "@/components/chat/ChatLayout.vue";
 import Composer from "@/components/chat/Composer.vue";
+import { useColorTheme } from '@/composables/useColorTheme';
+
+const props = defineProps({
+    appearance: {
+        type: Object,
+        default: () => ({
+            color_theme: 'black',
+            welcome_message: null,
+            chat_window_title: null,
+            chat_footer_text: null,
+            avatar: null
+        })
+    }
+});
 
 const selectedModel = ref();
 const selectedStarter = ref('');
 
 const starters = ref([]);
 
-// Add loading state
-const isLoadingAppearance = ref(true);
-
 // Usage checking
 const USAGE_CHECK_INTERVAL = 60000; // 1 minute
 const canSendMessages = ref(true);
 const usageCheckInterval = ref(null);
 
-// Add reactive ref for appearance
-const appearance = ref({
-    color_theme: 'black',
-    welcome_message: null,
-    chat_window_title: null,
-    chat_footer_text: null,
-    avatar: null
-});
-
-// Add function to fetch appearance
-const fetchAppearance = async () => {
-    try {
-        const response = await axios.get(route('chat.appearance'));
-        appearance.value = response.data;
-
-        // Apply color theme if available
-        if (appearance.value.color_theme) {
-            const theme = appearance.value.color_theme;
-            const shade = appearance.value.color_shade || 500;
-            document.documentElement.style.setProperty('--primary', `var(--${theme}-${shade})`);
-            document.documentElement.style.setProperty('--chat-bubble-color', `var(--${theme}-chat-bubble)`);
-            document.documentElement.style.setProperty('--chat-text-color', `var(--${theme}-chat-text)`);
-        }
-    } catch (error) {
-        console.error('Failed to fetch appearance:', error);
-    } finally {
-        isLoadingAppearance.value = false;
-    }
-};
+const { applyColorTheme } = useColorTheme();
 
 // Function to check usage status
 const checkUsage = async () => {
@@ -81,13 +64,13 @@ onMounted(() => {
     // Start usage checking
     startUsageChecking();
     
-    // Fetch both starters and appearance
-    Promise.all([
-        axios.get(route('chat.starters')).then(response => {
-            starters.value = response.data;
-        }),
-        fetchAppearance()
-    ]);
+    // Apply color theme
+    applyColorTheme(props.appearance);
+    
+    // Fetch starters
+    axios.get(route('chat.starters')).then(response => {
+        starters.value = response.data;
+    });
 });
 
 onUnmounted(() => {
@@ -117,14 +100,9 @@ function handleStarterClick(starter) {
             <template #content>
           <div class="flex h-screen items-center justify-center px-4">
               <div class="w-full max-w-4xl mx-auto">
-                  <!-- Loading skeleton for title -->
-                  <div v-if="isLoadingAppearance" class="mb-8 text-center">
-                      <div class="h-12 bg-muted rounded-lg w-96 mx-auto animate-pulse"></div>
-                  </div>
-
                   <!-- Dynamic welcome message -->
-                  <h1 v-else class="mb-8 text-center text-4xl font-medium text-gray-800 dark:text-white">
-                      {{ appearance.welcome_message }}
+                  <h1 class="mb-8 text-center text-4xl font-medium text-gray-800 dark:text-white">
+                      {{ props.appearance?.welcome_message }}
                   </h1>
 
                   <!-- Conversation Starters -->
@@ -172,15 +150,10 @@ function handleStarterClick(starter) {
                           </div>
                       </div>
 
-                      <!-- Loading skeleton for footer -->
-                      <div v-if="isLoadingAppearance" class="text-center mt-4">
-                          <div class="h-4 bg-muted rounded w-80 mx-auto animate-pulse"></div>
-                      </div>
-
                       <!-- Dynamic footer text -->
-                      <div v-else-if="appearance.chat_footer_text" class="text-center mt-4">
+                      <div v-if="props.appearance?.chat_footer_text" class="text-center mt-4">
                           <p class="text-xs text-muted-foreground">
-                              {{ appearance.chat_footer_text }}
+                              {{ props.appearance.chat_footer_text }}
                           </p>
                       </div>
                   </div>

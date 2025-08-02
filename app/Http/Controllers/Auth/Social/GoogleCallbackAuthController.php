@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth\Social;
 
 use App\Actions\SocialLoginAction;
-use Combindma\FacebookPixel\Facades\MetaPixel;
 use Illuminate\Http\Request;
 
 final class GoogleCallbackAuthController

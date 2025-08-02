@@ -6,14 +6,13 @@ use App\Support\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class ChatShowLoginController
 {
     /**
      * Show the member login page.
      */
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request)
     {
         $agent = Agent::resolveAgentFromSubdomain($request->subdomain());
 
@@ -26,6 +25,7 @@ class ChatShowLoginController
             'status' => $request->session()->get('status'),
             'agent' => $agent,
             'agentName' => $agent->name ?? null,
+            'appearance' => current_agent()?->settings('appearance'),
         ]);
     }
 }

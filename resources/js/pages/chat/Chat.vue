@@ -9,6 +9,7 @@ import { useScroll } from '@vueuse/core';
 import axios from 'axios';
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { ChevronDown } from 'lucide-vue-next';
+import { useColorTheme } from '@/composables/useColorTheme';
 
 const chatEventBus = inject('chatEventBus');
 
@@ -23,6 +24,16 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    appearance: {
+        type: Object,
+        default: () => ({
+            color_theme: 'black',
+            welcome_message: null,
+            chat_window_title: null,
+            chat_footer_text: null,
+            avatar: null
+        })
+    }
 });
 
 const loadingMessages = ref(true);
@@ -51,14 +62,7 @@ const models = ref([]);
 const defaultModel = ref(null);
 const isLoadingModels = ref(true);
 
-// Add reactive ref for appearance
-const appearance = ref({
-    color_theme: 'black',
-    welcome_message: null,
-    chat_window_title: null,
-    chat_footer_text: null,
-    avatar: null
-});
+const { applyColorTheme } = useColorTheme();
 
 const showScrollToBottom = computed(() => {
     if (!messagesContainer.value) return false;
@@ -97,24 +101,7 @@ const fetchModels = async () => {
     }
 };
 
-// Add function to fetch appearance
-const fetchAppearance = async () => {
-    try {
-        const response = await axios.get(route('chat.appearance'));
-        appearance.value = response.data;
 
-        // Apply color theme if available
-        if (appearance.value.color_theme) {
-            const theme = appearance.value.color_theme;
-            const shade = appearance.value.color_shade || 500;
-            document.documentElement.style.setProperty('--primary', `var(--${theme}-${shade})`);
-            document.documentElement.style.setProperty('--chat-bubble-color', `var(--${theme}-chat-bubble)`);
-            document.documentElement.style.setProperty('--chat-text-color', `var(--${theme}-chat-text)`);
-        }
-    } catch (error) {
-        console.error('Failed to fetch appearance:', error);
-    }
-};
 
 // Function to check usage status
 const checkUsage = async () => {
@@ -272,8 +259,11 @@ onMounted(async () => {
     // Start usage checking
     startUsageChecking();
 
+    // Apply color theme
+    applyColorTheme(props.appearance);
+    
     // Wait for models to be loaded before loading messages
-    await Promise.all([fetchModels(), fetchAppearance()]);
+    await fetchModels();
 
     axios
         .get(route('conversations.messages', { conversationId: props.conversation_id }))
@@ -607,7 +597,7 @@ const handleScrollToBottomClick = () => {
                                     :conversationId="conversation_id"
                                     :hideFeedback="index === messages.length - 1 && isStreaming"
                                     :isThinking="index === messages.length - 1 && isStreaming && !message.content"
-                                    :avatar="appearance.avatar"
+                                    :avatar="props.appearance?.avatar"
                                     @messageDeleted="messageDeleted"
                                     @feedbackProvided="feedbackProvided"
                                 />
@@ -659,8 +649,8 @@ const handleScrollToBottomClick = () => {
                             </div>
                         </div>
                         
-                        <div v-if="appearance.chat_footer_text" class="text-center mt-2">
-                            <p class="text-xs text-muted-foreground">{{ appearance.chat_footer_text }}</p>
+                        <div v-if="props.appearance?.chat_footer_text" class="text-center mt-2">
+                            <p class="text-xs text-muted-foreground">{{ props.appearance.chat_footer_text }}</p>
                         </div>
                     </div>
                 </div>

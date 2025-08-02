@@ -95,11 +95,13 @@ export function useAppearance() {
 // Add interface for appearance data
 export interface AppearanceData {
     avatar: string | null;
+    logo: string | null;
     color_theme: string | null;
     color_shade: number | null;
     welcome_message: string | null;
     chat_window_title: string | null;
     chat_footer_text: string | null;
+    composer_placeholder: string | null;
 }
 
 /**

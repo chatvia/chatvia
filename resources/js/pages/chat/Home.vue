@@ -14,7 +14,9 @@ const props = defineProps({
             welcome_message: null,
             chat_window_title: null,
             chat_footer_text: null,
-            avatar: null
+            avatar: null,
+            logo: null,
+            composer_placeholder: null
         })
     }
 });
@@ -47,7 +49,7 @@ const checkUsage = async () => {
 const startUsageChecking = () => {
     // Check immediately
     checkUsage();
-    
+
     // Then check at regular intervals
     usageCheckInterval.value = setInterval(checkUsage, USAGE_CHECK_INTERVAL);
 };
@@ -63,10 +65,10 @@ const stopUsageChecking = () => {
 onMounted(() => {
     // Start usage checking
     startUsageChecking();
-    
+
     // Apply color theme
     applyColorTheme(props.appearance);
-    
+
     // Fetch starters
     axios.get(route('chat.starters')).then(response => {
         starters.value = response.data;
@@ -100,6 +102,17 @@ function handleStarterClick(starter) {
             <template #content>
           <div class="flex h-screen items-center justify-center px-4">
               <div class="w-full max-w-4xl mx-auto">
+                  <!-- Logo -->
+                  <div v-if="props.appearance?.logo" class="flex justify-center mb-6">
+                      <div class="h-20 w-20 overflow-hidden">
+                          <img
+                              :src="props.appearance.logo"
+                              alt="Logo"
+                              class="h-full w-full object-cover"
+                          />
+                      </div>
+                  </div>
+
                   <!-- Dynamic welcome message -->
                   <h1 class="mb-8 text-center text-4xl font-medium text-gray-800 dark:text-white">
                       {{ props.appearance?.welcome_message }}
@@ -134,10 +147,11 @@ function handleStarterClick(starter) {
                       <Composer
                           v-if="canSendMessages"
                           :text="selectedStarter"
+                          :placeholder="appearance.composer_placeholder"
                           @modelSelected="updateSelectedModel"
                           @messageAdded="createNewConversation"
                       />
-                      
+
                       <!-- Show limit message if user cannot send messages -->
                       <div v-else class="flex items-center justify-center p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg max-w-md mx-auto">
                           <div class="text-center">

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Palette, Upload, Trash2, LoaderCircle, Save, User, RotateCcw } from 'lucide-vue-next';
+import { Palette, Upload, Trash2, LoaderCircle, Save, User, RotateCcw, Image } from 'lucide-vue-next';
 import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
 
 interface Props {
@@ -27,7 +27,9 @@ const appearanceForm = useForm({
     welcome_message: props.settings.welcome_message,
     chat_window_title: props.settings.chat_window_title,
     chat_footer_text: props.settings.chat_footer_text,
-    avatar: null as File | null
+    composer_placeholder: props.settings.composer_placeholder,
+    avatar: null as File | null,
+    logo: null as File | null
 });
 
 // States
@@ -35,7 +37,9 @@ const isSubmitting = ref(false);
 const showSuccessMessage = ref(false);
 const showColorPicker = ref(false);
 const avatarPreview = ref<string | null>(props.settings.avatar || null);
+const logoPreview = ref<string | null>(props.settings.logo || null);
 const avatarInputRef = ref<HTMLInputElement | null>(null);
+const logoInputRef = ref<HTMLInputElement | null>(null);
 
 const updateAppearance = () => {
     isSubmitting.value = true;
@@ -105,6 +109,53 @@ const removeAvatar = () => {
     });
 };
 
+const triggerLogoInput = () => {
+    if (logoInputRef.value) {
+        logoInputRef.value.click();
+    }
+};
+
+const handleLogoUpload = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (!file) return;
+
+    // Set the file in the form
+    appearanceForm.logo = file;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        if (e.target && typeof e.target.result === 'string') {
+            logoPreview.value = e.target.result;
+        }
+    };
+    reader.readAsDataURL(file);
+};
+
+const removeLogo = () => {
+    router.delete(route('agents.settings.delete', { 
+        agent: props.agent.id, 
+        group: 'appearance', 
+        key: 'logo' 
+    }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            logoPreview.value = null;
+            if (logoInputRef.value) {
+                logoInputRef.value.value = '';
+            }
+            showSuccessMessage.value = true;
+            setTimeout(() => {
+                showSuccessMessage.value = false;
+            }, 3000);
+        },
+        onError: () => {
+            console.error('Failed to delete logo');
+        }
+    });
+};
+
 const restoreDefaults = () => {
     // Reset all form fields to default values
     appearanceForm.color_theme = props.default_settings.color_theme || 'blue';
@@ -112,12 +163,18 @@ const restoreDefaults = () => {
     appearanceForm.welcome_message = props.default_settings.welcome_message;
     appearanceForm.chat_window_title = props.default_settings.chat_window_title;
     appearanceForm.chat_footer_text = props.default_settings.chat_footer_text;
+    appearanceForm.composer_placeholder = props.default_settings.composer_placeholder;
     appearanceForm.avatar = null;
+    appearanceForm.logo = null;
     
-    // Reset avatar preview
+    // Reset previews
     avatarPreview.value = null;
+    logoPreview.value = null;
     if (avatarInputRef.value) {
         avatarInputRef.value.value = '';
+    }
+    if (logoInputRef.value) {
+        logoInputRef.value.value = '';
     }
 };
 </script>
@@ -235,6 +292,55 @@ const restoreDefaults = () => {
                         </div>
 
                         <div class="grid gap-2">
+                            <Label for="logo">Logo Image</Label>
+                            <div class="flex items-center gap-4">
+                                <div class="h-16 w-16 overflow-hidden rounded-full border bg-muted">
+                                    <img
+                                        v-if="logoPreview"
+                                        :src="logoPreview"
+                                        alt="Logo"
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
+                                        <Image class="h-8 w-8" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <input
+                                        ref="logoInputRef"
+                                        accept="image/*"
+                                        class="hidden"
+                                        type="file"
+                                        @change="handleLogoUpload"
+                                    />
+                                    <Button type="button" variant="outline" @click="triggerLogoInput">
+                                        <Upload class="mr-2 h-4 w-4" />
+                                        Upload Logo
+                                    </Button>
+                                    <Button
+                                        v-if="logoPreview"
+                                        class="text-destructive hover:text-destructive/80"
+                                        size="sm"
+                                        type="button"
+                                        variant="ghost"
+                                        @click="removeLogo"
+                                    >
+                                        <Trash2 class="mr-2 h-4 w-4" />
+                                        Remove
+                                    </Button>
+                                </div>
+                            </div>
+                            <p v-if="appearanceForm.errors.logo" class="text-sm text-destructive">
+                                {{ appearanceForm.errors.logo }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Recommended size: 256x256 pixels
+                            </p>
+                        </div>
+
+                        <div class="grid gap-2">
                             <Label for="welcome_message">Welcome Message</Label>
                             <Textarea
                                 id="welcome_message"
@@ -274,6 +380,22 @@ const restoreDefaults = () => {
                             />
                             <p v-if="appearanceForm.errors.chat_footer_text" class="text-sm text-destructive">
                                 {{ appearanceForm.errors.chat_footer_text }}
+                            </p>
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="composer_placeholder">Composer Placeholder</Label>
+                            <Input
+                                id="composer_placeholder"
+                                v-model="appearanceForm.composer_placeholder"
+                                :error="appearanceForm.errors.composer_placeholder"
+                                placeholder="Ask anything..."
+                            />
+                            <p v-if="appearanceForm.errors.composer_placeholder" class="text-sm text-destructive">
+                                {{ appearanceForm.errors.composer_placeholder }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Placeholder text shown in the chat input field
                             </p>
                         </div>
                     </div>

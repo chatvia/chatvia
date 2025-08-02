@@ -70,12 +70,13 @@ return [
             ],
             'appearance' => [
                 'avatar' => null,
-                'logo' => null,
+                'logo' => assert('images/logo.svg'),
                 'color_theme' => 'black',
                 'color_shade' => 700,
                 'welcome_message' => 'What can I help with? ',
                 'chat_window_title' => 'Chat',
                 'chat_footer_text' => 'Consider checking important information',
+                'composer_placeholder' => 'Ask anything...',
             ],
         ],
     ],
@@ -103,6 +104,7 @@ return [
             'welcome_message' => ['nullable', 'string'],
             'chat_window_title' => ['nullable', 'string'],
             'chat_footer_text' => ['nullable', 'string'],
+            'composer_placeholder' => ['nullable', 'string'],
         ],
     ],
 ];

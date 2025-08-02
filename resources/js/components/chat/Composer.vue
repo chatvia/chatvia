@@ -48,15 +48,6 @@ const emit = defineEmits<{
     modelSelected: [model: AIModel]
 }>();
 
-// Character count
-const characterCount = computed(() => userInput.value.length);
-const maxCharacters = 4000;
-const characterPercentage = computed(() => (characterCount.value / maxCharacters) * 100);
-
-// Check if close to limit
-const isNearLimit = computed(() => characterCount.value > maxCharacters * 0.9);
-const isOverLimit = computed(() => characterCount.value > maxCharacters);
-
 const handleEnterKey = (event: KeyboardEvent) => {
     if (!event.shiftKey) {
         event.preventDefault();
@@ -98,7 +89,7 @@ const handleModelChange = (model: AIModel) => {
 }
 
 const sendMessage = () => {
-    if (!userInput.value.trim() || !selectedModel.value || isOverLimit.value) return;
+    if (!userInput.value.trim() || !selectedModel.value) return;
 
     emit('messageAdded', userInput.value, selectedModel.value);
     userInput.value = '';
@@ -128,20 +119,6 @@ const handleBlur = () => {
                 'bg-card'
             ]"
         >
-            <!-- Character count indicator -->
-            <div v-if="characterCount > 0" class="absolute -top-8 right-0 flex items-center gap-2">
-                <span
-                    class="text-xs transition-colors"
-                    :class="{
-                        'text-destructive': isOverLimit,
-                        'text-warning': isNearLimit && !isOverLimit,
-                        'text-muted-foreground': !isNearLimit
-                    }"
-                >
-                    {{ characterCount.toLocaleString() }} / {{ maxCharacters.toLocaleString() }}
-                </span>
-            </div>
-
             <div class="relative">
                 <Textarea
                     ref="messageInput"
@@ -153,25 +130,8 @@ const handleBlur = () => {
                     placeholder="Ask anything..."
                     class="min-h-[60px] max-h-[200px] resize-none rounded-2xl border-0 bg-transparent px-4 py-4 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 pr-12 sm:px-6 sm:py-5"
                     :disabled="isThinking"
-                    :class="{ 'text-destructive': isOverLimit }"
                     autofocus
                 />
-
-                <!-- Character limit progress bar -->
-                <div
-                    v-if="characterCount > maxCharacters * 0.5"
-                    class="absolute bottom-0 left-0 right-0 h-0.5 bg-muted rounded-b-2xl overflow-hidden"
-                >
-                    <div
-                        class="h-full transition-all duration-300"
-                        :class="{
-                            'bg-destructive': isOverLimit,
-                            'bg-warning': isNearLimit && !isOverLimit,
-                            'bg-primary': !isNearLimit
-                        }"
-                        :style="{ width: `${Math.min(characterPercentage, 100)}%` }"
-                    />
-                </div>
             </div>
 
             <div class="flex items-center justify-between border-t border-border/50 px-3 py-2 sm:px-4">
@@ -206,12 +166,12 @@ const handleBlur = () => {
                     <Button
                         v-else
                         @click="sendMessage"
-                        :disabled="userInput.trim() === '' || !selectedModel || isOverLimit"
+                        :disabled="userInput.trim() === '' || !selectedModel"
                         size="icon"
                         class="h-9 w-9 rounded-full transition-all"
                         :class="{
                             'opacity-50': userInput.trim() === '' || !selectedModel,
-                            'scale-110 shadow-lg': userInput.trim() !== '' && selectedModel && !isOverLimit
+                            'scale-110 shadow-lg': userInput.trim() !== '' && selectedModel
                         }"
                     >
                         <Send class="h-4 w-4" />
@@ -219,10 +179,6 @@ const handleBlur = () => {
                 </div>
             </div>
         </div>
-
-        <p v-if="isOverLimit" class="mt-3 text-center text-xs text-destructive sm:mt-4">
-            Message exceeds character limit
-        </p>
     </div>
 </template>
 

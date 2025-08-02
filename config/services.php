@@ -80,4 +80,8 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'bin' => [
+        'node' => env('NODE_BIN_PATH'),
+        'npm' => env('NPM_BIN_PATH'),
+    ],
 ];

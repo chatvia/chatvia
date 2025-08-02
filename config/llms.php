@@ -128,7 +128,7 @@ return [
         'context_window' => 40960,
         'icon' => 'qwen.svg',
         'features' => [],
-        'location' => 'us',
+        'location' => 'cn',
         'requires_paid_plan' => false, // Basic model - free access
         'reasoning' => false,
     ],
@@ -190,7 +190,7 @@ return [
         'context_window' => 131072,
         'icon' => 'mistral.svg',
         'features' => ['pro'],
-        'location' => 'us',
+        'location' => 'eu',
         'requires_paid_plan' => true, // Pro model - paid only
         'reasoning' => false,
     ],

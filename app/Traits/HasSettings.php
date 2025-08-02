@@ -4,9 +4,11 @@ namespace App\Traits;
 
 use App\Models\ModelSetting;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
 use InvalidArgumentException;
 
 trait HasSettings
@@ -21,6 +23,7 @@ trait HasSettings
 
         $modelSettings = $this
             ->modelSettings()
+            ->select(['data_type', 'key', 'value'])
             ->where('group', $group)
             ->get()
             ->collect();
@@ -47,7 +50,10 @@ trait HasSettings
         $dataType = $this->settingType($value);
 
         if ($value instanceof UploadedFile) {
-            $value = Storage::putFile('settings/'.$this->id.'/'.$group, $value, ['visibility' => 'public']);
+            // Resize image
+            $data = Image::read($value->getContent())->scale(height: 128)->toPng()->toString();
+            $file = new File(create_temp_file($value->getFilename(), $data));
+            $value = Storage::putFile('settings/'.$this->id.'/'.$group, $file, ['visibility' => 'public']);
         }
 
         $this->modelSettings()->updateOrCreate([

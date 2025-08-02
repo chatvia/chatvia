@@ -31,7 +31,8 @@ const props = defineProps({
             welcome_message: null,
             chat_window_title: null,
             chat_footer_text: null,
-            avatar: null
+            avatar: null,
+            composer_placeholder: null
         })
     }
 });
@@ -632,6 +633,7 @@ const handleScrollToBottomClick = () => {
                             :models="models"
                             :defaultModel="defaultModel"
                             :isLoadingModels="isLoadingModels"
+                            :placeholder="appearance.composer_placeholder"
                             @messageAdded="messageAdded"
                             @modelSelected="updateModel"
                             @stopStreaming="stopStreaming"

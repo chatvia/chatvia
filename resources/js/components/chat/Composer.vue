@@ -12,6 +12,7 @@ interface Props {
     models?: AIModel[],
     defaultModel?: AIModel | null,
     isLoadingModels?: boolean,
+    placeholder?: string,
 }
 
 const props = defineProps<Props>();
@@ -127,7 +128,7 @@ const handleBlur = () => {
                     @input="adjustTextareaHeight"
                     @focus="handleFocus"
                     @blur="handleBlur"
-                    placeholder="Ask anything..."
+                    :placeholder="placeholder || 'Ask anything...'"
                     class="min-h-[60px] max-h-[200px] resize-none rounded-2xl border-0 bg-transparent px-4 py-4 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 pr-12 sm:px-6 sm:py-5"
                     :disabled="isThinking"
                     autofocus

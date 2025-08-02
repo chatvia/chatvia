@@ -51,14 +51,6 @@ return [
         'api_endpoint' => env('INGESTION_ENDPOINT_URL', 'http://127.0.0.1:8080'),
     ],
 
-    'libreoffice' => [
-        'bin' => env('LIBREOFFICE_BIN_PATH', '/opt/homebrew/bin/soffice'),
-    ],
-
-    'pdfinfo' => [
-        'bin' => env('PDFINFO_BIN_PATH', '/opt/homebrew/bin/pdfinfo'),
-    ],
-
     'cohere' => [
         'api_key' => env('COHERE_API_KEY'),
         'api_endpoint' => env('COHERE_API_ENDPOINT', 'https://api.cohere.com/v2'),
@@ -83,5 +75,7 @@ return [
     'bin' => [
         'node' => env('NODE_BIN_PATH'),
         'npm' => env('NPM_BIN_PATH'),
+        'libreoffice' => env('LIBREOFFICE_BIN_PATH', '/opt/homebrew/bin/soffice'),
+        'pdfinfo' => env('PDFINFO_BIN_PATH', '/opt/homebrew/bin/pdfinfo'),
     ],
 ];

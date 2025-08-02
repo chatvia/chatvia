@@ -20,7 +20,7 @@ final class PdfInfo
 
     public function __construct()
     {
-        $this->pdfInfoPath = config('services.pdfinfo.bin');
+        $this->pdfInfoPath = config('services.bin.pdfinfo');
         $this->tempDir = temp_dir();
         $this->timeout = 3600;
 

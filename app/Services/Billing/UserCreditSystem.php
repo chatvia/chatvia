@@ -24,7 +24,7 @@ class UserCreditSystem
         return $this;
     }
 
-    public function addCreditForSubscription(array $quotaLimit, Carbon $endsAt): Credit
+    public function addCredit(array $quotaLimit, Carbon $endsAt): Credit
     {
         $startedAt = now();
 

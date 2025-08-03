@@ -20,6 +20,10 @@ return new class extends PulseMigration
             return;
         }
 
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
         $schema = Schema::connection($this->getConnection());
 
         $schema->create('pulse_values', function (Blueprint $table) {

@@ -19,15 +19,25 @@ class UpdateFreeUsersQuotas extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Update free users monthly quotas';
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
+        $quotaLimit = config('billing.packages.free.quota_limits.monthly');
+
         $freeUsers = User::query()
-            ->whereDate('billing_period_ends_at', '<', now())
+            ->whereHas('credit', function ($query) {
+                $query->where('ends_at', '<=', now()->addDay());
+            })
+            ->orWhereDoesntHave('credit')
             ->get();
+
+        /** @var User $user */
+        foreach ($freeUsers as $user) {
+            $user->creditSystem()->addCredit($quotaLimit, now()->addMonth());
+        }
     }
 }

@@ -48,7 +48,7 @@ class StripeEventListener
             'agents_instruction_limit' => $agentsLimit['agents_instruction_limit'],
         ]);
 
-        app(UserCreditSystem::class)->setUserId($user->id)->addCreditForSubscription(
+        app(UserCreditSystem::class)->setUserId($user->id)->addCredit(
             $quotaLimit,
             $endsAt
         );

@@ -13,6 +13,10 @@ return new class extends Migration
 
     public function up(): void
     {
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
         $schema = Schema::connection($this->getConnection());
 
         $schema->create('telescope_entries', function (Blueprint $table) {

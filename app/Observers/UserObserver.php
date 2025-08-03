@@ -17,7 +17,7 @@ class UserObserver
             'agents_knowledge_limit' => $fixed['agents_knowledge_limit'],
         ]);
 
-        app(UserCreditSystem::class)->setUserId($user->id)->addCreditForSubscription(
+        app(UserCreditSystem::class)->setUserId($user->id)->addCredit(
             $freeQuotaLimit,
             now()->addMonth(),
         );

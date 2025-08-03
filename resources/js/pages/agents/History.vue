@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, LoaderCircle, Save, MessageSquare, Database, Trash2, Download, AlertCircle } from 'lucide-vue-next';
+import { Clock, LoaderCircle, Save, MessageSquare, Database, Trash2, Download } from 'lucide-vue-next';
 import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
 import { usePage} from '@inertiajs/vue3';
 
@@ -20,7 +20,6 @@ interface Props {
 interface Settings {
     retention: number;
     context_window_enabled: boolean;
-    context_window_size: number;
 }
 
 const props = defineProps<Props>();
@@ -30,7 +29,6 @@ const settings = page.props.settings as Settings;
 const form = useForm({
     retention: settings.retention,
     context_window_enabled: settings.context_window_enabled,
-    context_window_size: settings.context_window_size,
 });
 
 const isSubmitting = ref(false);
@@ -48,14 +46,6 @@ const updateHistorySettings = () => {
         }
     });
 };
-
-const contextWindowOptions = [
-    { value: 0, label: 'Disabled' },
-    { value: 10, label: '10 messages' },
-    { value: 25, label: '25 messages' },
-    { value: 50, label: '50 messages' },
-    { value: -1, label: 'All messages' },
-];
 
 const retentionOptions = [
     { value: 7, label: '7 days' },
@@ -124,32 +114,7 @@ const retentionOptions = [
                         <Switch id="enable_context" v-model="form.context_window_enabled" />
                     </div>
 
-                    <!-- Context Window Size -->
-                    <div class="space-y-2">
-                        <Label for="context_window_size">Context window size</Label>
-                        <Select v-model="form.context_window_size" :disabled="!form.context_window_enabled">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select context window size" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="option in contextWindowOptions" :key="option.value" :value="option.value">
-                                    {{ option.label }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p class="text-sm text-muted-foreground">
-                            Number of previous messages the agent can access during conversations. Larger windows may increase response time.
-                        </p>
 
-                        <div class="mt-2 flex items-start gap-2 rounded-md bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
-                            <div class="mt-0.5 shrink-0">
-                                <AlertCircle class="h-4 w-4" />
-                            </div>
-                            <p class="text-sm">
-                                Consider disabling the context window for agents designed for content creation based on keywords or other stateless tasks. This can improve response quality for tasks that don't require conversation history.
-                            </p>
-                        </div>
-                    </div>
                 </CardContent>
             </Card>
 

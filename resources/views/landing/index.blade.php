@@ -278,12 +278,16 @@
             <div class="py-12 md:py-20">
                 <div class="max-w-6xl mx-auto px-4 sm:px-6">
                     <div class="max-w-3xl mx-auto text-center pb-12">
+                        <div class="inline-flex text-sm font-medium text-emerald-600 px-4 py-0.5 border border-transparent [background:linear-gradient(var(--color-emerald-50),var(--color-emerald-50))_padding-box,linear-gradient(120deg,var(--color-emerald-300),var(--color-emerald-100),var(--color-emerald-300))_border-box] rounded-full mb-4">
+                            Your data stays private with RAG technology
+                        </div>
                         <h2 class="font-inter-tight text-3xl md:text-4xl lg:text-5xl font-extrabold text-zinc-900 mb-4">
                             Powerful features for your AI agents
                         </h2>
-                        <p class="text-lg text-zinc-500">Create custom AI agents that understand your data and provide
-                            intelligent responses. Train on your documents or use instruction-based agents for immediate
-                            deployment.</p>
+                        <p class="text-lg text-zinc-500">Create custom AI agents that understand your data.</p>
+                        <p class="text-lg text-zinc-500">
+                            Train on your documents or use instruction-based agents for immediate deployment.
+                        </p>
                     </div>
                     <div x-data="{ tab: '1' }">
                         <!-- Tabs buttons -->
@@ -332,8 +336,8 @@
                                         <path d="M8.667.186H2.675a.999.999 0 0 0 0 1.998h3.581L.971 7.469a.999.999 0 1 0 1.412 1.412l5.285-5.285v3.58a.999.999 0 1 0 1.998 0V1.186a.999.999 0 0 0-.999-.999Z"/>
                                     </svg>
                                 </div>
-                                <div class="text-sm text-zinc-500">Your data is trained on state-of-the-art AI models
-                                    for intelligent, accurate responses.
+                                <div class="text-sm text-zinc-500">
+                                    State-of-the-art AI models for intelligent, accurate responses.
                                 </div>
                             </button>
                             <button
@@ -436,8 +440,9 @@
                             Everything you need for AI agents</h2>
                         <p class="text-lg text-zinc-500 leading-relaxed">Upload your documents, customize your agents,
                             and deploy them instantly.</p>
-                        <p class="text-lg text-zinc-500 leading-relaxed">Train on your data or use instruction-based
-                            agents - no technical skills required.</p>
+                        <p class="text-lg text-zinc-500 leading-relaxed">
+                            Your data will never be trained, rather we'll use the RAG method to safely process your documents.
+                        </p>
                     </div>
 
                     <div class="max-w-xs mx-auto sm:max-w-none grid sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-4 lg:gap-8">
@@ -513,35 +518,7 @@
                             </div>
 
                         </article>
-                        <article
-                                class="flex flex-col border border-transparent [background:linear-gradient(var(--color-white),var(--color-zinc-50))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] rounded-lg">
-                            <div class="flex flex-col p-6 pt-7 h-full">
-                                <div class="flex items-center space-x-3 mb-4">
-                                    <svg class="inline-flex fill-zinc-400" xmlns="http://www.w3.org/2000/svg" width="20"
-                                         height="20">
-                                        <path d="M9.3 11.7c-.4-.4-.4-1 0-1.4l7-7c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0ZM9.3 17.7c-.4-.4-.4-1 0-1.4l7-7c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0ZM2.3 12.7c-.4-.4-.4-1 0-1.4l7-7c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0Z"/>
-                                    </svg>
-                                    <h3 class="font-inter-tight text-lg font-semibold text-zinc-900">
-                                        Advanced Retrieval System
-                                    </h3>
-                                </div>
 
-                                <p class="text-base text-zinc-600 mb-6 leading-relaxed">
-                                    ChatVia uses a combination of vector databases, bm25, knowledge graphs, and machine learning to provide the best results.
-                                </p>
-
-                                <!-- Video Container -->
-                                <div class="flex-1 flex items-center justify-center mb-6">
-                                    <img src="{{ asset('images/landing/search.svg') }}" alt="Search" class="w-20" />
-                                </div>
-
-                                <div class="mt-auto">
-                                    <p class="text-sm text-zinc-500 font-medium">
-                                        Ready in minutes • No coding required
-                                    </p>
-                                </div>
-                            </div>
-                        </article>
                         <article
                                 class="flex flex-col border border-transparent [background:linear-gradient(var(--color-white),var(--color-zinc-50))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] rounded-lg">
                             <div class="flex flex-col p-6 pt-7 h-full">
@@ -601,6 +578,35 @@
                             </div>
                         </article>
                         <article
+                            class="flex flex-col border border-transparent [background:linear-gradient(var(--color-white),var(--color-zinc-50))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] rounded-lg">
+                            <div class="flex flex-col p-6 pt-7 h-full">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <svg class="inline-flex fill-zinc-400" xmlns="http://www.w3.org/2000/svg" width="20"
+                                         height="20">
+                                        <path d="M9.3 11.7c-.4-.4-.4-1 0-1.4l7-7c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0ZM9.3 17.7c-.4-.4-.4-1 0-1.4l7-7c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0ZM2.3 12.7c-.4-.4-.4-1 0-1.4l7-7c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0Z"/>
+                                    </svg>
+                                    <h3 class="font-inter-tight text-lg font-semibold text-zinc-900">
+                                        Advanced Retrieval System
+                                    </h3>
+                                </div>
+
+                                <p class="text-base text-zinc-600 mb-6 leading-relaxed">
+                                    ChatVia uses a combination of vector databases, bm25, knowledge graphs, and machine learning to provide the best results.
+                                </p>
+
+                                <!-- Video Container -->
+                                <div class="flex-1 flex items-center justify-center mb-6">
+                                    <img src="{{ asset('images/landing/search.svg') }}" alt="Search" class="w-20" />
+                                </div>
+
+                                <div class="mt-auto">
+                                    <p class="text-sm text-zinc-500 font-medium">
+                                        Ready in minutes • No coding required
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+                        <article
                                 class="flex flex-col border border-transparent [background:linear-gradient(var(--color-white),var(--color-zinc-50))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] rounded-lg">
                             <div class="flex flex-col p-6 pt-7 h-full">
                                 <div class="flex items-center space-x-3 mb-4">
@@ -612,7 +618,7 @@
                                 </div>
 
                                 <p class="text-base text-zinc-600 mb-6 leading-relaxed">
-                                    Our advanced RAG system understands complex document layouts, extracts data from tables, and processes images with OCR. Perfect for technical documents, reports, and structured data.
+                                    Our advanced RAG system understands complex document layouts, extracts data from tables, and processes images with OCR.
                                 </p>
 
                                 <!-- Table Icon -->
@@ -853,8 +859,31 @@
                             advanced features and team collaboration.</p>
                     </div>
 
-                    <!-- Pricing tiers -->
-                    <div>
+                    <!-- Pricing Toggle and Cards Container -->
+                    <div x-data="{ yearly: false }">
+                        <!-- Pricing Toggle -->
+                        <div class="flex justify-center mb-8">
+                            <div class="flex items-center space-x-4 bg-zinc-100 rounded-lg p-1">
+                                <button
+                                    @click="yearly = false"
+                                    :class="yearly ? 'text-zinc-500' : 'text-zinc-900 bg-white shadow-sm'"
+                                    class="px-4 py-2 rounded-md text-sm font-medium transition-all duration-200">
+                                    Monthly
+                                </button>
+                                <button
+                                    @click="yearly = true"
+                                    :class="yearly ? 'text-zinc-900 bg-white shadow-sm' : 'text-zinc-500'"
+                                    class="px-4 py-2 rounded-md text-sm font-medium transition-all duration-200">
+                                    Yearly
+                                    <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                        Save 20%
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pricing tiers -->
+                        <div>
                         <div class="max-w-sm mx-auto grid gap-6 lg:grid-cols-{{ count(config('billing.packages')) }} items-start lg:max-w-none">
                             @php
                                 $packages = config('billing.packages');
@@ -882,17 +911,27 @@
 
                                             <div class="mb-4">
                                                 <div class="text-lg {{ $textColor }} font-semibold mb-1">{{ $package['name'] }}</div>
-                                                <div class="font-inter-tight inline-flex items-baseline mb-2">
+                                                <div class="font-inter-tight mb-2">
                                                     @if($package['monthly_price'] > 0)
-                                                        <span class="{{ $textColor }} font-bold text-2xl">$</span>
-                                                        <span class="{{ $textColor }} font-bold text-3xl">{{ number_format($package['monthly_price'] / 100, 0) }}</span>
-                                                        <span class="{{ $textColor }} font-medium">/mo</span>
+                                                        <div class="inline-flex items-baseline">
+                                                            <span class="{{ $textColor }} font-bold text-2xl">$</span>
+                                                            <span class="{{ $textColor }} font-bold text-3xl" x-text="yearly ? '{{ number_format($package['yearly_price'] / 100, 2) }}' : '{{ number_format($package['monthly_price'] / 100, 2) }}'"></span>
+                                                            <span class="{{ $textColor }} font-medium" x-text="yearly ? '/year' : '/mo'"></span>
+                                                        </div>
+                                                        <div x-show="yearly" class="{{ $textColor }} text-xs mt-1 opacity-75">(billed yearly)</div>
                                                     @else
-                                                        <span class="{{ $textColor }} font-bold text-3xl">$0</span>
-                                                        <span class="{{ $textColor }} font-medium">/mo</span>
+                                                        <div class="inline-flex items-baseline">
+                                                            <span class="{{ $textColor }} font-bold text-3xl">$0</span>
+                                                            <span class="{{ $textColor }} font-medium">/mo</span>
+                                                        </div>
                                                     @endif
                                                 </div>
                                                 <div class="{{ $textColor }}">{{ $package['description'] }}</div>
+                                                @if($package['monthly_price'] > 0)
+                                                    <div x-show="yearly" class="text-sm text-emerald-600 font-medium mt-1">
+                                                        Save ${{ number_format(($package['monthly_price'] * 12 - $package['yearly_price']) / 100, 2) }} per year
+                                                    </div>
+                                                @endif
                                             </div>
 
                                             <div class="grow">
@@ -924,7 +963,9 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
+</section>
 
 
         </div>
@@ -1082,11 +1123,11 @@
             <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 <!-- Logo and copyright -->
                 <div class="flex flex-col items-center md:items-start space-y-2">
-                    <a class="flex items-center justify-center w-8 h-8"
+                    <a class="flex items-center justify-center w-12 h-12"
                        href="{{ route('home') }}">
-                        <img src="{{ asset('images/logo.svg') }}" width="24" height="24" alt="ChatVIA">
+                        <img src="{{ asset('images/logo.svg') }}"  alt="ChatVIA">
                     </a>
-                    <div class="text-sm text-zinc-500">&copy; 2024 ChatVIA. All rights reserved.</div>
+                    <div class="text-sm text-zinc-500">&copy; 2025 ChatVIA. All rights reserved.</div>
                 </div>
 
                 <!-- Essential links -->

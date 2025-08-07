@@ -49,12 +49,7 @@ class AgentStoreController
         } catch (Throwable $exception) {
             DB::rollBack();
 
-            // Log the error for debugging
-            logger()->error('Failed to create agent', [
-                'user_id' => $user->id,
-                'error' => $exception->getMessage(),
-                'trace' => $exception->getTraceAsString(),
-            ]);
+            report($exception);
 
             return back()
                 ->withErrors(['general' => 'Failed to create agent. Please try again.'])

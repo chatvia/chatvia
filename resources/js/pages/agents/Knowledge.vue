@@ -102,7 +102,7 @@ const isLoadingUsage = ref(false);
 // File uploader configuration for Knowledge page
 const fileUploaderConfig: FileUploaderConfig = {
     maxFiles: maxFilesToUpload,
-    acceptedTypes: '.pdf,.doc,.docx,.txt,.md',
+    acceptedTypes: '.pdf,.doc,.docx,.txt',
     analyzeEndpoint: (file: File) => route('agents.knowledge.files.upload', { agent: props.agent.id }),
     onFileAnalyzed: (file: BaseUploadingFileData, data: any) => {
         // For Knowledge.vue, the upload endpoint uploads the file
@@ -319,10 +319,10 @@ const wouldExceedQuota = computed(() => {
 const quotaUtilization = computed(() => {
     const pagesUsed = usageData.value.pages.used + totalUploadedPagesOnly.value;
     const minutesUsed = (usageData.value.minutes?.used || 0) + totalUploadedMinutes.value;
-    
+
     const pagesUtilization = usageData.value.pages.limit > 0 ? (pagesUsed / usageData.value.pages.limit) * 100 : 0;
     const minutesUtilization = usageData.value.minutes?.limit ? (minutesUsed / usageData.value.minutes.limit) * 100 : 0;
-    
+
     return Math.max(pagesUtilization, minutesUtilization);
 });
 
@@ -418,7 +418,7 @@ const formatSpeed = (bytesPerSecond: number): string => {
 // Helper function to format file length (pages or minutes)
 const formatFileLength = (file: { length?: number; is_audio_file?: boolean }): string => {
     if (!file.length) return '';
-    
+
     if (file.is_audio_file) {
         return `${file.length} minute${file.length !== 1 ? 's' : ''}`;
     } else {
@@ -572,17 +572,17 @@ const processAllFiles = async () => {
     // Check if processing would exceed quota
     if (wouldExceedQuota.value) {
         let quotaMessage = '';
-        
+
         if (totalUploadedPagesOnly.value > pagesRemaining.value) {
             quotaMessage += `Processing these files (${totalUploadedPagesOnly.value} pages) would exceed your remaining page quota of ${pagesRemaining.value} pages. `;
         }
-        
+
         if (usageData.value.minutes && totalUploadedMinutes.value > minutesRemaining.value) {
             quotaMessage += `Processing these files (${totalUploadedMinutes.value} minutes) would exceed your remaining minute quota of ${minutesRemaining.value} minutes. `;
         }
-        
+
         quotaMessage += 'Continue anyway? Note: Only the remaining quota will be processed.';
-        
+
         if (!confirm(quotaMessage)) {
             return;
         }

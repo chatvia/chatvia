@@ -146,7 +146,7 @@ class Stats
     public function getTopAccessedFiles(int $limit = 5): array
     {
         return AgentFile::query()
-            ->select(['name', 'agent_id', 'retrieval_count', 'mime_type'])
+            ->select(['filename', 'agent_id', 'retrieval_count', 'mime_type'])
             ->where('agent_id', $this->agent->id)
             ->where('retrieval_count', '>', 0)
             ->orderByDesc('retrieval_count')
@@ -154,7 +154,7 @@ class Stats
             ->get()
             ->map(function ($file) {
                 return [
-                    'name' => $file->name,
+                    'name' => $file->filename,
                     'type' => $this->getFileTypeLabel($file->mime_type),
                     'accessed' => $file->retrieval_count,
                 ];

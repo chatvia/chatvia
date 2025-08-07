@@ -16,6 +16,7 @@ class AgentCreateController
 
         return Inertia::render('agents/CreateAgent', [
             'can_register_custom_sub_domain' => $user->canPerform(UserCapabilityEnum::CUSTOM_SUB_DOMAIN),
+            'knowledge_based_system_instruction' => trim(config('prompts.knowledge-based-system-instruction')),
         ]);
     }
 }

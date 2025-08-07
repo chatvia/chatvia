@@ -19,6 +19,7 @@ import type { UploadingFileData, FileUploaderConfig } from '@/composables/useFil
 
 const props = defineProps<{
     can_register_custom_sub_domain: boolean;
+    knowledge_based_system_instruction: string;
 }>();
 
 enum AgentType {
@@ -116,6 +117,9 @@ watch(
         if (newType === AgentType.INSTRUCTION_BASED) {
             form.files = [];
             fileUploaderRef.value?.clearAllFiles();
+        } else if (newType === AgentType.KNOWLEDGE_BASED) {
+            // Set the knowledge-based system instruction when switching to knowledge-based
+            form.system_instructions = props.knowledge_based_system_instruction;
         }
     },
 );
@@ -202,6 +206,13 @@ const selectAgentType = (targetType: AgentType) => {
 
     // Switch to the target type
     form.type = targetType;
+
+    // Update system instructions based on the selected type
+    if (targetType === AgentType.KNOWLEDGE_BASED) {
+        form.system_instructions = props.knowledge_based_system_instruction;
+    } else {
+        form.system_instructions = 'You are a helpful assistant.';
+    }
 };
 
 const submit = () => {
@@ -531,33 +542,7 @@ onMounted(() => {
                                 </div>
                             </div>
 
-                            <!-- Agent Type Description -->
-                            <div class="bg-muted/50 mt-6 rounded-lg p-4">
-                                <div class="flex items-start gap-3">
-                                    <BookOpen class="text-muted-foreground mt-0.5 h-5 w-5 flex-shrink-0" />
-                                    <div class="text-sm">
-                                        <p class="mb-2 font-medium">
-                                            {{
-                                                form.type === 'instruction'
-                                                    ? 'Instruction-based Agent (No Training)'
-                                                    : 'Knowledge-based Agent (With Training)'
-                                            }}
-                                        </p>
-                                        <p class="text-muted-foreground leading-relaxed">
-                                            <span v-if="form.type === 'instruction'">
-                                                Your agent works immediately without any training. It uses only the system instructions you provide
-                                                and relies on the AI's pre-existing knowledge. This is perfect for general-purpose assistants,
-                                                customer support, or when you need quick deployment without uploading documents.
-                                            </span>
-                                            <span v-else>
-                                                Your agent will be trained on your uploaded documents and files. This creates a specialized knowledge
-                                                base that allows your agent to provide accurate, contextual answers based on your specific data.
-                                                Training takes some time but results in highly specialized expertise for your domain.
-                                            </span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+
                         </CardContent>
                     </Card>
 
@@ -578,7 +563,7 @@ onMounted(() => {
                                     :disabled="!canCreateAnyAgent"
                                                                     :placeholder="
                                     form.type === AgentType.KNOWLEDGE_BASED
-                                        ? 'You are a specialized assistant trained on our company knowledge base. Use the uploaded documents to provide accurate and detailed answers...'
+                                        ? 'Enter system instructions for your knowledge-based agent...'
                                         : 'You are a helpful assistant that specializes in customer support. Be friendly, professional, and always aim to solve problems efficiently...'
                                 "
                                     rows="6"

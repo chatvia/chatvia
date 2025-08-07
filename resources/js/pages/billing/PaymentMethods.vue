@@ -535,7 +535,7 @@ const formatExpiry = (month: number, year: number) => {
                     <div class="space-y-4">
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
-                                <Label for="billing-name" class="mb-2">Full Name</Label>
+                                <Label for="billing-name" class="mb-2">Name</Label>
                                 <Input
                                     id="billing-name"
                                     v-model="billingForm.name"

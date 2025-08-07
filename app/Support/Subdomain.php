@@ -2,9 +2,11 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
+
 class Subdomain
 {
-    public function generateRandomSubDomain()
+    public function generateRandomSubDomain(): string
     {
         $response = OpenRouter::completion([
             'model' => 'gpt-4o-mini',
@@ -16,12 +18,11 @@ Generate a unique, clever, and meaningful name for a chat app.
 - Combine 1–3 real, relevant English words.
 - Make it subdomain-safe: use only lowercase letters, numbers, and dashes.
 - Dashes are optional but can be used for clarity.
-- Be creative and witty—think metaphor, function, or vibe.
 - Return only the name. No domain, no punctuation, no explanation.
 	',
                 ],
             ],
-            'max_tokens' => '20',
+
         ]);
 
         $name = $response['choices'][0]['message']['content'] ?? null;
@@ -37,6 +38,6 @@ Generate a unique, clever, and meaningful name for a chat app.
             return $this->generateRandomSubDomain();
         }
 
-        return $name;
+        return Str::of($name)->lower()->trim()->toString();
     }
 }

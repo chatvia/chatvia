@@ -65,7 +65,7 @@ const toggleConfirmPasswordVisibility = () => {
             <form @submit.prevent="submit" class="space-y-6">
                 <!-- Name Field -->
                 <div class="space-y-2">
-                    <Label for="name" class="text-base font-medium">Full Name</Label>
+                    <Label for="name" class="text-base font-medium">Name</Label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
                             <User class="h-5 w-5" />
@@ -78,7 +78,7 @@ const toggleConfirmPasswordVisibility = () => {
                             :tabindex="1"
                             autocomplete="name"
                             v-model="form.name"
-                            placeholder="Enter your full name"
+                            placeholder="Enter your name"
                             class="h-12 text-base pl-10"
                         />
                     </div>

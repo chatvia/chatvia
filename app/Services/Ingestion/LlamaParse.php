@@ -24,7 +24,6 @@ class LlamaParse
         $this->apiKey = config('services.llamaparse.api_key');
     }
 
-
     public function parse(File $file, array $options = []): string
     {
         $defaultOptions = [
@@ -41,7 +40,7 @@ class LlamaParse
 
         $parseOptions = array_merge($defaultOptions, $options ?? []);
 
-         return $this->runJob($file, $parseOptions);
+        return $this->runJob($file, $parseOptions);
     }
 
     public function getPagesWithImages(string $jobId): array
@@ -96,7 +95,7 @@ class LlamaParse
             // First check job status
             $statusResponse = $this->getJobStatus($jobId);
 
-            if (!$statusResponse->successful()) {
+            if (! $statusResponse->successful()) {
                 throw new RuntimeException("Failed to check job status: {$statusResponse->body()}");
             }
 
@@ -108,7 +107,7 @@ class LlamaParse
 
             // If job failed, throw an error
             if ($jobStatus === 'FAILED') {
-                throw new RuntimeException("LlamaParse job failed: " . ($status['error'] ?? 'Unknown error'));
+                throw new RuntimeException('LlamaParse job failed: '.($status['error'] ?? 'Unknown error'));
             }
 
             // If job is not completed yet, continue waiting

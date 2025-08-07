@@ -9,10 +9,10 @@ class TikToken
     private static function getEncoder(): \Yethee\Tiktoken\Encoder
     {
         if (self::$encoder === null) {
-            $provider = new \Yethee\Tiktoken\EncoderProvider();
+            $provider = new \Yethee\Tiktoken\EncoderProvider;
             self::$encoder = $provider->getForModel('gpt-4');
         }
-        
+
         return self::$encoder;
     }
 

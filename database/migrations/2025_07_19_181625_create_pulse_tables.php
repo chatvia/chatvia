@@ -26,7 +26,7 @@ return new class extends PulseMigration
 
         $schema = Schema::connection($this->getConnection());
 
-        if (!$schema->hasTable('pulse_values')) {
+        if (! $schema->hasTable('pulse_values')) {
             $schema->create('pulse_values', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedInteger('timestamp');
@@ -45,7 +45,7 @@ return new class extends PulseMigration
             });
         }
 
-        if (!$schema->hasTable('pulse_entries')) {
+        if (! $schema->hasTable('pulse_entries')) {
             Schema::create('pulse_entries', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedInteger('timestamp');
@@ -65,7 +65,7 @@ return new class extends PulseMigration
             });
         }
 
-        if (!$schema->hasTable('pulse_aggregates')) {
+        if (! $schema->hasTable('pulse_aggregates')) {
             Schema::create('pulse_aggregates', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedInteger('bucket');
@@ -95,7 +95,7 @@ return new class extends PulseMigration
     public function down(): void
     {
         $schema = Schema::connection($this->getConnection());
-        if (!app()->isProduction()) {
+        if (! app()->isProduction()) {
             $schema->dropIfExists('pulse_values');
             $schema->dropIfExists('pulse_entries');
             $schema->dropIfExists('pulse_aggregates');

@@ -6,7 +6,6 @@ use App\Data\Agent\KnowledgeAnalyzeData;
 use App\Models\Agent;
 use App\Models\User;
 use App\Support\FileAnalyzer;
-use App\Support\PdfInfo;
 use Illuminate\Http\UploadedFile;
 
 class AgentKnowledgeAnalyzeFileAction

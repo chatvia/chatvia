@@ -34,7 +34,19 @@ return [
         'icon' => 'gpt.svg',
         'features' => ['fast'],
         'location' => 'us',
-        'requires_paid_plan' => false, // Fast model - free access
+        'requires_paid_plan' => false,
+        'reasoning' => false,
+    ],
+    [
+        'internal_name' => 'openai/gpt-5-chat',
+        'external_name' => 'gpt-5-chat',
+        'descriptive_name' => 'GPT-5',
+        'description' => 'GPT-5 Chat is designed for advanced, natural, multimodal, and context-aware conversations for enterprise applications.',
+        'context_window' => 400000,
+        'icon' => 'gpt.svg',
+        'features' => ['advanced'],
+        'location' => 'us',
+        'requires_paid_plan' => true,
         'reasoning' => false,
     ],
     [

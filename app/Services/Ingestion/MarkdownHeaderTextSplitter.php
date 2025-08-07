@@ -67,7 +67,7 @@ class MarkdownHeaderTextSplitter
 
             if ($headerInfo !== null && in_array($headerInfo['marker'], $this->headersToSplitOn, true)) {
                 // Save current chunk if it has content
-                if (!empty($currentContent)) {
+                if (! empty($currentContent)) {
                     $chunks[] = $this->createChunk($currentContent, $currentHeaders);
                     $currentContent = [];
                 }
@@ -76,7 +76,7 @@ class MarkdownHeaderTextSplitter
                 $this->updateHeaderHierarchy($currentHeaders, $headerInfo);
 
                 // Add header to content if not stripping
-                if (!$this->stripHeaders) {
+                if (! $this->stripHeaders) {
                     $currentContent[] = $line;
                 }
             } else {
@@ -86,12 +86,12 @@ class MarkdownHeaderTextSplitter
         }
 
         // Don't forget the last chunk
-        if (!empty($currentContent)) {
+        if (! empty($currentContent)) {
             $chunks[] = $this->createChunk($currentContent, $currentHeaders);
         }
 
         // Filter out empty chunks
-        $chunks = array_filter($chunks, fn($chunk) => !empty(trim($chunk['content'])));
+        $chunks = array_filter($chunks, fn ($chunk) => ! empty(trim($chunk['content'])));
 
         // If returnEachLine is true, further split chunks by lines
         if ($this->returnEachLine) {
@@ -138,7 +138,7 @@ class MarkdownHeaderTextSplitter
         }
 
         foreach ($headersToSplitOn as $header) {
-            if (!preg_match('/^#{1,6}$/', $header)) {
+            if (! preg_match('/^#{1,6}$/', $header)) {
                 throw new InvalidArgumentException(
                     'Invalid header format. Headers must be between # and ######'
                 );
@@ -175,7 +175,7 @@ class MarkdownHeaderTextSplitter
         // Remove headers at the same level or deeper
         $currentHeaders = array_filter(
             $currentHeaders,
-            fn($h) => $h['level'] < $level
+            fn ($h) => $h['level'] < $level
         );
 
         // Add the new header
@@ -186,7 +186,6 @@ class MarkdownHeaderTextSplitter
      * Create a chunk with content and metadata.
      *
      * @param  array<string>  $contentLines
-     * @param  array  $headers
      * @return array{content: string, metadata: array}
      */
     private function createChunk(array $contentLines, array $headers): array
@@ -209,9 +208,6 @@ class MarkdownHeaderTextSplitter
 
     /**
      * Split chunks further by lines if returnEachLine is true.
-     *
-     * @param  array  $chunks
-     * @return array
      */
     private function splitChunksByLines(array $chunks): array
     {
@@ -221,7 +217,7 @@ class MarkdownHeaderTextSplitter
             $lines = explode("\n", $chunk['content']);
 
             foreach ($lines as $line) {
-                if (!empty(trim($line))) {
+                if (! empty(trim($line))) {
                     $lineChunks[] = [
                         'content' => trim($line),
                         'metadata' => $chunk['metadata'],
@@ -236,7 +232,6 @@ class MarkdownHeaderTextSplitter
     /**
      * Get statistics about the splitting operation.
      *
-     * @param  array  $chunks
      * @return array{
      *     totalChunks: int,
      *     averageChunkSize: float,
@@ -262,7 +257,7 @@ class MarkdownHeaderTextSplitter
         }
 
         $chunkSizes = array_map(
-            fn($chunk) => mb_strlen($chunk['content']),
+            fn ($chunk) => mb_strlen($chunk['content']),
             $chunks
         );
         $totalCharacters = array_sum($chunkSizes);
@@ -294,10 +289,6 @@ class MarkdownHeaderTextSplitter
 
     /**
      * Combine small chunks that are under a specified size threshold.
-     *
-     * @param  array  $chunks
-     * @param  int  $minChunkSize
-     * @return array
      */
     public function combineSmallChunks(array $chunks, int $minChunkSize = 100): array
     {
@@ -315,11 +306,11 @@ class MarkdownHeaderTextSplitter
                 $currentChunk = $chunk;
             } elseif ($chunkSize < $minChunkSize || mb_strlen($currentChunk['content']) < $minChunkSize) {
                 // Combine with current chunk
-                $currentChunk['content'] .= "\n\n" . $chunk['content'];
+                $currentChunk['content'] .= "\n\n".$chunk['content'];
 
                 // Merge metadata (keep the most specific headers)
                 foreach ($chunk['metadata'] as $key => $value) {
-                    if (!isset($currentChunk['metadata'][$key])) {
+                    if (! isset($currentChunk['metadata'][$key])) {
                         $currentChunk['metadata'][$key] = $value;
                     }
                 }

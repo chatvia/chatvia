@@ -22,11 +22,11 @@ class Chunk extends Model
 
     public function images(): Attribute
     {
-        return Attribute::get(function() {
-           return collect($this->metadata['images'] ?? [])
-               ->keys()
-               ->map(fn($image) => Storage::url($image))
-               ->toArray();
+        return Attribute::get(function () {
+            return collect($this->metadata['images'] ?? [])
+                ->keys()
+                ->map(fn ($image) => Storage::url($image))
+                ->toArray();
         });
     }
 }

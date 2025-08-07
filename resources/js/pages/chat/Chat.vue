@@ -52,6 +52,7 @@ const userHasScrolledUp = ref(false);
 const lastScrollTop = ref(0);
 const scrollAnimationFrame = ref(null);
 const messageSources = ref(new Map()); // Store sources for each message
+const scrollThrottleTimeout = ref(null); // For throttling scroll updates
 
 // Usage checking
 const USAGE_CHECK_INTERVAL = 60000; // 1 minute
@@ -99,6 +100,23 @@ const fetchModels = async () => {
         console.error('Failed to fetch models:', error);
     } finally {
         isLoadingModels.value = false;
+    }
+};
+
+// Function to load sources asynchronously
+const loadSourcesAsync = async () => {
+    try {
+        const response = await axios.get(route('chat.sources', { conversationId: props.conversation_id }));
+        const sourcesData = response.data;
+        
+        // Map sources to message indices based on message IDs
+        messages.value.forEach((message, index) => {
+            if (message.role === 'assistant' && message.id && sourcesData[message.id]) {
+                messageSources.value.set(index, sourcesData[message.id]);
+            }
+        });
+    } catch (error) {
+        console.error('Failed to load sources:', error);
     }
 };
 
@@ -171,8 +189,11 @@ function scrollToBottom(smooth = false) {
                     behavior: 'smooth'
                 });
             } else {
-                // Instant scroll for streaming to avoid interrupting flow
-                messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+                // Use instant scroll to avoid scroll-linked effects
+                messagesContainer.value.scrollTo({
+                    top: messagesContainer.value.scrollHeight,
+                    behavior: 'instant'
+                });
             }
         }
         isAutoScrollEnabled.value = true;
@@ -218,6 +239,7 @@ onUnmounted(() => {
     chatEventBus.offChatExpandToggle();
     if (scrollTimeout.value) clearTimeout(scrollTimeout.value);
     if (scrollAnimationFrame.value) cancelAnimationFrame(scrollAnimationFrame.value);
+    if (scrollThrottleTimeout.value) clearTimeout(scrollThrottleTimeout.value);
 
     // Stop usage checking
     stopUsageChecking();
@@ -271,13 +293,6 @@ onMounted(async () => {
         .then((response) => {
             messages.value = response.data;
 
-            // Load sources from historical messages
-            messages.value.forEach((message, index) => {
-                if (message.role === 'assistant' && message.sources) {
-                    messageSources.value.set(index, message.sources);
-                }
-            });
-
             loadingMessages.value = false;
 
             const modelId = getQueryParam('model') || defaultModel.value?.id;
@@ -289,6 +304,9 @@ onMounted(async () => {
             nextTick(() => {
                 scrollToBottom();
             });
+
+            // Load sources asynchronously to avoid blocking the page
+            loadSourcesAsync();
         })
         .catch((error) => {
             router.visit(route('chat.home', { model: defaultModel.value?.id }));
@@ -323,18 +341,21 @@ function scrollWhileStreaming() {
     if (isAutoScrollEnabled.value && !userHasScrolledUp.value) {
         if (!messagesContainer.value) return;
 
-        // Use requestAnimationFrame for smooth performance
-        if (scrollAnimationFrame.value) {
-            cancelAnimationFrame(scrollAnimationFrame.value);
+        // Throttle scroll updates to prevent scroll-linked effects
+        if (scrollThrottleTimeout.value) {
+            return; // Skip this update if we're throttling
         }
 
-        scrollAnimationFrame.value = requestAnimationFrame(() => {
+        scrollThrottleTimeout.value = setTimeout(() => {
             if (messagesContainer.value && isAutoScrollEnabled.value && !userHasScrolledUp.value) {
-                // Direct assignment for immediate effect during streaming
-                messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+                // Use scrollTo with behavior: 'instant' to avoid scroll-linked effects
+                messagesContainer.value.scrollTo({
+                    top: messagesContainer.value.scrollHeight,
+                    behavior: 'instant'
+                });
             }
-            scrollAnimationFrame.value = null;
-        });
+            scrollThrottleTimeout.value = null;
+        }, 16); // ~60fps throttling
     }
 }
 

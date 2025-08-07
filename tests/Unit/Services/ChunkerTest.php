@@ -17,7 +17,9 @@ class ChunkerTest extends TestCase
     use RefreshDatabase;
 
     private AgentFile $agentFile;
+
     private Chunker $chunker;
+
     private string $originalContent;
 
     protected function setUp(): void
@@ -67,10 +69,10 @@ class ChunkerTest extends TestCase
         $chunks = $this->chunker->createChunks($parsedData);
 
         // Method 1: Exact content matching (inspired by RecursiveCharacterTextSplitterTest)
-        $originalText = str_replace(["\n"], [""], trim(str_replace(" ", "", trim($this->originalContent))));
-        $chunksAsText = str_replace(["\n"], [""], trim(str_replace(" ", "", implode("", $chunks->pluck('chunk_text')->toArray()))));
+        $originalText = str_replace(["\n"], [''], trim(str_replace(' ', '', trim($this->originalContent))));
+        $chunksAsText = str_replace(["\n"], [''], trim(str_replace(' ', '', implode('', $chunks->pluck('chunk_text')->toArray()))));
 
-        $this->assertSame($originalText, $chunksAsText, "Chunks should contain exact same content as original");
+        $this->assertSame($originalText, $chunksAsText, 'Chunks should contain exact same content as original');
 
         // Method 2: Word count verification
         $reconstructed = implode(' ', $chunks->pluck('chunk_text')->toArray());
@@ -80,7 +82,7 @@ class ChunkerTest extends TestCase
         $this->assertEquals(
             $originalWords,
             $reconstructedWords,
-            "Word count should be preserved exactly"
+            'Word count should be preserved exactly'
         );
     }
 
@@ -122,10 +124,10 @@ class ChunkerTest extends TestCase
         // Create very small pages (5 lines each)
         for ($i = 0; $i < count($lines); $i += 5) {
             $pageLines = array_slice($lines, $i, 5);
-            if (!empty($pageLines)) {
+            if (! empty($pageLines)) {
                 $parsedData[] = [
                     'text' => implode("\n", $pageLines),
-                    'images' => []
+                    'images' => [],
                 ];
             }
         }
@@ -138,14 +140,14 @@ class ChunkerTest extends TestCase
         $this->assertLessThan(
             count($parsedData),
             $chunks->count(),
-            "Chunker should produce fewer chunks than input pages"
+            'Chunker should produce fewer chunks than input pages'
         );
 
         // More specific: should reduce pages significantly
         $this->assertLessThan(
             100,
             $chunks->count(),
-            "Chunker should combine small pages efficiently"
+            'Chunker should combine small pages efficiently'
         );
     }
 
@@ -154,7 +156,7 @@ class ChunkerTest extends TestCase
     {
         // Create a single large page with all content
         $parsedData = [
-            ['text' => $this->originalContent, 'images' => []]
+            ['text' => $this->originalContent, 'images' => []],
         ];
 
         $chunks = $this->chunker->createChunks($parsedData);
@@ -178,22 +180,22 @@ class ChunkerTest extends TestCase
                 'text' => substr($this->originalContent, 0, 1000),
                 'images' => [
                     ['path' => 'tests/files/animal-farm-ch1.txt', 'name' => 'image1.jpg'],
-                    ['path' => 'tests/files/animal-farm-ch1.txt', 'name' => 'image2.jpg']
-                ]
+                    ['path' => 'tests/files/animal-farm-ch1.txt', 'name' => 'image2.jpg'],
+                ],
             ],
             [
                 'text' => substr($this->originalContent, 1000, 1000),
                 'images' => [
-                    ['path' => 'tests/files/animal-farm-ch1.txt', 'name' => 'image3.jpg']
-                ]
-            ]
+                    ['path' => 'tests/files/animal-farm-ch1.txt', 'name' => 'image3.jpg'],
+                ],
+            ],
         ];
 
         $chunks = $this->chunker->createChunks($parsedData);
 
         // Images should be preserved with their chunks
-        $allImages = $chunks->flatMap(fn($chunk) => $chunk->chunk_images)->unique();
-        $this->assertCount(3, $allImages, "All images should be preserved");
+        $allImages = $chunks->flatMap(fn ($chunk) => $chunk->chunk_images)->unique();
+        $this->assertCount(3, $allImages, 'All images should be preserved');
     }
 
     #[Test]
@@ -225,7 +227,7 @@ class ChunkerTest extends TestCase
         $paragraphs = explode("\n\n", $sampleText);
 
         // Create pages from paragraphs
-        $parsedData = array_map(fn($para) => ['text' => $para, 'images' => []], $paragraphs);
+        $parsedData = array_map(fn ($para) => ['text' => $para, 'images' => []], $paragraphs);
         $chunks = $this->chunker->createChunks($parsedData);
 
         // Each chunk should contain complete paragraphs (no partial sentences at boundaries)
@@ -233,11 +235,11 @@ class ChunkerTest extends TestCase
             $text = trim($chunk->chunk_text);
 
             // Should not start with lowercase (unless it's a special case)
-            if (!empty($text) && !in_array($text[0], ['(', '[', '"', "'"])) {
+            if (! empty($text) && ! in_array($text[0], ['(', '[', '"', "'"])) {
                 $this->assertMatchesRegularExpression(
                     '/^[A-Z]/',
                     $text,
-                    "Chunk should start with a capital letter or punctuation"
+                    'Chunk should start with a capital letter or punctuation'
                 );
             }
 
@@ -282,10 +284,10 @@ class ChunkerTest extends TestCase
 
         for ($i = 0; $i < count($lines); $i += $linesPerPage) {
             $pageLines = array_slice($lines, $i, $linesPerPage);
-            if (!empty($pageLines)) {
+            if (! empty($pageLines)) {
                 $pages[] = [
                     'text' => implode("\n", $pageLines),
-                    'images' => []
+                    'images' => [],
                 ];
             }
         }

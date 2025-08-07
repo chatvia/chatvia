@@ -5,6 +5,7 @@ import {Head, router} from '@inertiajs/vue3';
 import AppLayout from "@/components/chat/ChatLayout.vue";
 import Composer from "@/components/chat/Composer.vue";
 import { useColorTheme } from '@/composables/useColorTheme';
+import AppLogoIcon from "@/components/AppLogoIcon.vue";
 
 const props = defineProps({
     appearance: {
@@ -103,13 +104,14 @@ function handleStarterClick(starter) {
           <div class="flex h-screen items-center justify-center px-4">
               <div class="w-full max-w-4xl mx-auto">
                   <!-- Logo -->
-                  <div v-if="props.appearance?.logo" class="flex justify-center mb-6">
+                  <div class="flex justify-center mb-6">
                       <div class="h-20 w-20 overflow-hidden">
-                          <img
+                          <img v-if="props.appearance.logo"
                               :src="props.appearance.logo"
                               alt="Logo"
-                              class="h-full w-full object-cover"
+                              class="h-full w-full object-cover text-red"
                           />
+                          <AppLogoIcon v-else class="h-10" />
                       </div>
                   </div>
 

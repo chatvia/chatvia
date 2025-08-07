@@ -87,5 +87,5 @@ return [
 
     'libs' => [
         'tiktoken' => env('TIKTOKEN_PATH', '/usr/local/lib/libtiktoken.so'),
-    ]
+    ],
 ];

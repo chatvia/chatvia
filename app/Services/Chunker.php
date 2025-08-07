@@ -38,7 +38,7 @@ class Chunker
             }
 
             // Add to buffer
-            $textBuffer .= ($textBuffer ? "\n\n" : '') . $pageText;
+            $textBuffer .= ($textBuffer ? "\n\n" : '').$pageText;
             $imageBuffer = array_merge($imageBuffer, $this->storePageImages($pageImages));
 
             // Track which pages are being consumed
@@ -61,7 +61,7 @@ class Chunker
         }
 
         // Process any remaining buffer
-        if (!empty(trim($textBuffer))) {
+        if (! empty(trim($textBuffer))) {
             $bufferChunks = $this->processBuffer($textBuffer, $imageBuffer, $chunkIndex);
             $chunks = $chunks->merge($bufferChunks);
         }

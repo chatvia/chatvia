@@ -15,16 +15,13 @@ use Illuminate\Support\Str;
 
 class IngestionChunkJob implements ShouldQueue
 {
-    use Queueable, Batchable;
+    use Batchable, Queueable;
 
     public int $tries = 3;
 
     public int $backoff = 10;
 
-    public function __construct(public ChunkIngestionData $chunk)
-    {
-
-    }
+    public function __construct(public ChunkIngestionData $chunk) {}
 
     public function handle(): void
     {
@@ -41,7 +38,7 @@ class IngestionChunkJob implements ShouldQueue
         $describedImages = [];
 
         if (Chunk::query()->where('agent_file_id', $this->chunk->agent_file_id)->where('md5_hash', md5($this->chunk->chunk_text))->exists()) {
-            return ;
+            return;
         }
 
         $userPrompt = config('prompts.chunking-user');
@@ -82,13 +79,13 @@ class IngestionChunkJob implements ShouldQueue
                 [
                     'role' => 'user',
                     'content' => $userPrompt,
-                ]
+                ],
             ],
         ]);
 
         $tokens = TikToken::countTokens($chunk);
 
-       $costInCents = OpenAI::calculateCostInCents($systemPrompt.$userPrompt, $chunk);
+        $costInCents = OpenAI::calculateCostInCents($systemPrompt.$userPrompt, $chunk);
 
         Chunk::query()->create([
             'agent_id' => $this->chunk->agent_id,
@@ -100,7 +97,7 @@ class IngestionChunkJob implements ShouldQueue
             'cost_in_cents' => $costInCents,
             'tokens' => $tokens,
             'embedding' => embed($chunk, true),
-            'embedding_bm25' => DB::raw("tokenize(" . DB::connection()->getPdo()->quote($chunk) . ", 'llmlingua2')"),
+            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($chunk).", 'llmlingua2')"),
             'metadata' => [
                 'images' => $describedImages,
             ],

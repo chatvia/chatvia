@@ -449,7 +449,9 @@ const switchToSelectedAgent = () => {
             <!-- Header -->
             <div class="ml-4 flex h-16 items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <Link :to="route('chat.home')"><AppLogoIcon class="h-10" /></Link>
+                    <Link :href="route('chat.home')">
+                        <AppLogoIcon class="h-10" />
+                    </Link>
                 </div>
                 <!-- Close button for mobile only -->
                 <button

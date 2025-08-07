@@ -10,9 +10,9 @@ class AgentFileSummaryController extends Controller
 {
     public function __invoke(Request $request, Agent $agent, AgentFile $file)
     {
-        if (!$file->summary) {
+        if (! $file->summary) {
             return response()->json([
-                'error' => 'No summary available for this file'
+                'error' => 'No summary available for this file',
             ], 404);
         }
 

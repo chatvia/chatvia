@@ -99,7 +99,7 @@ const retentionOptions = [
                         Context Window
                     </CardTitle>
                     <CardDescription>
-                        Configure how much conversation history the agent remembers during conversations
+                        Allow the agent to reference previous messages in the conversation
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-6">
@@ -108,7 +108,7 @@ const retentionOptions = [
                         <div>
                             <Label class="text-base" for="enable_context">Enable context window</Label>
                             <p class="text-sm text-muted-foreground">
-                                Allow the agent to reference previous messages in the conversation
+                                Disabling the context window will disable reference to previous messages in the conversation.
                             </p>
                         </div>
                         <Switch id="enable_context" v-model="form.context_window_enabled" />

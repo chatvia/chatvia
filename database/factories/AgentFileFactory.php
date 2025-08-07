@@ -23,12 +23,12 @@ class AgentFileFactory extends Factory
             'user_id' => User::factory(),
             'agent_id' => Agent::factory(),
             'name' => $this->faker->word() . '.txt',
-            'path' => 'test/files/' . $this->faker->uuid() . '.txt',
+            'filepath' => 'test/files/' . $this->faker->uuid() . '.txt',
             'size_in_kb' => $this->faker->numberBetween(1, 1000),
             'mime_type' => 'text/plain',
             'md5_hash' => $this->faker->md5(),
             'status' => 'uploaded',
-            'number_of_pages' => $this->faker->numberBetween(1, 50),
+            'pages' => $this->faker->numberBetween(1, 50),
         ];
     }
-} 
+}

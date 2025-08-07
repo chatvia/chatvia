@@ -35,24 +35,30 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
      * @throws Throwable
      * @throws \JsonException
      */
-    public function handle(LlamaParse $llamaParse): void {
-        $externalJobId = $this->agentFile->external_ingestion_job_id;
+    public function handle(LlamaParse $llamaParse): void
+    {
+        if ($this->batch()?->cancelled()) {
+            return;
+        }
+
+        $externalJobId = $this->agentFile->external_parsing_job_id;
 
         $internalJobId = $this->job->getJobId();
 
         $updateValues = [
-            'internal_job_id' => $internalJobId ?: null,
+            'internal_ingestion_job_id' => $internalJobId ?: null,
             'parser' => 'llamaparse',
         ];
 
+        // Get the file once and reuse it
+        $file = $this->agentFile->isWordFile() ? $this->agentFile->convertToPdf() : $this->agentFile->readFile();
+
         if (! $externalJobId) {
-            $externalJobId = $llamaParse->parse(
-                $this->agentFile->isWordFile() ? $this->agentFile->convertToPdf() : $this->agentFile->readFile(),
-            );
-            $updateValues['external_ingestion_job_id'] = $externalJobId;
+            $externalJobId = $llamaParse->parse($file);
+            $updateValues['external_parsing_job_id'] = $externalJobId;
         }
 
-        $cacheKey = 'agent:file:llamaparse:parsing:'.md5_file($this->agentFile->readFile()->getPathname());
+        $cacheKey = 'agent:file:llamaparse:parsing:'.md5_file($file->getPathname());
 
         if (Cache::has($cacheKey)) {
             // Get cached data - it's already an array
@@ -66,10 +72,10 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             $fileName = Str::uuid()->toString().'.json';
 
             // Encode the array to JSON for storage
-            $updateValues['parsed_document_path'] = Storage::putFileAs(
+            $updateValues['parser_filepath'] = Storage::putFileAs(
                 path: 'users/'.$this->agentFile->user_id.'/agents/'.$this->agentFile->id,
                 file: new File(create_temp_file($fileName, json_encode($pages, JSON_THROW_ON_ERROR))),
-                name: 'parsed_document.json',
+                name: 'parser.json',
             );
         }
 

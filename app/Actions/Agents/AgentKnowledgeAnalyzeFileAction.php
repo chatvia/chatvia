@@ -5,6 +5,7 @@ namespace App\Actions\Agents;
 use App\Data\Agent\KnowledgeAnalyzeData;
 use App\Models\Agent;
 use App\Models\User;
+use App\Support\FileAnalyzer;
 use App\Support\PdfInfo;
 use Illuminate\Http\UploadedFile;
 
@@ -22,31 +23,16 @@ class AgentKnowledgeAnalyzeFileAction
             );
         }
 
-        $pdfInfo = app(PdfInfo::class);
-
-        if (is_pdf_file($uploadedFile)) {
-            $info = $pdfInfo->getInfo($uploadedFile);
-        }
-
-        if (is_word_file($uploadedFile)) {
-            $pdf = office()->toPdf($uploadedFile);
-            $info = $pdfInfo->getInfo($pdf);
-        }
-
-        if (is_text_file($uploadedFile)) {
-            $pdf = office()->toPdf($uploadedFile);
-            $info = $pdfInfo->getInfo($pdf);
-            $info->pages *= 3;
-        }
+        $info = FileAnalyzer::analyze($uploadedFile);
 
         abort_if(
-            boolean: $user->canUploadPages($info->pages),
+            boolean: $user->canUploadPages($info->length),
             code: 422,
-            message: 'File upload limit exceeded. This document requires '.$info->pages.' pages.'
+            message: 'File upload limit exceeded. This document requires '.$info->length.' pages.'
         );
 
         return KnowledgeAnalyzeData::from([
-            'pages' => $info->pages,
+            'length' => $info->length,
             'mime_type' => $uploadedFile->getMimeType(),
             'encrypted' => $info->encrypted,
         ]);

@@ -7,8 +7,8 @@ use Spatie\LaravelData\Data;
 class KnowledgeAnalyzeData extends Data
 {
     public function __construct(
-        public int $pages,
+        public int    $length,
         public string $mime_type,
-        public bool $encrypted,
+        public bool   $encrypted,
     ) {}
 }

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play, Zap, Info } from 'lucide-vue-next';
+import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play, Zap, Info, XCircle } from 'lucide-vue-next';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +33,8 @@ interface KnowledgeFile {
     mime_type: string;
     status: string;
     created_at: string;
-    number_of_pages?: number;
+    length?: number;
+    is_audio_file?: boolean;
     ingestion_progress?: number;
 }
 
@@ -44,7 +45,8 @@ interface UploadedFile {
     mime_type: string;
     status: string;
     created_at: string;
-    pages?: number;
+    length?: number;
+    is_audio_file?: boolean;
     encrypted?: boolean;
 }
 
@@ -57,6 +59,10 @@ interface UploadingFileData extends BaseUploadingFileData {
 // Usage data interface
 interface UsageData {
     pages: {
+        limit: number;
+        used: number;
+    };
+    minutes?: {
         limit: number;
         used: number;
     };
@@ -251,23 +257,73 @@ const isKnowledgeAgent = computed(() => {
     return props.agent.type === 'knowledge';
 });
 
-// Page quota computed properties
+// Quota computed properties
 const pagesRemaining = computed(() => {
     return usageData.value.pages.limit - usageData.value.pages.used;
 });
 
+const minutesRemaining = computed(() => {
+    return usageData.value.minutes?.limit ? usageData.value.minutes.limit - usageData.value.minutes.used : 0;
+});
+
 const totalUploadedPages = computed(() => {
-    return uploadedFiles.value.reduce((total, file) => total + (file.pages || 0), 0) +
-           uploadingFiles.value.reduce((total, file) => total + (file.stats?.pages || 0), 0);
+    return uploadedFiles.value.reduce((total, file) => {
+        if (file.is_audio_file) {
+            return total + (file.length || 0); // Use length (minutes) for audio files
+        }
+        return total + (file.length || 0); // Use length (pages) for non-audio files
+    }, 0) + uploadingFiles.value.reduce((total, file) => {
+        if (file.stats?.is_audio_file) {
+            return total + (file.stats?.length || 0); // Use length (minutes) for audio files
+        }
+        return total + (file.stats?.length || 0); // Use length (pages) for non-audio files
+    }, 0);
+});
+
+const totalUploadedMinutes = computed(() => {
+    return uploadedFiles.value.reduce((total, file) => {
+        if (file.is_audio_file) {
+            return total + (file.length || 0);
+        }
+        return total;
+    }, 0) + uploadingFiles.value.reduce((total, file) => {
+        if (file.stats?.is_audio_file) {
+            return total + (file.stats?.length || 0);
+        }
+        return total;
+    }, 0);
+});
+
+const totalUploadedPagesOnly = computed(() => {
+    return uploadedFiles.value.reduce((total, file) => {
+        if (!file.is_audio_file) {
+            // For non-audio files, use length as pages
+            return total + (file.length || 0);
+        }
+        return total;
+    }, 0) + uploadingFiles.value.reduce((total, file) => {
+        if (!file.stats?.is_audio_file) {
+            // For non-audio files, use length as pages
+            return total + (file.stats?.length || 0);
+        }
+        return total;
+    }, 0);
 });
 
 const wouldExceedQuota = computed(() => {
-    return totalUploadedPages.value > pagesRemaining.value;
+    const pagesExceeded = totalUploadedPagesOnly.value > pagesRemaining.value;
+    const minutesExceeded = usageData.value.minutes ? totalUploadedMinutes.value > minutesRemaining.value : false;
+    return pagesExceeded || minutesExceeded;
 });
 
 const quotaUtilization = computed(() => {
-    const used = usageData.value.pages.used + totalUploadedPages.value;
-    return Math.min((used / usageData.value.pages.limit) * 100, 100);
+    const pagesUsed = usageData.value.pages.used + totalUploadedPagesOnly.value;
+    const minutesUsed = (usageData.value.minutes?.used || 0) + totalUploadedMinutes.value;
+    
+    const pagesUtilization = usageData.value.pages.limit > 0 ? (pagesUsed / usageData.value.pages.limit) * 100 : 0;
+    const minutesUtilization = usageData.value.minutes?.limit ? (minutesUsed / usageData.value.minutes.limit) * 100 : 0;
+    
+    return Math.max(pagesUtilization, minutesUtilization);
 });
 
 // Selection methods
@@ -357,6 +413,18 @@ const formatSpeed = (bytesPerSecond: number): string => {
     }
 
     return `${speed.toFixed(1)} ${units[unitIndex]}`;
+};
+
+// Helper function to format file length (pages or minutes)
+const formatFileLength = (file: { length?: number; is_audio_file?: boolean }): string => {
+    if (!file.length) return '';
+    
+    if (file.is_audio_file) {
+        return `${file.length} minute${file.length !== 1 ? 's' : ''}`;
+    } else {
+        // For non-audio files, use length as pages
+        return `${file.length} page${file.length !== 1 ? 's' : ''}`;
+    }
 };
 
 const calculateETA = (file: UploadingFileData): string => {
@@ -501,12 +569,21 @@ const processAllFiles = async () => {
         return;
     }
 
-    // Check if processing would exceed page quota
+    // Check if processing would exceed quota
     if (wouldExceedQuota.value) {
-        const totalPages = totalUploadedPages.value;
-        const remaining = pagesRemaining.value;
-
-        if (!confirm(`Processing these files (${totalPages} pages) would exceed your remaining quota of ${remaining} pages. Continue anyway? Note: Only ${remaining} pages will be processed.`)) {
+        let quotaMessage = '';
+        
+        if (totalUploadedPagesOnly.value > pagesRemaining.value) {
+            quotaMessage += `Processing these files (${totalUploadedPagesOnly.value} pages) would exceed your remaining page quota of ${pagesRemaining.value} pages. `;
+        }
+        
+        if (usageData.value.minutes && totalUploadedMinutes.value > minutesRemaining.value) {
+            quotaMessage += `Processing these files (${totalUploadedMinutes.value} minutes) would exceed your remaining minute quota of ${minutesRemaining.value} minutes. `;
+        }
+        
+        quotaMessage += 'Continue anyway? Note: Only the remaining quota will be processed.';
+        
+        if (!confirm(quotaMessage)) {
             return;
         }
     }
@@ -621,7 +698,8 @@ const fetchKnowledgeFiles = async (isBackgroundRefresh = false) => {
                 mime_type: file.mime_type,
                 status: file.status,
                 created_at: file.created_at,
-                pages: file.number_of_pages
+                length: file.length,
+                is_audio_file: file.is_audio_file
             }));
 
     } catch (error) {
@@ -709,13 +787,13 @@ const showFileSummary = async (file: KnowledgeFile) => {
         summaryData.value = response.data;
     } catch (error: any) {
         console.error('Error fetching file summary:', error);
-        
+
         if (error.response?.status === 404) {
             toast.error('No summary available for this file.');
         } else {
             toast.error('Failed to load file summary.');
         }
-        
+
         summaryData.value = null;
     } finally {
         isLoadingSummary.value = false;
@@ -731,7 +809,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 <AlertCircle class="h-4 w-4" />
                 <AlertDescription>
                     <strong>Knowledge Base Not Available</strong> This agent is configured as an instruction-based agent. Document uploading and knowledge base functionality is only available for knowledge-based agents.
-                    
+
                 </AlertDescription>
             </Alert>
 
@@ -741,9 +819,9 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 ref="fileUploaderRef"
                 :config="fileUploaderConfig"
                 title="Upload New Documents"
-                description="Add documents to your agent's knowledge base. Supported formats: PDF, Word, Text"
+                description="Add documents to your agent's knowledge base. Supported formats: PDF, Word, Text, Audio"
                 :show-quota="!isLoadingUsage"
-                :quota-used="totalUploadedPages"
+                :quota-used="totalUploadedPagesOnly"
                 :quota-limit="usageData.pages.limit"
                 :disabled="isProcessingFiles"
                 disabled-message="File uploads are disabled while training is in progress"
@@ -761,7 +839,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 </Alert>
 
                 <!-- Quota Exceeded -->
-                <Alert v-if="!isLoadingUsage && pagesRemaining <= 0" variant="destructive">
+                <Alert v-if="!isLoadingUsage && (pagesRemaining <= 0 || (usageData.minutes && minutesRemaining <= 0))" variant="destructive">
                     <AlertCircle class="h-4 w-4" />
                     <AlertDescription>
                         Quota limit reached.
@@ -789,11 +867,14 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                 <CardTitle class="text-base">Ready to Train</CardTitle>
                                 <CardDescription>
                                     {{ uploadedFiles.length }} file{{ uploadedFiles.length !== 1 ? 's' : '' }} uploaded and ready for training
-                                    <span v-if="totalUploadedPages > 0" class="ml-1">
-                                        • {{ totalUploadedPages }} page{{ totalUploadedPages !== 1 ? 's' : '' }}
+                                    <span v-if="totalUploadedPagesOnly > 0" class="ml-1">
+                                        • {{ totalUploadedPagesOnly }} page{{ totalUploadedPagesOnly !== 1 ? 's' : '' }}
+                                    </span>
+                                    <span v-if="totalUploadedMinutes > 0" class="ml-1">
+                                        • {{ totalUploadedMinutes }} minute{{ totalUploadedMinutes !== 1 ? 's' : '' }}
                                     </span>
                                     <span v-if="wouldExceedQuota" class="ml-1 text-destructive font-medium">
-                                        • Exceeds quota by {{ totalUploadedPages - pagesRemaining }} pages
+                                        • Exceeds quota
                                     </span>
                                 </CardDescription>
                             </div>
@@ -840,8 +921,8 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                             </div>
                                             <div class="text-xs text-muted-foreground">
                                                 {{ formatFileSize(file.size) }}
-                                                <span v-if="file.pages" class="ml-2">
-                                                    • {{ file.pages }} page{{ file.pages !== 1 ? 's' : '' }}
+                                                <span v-if="formatFileLength(file)" class="ml-2">
+                                                    • {{ formatFileLength(file) }}
                                                 </span>
                                             </div>
                                         </div>
@@ -929,11 +1010,23 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
+                                                        <TooltipProvider v-else-if="file.status === 'failed'">
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <div class="flex items-center">
+                                                                        <XCircle class="h-4 w-4 text-red-500 flex-shrink-0" />
+                                                                    </div>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>Processing failed. Please contact support.</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
                                                     </div>
                                                     <div class="text-xs text-muted-foreground">
                                                         {{ file.size_in_kb.toFixed(1) }} KB
-                                                        <span v-if="file.number_of_pages" class="ml-2">
-                                                            • {{ file.number_of_pages }} page{{ file.number_of_pages !== 1 ? 's' : '' }}
+                                                        <span v-if="formatFileLength(file)" class="ml-2">
+                                                            • {{ formatFileLength(file) }}
                                                         </span>
                                                         <span v-if="file.status === 'processing' && file.ingestion_progress !== undefined" class="ml-2">
                                                             • {{ file.ingestion_progress }}% processed
@@ -1031,11 +1124,23 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
+                                                    <TooltipProvider v-else-if="file.status === 'failed'">
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <div class="flex items-center">
+                                                                    <XCircle class="h-4 w-4 text-red-500 flex-shrink-0" />
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>Processing failed. Please contact support.</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
                                                 </div>
                                                 <div class="text-xs text-muted-foreground">
                                                     {{ file.size_in_kb.toFixed(1) }} KB
-                                                    <span v-if="file.number_of_pages" class="ml-2">
-                                                        • {{ file.number_of_pages }} page{{ file.number_of_pages !== 1 ? 's' : '' }}
+                                                    <span v-if="formatFileLength(file)" class="ml-2">
+                                                        • {{ formatFileLength(file) }}
                                                     </span>
                                                     <span v-if="file.status === 'processing' && file.ingestion_progress !== undefined" class="ml-2">
                                                         • {{ file.ingestion_progress }}% processed
@@ -1156,21 +1261,21 @@ const showFileSummary = async (file: KnowledgeFile) => {
                     AI-generated analysis of the document content and structure.
                 </DialogDescription>
             </DialogHeader>
-            
+
             <div v-if="isLoadingSummary" class="flex items-center justify-center py-8">
                 <LoaderCircle class="h-8 w-8 animate-spin text-blue-600" />
                 <span class="ml-2 text-muted-foreground">Loading summary...</span>
             </div>
-            
+
             <div v-else-if="summaryData" class="space-y-6">
                 <!-- Key Topics -->
                 <div v-if="summaryData.key_topics && summaryData.key_topics.length > 0">
                     <h3 class="font-semibold text-sm text-foreground mb-2">Key Topics</h3>
                     <div class="flex flex-wrap gap-2">
-                        <Badge 
-                            v-for="topic in summaryData.key_topics" 
-                            :key="topic" 
-                            variant="secondary" 
+                        <Badge
+                            v-for="topic in summaryData.key_topics"
+                            :key="topic"
+                            variant="secondary"
                             class="text-xs"
                         >
                             {{ topic }}
@@ -1184,17 +1289,17 @@ const showFileSummary = async (file: KnowledgeFile) => {
                         <h3 class="font-semibold text-sm text-foreground mb-1">Writing Style</h3>
                         <p class="text-sm text-muted-foreground capitalize">{{ summaryData.writing_style }}</p>
                     </div>
-                    
+
                     <div v-if="summaryData.target_audience">
                         <h3 class="font-semibold text-sm text-foreground mb-1">Target Audience</h3>
                         <p class="text-sm text-muted-foreground capitalize">{{ summaryData.target_audience }}</p>
                     </div>
-                    
+
                     <div v-if="summaryData.complexity_level">
                         <h3 class="font-semibold text-sm text-foreground mb-1">Complexity Level</h3>
                         <p class="text-sm text-muted-foreground capitalize">{{ summaryData.complexity_level }}</p>
                     </div>
-                    
+
                     <div v-if="summaryData.estimated_reading_time_minutes">
                         <h3 class="font-semibold text-sm text-foreground mb-1">Estimated Reading Time</h3>
                         <p class="text-sm text-muted-foreground">{{ summaryData.estimated_reading_time_minutes }} minutes</p>
@@ -1205,10 +1310,10 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 <div v-if="summaryData.formatting_elements && summaryData.formatting_elements.length > 0">
                     <h3 class="font-semibold text-sm text-foreground mb-2">Formatting Elements</h3>
                     <div class="flex flex-wrap gap-2">
-                        <Badge 
-                            v-for="element in summaryData.formatting_elements" 
-                            :key="element" 
-                            variant="outline" 
+                        <Badge
+                            v-for="element in summaryData.formatting_elements"
+                            :key="element"
+                            variant="outline"
                             class="text-xs"
                         >
                             {{ element.replace(/_/g, ' ') }}
@@ -1227,7 +1332,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                     </p>
                 </div>
             </div>
-            
+
             <div v-else class="text-center py-8 text-muted-foreground">
                 <Info class="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>No summary data available for this file.</p>

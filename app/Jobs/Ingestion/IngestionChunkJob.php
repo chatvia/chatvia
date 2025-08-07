@@ -28,6 +28,10 @@ class IngestionChunkJob implements ShouldQueue
 
     public function handle(): void
     {
+        if ($this->batch()?->cancelled()) {
+            return;
+        }
+
         $systemPrompt = config('prompts.chunking-system');
 
         $visionPrompt = config('prompts.image-description');

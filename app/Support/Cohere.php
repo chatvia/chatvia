@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Http;
 
 class Cohere
 {
-    public function embed(string $text)
+    public function embed(string $text, bool $returnAsText = false): string|array
     {
-        return Http::withToken(config('services.cohere.api_key'))
+        $embedding = Http::withToken(config('services.cohere.api_key'))
             ->throw()
             ->post($this->endpoint('/embed'), [
                 'model' => 'embed-v4.0',
@@ -20,6 +20,12 @@ class Cohere
                 'input_type' => 'search_document',
                 'embedding_types' => ['float'],
             ])->json('embeddings.float.0');
+
+        if ($returnAsText) {
+            return '['.implode(',', $embedding).']';
+        }
+
+        return $embedding;
     }
 
     public function rerank(string $query, array $documents, int $topN = 6): array

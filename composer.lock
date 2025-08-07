@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d9e07e22d4a491c5be42d4ba4eca571e",
+    "content-hash": "c71a053c0071dd86b0f96971e4bc9262",
     "packages": [
         {
             "name": "amphp/amp",
@@ -12589,6 +12589,60 @@
                 "source": "https://github.com/webmozarts/assert/tree/1.11.0"
             },
             "time": "2022-06-03T18:03:27+00:00"
+        },
+        {
+            "name": "yethee/tiktoken",
+            "version": "0.10.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/yethee/tiktoken-php.git",
+                "reference": "59a93e34b90469021a4b8ed3a98765e8dc23f3cc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/yethee/tiktoken-php/zipball/59a93e34b90469021a4b8ed3a98765e8dc23f3cc",
+                "reference": "59a93e34b90469021a4b8ed3a98765e8dc23f3cc",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1",
+                "symfony/service-contracts": "^2.5 || ^3.0"
+            },
+            "require-dev": {
+                "doctrine/coding-standard": "^13",
+                "mikey179/vfsstream": "^1.6.11",
+                "phpbench/phpbench": "^1.2",
+                "phpunit/phpunit": "^10.5.45",
+                "psalm/plugin-phpunit": "^0.19.2",
+                "vimeo/psalm": "6.10.0"
+            },
+            "suggest": {
+                "ext-ffi": "To allow use LibEncoder"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Yethee\\Tiktoken\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "PHP version of tiktoken",
+            "keywords": [
+                "bpe",
+                "decode",
+                "encode",
+                "openai",
+                "tiktoken",
+                "tokenizer"
+            ],
+            "support": {
+                "issues": "https://github.com/yethee/tiktoken-php/issues",
+                "source": "https://github.com/yethee/tiktoken-php/tree/0.10.0"
+            },
+            "time": "2025-04-19T13:47:00+00:00"
         },
         {
             "name": "zbateson/mail-mime-parser",

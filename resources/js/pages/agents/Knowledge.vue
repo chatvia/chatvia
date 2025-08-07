@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play, Zap } from 'lucide-vue-next';
+import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play, Zap, Info } from 'lucide-vue-next';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import FileUploader from '@/components/FileUploader.vue';
 import type { UploadingFileData as BaseUploadingFileData, FileUploaderConfig } from '@/composables/useFileUploader';
 
@@ -59,6 +60,17 @@ interface UsageData {
         limit: number;
         used: number;
     };
+}
+
+// File summary data interface
+interface FileSummaryData {
+    key_topics?: string[];
+    writing_style?: string;
+    target_audience?: string;
+    complexity_level?: string;
+    formatting_elements?: string[];
+    contains_sensitive_info?: boolean;
+    estimated_reading_time_minutes?: number;
 }
 
 // Constants
@@ -116,6 +128,12 @@ const deleteUploadingFileDialogOpen = ref(false);
 const uploadingFileToDelete = ref<UploadingFileData | null>(null);
 const bulkDeleteDialogOpen = ref(false);
 const clearAllDialogOpen = ref(false);
+
+// Summary dialog states
+const summaryDialogOpen = ref(false);
+const summaryData = ref<FileSummaryData | null>(null);
+const isLoadingSummary = ref(false);
+const currentSummaryFile = ref<KnowledgeFile | null>(null);
 
 // Filter and sort state
 const searchQuery = ref('');
@@ -669,6 +687,40 @@ const fetchUsageData = async () => {
         isLoadingUsage.value = false;
     }
 };
+
+// Function to fetch and display file summary
+const showFileSummary = async (file: KnowledgeFile) => {
+    if (file.status !== 'completed') {
+        toast.error('Summary is only available for completed files.');
+        return;
+    }
+
+    currentSummaryFile.value = file;
+    summaryDialogOpen.value = true;
+    isLoadingSummary.value = true;
+    summaryData.value = null;
+
+    try {
+        const response = await axios.get(route('agents.agent.files.summary', {
+            agent: props.agent.id,
+            file: file.id
+        }));
+
+        summaryData.value = response.data;
+    } catch (error: any) {
+        console.error('Error fetching file summary:', error);
+        
+        if (error.response?.status === 404) {
+            toast.error('No summary available for this file.');
+        } else {
+            toast.error('Failed to load file summary.');
+        }
+        
+        summaryData.value = null;
+    } finally {
+        isLoadingSummary.value = false;
+    }
+};
 </script>
 
 <template>
@@ -899,25 +951,47 @@ const fetchUsageData = async () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            :disabled="isProcessingFiles"
-                                                            @click="confirmDeleteFile(file)"
-                                                        >
-                                                            <span class="sr-only">Remove file</span>
-                                                            <Trash2 class="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Delete from knowledge base</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
+                                            <div class="flex items-center gap-1">
+                                                <!-- Summary button for completed files -->
+                                                <TooltipProvider v-if="file.status === 'completed'">
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex-shrink-0"
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                :disabled="isProcessingFiles"
+                                                                @click="showFileSummary(file)"
+                                                            >
+                                                                <span class="sr-only">View file summary</span>
+                                                                <Info class="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>View file summary</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                :disabled="isProcessingFiles"
+                                                                @click="confirmDeleteFile(file)"
+                                                            >
+                                                                <span class="sr-only">Remove file</span>
+                                                                <Trash2 class="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Delete from knowledge base</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
                                         </div>
                                     </template>
                                 </div>
@@ -979,25 +1053,47 @@ const fetchUsageData = async () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        :disabled="isProcessingFiles"
-                                                        @click="confirmDeleteFile(file)"
-                                                    >
-                                                        <span class="sr-only">Remove file</span>
-                                                        <Trash2 class="h-4 w-4" />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Delete from knowledge base</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                        <div class="flex items-center gap-1">
+                                            <!-- Summary button for completed files -->
+                                            <TooltipProvider v-if="file.status === 'completed'">
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            class="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex-shrink-0"
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            :disabled="isProcessingFiles"
+                                                            @click="showFileSummary(file)"
+                                                        >
+                                                            <span class="sr-only">View file summary</span>
+                                                            <Info class="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>View file summary</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            :disabled="isProcessingFiles"
+                                                            @click="confirmDeleteFile(file)"
+                                                        >
+                                                            <span class="sr-only">Remove file</span>
+                                                            <Trash2 class="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Delete from knowledge base</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
                                     </div>
                                 </template>
                             </div>
@@ -1047,6 +1143,97 @@ const fetchUsageData = async () => {
         cancel-text="Cancel"
         @confirm="clearAllFiles"
     />
+
+    <!-- File Summary Dialog -->
+    <Dialog v-model:open="summaryDialogOpen">
+        <DialogContent class="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+                <DialogTitle class="flex items-center gap-2">
+                    <Info class="h-5 w-5 text-blue-600" />
+                    File Summary: {{ currentSummaryFile?.name }}
+                </DialogTitle>
+                <DialogDescription>
+                    AI-generated analysis of the document content and structure.
+                </DialogDescription>
+            </DialogHeader>
+            
+            <div v-if="isLoadingSummary" class="flex items-center justify-center py-8">
+                <LoaderCircle class="h-8 w-8 animate-spin text-blue-600" />
+                <span class="ml-2 text-muted-foreground">Loading summary...</span>
+            </div>
+            
+            <div v-else-if="summaryData" class="space-y-6">
+                <!-- Key Topics -->
+                <div v-if="summaryData.key_topics && summaryData.key_topics.length > 0">
+                    <h3 class="font-semibold text-sm text-foreground mb-2">Key Topics</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <Badge 
+                            v-for="topic in summaryData.key_topics" 
+                            :key="topic" 
+                            variant="secondary" 
+                            class="text-xs"
+                        >
+                            {{ topic }}
+                        </Badge>
+                    </div>
+                </div>
+
+                <!-- Document Characteristics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div v-if="summaryData.writing_style">
+                        <h3 class="font-semibold text-sm text-foreground mb-1">Writing Style</h3>
+                        <p class="text-sm text-muted-foreground capitalize">{{ summaryData.writing_style }}</p>
+                    </div>
+                    
+                    <div v-if="summaryData.target_audience">
+                        <h3 class="font-semibold text-sm text-foreground mb-1">Target Audience</h3>
+                        <p class="text-sm text-muted-foreground capitalize">{{ summaryData.target_audience }}</p>
+                    </div>
+                    
+                    <div v-if="summaryData.complexity_level">
+                        <h3 class="font-semibold text-sm text-foreground mb-1">Complexity Level</h3>
+                        <p class="text-sm text-muted-foreground capitalize">{{ summaryData.complexity_level }}</p>
+                    </div>
+                    
+                    <div v-if="summaryData.estimated_reading_time_minutes">
+                        <h3 class="font-semibold text-sm text-foreground mb-1">Estimated Reading Time</h3>
+                        <p class="text-sm text-muted-foreground">{{ summaryData.estimated_reading_time_minutes }} minutes</p>
+                    </div>
+                </div>
+
+                <!-- Formatting Elements -->
+                <div v-if="summaryData.formatting_elements && summaryData.formatting_elements.length > 0">
+                    <h3 class="font-semibold text-sm text-foreground mb-2">Formatting Elements</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <Badge 
+                            v-for="element in summaryData.formatting_elements" 
+                            :key="element" 
+                            variant="outline" 
+                            class="text-xs"
+                        >
+                            {{ element.replace(/_/g, ' ') }}
+                        </Badge>
+                    </div>
+                </div>
+
+                <!-- Sensitive Information Warning -->
+                <div v-if="summaryData.contains_sensitive_info" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex items-center gap-2">
+                        <AlertCircle class="h-4 w-4 text-yellow-600" />
+                        <h3 class="font-semibold text-sm text-yellow-800">Sensitive Information Detected</h3>
+                    </div>
+                    <p class="text-sm text-yellow-700 mt-1">
+                        This document may contain sensitive or confidential information.
+                    </p>
+                </div>
+            </div>
+            
+            <div v-else class="text-center py-8 text-muted-foreground">
+                <Info class="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No summary data available for this file.</p>
+            </div>
+        </DialogContent>
+    </Dialog>
 </template>
 
 <style>

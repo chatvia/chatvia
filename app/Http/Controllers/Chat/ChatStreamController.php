@@ -16,6 +16,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Log;
 use Psr\Http\Message\ResponseInterface;
@@ -182,7 +183,7 @@ class ChatStreamController
 
                 $this->sources = collect($searchResults)->map(function ($result) use ($agentFiles) {
                     $agentFile = $agentFiles->get($result->agent_file_id);
-
+                    $metadata = json_decode($result->metadata, true);
                     return [
                         'content' => $result->chunk,
                         'metadata' => [
@@ -190,6 +191,7 @@ class ChatStreamController
                             'document_id' => $result->id,
                             'agent_file_id' => $result->agent_file_id,
                         ],
+                        'images' => $metadata['images'] ?? [],
                     ];
                 });
 
@@ -198,8 +200,21 @@ class ChatStreamController
                 $userMessageContent = Str::of("### User Question:\n")
                     ->append($this->payload->message_for_llm)
                     ->append("### Retrieved Context\n")
-                    ->append($chunks->implode("\n\n"))
-                    ->toString();
+                    ->append($this->sources->map(function ($chunk, $i) {
+                        $text = "Chunk {$i}: ".$chunk['content']."\n";
+                        if ($chunk['images']) {
+                            $text .= "These are the images associated with  chunk {$i}:\n";
+                            $text .= "You MUST Include one oe more of these images in markdown format if it does support the context and makes sense\n";
+                            $i = 1;
+                            foreach ($chunk['images'] as $image => $description) {
+                                $text.= "Image {$i}: ".Storage::url($image)."\n";
+                                $text.= "Description for image {$i}: {$description}\n";
+                                ++$i;
+                            }
+                        }
+                        ray($text);
+                        return $text;
+                    })->implode("\n"))->toString();
             }
         }
 

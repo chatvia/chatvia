@@ -7,8 +7,7 @@ use Spatie\LaravelData\Data;
 class ChunkData extends Data
 {
     public function __construct(
-        public ChunkTypeEnum $type,
-        public string $original,
-        public string $enhanced
+        public string $text,
+        public array $images = [],
     ) {}
 }

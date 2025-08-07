@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Jobs\Ingestion;
+
+use App\Data\Ingestion\ChunkIngestionData;
+use App\Models\AgentFile;
+use App\Services\Chunker;
+use App\Services\Ingestion\LlamaParse;
+use Illuminate\Bus\Batch;
+use Illuminate\Bus\Batchable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Http\File;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Throwable;
+
+class IngestionJob implements ShouldBeUnique, ShouldQueue
+{
+    use Queueable, Batchable, SerializesModels;
+
+    public $tries = 3;
+
+    public $backoff = 10;
+
+    public $timeout = 1800;
+
+    public function __construct(public AgentFile $agentFile) {}
+
+    /**
+     * @throws Throwable
+     * @throws \JsonException
+     */
+    public function handle(LlamaParse $llamaParse): void {
+        $externalJobId = $this->agentFile->external_ingestion_job_id;
+
+        $internalJobId = $this->job->getJobId();
+
+        $updateValues = [
+            'internal_job_id' => $internalJobId ?: null,
+            'parser' => 'llamaparse',
+        ];
+
+        if (! $externalJobId) {
+            $externalJobId = $llamaParse->parse(
+                $this->agentFile->isWordFile() ? $this->agentFile->convertToPdf() : $this->agentFile->readFile(),
+            );
+            $updateValues['external_ingestion_job_id'] = $externalJobId;
+        }
+
+        $cacheKey = 'agent:file:llamaparse:parsing:'.md5_file($this->agentFile->readFile()->getPathname());
+
+        if (Cache::has($cacheKey)) {
+            // Get cached data - it's already an array
+            $pages = Cache::get($cacheKey);
+        } else {
+            // Get pages from LlamaParse - returns an array
+            $pages = $llamaParse->getPagesWithImages($externalJobId);
+            // Cache the array directly
+            Cache::put($cacheKey, $pages, now()->addHour());
+
+            $fileName = Str::uuid()->toString().'.json';
+
+            // Encode the array to JSON for storage
+            $updateValues['parsed_document_path'] = Storage::putFileAs(
+                path: 'users/agents/'.$this->agentFile->user_id,
+                file: new File(create_temp_file($fileName, json_encode($pages, JSON_THROW_ON_ERROR))),
+                name: 'parsed_document.json',
+            );
+        }
+
+        $this->agentFile->update($updateValues);
+
+        $this->agentFile->refresh();
+
+        $chunker = new Chunker($this->agentFile);
+        $chunks = $chunker->createChunks($pages);
+
+        $jobs = $chunks->map(function (ChunkIngestionData $chunk) {
+            return new IngestionChunkJob($chunk);
+        });
+
+        $jobs->push(
+            new IngestionSummaryJob($this->agentFile)
+        );
+
+        $agentFileId = $this->agentFile->id;
+
+        $batch = Bus::batch($jobs)
+            ->name('Ingestion Agent File ID: '.$agentFileId)
+            ->then(function (Batch $batch) use ($agentFileId) {
+                AgentFile::find($agentFileId)?->update(['status' => 'completed']);
+            })
+            ->dispatch();
+
+        $this->agentFile->update([
+            'status' => 'processing',
+            'internal_chunking_batch_id' => $batch->id,
+            'chunks' => $chunks->count(),
+        ]);
+    }
+
+    public function uniqueId(): string
+    {
+        return $this->agentFile->id;
+    }
+
+    public function tags(): array
+    {
+        return [
+            'agent_file:'.$this->agentFile->id,
+        ];
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        $this->agentFile->update([
+            'status' => 'failed',
+            'failure_reason' => $exception->getMessage(),
+        ]);
+    }
+}

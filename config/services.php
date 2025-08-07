@@ -70,6 +70,7 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'api_key' => env('GOOGLE_API_KEY'),
     ],
 
     'bin' => [
@@ -78,4 +79,13 @@ return [
         'libreoffice' => env('LIBREOFFICE_BIN_PATH', '/opt/homebrew/bin/soffice'),
         'pdfinfo' => env('PDFINFO_BIN_PATH', '/opt/homebrew/bin/pdfinfo'),
     ],
+
+    'llamaparse' => [
+        'endpoint' => env('LLAMA_PARSE_ENDPOINT', 'https://api.cloud.llamaindex.ai/api/v1/parsing'),
+        'api_key' => env('LLAMA_PARSE_API_KEY'),
+    ],
+
+    'libs' => [
+        'tiktoken' => env('TIKTOKEN_PATH', '/usr/local/lib/libtiktoken.so'),
+    ]
 ];

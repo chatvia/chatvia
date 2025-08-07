@@ -12,7 +12,7 @@ class AgentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->is_admin;
     }
 
     /**
@@ -20,7 +20,7 @@ class AgentPolicy
      */
     public function view(User $user, Agent $agent): bool
     {
-        return false;
+        return $user->id === $agent->user_id;
     }
 
     /**
@@ -28,7 +28,7 @@ class AgentPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -36,7 +36,7 @@ class AgentPolicy
      */
     public function update(User $user, Agent $agent): bool
     {
-        return false;
+        return $this->view($user, $agent);
     }
 
     /**
@@ -44,7 +44,7 @@ class AgentPolicy
      */
     public function delete(User $user, Agent $agent): bool
     {
-        return false;
+        return $this->view($user, $agent);
     }
 
     /**
@@ -52,7 +52,7 @@ class AgentPolicy
      */
     public function restore(User $user, Agent $agent): bool
     {
-        return false;
+        return $this->view($user, $agent);
     }
 
     /**
@@ -60,6 +60,6 @@ class AgentPolicy
      */
     public function forceDelete(User $user, Agent $agent): bool
     {
-        return false;
+        return $this->view($user, $agent);
     }
 }

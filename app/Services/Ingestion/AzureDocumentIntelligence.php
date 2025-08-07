@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Support;
+namespace App\Services\Ingestion;
 
 use App\Models\AgentFile;
 use Illuminate\Support\Facades\Http;
@@ -18,7 +18,7 @@ class AzureDocumentIntelligence
         $this->apiKey = config('services.azure_document_intelligence.api_key');
     }
 
-    public function analyzeDocument(string $documentUrl, string $modelId = 'prebuilt-layout', array $options = []): string
+    public function analyzeDocument(string $documentUrl, string $modelId = 'prebuilt-read', array $options = []): string
     {
         $url = "{$this->endpoint}/documentintelligence/documentModels/{$modelId}:analyze";
 

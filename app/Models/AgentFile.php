@@ -4,15 +4,19 @@ namespace App\Models;
 
 use App\Support\Ingestion;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AgentFile extends Model
 {
+    use HasFactory;
+
     protected $guarded = ['id'];
 
     public function agent(): BelongsTo
@@ -55,7 +59,7 @@ class AgentFile extends Model
 
     public function documents(): HasMany
     {
-        return $this->hasMany(Document::class);
+        return $this->hasMany(Chunk::class);
     }
 
     public function ingestionProgress(): int
@@ -126,5 +130,37 @@ class AgentFile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+        ];
+    }
+
+    public function chunks(): HasMany
+    {
+        return $this->hasMany(Chunk::class);
+    }
+
+    public function summary(): HasOne
+    {
+        return $this->hasOne(Chunk::class)->where('chunk_index', 0)->latestOfMany();
+    }
+
+    public function images()
+    {
+//        return $this->chunks()
+//            ->whereRaw("jsonb_array_length(metadata->'images') > 0")
+//            ->get();
+        return $this->chunks()
+            ->select('metadata')
+            ->get()
+            ->reject(fn($item) => count($item['metadata']['images'] ?? []) === 0)
+            ->pluck('metadata.images')
+            ->map(fn($images) => collect($images)->keys()->map(fn($image) => Storage::url($image))->toArray())
+            ->flatten()
+            ->toArray();
     }
 }

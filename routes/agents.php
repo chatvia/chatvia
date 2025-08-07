@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgentDeleteSettingsController;
+use App\Http\Controllers\AgentFileSummaryController;
 use App\Http\Controllers\AgentKnowledgeFilesAnalyzeController;
 use App\Http\Controllers\Agents\Agents\AgentCreateController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteController;
@@ -66,8 +67,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('knowledge/files', AgentKnowledgeFilesController::class)->name('knowledge.files');
         Route::post('knowledge/files/upload', AgentKnowledgeFileUploadController::class)->name('knowledge.files.upload');
         Route::delete('knowledge/files/{file}', AgentKnowledgeFileDeleteController::class)->name('knowledge.files.delete');
-        Route::delete('knowledge/uploaded-files', AgentKnowledgeUploadedFilesDeleteController::class)->name('knowledge.uploaded-files');
+        Route::delete('knowledge/files/uploaded', AgentKnowledgeUploadedFilesDeleteController::class)->name('knowledge.uploaded-files');
         Route::post('knowledge/files/process', AgentKnowledgeFilesProcessController::class)->name('knowledge.files.process');
+        Route::get('knowledge/files/{file}/summary', AgentFileSummaryController::class)->name('agent.files.summary');
 
         // Starters
         Route::get('starters', StartersShowController::class)->name('starters');

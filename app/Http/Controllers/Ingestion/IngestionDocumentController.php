@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Ingestion;
 
 use App\Data\Ingestion\DocumentData;
-use App\Models\Document;
+use App\Models\Chunk;
 use App\Support\Cohere;
 use Illuminate\Http\Request;
 
@@ -16,7 +16,7 @@ class IngestionDocumentController
         $data = json_decode($rawJson, true);
         $data = DocumentData::from($data);
 
-        Document::create([
+        Chunk::create([
             'agent_file_id' => $data->agent_file_id,
             'agent_id' => $data->agent_id,
             'type' => $data->chunk->type->value,

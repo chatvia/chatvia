@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('language_code')->nullable();
             $table->string('name');
             $table->string('path')->unique();
+            $table->string('parsed_document_path')->nullable()->unique();
             $table->decimal('size_in_kb');
             $table->string('mime_type');
             $table->string('md5_hash');
@@ -24,10 +25,13 @@ return new class extends Migration
             $table->unsignedInteger('number_of_pages')->default(0);
             $table->unsignedInteger('minutes')->default(0);
             $table->enum('status', ['uploaded', 'pending', 'processing', 'failed', 'completed'])->default('pending')->index();
+            $table->string('internal_job_id')->unique()->nullable();
+            $table->string('internal_chunking_batch_id')->unique()->nullable();
             $table->string('external_ingestion_job_id')->unique()->nullable();
+            $table->string('parser')->nullable();
             $table->string('document_type')->nullable();
-            $table->json('metadata')->nullable();
             $table->unsignedInteger('retrieval_count')->default(0);
+            $table->jsonb('metadata')->nullable();
             $table->timestamps();
 
             $table->unique(['agent_id', 'md5_hash']);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Knowledge;
 
+use App\Jobs\Ingestion\IngestionJob;
 use App\Models\Agent;
 use App\Models\AgentFile;
 use App\Support\Ingestion;
@@ -11,8 +12,9 @@ class AgentKnowledgeFilesProcessController
 {
     public function __invoke(Request $request, Agent $agent, Ingestion $ingestion)
     {
-        $agent->files()->where('status', 'uploaded')->each(function (AgentFile $agentFile) use ($ingestion) {
-            $ingestion->ingest($agentFile);
+        $agent->files()->where('status', 'uploaded')->each(function (AgentFile $agentFile) {
+            $agentFile->update(['status' => 'processing']);
+            IngestionJob::dispatch($agentFile);
         });
     }
 }

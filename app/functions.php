@@ -55,9 +55,9 @@ if (! function_exists('office')) {
 }
 
 if (! function_exists('embed')) {
-    function embed(string $text)
+    function embed(string $text, bool $returnAsText = false)
     {
-        return app(Cohere::class)->embed($text);
+        return app(Cohere::class)->embed($text, $returnAsText);
     }
 }
 

@@ -22,6 +22,7 @@ use App\Http\Controllers\Chat\Conversations\ConversationMessagesController;
 use App\Http\Controllers\Chat\Conversations\ConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
 use App\Http\Controllers\Chat\Export\ChatExportController;
+use App\Http\Controllers\ChatSourcesController;
 
 Route::get('/chat/appearance', ChatAppearanceController::class)->name('chat.appearance');
 
@@ -56,11 +57,13 @@ Route::prefix('/chat')
         Route::delete('/messages', ChatMessageDeleteController::class)->name('chat.messages.delete');
 
         Route::get('/conversations/{conversationId}/export', ChatExportController::class)->name('conversations.export');
+        Route::get('/conversations/{conversationId}/sources', ChatSourcesController::class)->name('chat.sources');
 
         // Should be the last route in the group
         Route::get('/c/{conversationId}', ChatController::class)->name('chat.show');
 
         Route::patch('/profile', ChatProfileUpdateController::class)->name('chat.profile.update');
+
 
         Route::get('/usage', ChatMessagesUsage::class)->name('chat.usage');
     });

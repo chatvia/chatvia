@@ -24,14 +24,14 @@ class AgentFile extends Model
         return $this->belongsTo(Agent::class);
     }
 
-//    public function filename(): Attribute
-//    {
-//        return Attribute::get(fn () => basename($this->filepath));
-//    }
+    //    public function filename(): Attribute
+    //    {
+    //        return Attribute::get(fn () => basename($this->filepath));
+    //    }
 
     public function readFile(): File
     {
-        if (!$this->filepath) {
+        if (! $this->filepath) {
             throw new \Exception("File path is not set for AgentFile ID: {$this->id}");
         }
 
@@ -159,15 +159,15 @@ class AgentFile extends Model
 
     public function images()
     {
-//        return $this->chunks()
-//            ->whereRaw("jsonb_array_length(metadata->'images') > 0")
-//            ->get();
+        //        return $this->chunks()
+        //            ->whereRaw("jsonb_array_length(metadata->'images') > 0")
+        //            ->get();
         return $this->chunks()
             ->select('metadata')
             ->get()
-            ->reject(fn($item) => count($item['metadata']['images'] ?? []) === 0)
+            ->reject(fn ($item) => count($item['metadata']['images'] ?? []) === 0)
             ->pluck('metadata.images')
-            ->map(fn($images) => collect($images)->keys()->map(fn($image) => Storage::url($image))->toArray())
+            ->map(fn ($images) => collect($images)->keys()->map(fn ($image) => Storage::url($image))->toArray())
             ->flatten()
             ->toArray();
     }

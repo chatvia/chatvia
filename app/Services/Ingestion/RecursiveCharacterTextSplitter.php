@@ -15,7 +15,7 @@ class RecursiveCharacterTextSplitter
     public function __construct(
         public int $chunkSize = 700,
         public int $chunkOverlap = 50,
-        public array $separators = ["\n\n", "\n", ". ", " ", ""],
+        public array $separators = ["\n\n", "\n", '. ', ' ', ''],
     ) {}
 
     /**
@@ -27,7 +27,7 @@ class RecursiveCharacterTextSplitter
 
         // Merge small chunks throughout the list
         $mergedChunks = [];
-        $minSize = (int)($this->chunkSize * 0.4); // 40% of chunk size
+        $minSize = (int) ($this->chunkSize * 0.4); // 40% of chunk size
 
         for ($i = 0, $iMax = count($chunks); $i < $iMax; $i++) {
             $currentChunk = $chunks[$i];
@@ -42,7 +42,8 @@ class RecursiveCharacterTextSplitter
                 if ($currentTokens + $nextTokens <= $this->chunkSize * 1.2) {
                     // Find the appropriate separator to use between chunks
                     $separator = $this->findAppropriateSeparator($currentChunk, $nextChunk);
-                    $chunks[$i + 1] = $currentChunk . $separator . $nextChunk;
+                    $chunks[$i + 1] = $currentChunk.$separator.$nextChunk;
+
                     continue; // Skip adding current chunk to merged list
                 }
             }
@@ -51,7 +52,8 @@ class RecursiveCharacterTextSplitter
             if ($currentTokens < $minSize && $i == count($chunks) - 1 && count($mergedChunks) > 0) {
                 $lastMerged = array_pop($mergedChunks);
                 $separator = $this->findAppropriateSeparator($lastMerged, $currentChunk);
-                $mergedChunks[] = $lastMerged . $separator . $currentChunk;
+                $mergedChunks[] = $lastMerged.$separator.$currentChunk;
+
                 continue;
             }
 
@@ -73,12 +75,12 @@ class RecursiveCharacterTextSplitter
         if (str_ends_with($chunk1, "\n") || str_starts_with($chunk2, "\n")) {
             return "\n";
         }
-        if (str_ends_with($chunk1, ". ") || str_starts_with($chunk2, ". ")) {
-            return ". ";
+        if (str_ends_with($chunk1, '. ') || str_starts_with($chunk2, '. ')) {
+            return '. ';
         }
 
         // Default to space if no clear separator pattern
-        return " ";
+        return ' ';
     }
 
     /**
@@ -107,7 +109,7 @@ class RecursiveCharacterTextSplitter
             $partTokenCount = TikToken::countTokens($part);
 
             if ($partTokenCount > $this->chunkSize) {
-                if (!empty($currentChunkParts)) {
+                if (! empty($currentChunkParts)) {
                     $finalChunks[] = trim(implode($separator, $currentChunkParts));
                     $currentChunkParts = [];
                     $currentChunkTokenCount = 0;
@@ -115,21 +117,19 @@ class RecursiveCharacterTextSplitter
 
                 $subChunks = $this->recursiveSplit($part, $separators);
                 $finalChunks = array_merge($finalChunks, $subChunks);
-            }
-            elseif ($currentChunkTokenCount + $partTokenCount + TikToken::countTokens($separator) > $this->chunkSize) {
-                if (!empty($currentChunkParts)) {
+            } elseif ($currentChunkTokenCount + $partTokenCount + TikToken::countTokens($separator) > $this->chunkSize) {
+                if (! empty($currentChunkParts)) {
                     $finalChunks[] = trim(implode($separator, $currentChunkParts));
                 }
                 $currentChunkParts = [$part];
                 $currentChunkTokenCount = $partTokenCount;
-            }
-            else {
+            } else {
                 $currentChunkParts[] = $part;
                 $currentChunkTokenCount += $partTokenCount + TikToken::countTokens($separator);
             }
         }
 
-        if (!empty($currentChunkParts)) {
+        if (! empty($currentChunkParts)) {
             $finalChunks[] = trim(implode($separator, $currentChunkParts));
         }
 
@@ -162,7 +162,7 @@ class RecursiveCharacterTextSplitter
                 $prevChunk = $chunks[$i - 1];
                 $overlapTokens = array_slice(TikToken::encode($prevChunk), -$this->chunkOverlap);
                 $overlapText = TikToken::decode($overlapTokens);
-                $chunks[$i] = $overlapText . $chunks[$i];
+                $chunks[$i] = $overlapText.$chunks[$i];
             }
         }
 

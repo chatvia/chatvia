@@ -21,7 +21,7 @@ use Throwable;
 
 class IngestionJob implements ShouldBeUnique, ShouldQueue
 {
-    use Queueable, Batchable, SerializesModels;
+    use Batchable, Queueable, SerializesModels;
 
     public $tries = 3;
 

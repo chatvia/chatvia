@@ -15,12 +15,9 @@ use Illuminate\Support\Facades\File;
 
 class IngestionSummaryJob implements ShouldQueue
 {
-    use Queueable, Batchable;
+    use Batchable, Queueable;
 
-    public function __construct(public AgentFile $agentFile)
-    {
-
-    }
+    public function __construct(public AgentFile $agentFile) {}
 
     public function handle(): void
     {
@@ -64,7 +61,7 @@ class IngestionSummaryJob implements ShouldQueue
             'cost_in_cents' => $costInCents,
             'tokens' => TikToken::countTokens($chunk),
             'embedding' => embed(strip_tags($chunk), true),
-            'embedding_bm25' => DB::raw("tokenize(" . DB::connection()->getPdo()->quote(strip_tags($chunk)) . ", 'llmlingua2')"),
+            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($chunk)).", 'llmlingua2')"),
             'metadata' => $response['metadata'],
             'md5_hash' => md5($chunk),
             'retrieval_count' => 0,

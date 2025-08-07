@@ -184,18 +184,17 @@ class ChatStreamController
                 $this->sources = collect($searchResults)->map(function ($result) use ($agentFiles) {
                     $agentFile = $agentFiles->get($result->agent_file_id);
                     $metadata = json_decode($result->metadata, true);
+
                     return [
                         'content' => $result->chunk,
                         'metadata' => [
-                            'file_name' => $agentFile?->name,
+                            'filename' => $agentFile?->filename,
                             'document_id' => $result->id,
                             'agent_file_id' => $result->agent_file_id,
                         ],
                         'images' => $metadata['images'] ?? [],
                     ];
                 });
-
-                $chunks = $this->sources->pluck('content');
 
                 $userMessageContent = Str::of("### User Question:\n")
                     ->append($this->payload->message_for_llm)
@@ -207,12 +206,13 @@ class ChatStreamController
                             $text .= "You MUST Include one oe more of these images in markdown format if it does support the context and makes sense\n";
                             $i = 1;
                             foreach ($chunk['images'] as $image => $description) {
-                                $text.= "Image {$i}: ".Storage::url($image)."\n";
-                                $text.= "Description for image {$i}: {$description}\n";
-                                ++$i;
+                                $text .= "Image {$i}: ".Storage::url($image)."\n";
+                                $text .= "Description for image {$i}: {$description}\n";
+                                $i++;
                             }
                         }
                         ray($text);
+
                         return $text;
                     })->implode("\n"))->toString();
             }
@@ -362,9 +362,10 @@ class ChatStreamController
                 generation_id: $this->generationId,
                 token_count: $this->tokenCount,
                 response_time_ms: (int) round(($this->endTime - $this->startTime) * 1000),
-                sources: $this->sources->toArray(),
             )
         );
+
+        $this->memory->storeSourcesForMessage($this->assistantMessageId, $this->sources->toArray());
     }
 
     private function handleRequestException(RequestException $e): void

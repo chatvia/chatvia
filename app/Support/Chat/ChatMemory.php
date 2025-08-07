@@ -121,8 +121,6 @@ class ChatMemory
 
         if ($isInputMessage) {
             $append['message_for_llm'] = $payload->message_for_llm;
-        } else {
-            $append['sources'] = $payload->sources;
         }
 
         $role = $isInputMessage ? 'user' : 'assistant';
@@ -153,6 +151,24 @@ class ChatMemory
         });
 
         return $messageId;
+    }
+
+    public function storeSourcesForMessage(string $messageId, array $sources): void
+    {
+        $cacheKdy = 'conversations:'.$this->conversationId.':sources';
+
+        $cachedSources = $this->getChatCache()->get($cacheKdy, []);
+
+        $cachedSources[$messageId] = $sources;
+
+        $this->getChatCache()->put($cacheKdy, $cachedSources, $this->getMessageRetention());
+    }
+
+    public function getSources(): array
+    {
+        $cacheKdy = 'conversations:'.$this->conversationId.':sources';
+
+        return $this->getChatCache()->get($cacheKdy, []);
     }
 
     public function addMessage(string $role, string $message, ?string $messageId = null, ?string $model = null, string $type = 'text', array $append = []): string

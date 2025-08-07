@@ -24,8 +24,6 @@ return new class extends Migration
             $table->string('parser')->nullable();
             $table->string('parser_filepath')->nullable()->unique();
             $table->unsignedInteger('chunks')->nullable();
-//            $table->unsignedInteger('pages')->default(0);
-//            $table->unsignedInteger('minutes')->default(0);
             $table->unsignedInteger('length')->default(0);
             $table->string('internal_ingestion_job_id')->unique()->nullable();
             $table->string('internal_chunking_batch_id')->unique()->nullable();

@@ -63,12 +63,12 @@ class OpenAI
                 'summary' => [
                     'type' => 'string',
                     'description' => 'Comprehensive detailed summary of the document (minimum 800 tokens). Must include main purpose, key findings, important details, conclusions, specific data/statistics, document structure, and significant insights. Must be prefixed with "Summary: ".',
-                    'minLength' => 800
+                    'minLength' => 800,
                 ],
                 'questions' => [
                     'type' => 'string',
                     'description' => 'Generate a few questions about the document.',
-                    'minLength' => 800
+                    'minLength' => 800,
                 ],
                 'document_type' => [
                     'type' => 'string',
@@ -102,9 +102,9 @@ class OpenAI
                         'troubleshooting_guide',
                         'installation_guide',
                         'configuration_guide',
-                        'other'
+                        'other',
                     ],
-                    'description' => 'Most appropriate document type based on purpose, structure, and intended use. Choose the most specific applicable type, not generic classifications.'
+                    'description' => 'Most appropriate document type based on purpose, structure, and intended use. Choose the most specific applicable type, not generic classifications.',
                 ],
                 'metadata' => [
                     'type' => 'object',
@@ -112,7 +112,7 @@ class OpenAI
                         'complexity_level' => [
                             'type' => 'string',
                             'enum' => ['beginner', 'intermediate', 'advanced', 'expert'],
-                            'description' => 'Document complexity based on vocabulary, concepts, and structure'
+                            'description' => 'Document complexity based on vocabulary, concepts, and structure',
                         ],
                         'target_audience' => [
                             'type' => 'string',
@@ -127,9 +127,9 @@ class OpenAI
                                 'administrators',
                                 'end_users',
                                 'executives',
-                                'other'
+                                'other',
                             ],
-                            'description' => 'Primary intended audience for the document'
+                            'description' => 'Primary intended audience for the document',
                         ],
                         'writing_style' => [
                             'type' => 'string',
@@ -144,9 +144,9 @@ class OpenAI
                                 'informative',
                                 'analytical',
                                 'narrative',
-                                'other'
+                                'other',
                             ],
-                            'description' => 'Primary writing style used in the document'
+                            'description' => 'Primary writing style used in the document',
                         ],
                         'formatting_elements' => [
                             'type' => 'array',
@@ -171,28 +171,28 @@ class OpenAI
                                     'table_of_contents',
                                     'index',
                                     'appendices',
-                                    'other'
-                                ]
+                                    'other',
+                                ],
                             ],
-                            'description' => 'Special formatting, visual elements, or structural components present in the document'
+                            'description' => 'Special formatting, visual elements, or structural components present in the document',
                         ],
                         'estimated_reading_time_minutes' => [
                             'type' => 'integer',
                             'minimum' => 1,
-                            'description' => 'Estimated reading time in minutes for an average reader'
+                            'description' => 'Estimated reading time in minutes for an average reader',
                         ],
                         'key_topics' => [
                             'type' => 'array',
                             'items' => [
-                                'type' => 'string'
+                                'type' => 'string',
                             ],
                             'maxItems' => 10,
-                            'description' => 'Main topics or themes covered in the document (maximum 10)'
+                            'description' => 'Main topics or themes covered in the document (maximum 10)',
                         ],
                         'contains_sensitive_info' => [
                             'type' => 'boolean',
-                            'description' => 'Whether the document contains potentially sensitive or confidential information'
-                        ]
+                            'description' => 'Whether the document contains potentially sensitive or confidential information',
+                        ],
                     ],
                     'required' => [
                         'complexity_level',
@@ -201,29 +201,29 @@ class OpenAI
                         'formatting_elements',
                         'estimated_reading_time_minutes',
                         'key_topics',
-                        'contains_sensitive_info'
-                    ]
+                        'contains_sensitive_info',
+                    ],
                 ],
                 'language' => [
                     'type' => 'string',
                     'pattern' => '^[a-z]{2}$',
-                    'description' => 'Primary language as ISO 639-1 language code (e.g., en, ar, fr, es, de, it, pt, ru, ja, ko, zh, hi). For mixed languages, use the predominant language.'
+                    'description' => 'Primary language as ISO 639-1 language code (e.g., en, ar, fr, es, de, it, pt, ru, ja, ko, zh, hi). For mixed languages, use the predominant language.',
                 ],
                 'confidence_score' => [
                     'type' => 'number',
                     'minimum' => 0,
                     'maximum' => 1,
-                    'description' => 'Confidence level in the analysis accuracy (0.0 to 1.0)'
-                ]
+                    'description' => 'Confidence level in the analysis accuracy (0.0 to 1.0)',
+                ],
             ],
             'required' => [
                 'summary',
                 'document_type',
                 'metadata',
                 'language',
-                'confidence_score'
+                'confidence_score',
             ],
-            'additionalProperties' => false
+            'additionalProperties' => false,
         ];
 
         $response = Http::withHeaders([
@@ -253,9 +253,9 @@ class OpenAI
                         'type' => 'function',
                         'name' => 'analyze_document',
                         'description' => 'Analyze uploaded document and provide comprehensive structured analysis',
-                        'parameters' => $parameters
-                    ]
-                ]
+                        'parameters' => $parameters,
+                    ],
+                ],
             ])
             ->throw()
             ->json('output.0.arguments');
@@ -273,5 +273,4 @@ class OpenAI
 
         return round($inputCost + $outputCost, 2);
     }
-
 }

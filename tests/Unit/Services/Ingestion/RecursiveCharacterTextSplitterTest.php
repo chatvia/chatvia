@@ -1,4 +1,5 @@
 <?php
+
 namespace Tests\Unit\Services\Ingestion;
 
 use App\Services\Ingestion\RecursiveCharacterTextSplitter;
@@ -24,8 +25,8 @@ class RecursiveCharacterTextSplitterTest extends TestCase
         $splitter = new RecursiveCharacterTextSplitter(chunkSize: 700, chunkOverlap: 0);
         $chunks = $splitter->splitText($this->fileContent);
 
-        $originalText = str_replace(["\n"], [""], trim(str_replace(" ", "", trim($this->fileContent))));
-        $chunksAsText = str_replace(["\n"], [""], trim(str_replace(" ", "", implode("", $chunks))));
+        $originalText = str_replace(["\n"], [''], trim(str_replace(' ', '', trim($this->fileContent))));
+        $chunksAsText = str_replace(["\n"], [''], trim(str_replace(' ', '', implode('', $chunks))));
 
         $this->assertSame($originalText, $chunksAsText);
     }

@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\Jobs;
 
-use App\Jobs\Ingestion\IngestionJob;
 use App\Models\Agent;
 use App\Models\AgentFile;
 use App\Models\User;
@@ -19,6 +18,7 @@ class IngestionJobEvaluationTest extends TestCase
     use RefreshDatabase;
 
     private AgentFile $agentFile;
+
     private string $originalContent;
 
     protected function setUp(): void
@@ -42,7 +42,7 @@ class IngestionJobEvaluationTest extends TestCase
     public function it_evaluates_chunk_quality_using_openai(): void
     {
         $parsedData = $this->createParsedDataFromContent($this->originalContent);
-        
+
         $chunker = new Chunker($this->agentFile);
         $chunks = $chunker->createChunks($parsedData);
 
@@ -83,7 +83,7 @@ class IngestionJobEvaluationTest extends TestCase
     public function it_preserves_semantic_boundaries(): void
     {
         $parsedData = $this->createParsedDataFromContent($this->originalContent);
-        
+
         $chunker = new Chunker($this->agentFile);
         $chunks = $chunker->createChunks($parsedData);
 
@@ -108,7 +108,7 @@ class IngestionJobEvaluationTest extends TestCase
     public function it_maintains_appropriate_chunk_sizes(): void
     {
         $parsedData = $this->createParsedDataFromContent($this->originalContent);
-        
+
         $chunker = new Chunker($this->agentFile, 700);
         $chunks = $chunker->createChunks($parsedData);
 
@@ -132,14 +132,14 @@ class IngestionJobEvaluationTest extends TestCase
 
         // Calculate statistics
         $avgTokens = array_sum($tokenCounts) / count($tokenCounts);
-        $this->assertGreaterThan(300, $avgTokens, "Average chunk size is too small");
+        $this->assertGreaterThan(300, $avgTokens, 'Average chunk size is too small');
     }
 
     #[Test]
     public function it_generates_quality_summary_report(): void
     {
         $parsedData = $this->createParsedDataFromContent($this->originalContent);
-        
+
         $chunker = new Chunker($this->agentFile);
         $chunks = $chunker->createChunks($parsedData);
 
@@ -171,34 +171,34 @@ class IngestionJobEvaluationTest extends TestCase
                     'type' => 'integer',
                     'description' => 'Overall quality score from 1-10',
                     'minimum' => 1,
-                    'maximum' => 10
+                    'maximum' => 10,
                 ],
                 'is_coherent' => [
                     'type' => 'boolean',
-                    'description' => 'Whether the chunk is coherent and readable'
+                    'description' => 'Whether the chunk is coherent and readable',
                 ],
                 'has_incomplete_sentences' => [
                     'type' => 'boolean',
-                    'description' => 'Whether the chunk contains incomplete sentences'
+                    'description' => 'Whether the chunk contains incomplete sentences',
                 ],
                 'starts_properly' => [
                     'type' => 'boolean',
-                    'description' => 'Whether the chunk starts with a complete sentence or thought'
+                    'description' => 'Whether the chunk starts with a complete sentence or thought',
                 ],
                 'ends_properly' => [
                     'type' => 'boolean',
-                    'description' => 'Whether the chunk ends with a complete sentence or thought'
+                    'description' => 'Whether the chunk ends with a complete sentence or thought',
                 ],
                 'issues' => [
                     'type' => 'string',
-                    'description' => 'Description of any quality issues found'
+                    'description' => 'Description of any quality issues found',
                 ],
                 'strengths' => [
                     'type' => 'string',
-                    'description' => 'Description of the chunk\'s strengths'
-                ]
+                    'description' => 'Description of the chunk\'s strengths',
+                ],
             ],
-            'required' => ['score', 'is_coherent', 'has_incomplete_sentences', 'starts_properly', 'ends_properly', 'issues', 'strengths']
+            'required' => ['score', 'is_coherent', 'has_incomplete_sentences', 'starts_properly', 'ends_properly', 'issues', 'strengths'],
         ];
 
         try {
@@ -208,12 +208,12 @@ class IngestionJobEvaluationTest extends TestCase
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are an expert evaluator for document chunking quality in RAG systems. Evaluate chunks for coherence, completeness, and readability.'
+                        'content' => 'You are an expert evaluator for document chunking quality in RAG systems. Evaluate chunks for coherence, completeness, and readability.',
                     ],
                     [
                         'role' => 'user',
-                        'content' => "Evaluate the quality of this text chunk:\n\n{$chunkText}"
-                    ]
+                        'content' => "Evaluate the quality of this text chunk:\n\n{$chunkText}",
+                    ],
                 ],
                 'tools' => [
                     [
@@ -221,11 +221,11 @@ class IngestionJobEvaluationTest extends TestCase
                         'function' => [
                             'name' => 'evaluate_chunk_quality',
                             'description' => 'Evaluate the quality of a text chunk for use in a RAG system',
-                            'parameters' => $parameters
-                        ]
-                    ]
+                            'parameters' => $parameters,
+                        ],
+                    ],
                 ],
-                'tool_choice' => ['type' => 'function', 'function' => ['name' => 'evaluate_chunk_quality']]
+                'tool_choice' => ['type' => 'function', 'function' => ['name' => 'evaluate_chunk_quality']],
             ]);
 
             // Parse the function call response
@@ -236,7 +236,7 @@ class IngestionJobEvaluationTest extends TestCase
                 }
             }
         } catch (\Exception $e) {
-            \Log::error('OpenAI evaluation failed: ' . $e->getMessage());
+            \Log::error('OpenAI evaluation failed: '.$e->getMessage());
         }
 
         // Fallback response
@@ -247,7 +247,7 @@ class IngestionJobEvaluationTest extends TestCase
             'starts_properly' => true,
             'ends_properly' => true,
             'issues' => 'Evaluation failed, using fallback',
-            'strengths' => 'Unable to evaluate'
+            'strengths' => 'Unable to evaluate',
         ];
     }
 
@@ -258,18 +258,18 @@ class IngestionJobEvaluationTest extends TestCase
             'properties' => [
                 'clean_boundary' => [
                     'type' => 'boolean',
-                    'description' => 'Whether the boundary between chunks is clean and logical'
+                    'description' => 'Whether the boundary between chunks is clean and logical',
                 ],
                 'boundary_issues' => [
                     'type' => 'string',
-                    'description' => 'Description of any boundary issues'
+                    'description' => 'Description of any boundary issues',
                 ],
                 'semantic_continuity' => [
                     'type' => 'boolean',
-                    'description' => 'Whether there is appropriate semantic continuity between chunks'
-                ]
+                    'description' => 'Whether there is appropriate semantic continuity between chunks',
+                ],
             ],
-            'required' => ['clean_boundary', 'boundary_issues', 'semantic_continuity']
+            'required' => ['clean_boundary', 'boundary_issues', 'semantic_continuity'],
         ];
 
         try {
@@ -279,13 +279,13 @@ class IngestionJobEvaluationTest extends TestCase
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are an expert evaluator for document chunking boundaries. Evaluate whether the split between two consecutive chunks is clean and appropriate.'
+                        'content' => 'You are an expert evaluator for document chunking boundaries. Evaluate whether the split between two consecutive chunks is clean and appropriate.',
                     ],
                     [
                         'role' => 'user',
-                        'content' => "Evaluate the boundary between these two consecutive chunks:\n\nEND OF CHUNK 1:\n" . 
-                                    substr($endingChunk, -500) . "\n\nSTART OF CHUNK 2:\n" . substr($startingChunk, 0, 500)
-                    ]
+                        'content' => "Evaluate the boundary between these two consecutive chunks:\n\nEND OF CHUNK 1:\n".
+                                    substr($endingChunk, -500)."\n\nSTART OF CHUNK 2:\n".substr($startingChunk, 0, 500),
+                    ],
                 ],
                 'tools' => [
                     [
@@ -293,11 +293,11 @@ class IngestionJobEvaluationTest extends TestCase
                         'function' => [
                             'name' => 'evaluate_chunk_boundary',
                             'description' => 'Evaluate the quality of the boundary between two consecutive chunks',
-                            'parameters' => $parameters
-                        ]
-                    ]
+                            'parameters' => $parameters,
+                        ],
+                    ],
                 ],
-                'tool_choice' => ['type' => 'function', 'function' => ['name' => 'evaluate_chunk_boundary']]
+                'tool_choice' => ['type' => 'function', 'function' => ['name' => 'evaluate_chunk_boundary']],
             ]);
 
             if (isset($response['choices'][0]['message']['tool_calls'][0]['function']['arguments'])) {
@@ -307,13 +307,13 @@ class IngestionJobEvaluationTest extends TestCase
                 }
             }
         } catch (\Exception $e) {
-            \Log::error('Boundary evaluation failed: ' . $e->getMessage());
+            \Log::error('Boundary evaluation failed: '.$e->getMessage());
         }
 
         return [
             'clean_boundary' => true,
             'boundary_issues' => 'Evaluation failed, using fallback',
-            'semantic_continuity' => true
+            'semantic_continuity' => true,
         ];
     }
 
@@ -328,11 +328,17 @@ class IngestionJobEvaluationTest extends TestCase
         foreach ($chunks as $chunk) {
             $evaluation = $this->evaluateChunkWithOpenAI($chunk->chunk_text);
             $evaluations[] = $evaluation;
-            
+
             $totalScore += $evaluation['score'];
-            if ($evaluation['is_coherent']) $coherentCount++;
-            if ($evaluation['starts_properly']) $properStartCount++;
-            if ($evaluation['ends_properly']) $properEndCount++;
+            if ($evaluation['is_coherent']) {
+                $coherentCount++;
+            }
+            if ($evaluation['starts_properly']) {
+                $properStartCount++;
+            }
+            if ($evaluation['ends_properly']) {
+                $properEndCount++;
+            }
         }
 
         $chunkCount = count($evaluations);
@@ -343,7 +349,7 @@ class IngestionJobEvaluationTest extends TestCase
             'coherent_chunks_percentage' => $chunkCount > 0 ? round(($coherentCount / $chunkCount) * 100, 2) : 0,
             'proper_start_percentage' => $chunkCount > 0 ? round(($properStartCount / $chunkCount) * 100, 2) : 0,
             'proper_end_percentage' => $chunkCount > 0 ? round(($properEndCount / $chunkCount) * 100, 2) : 0,
-            'evaluations' => $evaluations
+            'evaluations' => $evaluations,
         ];
     }
 
@@ -353,8 +359,8 @@ class IngestionJobEvaluationTest extends TestCase
             'timestamp' => now()->toISOString(),
             'total_evaluated' => count($evaluations),
             'average_score' => round(array_sum(array_column($evaluations, 'score')) / count($evaluations), 2),
-            'coherent_count' => count(array_filter($evaluations, fn($e) => $e['is_coherent'])),
-            'issues_found' => array_filter(array_column($evaluations, 'issues'), fn($issue) => $issue !== 'Evaluation failed, using fallback'),
+            'coherent_count' => count(array_filter($evaluations, fn ($e) => $e['is_coherent'])),
+            'issues_found' => array_filter(array_column($evaluations, 'issues'), fn ($issue) => $issue !== 'Evaluation failed, using fallback'),
         ];
 
         \Log::info('Chunk Evaluation Summary', $summary);
@@ -364,17 +370,17 @@ class IngestionJobEvaluationTest extends TestCase
     {
         $lines = explode("\n", $content);
         $pages = [];
-        
+
         for ($i = 0; $i < count($lines); $i += $linesPerPage) {
             $pageLines = array_slice($lines, $i, $linesPerPage);
-            if (!empty($pageLines)) {
+            if (! empty($pageLines)) {
                 $pages[] = [
                     'text' => implode("\n", $pageLines),
-                    'images' => []
+                    'images' => [],
                 ];
             }
         }
-        
+
         return $pages;
     }
 }

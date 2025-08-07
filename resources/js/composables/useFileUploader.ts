@@ -4,6 +4,8 @@ import { toast } from 'vue-sonner';
 
 export interface FileStats {
     pages?: number;
+    length?: number;
+    is_audio_file?: boolean;
     mime_type: string;
     encrypted: boolean;
 }
@@ -220,6 +222,8 @@ export function useFileUploader(config: FileUploaderConfig) {
                     analyzedData: response.data,
                     stats: {
                         pages: response.data.pages || 0,
+                        length: response.data.length || 0,
+                        is_audio_file: response.data.is_audio_file || false,
                         mime_type: response.data.mime_type || file.file.type,
                         encrypted: response.data.encrypted || false
                     }

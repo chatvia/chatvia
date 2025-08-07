@@ -15,16 +15,11 @@ class AgentKnowledgeFileUploadController
 
         $info = $action->execute($uploadedFile, $request->user(), $agent);
 
-        $file = $agent->addFile(
-            file: $uploadedFile,
-            options: [
-                'number_of_pages' => $info->pages,
-            ],
-        );
+        $file = $agent->addFile($uploadedFile);
 
         return [
             'id' => $file->id,
-            'pages' => $info->pages,
+            'length' => $info->length,
             'mime_type' => $uploadedFile->getMimeType(),
             'encrypted' => $info->encrypted,
         ];

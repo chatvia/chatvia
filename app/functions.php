@@ -25,25 +25,35 @@ if (! function_exists('create_temp_file')) {
 }
 
 if (! function_exists('is_word_file')) {
-    function is_word_file(UploadedFile $file): bool
+    function is_word_file(UploadedFile|string $file): bool
     {
-        $extension = strtolower($file->getClientOriginalExtension());
+        $file = $file instanceof UploadedFile? $file->path() : $file;
+        $mime = mime_content_type($file);
 
-        return in_array($extension, ['doc', 'docx']);
+        $wordMimeTypes = [
+            'application/msword',                                                                 // .doc
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',          // .docx
+        ];
+
+        return in_array($mime, $wordMimeTypes, true);
     }
 }
 
 if (! function_exists('is_pdf_file')) {
-    function is_pdf_file(UploadedFile $file): bool
+    function is_pdf_file(UploadedFile|string $file): bool
     {
-        return File::mimeType($file->path()) === 'application/pdf';
+        $file = $file instanceof UploadedFile? $file->path() : $file;
+
+        return File::mimeType($file) === 'application/pdf';
     }
 }
 
 if (! function_exists('is_text_file')) {
-    function is_text_file(UploadedFile $file): bool
+    function is_text_file(UploadedFile|string $file): bool
     {
-        return File::mimeType($file->path()) === 'text/plain';
+        $file = $file instanceof UploadedFile? $file->path() : $file;
+
+        return File::mimeType($file) === 'text/plain';
     }
 }
 

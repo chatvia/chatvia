@@ -2,8 +2,9 @@
 
 namespace App\Support;
 
+use App\Jobs\Ingestion\IngestionJob;
 use App\Models\AgentFile;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Bus;
 
 class Ingestion
 {
@@ -12,33 +13,13 @@ class Ingestion
         return rtrim(config('services.ingestion.api_endpoint'), '/');
     }
 
-    public function ingest(AgentFile $agentFile): array
+    public function ingest(AgentFile $agentFile): void
     {
-        $endpoint = rtrim(config('services.ingestion.api_endpoint'), '/');
-
-        $url = $endpoint.'/ingest?agent_id='.$agentFile->agent_id.'&file_id='.$agentFile->id;
-
-        $file = $agentFile->isWordFile() ? $agentFile->convertToPdf() : $agentFile->readFile();
-
-        $response = Http::attach('file', $file->getContent(), $file->getFilename())
-            ->timeout(600)
-            ->withoutVerifying()
-            ->post($url)
-            ->throw()
-            ->json();
-
-        $agentFile->update([
-            'status' => 'processing',
-            'external_ingestion_job_id' => $response['job_id'],
-        ]);
-
-        return $response;
+        IngestionJob::dispatch($agentFile);
     }
 
-    public function cancelJob(AgentFile $agentFile)
+    public function cancelJob(AgentFile $agentFile): void
     {
-        return Http::delete($this->endpoint().'/job/'.$agentFile->external_ingestion_job_id)
-            ->throw()
-            ->json();
+        Bus::findBatch($agentFile->internal_chunking_batch_id)->cancel();
     }
 }

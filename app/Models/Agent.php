@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Data\Chat\LlmModelData;
 use App\Enums\AgentFileStatusEnum;
 use App\Support\Agents\Stats;
+use App\Support\FileAnalyzer;
 use App\Traits\HasSettings;
 use Exception;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -30,24 +31,31 @@ class Agent extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function addFile(UploadedFile $file, AgentFileStatusEnum $status = AgentFileStatusEnum::UPLOADED, array $options = []): AgentFile
+    public function addFile(
+        UploadedFile $file,
+        AgentFileStatusEnum $status = AgentFileStatusEnum::UPLOADED,
+        array $options = []): AgentFile
     {
         try {
             DB::beginTransaction();
 
-            $path = Storage::putFile(path: 'users/'.$this->user_id.'/agents/'.$this->id.'/files', file: $file);
+            $path = Storage::putFile(
+                path: 'users/'.$this->user_id.'/agents/'.$this->id.'/files',
+                file: $file
+            );
 
-            $operationId = null;
+            $analyzer = FileAnalyzer::analyze($file);
 
             $agentFile = $this->files()->create(array_merge([
                 'user_id' => $this->user_id,
-                'name' => $file->getClientOriginalName(),
-                'path' => $path,
+                'filename' => $file->getClientOriginalName(),
+                'filepath' => $path,
                 'size_in_kb' => round($file->getSize() / 1024),
                 'mime_type' => $file->getClientMimeType(),
                 'md5_hash' => md5_file($file->getPathname()),
                 'status' => $status->value,
-                'ingestion_job_id' => $operationId,
+                'length' => $analyzer->length,
+                'metadata' => $analyzer->toArray(),
             ], $options));
 
             DB::commit();

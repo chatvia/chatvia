@@ -22,7 +22,7 @@ return new class extends Migration
 
             // Technical specifications
             $table->unsignedInteger('context_window'); // Maps to config 'context' - token limit
-            $table->json('features'); // Features like ['fast', 'advanced', 'pro']
+            $table->jsonb('features'); // Features like ['fast', 'advanced', 'pro']
             $table->enum('location', ['us', 'eu', 'cn'])->index();
             $table->boolean('reasoning')->default(false);
             $table->boolean('requires_paid_plan')->index();

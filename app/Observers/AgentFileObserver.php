@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\AgentFile;
+use App\Models\Usage;
 use App\Models\User;
 
 class AgentFileObserver
@@ -14,12 +15,13 @@ class AgentFileObserver
         /** @var User $user */
         $user = $agentFile->user;
 
-        $usage = $user->usage();
+        /** @var Usage $usage */
+        $usage = $user->usage;
 
         if ($agentFile->isAudioFile()) {
-            $usage->increment('minutes', $agentFile->minutes);
+            $usage->increment('minutes', $agentFile->length);
         } else {
-            $usage->increment('pages', $agentFile->number_of_pages);
+            $usage->increment('pages', $agentFile->length);
         }
     }
 
@@ -35,9 +37,9 @@ class AgentFileObserver
         $usage = $user->usage();
 
         if ($agentFile->isAudioFile()) {
-            $usage->decrement('minutes', $agentFile->minutes);
+            $usage->decrement('minutes', $agentFile->length);
         } else {
-            $usage->decrement('pages', $agentFile->number_of_pages);
+            $usage->decrement('pages', $agentFile->length);
         }
     }
 

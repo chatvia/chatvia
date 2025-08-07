@@ -24,6 +24,10 @@ class IngestionSummaryJob implements ShouldQueue
 
     public function handle(): void
     {
+        if ($this->batch()?->cancelled()) {
+            return;
+        }
+
         $cacheKey = 'agent:file:openai:summary:'.$this->agentFile->id;
 
         if (Cache::has($cacheKey)) {
@@ -38,7 +42,7 @@ class IngestionSummaryJob implements ShouldQueue
         File::put(base_path('func.json'), json_encode($response, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
 
         $this->agentFile->update([
-            'language_code' => $response['language'],
+            'language' => $response['language'],
             'document_type' => $response['document_type'],
         ]);
 

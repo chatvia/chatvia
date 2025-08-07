@@ -51,7 +51,7 @@ interface KnowledgeFile {
     path: string;
     size_in_kb: string;
     mime_type: string;
-    number_of_pages?: number;
+    pages?: number;
     minutes: number;
     status: string;
     retrieval_count: number;
@@ -124,14 +124,14 @@ const getFileIcon = (mimeType: string) => {
 
 const truncateFilename = (filename: string, maxLength: number = 20) => {
     if (filename.length <= maxLength) return filename;
-    
+
     const ext = filename.split('.').pop() || '';
     const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
-    
+
     if (nameWithoutExt.length > maxLength - ext.length - 3) {
         return nameWithoutExt.substring(0, maxLength - ext.length - 3) + '...' + '.' + ext;
     }
-    
+
     return filename;
 };
 
@@ -261,10 +261,10 @@ onMounted(() => {
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="text-muted-foreground">
-                                            {{ file.number_of_pages ? 'Pages' : 'Duration' }}
+                                            {{ file.pages ? 'Pages' : 'Duration' }}
                                         </span>
                                         <span class="text-lg font-medium">
-                                            <span v-if="file.number_of_pages">{{ file.number_of_pages }}</span>
+                                            <span v-if="file.pages">{{ file.pages }}</span>
                                             <span v-else-if="file.minutes > 0">{{ file.minutes }}m</span>
                                             <span v-else>-</span>
                                         </span>
@@ -281,9 +281,9 @@ onMounted(() => {
                             </CardContent>
 
                             <CardFooter class="flex justify-center gap-3 border-t p-4">
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     @click="handleDownload(file)"
                                     class="gap-1 flex-1"
                                 >
@@ -307,4 +307,3 @@ onMounted(() => {
 </template>
 
 
- 

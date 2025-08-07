@@ -21,6 +21,7 @@ class AgentStoreController
             DB::beginTransaction();
 
             $validatedData = $request->validated();
+
             /** @var Agent $agent */
             $agent = Agent::create([
                 'user_id' => $user->id,

@@ -18,5 +18,6 @@ if (app()->isLocal()) {
 
         $af = \App\Models\AgentFile::first();
 
+        return \App\Support\FileAnalyzer::analyze(base_path('N.pdf'));
     });
 }

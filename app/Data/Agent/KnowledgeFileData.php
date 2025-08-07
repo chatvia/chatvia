@@ -10,13 +10,14 @@ use Spatie\LaravelData\Data;
 class KnowledgeFileData extends Data
 {
     public function __construct(
-        public int $id,
-        public string $name,
-        public int $size_in_kb,
-        public string $mime_type,
-        public string $status,
-        public int $number_of_pages,
-        public int $ingestion_progress,
+        public int      $id,
+        public string   $name,
+        public int      $size_in_kb,
+        public string   $mime_type,
+        public string   $status,
+        public int      $length,
+        public int      $ingestion_progress,
+        public bool $is_audio_file,
         public DateTime $created_at
     ) {}
 
@@ -24,12 +25,13 @@ class KnowledgeFileData extends Data
     {
         return new self(
             id: $file->id,
-            name: $file->name,
+            name: $file->filename,
             size_in_kb: $file->size_in_kb,
             mime_type: $file->mime_type,
             status: $file->status,
-            number_of_pages: $file->number_of_pages,
+            length: $file->length,
             ingestion_progress: $file->ingestionProgress(),
+            is_audio_file: $file->isAudioFile(),
             created_at: $file->created_at,
         );
     }

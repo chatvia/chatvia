@@ -24,16 +24,24 @@ class AgentFile extends Model
         return $this->belongsTo(Agent::class);
     }
 
-    public function filename(): Attribute
-    {
-        return Attribute::get(fn () => basename($this->path));
-    }
+//    public function filename(): Attribute
+//    {
+//        return Attribute::get(fn () => basename($this->filepath));
+//    }
 
     public function readFile(): File
     {
-        $data = Storage::get($this->path);
+        if (!$this->filepath) {
+            throw new \Exception("File path is not set for AgentFile ID: {$this->id}");
+        }
 
-        $extension = pathinfo($this->path, PATHINFO_EXTENSION);
+        $data = Storage::get($this->filepath);
+
+        if ($data === null) {
+            throw new \Exception("File not found in storage: {$this->filepath}");
+        }
+
+        $extension = pathinfo($this->filepath, PATHINFO_EXTENSION);
 
         $tempPath = tempnam(sys_get_temp_dir(), 'agent_file_').'.'.$extension;
 
@@ -49,12 +57,12 @@ class AgentFile extends Model
 
     public function url(): Attribute
     {
-        return Attribute::get(fn () => Storage::url($this->path));
+        return Attribute::get(fn () => Storage::url($this->filepath));
     }
 
     public function tempUrl(): string
     {
-        return Storage::temporaryUrl($this->path, now()->addMinutes(60));
+        return Storage::temporaryUrl($this->filepath, now()->addMinutes(60));
     }
 
     public function documents(): HasMany
@@ -70,9 +78,9 @@ class AgentFile extends Model
         return round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
     }
 
-    public function cancelIngestionJob(): array
+    public function cancelIngestionJob(): void
     {
-        return app(Ingestion::class)->cancelJob($this);
+        app(Ingestion::class)->cancelJob($this);
     }
 
     public function isWordFile(): bool
@@ -124,7 +132,7 @@ class AgentFile extends Model
 
     public function download(): StreamedResponse
     {
-        return Storage::download($this->path);
+        return Storage::download($this->filepath);
     }
 
     public function user(): BelongsTo
@@ -135,7 +143,7 @@ class AgentFile extends Model
     protected function casts(): array
     {
         return [
-            'metadata' => 'array',
+            'metadata' => 'json',
         ];
     }
 

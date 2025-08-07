@@ -64,6 +64,5 @@ Route::prefix('/chat')
 
         Route::patch('/profile', ChatProfileUpdateController::class)->name('chat.profile.update');
 
-
         Route::get('/usage', ChatMessagesUsage::class)->name('chat.usage');
     });

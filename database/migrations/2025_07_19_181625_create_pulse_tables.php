@@ -89,9 +89,10 @@ return new class extends PulseMigration
     public function down(): void
     {
         $schema = Schema::connection($this->getConnection());
-
-        $schema->dropIfExists('pulse_values');
-        $schema->dropIfExists('pulse_entries');
-        $schema->dropIfExists('pulse_aggregates');
+        if (!app()->isProduction()) {
+            $schema->dropIfExists('pulse_values');
+            $schema->dropIfExists('pulse_entries');
+            $schema->dropIfExists('pulse_aggregates');
+        }
     }
 };

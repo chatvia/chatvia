@@ -53,7 +53,7 @@ trait HasSettings
             // Resize image
             $data = Image::read($value->getContent())->scale(height: 128)->toPng()->toString();
             $file = new File(create_temp_file($value->getFilename(), $data));
-            $value = Storage::putFile('settings/'.$this->id.'/'.$group, $file, ['visibility' => 'public']);
+            $value = Storage::putFile('users/'.$this->getUserId().'/settings/'.$group.'/'.$this->id, $file, ['visibility' => 'public']);
         }
 
         $this->modelSettings()->updateOrCreate([

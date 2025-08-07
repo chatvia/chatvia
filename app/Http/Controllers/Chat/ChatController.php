@@ -11,7 +11,7 @@ final class ChatController
     public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
     {
         $agent = current_agent();
-        
+
         return Inertia::render('chat/Chat', [
             'agent_id' => $agent?->id,
             'conversation_id' => $conversationId,

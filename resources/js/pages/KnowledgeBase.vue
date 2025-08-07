@@ -6,6 +6,7 @@ import {
     Card,
     CardContent,
     CardDescription,
+    CardFooter,
     CardHeader,
     CardTitle
 } from '@/components/ui/card';
@@ -46,18 +47,17 @@ interface Agent {
 
 interface KnowledgeFile {
     id: number;
-    agent_id: number;
-    name: string;
-    path: string;
-    size_in_kb: string;
+    agent: Agent;
+    filename: string;
+    url: string;
+    is_audio: boolean;
+    size_in_kb: number;
     mime_type: string;
-    pages?: number;
-    minutes: number;
+    length: number;
     status: string;
     retrieval_count: number;
     created_at: string;
     updated_at: string;
-    agent: Agent;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -82,7 +82,7 @@ const filteredFiles = computed(() => {
 
     const query = searchQuery.value.toLowerCase();
     return knowledgeFiles.value.filter(file =>
-        file.name.toLowerCase().includes(query) ||
+        file.filename.toLowerCase().includes(query) ||
         file.agent.name.toLowerCase().includes(query) ||
         file.agent.sub_domain.toLowerCase().includes(query)
     );
@@ -108,12 +108,11 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const formatFileSize = (sizeInKb: string) => {
-    const size = parseFloat(sizeInKb);
-    if (size < 1024) {
-        return `${size.toFixed(1)} KB`;
+const formatFileSize = (sizeInKb: number) => {
+    if (sizeInKb < 1024) {
+        return `${sizeInKb.toFixed(1)} KB`;
     }
-    return `${(size / 1024).toFixed(1)} MB`;
+    return `${(sizeInKb / 1024).toFixed(1)} MB`;
 };
 
 const getFileIcon = (mimeType: string) => {
@@ -139,8 +138,8 @@ const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
         case 'uploaded':
             return { variant: 'secondary' as const, text: 'Uploaded', color: 'text-blue-600' };
-        case 'processed':
-            return { variant: 'default' as const, text: 'Processed', color: 'text-green-600' };
+        case 'completed':
+            return { variant: 'default' as const, text: 'Completed', color: 'text-green-600' };
         case 'processing':
             return { variant: 'outline' as const, text: 'Processing', color: 'text-yellow-600' };
         case 'failed':
@@ -151,14 +150,17 @@ const getStatusBadge = (status: string) => {
 };
 
 const handleDownload = (file: KnowledgeFile) => {
-    // TODO: Implement download functionality
-    console.log('Download file:', file.name);
+    // Create a temporary link element to trigger download
+    const link = document.createElement('a');
+    link.href = file.url;
+    link.download = file.filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
-const handleTrain = (file: KnowledgeFile) => {
-    // TODO: Implement train functionality
-    console.log('Train file:', file.name);
-};
+
 
 // Lifecycle
 onMounted(() => {
@@ -234,10 +236,10 @@ onMounted(() => {
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <span class="truncate">{{ truncateFilename(file.name) }}</span>
+                                                <span class="truncate">{{ truncateFilename(file.filename) }}</span>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>{{ file.name }}</p>
+                                                <p>{{ file.filename }}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -249,7 +251,14 @@ onMounted(() => {
                                 </div>
                                 <CardDescription class="flex items-center gap-1">
                                     <Bot class="h-3 w-3" />
-                                    {{ file.agent.name }} • {{ file.agent.sub_domain }}.chatvia.ai
+                                    <a 
+                                        :href="file.agent.url" 
+                                        target="_blank"
+                                        class="text-primary"
+                                    >
+                                        {{ file.agent.name }}
+                                </a>
+                                    <a :href="file.agent.url" target="_blank" class="text-primary">• {{ file.agent.sub_domain }}.chatvia.ai</a>
                                 </CardDescription>
                             </CardHeader>
 
@@ -261,12 +270,11 @@ onMounted(() => {
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="text-muted-foreground">
-                                            {{ file.pages ? 'Pages' : 'Duration' }}
+                                            {{ file.is_audio ? 'Duration' : 'Pages' }}
                                         </span>
                                         <span class="text-lg font-medium">
-                                            <span v-if="file.pages">{{ file.pages }}</span>
-                                            <span v-else-if="file.minutes > 0">{{ file.minutes }}m</span>
-                                            <span v-else>-</span>
+                                            <span v-if="file.is_audio">{{ file.length }}m</span>
+                                            <span v-else>{{ file.length }}</span>
                                         </span>
                                     </div>
                                     <div class="flex flex-col">
@@ -293,11 +301,13 @@ onMounted(() => {
                                 <Button
                                     v-if="file.status === 'uploaded'"
                                     size="sm"
-                                    @click="handleTrain(file)"
+                                    as-child
                                     class="gap-1 flex-1"
                                 >
-                                    <Play class="h-3.5 w-3.5" />
-                                    Train
+                                    <Link :href="route('agents.knowledge', { agent: file.agent.id })">
+                                        <Play class="h-3.5 w-3.5" />
+                                        Train
+                                    </Link>
                                 </Button>
                             </CardFooter>
                         </Card>

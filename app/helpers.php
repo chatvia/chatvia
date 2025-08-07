@@ -1,5 +1,11 @@
 <?php
 
+use App\Support\Agent;
+use App\Support\Cohere;
+use App\Support\LibreOffice;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
+
 if (! function_exists('user_has_capability')) {
     /**
      * Check if the current user has a specific capability
@@ -65,13 +71,6 @@ if (! function_exists('get_plan_capabilities')) {
         return \App\Support\Billing::getCapabilitiesForPackage($planKey);
     }
 }
-
-
-use App\Support\Agent;
-use App\Support\Cohere;
-use App\Support\LibreOffice;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\File;
 
 if (! function_exists('temp_dir')) {
     function temp_dir(): string

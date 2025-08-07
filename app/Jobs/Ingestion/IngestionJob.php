@@ -58,20 +58,16 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             $updateValues['external_parsing_job_id'] = $externalJobId;
         }
 
-        $cacheKey = 'agent:file:llamaparse:parsing:'.md5_file($file->getPathname());
+        $cacheKey = 'agent:file:parsing:'.md5_file($file->getPathname());
 
         if (Cache::has($cacheKey)) {
-            // Get cached data - it's already an array
             $pages = Cache::get($cacheKey);
         } else {
-            // Get pages from LlamaParse - returns an array
             $pages = $llamaParse->getPagesWithImages($externalJobId);
-            // Cache the array directly
             Cache::put($cacheKey, $pages, now()->addHour());
 
             $fileName = Str::uuid()->toString().'.json';
 
-            // Encode the array to JSON for storage
             $updateValues['parser_filepath'] = Storage::putFileAs(
                 path: 'users/'.$this->agentFile->user_id.'/agents/'.$this->agentFile->id,
                 file: new File(create_temp_file($fileName, json_encode($pages, JSON_THROW_ON_ERROR))),

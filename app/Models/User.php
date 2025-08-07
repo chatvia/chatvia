@@ -330,4 +330,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return app(UserCreditSystem::class)->setUserId($this->id);
     }
+
+    public function getUserId()
+    {
+        return $this->id;
+    }
 }

@@ -123,7 +123,7 @@ class Chunker
 
         foreach ($pageImages as $image) {
             $imagePaths[] = Storage::putFileAs(
-                path: 'users/agents/'.$this->agentFile->user_id.'/chunk-images',
+                path: 'users/'.$this->agentFile->user_id.'/agents/'.$this->agentFile->user_id.'/images',
                 file: new File($image['path']),
                 name: $image['name'],
             );

@@ -67,7 +67,7 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
 
             // Encode the array to JSON for storage
             $updateValues['parsed_document_path'] = Storage::putFileAs(
-                path: 'users/agents/'.$this->agentFile->user_id,
+                path: 'users/'.$this->agentFile->user_id.'/agents/'.$this->agentFile->id,
                 file: new File(create_temp_file($fileName, json_encode($pages, JSON_THROW_ON_ERROR))),
                 name: 'parsed_document.json',
             );

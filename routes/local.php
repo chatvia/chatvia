@@ -18,6 +18,5 @@ if (app()->isLocal()) {
 
         $af = \App\Models\AgentFile::first();
 
-        dd($af->images());
     });
 }

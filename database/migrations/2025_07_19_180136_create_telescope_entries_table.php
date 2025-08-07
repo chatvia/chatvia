@@ -61,8 +61,10 @@ return new class extends Migration
     {
         $schema = Schema::connection($this->getConnection());
 
-        $schema->dropIfExists('telescope_entries_tags');
-        $schema->dropIfExists('telescope_entries');
-        $schema->dropIfExists('telescope_monitoring');
+        if (!app()->isProduction()) {
+            $schema->dropIfExists('telescope_entries_tags');
+            $schema->dropIfExists('telescope_entries');
+            $schema->dropIfExists('telescope_monitoring');
+        }
     }
 };

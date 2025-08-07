@@ -35,7 +35,7 @@ class Agent extends Model
         try {
             DB::beginTransaction();
 
-            $path = Storage::putFile(path: 'agent/'.$this->id.'/files', file: $file);
+            $path = Storage::putFile(path: 'users/'.$this->user_id.'/agents/'.$this->id.'/files', file: $file);
 
             $operationId = null;
 
@@ -169,5 +169,10 @@ class Agent extends Model
         return [
             'is_public' => 'boolean',
         ];
+    }
+
+    public function getUserId()
+    {
+        return $this->user_id;
     }
 }

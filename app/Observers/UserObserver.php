@@ -3,7 +3,6 @@
 namespace App\Observers;
 
 use App\Models\User;
-use App\Services\Billing\UserCreditSystem;
 
 class UserObserver
 {
@@ -15,12 +14,15 @@ class UserObserver
         $user->update([
             'agents_instruction_limit' => $fixed['agents_instruction_limit'],
             'agents_knowledge_limit' => $fixed['agents_knowledge_limit'],
+            'pages_limit' => $fixed['pages_limit'],
+            'minutes_limit' => $fixed['minutes_limit'],
         ]);
 
-        app(UserCreditSystem::class)->setUserId($user->id)->addCredit(
-            $freeQuotaLimit,
-            now()->addMonth(),
-        );
+        $user
+            ->addCredit(
+                $freeQuotaLimit,
+                now()->addMonth(),
+            );
     }
 
     public function updated(User $user): void
@@ -39,5 +41,8 @@ class UserObserver
 
     public function restored(User $user): void {}
 
-    public function forceDeleted(User $user): void {}
+    public function forceDeleted(User $user): void
+    {
+        $this->deleted($user);
+    }
 }

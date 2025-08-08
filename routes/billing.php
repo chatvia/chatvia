@@ -8,21 +8,21 @@ use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDefaultController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDeleteController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodsController;
 use App\Http\Controllers\Billing\Stripe\BillingStripePortalController;
+use App\Http\Controllers\Billing\Subscriptions\BillingSubscribeController;
+use App\Http\Controllers\Billing\Subscriptions\BillingSubscribeFailureController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionCancelController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionChangeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionResumeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionScheduleCancelController;
-use App\Http\Controllers\Billing\Subscriptions\SubscribeController;
-use App\Http\Controllers\Billing\Subscriptions\SubscribeFailureController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\PlansController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('subscribe', SubscribeController::class)
+Route::get('subscribe', BillingSubscribeController::class)
     ->middleware(['auth', 'verified'])
     ->name('subscribe');
 
-Route::get('subscribe/failure', SubscribeFailureController::class)
+Route::get('subscribe/failure', BillingSubscribeFailureController::class)
     ->name('subscribe.failure');
 
 Route::middleware(['auth', 'verified'])->prefix('billing')->name('billing.')->group(function () {

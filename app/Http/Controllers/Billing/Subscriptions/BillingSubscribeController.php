@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Laravel\Cashier\SubscriptionBuilder;
 
-class SubscribeController
+class BillingSubscribeController
 {
     public function __invoke(Request $request)
     {
@@ -39,11 +39,12 @@ class SubscribeController
             ->user()
             ->newSubscription(type: 'default', prices: $stripePriceId)
             ->withMetadata([
-                'id' => $package,
+                'id' => strtolower($package),
                 'type' => 'subscription',
                 'from_package' => $user->plan,
-                'to_package' => $package,
+                'to_package' => strtolower($package),
                 'is_yearly' => $yearly,
+                'user_subscribed' => $user->subscribed(),
             ])
             ->when(config('billing.trial.days') !== 0, function (SubscriptionBuilder $subscription) {
                 $subscription->trialDays(config('billing.trial.days'));
@@ -54,5 +55,29 @@ class SubscribeController
                 'success_url' => route('billing.index'),
                 'cancel_url' => route('billing.index'),
             ]);
+    }
+
+    public function higherPackage($fromPackage, $toPackage)
+    {
+        if ($fromPackage === $toPackage) {
+            return false;
+        }
+
+        if ($fromPackage === 'free') {
+            return true;
+        }
+
+        // Define package hierarchy based on your billing config
+        $packageHierarchy = [
+            'free' => 0,
+            'starter' => 1,
+            'standard' => 2,
+            'pro' => 3,
+        ];
+
+        $fromLevel = $packageHierarchy[$fromPackage] ?? 0;
+        $toLevel = $packageHierarchy[$toPackage] ?? 0;
+
+        return $toLevel > $fromLevel;
     }
 }

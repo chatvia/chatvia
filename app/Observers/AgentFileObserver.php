@@ -18,11 +18,11 @@ class AgentFileObserver
         /** @var Usage $usage */
         $usage = $user->usage;
 
-        if ($agentFile->isAudioFile()) {
-            $usage->increment('minutes', $agentFile->length);
-        } else {
-            $usage->increment('pages', $agentFile->length);
-        }
+        //        if ($agentFile->isAudioFile()) {
+        //            $usage->increment('minutes', $agentFile->length);
+        //        } else {
+        //            $usage->increment('pages', $agentFile->length);
+        //        }
     }
 
     public function updated(AgentFile $agentFile): void {}
@@ -36,11 +36,11 @@ class AgentFileObserver
 
         $usage = $user->usage();
 
-        if ($agentFile->isAudioFile()) {
-            $usage->decrement('minutes', $agentFile->length);
-        } else {
-            $usage->decrement('pages', $agentFile->length);
-        }
+        //        if ($agentFile->isAudioFile()) {
+        //            $usage->decrement('minutes', $agentFile->length);
+        //        } else {
+        //            $usage->decrement('pages', $agentFile->length);
+        //        }
     }
 
     public function restored(AgentFile $agentFile): void {}

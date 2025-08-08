@@ -33,8 +33,6 @@ class UserCreditSystem
 
         /** @var Credit $credit */
         $credit = $user->credits()->create([
-            'pages' => $quotaLimit['pages_limit'],
-            'minutes' => $quotaLimit['minutes_limit'],
             'messages' => $quotaLimit['messages_limit'],
             'started_at' => now(),
             'ends_at' => $endsAt,
@@ -69,6 +67,11 @@ class UserCreditSystem
             key: template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]),
             value: $amount
         );
+
+        /** @var Credit $user */
+        $user = User::find($this->userId);
+
+        $user->credit->usage()->increment('messages', $amount);
     }
 
     public function getTotalSentMessages(): int
@@ -86,10 +89,10 @@ class UserCreditSystem
 
     public function canSendMessages(): bool
     {
-        return $this->availableMessages() !== 0;
+        return $this->consumableMessages() !== 0;
     }
 
-    public function availableMessages($refresh = false): int
+    public function consumableMessages($refresh = false): int
     {
         $key = template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]);
 
@@ -124,6 +127,6 @@ class UserCreditSystem
 
     public function refreshAvailableMessages(): void
     {
-        $this->availableMessages(true);
+        $this->consumableMessages(true);
     }
 }

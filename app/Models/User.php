@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Cashier\Billable;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -79,7 +80,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $package = $this->getCurrentPackage();
 
-        return config("billing.packages.{$package}", config('billing.packages.free'));
+        return config('billing.packages.'.strtolower($package['name']), config('billing.packages.free'));
     }
 
     public function hasActiveSubscription(): bool
@@ -203,7 +204,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function canUploadPages(int $amount): bool
     {
-        return ($this->credit->pages - $this->usage->pages) <= $amount;
+        return ($this->pages_limit - $this->pagesConsumed()) <= $amount;
     }
 
     public function formattedLlms()
@@ -318,7 +319,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'credit_id',          // Foreign key on usages table (usages.credit_id)
             'id',                  // Local key on users table (users.id)
             'id'              // Local key on credits table (credits.id)
-        );
+        )->latest('ends_at');
     }
 
     public function canPerform(UserCapabilityEnum $capability): bool
@@ -331,8 +332,34 @@ class User extends Authenticatable implements MustVerifyEmail
         return app(UserCreditSystem::class)->setUserId($this->id);
     }
 
+    public function addCredit($quota, Carbon $endsAt): Credit
+    {
+        return $this->creditSystem()->addCredit($quota, $endsAt);
+    }
+
     public function getUserId()
     {
         return $this->id;
+    }
+
+    public function pagesConsumed(): int
+    {
+        return $this
+            ->agentFiles()
+            ->where('filetype', 'document')
+            ->sum('length');
+    }
+
+    public function minutesConsumed(): int
+    {
+        return $this
+            ->agentFiles()
+            ->whereIn('filetype', ['audio', 'video'])
+            ->sum('length');
+    }
+
+    public function consumableMessages(): int
+    {
+        return $this->creditSystem()->consumableMessages();
     }
 }

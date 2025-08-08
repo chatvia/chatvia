@@ -4,9 +4,9 @@ namespace App\Support\Chat;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
+use App\Jobs\StoreChatMessageJob;
 use App\Models\Agent;
 use App\Models\Message;
-use App\Services\Billing\UserCreditSystem;
 use App\Support\OpenRouter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -111,10 +111,6 @@ class ChatMemory
     {
         $isInputMessage = $payload instanceof ChatInputPayload;
 
-        if ($isInputMessage) {
-            $this->cacheMessageCount();
-        }
-
         $append = [
             'include_in_conversation' => $this->agent->contextWindowEnabled(),
         ];
@@ -133,22 +129,14 @@ class ChatMemory
             append: $append,
         );
 
-        // Persist it
-        \Illuminate\Support\defer(function () use ($payload, $messageId, $isInputMessage, $role) {
-            Message::create([
-                'id' => $messageId,
-                'conversation_id' => $this->conversationId,
-                'agent_id' => $this->agent->id,
-                'member_id' => $isInputMessage ? $payload->member_id : null,
-                'user_id' => $this->agent->user_id,
-                'content' => $payload->message,
-                'role' => $role,
-                'model' => $payload->model,
-                'response_time_ms' => $payload?->response_time_ms ?? 0,
-                'generation_id' => $payload?->generation_id ?? null,
-                'token_count' => $payload?->token_count ?? 0,
-            ]);
-        });
+        StoreChatMessageJob::dispatch(
+            $this->agent,
+            $role,
+            $this->conversationId,
+            $messageId,
+            $payload,
+        )
+            ->onQueue('messages');
 
         return $messageId;
     }
@@ -474,13 +462,6 @@ class ChatMemory
     {
         return collect($this->getConversationsForCurrentSession(true))
             ->firstWhere('id', $conversationId);
-    }
-
-    public function cacheMessageCount(): void
-    {
-        app(UserCreditSystem::class)
-            ->setUserId($this->agent->user->id)
-            ->incrementMessagesUsage($this->agent->user_id);
     }
 
     public function setIsPlayground(bool $status): static

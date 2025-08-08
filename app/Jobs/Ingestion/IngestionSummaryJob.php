@@ -40,7 +40,7 @@ class IngestionSummaryJob implements ShouldQueue
 
         $this->agentFile->update([
             'language' => $response['language'],
-            'document_type' => $response['document_type'],
+            'document_classification' => $response['document_type'],
         ]);
 
         $chunk = '<Summary>'.$response['summary'].'</Summary>';

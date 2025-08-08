@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Billing\Subscriptions;
 
 use Illuminate\Http\Request;
 
-class SubscribeFailureController
+class BillingSubscribeFailureController
 {
     public function __invoke(Request $request) {}
 }

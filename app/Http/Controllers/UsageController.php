@@ -32,7 +32,10 @@ class UsageController
         $knowledgeAgentLimit = $user->agents_knowledge_limit;
         $instructionAgentLimit = $user->agents_instruction_limit;
 
-        $availableMessages = app(UserCreditSystem::class)->setUserId($user->id)->availableMessages();
+        $consumableMessages = $user->consumableMessages();
+
+        $pagesConsumed = $user->pagesConsumed();
+        $minutesConsumed = $user->minutesConsumed();
 
         return [
             'subscription' => [
@@ -51,14 +54,19 @@ class UsageController
                 ],
             ],
             'pages' => [
-                'limit' => $credit->pages,
-                'used' => $usage->pages,
-                'remaining' => ($credit->pages - $usage->pages),
+                'limit' => $user->pages_limit,
+                'used' => $pagesConsumed,
+                'remaining' => ($user->pages_limit - $pagesConsumed),
+            ],
+            'minutes' => [
+                'limit' => $user->minutes_limit,
+                'used' => $minutesConsumed,
+                'remaining' => ($user->minutes_limit - $minutesConsumed),
             ],
             'messages' => [
-                'limit' => $availableMessages,
+                'limit' => $consumableMessages,
                 'sent' => $totalSentMessage,
-                'remaining' => ($availableMessages - $totalSentMessage),
+                'remaining' => ($consumableMessages - $totalSentMessage),
             ],
             'cycle' => [
                 'started_at' => $credit->started_at,

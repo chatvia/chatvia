@@ -49,6 +49,7 @@ class Agent extends Model
             $agentFile = $this->files()->create(array_merge([
                 'user_id' => $this->user_id,
                 'filename' => $file->getClientOriginalName(),
+                'filetype' => get_file_type($file->getMimeType()),
                 'filepath' => $path,
                 'size_in_kb' => round($file->getSize() / 1024),
                 'mime_type' => $file->getClientMimeType(),

@@ -3,7 +3,6 @@
 namespace App\Listeners;
 
 use App\Models\User;
-use App\Services\Billing\UserCreditSystem;
 use Laravel\Cashier\Events\WebhookReceived;
 
 class StripeEventListener
@@ -20,8 +19,6 @@ class StripeEventListener
 
         if ($event->payload['type'] === 'checkout.session.completed' && isset($data['metadata']['type'])) {
             $this->handleAddOns($data);
-
-            return;
         }
     }
 
@@ -39,16 +36,21 @@ class StripeEventListener
         $cycle = $isYearly ? 'yearly' : 'monthly';
 
         $quotaLimit = config('billing.packages.'.$toPackage.'.quota_limits.'.$cycle);
-        $agentsLimit = config('billing.packages.'.$toPackage.'.quota_limits.fixed');
+        $fixedLimit = config('billing.packages.'.$toPackage.'.quota_limits.fixed');
 
         $endsAt = $isYearly ? now()->addYear() : now()->addMonth();
 
-        $user->update([
-            'agents_knowledge_limit' => $agentsLimit['agents_knowledge_limit'],
-            'agents_instruction_limit' => $agentsLimit['agents_instruction_limit'],
-        ]);
+        if ($user->agents_knowledge_limit < $fixedLimit['agents_knowledge_limit']) {
+            $user->update([
+                'agents_knowledge_limit' => $fixedLimit['agents_knowledge_limit'],
+                'agents_instruction_limit' => $fixedLimit['agents_instruction_limit'],
+                'pages_limit' => $fixedLimit['pages_limit'],
+                'minutes_limit' => $fixedLimit['minutes_limit'],
+                'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
+            ]);
+        }
 
-        app(UserCreditSystem::class)->setUserId($user->id)->addCredit(
+        $user->addCredit(
             $quotaLimit,
             $endsAt
         );
@@ -88,6 +90,8 @@ class StripeEventListener
                     'started_at' => now(),
                     'ends_at' => now()->addMonth(),
                 ]);
+
+                $user->creditSystem()->refreshAvailableMessages();
             }
         }
     }

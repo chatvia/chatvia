@@ -14,23 +14,20 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
 
-            $table->integer('messages')->default(0);
-            $table->integer('pages')->default(0);
-            $table->integer('minutes')->default(0);
+            $table->unsignedInteger('messages')->default(0);
 
             $table->timestamp('started_at');
             $table->timestamp('ends_at');
 
             $table->unique(['user_id', 'started_at']);
             $table->unique(['user_id', 'ends_at']);
+            $table->index(['user_id', 'started_at', 'ends_at']);
         });
 
         Schema::create('usages', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Credit::class)->unique()->constrained()->cascadeOnDelete();
-            $table->integer('pages')->default(0);
-            $table->integer('minutes')->default(0);
-            $table->integer('messages')->default(0);
+            $table->unsignedInteger('messages')->default(0);
             $table->unsignedInteger('messages_exceeded')->default(0);
             $table->timestamps();
         });
@@ -39,13 +36,14 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('type')->index(); // 'extra_message_credits', 'extra_agents'
-            $table->integer('amount')->default(0); // e.g., 1000 messages, 1 agent
+            $table->unsignedInteger('amount')->default(0); // e.g., 1000 messages, 1 agent
             $table->string('stripe_id')->nullable()->index(); // Links to Cashier
             $table->timestamp('started_at')->nullable(); // When add-on is active
             $table->timestamp('ends_at')->nullable(); // When add-on expires (if canceled)
 
             $table->unique(['user_id', 'started_at']);
             $table->unique(['user_id', 'ends_at']);
+            $table->index(['user_id', 'type', 'started_at', 'ends_at']);
         });
     }
 
@@ -53,5 +51,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('credits');
         Schema::dropIfExists('usages');
+        Schema::dropIfExists('addons');
     }
 };

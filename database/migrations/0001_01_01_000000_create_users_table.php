@@ -20,10 +20,16 @@ return new class extends Migration
             $table->string('pm_type')->nullable();
             $table->string('pm_last_four', 4)->nullable();
             $table->timestamp('trial_ends_at')->nullable();
+
             $table->unsignedInteger('agents_instruction_limit')->index()->default(0);
             $table->unsignedInteger('agents_knowledge_limit')->index()->default(0);
-            $table->string('facebook_id')->index()->nullable();
+            $table->unsignedInteger('pages_limit')->index()->default(0);
+            $table->unsignedInteger('minutes_limit')->index()->default(0);
+            $table->unsignedInteger('custom_domains_limit')->index()->default(0);
+            $table->unsignedInteger('members_limit')->index()->default(0);
+
             $table->string('google_id')->index()->nullable();
+            $table->string('microsoft_id')->index()->nullable();
 
             $table->ipAddress('registered_ip')->nullable();
             $table->char('country_code', 5)->nullable();

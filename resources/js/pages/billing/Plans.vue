@@ -142,10 +142,12 @@ const subscribingPackage = ref('');
 
 const getPackagePrice = (pkg: Package) => {
     if (isYearly.value && pkg.id !== 'free') {
-        // Show monthly price with yearly discount applied (psychological pricing)
-        const monthlyPrice = pkg.monthly_price;
-        const discountedPrice = monthlyPrice * (1 - props.billingConfig.ui.yearly_savings_percentage / 100);
-        return `${props.billingConfig.currencySymbol}${Math.round(discountedPrice / 100)}`;
+        // Show monthly price with yearly discount applied (rounded to 2 decimals)
+        const monthlyPriceCents = pkg.monthly_price; // cents
+        const discountedCents = monthlyPriceCents * (1 - props.billingConfig.ui.yearly_savings_percentage / 100);
+        const roundedCents = Math.round(discountedCents);
+        const amount = (roundedCents / 100).toFixed(2);
+        return `${props.billingConfig.currencySymbol}${amount}`;
     }
     return pkg.monthly_price_formatted;
 };

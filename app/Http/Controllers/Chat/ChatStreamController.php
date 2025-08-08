@@ -360,7 +360,6 @@ class ChatStreamController
                 message: $this->streamedMessage,
                 model: $this->llmModel->id,
                 generation_id: $this->generationId,
-                token_count: $this->tokenCount,
                 response_time_ms: (int) round(($this->endTime - $this->startTime) * 1000),
             )
         );

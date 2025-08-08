@@ -25,7 +25,7 @@ return new class extends Migration
             $table->bm25vector('embedding_bm25');
             $table->jsonb('metadata')->nullable();
             $table->string('md5_hash');
-            $table->unsignedBigInteger('retrieval_count');
+            $table->unsignedInteger('retrieval_count')->default(0);
             $table->timestamps();
 
             $table->unique(['agent_file_id', 'md5_hash']);

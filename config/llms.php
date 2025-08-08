@@ -10,8 +10,12 @@ return [
         'icon' => 'nova.svg',
         'features' => ['superfast'],
         'location' => 'us',
-        'requires_paid_plan' => false, // Fast model - free access
+        'requires_paid_plan' => false,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.035,
+            'output' => 0.14,
+        ],
     ],
     [
         'internal_name' => 'amazon/nova-lite-v1',
@@ -22,8 +26,12 @@ return [
         'icon' => 'nova.svg',
         'features' => ['superfast'],
         'location' => 'us',
-        'requires_paid_plan' => false, // Fast model - free access
+        'requires_paid_plan' => false,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.06,
+            'output' => 0.24,
+        ],
     ],
     [
         'internal_name' => 'openai/gpt-4o-mini',
@@ -36,6 +44,10 @@ return [
         'location' => 'us',
         'requires_paid_plan' => false,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.15,
+            'output' => 0.60,
+        ],
     ],
     [
         'internal_name' => 'openai/gpt-5-chat',
@@ -48,6 +60,10 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 1.25,
+            'output' => 10.0,
+        ],
     ],
     [
         'internal_name' => 'openai/gpt-4o',
@@ -60,6 +76,10 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 5.00,
+            'output' => 15.00,
+        ],
     ], [
         'internal_name' => 'openai/o4-mini-high',
         'external_name' => 'o4-mini',
@@ -71,6 +91,10 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => true,
+        'price_per_million_tokens' => [
+            'input' => 1.10,
+            'output' => 4.40,
+        ],
     ],
     [
         'internal_name' => 'openai/gpt-4.1-mini',
@@ -81,8 +105,12 @@ return [
         'icon' => 'gpt.svg',
         'features' => ['fast'],
         'location' => 'us',
-        'requires_paid_plan' => false, // Fast model - free access
+        'requires_paid_plan' => false,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.40,
+            'output' => 1.60,
+        ],
     ],
     [
         'internal_name' => 'anthropic/claude-sonnet-4',
@@ -93,8 +121,12 @@ return [
         'icon' => 'claude.svg',
         'features' => ['pro'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Advanced model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 3.00,
+            'output' => 15.00,
+        ],
     ],
     [
         'internal_name' => 'anthropic/claude-3.7-sonnet',
@@ -105,8 +137,12 @@ return [
         'icon' => 'claude.svg',
         'features' => ['pro'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Advanced model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 3.00,
+            'output' => 15.00,
+        ],
     ],
     [
         'internal_name' => 'google/gemini-2.5-flash',
@@ -117,8 +153,12 @@ return [
         'icon' => 'gemini.svg',
         'features' => ['fast'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Fast model - free access
+        'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.30,
+            'output' => 2.50,
+        ],
     ],
     [
         'internal_name' => 'deepseek/deepseek-chat-v3-0324',
@@ -129,8 +169,12 @@ return [
         'icon' => 'deepseek.svg',
         'features' => ['pro'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Pro model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.18,
+            'output' => 0.72,
+        ],
     ],
     [
         'internal_name' => 'qwen/qwen3-8b',
@@ -141,8 +185,12 @@ return [
         'icon' => 'qwen.svg',
         'features' => [],
         'location' => 'cn',
-        'requires_paid_plan' => false, // Basic model - free access
+        'requires_paid_plan' => false,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.035,
+            'output' => 0.138,
+        ],
     ],
 
     [
@@ -154,8 +202,12 @@ return [
         'icon' => 'gpt.svg',
         'features' => ['pro'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Advanced + Pro model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => true,
+        'price_per_million_tokens' => [
+            'input' => 2.0,
+            'output' => 8.0,
+        ],
     ],
 
     [
@@ -167,8 +219,12 @@ return [
         'icon' => 'gpt.svg',
         'features' => ['fast'],
         'location' => 'us',
-        'requires_paid_plan' => false, // Fast model - free access
+        'requires_paid_plan' => false,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.10,
+            'output' => 0.40,
+        ],
     ],
     [
         'internal_name' => 'meta-llama/llama-3.3-70b-instruct',
@@ -179,8 +235,12 @@ return [
         'icon' => 'llama.svg',
         'features' => ['fast'],
         'location' => 'us',
-        'requires_paid_plan' => false, // Fast model - free access
+        'requires_paid_plan' => false,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.038,
+            'output' => 0.12,
+        ],
     ],
     [
         'internal_name' => 'meta-llama/llama-4-maverick',
@@ -191,20 +251,28 @@ return [
         'icon' => 'llama.svg',
         'features' => ['pro'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Advanced model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.15,
+            'output' => 0.60,
+        ],
     ],
     [
         'internal_name' => 'mistralai/mistral-medium-3',
         'external_name' => 'mistral',
-        'descriptive_name' => 'Mistral Small 3.1',
+        'descriptive_name' => 'Mistral',
         'description' => 'Professional and precise. Excellent for business tasks, technical writing, and coding.',
         'context_window' => 131072,
         'icon' => 'mistral.svg',
         'features' => ['pro'],
         'location' => 'eu',
-        'requires_paid_plan' => true, // Pro model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.40,
+            'output' => 2.00,
+        ],
     ],
     [
         'internal_name' => 'google/gemini-2.5-pro',
@@ -215,8 +283,12 @@ return [
         'icon' => 'gemini.svg',
         'features' => ['pro'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Advanced + Pro model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 1.25,
+            'output' => 10.00,
+        ],
     ],
     [
         'internal_name' => 'microsoft/phi-4-reasoning-plus',
@@ -227,8 +299,12 @@ return [
         'icon' => 'microsoft.svg',
         'features' => ['pro', 'reasoning'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Pro model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => true,
+        'price_per_million_tokens' => [
+            'input' => 0.07,
+            'output' => 0.35,
+        ],
     ],
     [
         'internal_name' => 'anthropic/claude-3.5-haiku',
@@ -239,8 +315,12 @@ return [
         'icon' => 'claude.svg',
         'features' => ['fast'],
         'location' => 'us',
-        'requires_paid_plan' => false, // Fast model - free access
+        'requires_paid_plan' => false,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.80,
+            'output' => 4.00,
+        ],
     ],
     [
         'internal_name' => 'x-ai/grok-3-mini',
@@ -253,6 +333,10 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.30,
+            'output' => 0.50,
+        ],
     ],
     [
         'internal_name' => 'cohere/command-r-plus',
@@ -263,8 +347,12 @@ return [
         'icon' => 'cohere.svg',
         'features' => ['pro', 'pro'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Advanced + Pro model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 2.00,
+            'output' => 8.00,
+        ],
     ],
     [
         'internal_name' => 'amazon/nova-pro-v1',
@@ -275,7 +363,11 @@ return [
         'icon' => 'nova.svg',
         'features' => ['pro', 'pro'],
         'location' => 'us',
-        'requires_paid_plan' => true, // Advanced + Pro model - paid only
+        'requires_paid_plan' => true,
         'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.80,
+            'output' => 3.20,
+        ],
     ],
 ];

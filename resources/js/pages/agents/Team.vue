@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,9 @@ import { Users, PlusCircle, Trash2, LoaderCircle, Shield, ShieldOff, ExternalLin
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: any
+    agent: any;
+    team_collaboration?: boolean;
+    members_limit?: number;
 }
 
 const props = defineProps<Props>();
@@ -44,6 +46,20 @@ const invitationForm = useForm({
 
 // Team members data
 const teamMembers = ref<any[]>([]);
+
+// Computed properties for team collaboration constraints
+const canInviteMembers = computed(() => {
+    return props.team_collaboration && (props.members_limit === 0 || props.members_limit === undefined || teamMembers.value.length < (props.members_limit || 0));
+});
+
+const hasReachedMemberLimit = computed(() => {
+    return (props.members_limit || 0) > 0 && teamMembers.value.length >= (props.members_limit || 0);
+});
+
+const remainingMembers = computed(() => {
+    if (!props.members_limit || props.members_limit === 0) return 'Unlimited';
+    return Math.max(0, props.members_limit - teamMembers.value.length);
+});
 
 // Helper function to check if member has access to current agent
 const memberHasAccess = (member: any) => {
@@ -120,6 +136,15 @@ const sendInvitation = () => {
 };
 
 const openInviteDialog = () => {
+    if (!canInviteMembers.value) {
+        if (!props.team_collaboration) {
+            toast.error('Team collaboration is not available on your current plan');
+        } else if (hasReachedMemberLimit.value) {
+            toast.error(`You've reached your member limit of ${props.members_limit || 0} members`);
+        }
+        return;
+    }
+
     showInviteDialog.value = true;
     invitationForm.clearErrors();
 };
@@ -249,10 +274,55 @@ const cancelDelete = () => {
                 </CardTitle>
                 <CardDescription>
                     Manage team members and their agent access
+                    <span v-if="(members_limit || 0) > 0" class="block mt-2 text-muted-foreground">
+                        {{ teamMembers.length }} of {{ members_limit || 0 }} members used ({{ remainingMembers }} remaining)
+                    </span>
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <div class="space-y-6">
+                    <!-- Team Collaboration Disabled Warning -->
+                    <div v-if="!team_collaboration" class="p-4 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0">
+                                <ShieldOff class="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-medium text-amber-800 dark:text-amber-200">
+                                    Team Collaboration Disabled
+                                </h3>
+                                <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                                    Your current plan doesn't include team collaboration features.
+                                    <Link :href="route('billing.packages')" class="font-medium underline hover:no-underline">
+                                        Upgrade your plan
+                                    </Link>
+                                    to invite team members and collaborate on agents.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Member Limit Reached Warning -->
+                    <div v-else-if="hasReachedMemberLimit" class="p-4 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/50">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0">
+                                <Users class="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-medium text-orange-800 dark:text-orange-200">
+                                    Member Limit Reached
+                                </h3>
+                                <p class="mt-1 text-sm text-orange-700 dark:text-orange-300">
+                                    You've reached your member limit of {{ members_limit || 0 }} members.
+                                    <a href="/billing/plans" class="font-medium underline hover:no-underline">
+                                        Upgrade your plan
+                                    </a>
+                                    to add more team members.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Search and Filter Section -->
                     <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
                         <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -278,7 +348,13 @@ const cancelDelete = () => {
                             </Select>
                         </div>
 
-                        <Button @click="openInviteDialog" variant="outline" class="gap-2 w-full sm:w-auto">
+                        <Button
+                            @click="openInviteDialog"
+                            variant="outline"
+                            class="gap-2 w-full sm:w-auto"
+                            :disabled="!canInviteMembers"
+                            :title="!team_collaboration ? 'Team collaboration is not available on your current plan' : hasReachedMemberLimit ? `You've reached your member limit of ${members_limit || 0} members` : ''"
+                        >
                             <PlusCircle class="h-4 w-4" />
                             Invite Member
                         </Button>
@@ -403,6 +479,9 @@ const cancelDelete = () => {
                     <DialogTitle>Invite a Member</DialogTitle>
                     <DialogDescription>
                         Send an invitation to collaborate on this agent.
+                        <span v-if="members_limit && members_limit > 0" class="block mt-1 text-sm text-muted-foreground">
+                            {{ teamMembers.length }} of {{ members_limit }} members used ({{ remainingMembers }} remaining)
+                        </span>
                     </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4 py-4">
@@ -446,7 +525,7 @@ const cancelDelete = () => {
                         Cancel
                     </Button>
                     <Button
-                        :disabled="!invitationForm.name || !invitationForm.email || isSubmitting"
+                        :disabled="!invitationForm.name || !invitationForm.email || isSubmitting || !canInviteMembers"
                         @click="sendInvitation"
                     >
                         <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />

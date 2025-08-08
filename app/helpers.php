@@ -154,3 +154,159 @@ if (! function_exists('current_agent')) {
         return Agent::resolveAgentFromSubdomain(request()->subdomain());
     }
 }
+
+if (! function_exists('get_file_type')) {
+    function get_file_type(string $mimeType): string
+    {
+        // Document types (PDF, Word processing, Text, E-books, Web)
+        $documentTypes = [
+            // PDF
+            'application/pdf',
+
+            // Word processing documents
+            'application/msword', // doc
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // docx
+            'application/vnd.ms-word.document.macroEnabled.12', // docm
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.template', // dot
+            'application/vnd.ms-word.template.macroEnabled.12', // dotm
+            'application/rtf', // rtf
+            'application/vnd.oasis.opendocument.text', // odt
+            'application/vnd.apple.pages', // pages
+            'application/wordperfect', // wpd
+            'application/vnd.wordperfect', // wpd
+            'application/x-abiword', // abw
+            'application/x-hwp', // hwp
+
+            // Text files
+            'text/plain', // txt
+            'application/xml', // xml
+            'text/xml', // xml
+            'text/markdown', // md
+
+            // E-books
+            'application/epub+zip', // epub
+
+            // Web documents
+            'text/html', // htm, html
+            'application/xhtml+xml', // html
+        ];
+
+        // Presentation types
+        $presentationTypes = [
+            'application/vnd.ms-powerpoint', // ppt
+            'application/vnd.ms-powerpoint.presentation.macroEnabled.12', // pptm
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation', // pptx
+            'application/vnd.ms-powerpoint.template.macroEnabled.12', // pot
+            'application/vnd.openxmlformats-officedocument.presentationml.template', // potx
+            'application/vnd.oasis.opendocument.presentation', // odp
+            'application/vnd.apple.keynote', // key
+        ];
+
+        // Image types
+        $imageTypes = [
+            'image/jpeg', // jpg, jpeg
+            'image/png', // png
+            'image/gif', // gif
+            'image/bmp', // bmp
+            'image/svg+xml', // svg
+            'image/tiff', // tiff
+            'image/webp', // webp
+        ];
+
+        // Spreadsheet types
+        $spreadsheetTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
+            'application/vnd.ms-excel', // xls
+            'application/vnd.ms-excel.sheet.macroEnabled.12', // xlsm
+            'application/vnd.ms-excel.sheet.binary.macroEnabled.12', // xlsb
+            'text/csv', // csv
+            'application/vnd.oasis.opendocument.spreadsheet', // ods
+            'application/vnd.apple.numbers', // numbers
+            'application/dbase', // dbf
+            'application/x-dbf', // dbf
+            'text/tab-separated-values', // tsv
+            'application/vnd.lotus-1-2-3', // 123
+            'application/vnd.ms-works', // wks
+            'application/x-quattro-pro', // qpw
+        ];
+
+        // Audio types (limited to 20MB)
+        $audioTypes = [
+            'audio/mpeg', // mp3, mpeg, mpga
+            'audio/mp3', // mp3
+            'audio/mp4', // mp4, m4a
+            'audio/wav', // wav
+            'audio/webm', // webm
+            'audio/x-wav', // wav
+            'audio/wave', // wav
+        ];
+
+        // Video types
+        $videoTypes = [
+            'video/mp4',
+            'video/avi',
+            'video/mov',
+            'video/wmv',
+            'video/flv',
+            'video/webm',
+            'video/mkv',
+            'video/quicktime',
+            'video/x-msvideo',
+            'video/x-ms-wmv',
+            'video/3gpp',
+            'video/x-flv',
+            'video/x-matroska',
+        ];
+
+        // Check each category
+        if (in_array($mimeType, $documentTypes)) {
+            return 'document';
+        }
+
+        if (in_array($mimeType, $presentationTypes)) {
+            return 'presentation';
+        }
+
+        if (in_array($mimeType, $imageTypes)) {
+            return 'image';
+        }
+
+        if (in_array($mimeType, $spreadsheetTypes)) {
+            return 'spreadsheet';
+        }
+
+        if (in_array($mimeType, $audioTypes)) {
+            return 'audio';
+        }
+
+        if (in_array($mimeType, $videoTypes)) {
+            return 'video';
+        }
+
+        // Fallback: check by mime type prefix
+        $mimePrefix = explode('/', $mimeType)[0] ?? '';
+
+        return match ($mimePrefix) {
+            'text' => match (true) {
+                str_contains($mimeType, 'csv') => 'spreadsheet',
+                str_contains($mimeType, 'html') => 'document',
+                default => 'document'
+            },
+            'audio' => 'audio',
+            'video' => 'video',
+            'image' => 'image',
+            'application' => match (true) {
+                str_contains($mimeType, 'pdf') => 'document',
+                str_contains($mimeType, 'word') => 'document',
+                str_contains($mimeType, 'powerpoint') => 'presentation',
+                str_contains($mimeType, 'presentation') => 'presentation',
+                str_contains($mimeType, 'excel') => 'spreadsheet',
+                str_contains($mimeType, 'spreadsheet') => 'spreadsheet',
+                str_contains($mimeType, 'document') => 'document',
+                str_contains($mimeType, 'epub') => 'document',
+                default => 'unsupported'
+            },
+            default => 'unsupported'
+        };
+    }
+}

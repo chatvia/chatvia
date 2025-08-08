@@ -43,19 +43,17 @@ return [
                 'monthly' => [
                     'Access to fast models',
                     '100 messages per month',
-                    'Upload up to 50 pages',
-                    'Basic PDF, Word, Text',
-                    '1 instruction-based AI Agent',
-                    '1 training-based AI Agent',
+                    '100 pages',
+                    '2 AI agents (1 instruction-based and 1 training-based)',
+                    'Basic PDF',
                     'Random subdomain',
                 ],
                 'yearly' => [
                     'Access to fast models',
                     '100 messages per month',
-                    'Upload up to 50 pages',
-                    'Basic PDF, Word, Text',
-                    '1 instruction-based AI Agent',
-                    '1 training-based AI Agent',
+                    '100 pages',
+                    '2 AI agents (1 instruction-based and 1 training-based)',
+                    'Basic PDF',
                     'Random subdomain',
                 ],
             ],
@@ -71,18 +69,15 @@ return [
             */
             'capabilities' => [
                 'custom_sub_domain' => false,
+                'custom_domains' => false,
                 'advanced_pdf' => false,
                 'ocr' => false,
                 'audio' => false,
                 'video' => false,
                 'api_access' => false,
-                'priority_support' => false,
                 'custom_integrations' => false,
                 'team_collaboration' => false,
-                'advanced_analytics' => false,
-                'white_label' => false,
-                'custom_domains' => false,
-                'sla_guarantee' => false,
+                'priority_support' => false,
             ],
             'stripe_monthly_price_id' => null,
             'stripe_yearly_price_id' => null,
@@ -98,18 +93,18 @@ return [
             */
             'quota_limits' => [
                 'monthly' => [
-                    'pages_limit' => 50,
-                    'minutes_limit' => 30,
                     'messages_limit' => 100,
                 ],
                 'yearly' => [
-                    'pages_limit' => 50, // Same as monthly for free plan
-                    'minutes_limit' => 30,
                     'messages_limit' => 100,
                 ],
                 'fixed' => [
                     'agents_instruction_limit' => 1,
                     'agents_knowledge_limit' => 1,
+                    'pages_limit' => 50,
+                    'minutes_limit' => 30,
+                    'custom_domains_limit' => 0,
+                    'members_limit' => 0,
                 ],
             ],
         ],
@@ -130,37 +125,32 @@ return [
                 'monthly' => [
                     'Access to all models',
                     '1,000 messages per month',
-                    'Upload up to 500 pages',
-                    '2 instruction-based AI Agents',
-                    '2 training-based AI Agents',
+                    '500 pages',
+                    '4 AI agents (2 instruction-based and 2 training-based)',
+                    'Advanced PDF',
                     'your-agent-name.chatvia.ai subdomain',
                 ],
                 'yearly' => [
                     'Access to all models',
-                    '13000 messages upfront (1000 free)',
-                    'Upload up to 7000 pages upfront (1000 free)',
-                    '2 instruction-based AI Agents',
-                    '2 training-based AI Agents',
+                    '13,000 messages upfront (1000 free)',
+                    '500 pages',
+                    '4 AI agents (2 instruction-based and 2 training-based)',
+                    'Advanced PDF',
                     'your-agent-name.chatvia.ai subdomain',
-                    'All credits available immediately',
-                    '20% bonus quotas included',
                 ],
             ],
 
             'capabilities' => [
                 'custom_sub_domain' => true,
+                'custom_domains' => false,
                 'advanced_pdf' => true,
                 'ocr' => true,
                 'audio' => false,
                 'video' => false,
                 'api_access' => false,
-                'priority_support' => 'email',
-                'custom_integrations' => true,
+                'custom_integrations' => false,
                 'team_collaboration' => false,
-                'advanced_analytics' => 'basic',
-                'white_label' => false,
-                'custom_domains' => false,
-                'sla_guarantee' => false,
+                'priority_support' => false,
             ],
             'stripe_monthly_price_id' => env('STRIPE_STARTER_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STARTER_YEARLY_PRICE_ID'),
@@ -170,18 +160,18 @@ return [
 
             'quota_limits' => [
                 'monthly' => [
-                    'pages_limit' => 500,
-                    'minutes_limit' => 300,
                     'messages_limit' => 1000,
                 ],
                 'yearly' => [
-                    'pages_limit' => 7000,
-                    'minutes_limit' => 4000,
                     'messages_limit' => 13000,
                 ],
                 'fixed' => [
                     'agents_instruction_limit' => 2,
                     'agents_knowledge_limit' => 2,
+                    'pages_limit' => 500,
+                    'minutes_limit' => 300,
+                    'custom_domains_limit' => 0,
+                    'members_limit' => 0,
                 ],
             ],
         ],
@@ -200,40 +190,30 @@ return [
             'description' => 'Perfect for growing businesses and teams',
             'features' => [
                 'monthly' => [
-                    'Everything in Starter',
-                    '5,000 messages per month',
-                    'Upload up to 2,000 pages',
-                    '44+ file types supported',
-                    '5 instruction-based AI Agents',
-                    '5 training-based AI Agents',
+                    '4,000 messages per month',
+                    '2,000 pages',
+                    '10 AI agents (5 instruction-based and 5 training-based)',
                     'Team collaboration (5 members)',
                 ],
                 'yearly' => [
-                    'Everything in Starter',
-                    '70,000 messages upfront (10,000 free)',
-                    'Upload up to 26,000 pages upfront (2,000 free)',
-                    '44+ file types supported',
-                    '5 instruction-based AI Agents',
-                    '5 training-based AI Agents',
+                    '60,000 messages upfront (11,000 free)',
+                    '2,000 pages',
+                    '10 AI agents (5 instruction-based and 5 training-based)',
                     'Team collaboration (5 members)',
-                    'All credits available immediately',
-                    '30% bonus quotas included',
                 ],
             ],
 
             'capabilities' => [
                 'custom_sub_domain' => true,
+                'custom_domains' => false,
                 'advanced_pdf' => true,
                 'ocr' => true,
                 'audio' => false,
                 'video' => false,
-                'api_access' => true,
+                'api_access' => false,
                 'custom_integrations' => false,
                 'team_collaboration' => true,
-                'advanced_analytics' => 'advanced',
-                'white_label' => false,
-                'custom_domains' => false,
-                'sla_guarantee' => false,
+                'priority_support' => false,
             ],
             'stripe_monthly_price_id' => env('STRIPE_STANDARD_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STANDARD_YEARLY_PRICE_ID'),
@@ -243,18 +223,18 @@ return [
 
             'quota_limits' => [
                 'monthly' => [
-                    'pages_limit' => 1000,
-                    'minutes_limit' => 1200,
                     'messages_limit' => 5000,
                 ],
                 'yearly' => [
-                    'pages_limit' => 1300, // 30% bonus for yearly
-                    'minutes_limit' => 1500,
                     'messages_limit' => 6500,
                 ],
                 'fixed' => [
                     'agents_instruction_limit' => 5,
                     'agents_knowledge_limit' => 5,
+                    'pages_limit' => 1000,
+                    'minutes_limit' => 1200,
+                    'custom_domains_limit' => 0,
+                    'members_limit' => 5,
                 ],
             ],
         ],
@@ -273,43 +253,36 @@ return [
             'description' => 'Enterprise-grade solution for large organizations',
             'features' => [
                 'monthly' => [
-                    'Everything in Standard',
                     '25,000 messages per month',
-                    'Upload up to 10,000 pages',
-                    'Audio and Video file support',
-                    '10 instruction-based agents',
-                    '10 training-based agents',
-                    'Free custom integrations',
+                    '10,000 pages',
+                    '20 AI agents (10 instruction-based and 10 training-based)',
+                    '1 Custom Domain (www.your-company.com)',
                     'Team collaboration (25 members)',
-                    'Dedicated support',
+                    'Free custom integrations',
+                    'Priority support',
                 ],
                 'yearly' => [
-                    'Everything in Standard',
-                    '420,000 messages upfront (35,000/month)',
-                    'Upload up to 180,000 pages upfront (15,000/month)',
-                    'Audio and Video file support',
-                    '15 instruction-based agents',
-                    '15 training-based agents',
-                    'White label branding',
-                    'Custom domains',
-                    'Dedicated support',
-                    'Enterprise analytics',
-                    '99.9% SLA guarantee',
-                    'All credits available immediately',
-                    '50% bonus quotas included',
+                    '350,000 messages upfront (50,000 free)',
+                    '140,000 pages upfront (2000,000 free)',
+                    '20 AI agents (10 instruction-based and 10 training-based)',
+                    '1 Custom Domain (www.your-company.com)',
+                    'Team collaboration (25 members)',
+                    'Free custom integrations',
+                    'Priority support',
                 ],
             ],
 
             'capabilities' => [
                 'custom_sub_domain' => true,
+                'custom_domains' => true,
                 'advanced_pdf' => true,
                 'ocr' => true,
-                'audio_video' => true,
+                'audio' => true,
+                'video' => true,
                 'api_access' => true,
                 'custom_integrations' => true,
                 'team_collaboration' => true,
-                'white_label' => true,
-                'custom_domains' => true,
+                'priority_support' => true,
             ],
             'stripe_monthly_price_id' => env('STRIPE_PRO_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_PRO_YEARLY_PRICE_ID'),
@@ -319,18 +292,18 @@ return [
 
             'quota_limits' => [
                 'monthly' => [
-                    'pages_limit' => 10000,
-                    'minutes_limit' => 6000,
                     'messages_limit' => 25000,
                 ],
                 'yearly' => [
-                    'pages_limit' => 15000, // 50% bonus for yearly
-                    'minutes_limit' => 9000,
                     'messages_limit' => 35000,
                 ],
                 'fixed' => [
                     'agents_instruction_limit' => 10,
                     'agents_knowledge_limit' => 10,
+                    'pages_limit' => 10000,
+                    'minutes_limit' => 6000,
+                    'custom_domains_limit' => 1,
+                    'members_limit' => 25,
                 ],
             ],
         ],
@@ -594,32 +567,6 @@ return [
     */
 
     'quota' => [
-        /*
-        |--------------------------------------------------------------------------
-        | Default Quota Limits
-        |--------------------------------------------------------------------------
-        |
-        | Fallback quota limits when no plan is found or for error cases.
-        | Typically matches the 'free' plan limits for both billing cycles.
-        |
-        */
-        'default_limits' => [
-            'monthly' => [
-                'pages_limit' => env('QUOTA_DEFAULT_PAGES', 100),
-                'minutes_limit' => env('QUOTA_DEFAULT_MINUTES', 30),
-                'messages_limit' => env('QUOTA_DEFAULT_MESSAGES', 100),
-                'agents_instruction_limit' => env('QUOTA_DEFAULT_AGENT_INSTRUCTIONS', 1),
-                'agents_knowledge_limit' => env('QUOTA_DEFAULT_AGENT_KNOWLEDGE', 1),
-            ],
-            'yearly' => [
-                'pages_limit' => env('QUOTA_DEFAULT_PAGES', 100),
-                'minutes_limit' => env('QUOTA_DEFAULT_MINUTES', 30),
-                'messages_limit' => env('QUOTA_DEFAULT_MESSAGES', 100),
-                'agents_instruction_limit' => env('QUOTA_DEFAULT_AGENT_INSTRUCTIONS', 1),
-                'agents_knowledge_limit' => env('QUOTA_DEFAULT_AGENT_KNOWLEDGE', 1),
-            ],
-        ],
-
         /*
         |--------------------------------------------------------------------------
         | Quota Warning Thresholds

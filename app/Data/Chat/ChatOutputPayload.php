@@ -12,7 +12,6 @@ class ChatOutputPayload extends Data
         public string $message,
         public string $model,
         public ?string $generation_id,
-        public ?int $token_count,
         public ?float $response_time_ms = null,
         public array $sources = [],
     ) {}

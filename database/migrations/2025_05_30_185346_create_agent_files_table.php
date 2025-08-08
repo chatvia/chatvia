@@ -15,8 +15,9 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
             $table->string('language')->nullable();
-            $table->string('document_type')->nullable();
+            $table->string('document_classification')->nullable();
             $table->string('filename');
+            $table->enum('filetype', ['document', 'image', 'video', 'audio', 'spreadsheet', 'presentation'])->index();
             $table->string('filepath')->unique();
             $table->decimal('size_in_kb');
             $table->string('mime_type')->index();

@@ -64,5 +64,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies('*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        SentryIntegration::handles($exceptions);
+        if (app()->isProduction()) {
+            SentryIntegration::handles($exceptions);
+        }
+
     })->create();

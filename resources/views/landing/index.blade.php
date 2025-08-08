@@ -15,6 +15,20 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicons/apple-touch-icon.png') }}" />
     <meta name="apple-mobile-web-app-title" content="ChatVia.ai" />
     <link rel="manifest" href="{{ asset('images/favicons/site.webmanifest') }}" />
+
+    <!-- Social media share -->
+    <meta property="og:title" content="Create AI Agents similar to ChatGPT but with your own data">
+    <meta property="og:site_name" content="ChatVia.ai">
+    <meta property="og:url" content="https://chatvia.ai">
+    <meta property="og:image" content="https://chatvia.ai/images/chatvia.png">
+    <meta property="og:description" content="Create AI Agents similar to ChatGPT but with your own data">
+    <meta property="og:type" content="">
+
+    <meta name="twitter:card" content="Create AI Agents similar to ChatGPT but with your own data"/>
+    <meta name="twitter:site" content="@ahmadmayahi"/>
+    <meta name="twitter:creator" content="@ahmadmayahi"/>
+
+
 </head>
 
 <body class="font-inter antialiased bg-white text-zinc-900 tracking-tight scroll-smooth overflow-x-hidden">

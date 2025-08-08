@@ -135,8 +135,7 @@ class ChatMemory
             $this->conversationId,
             $messageId,
             $payload,
-        )
-            ->onQueue('messages');
+        );
 
         return $messageId;
     }

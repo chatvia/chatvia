@@ -22,7 +22,10 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         public string $conversationId,
         public string $messageId,
         public ChatInputPayload|ChatOutputPayload $payload
-    ) {}
+    )
+    {
+        $this->onQueue('messages');
+    }
 
     public function handle(): void
     {

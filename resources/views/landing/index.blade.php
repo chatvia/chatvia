@@ -274,7 +274,7 @@
                                             preload="metadata"
                                             x-init="$watch('showModal', value => { if (!value) $el.pause(); $el.currentTime = 0; })"
                                     >
-                                        <source src="./intro.mp4" type="video/mp4">
+                                        <source src="https://fsn1.your-objectstorage.com/chatvia/landing/rDiqJr8xwTVe8WLSimGKvRXlykKl9BvNIXOnFJI9.mp4" type="video/mp4">
                                         Your browser does not support the video tag.
                                     </video>
                                 </div>

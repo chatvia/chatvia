@@ -102,7 +102,7 @@ const isLoadingUsage = ref(false);
 // File uploader configuration for Knowledge page
 const fileUploaderConfig: FileUploaderConfig = {
     maxFiles: maxFilesToUpload,
-    acceptedTypes: '.pdf,.doc,.docx,.txt',
+    acceptedTypes: '.pdf,.doc,.docx',
     analyzeEndpoint: (file: File) => route('agents.knowledge.files.upload', { agent: props.agent.id }),
     onFileAnalyzed: (file: BaseUploadingFileData, data: any) => {
         // For Knowledge.vue, the upload endpoint uploads the file
@@ -361,10 +361,6 @@ const formatFileType = (mimeType: string): string => {
         'application/pdf': 'PDF',
         'application/msword': 'Word',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
-        'text/plain': 'Text',
-        'text/markdown': 'Markdown',
-        'application/vnd.ms-excel': 'Excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel',
     };
     return typeMap[mimeType] || mimeType.split('/')[1]?.toUpperCase() || 'Unknown';
 };
@@ -819,7 +815,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 ref="fileUploaderRef"
                 :config="fileUploaderConfig"
                 title="Upload New Documents"
-                description="Add documents to your agent's knowledge base. Supported formats: PDF, Word, Text, Audio"
+                description="Add documents to your agent's knowledge base. Supported formats: PDF and Word (more soon)"
                 :show-quota="!isLoadingUsage"
                 :quota-used="totalUploadedPagesOnly"
                 :quota-limit="usageData.pages.limit"
@@ -830,14 +826,6 @@ const showFileSummary = async (file: KnowledgeFile) => {
 
             <!-- Important Notes and Warnings (only for knowledge agents) -->
             <div v-if="isKnowledgeAgent" class="space-y-3">
-                <!-- PDF Note -->
-                <Alert>
-                    <AlertCircle class="h-4 w-4" />
-                    <AlertDescription>
-                        <strong>PDF Tip:</strong> Ensure your PDF has selectable text (not scanned images).
-                    </AlertDescription>
-                </Alert>
-
                 <!-- Quota Exceeded -->
                 <Alert v-if="!isLoadingUsage && (pagesRemaining <= 0 || (usageData.minutes && minutesRemaining <= 0))" variant="destructive">
                     <AlertCircle class="h-4 w-4" />

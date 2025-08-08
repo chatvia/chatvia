@@ -10,5 +10,6 @@ class KnowledgeAnalyzeData extends Data
         public int $length,
         public string $mime_type,
         public bool $encrypted,
+        public string $filetype,
     ) {}
 }

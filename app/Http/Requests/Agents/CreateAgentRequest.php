@@ -20,7 +20,6 @@ class CreateAgentRequest extends FormRequest
             'application/x-pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // docx
-            'text/markdown',
             'text/plain',
         ];
 
@@ -29,7 +28,6 @@ class CreateAgentRequest extends FormRequest
             'sub_domain' => ['required', new SubdomainRule],
             'system_instructions' => ['required', 'string'],
             'is_public' => ['required', 'boolean'],
-
             'type' => ['required', 'string', 'in:knowledge,instruction'],
         ];
 
@@ -43,7 +41,7 @@ class CreateAgentRequest extends FormRequest
             $rules['files.*'] = [
                 'file',
                 'mimetypes:'.implode(',', $allowedMimeTypes),
-                'max:10240', // Limits each file to 10MB (10240 KB)
+                'max:20240', // Limits each file to 20MB (20240 KB)
             ];
         }
 

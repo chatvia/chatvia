@@ -60,6 +60,7 @@ readonly class ChatExportController
             'messages' => $messages,
         ])->withBrowsershot(function (Browsershot $browsershot) {
             $browsershot
+                ->setIncludePath(config('$HOME/.nvm'))
                 ->setNodeBinary(config('services.bin.node'))
                 ->setNpmBinary(config('services.bin.npm'));
         })->download($filename.'.pdf');

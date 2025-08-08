@@ -14,6 +14,6 @@ class IP2Country
             return null;
         }
 
-        return strtolower($result['countryCode']);
+        return strtolower($result['countryCode'] ?? '');
     }
 }

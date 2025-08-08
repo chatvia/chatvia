@@ -58,7 +58,7 @@ readonly class ChatExportController
     {
         return Pdf::withBrowsershot(function (Browsershot $browsershot) {
             $browsershot
-                ->setIncludePath(config('$HOME/.nvm'))
+                ->setIncludePath(config('services.bin.nvm_include_path'))
                 ->setNodeBinary(config('services.bin.node'))
                 ->setNpmBinary(config('services.bin.npm'));
         })->view('chat.export.pdf', [

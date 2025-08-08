@@ -67,7 +67,8 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             $pages = Cache::get($cacheKey);
         } else {
             $pages = $llamaParse->getPagesWithImages($externalJobId);
-            Cache::put($cacheKey, $pages, now()->addHour());
+
+            Cache::put($cacheKey, $pages, now()->addMonth());
 
             $fileName = Str::uuid()->toString().'.json';
 

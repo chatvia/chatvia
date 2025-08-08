@@ -34,6 +34,8 @@ class AgentKnowledgeAnalyzeFileAction
             'length' => $info->length,
             'mime_type' => $uploadedFile->getMimeType(),
             'encrypted' => $info->encrypted,
+            'filetype' => get_file_type($uploadedFile->getMimeType()),
+            'is_audio_file' => is_audio_file($uploadedFile->getMimeType()),
         ]);
     }
 }

@@ -13,6 +13,7 @@ class AgentKnowledgeFileDeleteController
         if ($file->status === 'processing') {
             $file->cancelIngestionJob();
         }
+
         $file->delete();
     }
 }

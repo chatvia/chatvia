@@ -44,7 +44,9 @@ class AgentStoreController
 
             DB::commit();
 
-            return to_route('agents.stats', ['agent' => $agent->id])
+            $route = $agent->type === 'knowledge' ? 'agents.knowledge' : 'agents.stats';
+
+            return to_route($route, ['agent' => $agent->id])
                 ->with('success', 'Agent created successfully. Files are being processed.');
 
         } catch (Throwable $exception) {

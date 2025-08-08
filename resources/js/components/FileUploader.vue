@@ -80,6 +80,17 @@ const {
     formatSpeed,
 } = useFileUploader(uploaderConfig);
 
+// Helper function to format file length (pages or duration)
+const formatFileLength = (file: UploadingFileData): string => {
+    if (!file.stats?.length) return '';
+    
+    if (file.stats.is_audio_file) {
+        return `${file.stats.length} minute${file.stats.length !== 1 ? 's' : ''}`;
+    } else {
+        return `${file.stats.length} page${file.stats.length !== 1 ? 's' : ''}`;
+    }
+};
+
 // Quota computations
 const quotaRemaining = computed(() => {
     if (!props.showQuota) return Infinity;
@@ -297,8 +308,8 @@ defineExpose({
                                             </div>
                                             <div class="text-xs text-muted-foreground">
                                                 {{ formatFileSize(file.file.size) }}
-                                                <span v-if="file.stats?.pages" class="ml-2">
-                                                    • {{ file.stats.pages }} page{{ file.stats.pages !== 1 ? 's' : '' }}
+                                                <span v-if="formatFileLength(file)" class="ml-2">
+                                                    • {{ formatFileLength(file) }}
                                                 </span>
                                                 <span v-if="file.uploading && file.progress > 0" class="ml-2">
                                                     • {{ file.progress }}% analyzed
@@ -369,8 +380,8 @@ defineExpose({
                                         </div>
                                         <div class="text-xs text-muted-foreground">
                                             {{ formatFileSize(file.file.size) }}
-                                            <span v-if="file.stats?.pages" class="ml-2">
-                                                • {{ file.stats.pages }} page{{ file.stats.pages !== 1 ? 's' : '' }}
+                                            <span v-if="formatFileLength(file)" class="ml-2">
+                                                • {{ formatFileLength(file) }}
                                             </span>
                                             <span v-if="file.uploading && file.progress > 0" class="ml-2">
                                                 • {{ file.progress }}% analyzed

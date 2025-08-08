@@ -347,6 +347,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this
             ->agentFiles()
             ->where('filetype', 'document')
+            ->whereIn('status', ['completed', 'processing'])
             ->sum('length');
     }
 

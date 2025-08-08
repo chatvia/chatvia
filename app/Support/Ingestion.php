@@ -15,11 +15,14 @@ class Ingestion
 
     public function ingest(AgentFile $agentFile): void
     {
+        $agentFile->update(['status' => 'processing']);
         IngestionJob::dispatch($agentFile);
     }
 
     public function cancelJob(AgentFile $agentFile): void
     {
-        Bus::findBatch($agentFile->internal_chunking_batch_id)->cancel();
+        if ($agentFile->internal_chunking_batch_id) {
+            Bus::findBatch($agentFile->internal_chunking_batch_id)->cancel();
+        }
     }
 }

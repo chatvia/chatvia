@@ -56,14 +56,14 @@ readonly class ChatExportController
 
     private function toPdf(array $messages, string $filename)
     {
-        return Pdf::view('chat.export.pdf', [
-            'messages' => $messages,
-        ])->withBrowsershot(function (Browsershot $browsershot) {
+        return Pdf::withBrowsershot(function (Browsershot $browsershot) {
             $browsershot
                 ->setIncludePath(config('$HOME/.nvm'))
                 ->setNodeBinary(config('services.bin.node'))
                 ->setNpmBinary(config('services.bin.npm'));
-        })->download($filename.'.pdf');
+        })->view('chat.export.pdf', [
+            'messages' => $messages,
+        ])->download($filename.'.pdf');
     }
 
     private function toMarkdown(array $messages, string $filename): BinaryFileResponse

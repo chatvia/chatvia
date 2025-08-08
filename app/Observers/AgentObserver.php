@@ -41,11 +41,6 @@ class AgentObserver
         AgentHelper::cacheAgentName($agent->sub_domain);
     }
 
-    public function deleting(Agent $agent)
-    {
-        // TODO: delete images
-    }
-
     public function deleted(Agent $agent): void
     {
         Storage::deleteDirectory('users/'.$agent->user_id.'/agents/'.$agent->id);

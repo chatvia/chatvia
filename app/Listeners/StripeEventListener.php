@@ -47,6 +47,7 @@ class StripeEventListener
                 'pages_limit' => $fixedLimit['pages_limit'],
                 'minutes_limit' => $fixedLimit['minutes_limit'],
                 'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
+                'members_limit' => $fixedLimit['members_limit'],
             ]);
         }
 

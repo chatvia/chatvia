@@ -182,7 +182,7 @@ return [
     'defaults' => [
         'supervisor-1' => [
             'connection' => 'redis',
-            'queue' => ['default', 'ingestion', 'messages'],
+            'queue' => ['default', 'ingestion', 'messages', 'telescope', 'pulse'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,

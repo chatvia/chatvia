@@ -29,7 +29,6 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
 
     public $timeout = 1800;
 
-
     public function __construct(public AgentFile $agentFile)
     {
         $this->onQueue('ingestion');

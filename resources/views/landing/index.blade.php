@@ -997,22 +997,22 @@
                         $faqs = [
                             [
                                 'question' => 'What is ChatVIA?',
-                                'answer' => 'ChatVIA is an AI platform that lets you create custom AI agents trained on your own data. Upload documents, PDFs, and files to create intelligent chatbots that understand your business knowledge and can answer questions about your content.',
+                                'answer' => 'ChatVIA is an AI platform that lets you create custom AI agents trained on your own data. Upload your documents to create AI chatbots that understand your business knowledge and can answer questions about your content.',
                                 'expanded' => true
                             ],
                             [
                                 'question' => 'How does ChatVIA work?',
-                                'answer' => 'Upload your documents (PDFs, Word docs, spreadsheets, etc.) and ChatVIA processes them using advanced AI. The system creates intelligent agents that can answer questions about your content, provide insights, and help users find information quickly.',
+                                'answer' => 'Upload your documents (PDFs, Word docs, spreadsheets, etc.) and ChatVIA processes them using advanced AI. The system creates AI agents that can answer questions about your content, provide insights, and help users find information quickly.',
                                 'expanded' => false
                             ],
                             [
                                 'question' => 'What types of files can I upload?',
-                                'answer' => 'ChatVIA supports 44+ file types including PDFs, Word documents, Excel spreadsheets, PowerPoint presentations, images, videos, and more. Your AI agents can understand and work with any document format.',
+                                'answer' => 'Currently PDF and Word files are supported, however I\'m working hard to support 44+ file types including Excel spreadsheets, PowerPoint presentations, images, videos, and more.',
                                 'expanded' => false
                             ],
                             [
                                 'question' => 'How many AI agents can I create?',
-                                'answer' => 'It depends on your plan. Free users get 1 instruction-based and 1 training-based agent. Paid plans offer more agents - Starter (2 each), Standard (5 each), and Pro (10 each). You can create unlimited agents on the Pro plan.',
+                                'answer' => 'It depends on your plan. Please refer to the pricing secion.',
                                 'expanded' => false
                             ],
                             [
@@ -1022,12 +1022,12 @@
                             ],
                             [
                                 'question' => 'Is my data secure and private?',
-                                'answer' => 'Yes, absolutely. Your data is encrypted and never shared with third parties. ChatVIA is GDPR compliant, hosted in the EU, and uses enterprise-grade security. Your documents and conversations remain private.',
+                                'answer' => 'ChatVIA is GDPR compliant, hosted in the EU, and uses enterprise-grade security. Your documents and conversations remain private and encrypted. Please read our privacy policy for more information.',
                                 'expanded' => false
                             ],
                             [
                                 'question' => 'Can I customize the AI agent\'s appearance?',
-                                'answer' => 'Yes! You can customize your agent\'s name, instructions, and on Pro plans, you can add custom branding, logos, and even use your own domain for a white-label experience.',
+                                'answer' => 'Yes! You can customize your agent\'s name, instructions, and you can also add custom branding, logos, and even use your own domain for a white-label experience.',
                                 'expanded' => false
                             ],
                             [
@@ -1037,14 +1037,9 @@
                             ],
                             [
                                 'question' => 'Do you offer team collaboration features?',
-                                'answer' => 'Yes! Standard and Pro plans include team collaboration. You can invite team members, share agents, collaborate on documents, and manage permissions. Perfect for businesses and organizations.',
+                                'answer' => 'Yes! All the plans include team collaboration. You can invite team members and share agents.',
                                 'expanded' => false
                             ],
-                            [
-                                'question' => 'Can I use ChatVIA for my business?',
-                                'answer' => 'Absolutely! ChatVIA is perfect for businesses of all sizes. Use it for customer support, internal knowledge bases, training materials, research, and more. Many companies use it to create intelligent assistants for their teams and customers.',
-                                'expanded' => false
-                            ]
                         ];
                     @endphp
 

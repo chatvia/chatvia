@@ -16,6 +16,7 @@ class UserObserver
             'agents_knowledge_limit' => $fixed['agents_knowledge_limit'],
             'pages_limit' => $fixed['pages_limit'],
             'minutes_limit' => $fixed['minutes_limit'],
+            'members_limit' => $fixed['members_limit'],
         ]);
 
         $user

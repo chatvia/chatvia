@@ -7,6 +7,7 @@ use App\Models\Llm;
 use App\Models\User;
 use App\Support\Agent as AgentHelper;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class AgentObserver
 {
@@ -42,7 +43,9 @@ class AgentObserver
 
     public function deleted(Agent $agent): void
     {
-        $this->increaseAgentLimit($agent);
+        Storage::deleteDirectory('users/'.$agent->user_id.'/agents/'.$agent->id);
+
+        // TODO: delete images
     }
 
     public function restored(Agent $agent): void

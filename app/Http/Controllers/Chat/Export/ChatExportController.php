@@ -54,7 +54,7 @@ readonly class ChatExportController
         return Str::slug($conversation['title']);
     }
 
-    private function toPdf(array $messages, string $filename): Pdf
+    private function toPdf(array $messages, string $filename)
     {
         return Pdf::view('chat.export.pdf', [
             'messages' => $messages,

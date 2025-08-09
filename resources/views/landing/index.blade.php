@@ -651,9 +651,7 @@
                                 <!-- Table Icon -->
                                 <div class="flex-1 flex items-center justify-center mb-6">
                                     <div class="w-20 h-20 bg-white rounded-lg shadow-sm border border-zinc-100 flex items-center justify-center">
-                                        <svg class="w-10 h-10 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 2h10v2H7V7zm0 4h10v2H7v-2zm0 4h6v2H7v-2z"/>
-                                        </svg>
+                                        <img src="{{ asset('images/landing/layout.svg') }}" />
                                     </div>
                                 </div>
 
@@ -682,9 +680,7 @@
                                 <!-- Image Analysis Icon -->
                                 <div class="flex-1 flex items-center justify-center mb-6">
                                     <div class="w-20 h-20 bg-white rounded-lg shadow-sm border border-zinc-100 flex items-center justify-center">
-                                        <svg class="w-10 h-10 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-                                        </svg>
+                                        <img src="{{ asset('images/landing/image.svg') }}" />
                                     </div>
                                 </div>
 
@@ -713,9 +709,7 @@
                                 <!-- Security Icon -->
                                 <div class="flex-1 flex items-center justify-center mb-6">
                                     <div class="w-20 h-20 bg-white rounded-lg shadow-sm border border-zinc-100 flex items-center justify-center">
-                                        <svg class="w-10 h-10 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
-                                        </svg>
+                                        <img src="{{ asset('images/landing/security.svg') }}" class="h-12" />
                                     </div>
                                 </div>
 
@@ -731,7 +725,7 @@
             </div>
         </section>
 
-        
+
         <!-- Pricing -->
         <section id="pricing">
             <div class="py-12">

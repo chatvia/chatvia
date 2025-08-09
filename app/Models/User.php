@@ -376,4 +376,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return $this->is_admin;
     }
+
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
+    }
 }

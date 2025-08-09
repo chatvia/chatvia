@@ -63,6 +63,9 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    appearance: {
+        type: Object,
+    }
 });
 
 const isMobileDevice = isMobile();
@@ -450,7 +453,12 @@ const switchToSelectedAgent = () => {
             <div class="ml-4 flex h-16 items-center justify-between">
                 <div class="flex items-center gap-2">
                     <Link :href="route('chat.home')">
-                        <AppLogoIcon class="h-10" />
+                        <img v-if="props.appearance.logo"
+                             :src="props.appearance.logo"
+                             alt="Logo"
+                             class="h-full w-full object-cover text-red"
+                        />
+                        <AppLogoIcon v-else class="h-10" />
                     </Link>
                 </div>
                 <!-- Close button for mobile only -->

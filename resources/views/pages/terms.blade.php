@@ -15,7 +15,7 @@
                 <div class="flex items-center">
                     <h1 class="text-2xl font-bold text-gray-900">ChatVia</h1>
                 </div>
-                <a href="/" class="text-sm text-gray-600 hover:text-gray-900">← Back to Home</a>
+                <a href="{{ route('home') }}" class="text-sm text-gray-600 hover:text-gray-900">← Back to Home</a>
             </div>
         </div>
     </header>
@@ -26,7 +26,7 @@
             <!-- Title -->
             <div class="text-center border-b pb-6">
                 <h1 class="text-4xl font-bold text-gray-900 mb-2">Terms of Service</h1>
-                <p class="text-gray-600">Last updated: {{ date('F j, Y') }}</p>
+                <p class="text-gray-600">Last updated: 10 Aug 2025</p>
             </div>
 
             <!-- Introduction -->
@@ -46,7 +46,7 @@
 
                 <h3 class="text-xl font-medium text-gray-800">2.1 ChatVia Platform</h3>
                 <p class="text-gray-700 leading-relaxed">
-                    ChatVia is an AI-powered platform that enables you to create intelligent agents by uploading documents and leveraging advanced Retrieval-Augmented Generation (RAG) technology. Our Service includes:
+                    ChatVia is an AI-powered platform that enables you to create AI agents by uploading documents and leveraging advanced Retrieval-Augmented Generation (RAG) technology. Our Service includes:
                 </p>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
                     <li>Document ingestion and processing capabilities</li>
@@ -58,7 +58,7 @@
 
                 <h3 class="text-xl font-medium text-gray-800">2.2 AI Technology</h3>
                 <p class="text-gray-700 leading-relaxed">
-                    Our Service utilizes RAG and GraphRAG technologies to process your documents and provide intelligent responses. We partner with various AI providers including Cohere, Mistral AI, OpenAI, and Google AI to deliver these capabilities.
+                    Our Service utilizes RAG technology to process your documents and provide intelligent responses. We partner with various AI providers including Cohere, Mistral AI, OpenAI, and Google AI to deliver these capabilities.
                 </p>
 
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -151,10 +151,8 @@
                     ChatVia integrates with third-party AI providers to deliver our services. When you use our Service, your content may be processed by:
                 </p>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
-                    <li><strong>Cohere:</strong> For document embedding and processing</li>
-                    <li><strong>Mistral AI:</strong> For EU users requiring GDPR-compliant processing</li>
-                    <li><strong>OpenAI:</strong> For advanced AI capabilities</li>
-                    <li><strong>Google AI:</strong> For specialized AI services</li>
+                    <li><strong>Cohere (embev-v4 and rerank):</strong> For document embedding and search re-ranking</li>
+                    <li><strong>OpenAI (GPT-4.1):</strong> For document processing</li>
                 </ul>
 
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
@@ -187,7 +185,7 @@
                     Your privacy is important to us. Our collection and use of your information is governed by our Privacy Policy, which is incorporated into these Terms by reference. Key points include:
                 </p>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
-                    <li>Data is stored in your chosen region (EU or US)</li>
+                    <li>Data is stored in EU</li>
                     <li>All data is encrypted in transit and at rest</li>
                     <li>You can delete your data at any time</li>
                     <li>EU residents have full GDPR rights regardless of chosen region</li>
@@ -281,7 +279,7 @@
                 <h3 class="text-xl font-medium text-gray-800">12.3 Effect of Termination</h3>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
                     <li>Your right to use the Service immediately ceases</li>
-                    <li>Your data will be deleted within 30 days</li>
+                    <li>Your data will be deleted immediately</li>
                     <li>Certain provisions of these Terms survive termination</li>
                     <li>No refunds for unused portions of paid services</li>
                 </ul>
@@ -315,9 +313,7 @@
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
                     <h4 class="font-semibold text-blue-800 mb-3">Contact Us</h4>
                     <div class="space-y-2 text-blue-700">
-                        <p><strong>General Support:</strong> <a href="mailto:support@chatvia.com" class="underline">support@chatvia.com</a></p>
-                        <p><strong>Legal Inquiries:</strong> <a href="mailto:legal@chatvia.com" class="underline">legal@chatvia.com</a></p>
-                        <p><strong>Privacy Questions:</strong> <a href="mailto:privacy@chatvia.com" class="underline">privacy@chatvia.com</a></p>
+                        <p><strong>General Support:</strong> <a href="mailto:info@chatvia.ai" class="underline">info@chatvia.ai</a></p>
                     </div>
                 </div>
             </section>
@@ -344,7 +340,7 @@
 
             <!-- Footer -->
             <div class="border-t pt-6 text-center text-gray-500 text-sm">
-                <p>These Terms of Service are effective as of {{ date('F j, Y') }} and apply to all users of ChatVia.</p>
+                <p>These Terms of Service are effective as of 10 Aug 2025 and apply to all users of ChatVia.</p>
                 <p class="mt-2">
                     By using ChatVia, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
                 </p>

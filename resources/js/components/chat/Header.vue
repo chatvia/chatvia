@@ -107,24 +107,24 @@ function toggleChatExpand() {
                 </Transition>
 
                 <!-- Incognito toggle button with enhanced styling -->
-                <Button
-                    @click="toggleIncognitoMode"
-                    variant="ghost"
-                    size="icon"
-                    :class="cn(
-                        'group relative overflow-hidden rounded-xl transition-all duration-200 hover:scale-105',
-                        isIncognitoMode
-                            ? 'bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 dark:text-purple-400'
-                            : 'hover:bg-accent/80'
-                    )"
-                    :title="isIncognitoMode ? 'Disable incognito mode' : 'Enable incognito mode'"
-                >
-                    <div class="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <Transition name="rotate" mode="out-in">
-                        <EyeOff v-if="isIncognitoMode" class="h-5 w-5 relative z-10" />
-                        <Eye v-else class="h-5 w-5 relative z-10" />
-                    </Transition>
-                </Button>
+<!--                <Button-->
+<!--                    @click="toggleIncognitoMode"-->
+<!--                    variant="ghost"-->
+<!--                    size="icon"-->
+<!--                    :class="cn(-->
+<!--                        'group relative overflow-hidden rounded-xl transition-all duration-200 hover:scale-105',-->
+<!--                        isIncognitoMode-->
+<!--                            ? 'bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 dark:text-purple-400'-->
+<!--                            : 'hover:bg-accent/80'-->
+<!--                    )"-->
+<!--                    :title="isIncognitoMode ? 'Disable incognito mode' : 'Enable incognito mode'"-->
+<!--                >-->
+<!--                    <div class="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>-->
+<!--                    <Transition name="rotate" mode="out-in">-->
+<!--                        <EyeOff v-if="isIncognitoMode" class="h-5 w-5 relative z-10" />-->
+<!--                        <Eye v-else class="h-5 w-5 relative z-10" />-->
+<!--                    </Transition>-->
+<!--                </Button>-->
 
                 <!-- Delete conversation button with enhanced hover state -->
                 <Dialog v-model:open="showDeleteDialog">

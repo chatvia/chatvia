@@ -45,6 +45,7 @@ interface CurrentPackage {
     yearly_price: string;
     subscribed_to_yearly: boolean;
     limits: Record<string, any>;
+    is_yearly: boolean;
 };
 
 interface UsageData {
@@ -246,8 +247,14 @@ const isSubscriptionActive = computed(() => {
     return props.subscription?.status === 'active' || props.on_trial;
 });
 
+// Determine if the current package is yearly. Fallback to legacy flag if needed
+const isYearly = computed<boolean>(() => {
+    const pkg: any = props.current_package || {};
+    return typeof pkg.is_yearly === 'boolean' ? pkg.is_yearly : !!pkg.subscribed_to_yearly;
+});
+
 const currentFeatures = computed(() => {
-    return props.current_package.subscribed_to_yearly
+    return isYearly.value
         ? props.current_package.features.yearly
         : props.current_package.features.monthly;
 });
@@ -395,10 +402,10 @@ const cancelScheduledPlanChange = () => {
                                     </div>
                                     <div class="text-right">
                                         <div class="text-2xl font-bold">
-                                            {{ current_package.subscribed_to_yearly ? current_package.yearly_price_formatted : current_package.monthly_price_formatted }}
+                                            {{ isYearly ? current_package.yearly_price_formatted : current_package.monthly_price_formatted }}
 
                                             <span class="text-sm font-normal text-muted-foreground">
-                                                /{{ current_package.subscribed_to_yearly ? 'Year':'Month' }}</span>
+                                                /{{ isYearly ? 'Year' : 'Month' }}</span>
                                         </div>
                                     </div>
                                 </div>

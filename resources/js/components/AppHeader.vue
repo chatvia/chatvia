@@ -17,7 +17,7 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem, Auth } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { LayoutGrid, Menu, BotMessageSquare, CreditCard, Zap, Database } from 'lucide-vue-next';
+import {LayoutGrid, Menu, BotMessageSquare, CreditCard, Zap, Database, HelpCircle} from 'lucide-vue-next';
 import { computed } from 'vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 
@@ -83,6 +83,11 @@ const mainNavItems: NavItem[] = [
         title: 'Billing',
         href: route('billing.index'),
         icon: CreditCard,
+    },
+    {
+        title: 'Support',
+        href: route('support'),
+        icon: HelpCircle,
     },
 ];
 

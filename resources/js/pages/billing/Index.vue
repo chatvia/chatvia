@@ -95,8 +95,6 @@ const props = defineProps<{
     pending_plan_change?: PendingPlanChange | null;
 }>();
 
-const page = usePage();
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Billing',
@@ -242,10 +240,6 @@ const getStatusLabel = (status: string) => {
             return status;
     }
 };
-
-const isSubscriptionActive = computed(() => {
-    return props.subscription?.status === 'active' || props.on_trial;
-});
 
 // Determine if the current package is yearly. Fallback to legacy flag if needed
 const isYearly = computed<boolean>(() => {
@@ -416,7 +410,7 @@ const cancelScheduledPlanChange = () => {
 
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-3">
-                                            <CheckCircle v-if="isSubscriptionActive" class="h-5 w-5 text-green-500" />
+                                            <CheckCircle v-if="subscribed" class="h-5 w-5 text-green-500" />
                                             <AlertTriangle v-else class="h-5 w-5 text-orange-500" />
                                             <span class="font-medium">Status</span>
                                         </div>

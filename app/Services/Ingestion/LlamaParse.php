@@ -31,11 +31,11 @@ class LlamaParse
             'high_res_ocr' => true,
             'adaptive_long_table' => true,
             'outlined_table_extraction' => true,
-            'output_tables_as_HTML' => false,
-            'compact_markdown_table' => true,
-            'ignore_document_elements_for_layout_detection' => true,
-            'disable_image_extraction' => false,
-            'extract_charts' => false,
+            'output_tables_as_HTML' => true,
+            //            'compact_markdown_table' => true,
+            //            'ignore_document_elements_for_layout_detection' => true,
+            //            'disable_image_extraction' => false,
+            //            'extract_charts' => false,
         ];
 
         $parseOptions = array_merge($defaultOptions, $options ?? []);

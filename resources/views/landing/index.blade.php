@@ -105,7 +105,11 @@
                             @else
                                 <a href="{{ route('register') }}"
                                    class="block px-4 py-2 text-sm text-white bg-zinc-900 hover:bg-zinc-800 mx-4 rounded-md text-center"
-                                   @click="mobileMenuOpen = false">Get Started</a>
+                                   @click="mobileMenuOpen = false">Register</a>
+                                <div class="my-2"></div>
+                                <a href="{{ route('login') }}"
+                                   class="block px-4 py-2 text-sm text-white bg-zinc-900 hover:bg-zinc-800 mx-4 rounded-md text-center"
+                                   @click="mobileMenuOpen = false">Login</a>
                             @endauth
 
                         </div>

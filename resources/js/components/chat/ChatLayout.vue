@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, onMounted, nextTick, provide, watch} from 'vue';
+import {ref, onMounted, watch} from 'vue';
 import Sidebar from '@/components/chat/ChatSidebar.vue';
 import Header from '@/components/chat/Header.vue';
 import axios from "axios";
@@ -29,6 +29,12 @@ interface ModelSettings {
     presence_penalty: number;
     frequency_penalty: number;
 }
+
+const props = defineProps({
+    appearance: {
+        type: Object
+    }
+});
 
 interface ModelsResponse {
     models: AIModel[];
@@ -91,7 +97,7 @@ const getQueryParam = (param: string): string | null => {
 onMounted(async () => {
     // Fetch models first
     await fetchModels();
-    
+
     const modelId = getQueryParam('model');
 
     if (modelId) {
@@ -147,7 +153,7 @@ const handleToggleIncognito = (value: boolean) => {
 </script>
 
 <template>
-    <Head title="Chat" />
+    <Head :title="props.appearance.chat_window_title || 'Chat'" />
 
     <div class="flex h-screen">
         <!-- Mobile overlay -->
@@ -163,7 +169,9 @@ const handleToggleIncognito = (value: boolean) => {
             :class="{ '-translate-x-full': !isSidebarOpen }"
             v-on-click-outside="closeSidebarOnMobile"
         >
+
             <Sidebar
+                :appearance="appearance"
                 v-model:open="isSidebarOpen"
                 :models="availableModels"
                 :defaultModel="selectedModel"

@@ -108,7 +108,7 @@ const loadSourcesAsync = async () => {
     try {
         const response = await axios.get(route('chat.sources', { conversationId: props.conversation_id }));
         const sourcesData = response.data;
-        
+
         // Map sources to message indices based on message IDs
         messages.value.forEach((message, index) => {
             if (message.role === 'assistant' && message.id && sourcesData[message.id]) {
@@ -138,7 +138,7 @@ const checkUsage = async () => {
 const startUsageChecking = () => {
     // Check immediately
     checkUsage();
-    
+
     // Then check at regular intervals
     usageCheckInterval.value = setInterval(checkUsage, USAGE_CHECK_INTERVAL);
 };
@@ -264,10 +264,10 @@ function checkScrollPosition() {
 
 onMounted(async () => {
     nextTick();
-    
+
     // Check if this is a new conversation from Home page
     const isNewConversation = getQueryParam('new') === '1';
-    
+
     // Only show loading if it's not a new conversation
     loadingMessages.value = !isNewConversation;
 
@@ -284,7 +284,7 @@ onMounted(async () => {
 
     // Apply color theme
     applyColorTheme(props.appearance);
-    
+
     // Wait for models to be loaded before loading messages
     await fetchModels();
 
@@ -407,14 +407,14 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
                 if (isNewConversation) {
                     chatEventBus.emitConversationCreated(props.conversation_id)
                 }
-                
+
                 // Remove 'new' query parameter after streaming is done
                 if (getQueryParam('new') === '1') {
                     const url = new URL(window.location);
                     url.searchParams.delete('new');
                     window.history.replaceState({}, '', url);
                 }
-                
+
                 // Final scroll to ensure we're at the bottom if auto-scroll is enabled
                 if (isAutoScrollEnabled.value) {
                     nextTick(() => {
@@ -561,7 +561,7 @@ const handleScrollToBottomClick = () => {
 </script>
 
 <template>
-    <ChatLayout>
+    <ChatLayout :appearance="props.appearance">
         <template #content>
             <div class="flex h-full flex-col overflow-hidden">
                 <div
@@ -582,7 +582,7 @@ const handleScrollToBottomClick = () => {
                         </div>
                     </div>
 
-                   
+
 
                     <!-- Messages -->
                     <div
@@ -659,7 +659,7 @@ const handleScrollToBottomClick = () => {
                             @modelSelected="updateModel"
                             @stopStreaming="stopStreaming"
                         />
-                        
+
                         <!-- Show limit message if user cannot send messages -->
                         <div v-else class="flex items-center justify-center p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
                             <div class="text-center">
@@ -671,7 +671,7 @@ const handleScrollToBottomClick = () => {
                                 </p>
                             </div>
                         </div>
-                        
+
                         <div v-if="props.appearance?.chat_footer_text" class="text-center mt-2">
                             <p class="text-xs text-muted-foreground">{{ props.appearance.chat_footer_text }}</p>
                         </div>

@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import axios from "axios";
 import {Head, router} from '@inertiajs/vue3';
-import AppLayout from "@/components/chat/ChatLayout.vue";
+import ChatLayout from "@/components/chat/ChatLayout.vue";
 import Composer from "@/components/chat/Composer.vue";
 import { useColorTheme } from '@/composables/useColorTheme';
 import AppLogoIcon from "@/components/AppLogoIcon.vue";
@@ -98,7 +98,7 @@ function handleStarterClick(starter) {
 </script>
 
 <template>
-  <AppLayout>
+  <ChatLayout :appearance="props.appearance">
       <Head title="ChatVia" />
             <template #content>
           <div class="flex h-screen items-center justify-center px-4">
@@ -177,5 +177,5 @@ function handleStarterClick(starter) {
           </div>
       </template>
 
-  </AppLayout>
+  </ChatLayout>
 </template>

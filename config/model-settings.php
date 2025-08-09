@@ -70,7 +70,7 @@ return [
             ],
             'appearance' => [
                 'avatar' => null,
-                'logo' => assert('images/logo.svg'),
+                'logo' => null,
                 'color_theme' => 'black',
                 'color_shade' => 700,
                 'welcome_message' => 'What can I help with? ',

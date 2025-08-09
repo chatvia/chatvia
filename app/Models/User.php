@@ -8,6 +8,8 @@ use App\Services\Billing\UserCapabilities;
 use App\Services\Billing\UserCreditSystem;
 use App\Support\Billing;
 use App\Traits\HasSettings;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,7 +21,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Laravel\Cashier\Billable;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use Billable, HasFactory, HasSettings, Notifiable;
@@ -55,12 +57,18 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'trial_ends_at' => 'datetime',
             'billing_address' => 'array',
+            'last_login_at' => 'datetime',
         ];
     }
 
     public function agents(): HasMany
     {
         return $this->hasMany(Agent::class);
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
     }
 
     public function getCurrentPackage(): array
@@ -362,5 +370,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function consumableMessages(): int
     {
         return $this->creditSystem()->consumableMessages();
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->is_admin;
     }
 }

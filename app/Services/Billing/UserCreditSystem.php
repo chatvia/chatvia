@@ -17,6 +17,8 @@ class UserCreditSystem
 
     private const string MESSAGES_AVAILABLE_CACHE_PREFIX = 'user:{id}:credit:messages:available';
 
+    private const string MESSAGE_CONSUMED_ALL_TIME = 'messages:sent:all';
+
     public function setUserId(int $userId): static
     {
         $this->userId = $userId;
@@ -67,6 +69,8 @@ class UserCreditSystem
             key: template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]),
             value: $amount
         );
+
+        Cache::increment(self::MESSAGE_CONSUMED_ALL_TIME, $amount);
 
         /** @var Credit $user */
         $user = User::find($this->userId);

@@ -34,6 +34,7 @@ return new class extends Migration
             $table->ipAddress('registered_ip')->nullable();
             $table->char('country_code', 5)->nullable();
 
+            $table->timestamp('last_login_at')->nullable();
             $table->timestamps();
         });
 

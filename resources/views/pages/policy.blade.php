@@ -15,7 +15,7 @@
                 <div class="flex items-center">
                     <h1 class="text-2xl font-bold text-gray-900">ChatVia</h1>
                 </div>
-                <a href="/" class="text-sm text-gray-600 hover:text-gray-900">← Back to Home</a>
+                <a href="{{ route('home') }}" class="text-sm text-gray-600 hover:text-gray-900">← Back to Home</a>
             </div>
         </div>
     </header>
@@ -26,7 +26,7 @@
             <!-- Title -->
             <div class="text-center border-b pb-6">
                 <h1 class="text-4xl font-bold text-gray-900 mb-2">Privacy Policy</h1>
-                <p class="text-gray-600">Last updated: {{ date('F j, Y') }}</p>
+                <p class="text-gray-600">Last updated: 10 Aug 2025</p>
             </div>
 
             <!-- Introduction -->
@@ -73,7 +73,7 @@
 
                 <h3 class="text-xl font-medium text-gray-800">3.1 RAG Processing</h3>
                 <p class="text-gray-700 leading-relaxed">
-                    When you create training-based agents, ChatVia processes your documents through our RAG (Retrieval-Augmented Generation) and GraphRAG systems. This involves:
+                    When you create training-based agents, ChatVia processes your documents through our RAG (Retrieval-Augmented Generation). This involves:
                 </p>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
                     <li>Document chunking and indexing</li>
@@ -92,7 +92,7 @@
 
                 <h3 class="text-xl font-medium text-gray-800">3.3 Improvement and Analytics</h3>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
-                    <li>Improving our AI models and algorithms</li>
+                    <li>Improving our RAG system</li>
                     <li>Analyzing usage patterns to enhance user experience</li>
                     <li>Monitoring system performance and reliability</li>
                 </ul>
@@ -102,21 +102,19 @@
             <section class="space-y-4">
                 <h2 class="text-2xl font-semibold text-gray-900">4. Third-Party AI Providers</h2>
                 <p class="text-gray-700 leading-relaxed">
-                    ChatVia integrates with various AI providers to deliver our services. Your data may be processed by:
+                    ChatVia integrates with various AI providers to deliver our services. Your data will be processed by:
                 </p>
 
                 <h3 class="text-xl font-medium text-gray-800">4.1 Data Processing Providers</h3>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
-                    <li><strong>Cohere:</strong> For document embedding and processing (Privacy Policy: <a href="https://cohere.com/privacy" class="text-blue-600 hover:underline">https://cohere.com/privacy</a>)</li>
-                    <li><strong>Mistral AI:</strong> For EU users requiring GDPR-compliant processing</li>
-                    <li><strong>OpenAI:</strong> For US users accessing advanced AI capabilities</li>
-                    <li><strong>Google AI:</strong> For US users requiring Google's AI services</li>
+                    <li><strong>OpenAI (GPT-4.1):</strong> For document processing (Privacy Policy: <a href="https://cohere.com/privacy" class="text-blue-600 hover:underline">https://openai.com/policies/row-privacy-policy/</a>)</li>
+                    <li><strong>Cohere (embed-4):</strong> For document embedding and processing (Privacy Policy: <a href="https://cohere.com/privacy" class="text-blue-600 hover:underline">https://cohere.com/privacy</a>)</li>
                 </ul>
 
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
                     <h4 class="font-semibold text-amber-800 mb-2">Important Notice:</h4>
                     <p class="text-amber-700 text-sm">
-                        When using AI models from third-party providers, your chat interactions and document content may be subject to their respective privacy policies and data processing practices. We recommend reviewing their privacy policies for complete transparency about how your data is handled.
+                        When using AI models from third-party providers, your chat interactions and document content may be subject to their respective privacy policies and data processing practices. We recommend reviewing these policies for full transparency on how your data is handled. However, none of the models we use collect your data for training purposes. To be certain, please refer to each model’s official privacy policy on their website.
                     </p>
                 </div>
 
@@ -132,16 +130,12 @@
 
                 <h3 class="text-xl font-medium text-gray-800">5.1 Storage Locations</h3>
                 <p class="text-gray-700 leading-relaxed">
-                    Based on your region selection during registration:
+                    Your documents are stored in secure, encrypted locations within the EU. We exclusively use Hetzner for both database and file storage.
                 </p>
-                <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
-                    <li><strong>EU Users:</strong> Data stored and encrypted in EU data centers (Germany/Finland)</li>
-                    <li><strong>US Users:</strong> Data stored and encrypted in US data centers</li>
-                </ul>
+
 
                 <h3 class="text-xl font-medium text-gray-800">5.2 Security Measures</h3>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
-                    <li>End-to-end encryption for data in transit and at rest</li>
                     <li>Regular security audits and monitoring</li>
                     <li>Access controls and authentication protocols</li>
                     <li>Secure backup and disaster recovery procedures</li>
@@ -152,7 +146,7 @@
             <section class="space-y-4">
                 <h2 class="text-2xl font-semibold text-gray-900">6. Your Rights Under GDPR</h2>
                 <p class="text-gray-700 leading-relaxed">
-                    If you are an EU resident, regardless of your chosen data processing region, you have the following rights under the General Data Protection Regulation (GDPR):
+                    If you are an EU resident, you have the following rights under the General Data Protection Regulation (GDPR):
                 </p>
 
                 <div class="grid gap-4 md:grid-cols-2">
@@ -193,13 +187,13 @@
                     <li><strong>Account Data:</strong> Retained while your account is active</li>
                     <li><strong>Chat History:</strong> Retained according to your settings</li>
                     <li><strong>Uploaded Documents:</strong> Retained until you delete them</li>
-                    <li><strong>Usage Logs:</strong> Retained for up to 12 months for security and service improvement</li>
+                    <li><strong>Usage Logs:</strong> Retained until you delete your account</li>
                 </ul>
 
                 <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 class="font-semibold text-green-800 mb-2">Easy Data Deletion</h4>
                     <p class="text-green-700 text-sm">
-                        You can easily delete your data at any time through your account settings. When you delete data, it is permanently removed from our systems within 30 days.
+                        You can delete your data at any time through your account settings. When you choose to delete data, it is permanently removed from our systems immediately, including all documents, agents, and metadata (such as images) associated with your documents. This action cannot be undone, and once deleted, we cannot recover your account or its contents.
                     </p>
                 </div>
             </section>
@@ -244,9 +238,7 @@
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
                     <h4 class="font-semibold text-blue-800 mb-3">Privacy Contact Information</h4>
                     <div class="space-y-2 text-blue-700">
-                        <p><strong>Email:</strong> <a href="mailto:privacy@chatvia.com" class="underline">privacy@chatvia.com</a></p>
-                        <p><strong>Data Protection Officer:</strong> <a href="mailto:dpo@chatvia.com" class="underline">dpo@chatvia.com</a></p>
-                        <p><strong>Response Time:</strong> We will respond to your privacy inquiries within 30 days</p>
+                        <p><strong>Email:</strong> <a href="mailto:info@chatvia.ai" class="underline">info@chatvia.ai</a></p>
                     </div>
                 </div>
             </section>
@@ -267,7 +259,7 @@
 
             <!-- Footer -->
             <div class="border-t pt-6 text-center text-gray-500 text-sm">
-                <p>This Privacy Policy is effective as of {{ date('F j, Y') }} and applies to all users of ChatVia.</p>
+                <p>This Privacy Policy is effective as of 10 Aug 2025 and applies to all users of ChatVia.</p>
             </div>
         </div>
     </main>

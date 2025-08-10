@@ -11,7 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class IngestionSummaryJob implements ShouldQueue
 {
@@ -30,13 +31,20 @@ class IngestionSummaryJob implements ShouldQueue
         if (Cache::has($cacheKey)) {
             $response = Cache::get($cacheKey);
         } else {
-            $response = OpenAI::analyzeFile(
-                $this->agentFile->url
-            );
-            Cache::put($cacheKey, $response, now()->addHour());
-        }
+            $parsedContent = Storage::get($this->agentFile->parser_filepath);
 
-        File::put(base_path('func.json'), json_encode($response, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+            $content = collect(json_decode($parsedContent, true, 512, JSON_THROW_ON_ERROR))
+                ->pluck('text')
+                ->join("\n");
+
+            $path = Storage::put('/tmp/'.Str::uuid()->toString().'.txt', $content);
+
+            $response = OpenAI::analyzeFile(Storage::url($path));
+
+            Cache::put($cacheKey, $response, now()->addHour());
+
+            Storage::delete($path);
+        }
 
         $this->agentFile->update([
             'language' => $response['language'],

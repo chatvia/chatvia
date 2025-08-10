@@ -95,7 +95,10 @@ const fetchModels = async () => {
         isLoadingModels.value = true;
         const response = await axios.get(route('chat.models.index'));
         models.value = response.data.models;
-        defaultModel.value = response.data.default;
+
+        const urlModelId = getQueryParam('model');
+        const urlModel = urlModelId ? models.value.find((m) => m.id === urlModelId) : null;
+        defaultModel.value = urlModel || response.data.default;
     } catch (error) {
         console.error('Failed to fetch models:', error);
     } finally {

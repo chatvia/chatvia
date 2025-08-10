@@ -32,6 +32,7 @@ class SocialLoginAction
         if (! $user) {
             /** @var User $user */
             $user = User::create([
+                'name' => 'User',
                 'email' => $socialUser->getEmail(),
                 'password' => Hash::make(Str::random()),
                 'email_verified_at' => now(),

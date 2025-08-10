@@ -7,7 +7,6 @@ use App\Models\Chunk;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class KnowledgeBase
@@ -53,7 +52,6 @@ class KnowledgeBase
             if (count($results) > 1) {
                 $results = $this->rerank($query, $results);
             }
-            ray($results);
 
             $results = $this->processResults($results);
         }
@@ -172,11 +170,6 @@ LIMIT ?
                     ->values()
                     ->toArray();
             } catch (\Exception $e) {
-                Log::warning('Reranking failed, using original results', [
-                    'error' => $e->getMessage(),
-                    'query' => $query,
-                ]);
-
                 return $results;
             }
         });

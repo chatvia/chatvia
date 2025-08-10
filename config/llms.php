@@ -2,6 +2,22 @@
 
 return [
     [
+        'internal_name' => 'chatvia/akkadian',
+        'external_name' => 'akkadian',
+        'descriptive_name' => 'ChatVia Akkadian',
+        'description' => 'Akkadian is a local model that runs on our servers.',
+        'context_window' => 300000,
+        'icon' => 'nova.svg',
+        'features' => ['superfast'],
+        'location' => 'us',
+        'requires_paid_plan' => false,
+        'reasoning' => false,
+        'price_per_million_tokens' => [
+            'input' => 0.035,
+            'output' => 0.14,
+        ],
+    ],
+    [
         'internal_name' => 'amazon/nova-micro-v1',
         'external_name' => 'nova-micro-v1',
         'descriptive_name' => 'Nova Micro 1.0',

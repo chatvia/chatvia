@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
         $user = User::factory()->create([
             'name' => 'Ahmad',
             'email' => 'ahmad@mayahi.net',
+            'is_admin' => 1,
         ]);
 
         Agent::factory()->create([

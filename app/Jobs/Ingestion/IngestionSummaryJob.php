@@ -37,13 +37,15 @@ class IngestionSummaryJob implements ShouldQueue
                 ->pluck('text')
                 ->join("\n");
 
-            $path = Storage::put('/tmp/'.Str::uuid()->toString().'.txt', $content);
+            $filepath = 'tmp/'.Str::uuid()->toString().'.txt';
 
-            $response = OpenAI::analyzeFile(Storage::url($path));
+            Storage::put($filepath, $content);
+
+            $response = OpenAI::analyzeFile(Storage::url($filepath));
 
             Cache::put($cacheKey, $response, now()->addHour());
 
-            Storage::delete($path);
+            Storage::delete($filepath);
         }
 
         $this->agentFile->update([

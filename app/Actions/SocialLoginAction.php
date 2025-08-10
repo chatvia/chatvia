@@ -14,6 +14,7 @@ class SocialLoginAction
 {
     public function execute(string $driver, Request $request): void
     {
+        /** @var \Laravel\Socialite\Contracts\User $socialUser */
         $socialUser = Socialite::driver($driver)->stateless()->user();
 
         $user = User::where($driver.'_id', $socialUser->getId())
@@ -32,7 +33,7 @@ class SocialLoginAction
         if (! $user) {
             /** @var User $user */
             $user = User::create([
-                'name' => 'User',
+                'name' => $socialUser->getName(),
                 'email' => $socialUser->getEmail(),
                 'password' => Hash::make(Str::random()),
                 'email_verified_at' => now(),

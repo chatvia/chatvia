@@ -57,18 +57,95 @@ class OpenAI
     {
         $prompt = config('prompts.file-description');
 
-        $parameters = [
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.config('services.openai.api_key'),
+            'Content-Type' => 'application/json',
+        ])
+            ->timeout(600)
+            ->post(config('services.openai.api_endpoint').'/responses', [
+                'model' => 'gpt-4.1',
+                'input' => [
+                    [
+                        'role' => 'user',
+                        'content' => [
+                            [
+                                'type' => 'input_text',
+                                'text' => $prompt,
+                            ],
+                            [
+                                'type' => 'input_file',
+                                'file_url' => $fileUrl,
+                            ],
+                        ],
+                    ],
+                ],
+                'tools' => [
+                    [
+                        'type' => 'function',
+                        'name' => 'analyze_document',
+                        'description' => 'Analyze uploaded document and provide comprehensive structured analysis',
+                        'parameters' => self::fileAnalysisSchema(),
+                    ],
+                ],
+            ])
+            ->throw()
+            ->json('output.0.arguments');
+
+        return json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    public static function analyzeContent(string $content): array
+    {
+        $prompt = template(config('prompts.file-description'), ['text' => $content]);
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.config('services.openai.api_key'),
+            'Content-Type' => 'application/json',
+        ])
+            ->timeout(600)
+            ->post(config('services.openai.api_endpoint').'/responses', [
+                'model' => 'gpt-5-mini',
+                'input' => [
+                    [
+                        'role' => 'user',
+                        'content' => $prompt,
+                    ],
+                ],
+                'tools' => [
+                    [
+                        'type' => 'function',
+                        'name' => 'analyze_document',
+                        'description' => 'Analyze uploaded document and provide comprehensive structured analysis',
+                        'parameters' => self::fileAnalysisSchema(),
+                    ],
+                ],
+            ])
+            ->throw()
+            ->json('output');
+
+        $completedItem = collect($response)->firstWhere('status', 'completed');
+
+        if (! $completedItem || ! isset($completedItem['arguments'])) {
+            throw new \Exception('No completed function call found in response');
+        }
+
+        return is_string($completedItem['arguments'])
+            ? json_decode($completedItem['arguments'], true, 512, JSON_THROW_ON_ERROR)
+            : $completedItem['arguments'];
+    }
+
+    private static function fileAnalysisSchema()
+    {
+        return [
             'type' => 'object',
             'properties' => [
                 'summary' => [
                     'type' => 'string',
-                    'description' => 'Comprehensive detailed summary of the document (minimum 800 tokens). Must include main purpose, key findings, important details, conclusions, specific data/statistics, document structure, and significant insights. Must be prefixed with "Summary: ".',
-                    'minLength' => 800,
+                    'description' => 'Comprehensive detailed summary of the document. Must include main purpose, key findings, important details, conclusions, specific data/statistics, document structure, and significant insights. Must be prefixed with "Summary: ".',
                 ],
                 'questions' => [
                     'type' => 'string',
                     'description' => 'Generate a few questions about the document.',
-                    'minLength' => 800,
                 ],
                 'document_type' => [
                     'type' => 'string',
@@ -226,41 +303,6 @@ class OpenAI
             'additionalProperties' => false,
         ];
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.config('services.openai.api_key'),
-            'Content-Type' => 'application/json',
-        ])
-            ->timeout(600)
-            ->post(config('services.openai.api_endpoint').'/responses', [
-                'model' => 'gpt-4.1',
-                'input' => [
-                    [
-                        'role' => 'user',
-                        'content' => [
-                            [
-                                'type' => 'input_text',
-                                'text' => $prompt,
-                            ],
-                            [
-                                'type' => 'input_file',
-                                'file_url' => $fileUrl,
-                            ],
-                        ],
-                    ],
-                ],
-                'tools' => [
-                    [
-                        'type' => 'function',
-                        'name' => 'analyze_document',
-                        'description' => 'Analyze uploaded document and provide comprehensive structured analysis',
-                        'parameters' => $parameters,
-                    ],
-                ],
-            ])
-            ->throw()
-            ->json('output.0.arguments');
-
-        return json_decode($response, true, 512, JSON_THROW_ON_ERROR);
     }
 
     public static function calculateCostInCents(string $inputText, string $outputText, float $pricePerInputMilToken = 0.40, float $pricePerOutputMilToken = 1.60): float

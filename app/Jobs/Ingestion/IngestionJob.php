@@ -90,9 +90,7 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             return new IngestionChunkJob($chunk);
         });
 
-        $jobs->push(
-            new IngestionSummaryJob($this->agentFile)
-        );
+        IngestionSummaryJob::dispatch($this->agentFile);
 
         $agentFileId = $this->agentFile->id;
 

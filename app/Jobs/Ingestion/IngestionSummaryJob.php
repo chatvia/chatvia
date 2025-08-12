@@ -12,7 +12,6 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class IngestionSummaryJob implements ShouldQueue
 {
@@ -37,15 +36,7 @@ class IngestionSummaryJob implements ShouldQueue
                 ->pluck('text')
                 ->join("\n");
 
-            $filepath = 'tmp/'.Str::uuid()->toString().'.txt';
-
-            Storage::put($filepath, $content);
-
-            $response = OpenAI::analyzeFile(Storage::url($filepath));
-
-            Cache::put($cacheKey, $response, now()->addHour());
-
-            Storage::delete($filepath);
+            $response = OpenAI::analyzeContent($content);
         }
 
         $this->agentFile->update([
@@ -67,7 +58,7 @@ class IngestionSummaryJob implements ShouldQueue
             'type' => 'text',
             'chunk_index' => 0,
             'chunk' => $chunk,
-            'chunked_using_model' => 'gpt-4.1',
+            'chunked_using_model' => 'gpt-5-mini',
             'cost_in_cents' => $costInCents,
             'tokens' => TikToken::countTokens($chunk),
             'embedding' => embed(strip_tags($chunk), true),

@@ -180,9 +180,22 @@ return [
     */
 
     'defaults' => [
-        'supervisor-1' => [
+        'app' => [
             'connection' => 'redis',
-            'queue' => ['default', 'ingestion', 'messages', 'telescope', 'pulse'],
+            'queue' => ['ingestion', 'messages'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 1,
+            'timeout' => 2000,
+            'nice' => 0,
+        ],
+        'monitor' => [
+            'connection' => 'redis',
+            'queue' => ['telescope', 'pulse'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
@@ -197,15 +210,20 @@ return [
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
+            'app' => [
                 'maxProcesses' => 100,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'monitor' => [
+                'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
         ],
 
         'local' => [
-            'supervisor-1' => [
+            'app' => [
                 'maxProcesses' => 3,
             ],
         ],

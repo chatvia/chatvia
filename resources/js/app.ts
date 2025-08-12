@@ -13,6 +13,9 @@ import { toast } from 'vue-sonner';
 import { router } from '@inertiajs/vue3';
 
 const chatEventBus = createChatEventBus()
+import { createGtag } from "vue-gtag";
+
+const vueTag = createGtag({ tagId: "G-RTCBL1ZT5C"})
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -37,6 +40,7 @@ createInertiaApp({
             .use(plugin)
             .use(ZiggyVue)
             .use(Vue3ColorPicker)
+            .use(vueTag)
             .provide('chatEventBus', chatEventBus)
             .mount(el);
     },
@@ -51,11 +55,11 @@ createInertiaApp({
 router.on('navigate', (event: any) => {
     const page = event.detail.page;
     const { props } = page;
-    
+
     // Handle Laravel validation errors
     if (props.errors && Object.keys(props.errors).length > 0) {
         const errors = props.errors;
-        
+
         // Show each error as a toast
         Object.entries(errors).forEach(([field, messages]) => {
             const messageArray = Array.isArray(messages) ? messages : [messages];
@@ -66,29 +70,29 @@ router.on('navigate', (event: any) => {
             });
         });
     }
-    
+
     // Handle Laravel flash messages
     if (props.flash) {
         const flash = props.flash as any;
-        
+
         if (flash.success) {
             toast.success(flash.success, {
                 duration: 4000,
             });
         }
-        
+
         if (flash.error) {
             toast.error(flash.error, {
                 duration: 5000,
             });
         }
-        
+
         if (flash.warning) {
             toast.warning(flash.warning, {
                 duration: 4500,
             });
         }
-        
+
         if (flash.info) {
             toast.info(flash.info, {
                 duration: 4000,

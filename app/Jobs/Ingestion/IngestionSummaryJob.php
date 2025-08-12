@@ -17,7 +17,10 @@ class IngestionSummaryJob implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    public function __construct(public AgentFile $agentFile) {}
+    public function __construct(public AgentFile $agentFile)
+    {
+        $this->onQueue('ingestion');
+    }
 
     public function handle(): void
     {

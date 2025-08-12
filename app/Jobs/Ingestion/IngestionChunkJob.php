@@ -21,7 +21,10 @@ class IngestionChunkJob implements ShouldQueue
 
     public int $backoff = 10;
 
-    public function __construct(public ChunkIngestionData $chunk) {}
+    public function __construct(public ChunkIngestionData $chunk)
+    {
+        $this->onQueue('ingestion');
+    }
 
     public function handle(): void
     {

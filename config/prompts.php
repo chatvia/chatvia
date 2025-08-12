@@ -146,6 +146,9 @@ IMPORTANT: You have sufficient token budget (32k tokens) for a detailed response
 - A truly comprehensive summary with extensive detail
 - Rich metadata with detailed descriptions
 - If you can't find the document type, classify it with the most suitable type based on the document's content.
+
+Here is the text: <Text>{text}</Text>
+
     ",
 
     'knowledge-based-system-instruction' => '

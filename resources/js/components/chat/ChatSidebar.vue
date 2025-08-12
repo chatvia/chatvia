@@ -455,8 +455,8 @@ const switchToSelectedAgent = () => {
                     <Link :href="route('chat.home')">
                         <img v-if="props.appearance.logo"
                              :src="props.appearance.logo"
-                             alt="Logo"
-                             class="h-full w-full object-cover text-red"
+                             :alt="props.appearance.chat_window_title || 'ChatVia'"
+                             class="h-15 object-cover text-red"
                         />
                         <AppLogoIcon v-else class="h-10" />
                     </Link>

@@ -7,8 +7,6 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     @vite(['resources/css/landing.css'])
 
-    <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="832171b1-3e2c-434c-baa9-3f9b189ba015";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
-
 
     @include('analytics')
 

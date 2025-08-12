@@ -182,7 +182,7 @@ return [
     'defaults' => [
         'app' => [
             'connection' => 'redis',
-            'queue' => ['ingestion', 'messages'],
+            'queue' => ['default', 'ingestion', 'messages'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,

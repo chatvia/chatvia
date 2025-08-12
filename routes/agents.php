@@ -67,7 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('knowledge/files', AgentKnowledgeFilesController::class)->name('knowledge.files');
         Route::post('knowledge/files/upload', AgentKnowledgeFileUploadController::class)->name('knowledge.files.upload');
         Route::delete('knowledge/files/{file}', AgentKnowledgeFileDeleteController::class)->name('knowledge.files.delete');
-        Route::delete('knowledge/files/uploaded', AgentKnowledgeUploadedFilesDeleteController::class)->name('knowledge.uploaded-files');
+        Route::delete('knowledge/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->name('knowledge.uploaded-files');
         Route::post('knowledge/files/process', AgentKnowledgeFilesProcessController::class)->name('knowledge.files.process');
         Route::get('knowledge/files/{file}/summary', AgentFileSummaryController::class)->name('agent.files.summary');
 

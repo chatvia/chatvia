@@ -36,7 +36,7 @@ const isSubmitting = ref(false);
 const updateHistorySettings = () => {
     isSubmitting.value = true;
 
-    form.patch(route('agents.settings.update', {agent: props.agent.id, group: 'message_history'}), {
+    form.post(route('agents.settings.update', {agent: props.agent.id, group: 'message_history'}), {
         preserveScroll: true,
         onSuccess: () => {
             isSubmitting.value = false;
@@ -51,8 +51,6 @@ const retentionOptions = [
     { value: 7, label: '7 days' },
     { value: 30, label: '30 days' },
     { value: 90, label: '90 days' },
-    { value: 180, label: '6 months' },
-    { value: 365, label: '1 year' },
 ];
 
 </script>

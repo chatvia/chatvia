@@ -126,7 +126,7 @@ if (! function_exists('is_text_file')) {
 if (! function_exists('office')) {
     function office(): LibreOffice
     {
-        return LibreOffice::make();
+        return app(LibreOffice::class);
     }
 }
 

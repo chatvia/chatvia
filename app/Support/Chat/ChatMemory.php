@@ -6,6 +6,7 @@ use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Jobs\StoreChatMessageJob;
 use App\Models\Agent;
+use App\Models\Member;
 use App\Models\Message;
 use App\Support\OpenRouter;
 use Illuminate\Support\Carbon;
@@ -100,11 +101,17 @@ class ChatMemory
         $this->cachePut(
             key: $sessionId,
             value: [
+                'member_id' => $this->member()?->id,
                 'conversations' => $conversations,
             ],
         );
 
         return $conversationId;
+    }
+
+    public function member(): ?Member
+    {
+        return Auth::guard('member')->user();
     }
 
     public function addMessageViaPayload(ChatInputPayload|ChatOutputPayload $payload): string
@@ -284,6 +291,10 @@ class ChatMemory
         $currentSession = $this->getOrGenerateSession();
 
         $session = $this->cacheGet($currentSession);
+
+//        if (!empty($session['member_id']) && $this->agent->is_public === false && $this->member()?->id !== $session['member_id']) {
+//            return [];
+//        }
 
         $conversations = collect($session['conversations'] ?? []);
 

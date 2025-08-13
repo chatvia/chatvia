@@ -9,6 +9,11 @@ class AgentMembersAccessGrantController
 {
     public function __invoke(Agent $agent, Request $request)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $request->validate([
             'member' => ['required', 'exists:members,id'],
         ]);

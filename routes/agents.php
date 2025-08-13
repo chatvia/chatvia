@@ -47,9 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('agents', AgentsIndexController::class)->name('agents.index');
     Route::get('agents/list', AgentsListController::class)->name('agents.list');
 
-    Route::post('agents', AgentStoreController::class)
-        ->name('agents.store');
-
+    Route::post('agents', AgentStoreController::class)->name('agents.store');
     Route::get('agents/create', AgentCreateController::class)->name('agents.create');
 
     Route::prefix('agents/{agent}')->name('agents.')->group(function () {

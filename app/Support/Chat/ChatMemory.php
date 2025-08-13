@@ -302,7 +302,7 @@ class ChatMemory
 
     public function isMemberAuth(): bool
     {
-        return Auth::check();
+        return Auth::guard('member')->check();
     }
 
     public function updateConversationTitle(string $title): void

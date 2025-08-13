@@ -9,6 +9,11 @@ final class AgentModelsStoreSettings
 {
     public function __invoke(Agent $agent, Request $request)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $request->validate([
             'temperature' => ['required', 'numeric', 'min:0', 'max:2'],
             'top_k' => ['required', 'integer', 'min:0', 'max:100'],

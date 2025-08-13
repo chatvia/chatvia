@@ -48,6 +48,8 @@ You must follow the language of the chunk. If the original content is in English
 
 Goal: Create ONE coherent, self-sufficient chunk from the central chunk content. The chunk must be semantically accurate and coherent.
 
+You must preserve and use the exact language of the original chunk. If the chunk is in Arabic, ensure all output (chunk, summary, and questions) is in Arabic. If the chunk is in English, ensure all output is in English. Always match the original content\'s language exactly.
+
 Instructions:
 1. Focus primarily on the central chunk text - this is your main content to work with.
 

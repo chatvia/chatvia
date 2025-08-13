@@ -155,9 +155,19 @@ class ChatStreamController
     {
         $agent = $this->agent;
 
+        $preconditions = '
+If the response contains mathematical expression, then you must use the following format:
+Use this format for mathematical expressions:
+Inline math: $E = mc^2$
+Display/block math: $$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$
+Do NOT use: \[...\] or [...] for math.
+Example: \[x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\]
+Instead of: $$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+        ';
+
         $systemPrompt = [
             'role' => 'system',
-            'content' => $agent->system_instructions,
+            'content' => $agent->system_instructions."\n".$preconditions,
         ];
 
         $userMessageContent = $this->payload->message;

@@ -83,8 +83,6 @@
                                @click="mobileMenuOpen = false; document.getElementById('pricing').scrollIntoView({behavior: 'smooth', block: 'start'})">Pricing</a>
                             <a href="#faqs" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
                                @click="mobileMenuOpen = false; document.getElementById('faqs').scrollIntoView({behavior: 'smooth', block: 'start'})">FAQs</a>
-                            <a href="#support" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
-                               @click="mobileMenuOpen = false; document.getElementById('support').scrollIntoView({behavior: 'smooth', block: 'start'})">Support</a>
                             <div class="border-t border-zinc-200 my-2"></div>
                             @auth
                                 <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
@@ -110,19 +108,15 @@
                         <ul class="flex grow justify-start flex-wrap items-center ml-8">
                             <li>
                                 <a class="text-sm font-medium text-zinc-500 hover:text-zinc-900 px-3 lg:px-5 py-2 flex items-center transition"
-                                   href="#features" onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth', block: 'start'})">Features</a>
-                            </li>
-                            <li>
-                                <a class="text-sm font-medium text-zinc-500 hover:text-zinc-900 px-3 lg:px-5 py-2 flex items-center transition"
                                    href="#pricing" onclick="document.getElementById('pricing').scrollIntoView({behavior: 'smooth', block: 'start'})">Pricing</a>
                             </li>
                             <li>
                                 <a class="text-sm font-medium text-zinc-500 hover:text-zinc-900 px-3 lg:px-5 py-2 flex items-center transition"
-                                   href="#faqs" onclick="document.getElementById('faqs').scrollIntoView({behavior: 'smooth', block: 'start'})">FAQs</a>
+                                   href="#features" onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth', block: 'start'})">Features</a>
                             </li>
                             <li>
                                 <a class="text-sm font-medium text-zinc-500 hover:text-zinc-900 px-3 lg:px-5 py-2 flex items-center transition"
-                                   href="#support" onclick="document.getElementById('support').scrollIntoView({behavior: 'smooth', block: 'start'})">Support</a>
+                                   href="#faqs" onclick="document.getElementById('faqs').scrollIntoView({behavior: 'smooth', block: 'start'})">FAQs</a>
                             </li>
                         </ul>
 
@@ -173,9 +167,9 @@
                     <div class="max-w-4xl mx-auto">
                         <div class="text-center">
                             <h1 class="font-inter-tight text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-zinc-500 via-zinc-900 to-zinc-900 pb-4 mb-6">
-                                AI Agents Trained On
+                                Create ChatGPT-like AI agents
                                 <em class="italic relative inline-flex justify-center items-center text-zinc-900">
-                                    Your Data
+                                    from your data
                                     <svg class="absolute fill-zinc-300 w-[calc(100%+1rem)] -z-10 max-w-full"
                                          xmlns="http://www.w3.org/2000/svg" width="223" height="62" viewBox="0 0 223 62"
                                          aria-hidden="true" preserveAspectRatio="none">
@@ -184,7 +178,7 @@
                                 </em>
                             </h1>
                             <div class="text-xl md:text-2xl text-zinc-600 font-medium mb-6 leading-relaxed">
-                                Create AI Agents similar to ChatGPT but with your own data<br>
+                                Launch in minutes with different data sources and deployment options<br>
                                 Upload PDFs, Word docs, and any files
                             </div>
 

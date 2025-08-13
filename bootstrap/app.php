@@ -25,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up'
     )
     ->withSchedule(function (Schedule $schedule) {
-        $schedule->command('telescope:prune --hours=48')->daily();
+        $schedule->command('telescope:prune --hours=24')->dailyAt('00:00');
         $schedule->command('app:update-free-users-quotas')->dailyAt('00:00');
         $schedule->command('app:cache-message-usage')->everyFiveMinutes();
     })
@@ -67,5 +67,4 @@ return Application::configure(basePath: dirname(__DIR__))
         if (app()->isProduction()) {
             SentryIntegration::handles($exceptions);
         }
-
     })->create();

@@ -9,7 +9,6 @@ use App\Support\TikToken;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,19 +27,13 @@ class IngestionSummaryJob implements ShouldQueue
             return;
         }
 
-        $cacheKey = 'agent:file:openai:summary:'.$this->agentFile->id;
+        $parsedContent = Storage::get($this->agentFile->parser_filepath);
 
-        if (Cache::has($cacheKey)) {
-            $response = Cache::get($cacheKey);
-        } else {
-            $parsedContent = Storage::get($this->agentFile->parser_filepath);
+        $content = collect(json_decode($parsedContent, true, 512, JSON_THROW_ON_ERROR))
+            ->pluck('text')
+            ->join("\n");
 
-            $content = collect(json_decode($parsedContent, true, 512, JSON_THROW_ON_ERROR))
-                ->pluck('text')
-                ->join("\n");
-
-            $response = OpenAI::analyzeContent($content);
-        }
+        $response = OpenAI::analyzeContent($content);
 
         $this->agentFile->update([
             'language' => $response['language'],
@@ -70,7 +63,5 @@ class IngestionSummaryJob implements ShouldQueue
             'md5_hash' => md5($chunk),
             'retrieval_count' => 0,
         ]);
-
-        Cache::delete($cacheKey);
     }
 }

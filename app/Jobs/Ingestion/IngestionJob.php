@@ -14,7 +14,6 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Http\File;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
@@ -34,10 +33,6 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
         $this->onQueue('ingestion');
     }
 
-    /**
-     * @throws Throwable
-     * @throws \JsonException
-     */
     public function handle(LlamaParse $llamaParse): void
     {
         if ($this->batch()?->cancelled()) {
@@ -61,14 +56,10 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             $updateValues['external_parsing_job_id'] = $externalJobId;
         }
 
-        $cacheKey = 'agent:file:parsing:'.md5_file($file->getPathname());
-
-        if (Cache::has($cacheKey)) {
-            $pages = Cache::get($cacheKey);
+        if ($this->agentFile->parser_filepath) {
+            $pages = Storage::get($this->agentFile->parser_filepath);
         } else {
             $pages = $llamaParse->getPagesWithImages($externalJobId);
-
-            Cache::put($cacheKey, $pages, now()->addMonth());
 
             $fileName = Str::uuid()->toString().'.json';
 

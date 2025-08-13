@@ -4,7 +4,6 @@ namespace App\Services\Ingestion;
 
 use Exception;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\File\File;
 

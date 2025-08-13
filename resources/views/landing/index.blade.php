@@ -6,6 +6,10 @@
     <title>ChatVIA - Home</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     @vite(['resources/css/landing.css'])
+    <style>
+        @keyframes pulseSoft { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .6; transform: scale(1.2); } }
+        .pulse-dot { background-color: #10b981; animation: pulseSoft 1.2s ease-in-out infinite; }
+    </style>
 
 
     @include('analytics')
@@ -83,6 +87,8 @@
                                @click="mobileMenuOpen = false; document.getElementById('pricing').scrollIntoView({behavior: 'smooth', block: 'start'})">Pricing</a>
                             <a href="#faqs" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
                                @click="mobileMenuOpen = false; document.getElementById('faqs').scrollIntoView({behavior: 'smooth', block: 'start'})">FAQs</a>
+                            <a href="{{ route('changelog') }}" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+                               @click="mobileMenuOpen = false">Changelog</a>
                             <div class="border-t border-zinc-200 my-2"></div>
                             @auth
                                 <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
@@ -117,6 +123,10 @@
                             <li>
                                 <a class="text-sm font-medium text-zinc-500 hover:text-zinc-900 px-3 lg:px-5 py-2 flex items-center transition"
                                    href="#faqs" onclick="document.getElementById('faqs').scrollIntoView({behavior: 'smooth', block: 'start'})">FAQs</a>
+                            </li>
+                            <li>
+                                <a class="text-sm font-medium text-zinc-500 hover:text-zinc-900 px-3 lg:px-5 py-2 flex items-center transition"
+                                   href="{{ route('changelog') }}">Changelog</a>
                             </li>
                         </ul>
 

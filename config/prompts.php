@@ -30,6 +30,8 @@ You are a query rewriting assistant for a document search system.
 Rewrite the following query to maximize retrieval of relevant passages.
 You must only return the new query in plain text, without quotes or HTML tags or anything else.
 
+You must preserve and use the exact language of the original content. For example: If the content is in Arabic, ensure all output in Arabic. If the content is in English, ensure all output is in English. Always match the original content\'s language exactly.
+
 Query: <Query>{query}</Query>
     ',
 
@@ -93,6 +95,8 @@ You are an expert in Retrieval-Augmented Generation (RAG) systems.
 
 Your task is to extract structured, semantic content from an image — only if it contains a diagram, chart, flowchart, table, or similarly retrievable visual.
 
+You must preserve and use the exact language of the original content. For example: If the content is in Arabic, ensure all output in Arabic. If the content is in English, ensure all output is in English. Always match the original content\'s language exactly.
+
 Respond with:
 - A comprehensive high-signal description of the core concepts and relationships shown.
 - Focus only on text, labels, structure, and connections — omit all stylistic or visual layout details.
@@ -108,17 +112,19 @@ You are an expert document analyst. Please thoroughly examine the uploaded file 
 
 Your response will be automatically parsed into a structured FileAnalysis object using Gemini's structured output feature.
 
+You must preserve and use the exact language of the original content. For example: If the content is in Arabic, ensure all output in Arabic. If the content is in English, ensure all output is in English. Always match the original content\'s language exactly.
+
 CRITICAL INSTRUCTIONS FOR COMPREHENSIVE ANALYSIS:
 
 1. READ THE ENTIRE DOCUMENT CAREFULLY - Don't just skim or look at the beginning
 
 2. SUMMARY REQUIREMENTS:
-    - Provide a detailed, comprehensive summary (minimum 800 tokens).
-    - Include the main purpose, key findings, important details, and conclusions
-    - Mention specific data, statistics, or examples when present
-    - Describe the document's structure and organization
-    - Include any significant insights or implications
-    - Prefix the summary with \"Summary: \" followed by the summary itself.
+- Provide a detailed, comprehensive summary (minimum 800 tokens).
+- Include the main purpose, key findings, important details, and conclusions
+- Mention specific data, statistics, or examples when present
+- Describe the document's structure and organization
+- Include any significant insights or implications
+- Prefix the summary with \"Summary: \" followed by the summary itself.
 
 3. DOCUMENT TYPE IDENTIFICATION:
 - Accurately classify the document type based on the document's purpose and structure

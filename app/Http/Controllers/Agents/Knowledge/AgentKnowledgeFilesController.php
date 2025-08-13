@@ -10,6 +10,11 @@ class AgentKnowledgeFilesController
 {
     public function __invoke(Request $request, Agent $agent)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         return KnowledgeFileData::fromFiles($agent->files);
     }
 }

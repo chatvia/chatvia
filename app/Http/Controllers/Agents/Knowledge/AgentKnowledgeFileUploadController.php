@@ -11,6 +11,11 @@ class AgentKnowledgeFileUploadController
 {
     public function __invoke(Request $request, Agent $agent, PdfInfo $pdfInfo, AgentKnowledgeAnalyzeFileAction $action)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $uploadedFile = $request->file('file');
 
         $info = $action->execute($uploadedFile, $request->user(), $agent);

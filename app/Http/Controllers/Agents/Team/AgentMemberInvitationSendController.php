@@ -12,6 +12,11 @@ class AgentMemberInvitationSendController
 {
     public function __invoke(Agent $agent, Request $request)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => [

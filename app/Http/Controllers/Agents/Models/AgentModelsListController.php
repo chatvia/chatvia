@@ -10,6 +10,11 @@ final class AgentModelsListController
 {
     public function __invoke(Agent $agent, Request $request)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $agentLlms = $agent->llms;
 
         $models = $request->user()->formattedLlms()->map(function (LlmModelData $llm) use ($agentLlms) {

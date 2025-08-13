@@ -9,6 +9,11 @@ class AgentDeleteSettingsController
 {
     public function __invoke(Agent $agent, string $group, Request $request)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $groups = collect(config('model-settings.defaults.'.Agent::class))
             ->keys()
             ->toArray();

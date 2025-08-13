@@ -13,6 +13,12 @@ class AgentMembersListController
         /** @var User $user */
         $user = $request->user();
 
+        abort_if(
+            boolean: $user->cannot('view', $agent),
+            code: 404,
+        );
+
+
         $members = $user->members()->with('agents')->get();
 
         return $members->map(function ($member) {

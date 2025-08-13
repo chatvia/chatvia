@@ -10,6 +10,11 @@ class AgentModelsToggleController
 {
     public function __invoke(Agent $agent, Request $request)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $request->validate([
             'model_id' => ['required', 'exists:llms,external_name'],
             'status' => ['required', 'boolean'],

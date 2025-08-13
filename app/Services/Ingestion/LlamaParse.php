@@ -10,9 +10,7 @@ use Symfony\Component\HttpFoundation\File\File;
 
 class LlamaParse
 {
-    private const int MAX_ATTEMPTS = 50;
-
-    private const int SLEEP_SEC = 3;
+    private const int SLEEP_SEC = 30;
 
     private string $baseUrl;
 
@@ -86,11 +84,8 @@ class LlamaParse
 
     public function getPages(string $jobId): array
     {
-        $attempts = 0;
-
-        while ($attempts < self::MAX_ATTEMPTS) {
+        while (true) {
             sleep(self::SLEEP_SEC);
-            $attempts++;
 
             // First check job status
             $statusResponse = $this->getJobStatus($jobId);
@@ -101,9 +96,6 @@ class LlamaParse
 
             $status = $statusResponse->json();
             $jobStatus = $status['status'] ?? '';
-
-            // Log the current status for debugging
-            Log::info("LlamaParse job {$jobId} status: {$jobStatus}", ['attempt' => $attempts, 'status_data' => $status]);
 
             // If job failed, throw an error
             if ($jobStatus === 'FAILED') {
@@ -144,8 +136,6 @@ class LlamaParse
 
             throw new RuntimeException("Error fetching job result: {$response->body()}");
         }
-
-        throw new RuntimeException('Job polling timeout after '.self::MAX_ATTEMPTS.' attempts');
     }
 
     public function getJobStatus(string $jobId)

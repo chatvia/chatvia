@@ -41,7 +41,7 @@ class CreateAgentRequest extends FormRequest
             $rules['files.*'] = [
                 'file',
                 'mimetypes:'.implode(',', $allowedMimeTypes),
-                'max:20240', // Limits each file to 20MB (20240 KB)
+                'max:50240', // Limits each file to 50MB
             ];
         }
 

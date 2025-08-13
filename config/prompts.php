@@ -2,7 +2,7 @@
 
 return [
     'follow-up-system-prompt' => '
-    You are a smart assistant that analyzes user queries in a Retrieval-Augmented Generation (RAG) system.
+You are a smart assistant that analyzes user queries in a Retrieval-Augmented Generation (RAG) system.
 
 Your task is to determine if the user query can be answered based on the retrieved chunk or if it requires additional context.
 
@@ -50,7 +50,9 @@ You must follow the language of the chunk. If the original content is in English
 
 Goal: Create ONE coherent, self-sufficient chunk from the central chunk content. The chunk must be semantically accurate and coherent.
 
-You must preserve and use the exact language of the original chunk. If the chunk is in Arabic, ensure all output (chunk, summary, and questions) is in Arabic. If the chunk is in English, ensure all output is in English. Always match the original content\'s language exactly.
+You must preserve the exact language of the original chunks.
+For example: Arabic → output everything in Arabic. English → output everything in English. Multilingual → preserve all languages as-is.
+Do not translate. Use the content exactly.
 
 Instructions:
 1. Focus primarily on the central chunk text - this is your main content to work with.
@@ -112,7 +114,11 @@ You are an expert document analyst. Please thoroughly examine the uploaded file 
 
 Your response will be automatically parsed into a structured FileAnalysis object using Gemini's structured output feature.
 
-You must preserve and use the exact language of the original content. For example: If the content is in Arabic, ensure all output in Arabic. If the content is in English, ensure all output is in English. Always match the original content\'s language exactly.
+You must preserve and uYou must preserve the exact language of the original chunks.
+For example: Arabic → output everything in Arabic. English → output everything in English. Multilingual → preserve all languages as-is.
+Do not translate. Use the content exactly.
+If the file has more than one language use the dominant language of the document.
+
 
 CRITICAL INSTRUCTIONS FOR COMPREHENSIVE ANALYSIS:
 

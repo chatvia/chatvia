@@ -243,26 +243,32 @@
                                 Launch in minutes with different data sources and deployment options<br>
                                 Upload PDFs, Word docs, and any files
                             </div>
-
-
-                                <div class="flex gap-3 justify-center mt-4 mb-2">
-                                    <div class="inline-flex items-center gap-2 text-sm text-zinc-500 bg-zinc-100 px-4 py-2 rounded-full">
-                                        <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd"
-                                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                  clip-rule="evenodd"/>
-                                        </svg>
-                                        GDPR compliant
-                                    </div>
-                                    <div class="inline-flex items-center gap-2 text-sm text-zinc-500 bg-zinc-100 px-4 py-2 rounded-full">
-                                        <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd"
-                                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                  clip-rule="evenodd"/>
-                                        </svg>
-                                        Hosted in EU
-                                    </div>
+                            
+                            <!-- Badges row -->
+                            <div class="flex gap-3 justify-center mb-6">
+                                <div class="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    No credit card required
                                 </div>
+                                <div class="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                    GDPR compliant
+                                </div>
+                                <div class="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                    Hosted in EU
+                                </div>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -783,6 +789,12 @@
                             Start your journey today</h2>
                         <p class="text-lg text-zinc-500">Start creating AI agents for free. Upgrade for
                             advanced features and team collaboration.</p>
+                        <div class="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 mt-4">
+                            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            No credit card required
+                        </div>
                     </div>
 
                     <!-- Pricing Toggle and Cards Container -->

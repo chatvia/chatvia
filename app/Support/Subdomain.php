@@ -9,16 +9,19 @@ class Subdomain
     public function generateRandomSubDomain(): string
     {
         $response = OpenRouter::completion([
-            'model' => 'gpt-4o-mini',
+            'model' => 'gpt-4.1-mini',
             'messages' => [
                 [
                     'role' => 'user',
                     'content' => '
-Generate a unique, clever, and meaningful name for a chat app.
-- Combine 1–3 real, relevant English words.
-- Make it subdomain-safe: use only lowercase letters, numbers, and dashes.
-- Dashes are optional but can be used for clarity.
-- Return only the name. No domain, no punctuation, no explanation.
+
+Generate a clever, witty, or playful name for an AI agent chat app by combining 2–3 relevant English words.
+
+The name must be subdomain-safe, using only lowercase letters, numbers, and optional dashes (for clarity).
+
+Return only the name—no domains, punctuation, or explanations.
+
+You must not use any brand names, trademarks, etc...
 	',
                 ],
             ],

@@ -49,13 +49,14 @@
 <meta property="og:image:alt" content="ChatVIA - AI Agents Platform" />
 
 <!-- Structured Data -->
+@verbatim
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "ChatVIA",
   "description": "Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files.",
-  "url": "{{ url()->current() }}",
+  "url": "https://chatvia.ai",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
   "offers": {
@@ -67,7 +68,8 @@
   "provider": {
     "@type": "Organization",
     "name": "ChatVIA",
-    "url": "{{ url('/') }}"
+    "url": "https://chatvia.ai",
   }
 }
 </script>
+@endverbatim

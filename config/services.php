@@ -73,6 +73,11 @@ return [
         'api_key' => env('GOOGLE_API_KEY'),
     ],
 
+    'microsoft' => [
+        'secret_value' => env('MICROSOFT_SECRET_VALUE'),
+        'secret_id' => env('MICROSOFT_SECRET_ID'),
+    ],
+
     'bin' => [
         'node' => env('NODE_BIN_PATH'),
         'npm' => env('NPM_BIN_PATH'),

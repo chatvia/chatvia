@@ -12,5 +12,6 @@ class ChatInputPayload extends Data
         public array $updated_message_info = [], // TODO: find a better name
         public ?string $message_for_llm = null,
         public ?int $member_id = null,
+        public ?string $language = null,
     ) {}
 }

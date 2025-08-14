@@ -120,6 +120,7 @@ class ChatMemory
 
         $append = [
             'include_in_conversation' => $this->agent->contextWindowEnabled(),
+            'language' => $payload->language,
         ];
 
         if ($isInputMessage) {

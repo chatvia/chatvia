@@ -52,6 +52,8 @@ class ChatStreamController
 
     private bool $playground = false;
 
+    private string $queryLanguage;
+
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly KnowledgeBase $knowledgeBase) {}
@@ -86,12 +88,16 @@ class ChatStreamController
             ->setIsPlayground($this->playground)
             ->setAgent($agent);
 
+        ['lang' => $lang, 'query' => $query] = $this->knowledgeBase->rewriteQuery($request->input('message'));
+
+        $this->queryLanguage = $lang;
+
         $this->payload = ChatInputPayload::from([
             'model' => $request->input('model'),
             'message' => $request->input('message'),
             'updated_message_info' => $request->input('updated_message_info', []),
-            //            'message_for_llm' => $this->knowledgeBase->rewriteQuery($request->input('message')),
-            'message_for_llm' => $request->input('message'),
+            'message_for_llm' => $query,
+            'language' => $lang,
         ]);
 
         $this->llmMessages = $this->memory->getLlmMessages();
@@ -160,9 +166,11 @@ If the response contains mathematical expression, then you must use the followin
 Use this format for mathematical expressions:
 Inline math: $E = mc^2$
 Display/block math: $$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$
-Do NOT use: \[...\] or [...] for math.
-Example: \[x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\]
-Instead of: $$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+Do NOT use: \[...\] or [...] for math. Example: \[x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\]
+Always use this format: $$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+
+For right-to-left languages, always place equations on a new line and format them using LaTeX syntax.
+
         ';
 
         $systemPrompt = [
@@ -170,7 +178,7 @@ Instead of: $$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
             'content' => $agent->system_instructions."\n".$preconditions,
         ];
 
-        $userMessageContent = $this->payload->message;
+        $userMessageContent = $this->payload->message_for_llm;
         $this->sources = collect();
 
         if ($agent->isKnowledgeable()) {
@@ -221,7 +229,6 @@ Instead of: $$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
                                 $i++;
                             }
                         }
-                        ray($text);
 
                         return $text;
                     })->implode("\n"))->toString();
@@ -249,6 +256,8 @@ Instead of: $$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
     {
         $buffer = '';
         $body = $response->getBody();
+
+        echo "language: ".$this->queryLanguage."\n\n";
 
         while (! $body->eof()) {
             if (connection_status() !== CONNECTION_NORMAL) {
@@ -371,6 +380,7 @@ Instead of: $$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
                 model: $this->llmModel->id,
                 generation_id: $this->generationId,
                 response_time_ms: (int) round(($this->endTime - $this->startTime) * 1000),
+                language: $this->queryLanguage,
             )
         );
 

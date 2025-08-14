@@ -84,6 +84,13 @@ watch(() => arrivedState.bottom, (isAtBottom) => {
 const updateModel = (model) => {
     selectedModel.value = model;
 };
+
+// Helper function to check if a message is RTL
+const isMessageRTL = (message) => {
+    const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi', 'dv'];
+    return message.language && rtlLanguages.includes(message.language);
+};
+
 const getQueryParam = (param) => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
@@ -405,6 +412,17 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
                 // Store sources for this message using message index as key
                 messageSources.value.set(messageIndex, sources);
             },
+            onLanguage: (language) => {
+                // Store the detected language in the streaming message
+                let messageIndex = messages.value.length - 1;
+                if (streamingForMessageIndex.value !== null) {
+                    messageIndex = streamingForMessageIndex.value;
+                }
+                
+                if (messages.value[messageIndex] && messages.value[messageIndex].role === 'assistant') {
+                    messages.value[messageIndex].language = language;
+                }
+            },
             onDone: () => {
                 streamingForMessageIndex.value = null;
                 if (isNewConversation) {
@@ -570,7 +588,10 @@ const handleScrollToBottomClick = () => {
                 <div
                     id="messages-container"
                     ref="messagesContainer"
-                    :class="['flex-1 overflow-y-auto overflow-x-hidden', { 'flex flex-col justify-between': messages.length === 0 }]"
+                    :class="[
+                        'flex-1 overflow-y-auto overflow-x-hidden',
+                        { 'flex flex-col justify-between': messages.length === 0 }
+                    ]"
                 >
                     <!-- Loading popup -->
                     <div v-if="loadingMessages" class="flex items-center justify-center h-full">
@@ -610,6 +631,7 @@ const handleScrollToBottomClick = () => {
                                     v-if="message.role === 'user'"
                                     :message="message"
                                     :conversationId="conversation_id"
+                                    :isRTL="isMessageRTL(message)"
                                     @messageUpdated="messageUpdated"
                                     @messageDeleted="messageDeleted"
                                 />
@@ -623,6 +645,7 @@ const handleScrollToBottomClick = () => {
                                     :hideFeedback="index === messages.length - 1 && isStreaming"
                                     :isThinking="index === messages.length - 1 && isStreaming && !message.content"
                                     :avatar="props.appearance?.avatar"
+                                    :isRTL="isMessageRTL(message)"
                                     @messageDeleted="messageDeleted"
                                     @feedbackProvided="feedbackProvided"
                                 />
@@ -686,6 +709,8 @@ const handleScrollToBottomClick = () => {
 </template>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap');
+
 /* Force scrollbar to always be visible to prevent layout shifts */
 #messages-container {
     overflow-y: scroll; /* Changed from auto to scroll */
@@ -1074,5 +1099,28 @@ body,
 
 .dark .chat-assistant-bubble {
     background-color: var(--chat-bubble-color, rgb(31 41 55)) !important;
+}
+
+/* Arabic Font Support */
+[data-rtl="true"] {
+    font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+[data-rtl="true"] .prose {
+    font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+[data-rtl="true"] .prose p,
+[data-rtl="true"] .prose h1,
+[data-rtl="true"] .prose h2,
+[data-rtl="true"] .prose h3,
+[data-rtl="true"] .prose h4,
+[data-rtl="true"] .prose h5,
+[data-rtl="true"] .prose h6,
+[data-rtl="true"] .prose li,
+[data-rtl="true"] .prose blockquote,
+[data-rtl="true"] .prose td,
+[data-rtl="true"] .prose th {
+    font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 </style>

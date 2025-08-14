@@ -5,12 +5,62 @@
     <meta charset="utf-8">
     <title>ChatVIA - Home</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
     @vite(['resources/css/landing.css'])
+
+    @include('partials.cover')
+
     <style>
         @keyframes pulseSoft { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .6; transform: scale(1.2); } }
         .pulse-dot { background-color: #10b981; animation: pulseSoft 1.2s ease-in-out infinite; }
-    </style>
 
+        /* CookieConsent v3 Custom Styles */
+        .cc-window {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .cc-compliance {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .cc-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cc-accept-all {
+            background: #10b981;
+            color: white;
+        }
+
+        .cc-accept-all:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .cc-accept-necessary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .cc-accept-necessary:hover {
+            background: #e5e7eb;
+        }
+
+        .cc-message {
+            color: #374151;
+            line-height: 1.6;
+        }
+    </style>
 
     @include('analytics')
 
@@ -33,6 +83,8 @@
     <meta name="twitter:site" content="@ahmadmayahi"/>
     <meta name="twitter:creator" content="@ahmadmayahi"/>
 
+    <!-- CookieConsent v3 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.0/dist/cookieconsent.css">
 
 </head>
 
@@ -1013,6 +1065,98 @@
 </div>
 
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<!-- CookieConsent v3 -->
+<script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.0/dist/cookieconsent.js"></script>
+<script>
+    // CookieConsent v3 Configuration
+    const cookieconsent = initCookieConsent();
+
+    cookieconsent.run({
+        root: 'body',
+        domains: ['chatvia.ai'],
+        language: 'en',
+        categories: {
+            necessary: {
+                enabled: true,
+                readOnly: true
+            },
+            analytics: {
+                enabled: false,
+                readOnly: false,
+                autoClear: {
+                    cookies: [
+                        {
+                            name: /^_ga/, // Google Analytics
+                        },
+                        {
+                            name: /^_gid/, // Google Analytics
+                        },
+                        {
+                            name: /^_gat/, // Google Analytics
+                        }
+                    ]
+                },
+                onAccept: function() {
+                    // Enable Google Analytics or other analytics
+                    console.log('Analytics cookies accepted');
+                },
+                onReject: function() {
+                    // Disable analytics
+                    console.log('Analytics cookies rejected');
+                }
+            },
+            marketing: {
+                enabled: false,
+                readOnly: false,
+                autoClear: {
+                    cookies: [
+                        {
+                            name: /^_fbp/, // Facebook Pixel
+                        },
+                        {
+                            name: /^_fbc/, // Facebook Pixel
+                        }
+                    ]
+                },
+                onAccept: function() {
+                    // Enable marketing cookies
+                    console.log('Marketing cookies accepted');
+                },
+                onReject: function() {
+                    // Disable marketing cookies
+                    console.log('Marketing cookies rejected');
+                }
+            }
+        },
+        guiOptions: {
+            consentModal: {
+                layout: 'cloud',
+                position: 'bottom right',
+                equalWeightButtons: true,
+                flipButtons: false
+            },
+            preferencesModal: {
+                layout: 'box',
+                position: 'right',
+                equalWeightButtons: true,
+                flipButtons: false
+            }
+        },
+        onFirstAction: function(userPreferences, cookie) {
+            // Callback triggered after user makes first action
+            console.log('User made first action:', userPreferences);
+        },
+        onAccept: function(cookie) {
+            // Callback triggered on accept
+            console.log('All cookies accepted:', cookie);
+        },
+        onChange: function(cookie, changedCategories) {
+            // Callback triggered when user changes preferences
+            console.log('Cookie preferences changed:', cookie, changedCategories);
+        }
+    });
+</script>
 </body>
 
 </html>

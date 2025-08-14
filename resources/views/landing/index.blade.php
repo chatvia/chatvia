@@ -272,8 +272,11 @@
                                 <!-- Main Image -->
                                 <img
                                         src="{{ asset('images/landing/intro.png') }}"
-                                        alt="Video Preview"
+                                        alt="ChatVIA AI Agents Platform Demo - Create custom AI chatbots with your data"
                                         class="w-full rounded-lg shadow-2xl"
+                                        loading="lazy"
+                                        width="800"
+                                        height="450"
                                 >
 
                                 <!-- Play Button Overlay - Centered on top -->
@@ -444,7 +447,7 @@
                                 >
                                     <div class="inline-flex relative align-top">
                                         <img class="w-full max-w-5xl h-auto rounded-t-lg border border-transparent [background:linear-gradient(var(--color-white),var(--color-white))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] box-content shadow-2xl"
-                                             src="{{ asset('images/landing/feature-01.png') }}" alt="Feature 01"/>
+                                             src="{{ asset('images/landing/feature-01.png') }}" alt="AI Agent Training - Upload documents and train custom AI agents" loading="lazy"/>
                                     </div>
                                 </div>
                                 <!-- Item 2 -->
@@ -460,7 +463,7 @@
                                 >
                                     <div class="inline-flex relative align-top">
                                         <img class="w-full max-w-5xl h-auto rounded-t-lg border border-transparent [background:linear-gradient(var(--color-white),var(--color-white))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] box-content shadow-2xl"
-                                             src="{{ asset('images/landing/feature-02.png') }}" alt="Feature 01"/>
+                                             src="{{ asset('images/landing/feature-02.png') }}" alt="AI Agent Instructions - Create custom AI agents with specific instructions" loading="lazy"/>
                                     </div>
                                 </div>
                                 <!-- Item 3 -->
@@ -476,7 +479,7 @@
                                 >
                                     <div class="inline-flex relative align-top">
                                         <img class="w-full max-w-5xl h-auto rounded-t-lg border border-transparent [background:linear-gradient(var(--color-white),var(--color-white))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] box-content shadow-2xl"
-                                             src="{{ asset('images/landing/feature-03.png') }}" alt="Feature 01"/>
+                                             src="{{ asset('images/landing/feature-03.png') }}" alt="AI Models - Multiple LLM options including GPT, Claude, Gemini and more" loading="lazy"/>
                                     </div>
                                 </div>
                                 <!-- Item 4 -->
@@ -492,7 +495,7 @@
                                 >
                                     <div class="inline-flex relative align-top">
                                         <img class="w-full max-w-5xl h-auto rounded-t-lg border border-transparent [background:linear-gradient(var(--color-white),var(--color-white))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] box-content shadow-2xl"
-                                             src="{{ asset('images/landing/feature-04.png') }}" alt="Feature 01"/>
+                                             src="{{ asset('images/landing/feature-04.png') }}" alt="Team Collaboration - Add team members and collaborate on AI agents" loading="lazy"/>
                                     </div>
                                 </div>
                             </div>
@@ -538,7 +541,7 @@
                                 <!-- LLM Model Icons -->
                                 <div class="grid grid-cols-4 gap-3 mb-6">
                                     <div class="flex items-center justify-center w-12 h-12 bg-white rounded-lg shadow-sm border border-zinc-100 hover:shadow-md transition-shadow">
-                                        <img src="{{ asset('images/llms/gpt.svg') }}" alt="OpenAI GPT" class="w-7 h-7">
+                                        <img src="{{ asset('images/llms/gpt.svg') }}" alt="OpenAI GPT" class="w-7 h-7" loading="lazy">
                                     </div>
                                     <div class="flex items-center justify-center w-12 h-12 bg-white rounded-lg shadow-sm border border-zinc-100 hover:shadow-md transition-shadow">
                                         <img src="{{ asset('images/llms/claude.svg') }}" alt="Anthropic Claude"

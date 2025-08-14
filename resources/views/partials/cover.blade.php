@@ -5,6 +5,25 @@
 <meta name="apple-mobile-web-app-title" content="ChatVia.ai" />
 <link rel="manifest" href="{{ asset('images/favicons/site.webmanifest') }}" />
 
+<!-- Preload critical resources -->
+<link rel="preload" href="{{ asset('images/chatvia.png') }}" as="image" />
+<link rel="preload" href="{{ asset('images/landing/intro.png') }}" as="image" />
+<link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
+<link rel="dns-prefetch" href="//fonts.googleapis.com" />
+
+<!-- SEO Meta Tags -->
+<meta name="description" content="Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files. Launch in minutes with different data sources and deployment options. No credit card required." />
+<meta name="keywords" content="AI agents, ChatGPT alternative, RAG, document processing, PDF analysis, AI chatbot, custom AI, knowledge base, document upload, AI training" />
+<meta name="author" content="ChatVIA" />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="{{ url()->current() }}" />
+
+<!-- Performance and Security -->
+<meta http-equiv="X-Content-Type-Options" content="nosniff" />
+<meta http-equiv="X-Frame-Options" content="DENY" />
+<meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
 <!-- Social Media Meta Tags -->
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
@@ -28,5 +47,27 @@
 
 <!-- LinkedIn -->
 <meta property="og:image:alt" content="ChatVIA - AI Agents Platform" />
-<meta name="author" content="ChatVIA" />
-<meta name="robots" content="index, follow" />
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "ChatVIA",
+  "description": "Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files.",
+  "url": "{{ url()->current() }}",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "description": "Free plan available, no credit card required"
+  },
+  "provider": {
+    "@type": "Organization",
+    "name": "ChatVIA",
+    "url": "{{ url('/') }}"
+  }
+}
+</script>

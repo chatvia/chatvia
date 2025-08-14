@@ -229,37 +229,31 @@
                                     </svg>
                                 </em>
                             </h1>
+                            
                             <div class="text-xl md:text-2xl text-zinc-600 font-medium mb-6 leading-relaxed">
                                 Launch in minutes with different data sources and deployment options<br>
                                 Upload PDFs, Word docs, and any files
                             </div>
                             
-                            <!-- Badges row -->
-                            <div class="flex gap-3 justify-center mb-6">
-                                <div class="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200">
-                                    <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                            <!-- No credit card required badge -->
+                            <div class="flex justify-center mb-6">
+                                <div class="inline-flex items-center justify-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 whitespace-nowrap">
+                                    <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                     </svg>
-                                    No credit card required
-                                </div>
-                                <div class="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200">
-                                    <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                              clip-rule="evenodd"/>
-                                    </svg>
-                                    GDPR compliant
-                                </div>
-                                <div class="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200">
-                                    <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                              clip-rule="evenodd"/>
-                                    </svg>
-                                    Hosted in EU
+                                    <span class="text-center">No credit card required</span>
                                 </div>
                             </div>
+                            
+                            <!-- Get Started Button -->
+                            <div class="flex justify-center mb-8">
+                                <a href="{{ route('register') }}" 
+                                   class="btn text-zinc-100 bg-linear-to-r from-zinc-700 to-zinc-900 hover:from-zinc-900 hover:to-zinc-900 shadow-sm px-8 py-4 text-lg">
+                                    Get Started for Free
+                                </a>
                             </div>
+                            
+
                         </div>
                     </div>
 
@@ -352,6 +346,26 @@
             <div class="py-12 md:py-20">
                 <div class="max-w-6xl mx-auto px-4 sm:px-6">
                     <div class="max-w-3xl mx-auto text-center pb-12">
+                        <!-- Trust badges -->
+                        <div class="flex flex-row gap-3 justify-center mb-6 px-4">
+                            <div class="inline-flex items-center justify-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 whitespace-nowrap">
+                                <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                          clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-center">GDPR compliant</span>
+                            </div>
+                            <div class="inline-flex items-center justify-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 whitespace-nowrap">
+                                <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                          clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-center">Hosted in EU</span>
+                            </div>
+                        </div>
+                        
                         <div class="inline-flex text-sm font-medium text-emerald-600 px-4 py-0.5 border border-transparent [background:linear-gradient(var(--color-emerald-50),var(--color-emerald-50))_padding-box,linear-gradient(120deg,var(--color-emerald-300),var(--color-emerald-100),var(--color-emerald-300))_border-box] rounded-full mb-4">
                             Your data stays private with RAG technology
                         </div>

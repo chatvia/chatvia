@@ -71,17 +71,7 @@
     <meta name="apple-mobile-web-app-title" content="ChatVia.ai" />
     <link rel="manifest" href="{{ asset('images/favicons/site.webmanifest') }}" />
 
-    <!-- Social media share -->
-    <meta property="og:title" content="Create AI Agents similar to ChatGPT but with your own data">
-    <meta property="og:site_name" content="ChatVia.ai">
-    <meta property="og:url" content="https://chatvia.ai">
-    <meta property="og:image" content="https://chatvia.ai/images/chatvia.png">
-    <meta property="og:description" content="Create AI Agents similar to ChatGPT but with your own data">
-    <meta property="og:type" content="">
-
-    <meta name="twitter:card" content="Create AI Agents similar to ChatGPT but with your own data"/>
-    <meta name="twitter:site" content="@ahmadmayahi"/>
-    <meta name="twitter:creator" content="@ahmadmayahi"/>
+    <!-- Social media meta tags are now included in the cover partial -->
 
     <!-- CookieConsent v3 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.0/dist/cookieconsent.css">

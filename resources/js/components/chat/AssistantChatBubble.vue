@@ -55,6 +55,7 @@ const props = defineProps<{
   sources?: any[]
   conversationId?: string
   avatar?: string | null
+  isRTL?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -91,7 +92,11 @@ const marked = new Marked(
 )
 
 marked.use({ gfm: true })
-  .use(markedKatex())
+  .use(markedKatex({
+    throwOnError: false,
+    errorColor: '#cc0000',
+    strict: false
+  }))
   .use(markedCodePreview())
   .use(markedAlert())
 
@@ -241,7 +246,7 @@ onMounted(() => {
     </Avatar>
 
     <div class="flex-1 min-w-0 max-w-full">
-      <div class="prose prose-sm dark:prose-invert max-w-none w-full chat-assistant-bubble rounded-lg p-3">
+      <div class="prose prose-sm dark:prose-invert max-w-none w-full chat-assistant-bubble rounded-lg p-5" :data-rtl="isRTL">
         <div v-if="message.content"
              id="chat-ai-responses"
              ref="messageContentRef"
@@ -443,6 +448,15 @@ onMounted(() => {
   border-radius: 0.375rem;
 }
 
+/* RTL alert styling */
+:deep([dir="rtl"] .markdown-alert) {
+  border-left-width: 0;
+  border-right-width: 4px;
+  border-right-style: solid;
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+
 :deep(.markdown-alert-note) {
   border-left-color: hsl(var(--primary));
   background-color: hsl(var(--primary) / 0.1);
@@ -567,5 +581,63 @@ onMounted(() => {
   border: none;
   border-top: 1px solid hsl(var(--border));
   margin: 1.5rem 0;
+}
+
+/* RTL Support for specific content elements only */
+:deep(.prose[data-rtl="true"] p),
+:deep(.prose[data-rtl="true"] h1),
+:deep(.prose[data-rtl="true"] h2),
+:deep(.prose[data-rtl="true"] h3),
+:deep(.prose[data-rtl="true"] h4),
+:deep(.prose[data-rtl="true"] h5),
+:deep(.prose[data-rtl="true"] h6) {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Exclude math content from RTL styling */
+:deep(.prose[data-rtl="true"] .katex-display),
+:deep(.prose[data-rtl="true"] .katex) {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+/* Also target any paragraph that contains math */
+:deep(.prose[data-rtl="true"] p .katex-display),
+:deep(.prose[data-rtl="true"] p .katex) {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+:deep(.prose[data-rtl="true"] ul),
+:deep(.prose[data-rtl="true"] ol) {
+  padding-right: 1.5rem;
+  padding-left: 0;
+  direction: rtl;
+}
+
+:deep(.prose[data-rtl="true"] blockquote) {
+  border-right: 3px solid hsl(var(--muted-foreground) / 0.3);
+  border-left: none;
+  padding-right: 1rem;
+  padding-left: 0;
+  direction: rtl;
+}
+
+:deep(.prose[data-rtl="true"] th),
+:deep(.prose[data-rtl="true"] td) {
+  text-align: right;
+  direction: rtl;
+}
+
+:deep(.prose[data-rtl="true"] img) {
+  direction: rtl;
+}
+
+/* Keep code blocks in LTR regardless of language */
+:deep(.prose[data-rtl="true"] pre),
+:deep(.prose[data-rtl="true"] code) {
+  direction: ltr;
+  text-align: left;
 }
 </style>

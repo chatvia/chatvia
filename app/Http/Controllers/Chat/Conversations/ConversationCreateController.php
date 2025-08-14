@@ -6,6 +6,7 @@ use App\Data\Chat\ChatInputPayload;
 use App\Rules\AgentLLmChatRule;
 use App\Support\Chat\ChatMemory;
 use App\Support\Llms;
+use App\Support\OpenAI;
 use Illuminate\Http\Request;
 
 final class ConversationCreateController
@@ -21,9 +22,13 @@ final class ConversationCreateController
 
         abort_if(boolean: ! $agent, code: 404);
 
+        ['lang' => $lang, 'query' => $query] = OpenAI::rewriteQuery($request->input('message'));
+
         $payload = ChatInputPayload::from([
             'model' => $request->input('model'),
             'message' => $request->input('message'),
+            'message_for_llm' => $query,
+            'language' => $lang,
         ]);
 
         $conversationId = $memory

@@ -22,6 +22,7 @@ import type { Message } from '@/types/chat'
 const props = defineProps<{
   message: Message
   conversationId?: string
+  isRTL?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -133,7 +134,7 @@ async function deleteMessage() {
           </div>
         </div>
         <div v-else>
-          <p class="text-sm whitespace-pre-wrap break-words">{{ message.content }}</p>
+          <p class="text-sm whitespace-pre-wrap break-words" :data-rtl="isRTL">{{ message.content }}</p>
         </div>
       </Card>
       
@@ -185,4 +186,18 @@ async function deleteMessage() {
       </div>
     </div>
   </div>
-</template> 
+</template>
+
+<style scoped>
+/* RTL Support for user message content */
+[data-rtl="true"] {
+  text-align: right;
+  direction: rtl;
+  font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Arabic Font Support for RTL content */
+[data-rtl="true"] p {
+  font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+</style> 

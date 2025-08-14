@@ -9,7 +9,8 @@ export function useSSE() {
         onMessage?: (content: string, messageId?: string) => void,
         onDone?: () => void,
         onError?: (error: any) => void,
-        onSources?: (sources: any[]) => void
+        onSources?: (sources: any[]) => void,
+        onLanguage?: (language: string) => void
     }) => {
         return () => {
             // Abort any existing connection
@@ -70,6 +71,7 @@ export function useSSE() {
                             // Extract data from SSE format
                             const dataMatch = line.match(/^data: (.+)$/m);
                             const sourcesMatch = line.match(/^sources: (.+)$/m);
+                            const languageMatch = line.match(/^language: (.+)$/m);
                             
                             if (dataMatch) {
                                 try {
@@ -96,6 +98,10 @@ export function useSSE() {
                                 } catch (e) {
                                     console.error('Error parsing SSE sources:', e);
                                 }
+                            } else if (languageMatch) {
+                                const language = languageMatch[1].trim();
+                                console.log('Received SSE language:', language);
+                                if (callbacks.onLanguage) callbacks.onLanguage(language);
                             }
                         }
 

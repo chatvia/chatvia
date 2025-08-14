@@ -25,5 +25,21 @@ class DatabaseSeeder extends Seeder
             'is_active' => 1,
             'type' => 'knowledge',
         ]);
+
+        $user2 = User::factory()->create([
+            'name' => 'Ahmad',
+            'email' => 'ahmad.mayagi@gmail.com',
+            'is_admin' => 0,
+        ]);
+
+        Agent::factory()->create([
+            'user_id' => $user2->id,
+            'name' => 'Assistant',
+            'sub_domain' => 'assistant',
+            'system_instructions' => config('prompts.knowledge-based-system-instruction'),
+            'is_public' => 1,
+            'is_active' => 1,
+            'type' => 'knowledge',
+        ]);
     }
 }

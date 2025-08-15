@@ -65,7 +65,9 @@ class Agent extends Model
             return $agentFile;
         } catch (Exception $e) {
             DB::rollBack();
-            Storage::delete($path);
+            if (isset($path)) {
+                Storage::delete($path);
+            }
             throw $e;
         }
     }

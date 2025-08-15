@@ -74,8 +74,9 @@ return [
     ],
 
     'microsoft' => [
-        'secret_value' => env('MICROSOFT_SECRET_VALUE'),
-        'secret_id' => env('MICROSOFT_SECRET_ID'),
+        'client_id' => env('MICROSOFT_CLIENT_ID'),
+        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+        'redirect' => env('MICROSOFT_REDIRECT_URI'),
     ],
 
     'bin' => [

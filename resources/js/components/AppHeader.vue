@@ -235,7 +235,7 @@ const rightNavItems: NavItem[] = [];
         </div>
     <div :class="[
         props.breadcrumbs.length > 1 ? 'h-28' : 'h-16',
-        'mt-28'
+        'mt-12'
     ]"></div>
 </template>
 

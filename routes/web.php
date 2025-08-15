@@ -4,6 +4,8 @@ use App\Http\Controllers\Auth\Social\GoogleAuthController;
 use App\Http\Controllers\Auth\Social\GoogleCallbackAuthController;
 use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\ConsentController;
+use App\Http\Controllers\MicrosoftAuthController;
+use App\Http\Controllers\MicrosoftCallbackAuthController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\TermsController;
@@ -23,6 +25,9 @@ Route::get('/changelog', ChangelogController::class)->name('changelog');
 
 Route::get('/auth/google', GoogleAuthController::class)->name('auth.google');
 Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->name('auth.google.callback');
+
+Route::get('/auth/microsoft', MicrosoftAuthController::class)->name('auth.microsoft');
+Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->name('auth.microsoft.callback');
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

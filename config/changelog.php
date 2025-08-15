@@ -3,9 +3,21 @@
 return [
     'versions' => [
         [
+            'version' => '14-08-2025',
+            'release_date' => 'Aug 14, 2025',
+            'status' => 'Latest',
+            'status_color' => 'blue',
+            'changes' => [
+                'new_features' => [
+                    'Added support for Right-to-Left (RTL) languages',
+                    'Added Arabic font',
+                ],
+            ],
+        ],
+        [
             'version' => '13-08-2025',
             'release_date' => 'Aug 13, 2025',
-            'status' => 'Latest',
+            'status' => 'Released',
             'status_color' => 'blue',
             'changes' => [
                 'new_features' => [

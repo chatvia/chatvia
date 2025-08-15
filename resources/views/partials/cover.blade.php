@@ -18,13 +18,8 @@
 <meta name="robots" content="index, follow" />
 <link rel="canonical" href="{{ url()->current() }}" />
 
-<!-- Performance and Security -->
-<meta http-equiv="X-Content-Type-Options" content="nosniff" />
-<meta http-equiv="X-Frame-Options" content="DENY" />
-<meta http-equiv="X-XSS-Protection" content="1; mode=block" />
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-
 <!-- Social Media Meta Tags -->
+
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ url()->current() }}" />
@@ -46,7 +41,7 @@
 <meta name="twitter:creator" content="@ahmadmayahi" />
 
 <!-- LinkedIn -->
-<meta property="og:image:alt" content="ChatVIA - AI Agents Platform" />
+<meta property="og:image:alt" content="ChatVIA - Create AI Agents similar to ChatGPT but with your own data" />
 
 <!-- Structured Data -->
 @verbatim
@@ -68,7 +63,7 @@
   "provider": {
     "@type": "Organization",
     "name": "ChatVIA",
-    "url": "https://chatvia.ai",
+    "url": "https://chatvia.ai"
   }
 }
 </script>

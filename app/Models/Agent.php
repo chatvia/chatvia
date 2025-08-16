@@ -37,13 +37,13 @@ class Agent extends Model
         AgentFileStatusEnum $status = AgentFileStatusEnum::UPLOADED,
         array $options = []): AgentFile
     {
+        $path = Storage::putFile(
+            path: 'users/'.$this->user_id.'/agents/'.$this->id.'/files',
+            file: $file
+        );
+
         try {
             DB::beginTransaction();
-
-            $path = Storage::putFile(
-                path: 'users/'.$this->user_id.'/agents/'.$this->id.'/files',
-                file: $file
-            );
 
             $analyzer = FileAnalyzer::analyze($file);
 
@@ -65,9 +65,11 @@ class Agent extends Model
             return $agentFile;
         } catch (Exception $e) {
             DB::rollBack();
+
             if (isset($path)) {
                 Storage::delete($path);
             }
+
             throw $e;
         }
     }

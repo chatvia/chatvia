@@ -7,9 +7,9 @@
             <div class="max-w-4xl mx-auto">
                 <div class="text-center">
                     <h1 class="font-inter-tight text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-zinc-500 via-zinc-900 to-zinc-900 pb-4 mb-6">
-                        Create ChatGPT-like AI agents
+                        AI Chatbots trained
                         <em class="italic relative inline-flex justify-center items-center text-zinc-900">
-                            from your data
+                            on your data
                             <svg class="absolute fill-zinc-300 w-[calc(100%+1rem)] -z-10 max-w-full"
                                  xmlns="http://www.w3.org/2000/svg" width="223" height="62" viewBox="0 0 223 62"
                                  aria-hidden="true" preserveAspectRatio="none">
@@ -17,12 +17,12 @@
                             </svg>
                         </em>
                     </h1>
-                    
+
                     <div class="text-xl md:text-2xl text-zinc-600 font-medium mb-6 leading-relaxed">
-                        Launch in minutes with different data sources and deployment options<br>
-                        Upload PDFs, Word docs, and any files
+                        Create ChatGPT-like AI agents and launch in minutes<br>
+                        Train on PDF, Word docs, and any files
                     </div>
-                    
+
                     <!-- No credit card required badge -->
                     <div class="flex justify-center mb-6">
                         <div class="inline-flex items-center justify-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 whitespace-nowrap">
@@ -32,15 +32,15 @@
                             <span class="text-center">No credit card required</span>
                         </div>
                     </div>
-                    
+
                     <!-- Get Started Button -->
                     <div class="flex justify-center mb-8">
-                        <a href="{{ route('register') }}" 
+                        <a href="{{ route('register') }}"
                            class="btn text-zinc-100 bg-linear-to-r from-zinc-700 to-zinc-900 hover:from-zinc-900 hover:to-zinc-900 shadow-sm px-8 py-4 text-lg">
                             Get Started for Free
                         </a>
                     </div>
-                    
+
 
                 </div>
             </div>

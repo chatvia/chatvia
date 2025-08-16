@@ -48,7 +48,7 @@ return [
 
         'file' => [
             'driver' => 'file',
-            'path' => storage_path('framework/cache/data'),
+            'path' => env('APP_CACHE_DIR_PATH', storage_path('framework/cache/data')),
             'lock_path' => storage_path('framework/cache/data'),
         ],
 

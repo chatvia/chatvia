@@ -75,7 +75,14 @@ if (! function_exists('get_plan_capabilities')) {
 if (! function_exists('temp_dir')) {
     function temp_dir(): string
     {
-        return storage_path('framework/cache');
+        return sys_get_temp_dir();
+    }
+}
+
+if (! function_exists('cache_dir')) {
+    function cache_dir(): string
+    {
+        return config('cache.stores.file.path');
     }
 }
 

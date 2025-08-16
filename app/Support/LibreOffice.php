@@ -13,7 +13,7 @@ class LibreOffice
 {
     private string $libreOfficeExecPath;
 
-    private string $tempDir;
+    private string $cacheDir;
 
     private int $timeout = 3600;
 
@@ -24,7 +24,7 @@ class LibreOffice
     public function __construct()
     {
         $this->libreOfficeExecPath = config('services.bin.libreoffice');
-        $this->tempDir = temp_dir();
+        $this->cacheDir = cache_dir();
 
         $this->allowedFormats = [
             // Writer formats
@@ -39,7 +39,7 @@ class LibreOffice
             'png', 'jpg', 'jpeg', 'svg',
         ];
 
-        $profilePath = rtrim($this->tempDir, '/').'/libreoffice/profiles/'.Str::uuid()->toString();
+        $profilePath = rtrim($this->cacheDir, '/').'/libreoffice/profiles/'.Str::uuid()->toString();
 
         File::makeDirectory($profilePath, recursive: true);
 
@@ -68,7 +68,7 @@ class LibreOffice
             );
         }
 
-        $convertedFilePath = $this->tempDir.'/libreoffice/files/'.$fileInfo['filename'].'.'.$format;
+        $convertedFilePath = $this->cacheDir.'/libreoffice/files/'.$fileInfo['filename'].'.'.$format;
 
         if (! File::exists($convertedFilePath)) {
             throw new RuntimeException("Could not find converted file: {$convertedFilePath}");
@@ -123,7 +123,7 @@ class LibreOffice
             '--nologo',
             '--norestore',
             '--convert-to', $outputFormat,
-            '--outdir', $this->tempDir.'/libreoffice/files',
+            '--outdir', $this->cacheDir.'/libreoffice/files',
             $inputPath,
         ];
 
@@ -179,7 +179,7 @@ class LibreOffice
 
     private function getLibreOfficeEnv(): array
     {
-        $temp = rtrim($this->tempDir, '/');
+        $temp = rtrim($this->cacheDir, '/');
 
         return [
             'HOME' => $temp,

@@ -22,9 +22,9 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\File\File;
 use Throwable;
 
-class IngestionJob implements ShouldQueue, ShouldBeUnique
+class IngestionJob implements ShouldBeUnique, ShouldQueue
 {
-    use Batchable, Queueable, SerializesModels, InteractsWithQueue;
+    use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
 
@@ -86,7 +86,7 @@ class IngestionJob implements ShouldQueue, ShouldBeUnique
         $this->agentFile->refresh();
 
         // Validate pages data before chunking
-        if (!is_array($pages) || empty($pages)) {
+        if (! is_array($pages) || empty($pages)) {
             throw new RuntimeException('No valid pages data available for chunking');
         }
 
@@ -120,7 +120,7 @@ class IngestionJob implements ShouldQueue, ShouldBeUnique
 
     public function uniqueId(): string
     {
-        return 'ingestion_' . $this->agentFile->id;
+        return 'ingestion_'.$this->agentFile->id;
     }
 
     public function uniqueFor(): int
@@ -166,7 +166,7 @@ class IngestionJob implements ShouldQueue, ShouldBeUnique
 
         $this->agentFile->update([
             'status' => 'failed',
-            'failure_reason' => 'Job timed out after ' . $this->timeout . ' seconds',
+            'failure_reason' => 'Job timed out after '.$this->timeout.' seconds',
         ]);
     }
 }

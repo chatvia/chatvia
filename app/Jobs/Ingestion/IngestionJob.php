@@ -8,25 +8,31 @@ use App\Services\Chunker;
 use App\Services\Ingestion\LlamaParse;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Http\File;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\File\File;
 use Throwable;
 
-class IngestionJob implements ShouldBeUnique, ShouldQueue
+class IngestionJob implements ShouldQueue, ShouldBeUnique
 {
-    use Batchable, Queueable, SerializesModels;
+    use Batchable, Queueable, SerializesModels, InteractsWithQueue;
 
     public $tries = 3;
 
     public $backoff = 10;
 
     public $timeout = 1800;
+
+    public $uniqueFor = 3600;
 
     public function __construct(public AgentFile $agentFile)
     {
@@ -39,12 +45,16 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
+        if ($this->agentFile->status === 'completed') {
+            return;
+        }
+
         $externalJobId = $this->agentFile->external_parsing_job_id;
 
         $internalJobId = $this->job->getJobId();
 
         $updateValues = [
-            'internal_ingestion_job_id' => $internalJobId ?: null,
+            'internal_ingestion_job_id' => $internalJobId,
             'parser' => 'llamaparse',
         ];
 
@@ -58,6 +68,7 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
 
         if ($this->agentFile->parser_filepath) {
             $pages = Storage::get($this->agentFile->parser_filepath);
+            $pages = json_decode($pages, true, 512, JSON_THROW_ON_ERROR);
         } else {
             $pages = $llamaParse->getPagesWithImages($externalJobId);
 
@@ -74,6 +85,11 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
 
         $this->agentFile->refresh();
 
+        // Validate pages data before chunking
+        if (!is_array($pages) || empty($pages)) {
+            throw new RuntimeException('No valid pages data available for chunking');
+        }
+
         $chunker = new Chunker($this->agentFile);
         $chunks = $chunker->createChunks($pages);
 
@@ -81,7 +97,7 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             return new IngestionChunkJob($chunk);
         });
 
-        IngestionSummaryJob::dispatch($this->agentFile);
+        dispatch(new IngestionSummaryJob($this->agentFile));
 
         $agentFileId = $this->agentFile->id;
 
@@ -92,30 +108,65 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             })
             ->dispatch();
 
-        $this->agentFile->update([
-            'status' => 'processing',
-            'internal_chunking_batch_id' => $batch->id,
-            'chunks' => $chunks->count(),
-        ]);
+        // Use transaction to ensure atomic status update
+        DB::transaction(function () use ($chunks, $batch) {
+            $this->agentFile->update([
+                'status' => 'processing',
+                'internal_chunking_batch_id' => $batch->id,
+                'chunks' => $chunks->count(),
+            ]);
+        });
     }
 
     public function uniqueId(): string
     {
-        return $this->agentFile->id;
+        return 'ingestion_' . $this->agentFile->id;
+    }
+
+    public function uniqueFor(): int
+    {
+        return $this->uniqueFor;
     }
 
     public function tags(): array
     {
         return [
             'agent_file:'.$this->agentFile->id,
+            'ingestion_job',
         ];
     }
 
     public function failed(Throwable $exception): void
     {
+        // Get the current job ID for logging
+        $jobId = $this->job->getJobId();
+
+        Log::error('IngestionJob failed', [
+            'agent_file_id' => $this->agentFile->id,
+            'job_id' => $jobId,
+            'error' => $exception->getMessage(),
+            'trace' => $exception->getTraceAsString(),
+        ]);
+
         $this->agentFile->update([
             'status' => 'failed',
             'failure_reason' => $exception->getMessage(),
+        ]);
+    }
+
+    public function timeout(): void
+    {
+        // Get the current job ID for logging
+        $jobId = $this->job?->getJobId() ?? $this->job?->uuid() ?? 'unknown';
+
+        Log::warning('IngestionJob timed out', [
+            'agent_file_id' => $this->agentFile->id,
+            'job_id' => $jobId,
+        ]);
+
+        $this->agentFile->update([
+            'status' => 'failed',
+            'failure_reason' => 'Job timed out after ' . $this->timeout . ' seconds',
         ]);
     }
 }

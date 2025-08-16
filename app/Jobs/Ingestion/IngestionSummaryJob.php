@@ -9,12 +9,13 @@ use App\Support\TikToken;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class IngestionSummaryJob implements ShouldQueue
 {
-    use Batchable, Queueable;
+    use Batchable, Queueable, SerializesModels;
 
     public function __construct(public AgentFile $agentFile)
     {

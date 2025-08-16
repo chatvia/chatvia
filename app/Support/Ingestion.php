@@ -16,7 +16,8 @@ class Ingestion
     public function ingest(AgentFile $agentFile): void
     {
         $agentFile->update(['status' => 'processing']);
-        IngestionJob::dispatch($agentFile);
+
+        dispatch(new IngestionJob($agentFile));
     }
 
     public function cancelJob(AgentFile $agentFile): void

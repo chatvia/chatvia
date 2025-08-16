@@ -171,6 +171,7 @@ Always use this format: $$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
 
 For right-to-left languages, always place equations on a new line and format them using LaTeX syntax.
 
+Important: Your response will be used in a Retrieval-Augmented Generation (RAG) system. Do not reference or reveal internal processes, technical terms, or implementation details (e.g., data segmentation, embeddings, or indexing). Focus only on providing a clear, natural, and helpful answer to the user’s query.
         ';
 
         $systemPrompt = [

@@ -293,9 +293,9 @@ class ChatMemory
 
         $session = $this->cacheGet($currentSession);
 
-//        if (!empty($session['member_id']) && $this->agent->is_public === false && $this->member()?->id !== $session['member_id']) {
-//            return [];
-//        }
+        //        if (!empty($session['member_id']) && $this->agent->is_public === false && $this->member()?->id !== $session['member_id']) {
+        //            return [];
+        //        }
 
         $conversations = collect($session['conversations'] ?? []);
 

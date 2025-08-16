@@ -17,7 +17,6 @@ class AgentTeamController
             code: 404,
         );
 
-
         return Inertia::render('agents/Team', [
             'agent' => $agent,
             'team_collaboration' => $user->capabilityAllows('team_collaboration'),

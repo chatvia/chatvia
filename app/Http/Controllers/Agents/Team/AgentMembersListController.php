@@ -18,7 +18,6 @@ class AgentMembersListController
             code: 404,
         );
 
-
         $members = $user->members()->with('agents')->get();
 
         return $members->map(function ($member) {

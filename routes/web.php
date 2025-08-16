@@ -9,6 +9,7 @@ use App\Http\Controllers\MicrosoftCallbackAuthController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\TermsController;
+use App\Http\Controllers\UseCasesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,6 +29,8 @@ Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->name('
 
 Route::get('/auth/microsoft', MicrosoftAuthController::class)->name('auth.microsoft');
 Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->name('auth.microsoft.callback');
+
+Route::get('/use-cases/{case}', UseCasesController::class)->name('use-cases');
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

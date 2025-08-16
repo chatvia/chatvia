@@ -257,7 +257,7 @@ For right-to-left languages, always place equations on a new line and format the
         $buffer = '';
         $body = $response->getBody();
 
-        echo "language: ".$this->queryLanguage."\n\n";
+        echo 'language: '.$this->queryLanguage."\n\n";
 
         while (! $body->eof()) {
             if (connection_status() !== CONNECTION_NORMAL) {

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/AppLayout.vue';
 import FileUploader from '@/components/FileUploader.vue';
 import type { BreadcrumbItem } from '@/types';
@@ -84,6 +85,8 @@ const isGeneratingSubdomain = ref(false);
 const isLoadingUsage = ref(false);
 const usageData = ref<UsageData | null>(null);
 const fileUploaderRef = ref<InstanceType<typeof FileUploader> | null>(null);
+const showPublicWarningModal = ref(false);
+const pendingPublicState = ref(false);
 
 const showFileUpload = computed(() => form.type === AgentType.KNOWLEDGE_BASED);
 
@@ -213,6 +216,31 @@ const selectAgentType = (targetType: AgentType) => {
     } else {
         form.system_instructions = 'You are a helpful assistant.';
     }
+};
+
+// Handle public agent toggle with confirmation modal
+const handlePublicToggle = (isPublic: boolean) => {
+    if (isPublic) {
+        // Show warning modal before making public
+        pendingPublicState.value = true;
+        showPublicWarningModal.value = true;
+    } else {
+        // Making private is safe, no confirmation needed
+        form.is_public = false;
+    }
+};
+
+// Confirm making agent public
+const confirmMakePublic = () => {
+    form.is_public = true;
+    showPublicWarningModal.value = false;
+    pendingPublicState.value = false;
+};
+
+// Cancel making agent public
+const cancelMakePublic = () => {
+    showPublicWarningModal.value = false;
+    pendingPublicState.value = false;
 };
 
 const submit = () => {
@@ -466,18 +494,6 @@ onMounted(() => {
                                                 {{ usageData.agents.instruction.remaining }}/{{ usageData.agents.instruction.limit }} remaining
                                             </div>
                                             <div class="space-y-2">
-                                                <div class="flex items-center gap-2 text-sm">
-                                                    <div class="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                                                    <span>Instant deployment - no training required</span>
-                                                </div>
-                                                <div class="flex items-center gap-2 text-sm">
-                                                    <div class="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                                                    <span>Uses AI's built-in knowledge</span>
-                                                </div>
-                                                <div class="flex items-center gap-2 text-sm">
-                                                    <div class="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                                                    <span>Perfect for general-purpose tasks</span>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -524,18 +540,6 @@ onMounted(() => {
                                                 {{ usageData.agents.knowledge.remaining }}/{{ usageData.agents.knowledge.limit }} remaining
                                             </div>
                                             <div class="space-y-2">
-                                                <div class="flex items-center gap-2 text-sm">
-                                                    <div class="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                                                    <span>Learns from your specific data</span>
-                                                </div>
-                                                <div class="flex items-center gap-2 text-sm">
-                                                    <div class="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                                                    <span>Perfect for specialized knowledge</span>
-                                                </div>
-                                                <div class="flex items-center gap-2 text-sm">
-                                                    <div class="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-                                                    <span>Provides accurate, contextual answers</span>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -607,8 +611,14 @@ onMounted(() => {
                                     <Label class="text-base" for="is_public">Make this agent public</Label>
                                     <p class="text-muted-foreground text-sm">Public agents can be accessed by anyone with the link</p>
                                 </div>
-                                <Switch id="is_public" v-model="form.is_public" :disabled="!canCreateAnyAgent" />
+                                <Switch 
+                                    id="is_public" 
+                                    :model-value="form.is_public" 
+                                    :disabled="!canCreateAnyAgent"
+                                    @update:model-value="handlePublicToggle" 
+                                />
                             </div>
+                            
                             <div class="border-border mt-4 border-t pt-4">
                                 <div class="flex items-center gap-2">
                                     <AlertCircle class="text-muted-foreground h-4 w-4" />
@@ -645,6 +655,29 @@ onMounted(() => {
                 </div>
             </form>
         </div>
+
+        <!-- Public Agent Warning Modal -->
+        <Dialog v-model:open="showPublicWarningModal">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <AlertTriangle class="h-5 w-5 text-amber-600" />
+                        Public Access Warning
+                    </DialogTitle>
+                    <DialogDescription>
+                        This agent will be publicly accessible. Anyone with the agent link can access and interact with your agent. Make sure you're comfortable with this level of public exposure before proceeding.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter class="gap-2">
+                    <Button variant="outline" @click="cancelMakePublic">
+                        Cancel
+                    </Button>
+                    <Button @click="confirmMakePublic" class="bg-amber-600 hover:bg-amber-700">
+                        Make Public
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
 

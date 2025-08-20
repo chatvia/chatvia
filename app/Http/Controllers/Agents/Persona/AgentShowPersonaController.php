@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Agents\Playground;
+namespace App\Http\Controllers\Agents\Persona;
 
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class AgentPlaygroundShowController
+class AgentShowPersonaController
 {
     public function __invoke(Request $request, Agent $agent)
     {
@@ -15,8 +15,6 @@ class AgentPlaygroundShowController
             code: 404,
         );
 
-        return Inertia::render('agents/Playground', [
-            'agent' => $agent,
-        ]);
+        return Inertia::render('agents/Persona', ['agent' => $agent]);
     }
 }

@@ -15,6 +15,6 @@ class AgentShowSettingsController
             code: 404,
         );
 
-        return Inertia::render('agents/Settings', ['agent' => $agent]);
+        return Inertia::render('agents/Persona', ['agent' => $agent]);
     }
 }

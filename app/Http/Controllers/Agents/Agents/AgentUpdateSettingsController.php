@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Agents\Settings;
+namespace App\Http\Controllers\Agents\Agents;
 
 use App\Models\Agent;
 use Illuminate\Http\Request;
@@ -26,15 +26,15 @@ class AgentUpdateSettingsController
 
         $settings = array_keys(config('model-settings.defaults.'.Agent::class.'.'.$group));
 
-        $data = $request->only($settings);
+        $requestData = $request->only($settings);
 
-        $data = array_filter($data, function ($value) {
+        $requestData = array_filter($requestData, function ($value) {
             return $value !== '' && $value !== null;
         });
 
         $keysToDelete = [];
 
-        foreach ($data as $key => $value) {
+        foreach ($requestData as $key => $value) {
             //            if (is_null($value)) {
             //                $keysToDelete[] = $key;
             //            } else {

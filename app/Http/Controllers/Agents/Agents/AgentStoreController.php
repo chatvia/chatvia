@@ -7,6 +7,7 @@ use App\Models\Agent;
 use App\Support\Ingestion;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 class AgentStoreController
@@ -22,6 +23,10 @@ class AgentStoreController
 
             $validatedData = $request->validated();
 
+            do {
+                $externalId = uniqid('', false);
+            } while (Agent::where('external_id', $externalId)->exists());
+
             /** @var Agent $agent */
             $agent = Agent::create([
                 'user_id' => $user->id,
@@ -30,6 +35,7 @@ class AgentStoreController
                 'system_instructions' => $validatedData['system_instructions'],
                 'is_public' => $request->input('is_public'),
                 'type' => $validatedData['type'],
+                'external_id' => $externalId,
             ]);
 
             if ($agent->type === 'knowledge') {

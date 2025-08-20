@@ -33,6 +33,31 @@ interface ModelSettings {
 const props = defineProps({
     appearance: {
         type: Object
+    },
+    removeSidebar: {
+        type: Boolean,
+        default: false
+    },
+    hideSidebarOnPageLoad: {
+        type: Boolean,
+        default: false
+    },
+    enableThemeSwitcher: {
+        type: Boolean,
+        default: true
+    },
+    defaultTheme: {
+        type: String,
+        default: 'auto',
+        validator: (value: string) => ['auto', 'light', 'dark'].includes(value)
+    },
+    enableChatExpand: {
+        type: Boolean,
+        default: true
+    },
+    newChatRoute: {
+        type: String,
+        default: 'chat.home'
     }
 });
 
@@ -115,14 +140,21 @@ onMounted(async () => {
         );
     }
 
-    // Initialize sidebar state from localStorage
-    if (!isMobileDevice) {
-        const savedSidebarState = localStorage.getItem('sidebarOpen');
-        if (savedSidebarState !== null) {
-            isSidebarOpen.value = savedSidebarState === 'true';
+    // Initialize sidebar state from localStorage or hideSidebarOnPageLoad prop
+    if (!isMobileDevice && !props.removeSidebar) {
+        if (props.hideSidebarOnPageLoad) {
+            // If hideSidebarOnPageLoad prop is true, start with sidebar closed
+            isSidebarOpen.value = false;
+            localStorage.setItem('sidebarOpen', 'false');
         } else {
-            isSidebarOpen.value = window.innerWidth >= 768;
-            localStorage.setItem('sidebarOpen', String(isSidebarOpen.value));
+            // Use saved state or default behavior
+            const savedSidebarState = localStorage.getItem('sidebarOpen');
+            if (savedSidebarState !== null) {
+                isSidebarOpen.value = savedSidebarState === 'true';
+            } else {
+                isSidebarOpen.value = window.innerWidth >= 768;
+                localStorage.setItem('sidebarOpen', String(isSidebarOpen.value));
+            }
         }
     }
 
@@ -132,7 +164,7 @@ onMounted(async () => {
 const deleteConversation = (conversationId: string) => {
     axios.delete(route('conversations.delete', { conversationId })).then(() => {
         if (availableModels.value.length > 0) {
-            router.visit(route('chat.home', { model: availableModels.value[0].id }));
+            router.visit(route(props.newChatRoute, { model: availableModels.value[0].id }));
         }
     })
 }
@@ -153,18 +185,19 @@ const handleToggleIncognito = (value: boolean) => {
 </script>
 
 <template>
-    <Head :title="props.appearance.chat_window_title || 'Chat'" />
+    <Head :title="props.appearance?.chat_window_title || 'Chat'" />
 
     <div class="flex h-screen">
         <!-- Mobile overlay -->
         <div
-            v-if="isMobileDevice && isSidebarOpen"
+            v-if="!removeSidebar && isMobileDevice && isSidebarOpen"
             class="fixed inset-0 z-30 bg-black/50 transition-opacity duration-300"
             @click="isSidebarOpen = false"
         ></div>
 
         <!-- Sidebar -->
         <div
+            v-if="!removeSidebar"
             class="fixed left-0 top-0 z-40 h-screen w-64 transition-transform duration-300 ease-in-out"
             :class="{ '-translate-x-full': !isSidebarOpen }"
             v-on-click-outside="closeSidebarOnMobile"
@@ -174,15 +207,16 @@ const handleToggleIncognito = (value: boolean) => {
                 :appearance="appearance"
                 v-model:open="isSidebarOpen"
                 :models="availableModels"
-                :defaultModel="selectedModel"
+                :defaultModel="selectedModel || undefined"
                 :isLoadingModels="isLoadingModels"
+                :newChatRoute="newChatRoute"
                 class="h-full w-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
             />
         </div>
 
         <div
             class="flex flex-col flex-1 transition-all duration-300 ease-in-out h-screen overflow-hidden"
-            :class="{ 'md:ml-64': isSidebarOpen }"
+            :class="{ 'md:ml-64': !removeSidebar && isSidebarOpen }"
         >
             <Header
                 :token-count="0"
@@ -192,6 +226,10 @@ const handleToggleIncognito = (value: boolean) => {
                 @toggleIncognito="handleToggleIncognito"
                 @toggleSidebar="toggleSidebar"
                 :isSidebarOpen="isSidebarOpen"
+                :removeSidebar="removeSidebar"
+                :enableThemeSwitcher="enableThemeSwitcher"
+                :defaultTheme="defaultTheme"
+                :enableChatExpand="enableChatExpand"
             />
 
             <main class="flex-1 overflow-hidden">

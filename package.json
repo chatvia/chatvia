@@ -52,7 +52,7 @@
         "marked-katex-extension": "^5.1.4",
         "mitt": "^3.0.1",
         "puppeteer": "^24.14.0",
-        "reka-ui": "^2.2.1",
+        "reka-ui": "^2.4.1",
         "sse.js": "^2.6.0",
         "tailwind-merge": "^3.2.0",
         "tailwindcss": "^4.1.1",

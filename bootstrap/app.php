@@ -59,6 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/stripe/*',
             '/ingestion/*',
             '/agents/*/playground/*',
+            '/widget/*',
         ]);
 
         $middleware->trustProxies('*');

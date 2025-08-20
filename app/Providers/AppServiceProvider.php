@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Pennant\Feature;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
 use Stripe\Stripe;
@@ -72,6 +73,10 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
+        });
+
+        Feature::define('widget', function (User $user) {
+            return $user->is_admin;
         });
     }
 }

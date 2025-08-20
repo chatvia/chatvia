@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import { computed, watch } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import {
     Dialog,
     DialogContent,
@@ -12,29 +11,38 @@ import {
     DialogHeader,
     DialogTitle
 } from '@/components/ui/dialog';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger
+} from '@/components/ui/tooltip';
 import { toast } from 'vue-sonner';
 import type { BreadcrumbItem } from '@/types';
 
 import {
-    ArrowLeft,
     Bot,
     ChevronRight,
     Clock,
     Database,
-    LoaderCircle,
+
     MessageSquare,
     Palette,
     Settings,
-    TestTube,
     Trash2,
     Users,
     BarChart3,
     Globe,
     Lock,
     Eye,
-    EyeOff,
+    BotIcon,
     Brain,
-    Copy,
+
+    ChevronDown,
+    ChevronUp,
+    Code,
+    PanelLeftClose,
+    PanelLeftOpen,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
@@ -52,7 +60,41 @@ const props = defineProps({
 
 const page = usePage();
 const currentRoute = computed(() => page.component);
-const isToggling = ref(false);
+
+// Collapse/expand state for sections - with localStorage persistence
+const isUiSectionExpanded = ref(true);
+const isControlPanelExpanded = ref(true);
+const isNavigationCollapsed = ref(false);
+
+// Load states from localStorage on component mount
+onMounted(() => {
+    const savedUiExpanded = localStorage.getItem('agent-layout-ui-expanded');
+    const savedControlPanelExpanded = localStorage.getItem('agent-layout-control-panel-expanded');
+    const savedNavigationCollapsed = localStorage.getItem('agent-layout-navigation-collapsed');
+    
+    if (savedUiExpanded !== null) {
+        isUiSectionExpanded.value = savedUiExpanded === 'true';
+    }
+    if (savedControlPanelExpanded !== null) {
+        isControlPanelExpanded.value = savedControlPanelExpanded === 'true';
+    }
+    if (savedNavigationCollapsed !== null) {
+        isNavigationCollapsed.value = savedNavigationCollapsed === 'true';
+    }
+});
+
+// Watch for changes and save to localStorage
+watch(isUiSectionExpanded, (newValue) => {
+    localStorage.setItem('agent-layout-ui-expanded', newValue.toString());
+});
+
+watch(isControlPanelExpanded, (newValue) => {
+    localStorage.setItem('agent-layout-control-panel-expanded', newValue.toString());
+});
+
+watch(isNavigationCollapsed, (newValue) => {
+    localStorage.setItem('agent-layout-navigation-collapsed', newValue.toString());
+});
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -65,16 +107,25 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const navigationItems = [
-    { id: 'stats', label: 'Statistics', icon: BarChart3, route: 'agents.stats' },
-    { id: 'playground', label: 'Playground', icon: TestTube, route: 'agents.playground' },
-    { id: 'settings', label: 'Settings', icon: Settings, route: 'agents.settings' },
-    { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models' },
-    { id: 'knowledge', label: 'Knowledge Base', icon: Database, route: 'agents.knowledge' },
-    { id: 'starters', label: 'Starter Messages', icon: MessageSquare, route: 'agents.starters' },
-    { id: 'history', label: 'Message History', icon: Clock, route: 'agents.history' },
-    { id: 'appearance', label: 'Appearance', icon: Palette, route: 'agents.appearance' },
-    { id: 'team', label: 'Members', icon: Users, route: 'agents.team' },
+const uiNavigationItems = [
+    { id: 'preview', label: 'Chat', icon: BotIcon, route: 'agents.preview', tooltip: 'Preview your agent chat interface' },
+    { id: 'embed', label: 'Embed', icon: Code, route: 'agents.embed', tooltip: 'Generate embed code for your website' },
+    { id: 'widget', label: 'Widget', icon: Globe, route: 'agents.widget', tooltip: 'Configure and preview chat widget' },
+];
+
+const controlPanelNavigationItems = [
+    { id: 'stats', label: 'Statistics', icon: BarChart3, route: 'agents.stats', tooltip: 'View usage statistics and analytics' },
+    { id: 'persona', label: 'Persona', icon: Bot, route: 'agents.settings', tooltip: 'Configure agent personality and behavior' },
+    { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models', tooltip: 'Manage AI models and settings' },
+
+    { id: 'knowledge', label: 'Knowledge Base', icon: Database, route: 'agents.knowledge', tooltip: 'Upload and manage knowledge files' },
+    { id: 'starters', label: 'Starter Messages', icon: MessageSquare, route: 'agents.starters', tooltip: 'Create conversation starter messages' },
+
+    { id: 'appearance', label: 'Appearance', icon: Palette, route: 'agents.appearance', tooltip: 'Customize colors, themes, and branding' },
+
+    { id: 'history', label: 'Message History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
+    { id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' },
+    { id: 'security', label: 'Security', icon: Lock, route: 'agents.security', tooltip: 'Configure access control and embedding settings' },
 ];
 
 const showDeleteDialog = ref(false);
@@ -108,42 +159,25 @@ const canDelete = computed(() => {
 
 const isActiveRoute = (routeName: string) => {
     const routeSuffix = routeName.split('.')[1]; // Extract 'stats', 'settings', etc.
-    return currentRoute.value === `agents/${routeSuffix.charAt(0).toUpperCase() + routeSuffix.slice(1)}`;
+
+    // Handle special cases for component naming
+    let componentName;
+    if (routeSuffix === 'embed') {
+        componentName = 'Embed';
+    } else if (routeSuffix === 'preview') {
+        componentName = 'Preview';
+    } else if (routeSuffix === 'settings') {
+        componentName = 'Persona';  // Now maps to Persona component file
+    } else {
+        componentName = routeSuffix.charAt(0).toUpperCase() + routeSuffix.slice(1);
+    }
+
+    return currentRoute.value === `agents/${componentName}`;
 };
 
-// Watch for changes to agent.is_active and make API call
-watch(() => props.agent.is_active, (newValue, oldValue) => {
-    // Only make API call if the value actually changed and it's not the initial load
-    if (oldValue !== undefined && newValue !== oldValue) {
-        isToggling.value = true;
-        
-        router.patch(route('agents.activity', {
-            agent: props.agent.id,
-            is_active: newValue
-        }), {}, {
-            onSuccess: () => {
-                isToggling.value = false;
-            },
-            onError: () => {
-                // Revert the change on error
-                props.agent.is_active = oldValue;
-                isToggling.value = false;
-            }
-        });
-    }
-});
 
-// Copy agent URL to clipboard
-const copyAgentUrl = async () => {
-    try {
-        const agentUrl = `${props.agent.url}/chat`;
-        await navigator.clipboard.writeText(agentUrl);
-        toast.success('Agent URL copied to clipboard!');
-    } catch (error) {
-        console.error('Failed to copy URL:', error);
-        toast.error('Failed to copy URL. Please try again.');
-    }
-};
+
+
 </script>
 
 <template>
@@ -154,122 +188,245 @@ const copyAgentUrl = async () => {
             <!-- Header -->
             <div class="bg-background">
                 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div class="flex items-center gap-4">
-                            <div class="flex items-center gap-3">
-                                <h1 class="text-xl font-semibold">{{ agent.name }}</h1>
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <!-- Agent Info Section -->
+                        <div class="flex items-center gap-3 min-w-0">
+                            <h1 class="text-xl font-semibold truncate">{{ agent.name }}</h1>
 
-                                <!-- Agent Type -->
-                                <div class="flex items-center gap-1.5">
-                                    <Bot class="h-4 w-4 text-blue-500" />
-                                    <span class="text-sm font-medium text-blue-500 capitalize">
-                                        {{ agent.type }}
-                                    </span>
-                                </div>
+                            <!-- Separator -->
+                            <div class="w-px h-4 bg-border flex-shrink-0"></div>
 
-                                <!-- Public/Protected Status -->
-                                <div class="flex items-center gap-1.5">
-                                    <component
-                                        :is="agent.is_public ? Eye : Lock"
-                                        class="h-4 w-4"
-                                        :class="[
-                                            agent.is_public
-                                                ? 'text-red-500'
-                                                : 'text-green-500'
-                                        ]"
-                                    />
-                                    <span
-                                        class="text-sm font-medium"
-                                        :class="[
-                                            agent.is_public
-                                                ? 'text-red-500'
-                                                : 'text-green-500'
-                                        ]"
+                            <!-- Agent Type -->
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                <Bot class="h-4 w-4 text-blue-500" />
+                                <span class="text-sm font-medium text-blue-500 capitalize">
+                                    {{ agent.type }}
+                                </span>
+                            </div>
+
+                            <!-- Separator -->
+                            <div class="w-px h-4 bg-border flex-shrink-0"></div>
+
+                            <!-- Public/Protected Status -->
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                <component
+                                    :is="agent.is_public ? Eye : Lock"
+                                    class="h-4 w-4"
+                                    :class="[
+                                        agent.is_public
+                                            ? 'text-red-500'
+                                            : 'text-green-500'
+                                    ]"
+                                />
+                                <span
+                                    class="text-sm font-medium"
+                                    :class="[
+                                        agent.is_public
+                                            ? 'text-red-500'
+                                            : 'text-green-500'
+                                    ]"
+                                >
+                                    {{ agent.is_public ? 'Public' : 'Protected' }}
+                                </span>
+                                
+                                <!-- Public Notice -->
+                                <template v-if="agent.is_public">
+                                    <span class="text-xs text-muted-foreground">(accessible by everyone)</span>
+                                    <Link 
+                                        :href="route('agents.security', { agent: agent.id })"
+                                        class="text-xs text-blue-500 hover:text-blue-600 underline ml-1"
                                     >
-                                        {{ agent.is_public ? 'Public' : 'Protected' }}
-                                    </span>
-                                </div>
+                                        Security
+                                    </Link>
+                                </template>
                             </div>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-3">
-                            <!-- Active/Inactive Toggle -->
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm font-medium text-foreground whitespace-nowrap">
-                                    {{ agent.is_active ? 'Accessible' : 'Inaccessible' }}
-                                </span>
-                                <div class="flex items-center gap-2">
-                                    <Switch
-                                        v-model="agent.is_active"
-                                        :disabled="isToggling"
-                                        class="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-200"
-                                    />
-                                    <LoaderCircle v-if="isToggling" class="h-4 w-4 animate-spin text-muted-foreground" />
-                                </div>
-                            </div>
-
+                        <!-- Actions Section -->
+                        <div class="flex items-center md:flex-shrink-0">
                             <Button
                                 :href="`${agent.url}/chat`"
                                 as="a"
                                 class="gap-2"
                                 target="_blank"
                                 variant="outline"
+                                size="sm"
                             >
                                 <Bot class="h-4 w-4" />
-                                View Agent
+                                <span class="hidden sm:inline">View Agent</span>
+                                <span class="sm:hidden">View</span>
                                 <ChevronRight class="h-4 w-4" />
-                            </Button>
-                            
-                            <Button
-                                @click="copyAgentUrl"
-                                variant="outline"
-                                size="sm"
-                                class="gap-2"
-                            >
-                                <Copy class="h-4 w-4" />
-                                Copy
                             </Button>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Sidebar Toggle -->
+            <div class="container mx-auto max-w-7xl px-4">
+                <button
+                    @click="isNavigationCollapsed = !isNavigationCollapsed"
+                    class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+                >
+                    <component :is="isNavigationCollapsed ? PanelLeftOpen : PanelLeftClose" class="h-4 w-4" />
+                    {{ isNavigationCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar' }}
+                </button>
+            </div>
+
             <!-- Main Content -->
-            <div class="container mx-auto max-w-7xl px-4 py-8">
+            <div class="container mx-auto max-w-7xl px-4 py-4">
                 <div class="flex flex-col lg:flex-row gap-8">
                     <!-- Vertical Navigation -->
-                    <nav class="w-full lg:w-64 flex-shrink-0">
+                    <nav 
+                        :class="[
+                            'flex-shrink-0 space-y-4 transition-all duration-300',
+                            isNavigationCollapsed 
+                                ? 'w-16' 
+                                : 'w-full lg:w-64'
+                        ]"
+                    >
+                        <!-- UI Section Container -->
                         <div class="bg-card rounded-lg shadow-sm border">
-                            <div class="p-4 border-b">
-                                <h2 class="font-semibold text-foreground">Settings</h2>
-                            </div>
-                            <div class="p-2">
-                                <Link
-                                    v-for="item in navigationItems"
-                                    :key="item.id"
-                                    :href="route(item.route, { agent: agent.id })"
-                                    :class="cn(
-                                        'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                                        isActiveRoute(item.route)
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'text-muted-foreground hover:bg-muted'
-                                    )"
-                                >
-                                    <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
-                                    <span>{{ item.label }}</span>
-                                </Link>
-                            </div>
-
-                            <!-- Danger Zone in Navigation -->
-                            <div class="p-2 border-t mt-2">
+                            <template v-if="!isNavigationCollapsed">
                                 <button
-                                    @click="showDeleteDialog = true"
-                                    class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+                                    @click="isUiSectionExpanded = !isUiSectionExpanded"
+                                    class="w-full p-4 border-b flex items-center justify-between hover:bg-muted/50 transition-colors"
                                 >
-                                    <Trash2 class="h-4 w-4 flex-shrink-0" />
-                                    <span>Delete Agent</span>
+                                    <h2 class="font-semibold text-foreground">UI</h2>
+                                    <component
+                                        :is="isUiSectionExpanded ? ChevronUp : ChevronDown"
+                                        class="h-4 w-4 text-muted-foreground"
+                                    />
                                 </button>
-                            </div>
+                                <div v-show="isUiSectionExpanded" class="p-2">
+                                    <Link
+                                        v-for="item in uiNavigationItems"
+                                        :key="item.id"
+                                        :href="route(item.route, { agent: agent.id })"
+                                        :class="cn(
+                                            'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                            isActiveRoute(item.route)
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'text-muted-foreground hover:bg-muted'
+                                        )"
+                                    >
+                                        <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
+                                        <span>{{ item.label }}</span>
+                                    </Link>
+                                </div>
+                            </template>
+                            
+                            <!-- Collapsed UI Icons -->
+                            <template v-else>
+                                <TooltipProvider>
+                                    <div class="p-2 space-y-2">
+                                        <Tooltip v-for="item in uiNavigationItems" :key="item.id">
+                                            <TooltipTrigger as-child>
+                                                <Link
+                                                    :href="route(item.route, { agent: agent.id })"
+                                                    :class="cn(
+                                                        'w-full flex items-center justify-center p-2 rounded-md transition-colors',
+                                                        isActiveRoute(item.route)
+                                                            ? 'bg-primary text-primary-foreground'
+                                                            : 'text-muted-foreground hover:bg-muted'
+                                                    )"
+                                                >
+                                                    <component :is="item.icon" class="h-4 w-4" />
+                                                </Link>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="right">
+                                                <p>{{ item.tooltip }}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                </TooltipProvider>
+                            </template>
+                        </div>
+
+                        <!-- Control Panel Section Container -->
+                        <div class="bg-card rounded-lg shadow-sm border">
+                            <template v-if="!isNavigationCollapsed">
+                                <button
+                                    @click="isControlPanelExpanded = !isControlPanelExpanded"
+                                    class="w-full p-4 border-b flex items-center justify-between hover:bg-muted/50 transition-colors"
+                                >
+                                    <h2 class="font-semibold text-foreground">Control Panel</h2>
+                                    <component
+                                        :is="isControlPanelExpanded ? ChevronUp : ChevronDown"
+                                        class="h-4 w-4 text-muted-foreground"
+                                    />
+                                </button>
+                                <div v-show="isControlPanelExpanded">
+                                    <div class="p-2">
+                                        <Link
+                                            v-for="item in controlPanelNavigationItems"
+                                            :key="item.id"
+                                            :href="route(item.route, { agent: agent.id })"
+                                            :class="cn(
+                                                'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                                isActiveRoute(item.route)
+                                                    ? 'bg-primary text-primary-foreground'
+                                                    : 'text-muted-foreground hover:bg-muted'
+                                            )"
+                                        >
+                                            <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
+                                            <span>{{ item.label }}</span>
+                                        </Link>
+                                    </div>
+
+                                    <!-- Danger Zone in Navigation -->
+                                    <div class="p-2 border-t mt-2">
+                                        <button
+                                            @click="showDeleteDialog = true"
+                                            class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+                                        >
+                                            <Trash2 class="h-4 w-4 flex-shrink-0" />
+                                            <span>Delete Agent</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Collapsed Control Panel Icons -->
+                            <template v-else>
+                                <TooltipProvider>
+                                    <div class="p-2 space-y-2">
+                                        <Tooltip v-for="item in controlPanelNavigationItems" :key="item.id">
+                                            <TooltipTrigger as-child>
+                                                <Link
+                                                    :href="route(item.route, { agent: agent.id })"
+                                                    :class="cn(
+                                                        'w-full flex items-center justify-center p-2 rounded-md transition-colors',
+                                                        isActiveRoute(item.route)
+                                                            ? 'bg-primary text-primary-foreground'
+                                                            : 'text-muted-foreground hover:bg-muted'
+                                                    )"
+                                                >
+                                                    <component :is="item.icon" class="h-4 w-4" />
+                                                </Link>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="right">
+                                                <p>{{ item.tooltip }}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        
+                                        <!-- Collapsed Delete Button -->
+                                        <Tooltip>
+                                            <TooltipTrigger as-child>
+                                                <button
+                                                    @click="showDeleteDialog = true"
+                                                    class="w-full flex items-center justify-center p-2 rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+                                                >
+                                                    <Trash2 class="h-4 w-4" />
+                                                </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="right">
+                                                <p>Delete agent permanently</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                </TooltipProvider>
+                            </template>
                         </div>
                     </nav>
 
@@ -330,9 +487,7 @@ const copyAgentUrl = async () => {
             </DialogContent>
         </Dialog>
     </AppLayout>
-</template>
-
-<style scoped>
+</template><style scoped>
 /* Custom scrollbar for navigation */
 nav::-webkit-scrollbar {
     width: 6px;
@@ -351,3 +506,5 @@ nav::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.7);
 }
 </style>
+
+

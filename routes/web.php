@@ -2,13 +2,13 @@
 
 use App\Http\Controllers\Auth\Social\GoogleAuthController;
 use App\Http\Controllers\Auth\Social\GoogleCallbackAuthController;
-use App\Http\Controllers\ChangelogController;
+use App\Http\Controllers\Auth\Social\MicrosoftAuthController;
+use App\Http\Controllers\Auth\Social\MicrosoftCallbackAuthController;
 use App\Http\Controllers\ConsentController;
-use App\Http\Controllers\MicrosoftAuthController;
-use App\Http\Controllers\MicrosoftCallbackAuthController;
-use App\Http\Controllers\PrivacyController;
-use App\Http\Controllers\RefundController;
-use App\Http\Controllers\TermsController;
+use App\Http\Controllers\Landing\ChangelogController;
+use App\Http\Controllers\Landing\PrivacyController;
+use App\Http\Controllers\Landing\RefundController;
+use App\Http\Controllers\Landing\TermsController;
 use App\Http\Controllers\UseCasesController;
 use Illuminate\Support\Facades\Route;
 

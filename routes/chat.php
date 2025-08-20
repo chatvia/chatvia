@@ -9,11 +9,14 @@ use App\Http\Controllers\Chat\Auth\ChatShowLoginController;
 use App\Http\Controllers\Chat\ChatAppearanceController;
 use App\Http\Controllers\Chat\ChatController;
 use App\Http\Controllers\Chat\ChatDeleteAllConversationsController;
+use App\Http\Controllers\Chat\ChatEmbedController;
+use App\Http\Controllers\Chat\ChatEmbedHomeController;
 use App\Http\Controllers\Chat\ChatHomeController;
 use App\Http\Controllers\Chat\ChatMessageDeleteController;
 use App\Http\Controllers\Chat\ChatMessageFeedbackController;
 use App\Http\Controllers\Chat\ChatMessagesUsage;
 use App\Http\Controllers\Chat\ChatModelsListController;
+use App\Http\Controllers\Chat\ChatSourcesController;
 use App\Http\Controllers\Chat\ChatStartersController;
 use App\Http\Controllers\Chat\ChatStreamController;
 use App\Http\Controllers\Chat\Conversations\ConversationCreateController;
@@ -22,7 +25,6 @@ use App\Http\Controllers\Chat\Conversations\ConversationMessagesController;
 use App\Http\Controllers\Chat\Conversations\ConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
 use App\Http\Controllers\Chat\Export\ChatExportController;
-use App\Http\Controllers\ChatSourcesController;
 
 Route::get('/chat/appearance', ChatAppearanceController::class)->name('chat.appearance');
 
@@ -35,12 +37,17 @@ Route::prefix('/chat')
     ->middleware(['chat'])
     ->group(function () {
         Route::get('/', ChatHomeController::class)->name('chat.home');
+
+        Route::get('embed', ChatEmbedHomeController::class)->name('chat.embed.home');
+        Route::get('embed/c/{conversationId}', ChatEmbedController::class)->name('chat.embed.show');
+
         Route::get('/models', ChatModelsListController::class)->name('chat.models.index');
         Route::get('/agents', ChatMemberAgentsController::class)->name('chat.member.agents');
 
         Route::post('/agents/switch/{agent}', ChatMemberSwitchAgentController::class)->name('chat.member.agents.switch');
 
         Route::post('/stream/{conversationId}', ChatStreamController::class)->name('chat.stream');
+
         Route::post('/conversations/create', ConversationCreateController::class)->name('conversations.create');
         Route::get('/conversations/{conversationId}/messages', ConversationMessagesController::class)->name('conversations.messages');
         Route::get('/conversations', ConversationsController::class)->name('conversations.index');

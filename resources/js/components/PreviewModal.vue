@@ -1,0 +1,151 @@
+<template>
+    <Dialog v-model:open="isOpen">
+        <DialogContent class="!w-screen !h-screen !max-w-none !max-h-none !rounded-none !p-0 [&>button]:hidden">
+            <div class="relative w-full h-full flex flex-col">
+                <!-- Top Controls Bar -->
+                <div class="flex items-center justify-between p-4 border-b bg-background">
+                    <!-- Device Controls -->
+                    <div class="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            :variant="selectedDevice === 'desktop' ? 'default' : 'ghost'"
+                            size="sm"
+                            @click="switchDevice('desktop')"
+                            class="gap-2"
+                        >
+                            <Monitor class="h-4 w-4" />
+                            Desktop
+                        </Button>
+                        <Button
+                            type="button"
+                            :variant="selectedDevice === 'tablet' ? 'default' : 'ghost'"
+                            size="sm"
+                            @click="switchDevice('tablet')"
+                            class="gap-2"
+                        >
+                            <Tablet class="h-4 w-4" />
+                            Tablet
+                        </Button>
+                        <Button
+                            type="button"
+                            :variant="selectedDevice === 'mobile' ? 'default' : 'ghost'"
+                            size="sm"
+                            @click="switchDevice('mobile')"
+                            class="gap-2"
+                        >
+                            <Smartphone class="h-4 w-4" />
+                            Mobile
+                        </Button>
+                    </div>
+
+                    <!-- Close Button -->
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        @click="closeModal"
+                        class="gap-2"
+                    >
+                        <X class="h-4 w-4" />
+                        Close Preview
+                    </Button>
+                </div>
+
+                <!-- Preview Content -->
+                <div class="flex-1 flex items-center justify-center overflow-hidden">
+                    <div
+                        v-if="previewType === 'widget'"
+                        :class="[
+                            'relative overflow-hidden transition-all duration-300',
+                            selectedDevice === 'desktop' ? 'w-full h-full' : 
+                            selectedDevice === 'tablet' ? 'w-[768px] h-[1024px] border rounded-xl shadow-lg' :
+                            'w-[414px] h-[896px] border rounded-xl shadow-lg'
+                        ]"
+                    >
+                        <iframe
+                            :key="iframeKey"
+                            :src="previewUrl"
+                            class="w-full h-full border-0"
+                            title="Widget Preview"
+                            loading="lazy"
+                        ></iframe>
+                    </div>
+
+                    <div
+                        v-else-if="previewType === 'embed'"
+                        class="flex justify-center items-center w-full h-full p-4"
+                    >
+                        <div :class="getEmbedContainerClass">
+                            <iframe
+                                :key="iframeKey"
+                                :src="previewUrl"
+                                :title="iframeTitle"
+                                frameborder="0"
+                                class="w-full h-full border rounded-lg shadow-lg transition-all duration-300"
+                            ></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </DialogContent>
+    </Dialog>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Monitor, Smartphone, Tablet, X } from 'lucide-vue-next';
+
+interface Props {
+    modelValue: boolean;
+    previewType: 'widget' | 'embed';
+    previewUrl: string;
+    iframeTitle?: string;
+    iframeOptions?: any;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    iframeTitle: 'Preview'
+});
+
+const emit = defineEmits(['update:modelValue']);
+
+const selectedDevice = ref('desktop');
+const iframeKey = ref(0);
+
+const isOpen = computed({
+    get: () => props.modelValue,
+    set: (value) => emit('update:modelValue', value)
+});
+
+// Device classes for embed preview
+const deviceClasses: Record<string, string> = {
+    desktop: 'w-full max-w-4xl h-[600px]',
+    tablet: 'w-[768px] h-[500px]',
+    mobile: 'w-[375px] h-[600px]'
+};
+
+const switchDevice = (device: string) => {
+    selectedDevice.value = device;
+    iframeKey.value++;
+};
+
+const closeModal = () => {
+    isOpen.value = false;
+};
+
+// Simple container class for embed preview - just responsive breakpoints
+const getEmbedContainerClass = computed(() => {
+    if (selectedDevice.value === 'mobile') {
+        return 'w-[375px] h-[600px] flex-shrink-0';
+    }
+    
+    if (selectedDevice.value === 'tablet') {
+        return 'w-[768px] h-[600px] flex-shrink-0';
+    }
+    
+    // Desktop - full height and width
+    return 'w-full h-full';
+});
+</script>

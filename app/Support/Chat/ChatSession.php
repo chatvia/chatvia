@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class ChatSession
 {
-    private const CHAT_SESSION_PREFIX = 'chat-session';
+    private const string CHAT_SESSION_PREFIX = 'chat-session';
 
     public function getOrGenerateSession(bool $playground = false): string
     {

@@ -8,7 +8,7 @@ use Inertia\Inertia;
 
 final class ChatController
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
+    public function __invoke(Request $request, string $conversationId)
     {
         $agent = current_agent();
 

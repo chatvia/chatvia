@@ -65,6 +65,10 @@ const props = defineProps({
     },
     appearance: {
         type: Object,
+    },
+    newChatRoute: {
+        type: String,
+        default: 'chat.home'
     }
 });
 
@@ -184,7 +188,7 @@ const newConversation = () => {
         isSidebarOpen.value = false;
     }
 
-    router.visit(route('chat.home', { model: props.defaultModel?.id }), {
+    router.visit(route(props.newChatRoute, { model: props.defaultModel?.id }), {
         preserveState: false,
         preserveScroll: false,
     });
@@ -195,7 +199,7 @@ const deleteAllConversations = async () => {
         await axios.delete(route('conversations.delete.all'));
 
         // After clearing all conversations, redirect to chat home
-        router.visit(route('chat.home', { model: defaultModel.value?.id }));
+        router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }));
     } catch (error) {
         console.error('Failed to delete all conversations:', error);
     }
@@ -285,9 +289,9 @@ const deleteConversation = async () => {
         const currentRoute = route().current();
         const currentConversationId = route().params?.conversationId;
 
-        if (currentRoute === 'chat.show' && currentConversationId === deletedConversationId) {
+        if (currentRoute === props.newChatRoute && currentConversationId === deletedConversationId) {
             // Redirect to chat home if we deleted the current conversation
-            router.visit(route('chat.home', { model: defaultModel.value?.id }));
+            router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }));
         }
     } catch (error) {
         console.error('Failed to delete conversation:', error);

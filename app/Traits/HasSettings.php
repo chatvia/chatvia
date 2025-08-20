@@ -38,6 +38,7 @@ trait HasSettings
                 'integer' => (int) $item->value,
                 'file' => Storage::url($item->value),
                 'boolean' => (bool) $item->value,
+                'array' => json_decode($item->value, true, 512, JSON_THROW_ON_ERROR),
                 default => $item->value,
             };
 
@@ -54,6 +55,10 @@ trait HasSettings
             $data = Image::read($value->getContent())->scale(height: 128)->toPng()->toString();
             $file = new File(create_temp_file($value->getFilename(), $data));
             $value = Storage::putFile('users/'.$this->getUserId().'/settings/'.$group.'/'.$this->id, $file, ['visibility' => 'public']);
+        }
+
+        if ($dataType === 'array') {
+            $value = json_encode($value, JSON_THROW_ON_ERROR);
         }
 
         $this->modelSettings()->updateOrCreate([

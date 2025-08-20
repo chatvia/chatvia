@@ -24,7 +24,10 @@ class Agent
 
     public static function resolveAgentFromSubdomain($subdomain): ?\App\Models\Agent
     {
-        return \App\Models\Agent::query()->where('sub_domain', $subdomain)->first();
+        return \App\Models\Agent::query()
+            ->where('sub_domain', $subdomain)
+            ->orWhere('external_id', $subdomain)
+            ->first();
     }
 
     public static function deleteAgent(string $id)

@@ -1,13 +1,16 @@
 ---
 alwaysApply: true
 ---
+<default>
 # ChatVia RAG Application - Cursor Rules
+
+
 
 ## Project Overview
 This is a Laravel-based RAG (Retrieval-Augmented Generation) application with Vue.js frontend using Inertia.js. The application provides AI chat agents with document ingestion, chunking, and knowledge management capabilities.
 
 ## Tech Stack
-- **Backend**: Laravel 11+ with PHP 8.2+
+- **Backend**: Laravel 12+ with PHP 8.4+
 - **Frontend**: Vue.js 3 with TypeScript
 - **Bridge**: Inertia.js
 - **Styling**: Tailwind CSS with shadcn/ui components
@@ -123,3 +126,4 @@ This is a Laravel-based RAG (Retrieval-Augmented Generation) application with Vu
 - Adding dependencies without consideration
 - Ignoring existing patterns and structures
 ---
+</default>

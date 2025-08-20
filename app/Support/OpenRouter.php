@@ -8,7 +8,7 @@ use Psr\Http\Message\ResponseInterface;
 
 class OpenRouter
 {
-    public function stream($model, $llmMessages, array $settings = []): ResponseInterface
+    public function stream($model, array $messages, array $settings = []): ResponseInterface
     {
         $client = app(Client::class);
 
@@ -19,7 +19,7 @@ class OpenRouter
             ],
             'json' => [
                 'model' => $model.':nitro',
-                'messages' => $llmMessages,
+                'messages' => $messages,
                 'stream' => true,
                 //                ...$options,
             ],

@@ -34,6 +34,31 @@ const props = defineProps({
             avatar: null,
             composer_placeholder: null
         })
+    },
+    removeSidebar: {
+        type: Boolean,
+        default: false
+    },
+    hideSidebarOnPageLoad: {
+        type: Boolean,
+        default: false
+    },
+    enableThemeSwitcher: {
+        type: Boolean,
+        default: true
+    },
+    defaultTheme: {
+        type: String,
+        default: 'auto',
+        validator: (value) => ['auto', 'light', 'dark'].includes(value)
+    },
+    enableChatExpand: {
+        type: Boolean,
+        default: true
+    },
+    newChatRoute: {
+        type: String,
+        default: 'chat.home'
     }
 });
 
@@ -319,7 +344,7 @@ onMounted(async () => {
             loadSourcesAsync();
         })
         .catch((error) => {
-            router.visit(route('chat.home', { model: defaultModel.value?.id }));
+            router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }));
         });
 
     nextTick(() => {
@@ -418,7 +443,7 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
                 if (streamingForMessageIndex.value !== null) {
                     messageIndex = streamingForMessageIndex.value;
                 }
-                
+
                 if (messages.value[messageIndex] && messages.value[messageIndex].role === 'assistant') {
                     messages.value[messageIndex].language = language;
                 }
@@ -560,7 +585,7 @@ const messageDeleted = (messageId) => {
 
     // Check if all messages are deleted, redirect to home
     if (messages.value.length === 0) {
-        router.visit(route('chat.home'));
+        router.visit(route(props.newChatRoute));
         return;
     }
 
@@ -582,7 +607,7 @@ const handleScrollToBottomClick = () => {
 </script>
 
 <template>
-    <ChatLayout :appearance="props.appearance">
+    <ChatLayout :appearance="props.appearance" :removeSidebar="props.removeSidebar" :hideSidebarOnPageLoad="props.hideSidebarOnPageLoad" :enableThemeSwitcher="props.enableThemeSwitcher" :defaultTheme="props.defaultTheme" :enableChatExpand="props.enableChatExpand" :newChatRoute="props.newChatRoute">
         <template #content>
             <div class="flex h-full flex-col overflow-hidden">
                 <div

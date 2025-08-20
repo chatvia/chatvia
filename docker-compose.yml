@@ -22,13 +22,9 @@ services:
             timeout: 5s
 
     pgsql:
-#        build:
-#            context: .
-#            dockerfile: Dockerfile
         image: "tensorchord/vchord-suite:pg17-latest"
         ports:
             - '${FORWARD_PGVECTOR_PORT:-5432}:5432'
-#        command: postgres -c config_file=/etc/postgresql/postgresql.conf
         environment:
             POSTGRES_DB: ${DB_DATABASE:-chatvia}
             POSTGRES_USER: ${DB_USERNAME:-sail}

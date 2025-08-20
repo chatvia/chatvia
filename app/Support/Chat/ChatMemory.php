@@ -16,13 +16,13 @@ use Illuminate\Support\Str;
 
 class ChatMemory
 {
-    private string $conversationId = '';
+    private ?string $conversationId = null;
 
     private bool $isPlayground = false;
 
     private Agent $agent;
 
-    public function setConversationId(string $conversationId): self
+    public function setConversationId(?string $conversationId = null): self
     {
         $this->conversationId = $conversationId;
 
@@ -473,12 +473,5 @@ class ChatMemory
     {
         return collect($this->getConversationsForCurrentSession(true))
             ->firstWhere('id', $conversationId);
-    }
-
-    public function setIsPlayground(bool $status): static
-    {
-        $this->isPlayground = $status;
-
-        return $this;
     }
 }

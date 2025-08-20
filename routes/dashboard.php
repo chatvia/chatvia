@@ -8,11 +8,11 @@ use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesShowController;
 use App\Http\Controllers\Members\MembersControllerShow;
 use App\Http\Controllers\Members\MembersListController;
 use App\Http\Controllers\SupportController;
-use App\Http\Controllers\TicketChangePriorityController;
-use App\Http\Controllers\TicketReplyController;
-use App\Http\Controllers\TicketsController;
-use App\Http\Controllers\TicketShowController;
-use App\Http\Controllers\TicketStoreController;
+use App\Http\Controllers\Tickets\TicketChangePriorityController;
+use App\Http\Controllers\Tickets\TicketReplyController;
+use App\Http\Controllers\Tickets\TicketsController;
+use App\Http\Controllers\Tickets\TicketShowController;
+use App\Http\Controllers\Tickets\TicketStoreController;
 use App\Http\Controllers\UsageController;
 use Illuminate\Support\Facades\Route;
 

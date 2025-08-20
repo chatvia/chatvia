@@ -23,7 +23,6 @@ const form = useForm({
     name: props.agent.name,
     sub_domain: props.agent.sub_domain,
     system_instructions: props.agent.system_instructions,
-    is_public: props.agent.is_public,
 });
 
 const isSubmitting = ref(false);
@@ -51,16 +50,16 @@ const generateNewSubdomain = () => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Settings">
+    <AgentLayout :agent="agent" title="Persona">
         <form @submit.prevent="updateGeneralSettings" class="space-y-6">
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Bot class="h-5 w-5" />
-                        Basic Information
+                        Agent Persona
                     </CardTitle>
                     <CardDescription>
-                        Update your agent's identity and purpose
+                        Define your agent's identity, personality, and purpose
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -132,27 +131,6 @@ const generateNewSubdomain = () => {
                                 These instructions tell the AI how to behave, what tone to use, and what its purpose is
                             </p>
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Visibility Settings -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>Visibility Settings</CardTitle>
-                    <CardDescription>
-                        Control who can access your agent
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div class="flex items-center justify-between space-x-2">
-                        <div>
-                            <Label class="text-base" for="is_public">Make this agent public</Label>
-                            <p class="text-sm text-muted-foreground">
-                                Public agents can be accessed by anyone with the link
-                            </p>
-                        </div>
-                        <Switch id="is_public" v-model="form.is_public" />
                     </div>
                 </CardContent>
             </Card>

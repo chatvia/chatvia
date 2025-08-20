@@ -1,7 +1,7 @@
 <!-- Hero -->
 <section
         class="relative before:absolute before:inset-0 before:h-80 before:pointer-events-none before:bg-linear-to-b before:from-zinc-100 before:-z-10">
-    <div class="pt-32 pb-12 md:pt-40 md:pb-20">
+    <div class="pt-32 pb-12 md:pt-25 md:pb-20">
         <!-- Section content -->
         <div class="px-4 sm:px-6">
             <div class="max-w-4xl mx-auto">
@@ -19,7 +19,7 @@
                     </h1>
 
                     <div class="text-xl md:text-2xl text-zinc-600 font-medium mb-6 leading-relaxed">
-                        Create ChatGPT-like AI agents and launch in minutes<br>
+                        Create ChatGPT-like chatbots and launch in minutes<br>
                         Train on PDF, Word docs, and any files
                     </div>
 

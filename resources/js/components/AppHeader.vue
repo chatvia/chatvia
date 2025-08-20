@@ -98,7 +98,7 @@ const rightNavItems: NavItem[] = [];
 <template>
     <!-- Banner above header -->
     <Banner />
-    
+
     <!-- Fixed header -->
     <div class="fixed top-12 left-0 right-0 z-50 bg-background">
         <div class="border-b border-sidebar-border/80">

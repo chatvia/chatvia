@@ -25,7 +25,12 @@ class Agent extends Model
 
     protected $guarded = ['id'];
 
-    protected $appends = ['url', 'chat_url'];
+    protected $appends = [
+        'url',
+        'permanent_url',
+        'chat_url',
+        'chat_embed_url',
+    ];
 
     public function user(): BelongsTo
     {
@@ -168,9 +173,23 @@ class Agent extends Model
         });
     }
 
+    public function permanentUrl(): Attribute
+    {
+        return Attribute::get(function () {
+            $url = parse_url(config('app.url'));
+
+            return $url['scheme'].'://'.$this->external_id.'.'.$url['host'];
+        });
+    }
+
     public function chatUrl(): Attribute
     {
         return Attribute::get(fn () => $this->url.'/chat');
+    }
+
+    public function chatEmbedUrl(): Attribute
+    {
+        return Attribute::get(fn () => $this->permanent_url.'/chat/embed');
     }
 
     public function messages(): HasMany

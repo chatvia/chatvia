@@ -1,16 +1,20 @@
 <?php
 
-use App\Http\Controllers\AgentDeleteSettingsController;
-use App\Http\Controllers\AgentFileSummaryController;
-use App\Http\Controllers\AgentKnowledgeFilesAnalyzeController;
 use App\Http\Controllers\Agents\Agents\AgentCreateController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteController;
+use App\Http\Controllers\Agents\Agents\AgentDeleteSettingsController;
+use App\Http\Controllers\Agents\Agents\AgentFileSummaryController;
+use App\Http\Controllers\Agents\Agents\AgentKnowledgeFilesAnalyzeController;
+use App\Http\Controllers\Agents\Agents\AgentPreviewController;
+use App\Http\Controllers\Agents\Agents\AgentsGenerateRandomSubDomainController;
 use App\Http\Controllers\Agents\Agents\AgentsIndexController;
 use App\Http\Controllers\Agents\Agents\AgentsListController;
 use App\Http\Controllers\Agents\Agents\AgentStoreController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateActivityController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateController;
+use App\Http\Controllers\Agents\Agents\AgentUpdateSettingsController;
 use App\Http\Controllers\Agents\Appearance\AgentAppearanceController;
+use App\Http\Controllers\Agents\Embed\EmbedController;
 use App\Http\Controllers\Agents\Files\AgentKnowledgeController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFileDeleteController;
@@ -22,11 +26,9 @@ use App\Http\Controllers\Agents\Models\AgentModelsListController;
 use App\Http\Controllers\Agents\Models\AgentModelsShowController;
 use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
 use App\Http\Controllers\Agents\Models\AgentModelsToggleController;
-use App\Http\Controllers\Agents\Playground\AgentPlaygroundConversationCreateController;
-use App\Http\Controllers\Agents\Playground\AgentPlaygroundShowController;
-use App\Http\Controllers\Agents\Playground\AgentPlaygroundStreamController;
-use App\Http\Controllers\Agents\Settings\AgentShowSettingsController;
-use App\Http\Controllers\Agents\Settings\AgentUpdateSettingsController;
+use App\Http\Controllers\Agents\Persona\AgentShowPersonaController;
+use App\Http\Controllers\Agents\Security\AgentSecurityController;
+use App\Http\Controllers\Agents\Security\AgentSecurityUpdateController;
 use App\Http\Controllers\Agents\Starters\StarterDeleteController;
 use App\Http\Controllers\Agents\Starters\StartersShowController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
@@ -38,7 +40,8 @@ use App\Http\Controllers\Agents\Team\AgentMembersInvitationAcceptController;
 use App\Http\Controllers\Agents\Team\AgentMembersInvitationCreateAccountController;
 use App\Http\Controllers\Agents\Team\AgentMembersListController;
 use App\Http\Controllers\Agents\Team\AgentTeamController;
-use App\Http\Controllers\GenerateRandomSubDomainController;
+use App\Http\Controllers\Agents\Widget\WidgetController;
+use App\Http\Controllers\Agents\Widget\WidgetPreviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -53,12 +56,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('agents/{agent}')->name('agents.')->group(function () {
         Route::get('stats', AgentStatsController::class)->name('stats');
         Route::patch('/', AgentUpdateController::class)->name('update');
+        Route::get('widget/preview', WidgetPreviewController::class)->name('widget.preview');
+        Route::get('preview', AgentPreviewController::class)->name('preview');
 
-        // Playground routes
-        Route::post('playground/conversations/create', AgentPlaygroundConversationCreateController::class)->name('playground.conversations.create');
-        Route::post('playground/stream', AgentPlaygroundStreamController::class)->name('playground.stream');
-
-        Route::get('settings', AgentShowSettingsController::class)->name('settings');
+        Route::get('settings', AgentShowPersonaController::class)->name('settings');
+        Route::get('security', AgentSecurityController::class)->name('security');
 
         // Knowledge
         Route::get('knowledge', AgentKnowledgeController::class)->name('knowledge');
@@ -78,7 +80,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('appearance', AgentAppearanceController::class)->name('appearance');
 
+        Route::get('widget', WidgetController::class)->name('widget');
+        Route::get('embed', EmbedController::class)->name('embed');
+
         Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
+        Route::patch('security', AgentSecurityUpdateController::class)->name('security.update');
 
         // Settings
         Route::post('settings/{group}', AgentUpdateSettingsController::class)->name('settings.update');
@@ -100,15 +106,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Delete Agent
         Route::delete('/', AgentDeleteController::class)->name('delete');
 
-        // Playground
-        Route::get('playground', AgentPlaygroundShowController::class)->name('playground');
-
-        Route::post('playground/conversations/create', AgentPlaygroundConversationCreateController::class)->name('playground.conversations.create');
     });
 
     Route::post('agents/knowledge/files/analyze', AgentKnowledgeFilesAnalyzeController::class)->name('agents.knowledge.files.analyze');
 
-    Route::get('generate-random-subdomain', GenerateRandomSubDomainController::class)->name('generate-random-subdomain');
+    Route::get('generate-random-subdomain', AgentsGenerateRandomSubDomainController::class)->name('generate-random-subdomain');
 });
 
 Route::get('agents/{agent}/invitations/{token}', AgentMembersInvitationCreateAccountController::class)

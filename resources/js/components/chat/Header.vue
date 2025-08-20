@@ -1,10 +1,11 @@
 <script setup>
-import { ref, onMounted, inject, computed } from 'vue';
+import { ref, onMounted, inject, computed, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Trash2, EyeOff, Eye, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-vue-next';
+import { updateTheme } from '@/composables/useAppearance';
 
 const chatEventBus = inject('chatEventBus')
 
@@ -23,6 +24,23 @@ const props = defineProps({
         type: Boolean,
         default: false
     },
+    removeSidebar: {
+        type: Boolean,
+        default: false
+    },
+    enableThemeSwitcher: {
+        type: Boolean,
+        default: true
+    },
+    defaultTheme: {
+        type: String,
+        default: 'auto',
+        validator: (value) => ['auto', 'light', 'dark'].includes(value)
+    },
+    enableChatExpand: {
+        type: Boolean,
+        default: true
+    }
 });
 
 const emit = defineEmits(['update:selectedModel', 'deleteConversation', 'toggleIncognito', 'toggleSidebar']);
@@ -37,6 +55,20 @@ onMounted(() => {
     if (savedIncognitoMode !== null) {
         isIncognitoMode.value = savedIncognitoMode === 'true';
         emit('toggleIncognito', isIncognitoMode.value);
+    }
+
+    // Apply default theme if theme switcher is disabled
+    if (!props.enableThemeSwitcher) {
+        const themeValue = props.defaultTheme === 'auto' ? 'system' : props.defaultTheme;
+        updateTheme(themeValue);
+    }
+});
+
+// Watch for changes to theme props
+watch([() => props.enableThemeSwitcher, () => props.defaultTheme], ([enableSwitcher, defaultTheme]) => {
+    if (!enableSwitcher) {
+        const themeValue = defaultTheme === 'auto' ? 'system' : defaultTheme;
+        updateTheme(themeValue);
     }
 });
 
@@ -66,6 +98,7 @@ function toggleChatExpand() {
             <div class="flex items-center gap-2">
                 <!-- Collapse/Expand icon with animation -->
                 <Button
+                    v-if="!removeSidebar"
                     variant="ghost"
                     @click="toggleSidebar"
                     size="icon"
@@ -79,8 +112,9 @@ function toggleChatExpand() {
                     </Transition>
                 </Button>
 
-                <!-- Expand/Collapse chat content icon with animation -->
+                <!-- Expand/Collapse chat content icon with animation (conditional) -->
                 <Button
+                    v-if="enableChatExpand"
                     variant="ghost"
                     @click="toggleChatExpand"
                     size="icon"
@@ -166,8 +200,8 @@ function toggleChatExpand() {
                     </DialogContent>
                 </Dialog>
 
-                <!-- Theme switcher with divider -->
-                <div class="flex items-center gap-3">
+                <!-- Theme switcher with divider (conditional) -->
+                <div v-if="enableThemeSwitcher" class="flex items-center gap-3">
                     <div class="h-6 w-px bg-border/50"></div>
                     <ThemeSwitcher />
                 </div>

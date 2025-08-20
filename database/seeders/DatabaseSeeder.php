@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             'is_public' => 1,
             'is_active' => 1,
             'type' => 'knowledge',
+            'external_id' => '123',
         ]);
 
         $user2 = User::factory()->create([

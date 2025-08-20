@@ -19,7 +19,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
     public function __construct(
         public Agent $agent,
         public string $role,
-        public string $conversationId,
+        public ?string $conversationId,
         public string $messageId,
         public ChatInputPayload|ChatOutputPayload $payload
     ) {

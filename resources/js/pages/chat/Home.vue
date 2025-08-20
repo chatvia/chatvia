@@ -19,6 +19,35 @@ const props = defineProps({
             logo: null,
             composer_placeholder: null
         })
+    },
+    removeSidebar: {
+        type: Boolean,
+        default: false
+    },
+    hideSidebarOnPageLoad: {
+        type: Boolean,
+        default: false
+    },
+    enableThemeSwitcher: {
+        type: Boolean,
+        default: true
+    },
+    defaultTheme: {
+        type: String,
+        default: 'auto',
+        validator: (value) => ['auto', 'light', 'dark'].includes(value)
+    },
+    enableChatExpand: {
+        type: Boolean,
+        default: true
+    },
+    chatRoute: {
+        type: String,
+        default: 'chat.show'
+    },
+    newChatRoute: {
+        type: String,
+        default: 'chat.home'
     }
 });
 
@@ -88,7 +117,7 @@ function updateSelectedModel(newModel) {
 
 async function createNewConversation(message, model) {
   await axios.post(route('conversations.create'), { message: message, model: model.id }).then(response => {
-    router.visit(route('chat.show', { conversationId: response.data.id, model: model.id, new: '1' }));
+    router.visit(route(props.chatRoute, { conversationId: response.data.id, model: model.id, new: '1' }));
   });
 }
 
@@ -98,7 +127,7 @@ function handleStarterClick(starter) {
 </script>
 
 <template>
-  <ChatLayout :appearance="props.appearance">
+  <ChatLayout :appearance="props.appearance" :removeSidebar="props.removeSidebar" :hideSidebarOnPageLoad="props.hideSidebarOnPageLoad" :enableThemeSwitcher="props.enableThemeSwitcher" :defaultTheme="props.defaultTheme" :enableChatExpand="props.enableChatExpand" :newChatRoute="props.newChatRoute">
       <Head title="ChatVia" />
             <template #content>
           <div class="flex h-screen items-center justify-center px-4">

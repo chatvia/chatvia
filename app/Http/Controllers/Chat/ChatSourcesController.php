@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Chat;
 
 use App\Support\Chat\ChatMemory;
 use Illuminate\Http\Request;

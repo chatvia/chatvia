@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Landing;
 
 use Illuminate\Http\Request;
 
-class RefundController
+class TermsController
 {
     public function __invoke(Request $request)
     {
-        return view('pages.refund');
+        return view('pages.terms');
     }
 }

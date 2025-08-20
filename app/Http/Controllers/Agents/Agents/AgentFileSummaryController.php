@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Agents\Agents;
 
+use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\AgentFile;
 use Illuminate\Http\Request;

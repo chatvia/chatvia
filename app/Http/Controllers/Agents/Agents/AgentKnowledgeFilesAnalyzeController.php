@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Agents\Agents;
 
 use App\Actions\Agents\AgentKnowledgeAnalyzeFileAction;
 use Illuminate\Http\Request;

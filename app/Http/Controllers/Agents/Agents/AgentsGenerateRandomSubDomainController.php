@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Agents\Agents;
 
 use App\Support\Subdomain;
 use Illuminate\Http\Request;
 
-class GenerateRandomSubDomainController
+class AgentsGenerateRandomSubDomainController
 {
     public function __invoke(Request $request, Subdomain $subdomain)
     {

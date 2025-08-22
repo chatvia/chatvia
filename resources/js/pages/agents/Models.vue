@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { useForm, usePage, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ import {
     Settings,
     Thermometer,
     Target,
-
+    HelpCircle,
     RotateCcw,
     CheckCircle2,
     Sparkles,
@@ -72,6 +72,7 @@ const modelsError = ref<string | null>(null);
 const showSuccessMessage = ref(false);
 const currentSettings = ref<ModelSettings | null>(null);
 const defaultSettings = ref<ModelSettings | null>(null);
+const toggleLoadingModels = ref<Set<string>>(new Set());
 
 const form = useForm({
     temperature: 1.0,
@@ -106,24 +107,41 @@ const fetchModels = async () => {
 };
 
 const toggleModel = async (model: AIModel) => {
-    if (!model.user_allowed_to_use) return;
+    if (!model.user_allowed_to_use || toggleLoadingModels.value.has(model.id)) return;
+
+    // Add to loading set
+    toggleLoadingModels.value.add(model.id);
 
     try {
-        // Send PATCH request to toggle model status
+        // Optimistic update - immediately update UI
+        const originalStatus = model.is_selected;
         const newStatus = !model.is_selected;
+        
+        const modelIndex = models.value.findIndex(m => m.id === model.id);
+        if (modelIndex !== -1) {
+            models.value[modelIndex].is_selected = newStatus;
+        }
+
+        // Send PATCH request to toggle model status
         await axios.patch(route('agents.models.toggle', { agent: props.agent.id }), {
             model_id: model.id,
             status: newStatus
         });
 
-        // Update the local model state
-        const modelIndex = models.value.findIndex(m => m.id === model.id);
-        if (modelIndex !== -1) {
-            models.value[modelIndex].is_selected = newStatus;
-        }
     } catch (error) {
         console.error('Failed to toggle model:', error);
+        
+        // Revert optimistic update on error
+        const modelIndex = models.value.findIndex(m => m.id === model.id);
+        if (modelIndex !== -1) {
+            models.value[modelIndex].is_selected = !models.value[modelIndex].is_selected;
+        }
+        
         // You could add a toast notification here to inform the user of the error
+        alert('Failed to update model. Please try again.');
+    } finally {
+        // Remove from loading set
+        toggleLoadingModels.value.delete(model.id);
     }
 };
 
@@ -133,6 +151,10 @@ const isModelSelected = (model: AIModel) => {
 
 const isModelDisabled = (model: AIModel) => {
     return !model.user_allowed_to_use;
+};
+
+const isModelToggling = (model: AIModel) => {
+    return toggleLoadingModels.value.has(model.id);
 };
 
 const submit = () => {
@@ -255,13 +277,13 @@ onMounted(() => {
                                 Available AI Models
                             </CardTitle>
                             <CardDescription class="text-base text-foreground/80">
-                                Select one or more AI models for your agent. The parameters configured below will be applied to all selected models. Each model has unique capabilities and performance characteristics.
+                                Select one or more AI models for your agent. Click on model cards to enable/disable them and hover over the info icons to learn more about each model's capabilities.
                             </CardDescription>
 
                             <!-- Info about disabled models -->
                             <div v-if="models.some(m => !m.user_allowed_to_use)" class="mt-4 p-3 bg-muted/50 rounded-lg border">
                                 <p class="text-sm text-muted-foreground">
-                                    <strong>Note:</strong> Some models may show as "Not Available" based on your current subscription plan or account settings.
+                                    <strong>Note:</strong> Some models may show as disabled based on your current subscription plan or account settings.
                                 </p>
                             </div>
                         </CardHeader>
@@ -284,117 +306,120 @@ onMounted(() => {
                             </div>
 
                             <!-- Models Grid -->
-                            <div v-else-if="models.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            <div v-else-if="models.length > 0" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 <div
                                     v-for="model in models"
                                     :key="model.id"
                                     class="group relative"
                                 >
                                     <div
-                                        class="border-2 rounded-xl p-6 transition-all duration-200"
+                                        class="border rounded-lg p-4 transition-all duration-200"
                                         :class="[
                                             isModelDisabled(model)
                                                 ? 'border-muted bg-muted/30 opacity-60 cursor-not-allowed'
-                                                : isModelSelected(model)
-                                                    ? 'border-primary bg-primary/5 shadow-md cursor-pointer'
-                                                    : 'border-border hover:border-primary/30 hover:bg-accent/20 cursor-pointer hover:shadow-lg'
+                                                : isModelToggling(model)
+                                                    ? 'border-muted bg-muted/10 opacity-75 cursor-wait'
+                                                    : isModelSelected(model)
+                                                        ? 'border-primary bg-primary/5 shadow-md cursor-pointer'
+                                                        : 'border-border hover:border-primary/30 hover:bg-accent/20 cursor-pointer hover:shadow-lg'
                                         ]"
                                         @click="toggleModel(model)"
                                     >
-                                        <!-- Selection Indicator -->
-                                        <div class="absolute top-4 right-4">
-                                            <div
-                                                class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
-                                                :class="[
-                                                    isModelDisabled(model)
-                                                        ? 'border-muted-foreground/20 bg-muted/50'
-                                                        : isModelSelected(model)
-                                                            ? 'border-primary bg-primary text-primary-foreground'
-                                                            : 'border-muted-foreground/30 group-hover:border-primary/50'
-                                                ]"
-                                            >
-                                                <CheckCircle2
-                                                    v-if="isModelSelected(model) && !isModelDisabled(model)"
-                                                    class="h-4 w-4"
-                                                />
-                                            </div>
-                                        </div>
-
                                         <!-- Model Info -->
                                         <div class="space-y-3">
-                                            <div class="flex items-start gap-3">
-                                                <div
-                                                    class="w-12 h-12 rounded-lg flex items-center justify-center transition-all"
-                                                    :class="[
-                                                        isModelDisabled(model)
-                                                            ? 'bg-muted/50'
-                                                            : isModelSelected(model)
-                                                                ? 'bg-primary/10'
-                                                                : 'bg-muted group-hover:bg-primary/10'
-                                                    ]"
-                                                >
+                                            <!-- Header Row: Icon and Selection Indicator -->
+                                            <div class="flex items-center justify-between">
+                                                <!-- Icon -->
+                                                <div class="flex-shrink-0">
                                                     <img
                                                         v-if="model.icon"
                                                         :src="`/images/llms/${model.icon}`"
                                                         :alt="model.name"
-                                                        class="h-6 w-6"
+                                                        class="h-8 w-8"
+                                                        :class="[
+                                                            isModelDisabled(model) ? 'opacity-50' : ''
+                                                        ]"
                                                     />
-                                                    <Brain v-else class="h-6 w-6" />
+                                                    <Brain 
+                                                        v-else 
+                                                        class="h-8 w-8"
+                                                        :class="[
+                                                            isModelDisabled(model) 
+                                                                ? 'text-muted-foreground/50' 
+                                                                : 'text-muted-foreground'
+                                                        ]"
+                                                    />
                                                 </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="flex items-center gap-2">
-                                                        <h3 class="font-semibold text-lg">{{ model.name }}</h3>
-                                                    </div>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <p class="text-sm text-muted-foreground mt-1 line-clamp-2 cursor-help">
-                                                                {{ model.description }}
-                                                            </p>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent class="max-w-xs">
-                                                            <p>{{ model.description }}</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
+                                                
+                                                <!-- Selection Indicator -->
+                                                <div
+                                                    class="w-5 h-5 rounded-full border flex items-center justify-center transition-all flex-shrink-0"
+                                                    :class="[
+                                                        isModelDisabled(model)
+                                                            ? 'border-muted-foreground/20 bg-muted/50'
+                                                            : isModelSelected(model)
+                                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                                : 'border-muted-foreground/30 group-hover:border-primary/50'
+                                                    ]"
+                                                >
+                                                    <!-- Loading Spinner -->
+                                                    <div 
+                                                        v-if="isModelToggling(model)" 
+                                                        class="h-3 w-3 rounded-full border border-white/30 border-t-white animate-spin"
+                                                    />
+                                                    <!-- Checkmark -->
+                                                    <CheckCircle2
+                                                        v-else-if="isModelSelected(model) && !isModelDisabled(model)"
+                                                        class="h-3 w-3"
+                                                    />
                                                 </div>
                                             </div>
-
-                                            <div class="flex items-center justify-between pt-2">
-                                                <div class="flex items-center gap-1.5">
-                                                    <Badge
-                                                        variant="secondary"
-                                                        class="text-[10px] font-medium px-1.5 py-0.5 h-auto"
-                                                        :class="[
-                                                            isModelDisabled(model)
-                                                                ? 'bg-muted/50 text-muted-foreground/50'
-                                                                : isModelSelected(model)
-                                                                    ? 'bg-primary/20 text-primary'
-                                                                    : ''
-                                                        ]"
-                                                    >
-                                                        {{ model.context_window.toLocaleString() }} tokens
-                                                    </Badge>
-
-                                                    <!-- Features -->
-                                                    <template v-if="model.features && model.features.length > 0">
-                                                        <Badge
-                                                            v-for="feature in model.features.slice(0, 2)"
-                                                            :key="feature"
-                                                            :variant="isModelDisabled(model) ? 'outline' : getFeatureBadgeVariant(feature)"
-                                                            class="text-[10px] capitalize px-1.5 py-0.5 h-auto"
-                                                            :class="isModelDisabled(model) ? 'opacity-50' : ''"
-                                                        >
-                                                            {{ feature }}
-                                                        </Badge>
-                                                        <Badge
-                                                            v-if="model.features.length > 2"
-                                                            variant="outline"
-                                                            class="text-[10px] px-1.5 py-0.5 h-auto"
-                                                            :class="isModelDisabled(model) ? 'opacity-50' : ''"
-                                                        >
-                                                            +{{ model.features.length - 2 }}
-                                                        </Badge>
-                                                    </template>
-                                                </div>
+                                            
+                                            <!-- Bottom Row: Model Name and Help Button -->
+                                            <div class="flex items-center justify-between">
+                                                <h3 class="font-medium text-sm leading-tight">{{ model.name }}</h3>
+                                                
+                                                <!-- Help Button -->
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <button type="button" class="p-1 rounded-full hover:bg-muted transition-colors flex-shrink-0">
+                                                            <HelpCircle class="h-4 w-4 text-muted-foreground" />
+                                                        </button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent class="max-w-sm" side="top">
+                                                        <div class="space-y-2">
+                                                            <p class="font-medium">{{ model.name }}</p>
+                                                            <p class="text-sm">{{ model.description }}</p>
+                                                            <div class="pt-2 border-t space-y-1">
+                                                                <div class="flex justify-between text-xs">
+                                                                    <span class="text-muted-foreground">Context Window:</span>
+                                                                    <span>{{ model.context_window.toLocaleString() }} tokens</span>
+                                                                </div>
+                                                                <div class="flex justify-between text-xs">
+                                                                    <span class="text-muted-foreground">Location:</span>
+                                                                    <span>{{ model.location }}</span>
+                                                                </div>
+                                                                <div v-if="model.reasoning" class="flex justify-between text-xs">
+                                                                    <span class="text-muted-foreground">Reasoning:</span>
+                                                                    <span class="text-emerald-600">✓ Supported</span>
+                                                                </div>
+                                                                <div v-if="model.features && model.features.length > 0" class="pt-1">
+                                                                    <div class="text-xs text-muted-foreground mb-1">Features:</div>
+                                                                    <div class="flex flex-wrap gap-1">
+                                                                        <Badge 
+                                                                            v-for="feature in model.features" 
+                                                                            :key="feature"
+                                                                            variant="secondary"
+                                                                            class="text-[10px] h-auto py-0.5"
+                                                                        >
+                                                                            {{ feature }}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </TooltipContent>
+                                                </Tooltip>
                                             </div>
                                         </div>
                                     </div>
@@ -733,6 +758,7 @@ onMounted(() => {
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

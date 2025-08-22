@@ -30,7 +30,6 @@ class ContentSecurityPolicy
             "style-src 'self' 'nonce-{$nonce}' 'unsafe-inline' https://fonts.googleapis.com",
             "img-src 'self' data: https: blob:",
             "font-src 'self' https://fonts.gstatic.com data:",
-            "connect-src 'self' https://api.groq.com https://api.openai.com https://api.anthropic.com ws: wss:",
             "media-src 'self' data: blob:",
             "object-src 'none'",
             "base-uri 'self'",

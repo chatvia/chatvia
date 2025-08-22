@@ -35,6 +35,7 @@
         "resend/resend-php": "^0.18.1",
         "sentry/sentry-laravel": "^4.15",
         "socialiteproviders/microsoft": "^4.7",
+        "spatie/crawler": "^8.4",
         "spatie/laravel-data": "^4.15",
         "spatie/laravel-login-link": "^1.6",
         "spatie/laravel-markdown": "^2.7",

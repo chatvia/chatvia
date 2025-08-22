@@ -3,7 +3,7 @@
 return [
     'versions' => [
         [
-            'version' => '14-08-2025',
+            'version' => '22-08-2025',
             'release_date' => 'Aug 22, 2025',
             'status' => 'Latest',
             'status_color' => 'blue',

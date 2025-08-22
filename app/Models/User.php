@@ -239,7 +239,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function members(): HasMany
     {
-        return $this->hasMany(Member::class);
+        return $this->hasMany(Member::class)->where('is_owner', false);
     }
 
     public function agentFiles(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
@@ -380,5 +380,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class);
+    }
+
+    public function memberOwner()
+    {
+        return $this->hasOne(Member::class)->where('is_owner', true)->latestOfMany();
     }
 }

@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Chat;
 
-use App\Support\Chat\ChatMemory;
+use App\Services\Memory\ChatMemory;
+use App\Services\Memory\ChatSession;
 use Illuminate\Http\Request;
 
 class ChatMessageFeedbackController
 {
-    public function __invoke(Request $request, ChatMemory $memory)
+    public function __invoke(Request $request, ChatMemory $memory, ChatSession $session)
     {
         $request->validate([
             'conversation_id' => ['required', 'string'],
@@ -15,7 +16,7 @@ class ChatMessageFeedbackController
             'feedback' => ['required', 'bool'],
         ]);
 
-        $memory->setAgent(current_agent())->setConversationId($request->input('conversation_id'))->updateMessage($request->input('message_id'), [
+        $memory->setAgent(current_agent())->setSessionId($session->firstOrCreateChatSession())->setConversationId($request->input('conversation_id'))->updateMessage($request->input('message_id'), [
             'feedback' => $request->input('feedback'),
         ]);
     }

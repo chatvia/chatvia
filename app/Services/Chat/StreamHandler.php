@@ -147,8 +147,11 @@ class StreamHandler
     {
         $context->markEndTime();
 
-        $sources = $context->sources->toArray();
-        echo 'sources: '.json_encode($sources, JSON_THROW_ON_ERROR)."\n\n";
+        if ($context->requestData->streamSources) {
+            $sources = $context->sources->toArray();
+            echo 'sources: '.json_encode($sources, JSON_THROW_ON_ERROR)."\n\n";
+        }
+
         echo 'data: '.json_encode(['content' => '[DONE]'])."\n\n";
         flush();
     }

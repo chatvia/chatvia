@@ -4,14 +4,15 @@ namespace App\Http\Controllers\Chat\Conversations;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Rules\AgentLLmChatRule;
-use App\Support\Chat\ChatMemory;
+use App\Services\Memory\ChatMemory;
+use App\Services\Memory\ChatSession;
 use App\Support\Llms;
 use App\Support\OpenAI;
 use Illuminate\Http\Request;
 
 final class ConversationCreateController
 {
-    public function __invoke(Request $request, Llms $models, ChatMemory $memory)
+    public function __invoke(Request $request, Llms $models, ChatMemory $memory, ChatSession $session)
     {
         $request->validate([
             'model' => ['required', 'string', new AgentLLmChatRule],
@@ -33,6 +34,7 @@ final class ConversationCreateController
 
         $conversationId = $memory
             ->setAgent($agent)
+            ->setSessionId($session->firstOrCreateChatSession())
             ->createConversation(title: 'New Chat');
 
         $memory->setConversationId($conversationId);

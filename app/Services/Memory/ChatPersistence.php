@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Support\Chat;
+namespace App\Services\Memory;
 
 class ChatPersistence {}

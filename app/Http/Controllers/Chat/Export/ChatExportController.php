@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Chat\Export;
 
-use App\Support\Chat\ChatMemory;
+use App\Services\Memory\ChatMemory;
+use App\Services\Memory\ChatSession;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,7 +14,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 readonly class ChatExportController
 {
-    public function __construct(private ChatMemory $memory) {}
+    public function __construct(private ChatMemory $memory, private ChatSession $session) {}
 
     public function __invoke(Request $request, string $conversationId)
     {
@@ -24,6 +25,7 @@ readonly class ChatExportController
 
         $this
             ->memory
+            ->setSessionId($this->session->firstOrCreateChatSession())
             ->setAgent(current_agent())
             ->setConversationId($conversationId);
 

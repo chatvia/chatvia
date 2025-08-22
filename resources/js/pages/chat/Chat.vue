@@ -64,7 +64,6 @@ const props = defineProps({
 
 const loadingMessages = ref(true);
 const messages = ref([]);
-const defaultModelId = ref();
 const isSidebarOpen = ref(false);
 const isAutoScrollEnabled = ref(true);
 const scrollTimeout = ref(null);
@@ -450,8 +449,13 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
             },
             onDone: () => {
                 streamingForMessageIndex.value = null;
+                
+                // For new conversations, wait for title generation to complete
+                // before emitting the event to ensure conversation is visible
                 if (isNewConversation) {
-                    chatEventBus.emitConversationCreated(props.conversation_id)
+                    setTimeout(() => {
+                        chatEventBus.emitConversationCreated(props.conversation_id);
+                    }, 2000);
                 }
 
                 // Remove 'new' query parameter after streaming is done

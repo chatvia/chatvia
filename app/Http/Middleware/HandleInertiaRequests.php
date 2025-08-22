@@ -2,9 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use App\Support\Chat\ChatMemory;
+use App\Features\Widget;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Laravel\Pennant\Feature;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -46,6 +47,9 @@ class HandleInertiaRequests extends Middleware
 
             'domain' => $request->domain(),
             'subdomain' => $request->subdomain(),
+            'features' => [
+                'widget' => Feature::active(Widget::class),
+            ],
         ];
 
         return $data;

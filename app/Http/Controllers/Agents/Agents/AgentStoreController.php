@@ -7,7 +7,6 @@ use App\Models\Agent;
 use App\Support\Ingestion;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Throwable;
 
 class AgentStoreController
@@ -23,9 +22,7 @@ class AgentStoreController
 
             $validatedData = $request->validated();
 
-            do {
-                $externalId = uniqid('', false);
-            } while (Agent::where('external_id', $externalId)->exists());
+            $externalId = \App\Support\Agent::generateRandomExternalId();
 
             /** @var Agent $agent */
             $agent = Agent::create([

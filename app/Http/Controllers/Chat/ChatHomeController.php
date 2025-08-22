@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chat;
 
-use App\Support\Chat\ChatSession;
+use App\Services\Memory\ChatSession;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

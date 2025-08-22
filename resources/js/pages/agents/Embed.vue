@@ -259,7 +259,7 @@
         <PreviewModal
             v-model="showPreviewModal"
             preview-type="embed"
-            :preview-url="props.agent.chat_embed_url"
+            :preview-url="buildIframeUrl(props.agent.chat_embed_url)"
             iframe-title="Chat Preview"
         />
 
@@ -276,7 +276,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import PreviewModal from '@/components/PreviewModal.vue';
 
 import { Eye, Copy, Info } from 'lucide-vue-next';
@@ -285,6 +285,7 @@ import { toast } from 'vue-sonner';
 interface Props {
     agent: any;
     embed_settings?: any;
+    auth_token?: string | null;
 }
 
 const props = defineProps<Props>();
@@ -342,7 +343,7 @@ const updateSetting = (key: string, value: any) => {
 // Computed embed code
 const embedCode = computed(() => {
     const attributes = [
-        `src="${props.agent.chat_embed_url}"`, // Use chat_embed_url from agent
+        `src="${buildIframeUrl(props.agent.chat_embed_url)}"`, // Use chat_embed_url from agent with auth token
         `width="${iframeOptions.width}"`,
         `height="${iframeOptions.height}"`,
         `title="${iframeOptions.title}"`,
@@ -368,7 +369,13 @@ const embedCode = computed(() => {
 });
 
 // Methods
-
+const buildIframeUrl = (baseUrl: string) => {
+    if (props.auth_token) {
+        const separator = baseUrl.includes('?') ? '&' : '?';
+        return `${baseUrl}${separator}auth_token=${props.auth_token}`;
+    }
+    return baseUrl;
+};
 
 const copyEmbedCode = async () => {
     try {

@@ -1,0 +1,172 @@
+<?php
+
+namespace App\Services\Memory;
+
+use App\Models\Member;
+use App\Support\OpenRouter;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+/**
+ * Manages chat conversations within sessions.
+ */
+class ConversationManager
+{
+    public function __construct(
+        private readonly ChatCache $cache,
+        private readonly string $sessionId
+    ) {}
+
+    public function createConversation(string $title): string
+    {
+        $conversationId = Str::uuid()->toString();
+
+        $conversations = $this->getConversationsFromSession();
+
+        $conversations[] = [
+            'id' => $conversationId,
+            'title' => $title,
+            'timestamp' => now()->timestamp,
+            'visible' => false,
+        ];
+
+        $this->saveSessionData($conversations);
+
+        return $conversationId;
+    }
+
+    public function updateConversationTitle(string $conversationId, string $title): void
+    {
+        $conversations = $this->getConversationsFromSession();
+
+        foreach ($conversations as &$conversation) {
+            if ($conversation['id'] === $conversationId) {
+                $conversation['title'] = Str::of($title)->replace('"', '')->toString();
+                $conversation['visible'] = true;
+            }
+        }
+
+        $this->saveSessionData($conversations);
+    }
+
+    public function updateConversationTitleFromMessages(string $conversationId, array|string $messages = []): void
+    {
+        if (is_array($messages)) {
+            $messages = implode("\n", $messages);
+        }
+
+        if (empty($messages)) {
+            return;
+        }
+
+        $newTitle = OpenRouter::completion([
+            'model' => 'openai/gpt-4o-mini',
+            'max_tokens' => 50,
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => '
+                    You are an AI writer. Your task is to find a meaningful title for the given text.
+                    You must return your response in plain text format.
+                    Make it concise
+                    ',
+                ],
+                [
+                    'role' => 'user',
+                    'content' => 'The text is: '.$messages,
+                ],
+            ],
+        ])->throw()->json('choices.0.message.content');
+
+        $this->updateConversationTitle($conversationId, $newTitle);
+    }
+
+    public function deleteConversation(string $conversationId): void
+    {
+        // Delete conversation messages
+        $conversationKey = $this->cache->generateConversationKey($conversationId);
+        $this->cache->forget($conversationKey);
+
+        // Remove from session conversations list
+        $conversations = $this->getConversationsFromSession();
+
+        foreach ($conversations as $key => $conversation) {
+            if ($conversation['id'] === $conversationId) {
+                unset($conversations[$key]);
+            }
+        }
+
+        $this->saveSessionData(array_values($conversations));
+    }
+
+    public function deleteAllConversations(): void
+    {
+        $this->cache->flush();
+    }
+
+    public function getConversationById(string $conversationId): ?array
+    {
+        return collect($this->getConversationsForSession(onlyVisible: true))
+            ->firstWhere('id', $conversationId);
+    }
+
+    public function conversationExists(string $conversationId): bool
+    {
+        // Check if conversation exists in session's conversation list
+        $conversations = $this->getConversationsFromSession();
+        $inSession = collect($conversations)->contains('id', $conversationId);
+
+        // Also check if there's a message cache for this conversation
+        $conversationKey = $this->cache->generateConversationKey($conversationId);
+        $hasMessages = $this->cache->has($conversationKey);
+
+        return $inSession || $hasMessages;
+    }
+
+    public function getConversationsForSession(bool $onlyVisible = false, bool $orderByDate = false): array
+    {
+        $session = $this->cache->get($this->sessionId, []);
+
+        // Check if session belongs to current member for private agents
+        if (! empty($session['member_id']) && $this->getCurrentMember()?->id !== $session['member_id']) {
+            return [];
+        }
+
+        $conversations = collect($session['conversations'] ?? []);
+
+        if ($onlyVisible) {
+            $conversations = $conversations->filter(fn ($conversation) => $conversation['visible'] === true);
+        }
+
+        if ($orderByDate) {
+            $conversations = $conversations->sortByDesc('timestamp');
+        }
+
+        return $conversations->values()->toArray();
+    }
+
+    public function isMemberAuthenticated(): bool
+    {
+        return Auth::guard('member')->check();
+    }
+
+    private function getCurrentMember(): ?Member
+    {
+        return Auth::guard('member')->user();
+    }
+
+    private function saveSessionData(array $conversations): void
+    {
+        $this->cache->put($this->sessionId, [
+            'member_id' => $this->getCurrentMember()?->id,
+            'conversations' => $conversations,
+        ]);
+    }
+
+    private function getConversationsFromSession(): array
+    {
+        $session = $this->cache->get($this->sessionId, []);
+
+        return $session['conversations'] ?? [];
+    }
+}

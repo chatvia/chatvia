@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'is_public' => 1,
             'is_active' => 1,
             'type' => 'knowledge',
-            'external_id' => '123',
+            'external_id' => '407f7fdfa1cf19',
         ]);
 
         $user2 = User::factory()->create([
@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
             'is_public' => 1,
             'is_active' => 1,
             'type' => 'knowledge',
+            'external_id' => \App\Support\Agent::generateRandomExternalId(),
         ]);
     }
 }

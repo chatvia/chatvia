@@ -5,7 +5,7 @@ namespace App\Services\Chat;
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Services\Chat\Data\StreamRequestData;
-use App\Support\Chat\ChatMemory;
+use App\Services\Memory\ChatMemory;
 use App\Support\KnowledgeBase;
 use Illuminate\Support\Str;
 
@@ -21,8 +21,9 @@ class ChatService
     {
         $this
             ->memory
-            ->setConversationId($data->conversationId)
-            ->setAgent($data->agent);
+            ->setAgent($data->agent)
+            ->setSessionId($data->sessionId)
+            ->setConversationId($data->conversationId);
 
         ['lang' => $lang, 'query' => $query] = $this->knowledgeBase->rewriteQuery($data->message->message);
 
@@ -38,8 +39,13 @@ class ChatService
         $userMessageId = null;
 
         // Add user message if not the first conversation
-        if (count($llmMessages) > 1) {
-            $userMessageId = $this->memory->addMessageViaPayload($payload);
+        if ($data->saveUserMessageImmediately || count($llmMessages) > 1) {
+            $userMessageId = $this
+                ->memory
+                ->setAgent($data->agent)
+                ->setSessionId($data->sessionId)
+                ->setConversationId($data->conversationId)
+                ->addMessageViaPayload($payload);
         }
 
         return new ChatContext(
@@ -108,20 +114,28 @@ class ChatService
 
     public function handleChatCompletion(ChatContext $context): void
     {
-        if (! $context->requestData->persist) {
+        if (! $context->requestData->persistMessage) {
             return;
         }
 
         $this->saveAssistantMessage($context);
 
-        if (count($context->llmMessages) === 2) {
-            $this->memory->updateConversationTitleFromMessages();
+        // TODO: it does not update the conversation's title
+        if (count($context->llmMessages) <= 2) {
+            $this
+                ->memory
+                ->setAgent($context->requestData->agent)
+                ->setSessionId($context->requestData->sessionId)
+                ->setConversationId($context->requestData->conversationId)
+                ->updateConversationTitleFromMessages();
         }
 
-        $this->memory->storeSourcesForMessage(
-            $context->assistantMessageId,
-            $context->sources->toArray()
-        );
+        if ($context->requestData->streamSources) {
+            $this->memory->storeSourcesForMessage(
+                $context->assistantMessageId,
+                $context->sources->toArray()
+            );
+        }
     }
 
     public function handleClientDisconnection(ChatContext $context): void
@@ -133,16 +147,21 @@ class ChatService
 
     private function saveAssistantMessage(ChatContext $context): void
     {
-        $this->memory->addMessageViaPayload(
-            new ChatOutputPayload(
-                message_id: $context->assistantMessageId,
-                role: 'assistant',
-                message: $context->streamedMessage,
-                model: $context->requestData->message->model->external_name,
-                generation_id: $context->generationId,
-                response_time_ms: $context->getResponseTimeMs(),
-                language: $context->queryLanguage,
-            )
-        );
+        $this
+            ->memory
+            ->setAgent($context->requestData->agent)
+            ->setSessionId($context->requestData->sessionId)
+            ->setConversationId($context->requestData->conversationId)
+            ->addMessageViaPayload(
+                new ChatOutputPayload(
+                    message_id: $context->assistantMessageId,
+                    role: 'assistant',
+                    message: $context->streamedMessage,
+                    model: $context->requestData->message->model->external_name,
+                    generation_id: $context->generationId,
+                    response_time_ms: $context->getResponseTimeMs(),
+                    language: $context->queryLanguage,
+                )
+            );
     }
 }

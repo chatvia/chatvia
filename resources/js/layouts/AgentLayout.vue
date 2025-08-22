@@ -18,17 +18,16 @@ import {
     TooltipTrigger
 } from '@/components/ui/tooltip';
 import { toast } from 'vue-sonner';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem, Features } from '@/types';
 
 import {
     Bot,
     ChevronRight,
     Clock,
     Database,
-
+    LoaderCircle,
     MessageSquare,
     Palette,
-    Settings,
     Trash2,
     Users,
     BarChart3,
@@ -61,6 +60,9 @@ const props = defineProps({
 const page = usePage();
 const currentRoute = computed(() => page.component);
 
+// Get features from page props
+const features = page.props.features as Features;
+
 // Collapse/expand state for sections - with localStorage persistence
 const isUiSectionExpanded = ref(true);
 const isControlPanelExpanded = ref(true);
@@ -71,7 +73,7 @@ onMounted(() => {
     const savedUiExpanded = localStorage.getItem('agent-layout-ui-expanded');
     const savedControlPanelExpanded = localStorage.getItem('agent-layout-control-panel-expanded');
     const savedNavigationCollapsed = localStorage.getItem('agent-layout-navigation-collapsed');
-    
+
     if (savedUiExpanded !== null) {
         isUiSectionExpanded.value = savedUiExpanded === 'true';
     }
@@ -107,11 +109,19 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const uiNavigationItems = [
-    { id: 'preview', label: 'Chat', icon: BotIcon, route: 'agents.preview', tooltip: 'Preview your agent chat interface' },
-    { id: 'embed', label: 'Embed', icon: Code, route: 'agents.embed', tooltip: 'Generate embed code for your website' },
-    { id: 'widget', label: 'Widget', icon: Globe, route: 'agents.widget', tooltip: 'Configure and preview chat widget' },
-];
+const uiNavigationItems = computed(() => {
+    const baseItems = [
+        { id: 'preview', label: 'Chat', icon: BotIcon, route: 'agents.preview', tooltip: 'Preview your agent chat interface' },
+        { id: 'embed', label: 'Embed', icon: Code, route: 'agents.embed', tooltip: 'Generate embed code for your website' },
+    ];
+
+    // Only add widget if the feature is enabled
+    if (features.widget) {
+        baseItems.push({ id: 'widget', label: 'Widget', icon: Globe, route: 'agents.widget', tooltip: 'Configure and preview chat widget' });
+    }
+
+    return baseItems;
+});
 
 const controlPanelNavigationItems = [
     { id: 'stats', label: 'Statistics', icon: BarChart3, route: 'agents.stats', tooltip: 'View usage statistics and analytics' },
@@ -228,11 +238,11 @@ const isActiveRoute = (routeName: string) => {
                                 >
                                     {{ agent.is_public ? 'Public' : 'Protected' }}
                                 </span>
-                                
+
                                 <!-- Public Notice -->
                                 <template v-if="agent.is_public">
                                     <span class="text-xs text-muted-foreground">(accessible by everyone)</span>
-                                    <Link 
+                                    <Link
                                         :href="route('agents.security', { agent: agent.id })"
                                         class="text-xs text-blue-500 hover:text-blue-600 underline ml-1"
                                     >
@@ -277,11 +287,11 @@ const isActiveRoute = (routeName: string) => {
             <div class="container mx-auto max-w-7xl px-4 py-4">
                 <div class="flex flex-col lg:flex-row gap-8">
                     <!-- Vertical Navigation -->
-                    <nav 
+                    <nav
                         :class="[
                             'flex-shrink-0 space-y-4 transition-all duration-300',
-                            isNavigationCollapsed 
-                                ? 'w-16' 
+                            isNavigationCollapsed
+                                ? 'w-16'
                                 : 'w-full lg:w-64'
                         ]"
                     >
@@ -315,7 +325,7 @@ const isActiveRoute = (routeName: string) => {
                                     </Link>
                                 </div>
                             </template>
-                            
+
                             <!-- Collapsed UI Icons -->
                             <template v-else>
                                 <TooltipProvider>
@@ -386,7 +396,7 @@ const isActiveRoute = (routeName: string) => {
                                     </div>
                                 </div>
                             </template>
-                            
+
                             <!-- Collapsed Control Panel Icons -->
                             <template v-else>
                                 <TooltipProvider>
@@ -409,7 +419,7 @@ const isActiveRoute = (routeName: string) => {
                                                 <p>{{ item.tooltip }}</p>
                                             </TooltipContent>
                                         </Tooltip>
-                                        
+
                                         <!-- Collapsed Delete Button -->
                                         <Tooltip>
                                             <TooltipTrigger as-child>

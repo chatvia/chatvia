@@ -2,14 +2,18 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Auth\AgentMemberAuthTokenService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthenticateMemberUsingToken
 {
+    public function __construct(
+        private readonly AgentMemberAuthTokenService $authTokenService
+    ) {}
+
     /**
      * Handle an incoming request.
      *
@@ -20,10 +24,10 @@ class AuthenticateMemberUsingToken
         if ($request->filled('auth_token')) {
             $authToken = $request->input('auth_token');
 
-            if ($cachedAuthToken = Cache::get($authToken)) {
+            if ($cachedAuthToken = $this->authTokenService->getTokenData($authToken)) {
                 Auth::guard('member')->loginUsingId($cachedAuthToken['member_id']);
 
-                Cache::forget($authToken);
+                $this->authTokenService->invalidateToken($authToken);
 
                 return redirect()->route('chat.home');
             }

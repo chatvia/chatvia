@@ -149,14 +149,9 @@ class Agent extends Model
         return $this->settings('message_history')->get('context_window_enabled', true) === true;
     }
 
-    public function contextWindowSize()
-    {
-        return $this->settings('message_history')->get('context_window_size', -1);
-    }
-
     public function messageRetentionInDays(): int
     {
-        return (int) $this->settings('message_history')->get('retention', 30);
+        return $this->settings('message_history')->get('retention', 30);
     }
 
     public function members(): BelongsToMany

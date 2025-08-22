@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 
 class Agent
 {
@@ -30,10 +29,12 @@ class Agent
             ->first();
     }
 
-    public static function deleteAgent(string $id)
+    public static function generateRandomExternalId(int $len = 14): string
     {
-        Http::delete(config('services.ingestion.api_endpoint').'/agent', [
-            'id' => $id,
-        ]);
+        do {
+            $externalId = substr(bin2hex(random_bytes((int) ceil($len / 2))), 0, $len);
+        } while (\App\Models\Agent::where('external_id', $externalId)->exists());
+
+        return $externalId;
     }
 }

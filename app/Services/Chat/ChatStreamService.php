@@ -6,12 +6,12 @@ use App\Services\Chat\Data\StreamRequestData;
 use App\Support\OpenRouter;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class ChatStreamService
+readonly class ChatStreamService
 {
     public function __construct(
-        private readonly ChatService $chatService,
-        private readonly StreamHandler $streamHandler,
-        private readonly OpenRouter $openRouter
+        private ChatService $chatService,
+        private StreamHandler $streamHandler,
+        private OpenRouter $openRouter
     ) {}
 
     public function stream(StreamRequestData $data): StreamedResponse

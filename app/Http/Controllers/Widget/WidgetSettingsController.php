@@ -2,19 +2,25 @@
 
 namespace App\Http\Controllers\Widget;
 
-use App\Models\Agent;
+use App\Services\Widget\WidgetVerification;
 use Illuminate\Http\Request;
 
 class WidgetSettingsController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, WidgetVerification $widgetVerification)
     {
-        $externalAgentId = $request->header('x-agent-id');
+        if (! $widgetVerification->verifyByAgentExternalId($request->header('x-agent-id'), $request)) {
+            return response()->json(['error' => 'Could not verify the agent'], 403);
+        }
 
-        /** @var Agent $agent */
-        $agent = Agent::whereExternalId($externalAgentId)->first();
+        $agent = current_agent_from_widget();
 
         $widgetSettings = $agent->settings('widget');
+
+        if (! $widgetSettings['enabled']) {
+            return response()->json(['error' => 'Widget is disabled'], 403);
+        }
+
         $appearanceSettings = $agent->settings('appearance');
 
         $starters = $agent->starters()->pluck('text')->toArray();

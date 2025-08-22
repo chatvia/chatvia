@@ -188,8 +188,8 @@ const getAgentTypeBadgeClass = (type: string) => {
                             View
                         </Button>
                         <Button as-child size="sm">
-                            <Link :href="route('agents.stats', {agent: agent.id})" class="gap-1">
-                                Settings
+                            <Link :href="route('agents.preview', {agent: agent.id})" class="gap-1">
+                                Manage
                             </Link>
                         </Button>
                     </CardFooter>

@@ -14,7 +14,9 @@ class WidgetAgentVerifyController
         $status = $widgetVerification->verifyByAgentExternalId($agentId, $request);
 
         if ($status) {
-            return response()->json(['verified' => true]);
+            return response()->json([
+                'verified' => true,
+            ]);
         }
 
         return response()->json(['verified' => false], 403);

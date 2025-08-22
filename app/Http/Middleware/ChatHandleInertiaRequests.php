@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Support\Chat\ChatMemory;
+use App\Services\Memory\ChatSession;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -29,7 +29,7 @@ class ChatHandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'chatSession' => app(ChatMemory::class)->getOrGenerateSession(),
+            'chatSession' => app(ChatSession::class)->firstOrCreateChatSession(),
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
             'domain' => $request->domain(),

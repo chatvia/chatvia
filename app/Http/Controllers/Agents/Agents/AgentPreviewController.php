@@ -3,15 +3,24 @@
 namespace App\Http\Controllers\Agents\Agents;
 
 use App\Models\Agent;
+use App\Services\Auth\AgentMemberAuthTokenService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class AgentPreviewController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Request $request, Agent $agent, AgentMemberAuthTokenService $authTokenService)
     {
+        $authToken = null;
+
+        if (! $agent->is_public) {
+            $user = $request->user();
+            $authToken = $authTokenService->generateTokenFromUser($agent, $user, 60);
+        }
+
         return Inertia::render('agents/Preview', [
             'agent' => $agent,
+            'authToken' => $authToken,
         ]);
     }
 }

@@ -2,19 +2,31 @@
 
 namespace App\Services\Widget;
 
+use App\Models\Agent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class WidgetSession
 {
-    public function generateSession(string $externalAgentId): string
+    private Agent $agent;
+
+    private const string WIDGET_SESSION_CACHE_KEY = 'chat-session.widget.%s.%s';
+
+    public function setAgent(Agent $agent): static
     {
-        $newChatSessionId = 'chat-session.widget.'.$externalAgentId.'.'.Str::uuid()->toString();
+        $this->agent = $agent;
+
+        return $this;
+    }
+
+    public function generateSession(): string
+    {
+        $newChatSessionId = Str::uuid()->toString();
 
         $this->getChatCache()->put(
             key: $newChatSessionId,
             value: ['conversations' => []],
-            ttl: now()->addDay(),
+            ttl: now()->addDays(3),
         );
 
         return $newChatSessionId;

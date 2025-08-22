@@ -10,6 +10,7 @@
         "ext-fileinfo": "*",
         "aws/aws-sdk-php": "^3.351",
         "filament/filament": "^3.3",
+        "firebase/php-jwt": "^6.11",
         "google/cloud-document-ai": "^2.2",
         "inertiajs/inertia-laravel": "^2.0",
         "intervention/image": "^3.11",

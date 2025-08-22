@@ -88,6 +88,7 @@ return [
                 'show_theme_switcher' => true,
                 'show_on_load' => false,
                 'show_on_load_delay' => 500,
+                'model' => 'gpt-5-mini',
             ],
             'embed' => [
                 'remove_sidebar' => false,
@@ -141,6 +142,7 @@ return [
             'enable_theme_switcher' => ['nullable', 'boolean'],
             'default_theme' => ['nullable', 'in:auto,dark,light'],
             'enable_chat_expand' => ['nullable', 'boolean'],
+            'model' => ['nullable', 'string'],
         ],
     ],
 ];

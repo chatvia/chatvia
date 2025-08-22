@@ -11,6 +11,10 @@ export interface BreadcrumbItem {
     href: string;
 }
 
+export interface Features {
+    widget: boolean;
+}
+
 export interface NavItem {
     title: string;
     href: string;
@@ -25,6 +29,7 @@ export interface SharedData extends PageProps {
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
     tenant: string;
+    features: Features;
 }
 
 export interface User {

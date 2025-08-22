@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Notifications\MemberInvitationNotification;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -12,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 
 class Member extends Model implements AuthenticatableContract
 {
-    use Authenticatable, Notifiable;
+    use Authenticatable, HasFactory, Notifiable;
 
     protected $guarded = ['id'];
 

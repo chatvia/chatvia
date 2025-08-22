@@ -13,7 +13,7 @@
                                 Start chatting with the agent
                             </CardDescription>
                         </div>
-                        
+
                         <!-- Actions Dropdown -->
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
@@ -45,7 +45,7 @@
                         <div class="flex justify-center">
                             <div class="w-full max-w-4xl h-[600px] border rounded-lg overflow-hidden bg-white shadow-lg">
                                 <iframe
-                                    :src="props.agent.chat_url"
+                                    :src="buildIframeUrl(props.agent.chat_url)"
                                     class="w-full h-full border-0"
                                     title="Chat Preview"
                                     loading="lazy"
@@ -58,10 +58,10 @@
         </div>
 
         <!-- Preview Modal -->
-        <PreviewModal 
+        <PreviewModal
             v-model="showPreviewModal"
             preview-type="embed"
-            :preview-url="props.agent.chat_url"
+            :preview-url="buildIframeUrl(props.agent.chat_url)"
             iframe-title="Chat Preview"
         />
     </AgentLayout>
@@ -84,7 +84,7 @@ import { toast } from 'vue-sonner';
 
 interface Props {
     agent: any;
-    chatUrl: string;
+    authToken?: string | null;
 }
 
 const props = defineProps<Props>();
@@ -93,13 +93,21 @@ const props = defineProps<Props>();
 const showPreviewModal = ref(false);
 
 // Methods
+const buildIframeUrl = (baseUrl: string) => {
+    if (props.authToken) {
+        const separator = baseUrl.includes('?') ? '&' : '?';
+        return `${baseUrl}${separator}auth_token=${props.authToken}`;
+    }
+    return baseUrl;
+};
+
 const openFullPreview = () => {
-    window.open(props.agent.chat_url, '_blank');
+    window.open(buildIframeUrl(props.agent.chat_url), '_blank');
 };
 
 const copyUrl = async () => {
     try {
-        await navigator.clipboard.writeText(props.agent.chat_url);
+        await navigator.clipboard.writeText(buildIframeUrl(props.agent.chat_url));
         toast.success('URL copied to clipboard!');
     } catch (error) {
         console.error('Failed to copy URL:', error);

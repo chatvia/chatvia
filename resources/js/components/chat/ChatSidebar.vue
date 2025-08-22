@@ -116,7 +116,6 @@ const loadConversations = () => {
     isLoadingConversations.value = true;
 
     axios.get(route('conversations.index')).then((response) => {
-        console.log('Loading conversations...');
         conversations.value = response.data;
         isLoadingConversations.value = false;
     });
@@ -169,6 +168,7 @@ onMounted(() => {
     }
 
     chatEventBus.onConversationCreated(loadConversations);
+
 
     // Update window width on resize
     const handleResize = () => {

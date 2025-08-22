@@ -3,6 +3,7 @@
 use App\Http\Middleware\AuthenticateMember;
 use App\Http\Middleware\AuthenticateMemberUsingToken;
 use App\Http\Middleware\ChatHandleInertiaRequests;
+use App\Http\Middleware\ContentSecurityPolicy;
 use App\Http\Middleware\EnsureAgentHasMessagesCapacity;
 use App\Http\Middleware\EnsureChatIsAccessible;
 use App\Http\Middleware\HandleAppearance;
@@ -35,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             RedirectToAgent::class,
             HandleAppearance::class,
+//            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
@@ -42,9 +44,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('chat', [
             ResolveAgentFromSubdomain::class,
             RedirectToAgent::class,
+            AuthenticateMemberUsingToken::class,
             EnsureChatIsAccessible::class,
             EnsureAgentHasMessagesCapacity::class,
-            AuthenticateMemberUsingToken::class,
+//            ContentSecurityPolicy::class,
             ChatHandleInertiaRequests::class,
         ]);
 
@@ -55,10 +58,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             '/chat/*',
+            '/embed/*',
             '/webhooks/*',
             '/stripe/*',
             '/ingestion/*',
-            '/agents/*/playground/*',
             '/widget/*',
         ]);
 

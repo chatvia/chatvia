@@ -17,7 +17,7 @@ class WidgetSessionStoreController
         }
 
         return [
-            'id' => $session->generateSession($agentId),
+            'id' => $session->generateSession(),
         ];
     }
 }

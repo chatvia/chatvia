@@ -340,3 +340,12 @@ if (! function_exists('is_audio_file')) {
         return in_array($mimeType, $audioMimeTypes, true);
     }
 }
+
+if (! function_exists('current_agent_from_widget')) {
+    function current_agent_from_widget(): \App\Models\Agent
+    {
+        $agentId = request()->header('x-agent_id');
+
+        return \App\Models\Agent::where('external_id', $agentId)->first();
+    }
+}

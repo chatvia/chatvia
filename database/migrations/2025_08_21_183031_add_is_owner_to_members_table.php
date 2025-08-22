@@ -23,14 +23,19 @@ return new class extends Migration
 
         /** @var User $user */
         foreach ($users as $user) {
-            Member::create([
-                'user_id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'password' => bcrypt(Str::random()),
-                'email_verified_at' => now(),
-                'is_owner' => true,
-            ]);
+            $member = Member::where('email', $user->email)->first();
+            if ($member) {
+                $member->update(['is_owner' => true]);
+            } else {
+                Member::create([
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'password' => bcrypt(Str::random()),
+                    'email_verified_at' => now(),
+                    'is_owner' => true,
+                ]);
+            }
         }
     }
 

@@ -4,8 +4,24 @@ return [
     'versions' => [
         [
             'version' => '14-08-2025',
-            'release_date' => 'Aug 14, 2025',
+            'release_date' => 'Aug 22, 2025',
             'status' => 'Latest',
+            'status_color' => 'blue',
+            'changes' => [
+                'new_features' => [
+                    'Chat preview added directly in the agent control panel, users can now chat with the agent without leaving the panel',
+                    'Embedding via iframe is now supported, easily integrate ChatVia into your own website',
+                    'User interface refinements with additional customization options',
+                    'New dedicated tab for Security settings',
+                    'New dedicated tab for Persona management',
+                    'Performance improvements',
+                ],
+            ],
+        ],
+        [
+            'version' => '14-08-2025',
+            'release_date' => 'Aug 14, 2025',
+            'status' => 'Released',
             'status_color' => 'blue',
             'changes' => [
                 'new_features' => [

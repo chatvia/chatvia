@@ -40,7 +40,7 @@ class WidgetSettingsController
                 'enabled' => true,
                 'name' => 'Powered by ChatVia.ai',
                 'url' => 'https://chatvia.ai',
-                'logo_url' => 'https://chatvia.ai/images/logo.png',
+                'logo_url' => 'https://chatvia.ai/images/logo.svg',
             ],
             'starters' => $starters,
             'window_size' => $widgetSettings['window_size'],

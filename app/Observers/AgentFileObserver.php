@@ -29,18 +29,7 @@ class AgentFileObserver
 
     public function deleted(AgentFile $agentFile): void
     {
-        $agentFile->load('user', 'user.credit', 'user.usage');
-
-        /** @var User $user */
-        $user = $agentFile->user;
-
-        $usage = $user->usage();
-
-        //        if ($agentFile->isAudioFile()) {
-        //            $usage->decrement('minutes', $agentFile->length);
-        //        } else {
-        //            $usage->decrement('pages', $agentFile->length);
-        //        }
+        $agentFile->chunks()->delete();
     }
 
     public function restored(AgentFile $agentFile): void {}

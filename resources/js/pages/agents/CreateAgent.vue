@@ -5,18 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/AppLayout.vue';
-import FileUploader from '@/components/FileUploader.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertCircle, BookOpen, Bot, Brain, Database, FileText, Lightbulb, LoaderCircle, AlertTriangle } from 'lucide-vue-next';
+import { AlertCircle, Bot, Brain, Database, Lightbulb, LoaderCircle, AlertTriangle } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import type { UploadingFileData, FileUploaderConfig } from '@/composables/useFileUploader';
 
 const props = defineProps<{
     can_register_custom_sub_domain: boolean;
@@ -75,8 +71,6 @@ const form = useForm({
     name: '',
     sub_domain: '',
     system_instructions: 'You are a helpful assistant.',
-    is_public: false,
-    files: [] as File[],
     type: AgentType.INSTRUCTION_BASED,
 });
 
@@ -84,11 +78,6 @@ const isSubmitting = ref(false);
 const isGeneratingSubdomain = ref(false);
 const isLoadingUsage = ref(false);
 const usageData = ref<UsageData | null>(null);
-const fileUploaderRef = ref<InstanceType<typeof FileUploader> | null>(null);
-const showPublicWarningModal = ref(false);
-const pendingPublicState = ref(false);
-
-const showFileUpload = computed(() => form.type === AgentType.KNOWLEDGE_BASED);
 
 // Compute whether user can create the selected agent type
 const canCreateAgent = computed(() => {
@@ -113,16 +102,15 @@ const currentAgentQuota = computed(() => {
     return usageData.value.agents[agentType];
 });
 
-// Clear files when switching away from knowledge-based training
+// Update system instructions when switching agent type
 watch(
     () => form.type,
     (newType) => {
-        if (newType === AgentType.INSTRUCTION_BASED) {
-            form.files = [];
-            fileUploaderRef.value?.clearAllFiles();
-        } else if (newType === AgentType.KNOWLEDGE_BASED) {
+        if (newType === AgentType.KNOWLEDGE_BASED) {
             // Set the knowledge-based system instruction when switching to knowledge-based
             form.system_instructions = props.knowledge_based_system_instruction;
+        } else {
+            form.system_instructions = 'You are a helpful assistant.';
         }
     },
 );
@@ -168,28 +156,7 @@ const autoSwitchToAvailableAgentType = (showNotification = false) => {
     }
 };
 
-// File uploader configuration for CreateAgent - uses analyze endpoint
-const fileUploaderConfig: FileUploaderConfig = {
-    maxFiles: 10,
-    acceptedTypes: '.pdf,.doc,.docx,.txt,.md',
-    analyzeEndpoint: (file: File) => route('agents.knowledge.files.analyze'),
-    onFileAnalyzed: (file: UploadingFileData, data: any) => {
-        // Update form.files with analyzed files
-        updateFormFiles();
-    },
-    onFileError: (file: UploadingFileData, error: string) => {
-        console.error('File analysis error:', error);
-    }
-};
 
-const updateFormFiles = () => {
-    if (fileUploaderRef.value) {
-        const analyzedFiles = fileUploaderRef.value.uploadingFiles
-            .filter(f => f.isAnalyzed && !f.error)
-            .map(f => f.file);
-        form.files = analyzedFiles;
-    }
-};
 
 // Handle manual agent type selection
 const selectAgentType = (targetType: AgentType) => {
@@ -218,30 +185,7 @@ const selectAgentType = (targetType: AgentType) => {
     }
 };
 
-// Handle public agent toggle with confirmation modal
-const handlePublicToggle = (isPublic: boolean) => {
-    if (isPublic) {
-        // Show warning modal before making public
-        pendingPublicState.value = true;
-        showPublicWarningModal.value = true;
-    } else {
-        // Making private is safe, no confirmation needed
-        form.is_public = false;
-    }
-};
 
-// Confirm making agent public
-const confirmMakePublic = () => {
-    form.is_public = true;
-    showPublicWarningModal.value = false;
-    pendingPublicState.value = false;
-};
-
-// Cancel making agent public
-const cancelMakePublic = () => {
-    showPublicWarningModal.value = false;
-    pendingPublicState.value = false;
-};
 
 const submit = () => {
     // Check quota before submitting
@@ -264,20 +208,10 @@ const submit = () => {
 
     isSubmitting.value = true;
 
-    if (form.type === AgentType.KNOWLEDGE_BASED && form.files.length === 0) {
-        toast.error('No files', {
-            description: 'Please upload at least one file to train your knowledge-based agent.',
-            duration: 5000,
-        });
-        isSubmitting.value = false;
-        return;
-    }
-
     form.post(route('agents.store'), {
         preserveScroll: true,
         onSuccess: () => {
             isSubmitting.value = false;
-            fileUploaderRef.value?.clearAllFiles();
             // Refresh usage data after successful creation
             fetchUsageData();
         },
@@ -550,100 +484,48 @@ onMounted(() => {
                         </CardContent>
                     </Card>
 
-                    <!-- Instructions -->
+                    <!-- Persona -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Instructions</CardTitle>
-                            <CardDescription> Define how your agent should behave and respond</CardDescription>
+                            <CardTitle>Persona</CardTitle>
+                            <CardDescription>Define your agent's personality and behavior</CardDescription>
                         </CardHeader>
 
                         <CardContent>
                             <div class="grid gap-2">
-                                <Label for="instructions" required>System Instructions</Label>
+                                <Label for="persona" required>System Persona</Label>
                                 <Textarea
-                                    id="instructions"
+                                    id="persona"
                                     v-model="form.system_instructions"
                                     :error="form.errors.system_instructions"
                                     :disabled="!canCreateAnyAgent"
-                                                                    :placeholder="
-                                    form.type === AgentType.KNOWLEDGE_BASED
-                                        ? 'Enter system instructions for your knowledge-based agent...'
-                                        : 'You are a helpful assistant that specializes in customer support. Be friendly, professional, and always aim to solve problems efficiently...'
-                                "
+                                    :placeholder="
+                                        form.type === AgentType.KNOWLEDGE_BASED
+                                            ? 'Describe your knowledge-based agent\'s personality, tone, and expertise...'
+                                            : 'You are a friendly customer support specialist who helps solve problems efficiently and professionally...'
+                                    "
                                     rows="6"
                                 />
                                 <p v-if="form.errors.system_instructions" class="text-destructive text-sm">
                                     {{ form.errors.system_instructions }}
                                 </p>
                                 <p class="text-muted-foreground text-sm">
-                                    These instructions tell the AI how to behave, what tone to use, and what its purpose is
+                                    This defines your agent's personality, tone, expertise, and how it should interact with users
                                 </p>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <div v-if="showFileUpload" :class="{ 'opacity-50 pointer-events-none': !canCreateAnyAgent }">
-                        <FileUploader
-                            ref="fileUploaderRef"
-                            :config="fileUploaderConfig"
-                            title="Knowledge Base"
-                            description="Upload documents to train your agent. Your agent will learn from these files to provide specialized knowledge and accurate answers."
-                            @files-changed="updateFormFiles"
-                        />
-
-                        <!-- Knowledge base extension note -->
-                        <div class="mt-4 text-muted-foreground flex items-center gap-2 text-sm">
-                            <p>You can extend your AI Agent's knowledge base later by adding or removing files from this folder.</p>
-                        </div>
-
-                        <p v-if="form.errors.files" class="text-destructive text-sm mt-2">{{ form.errors.files }}</p>
-                    </div>
-
-                    <!-- Visibility Settings -->
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Visibility Settings</CardTitle>
-                            <CardDescription> Control who can access your agent</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="flex items-center justify-between space-x-2">
-                                <div>
-                                    <Label class="text-base" for="is_public">Make this agent public</Label>
-                                    <p class="text-muted-foreground text-sm">Public agents can be accessed by anyone with the link</p>
-                                </div>
-                                <Switch 
-                                    id="is_public" 
-                                    :model-value="form.is_public" 
-                                    :disabled="!canCreateAnyAgent"
-                                    @update:model-value="handlePublicToggle" 
-                                />
-                            </div>
-                            
-                            <div class="border-border mt-4 border-t pt-4">
-                                <div class="flex items-center gap-2">
-                                    <AlertCircle class="text-muted-foreground h-4 w-4" />
-                                    <p class="text-muted-foreground text-sm">
-                                        After creating your agent, you'll be able to invite specific users by email address to access your agent, even
-                                        if it's not public.
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <!-- Important Note -->
-                    <Alert class="bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-300">
-                        <AlertCircle class="h-4 w-4" />
-                        <AlertTitle>Important</AlertTitle>
-                        <AlertDescription v-if="form.type === 'knowledge'">
-                            Your agent will be trained on the documents you upload. Make sure they don't contain sensitive or confidential information
-                            you don't want to share. The uploaded files will be processed and stored securely to train your agent.
-                        </AlertDescription>
-                        <AlertDescription v-else>
-                            Your agent works without any training and uses only system instructions. It relies on the AI's pre-existing knowledge, so
-                            make sure your instructions are clear and detailed to get the best performance.
+                    <!-- Knowledge Base Files Alert -->
+                    <Alert v-if="form.type === AgentType.KNOWLEDGE_BASED" class="bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-300">
+                        <Database class="h-4 w-4" />
+                        <AlertTitle>Knowledge Base Files</AlertTitle>
+                        <AlertDescription>
+                            After creating your agent, you'll be able to upload documents and files to train your agent on your specific knowledge base.
                         </AlertDescription>
                     </Alert>
+
+
 
                     <!-- Submit Button -->
                     <CardFooter class="flex justify-end border-t p-6">
@@ -655,29 +537,6 @@ onMounted(() => {
                 </div>
             </form>
         </div>
-
-        <!-- Public Agent Warning Modal -->
-        <Dialog v-model:open="showPublicWarningModal">
-            <DialogContent class="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle class="flex items-center gap-2">
-                        <AlertTriangle class="h-5 w-5 text-amber-600" />
-                        Public Access Warning
-                    </DialogTitle>
-                    <DialogDescription>
-                        This agent will be publicly accessible. Anyone with the agent link can access and interact with your agent. Make sure you're comfortable with this level of public exposure before proceeding.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter class="gap-2">
-                    <Button variant="outline" @click="cancelMakePublic">
-                        Cancel
-                    </Button>
-                    <Button @click="confirmMakePublic" class="bg-amber-600 hover:bg-amber-700">
-                        Make Public
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
     </AppLayout>
 </template>
 
@@ -702,24 +561,7 @@ onMounted(() => {
         0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* File upload area */
-.upload-area {
-    transition: all 0.2s ease;
-}
 
-.upload-area:hover {
-    border-color: hsl(var(--primary));
-    background-color: hsl(var(--primary) / 0.05);
-}
-
-/* File list item hover */
-.file-item {
-    transition: background-color 0.2s ease;
-}
-
-.file-item:hover {
-    background-color: hsl(var(--muted) / 0.5);
-}
 
 /* Button transitions */
 button {

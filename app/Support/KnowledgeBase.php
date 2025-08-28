@@ -68,7 +68,7 @@ class KnowledgeBase
 
         $sql = "
 WITH vectorchord_candidates AS (
-    SELECT id, chunk, embedding, agent_file_id, metadata,
+    SELECT id, chunk, embedding, chunkable_type, chunkable_id, metadata,
            {$distanceOperator}
     FROM chunks
     WHERE agent_id = ?
@@ -76,14 +76,14 @@ WITH vectorchord_candidates AS (
     LIMIT ?
 ),
 vector_ranked AS (
-    SELECT id, chunk, agent_file_id, metadata, '.($quantize ? 'binary_distance' : 'vector_distance').",
+    SELECT id, chunk, chunkable_type, chunkable_id, metadata, '.($quantize ? 'binary_distance' : 'vector_distance').",
            'vector' as search_type
     FROM vectorchord_candidates
     ORDER BY ".($quantize ? 'binary_distance' : 'vector_distance')."
     LIMIT ?
 ),
 bm25_ranked AS (
-    SELECT id, chunk, agent_file_id, metadata,
+    SELECT id, chunk, chunkable_type, chunkable_id, metadata,
            embedding_bm25 <&> bm25_catalog.to_bm25query('chunks_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS bm25_rank,
            'bm25' as search_type
     FROM chunks
@@ -92,11 +92,11 @@ bm25_ranked AS (
     LIMIT ?
 ),
 combined_results AS (
-    SELECT id, chunk, agent_file_id, metadata, ".($quantize ? 'binary_distance' : 'vector_distance').' as score, search_type FROM vector_ranked
+    SELECT id, chunk, chunkable_type, chunkable_id, metadata, ".($quantize ? 'binary_distance' : 'vector_distance').' as score, search_type FROM vector_ranked
     UNION ALL
-    SELECT id, chunk, agent_file_id, metadata, bm25_rank as score, search_type FROM bm25_ranked
+    SELECT id, chunk, chunkable_type, chunkable_id, metadata, bm25_rank as score, search_type FROM bm25_ranked
 )
-SELECT DISTINCT ON (id) id, chunk, agent_file_id, metadata, search_type, score
+SELECT DISTINCT ON (id) id, chunk, chunkable_type, chunkable_id, metadata, search_type, score
 FROM combined_results
 ORDER BY id, score
 LIMIT ?
@@ -138,15 +138,25 @@ LIMIT ?
         }
 
         $documentIds = collect($results)->pluck('id')->toArray();
-        $agentFileIds = collect($results)->pluck('agent_file_id')->unique()->toArray();
 
+        // Update chunk retrieval counts
         Chunk::query()
             ->whereIn('id', $documentIds)
             ->increment('retrieval_count');
 
-        AgentFile::query()
-            ->whereIn('id', $agentFileIds)
-            ->increment('retrieval_count');
+        // Update retrieval counts for different chunkable types
+        $resultsByType = collect($results)->groupBy('chunkable_type');
+
+        foreach ($resultsByType as $type => $typeResults) {
+            $ids = collect($typeResults)->pluck('chunkable_id')->unique()->toArray();
+
+            if ($type === AgentFile::class && ! empty($ids)) {
+                AgentFile::query()
+                    ->whereIn('id', $ids)
+                    ->increment('retrieval_count');
+            }
+            // Add other chunkable types here as needed (e.g., AgentWebsite)
+        }
     }
 
     private function rerank(string $query, array $results): array

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Agent;
+use App\Models\AgentFile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -16,7 +17,7 @@ class DatabaseSeeder extends Seeder
             'is_admin' => 1,
         ]);
 
-        Agent::factory()->create([
+        $agent = Agent::factory()->create([
             'user_id' => $user->id,
             'name' => 'Translation',
             'sub_domain' => 'translation',
@@ -26,6 +27,8 @@ class DatabaseSeeder extends Seeder
             'type' => 'knowledge',
             'external_id' => '407f7fdfa1cf19',
         ]);
+
+        AgentFile::factory()->create(['agent_id' => $agent->id]);
 
         $user2 = User::factory()->create([
             'name' => 'Ahmad',

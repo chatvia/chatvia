@@ -3,6 +3,7 @@
 namespace App\Jobs\Ingestion;
 
 use App\Models\AgentFile;
+use App\Models\AgentWebsite;
 use App\Models\Chunk;
 use App\Support\OpenAI;
 use App\Support\TikToken;
@@ -11,13 +12,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class IngestionSummaryJob implements ShouldQueue
 {
     use Batchable, Queueable, SerializesModels;
 
-    public function __construct(public AgentFile $agentFile)
+    public function __construct(public AgentFile|AgentWebsite $source, public string $content)
     {
         $this->onQueue('ingestion');
     }
@@ -28,15 +28,9 @@ class IngestionSummaryJob implements ShouldQueue
             return;
         }
 
-        $parsedContent = Storage::get($this->agentFile->parser_filepath);
+        $response = OpenAI::analyzeContent($this->content);
 
-        $content = collect(json_decode($parsedContent, true, 512, JSON_THROW_ON_ERROR))
-            ->pluck('text')
-            ->join("\n");
-
-        $response = OpenAI::analyzeContent($content);
-
-        $this->agentFile->update([
+        $this->source->update([
             'language' => $response['language'],
             'document_classification' => $response['document_type'],
         ]);
@@ -47,11 +41,12 @@ class IngestionSummaryJob implements ShouldQueue
             $chunk .= PHP_EOL.'<Questions>'.$response['questions'].'</Questions>';
         }
 
-        $costInCents = OpenAI::calculateCostInCents($this->agentFile->url, config('prompts.file-description').$chunk, 2.0, 8.0);
+        $costInCents = OpenAI::calculateCostInCents($this->source->url, config('prompts.file-description').$chunk, 2.0, 8.0);
 
         Chunk::query()->create([
-            'agent_id' => $this->agentFile->agent_id,
-            'agent_file_id' => $this->agentFile->id,
+            'agent_id' => $this->source->agent_id,
+            'chunkable_type' => get_class($this->source),
+            'chunkable_id' => $this->source->id,
             'type' => 'text',
             'chunk_index' => 0,
             'chunk' => $chunk,

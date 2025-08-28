@@ -5,7 +5,6 @@ import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play, Zap, Info, XCircle } from 'lucide-vue-next';
-import AgentLayout from '@/layouts/AgentLayout.vue';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -798,8 +797,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Knowledge Base">
-        <div class="space-y-6">
+    <div class="space-y-6">
             <!-- Knowledge Agent Type Required Alert -->
             <Alert v-if="!isKnowledgeAgent">
                 <AlertCircle class="h-4 w-4" />
@@ -1194,8 +1192,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                     </div>
                 </CardContent>
             </Card>
-        </div>
-    </AgentLayout>
+    </div>
 
     <!-- Delete Confirmation Dialog for Knowledge Files -->
     <DeleteConfirmationDialog

@@ -1,2 +1,12 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /billing
+Disallow: /settings
+Disallow: /_debugbar
+Disallow: /telescope
+Disallow: /horizon
+Disallow: /pulse

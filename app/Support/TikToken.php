@@ -2,11 +2,13 @@
 
 namespace App\Support;
 
+use Yethee\Tiktoken\Encoder;
+
 class TikToken
 {
-    private static ?\Yethee\Tiktoken\Encoder $encoder = null;
+    private static ?Encoder $encoder = null;
 
-    private static function getEncoder(): \Yethee\Tiktoken\Encoder
+    private static function getEncoder(): Encoder
     {
         if (self::$encoder === null) {
             $provider = new \Yethee\Tiktoken\EncoderProvider;

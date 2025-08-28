@@ -1,10 +1,9 @@
 <script setup>
 import { ref, onMounted, inject, computed, watch } from 'vue';
-import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
-import { Trash2, EyeOff, Eye, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-vue-next';
+import { Trash2, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-vue-next';
 import { updateTheme } from '@/composables/useAppearance';
 
 const chatEventBus = inject('chatEventBus')

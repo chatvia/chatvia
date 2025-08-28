@@ -3,19 +3,19 @@
 namespace App\Models;
 
 use App\Support\Ingestion;
+use App\Traits\Chunkable;
+use Exception;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AgentFile extends Model
 {
-    use HasFactory;
+    use Chunkable, HasFactory;
 
     protected $guarded = ['id'];
 
@@ -24,21 +24,16 @@ class AgentFile extends Model
         return $this->belongsTo(Agent::class);
     }
 
-    //    public function filename(): Attribute
-    //    {
-    //        return Attribute::get(fn () => basename($this->filepath));
-    //    }
-
     public function readFile(): File
     {
         if (! $this->filepath) {
-            throw new \Exception("File path is not set for AgentFile ID: {$this->id}");
+            throw new Exception("File path is not set for AgentFile ID: {$this->id}");
         }
 
         $data = Storage::get($this->filepath);
 
         if ($data === null) {
-            throw new \Exception("File not found in storage: {$this->filepath}");
+            throw new Exception("File not found in storage: {$this->filepath}");
         }
 
         $extension = pathinfo($this->filepath, PATHINFO_EXTENSION);
@@ -63,19 +58,6 @@ class AgentFile extends Model
     public function tempUrl(): string
     {
         return Storage::temporaryUrl($this->filepath, now()->addMinutes(60));
-    }
-
-    public function documents(): HasMany
-    {
-        return $this->hasMany(Chunk::class);
-    }
-
-    public function ingestionProgress(): int
-    {
-        $totalChunks = $this->chunks ?? 0;
-        $importedChunks = $this->documents()->count();
-
-        return round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
     }
 
     public function cancelIngestionJob(): void
@@ -145,30 +127,5 @@ class AgentFile extends Model
         return [
             'metadata' => 'json',
         ];
-    }
-
-    public function chunks(): HasMany
-    {
-        return $this->hasMany(Chunk::class);
-    }
-
-    public function summary(): HasOne
-    {
-        return $this->hasOne(Chunk::class)->where('chunk_index', 0)->latestOfMany();
-    }
-
-    public function images()
-    {
-        //        return $this->chunks()
-        //            ->whereRaw("jsonb_array_length(metadata->'images') > 0")
-        //            ->get();
-        return $this->chunks()
-            ->select('metadata')
-            ->get()
-            ->reject(fn ($item) => count($item['metadata']['images'] ?? []) === 0)
-            ->pluck('metadata.images')
-            ->map(fn ($images) => collect($images)->keys()->map(fn ($image) => Storage::url($image))->toArray())
-            ->flatten()
-            ->toArray();
     }
 }

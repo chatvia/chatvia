@@ -36,6 +36,8 @@ import {
     Eye,
     BotIcon,
     Brain,
+    Workflow,
+    Zap,
 
     ChevronDown,
     ChevronUp,
@@ -123,20 +125,37 @@ const uiNavigationItems = computed(() => {
     return baseItems;
 });
 
-const controlPanelNavigationItems = [
-    { id: 'stats', label: 'Statistics', icon: BarChart3, route: 'agents.stats', tooltip: 'View usage statistics and analytics' },
-    { id: 'persona', label: 'Persona', icon: Bot, route: 'agents.settings', tooltip: 'Configure agent personality and behavior' },
-    { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models', tooltip: 'Manage AI models and settings' },
+const controlPanelNavigationItems = computed(() => {
+    const baseItems = [
+        { id: 'stats', label: 'Statistics', icon: BarChart3, route: 'agents.stats', tooltip: 'View usage statistics and analytics' },
+        { id: 'persona', label: 'Persona', icon: Bot, route: 'agents.settings', tooltip: 'Configure agent personality and behavior' },
+        { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models', tooltip: 'Manage AI models and settings' },
 
-    { id: 'knowledge', label: 'Knowledge Base', icon: Database, route: 'agents.knowledge', tooltip: 'Upload and manage knowledge files' },
-    { id: 'starters', label: 'Starter Messages', icon: MessageSquare, route: 'agents.starters', tooltip: 'Create conversation starter messages' },
+        { id: 'knowledge', label: 'Knowledge Base', icon: Database, route: 'agents.knowledge', tooltip: 'Upload and manage knowledge files' },
+        { id: 'starters', label: 'Starter Messages', icon: MessageSquare, route: 'agents.starters', tooltip: 'Create conversation starter messages' },
 
-    { id: 'appearance', label: 'Appearance', icon: Palette, route: 'agents.appearance', tooltip: 'Customize colors, themes, and branding' },
+        { id: 'appearance', label: 'Appearance', icon: Palette, route: 'agents.appearance', tooltip: 'Customize colors, themes, and branding' },
 
-    { id: 'history', label: 'Message History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
-    { id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' },
-    { id: 'security', label: 'Security', icon: Lock, route: 'agents.security', tooltip: 'Configure access control and embedding settings' },
-];
+        { id: 'history', label: 'Message History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
+        { id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' },
+        { id: 'security', label: 'Security', icon: Lock, route: 'agents.security', tooltip: 'Configure access control and embedding settings' },
+    ];
+
+    // Only add workflow if the feature is enabled
+    if (features.workflow) {
+        // Insert workflow after knowledge base (at index 4)
+        baseItems.splice(4, 0, { id: 'workflow', label: 'Workflow', icon: Workflow, route: 'agents.workflow', tooltip: 'Create and manage agent workflows' });
+    }
+
+    // Only add actions if the feature is enabled
+    if (features.actions) {
+        // Insert actions after workflow (or after knowledge base if workflow is disabled)
+        const insertIndex = features.workflow ? 5 : 4;
+        baseItems.splice(insertIndex, 0, { id: 'actions', label: 'Actions', icon: Zap, route: 'agents.actions', tooltip: 'Set up automated actions based on user inputs' });
+    }
+
+    return baseItems;
+});
 
 const showDeleteDialog = ref(false);
 const isDeleting = ref(false);
@@ -178,6 +197,12 @@ const isActiveRoute = (routeName: string) => {
         componentName = 'Preview';
     } else if (routeSuffix === 'settings') {
         componentName = 'Persona';  // Now maps to Persona component file
+    } else if (routeSuffix === 'knowledge') {
+        componentName = 'KnowledgeBase';  // Maps to KnowledgeBase component file
+    } else if (routeSuffix === 'workflow') {
+        componentName = 'Workflow';  // Maps to Workflow component file
+    } else if (routeSuffix === 'actions') {
+        componentName = 'Actions';  // Maps to Actions component file
     } else {
         componentName = routeSuffix.charAt(0).toUpperCase() + routeSuffix.slice(1);
     }

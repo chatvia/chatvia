@@ -14,6 +14,11 @@ import { router } from '@inertiajs/vue3';
 
 const chatEventBus = createChatEventBus()
 import { createGtag } from "vue-gtag";
+import { configureEcho } from '@laravel/echo-vue';
+
+configureEcho({
+    broadcaster: 'reverb',
+});
 
 const vueTag = createGtag({ tagId: "G-RTCBL1ZT5C"})
 

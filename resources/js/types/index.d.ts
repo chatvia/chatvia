@@ -13,6 +13,8 @@ export interface BreadcrumbItem {
 
 export interface Features {
     widget: boolean;
+    workflow: boolean;
+    actions: boolean;
 }
 
 export interface NavItem {

@@ -84,6 +84,11 @@ class Agent extends Model
         return $this->hasMany(AgentFile::class);
     }
 
+    public function websites(): HasMany
+    {
+        return $this->hasMany(AgentWebsite::class);
+    }
+
     public function starters(): HasMany
     {
         return $this->hasMany(Starter::class);

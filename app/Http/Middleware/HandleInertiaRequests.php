@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Features\Actions;
 use App\Features\Widget;
+use App\Features\Workflow;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Laravel\Pennant\Feature;
@@ -49,6 +51,8 @@ class HandleInertiaRequests extends Middleware
             'subdomain' => $request->subdomain(),
             'features' => [
                 'widget' => Feature::active(Widget::class),
+                'workflow' => Feature::active(Workflow::class),
+                'actions' => Feature::active(Actions::class),
             ],
         ];
 

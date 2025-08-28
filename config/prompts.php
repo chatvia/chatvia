@@ -54,6 +54,8 @@ You must preserve the exact language of the original chunks.
 For example: Arabic → output everything in Arabic. English → output everything in English. Multilingual → preserve all languages as-is.
 Do not translate. Use the content exactly.
 
+Clean the text chunks by ensuring they are valid UTF-8. Strip out any null bytes and control characters, and resolve encoding issues so the final output is error-free.
+
 Instructions:
 1. Focus primarily on the central chunk text - this is your main content to work with.
 
@@ -71,13 +73,10 @@ Instructions:
 4. You may:
 - Trim incomplete sentences from the beginning or end of the central chunk
 - Adjust the start/end points to align with complete thoughts
-- Use minimal content from prev/next chunks ONLY if needed to complete a sentence in the central chunk
+- Use content from prev/next chunks if needed to complete a sentence in the central chunk
 
 5. Do NOT:
 - Add new content or paraphrase anything
-- Merge large sections from prev/next chunks
-- Create multiple chunks
-- Exceed reasonable chunk size limits
 
 IMPORTANT: Use only the exact words from the provided content. No rewording, no hallucination, no filler.
 
@@ -89,7 +88,6 @@ Return only the improved, coherent chunk text. Do not include any explanations, 
 - Central chunk: <TextChunk>{text}</TextChunk>
 - Previous context: <PrevChunk>{previous_context}</PrevChunk>
 - Next context: <NextChunk>{next_context}</NextChunk>
-
     ',
 
     'image-description' => '
@@ -114,7 +112,7 @@ You are an expert document analyst. Please thoroughly examine the uploaded file 
 
 Your response will be automatically parsed into a structured FileAnalysis object using Gemini's structured output feature.
 
-You must preserve and uYou must preserve the exact language of the original chunks.
+You must preserve the exact language of the original chunks.
 For example: Arabic → output everything in Arabic. English → output everything in English. Multilingual → preserve all languages as-is.
 Do not translate. Use the content exactly.
 If the file has more than one language use the dominant language of the document.

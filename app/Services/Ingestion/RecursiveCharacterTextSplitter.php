@@ -2,6 +2,7 @@
 
 namespace App\Services\Ingestion;
 
+use App\Support\Text;
 use App\Support\TikToken;
 
 /**
@@ -23,6 +24,8 @@ class RecursiveCharacterTextSplitter
      */
     public function splitText(string $text): array
     {
+        $text = Text::clean($text);
+
         $chunks = $this->recursiveSplit($text, $this->separators);
 
         // Merge small chunks throughout the list

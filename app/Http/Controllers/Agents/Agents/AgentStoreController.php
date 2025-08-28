@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agents\Agents;
 use App\Http\Requests\Agents\CreateAgentRequest;
 use App\Models\Agent;
 use App\Support\Ingestion;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -30,24 +29,14 @@ class AgentStoreController
                 'name' => $validatedData['name'],
                 'sub_domain' => $validatedData['sub_domain'],
                 'system_instructions' => $validatedData['system_instructions'],
-                'is_public' => $request->input('is_public'),
+                'is_public' => false,
                 'type' => $validatedData['type'],
                 'external_id' => $externalId,
             ]);
 
-            if ($agent->type === 'knowledge') {
-                /** @var UploadedFile[] $files */
-                $files = $validatedData['files'];
-
-                foreach ($files as $file) {
-                    $agentFile = $agent->addFile($file);
-                    $agentFile->ingest();
-                }
-            }
-
             DB::commit();
 
-            $route = $agent->type === 'knowledge' ? 'agents.knowledge' : 'agents.stats';
+            $route = $agent->type === 'knowledge' ? 'agents.knowledge' : 'agents.preview';
 
             return to_route($route, ['agent' => $agent->id])
                 ->with('success', 'Agent created successfully. Files are being processed.');

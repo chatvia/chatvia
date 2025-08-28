@@ -4,7 +4,6 @@ namespace App\Services\Chat;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Models\Agent;
-use App\Models\AgentFile;
 use App\Support\KnowledgeBase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -122,21 +121,26 @@ Important: Your response will be used in a Retrieval-Augmented Generation (RAG) 
             return collect();
         }
 
-        $agentFileIds = collect($searchResults)->pluck('agent_file_id')->unique();
-        $agentFiles = AgentFile::whereIn('id', $agentFileIds)
-            ->get()
-            ->keyBy('id');
+        // Get unique chunkable IDs and their types
+        $chunkableItems = collect($searchResults)
+            ->groupBy('chunkable_type')
+            ->map(function ($results, $type) {
+                $ids = $results->pluck('chunkable_id')->unique();
 
-        return collect($searchResults)->map(function ($result) use ($agentFiles) {
-            $agentFile = $agentFiles->get($result->agent_file_id);
+                return $type::whereIn('id', $ids)->get()->keyBy('id');
+            });
+
+        return collect($searchResults)->map(function ($result) use ($chunkableItems) {
+            $chunkable = $chunkableItems[$result->chunkable_type]?->get($result->chunkable_id);
             $metadata = json_decode($result->metadata, true);
 
             return [
                 'content' => $result->chunk,
                 'metadata' => [
-                    'filename' => $agentFile?->filename,
+                    'filename' => $chunkable?->filename ?? ($chunkable?->url ?? 'Unknown'),
                     'document_id' => $result->id,
-                    'agent_file_id' => $result->agent_file_id,
+                    'chunkable_type' => $result->chunkable_type,
+                    'chunkable_id' => $result->chunkable_id,
                 ],
                 'images' => $metadata['images'] ?? [],
             ];

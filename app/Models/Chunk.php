@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Storage;
 use Pgvector\Laravel\Vector;
 
@@ -18,6 +20,16 @@ class Chunk extends Model
             'keywords' => 'json',
             'metadata' => 'json',
         ];
+    }
+
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
+    }
+
+    public function chunkable(): MorphTo
+    {
+        return $this->morphTo('chunkable');
     }
 
     public function images(): Attribute

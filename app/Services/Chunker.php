@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Data\Ingestion\ChunkIngestionData;
 use App\Models\AgentFile;
+use App\Models\AgentWebsite;
 use App\Services\Ingestion\RecursiveCharacterTextSplitter;
 use App\Support\TikToken;
 use Illuminate\Http\File;
@@ -13,8 +14,8 @@ use Illuminate\Support\Facades\Storage;
 class Chunker
 {
     public function __construct(
-        private AgentFile $agentFile,
-        private int $maxTokensPerChunk = 800,
+        private readonly AgentFile|AgentWebsite $source,
+        private readonly int $maxTokensPerChunk = 800,
     ) {}
 
     /**
@@ -103,8 +104,9 @@ class Chunker
     private function createChunk(string $text, array $images, int $chunkIndex): ChunkIngestionData
     {
         return ChunkIngestionData::from([
-            'agent_id' => $this->agentFile->agent_id,
-            'agent_file_id' => $this->agentFile->id,
+            'agent_id' => $this->source->agent_id,
+            'chunkable_type' => get_class($this->source),
+            'chunkable_id' => $this->source->id,
             'chunk_index' => $chunkIndex,
             'total_chunks' => 0, // Will be set later
             'chunk_text' => trim($text),
@@ -123,7 +125,7 @@ class Chunker
 
         foreach ($pageImages as $image) {
             $imagePaths[] = Storage::putFileAs(
-                path: 'users/'.$this->agentFile->user_id.'/agents/'.$this->agentFile->user_id.'/images',
+                path: 'users/'.$this->source->user_id.'/agents/'.$this->source->user_id.'/images',
                 file: new File($image['path']),
                 name: $image['name'],
             );
@@ -145,7 +147,8 @@ class Chunker
 
             return ChunkIngestionData::from([
                 'agent_id' => $chunk->agent_id,
-                'agent_file_id' => $chunk->agent_file_id,
+                'chunkable_type' => $this->source::class,
+                'chunkable_id' => $this->source->id,
                 'chunk_index' => $chunk->chunk_index,
                 'total_chunks' => $totalChunks,
                 'chunk_text' => $chunk->chunk_text,

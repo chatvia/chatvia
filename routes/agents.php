@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Agents\Actions\AgentActionsController;
 use App\Http\Controllers\Agents\Agents\AgentCreateController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteSettingsController;
@@ -22,6 +23,11 @@ use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFilesController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFilesProcessController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeFileUploadController;
 use App\Http\Controllers\Agents\Knowledge\AgentKnowledgeUploadedFilesDeleteController;
+use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeCrawlerController;
+use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeCrawlerWebsiteLinksController;
+use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeCrawlerWebsiteTrainController;
+use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeWebsiteDeleteController;
+use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeWebsitesListController;
 use App\Http\Controllers\Agents\Models\AgentModelsListController;
 use App\Http\Controllers\Agents\Models\AgentModelsShowController;
 use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
@@ -42,6 +48,7 @@ use App\Http\Controllers\Agents\Team\AgentMembersListController;
 use App\Http\Controllers\Agents\Team\AgentTeamController;
 use App\Http\Controllers\Agents\Widget\WidgetController;
 use App\Http\Controllers\Agents\Widget\WidgetPreviewController;
+use App\Http\Controllers\Agents\Workflow\AgentWorkflowController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -70,6 +77,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('knowledge/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->name('knowledge.uploaded-files');
         Route::post('knowledge/files/process', AgentKnowledgeFilesProcessController::class)->name('knowledge.files.process');
         Route::get('knowledge/files/{file}/summary', AgentFileSummaryController::class)->name('agent.files.summary');
+
+        Route::post('knowledge/website', AgentKnowledgeCrawlerController::class)->name('knowledge.website.crawl');
+        Route::get('knowledge/websites/list', AgentKnowledgeWebsitesListController::class)->name('knowledge.websites.list');
+        Route::delete('knowledge/websites/{website}', AgentKnowledgeWebsiteDeleteController::class)->name('knowledge.websites.delete');
+        Route::get('knowledge/websites/{website}/links', AgentKnowledgeCrawlerWebsiteLinksController::class)->name('knowledge.websites.links');
+        Route::post('knowledge/website/{website}/train', AgentKnowledgeCrawlerWebsiteTrainController::class)->name('knowledge.website.train');
 
         // Starters
         Route::get('starters', StartersShowController::class)->name('starters');
@@ -102,6 +115,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('team/list', AgentMembersListController::class)->name('team.list');
         Route::delete('team/member', AgentMembersDeleteController::class)->name('team.member.delete');
         Route::post('team/member/grant', AgentMembersAccessGrantController::class)->name('team.member.grant');
+
+        // Workflow
+        Route::get('workflow', AgentWorkflowController::class)->name('workflow');
+
+        // Actions
+        Route::get('actions', AgentActionsController::class)->name('actions');
 
         // Delete Agent
         Route::delete('/', AgentDeleteController::class)->name('delete');

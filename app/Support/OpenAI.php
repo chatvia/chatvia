@@ -361,4 +361,23 @@ Example: en|Here is my text
             'query' => $query,
         ];
     }
+
+    public static function chunk($userPrompt)
+    {
+        return self::completion([
+            'model' => 'gpt-4.1-mini',
+            'temperature' => 0.0,
+            'max_tokens' => 1024,
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => config('prompts.chunking-system'),
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $userPrompt,
+                ],
+            ],
+        ]);
+    }
 }

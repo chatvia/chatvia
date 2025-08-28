@@ -97,7 +97,13 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             return new IngestionChunkJob($chunk);
         });
 
-        dispatch(new IngestionSummaryJob($this->agentFile));
+        $parsedContent = Storage::get($this->agentFile->parser_filepath);
+
+        $content = collect(json_decode($parsedContent, true, 512, JSON_THROW_ON_ERROR))
+            ->pluck('text')
+            ->join("\n");
+
+        dispatch(new IngestionSummaryJob($this->agentFile, $content));
 
         $agentFileId = $this->agentFile->id;
 

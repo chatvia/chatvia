@@ -22,6 +22,7 @@ class AgentFileFactory extends Factory
             'user_id' => User::factory(),
             'agent_id' => Agent::factory(),
             'filename' => $this->faker->word().'.txt',
+            'filetype' => 'document',
             'filepath' => 'test/files/'.$this->faker->uuid().'.txt',
             'size_in_kb' => $this->faker->numberBetween(1, 1000),
             'mime_type' => 'text/plain',

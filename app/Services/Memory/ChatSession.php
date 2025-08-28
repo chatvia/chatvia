@@ -11,7 +11,9 @@ use Illuminate\Support\Str;
 class ChatSession
 {
     private const string CHAT_SESSION_PREFIX = 'chat-session';
+
     private const string SESSION_KEY = self::CHAT_SESSION_PREFIX;
+
     private const int GUEST_SESSION_TTL_DAYS = 3;
 
     public function firstOrCreateChatSession(): string
@@ -54,7 +56,7 @@ class ChatSession
     public function destroySession(): void
     {
         $sessionId = Session::get(self::SESSION_KEY);
-        
+
         if ($sessionId) {
             $this->getChatCache()->forget($sessionId);
             Session::forget(self::SESSION_KEY);

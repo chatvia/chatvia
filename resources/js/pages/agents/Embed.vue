@@ -343,7 +343,7 @@ const updateSetting = (key: string, value: any) => {
 // Computed embed code
 const embedCode = computed(() => {
     const attributes = [
-        `src="${buildIframeUrl(props.agent.chat_embed_url)}"`, // Use chat_embed_url from agent with auth token
+        `src="${props.agent.chat_embed_url}"`, // Use chat_embed_url from agent with auth token
         `width="${iframeOptions.width}"`,
         `height="${iframeOptions.height}"`,
         `title="${iframeOptions.title}"`,

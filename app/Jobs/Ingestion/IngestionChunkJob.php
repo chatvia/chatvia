@@ -21,8 +21,11 @@ class IngestionChunkJob implements ShouldQueue
 
     public int $backoff = 10;
 
-    public function __construct(public ChunkIngestionData $chunk)
-    {
+    public function __construct(
+        public ChunkIngestionData $chunk,
+        public string $appendUserPrompt = '',
+        public array $metadata = [],
+    ) {
         $this->onQueue('ingestion');
     }
 
@@ -40,7 +43,11 @@ class IngestionChunkJob implements ShouldQueue
 
         $describedImages = [];
 
-        if (Chunk::query()->where('agent_file_id', $this->chunk->agent_file_id)->where('md5_hash', md5($this->chunk->chunk_text))->exists()) {
+        if (Chunk::query()
+            ->where('chunkable_type', $this->chunk->chunkable_type)
+            ->where('chunkable_id', $this->chunk->chunkable_id)
+            ->where('md5_hash', md5($this->chunk->chunk_text))
+            ->exists()) {
             return;
         }
 
@@ -68,31 +75,18 @@ class IngestionChunkJob implements ShouldQueue
             'text' => $chunkText,
             'previous_context' => $this->chunk->prev_chunk,
             'next_context' => $this->chunk->next_chunk,
-        ]);
+        ]).$this->appendUserPrompt;
 
-        $chunk = OpenAI::completion([
-            'model' => 'gpt-4.1-mini',
-            'temperature' => 0.0,
-            'max_tokens' => 1024,
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' => $systemPrompt,
-                ],
-                [
-                    'role' => 'user',
-                    'content' => $userPrompt,
-                ],
-            ],
-        ]);
-
+        $chunk = OpenAI::chunk($userPrompt);
+        ray($chunk);
         $tokens = TikToken::countTokens($chunk);
 
         $costInCents = OpenAI::calculateCostInCents($systemPrompt.$userPrompt, $chunk);
 
         Chunk::query()->create([
             'agent_id' => $this->chunk->agent_id,
-            'agent_file_id' => $this->chunk->agent_file_id,
+            'chunkable_type' => $this->chunk->chunkable_type,
+            'chunkable_id' => $this->chunk->chunkable_id,
             'type' => 'text',
             'chunk_index' => $this->chunk->chunk_index,
             'chunk' => $chunk,
@@ -101,9 +95,9 @@ class IngestionChunkJob implements ShouldQueue
             'tokens' => $tokens,
             'embedding' => embed($chunk, true),
             'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($chunk).", 'llmlingua2')"),
-            'metadata' => [
+            'metadata' => array_merge($this->metadata, [
                 'images' => $describedImages,
-            ],
+            ]),
             'md5_hash' => md5($this->chunk->chunk_text),
             'retrieval_count' => 0,
         ]);

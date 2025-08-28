@@ -25,11 +25,7 @@ import {
     Download,
     Play,
     FileText,
-    Clock,
-    Eye,
-    ExternalLink,
     Bot,
-    Calendar,
     Loader2,
     File
 } from 'lucide-vue-next';
@@ -87,6 +83,7 @@ const filteredFiles = computed(() => {
         file.agent.sub_domain.toLowerCase().includes(query)
     );
 });
+
 
 // Methods
 const fetchKnowledgeFiles = async () => {
@@ -251,8 +248,8 @@ onMounted(() => {
                                 </div>
                                 <CardDescription class="flex items-center gap-1">
                                     <Bot class="h-3 w-3" />
-                                    <a 
-                                        :href="file.agent.url" 
+                                    <a
+                                        :href="file.agent.url"
                                         target="_blank"
                                         class="text-primary"
                                     >

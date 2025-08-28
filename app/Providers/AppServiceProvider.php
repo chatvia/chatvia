@@ -4,10 +4,12 @@ namespace App\Providers;
 
 use App\Models\Agent;
 use App\Models\AgentFile;
+use App\Models\AgentWebsite;
 use App\Models\ModelSetting;
 use App\Models\User;
 use App\Observers\AgentFileObserver;
 use App\Observers\AgentObserver;
+use App\Observers\AgentWebsiteObserver;
 use App\Observers\ModelSettingObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Event;
@@ -61,6 +63,7 @@ class AppServiceProvider extends ServiceProvider
         Agent::observe(AgentObserver::class);
         AgentFile::observe(AgentFileObserver::class);
         ModelSetting::observe(ModelSettingObserver::class);
+        AgentWebsite::observe(AgentWebsiteObserver::class);
 
         if (app()->isProduction()) {
             URL::forceScheme('https');

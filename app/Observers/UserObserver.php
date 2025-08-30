@@ -19,6 +19,7 @@ class UserObserver
             'pages_limit' => $fixed['pages_limit'],
             'minutes_limit' => $fixed['minutes_limit'],
             'members_limit' => $fixed['members_limit'],
+            'links_limit' => $fixed['links_limit'],
         ]);
 
         $user

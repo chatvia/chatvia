@@ -113,6 +113,25 @@ const toggleModel = async (model: AIModel) => {
     toggleLoadingModels.value.add(model.id);
 
     try {
+        // For widget agents, if selecting a new model, deselect all others first
+        if (props.agent.type === 'widget' && !model.is_selected) {
+            // Deselect all other models first
+            for (const otherModel of models.value) {
+                if (otherModel.id !== model.id && otherModel.is_selected) {
+                    const otherModelIndex = models.value.findIndex(m => m.id === otherModel.id);
+                    if (otherModelIndex !== -1) {
+                        models.value[otherModelIndex].is_selected = false;
+                    }
+                    
+                    // Send request to deselect other model
+                    await axios.patch(route('agents.models.toggle', { agent: props.agent.id }), {
+                        model_id: otherModel.id,
+                        status: false
+                    });
+                }
+            }
+        }
+
         // Optimistic update - immediately update UI
         const originalStatus = model.is_selected;
         const newStatus = !model.is_selected;
@@ -277,7 +296,10 @@ onMounted(() => {
                                 Available AI Models
                             </CardTitle>
                             <CardDescription class="text-base text-foreground/80">
-                                Select one or more AI models for your agent. Click on model cards to enable/disable them and hover over the info icons to learn more about each model's capabilities.
+                                {{ props.agent.type === 'widget' 
+                                    ? 'Select one AI model for your widget agent. Click on model cards to enable/disable them and hover over the info icons to learn more about each model\'s capabilities.' 
+                                    : 'Select one or more AI models for your agent. Click on model cards to enable/disable them and hover over the info icons to learn more about each model\'s capabilities.' 
+                                }}
                             </CardDescription>
 
                             <!-- Info about disabled models -->
@@ -447,7 +469,7 @@ onMounted(() => {
                                 Response Settings
                             </CardTitle>
                             <CardDescription class="text-base text-foreground/80">
-                                Control how your AI agent responds. These settings will be applied to all selected models above and affect the style and creativity of all responses.
+                                Control how your AI agent responds. These settings will be applied to {{ props.agent.type === 'widget' ? 'the selected model' : 'all selected models' }} above and affect the style and creativity of all responses.
                             </CardDescription>
                         </CardHeader>
                         <CardContent class="p-6">

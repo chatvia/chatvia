@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
@@ -110,6 +110,10 @@ const props = defineProps<{
             days: number;
             package: string;
         };
+        discount: {
+            percentage: number;
+            ends_at: string | null;
+        };
     };
 }>();
 
@@ -128,6 +132,28 @@ const isYearly = ref(false);
 const showLLMsModal = ref(false);
 const currentLLMs = ref<LLM[]>([]);
 
+// Discount functionality
+const isDiscountActive = computed(() => {
+    return props.billingConfig.discount.percentage > 0 && 
+           (!props.billingConfig.discount.ends_at || new Date(props.billingConfig.discount.ends_at) > new Date());
+});
+
+const discountEndsAt = computed(() => {
+    if (!props.billingConfig.discount.ends_at) return null;
+    return new Date(props.billingConfig.discount.ends_at);
+});
+
+const formatDiscountEndDate = computed(() => {
+    if (!discountEndsAt.value) return '';
+    return discountEndsAt.value.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+});
+
 const subscriptionForm = useForm({
     package: '',
     billing_cycle: 'monthly' as 'monthly' | 'yearly',
@@ -141,15 +167,41 @@ const isSubscribing = ref(false);
 const subscribingPackage = ref('');
 
 const getPackagePrice = (pkg: Package) => {
+    let priceCents: number;
+    
     if (isYearly.value && pkg.id !== 'free') {
-        // Show monthly price with yearly discount applied (rounded to 2 decimals)
-        const monthlyPriceCents = pkg.monthly_price; // cents
-        const discountedCents = monthlyPriceCents * (1 - props.billingConfig.ui.yearly_savings_percentage / 100);
-        const roundedCents = Math.round(discountedCents);
-        const amount = (roundedCents / 100).toFixed(2);
-        return `${props.billingConfig.currencySymbol}${amount}`;
+        // Use yearly price divided by 12 to get monthly equivalent
+        priceCents = pkg.yearly_price / 12;
+    } else {
+        // Use regular monthly price
+        priceCents = pkg.monthly_price;
     }
-    return pkg.monthly_price_formatted;
+    
+    // Apply active discount if available
+    if (isDiscountActive.value && pkg.id !== 'free') {
+        priceCents = priceCents * (1 - props.billingConfig.discount.percentage / 100);
+    }
+    
+    const roundedCents = Math.round(priceCents);
+    const amount = (roundedCents / 100).toFixed(2);
+    return `${props.billingConfig.currencySymbol}${amount}`;
+};
+
+const getOriginalPrice = (pkg: Package) => {
+    if (pkg.id === 'free' || !isDiscountActive.value) return null;
+    
+    let originalPriceCents: number;
+    
+    if (isYearly.value) {
+        // Use yearly price divided by 12 to get monthly equivalent (before discount)
+        originalPriceCents = pkg.yearly_price / 12;
+    } else {
+        // Use regular monthly price
+        originalPriceCents = pkg.monthly_price;
+    }
+    
+    const amount = (originalPriceCents / 100).toFixed(2);
+    return `${props.billingConfig.currencySymbol}${amount}`;
 };
 
 const getPackagePeriod = () => {
@@ -158,7 +210,16 @@ const getPackagePeriod = () => {
 
 const getYearlyTotal = (pkg: Package) => {
     if (!isYearly.value || pkg.id === 'free') return null;
-    return pkg.yearly_price_formatted;
+    
+    let yearlyPriceCents = pkg.yearly_price;
+    
+    // Apply active discount if available
+    if (isDiscountActive.value) {
+        yearlyPriceCents = yearlyPriceCents * (1 - props.billingConfig.discount.percentage / 100);
+    }
+    
+    const amount = (yearlyPriceCents / 100).toFixed(2);
+    return `${props.billingConfig.currencySymbol}${amount}`;
 };
 
 const getSavingsText = (pkg: Package) => {
@@ -395,6 +456,23 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                     </div>
                 </div>
 
+                <!-- Discount Banner -->
+                <div v-if="isDiscountActive" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-4 text-center">
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <Sparkles class="h-5 w-5" />
+                        <span class="font-bold text-lg">{{ billingConfig.discount.percentage }}% OFF Limited Time Offer!</span>
+                        <Sparkles class="h-5 w-5" />
+                    </div>
+                    <p class="text-green-100">
+                        <template v-if="billingConfig.discount.ends_at">
+                            Offer ends {{ formatDiscountEndDate }} - Don't miss out!
+                        </template>
+                        <template v-else>
+                            Limited time discount on all paid plans!
+                        </template>
+                    </p>
+                </div>
+
                 <!-- Packages Grid -->
                 <div class="flex justify-center">
                     <div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 max-w-6xl">
@@ -446,8 +524,22 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                 <CardContent class="flex-1 flex flex-col">
                                     <!-- Pricing -->
                                     <div class="text-center mb-6">
-                                        <div class="text-3xl font-bold">{{ getPackagePrice(pkg) }}</div>
-                                        <div class="text-sm text-muted-foreground">{{ getPackagePeriod() }}</div>
+                                        <div class="space-y-1">
+                                            <!-- Original price (strikethrough) when discount is active -->
+                                            <div v-if="isDiscountActive && getOriginalPrice(pkg)" class="text-lg text-muted-foreground line-through">
+                                                {{ getOriginalPrice(pkg) }}
+                                            </div>
+                                            <!-- Current price (discounted or regular) -->
+                                            <div class="text-3xl font-bold" :class="{ 'text-green-600': isDiscountActive && pkg.id !== 'free' }">
+                                                {{ getPackagePrice(pkg) }}
+                                            </div>
+                                            <!-- Discount badge -->
+                                            <div v-if="isDiscountActive && pkg.id !== 'free'" class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                                <Sparkles class="h-3 w-3" />
+                                                {{ billingConfig.discount.percentage }}% OFF
+                                            </div>
+                                        </div>
+                                        <div class="text-sm text-muted-foreground mt-2">{{ getPackagePeriod() }}</div>
                                         <div v-if="getSavingsText(pkg)" class="text-xs text-green-600 font-medium mt-1">
                                             {{ getSavingsText(pkg) }}
                                         </div>

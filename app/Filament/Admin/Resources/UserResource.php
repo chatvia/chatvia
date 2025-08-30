@@ -84,10 +84,8 @@ class UserResource extends Resource
                     ->schema([
                         Grid::make(3)
                             ->schema([
-                                Forms\Components\TextInput::make('agents_instruction_limit')
-                                    ->numeric()
-                                    ->default(0),
-                                Forms\Components\TextInput::make('agents_knowledge_limit')
+                                Forms\Components\TextInput::make('agents_limit')
+                                    ->label('Total Agents Limit')
                                     ->numeric()
                                     ->default(0),
                                 Forms\Components\TextInput::make('pages_limit')

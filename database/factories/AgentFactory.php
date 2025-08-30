@@ -22,7 +22,7 @@ class AgentFactory extends Factory
             'name' => $this->faker->words(2, true),
             'sub_domain' => $this->faker->unique()->slug(),
             'system_instructions' => 'You are a helpful assistant.',
-            'type' => $this->faker->randomElement(['knowledge', 'instruction']),
+            'type' => $this->faker->randomElement(['knowledge_base', 'widget']),
             'is_public' => false,
         ];
     }

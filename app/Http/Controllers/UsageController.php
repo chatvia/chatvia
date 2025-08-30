@@ -25,12 +25,17 @@ class UsageController
             ->getTotalSentMessages();
 
         $agentCounts = $user->agents()
-            ->whereIn('type', ['knowledge', 'instruction'])
+            ->whereIn('type', ['knowledge', 'instruction', 'widget', 'knowledge_base'])
             ->get()
             ->countBy('type');
 
-        $knowledgeAgentLimit = $user->agents_knowledge_limit;
-        $instructionAgentLimit = $user->agents_instruction_limit;
+        // Sum all agent types for unified limit
+        $totalAgents = $agentCounts->get('knowledge', 0) + 
+                      $agentCounts->get('instruction', 0) + 
+                      $agentCounts->get('widget', 0) + 
+                      $agentCounts->get('knowledge_base', 0);
+
+        $agentsLimit = $user->agents_limit;
 
         $consumableMessages = $user->consumableMessages();
 
@@ -39,18 +44,13 @@ class UsageController
 
         return [
             'subscription' => [
-                'plan' => $user->plan,
+                'plan' => $user->plan ?? 'Free',
             ],
             'agents' => [
-                'knowledge' => [
-                    'limit' => $knowledgeAgentLimit,
-                    'created' => $agentCounts->get('knowledge', 0),
-                    'remaining' => max(0, $knowledgeAgentLimit - $agentCounts->get('knowledge', 0)),
-                ],
-                'instruction' => [
-                    'limit' => $instructionAgentLimit,
-                    'created' => $agentCounts->get('instruction', 0),
-                    'remaining' => max(0, $instructionAgentLimit - $agentCounts->get('instruction', 0)),
+                'total' => [
+                    'limit' => $agentsLimit,
+                    'created' => $totalAgents,
+                    'remaining' => max(0, $agentsLimit - $totalAgents),
                 ],
             ],
             'pages' => [

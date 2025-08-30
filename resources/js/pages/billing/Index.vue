@@ -53,12 +53,7 @@ interface UsageData {
         plan: string;
     };
     agents: {
-        knowledge: {
-            limit: number;
-            created: number;
-            remaining: number;
-        };
-        instruction: {
+        total: {
             limit: number;
             created: number;
             remaining: number;
@@ -673,49 +668,26 @@ const cancelScheduledPlanChange = () => {
                                         </div>
                                     </div>
 
-                                    <!-- Knowledge Agents -->
+                                    <!-- Total Agents -->
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-2">
-                                                <Database class="h-4 w-4 text-purple-500" />
-                                                <span class="text-sm font-medium">Knowledge Agents</span>
+                                                <Bot class="h-4 w-4 text-blue-500" />
+                                                <span class="text-sm font-medium">Total Agents</span>
                                             </div>
                                             <span class="text-sm text-muted-foreground">
-                                                {{ usageData.agents.knowledge.created }} / {{ usageData.agents.knowledge.limit }}
+                                                {{ usageData.agents.total.created }} / {{ usageData.agents.total.limit }}
                                             </span>
                                         </div>
                                         <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                                             <div
                                                 class="h-2 rounded-full transition-all duration-300"
-                                                :class="getUsageColor(getUsagePercentage(usageData.agents.knowledge.created, usageData.agents.knowledge.limit))"
-                                                :style="{ width: `${getUsagePercentage(usageData.agents.knowledge.created, usageData.agents.knowledge.limit)}%` }"
+                                                :class="getUsageColor(getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit))"
+                                                :style="{ width: `${getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit)}%` }"
                                             ></div>
                                         </div>
                                         <div class="text-xs text-muted-foreground">
-                                            {{ usageData.agents.knowledge.remaining }} remaining
-                                        </div>
-                                    </div>
-
-                                    <!-- Instruction Agents -->
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <div class="flex items-center gap-2">
-                                                <Bot class="h-4 w-4 text-orange-500" />
-                                                <span class="text-sm font-medium">Instruction Agents</span>
-                                            </div>
-                                            <span class="text-sm text-muted-foreground">
-                                                {{ usageData.agents.instruction.created }} / {{ usageData.agents.instruction.limit }}
-                                            </span>
-                                        </div>
-                                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                                            <div
-                                                class="h-2 rounded-full transition-all duration-300"
-                                                :class="getUsageColor(getUsagePercentage(usageData.agents.instruction.created, usageData.agents.instruction.limit))"
-                                                :style="{ width: `${getUsagePercentage(usageData.agents.instruction.created, usageData.agents.instruction.limit)}%` }"
-                                            ></div>
-                                        </div>
-                                        <div class="text-xs text-muted-foreground">
-                                            {{ usageData.agents.instruction.remaining }} remaining
+                                            {{ usageData.agents.total.remaining }} remaining
                                         </div>
                                     </div>
                                 </div>

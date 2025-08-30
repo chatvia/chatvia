@@ -21,12 +21,7 @@ interface UsageData {
         plan: string;
     };
     agents: {
-        knowledge: {
-            limit: number;
-            created: number;
-            remaining: number;
-        };
-        instruction: {
+        total: {
             limit: number;
             created: number;
             remaining: number;
@@ -197,64 +192,33 @@ onMounted(() => {
                             </CardContent>
                         </Card>
 
-                        <!-- Knowledge Agents -->
+                        <!-- Total Agents -->
                         <Card>
                             <CardHeader>
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <Database class="h-5 w-5 text-purple-500" />
-                                    Knowledge Agents
+                                    <Bot class="h-5 w-5 text-blue-500" />
+                                    Total Agents
                                 </CardTitle>
                                 <CardDescription>
-                                    AI agents with document knowledge base
+                                    All AI agents (Widget & ChatGPT-style)
                                 </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-2xl font-bold">{{ usageData.agents.knowledge.created }}</span>
+                                    <span class="text-2xl font-bold">{{ usageData.agents.total.created }}</span>
                                     <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.agents.knowledge.limit }}
+                                        of {{ usageData.agents.total.limit }}
                                     </span>
                                 </div>
                                 <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
-                                        :class="getUsageColor(getUsagePercentage(usageData.agents.knowledge.created, usageData.agents.knowledge.limit))"
-                                        :style="{ width: `${getUsagePercentage(usageData.agents.knowledge.created, usageData.agents.knowledge.limit)}%` }"
+                                        :class="getUsageColor(getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit))"
+                                        :style="{ width: `${getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit)}%` }"
                                     ></div>
                                 </div>
                                 <div class="flex items-center justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ usageData.agents.knowledge.remaining }} remaining</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <!-- Instruction Agents -->
-                        <Card>
-                            <CardHeader>
-                                <CardTitle class="flex items-center gap-2 text-base">
-                                    <Bot class="h-5 w-5 text-orange-500" />
-                                    Instruction Agents
-                                </CardTitle>
-                                <CardDescription>
-                                    AI agents with custom instructions only
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent class="space-y-4">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-2xl font-bold">{{ usageData.agents.instruction.created }}</span>
-                                    <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.agents.instruction.limit }}
-                                    </span>
-                                </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
-                                    <div
-                                        class="h-3 rounded-full transition-all duration-300"
-                                        :class="getUsageColor(getUsagePercentage(usageData.agents.instruction.created, usageData.agents.instruction.limit))"
-                                        :style="{ width: `${getUsagePercentage(usageData.agents.instruction.created, usageData.agents.instruction.limit)}%` }"
-                                    ></div>
-                                </div>
-                                <div class="flex items-center justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ usageData.agents.instruction.remaining }} remaining</span>
+                                    <span class="text-muted-foreground">{{ usageData.agents.total.remaining }} remaining</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -273,7 +237,7 @@ onMounted(() => {
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-4">
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
                                     <div class="space-y-1">
                                         <div class="text-2xl font-bold text-blue-600">{{ getUsagePercentage(usageData.messages.sent, usageData.messages.limit) }}%</div>
                                         <div class="text-xs text-muted-foreground">Messages Used</div>
@@ -283,12 +247,8 @@ onMounted(() => {
                                         <div class="text-xs text-muted-foreground">Pages Used</div>
                                     </div>
                                     <div class="space-y-1">
-                                        <div class="text-2xl font-bold text-purple-600">{{ getUsagePercentage(usageData.agents.knowledge.created, usageData.agents.knowledge.limit) }}%</div>
-                                        <div class="text-xs text-muted-foreground">Knowledge Agents</div>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <div class="text-2xl font-bold text-orange-600">{{ getUsagePercentage(usageData.agents.instruction.created, usageData.agents.instruction.limit) }}%</div>
-                                        <div class="text-xs text-muted-foreground">Instruction Agents</div>
+                                        <div class="text-2xl font-bold text-purple-600">{{ getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit) }}%</div>
+                                        <div class="text-xs text-muted-foreground">Total Agents</div>
                                     </div>
                                 </div>
                             </div>

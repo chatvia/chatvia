@@ -10,6 +10,10 @@ class AgentTeamController
 {
     public function __invoke(Request $request, Agent $agent)
     {
+        if (!$agent->isKnowledgeable()) {
+            return back()->with('error', 'Agent is not a knowledge base!');
+        }
+
         $user = $request->user();
 
         abort_if(

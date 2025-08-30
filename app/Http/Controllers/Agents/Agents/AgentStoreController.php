@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Agents\Agents;
 use App\Http\Requests\Agents\CreateAgentRequest;
 use App\Models\Agent;
 use App\Support\Ingestion;
+use App\Support\Subdomain;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class AgentStoreController
 {
-    public function __invoke(CreateAgentRequest $request, Ingestion $ingestion)
+    public function __invoke(CreateAgentRequest $request, Ingestion $ingestion, Subdomain $subdomain)
     {
         $user = $request->user();
 
@@ -27,8 +28,8 @@ class AgentStoreController
             $agent = Agent::create([
                 'user_id' => $user->id,
                 'name' => $validatedData['name'],
-                'sub_domain' => $validatedData['sub_domain'],
-                'system_instructions' => $validatedData['system_instructions'],
+                'sub_domain' => $validatedData['type'] === 'knowledge_base'? $subdomain->generateRandomSubdomain() : null,
+                'system_instructions' => config('prompts.knowledge-based-system-instruction'),
                 'is_public' => false,
                 'type' => $validatedData['type'],
                 'external_id' => $externalId,
@@ -36,10 +37,8 @@ class AgentStoreController
 
             DB::commit();
 
-            $route = $agent->type === 'knowledge' ? 'agents.knowledge' : 'agents.preview';
-
-            return to_route($route, ['agent' => $agent->id])
-                ->with('success', 'Agent created successfully. Files are being processed.');
+            return to_route('agents.knowledge', ['agent' => $agent->id, 'new' => true])
+                ->with('success', 'Agent created successfully.');
 
         } catch (Throwable $exception) {
             DB::rollBack();

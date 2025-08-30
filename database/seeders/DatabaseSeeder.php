@@ -24,8 +24,8 @@ class DatabaseSeeder extends Seeder
             'system_instructions' => config('prompts.knowledge-based-system-instruction'),
             'is_public' => 1,
             'is_active' => 1,
-            'type' => 'knowledge',
-            'external_id' => '407f7fdfa1cf19',
+            'type' => 'knowledge_base',
+            'external_id' => '407f7fdfa1cf18',
         ]);
 
         AgentFile::factory()->create(['agent_id' => $agent->id]);
@@ -37,14 +37,14 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Agent::factory()->create([
-            'user_id' => $user2->id,
+            'user_id' => $user->id,
             'name' => 'Assistant',
             'sub_domain' => 'assistant',
             'system_instructions' => config('prompts.knowledge-based-system-instruction'),
             'is_public' => 1,
             'is_active' => 1,
-            'type' => 'knowledge',
-            'external_id' => \App\Support\Agent::generateRandomExternalId(),
+            'type' => 'widget',
+            'external_id' => '407f7fdfa1cf19'
         ]);
     }
 }

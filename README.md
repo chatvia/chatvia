@@ -24,7 +24,7 @@ ChatVia is a sophisticated RAG (Retrieval-Augmented Generation) application that
 
 ### ✨ Key Features
 
-- **🤖 AI Agent Creation**: Create instruction-based or document-based AI agents
+- **🤖 AI Agent Creation**: Create widget or knowledge-based AI agents
 - **📄 Document Ingestion**: Support for multiple file formats with intelligent parsing
 - **🔍 Advanced RAG**: Sophisticated retrieval-augmented generation with vector embeddings
 - **💬 Real-time Chat**: Streaming chat interface with SSE (Server-Sent Events)
@@ -265,8 +265,8 @@ CREATE EXTENSION IF NOT EXISTS vector;
 ### Creating an Agent
 
 1. **Navigate to Agents**: Go to the agents section in your dashboard
-2. **Choose Type**: Select between instruction-based or document-based agents
-3. **Upload Documents**: For document-based agents, upload your files
+2. **Choose Type**: Select between widget or knowledge-based agents
+3. **Upload Documents**: For knowledge-based agents, upload your files
 4. **Configure Settings**: Set system instructions, appearance, and capabilities
 5. **Deploy**: Your agent will be available at `your-subdomain.chatvia.ai`
 

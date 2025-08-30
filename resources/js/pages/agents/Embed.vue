@@ -1,5 +1,5 @@
 <template>
-    <AgentLayout :agent="agent" title="Embed Chat">
+    <AgentLayout :agent="agent" :title="agent.type === 'widget' ? 'Widget Configuration' : 'Embed Chat'">
         <div class="space-y-6">
             <Card>
                 <CardHeader>

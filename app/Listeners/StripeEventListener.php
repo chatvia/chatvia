@@ -40,14 +40,14 @@ class StripeEventListener
 
         $endsAt = $isYearly ? now()->addYear() : now()->addMonth();
 
-        if ($user->agents_knowledge_limit < $fixedLimit['agents_knowledge_limit']) {
+        if ($user->agents_limit < $fixedLimit['agents_limit']) {
             $user->update([
-                'agents_knowledge_limit' => $fixedLimit['agents_knowledge_limit'],
-                'agents_instruction_limit' => $fixedLimit['agents_instruction_limit'],
+                'agents_limit' => $fixedLimit['agents_limit'],
                 'pages_limit' => $fixedLimit['pages_limit'],
                 'minutes_limit' => $fixedLimit['minutes_limit'],
                 'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
                 'members_limit' => $fixedLimit['members_limit'],
+                'links_limit' => $fixedLimit['links_limit'],
             ]);
         }
 

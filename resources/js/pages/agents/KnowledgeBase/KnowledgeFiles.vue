@@ -725,21 +725,19 @@ const stopRefreshInterval = () => {
     }
 };
 
-// Watch for processing files to start/stop auto-refresh (only for knowledge agents)
+// Watch for processing files to start/stop auto-refresh
 watch(hasProcessingFiles, (hasProcessing) => {
-    if (isKnowledgeAgent.value && hasProcessing) {
+    if (hasProcessing) {
         startRefreshInterval();
     } else {
         stopRefreshInterval();
     }
 });
 
-// Load files when component mounts (only for knowledge agents)
+// Load files when component mounts
 onMounted(() => {
-    if (isKnowledgeAgent.value) {
-        fetchKnowledgeFiles();
-        fetchUsageData(); // Fetch usage data on mount
-    }
+    fetchKnowledgeFiles();
+    fetchUsageData(); // Fetch usage data on mount
 });
 
 // Clean up interval when component unmounts
@@ -798,18 +796,10 @@ const showFileSummary = async (file: KnowledgeFile) => {
 
 <template>
     <div class="space-y-6">
-            <!-- Knowledge Agent Type Required Alert -->
-            <Alert v-if="!isKnowledgeAgent">
-                <AlertCircle class="h-4 w-4" />
-                <AlertDescription>
-                    <strong>Knowledge Base Not Available</strong> This agent is configured as an instruction-based agent. Document uploading and knowledge base functionality is only available for knowledge-based agents.
 
-                </AlertDescription>
-            </Alert>
 
-            <!-- Upload Section (only for knowledge agents) -->
+            <!-- Upload Section -->
             <FileUploader
-                v-if="isKnowledgeAgent"
                 ref="fileUploaderRef"
                 :config="fileUploaderConfig"
                 title="Upload New Documents"
@@ -822,8 +812,8 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 @files-changed="(files) => uploadingFiles = files"
             />
 
-            <!-- Important Notes and Warnings (only for knowledge agents) -->
-            <div v-if="isKnowledgeAgent" class="space-y-3">
+            <!-- Important Notes and Warnings -->
+            <div class="space-y-3">
                 <!-- Quota Exceeded -->
                 <Alert v-if="!isLoadingUsage && (pagesRemaining <= 0 || (usageData.minutes && minutesRemaining <= 0))" variant="destructive">
                     <AlertCircle class="h-4 w-4" />
@@ -844,8 +834,8 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 </Alert>
             </div>
 
-            <!-- Uploaded files ready for processing (only for knowledge agents) -->
-            <div v-if="isKnowledgeAgent && uploadedFiles.length > 0" class="mt-4">
+            <!-- Uploaded files ready for processing -->
+            <div v-if="uploadedFiles.length > 0" class="mt-4">
                 <Card>
                     <CardHeader class="pb-3">
                         <div class="flex items-center justify-between">
@@ -939,8 +929,8 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 </Card>
             </div>
 
-            <!-- Current Knowledge Base (only for knowledge agents) -->
-            <Card v-if="isKnowledgeAgent">
+            <!-- Current Knowledge Base -->
+            <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Database class="h-5 w-5" />

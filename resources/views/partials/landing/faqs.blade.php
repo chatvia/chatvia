@@ -38,7 +38,7 @@
                             ],
                             [
                                 'question' => 'Can I customize the AI agent\'s appearance?',
-                                'answer' => 'Yes! You can customize your agent\'s name, instructions, and you can also add custom branding, logos, and even use your own domain for a white-label experience.',
+                                'answer' => 'Yes! You can customize your agent\'s name, personality, and you can also add custom branding, logos, and even use your own domain for a white-label experience.',
                                 'expanded' => false
                             ],
                             [

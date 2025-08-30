@@ -43,7 +43,7 @@
                     <!-- Preview Container -->
                     <div class="bg-muted rounded-lg p-6">
                         <div class="flex justify-center">
-                            <div class="w-full max-w-4xl h-[600px] border rounded-lg overflow-hidden bg-white shadow-lg">
+                            <div class="w-full max-w-6xl h-[800px] border rounded-lg overflow-hidden bg-white shadow-lg">
                                 <iframe
                                     :src="buildIframeUrl(props.agent.chat_url)"
                                     class="w-full h-full border-0"
@@ -60,7 +60,7 @@
         <!-- Preview Modal -->
         <PreviewModal
             v-model="showPreviewModal"
-            preview-type="embed"
+            :preview-type="props.agent.type === 'widget' ? 'widget' : 'embed'"
             :preview-url="buildIframeUrl(props.agent.chat_url)"
             iframe-title="Chat Preview"
         />
@@ -94,6 +94,12 @@ const showPreviewModal = ref(false);
 
 // Methods
 const buildIframeUrl = (baseUrl: string) => {
+    // Use widget preview route for widget agents
+    if (props.agent.type === 'widget') {
+        return route('agents.widget.preview', { agent: props.agent.id });
+    }
+    
+    // Use regular chat URL with auth token for other agents
     if (props.authToken) {
         const separator = baseUrl.includes('?') ? '&' : '?';
         return `${baseUrl}${separator}auth_token=${props.authToken}`;

@@ -74,7 +74,7 @@ class AgentObserver
         /** @var User $user */
         $user = $agent->user;
 
-        $agentTypeField = $agent->isKnowledgeable() ? 'agents_knowledge_limit' : 'agents_instruction_limit';
+        $agentTypeField = 'agents_limit'; // Unified agents limit
 
         $operator = $increment ? '+' : '-';
 

@@ -72,9 +72,9 @@ const formatDate = (dateString: string) => {
 
 const getAgentTypeBadgeClass = (type: string) => {
     const lowerType = type.toLowerCase();
-    if (lowerType === 'knowledge') {
+    if (lowerType === 'knowledge_base') {
         return 'rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
-    } else if (lowerType === 'instruction') {
+    } else if (lowerType === 'widget') {
         return 'rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-400';
     } else {
         return 'rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary';
@@ -153,16 +153,14 @@ const getAgentTypeBadgeClass = (type: string) => {
                     <CardHeader class="pb-3">
                         <div class="flex items-center justify-between">
                             <CardTitle class="flex items-center gap-2 text-xl">
-                                <Bot class="h-5 w-5" />
-                                {{ agent.name }}
+                                <Bot class="h-5 w-5 flex-shrink-0" />
+                                <span class="truncate">{{ agent.name }}</span>
                             </CardTitle>
                             <span :class="getAgentTypeBadgeClass(agent.type)">
-                                {{ agent.type }}
+                                {{ agent.type === 'knowledge_base' ? 'ChatGPT-style' : agent.type === 'widget' ? 'Widget' : agent.type }}
                             </span>
                         </div>
-                        <CardDescription class="flex items-center gap-1">
-                            {{ agent.sub_domain }}.chatvia.ai
-                        </CardDescription>
+
                     </CardHeader>
 
                     <CardContent>

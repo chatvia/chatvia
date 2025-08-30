@@ -21,6 +21,11 @@ return [
     |
     */
 
+    'discount' => [
+        'percentage' => 0,
+        'ends_at' => null,
+    ],
+
     'packages' => [
         /*
         |----------------------------------------------------------------------
@@ -43,8 +48,9 @@ return [
                 'monthly' => [
                     'Access to fast models',
                     '100 messages per month',
-                    '100 pages',
-                    '2 AI agents (1 instruction-based and 1 training-based)',
+                    '50 pages',
+                    '50 links',
+                    '2 AI agents',
                     '1 Member',
                     'Basic PDF',
                     'Random subdomain',
@@ -53,7 +59,8 @@ return [
                     'Access to fast models',
                     '100 messages per month',
                     '100 pages',
-                    '2 AI agents (1 instruction-based and 1 training-based)',
+                    '100 links',
+                    '2 AI agents',
                     '1 Member',
                     'Basic PDF',
                     'Random subdomain',
@@ -101,10 +108,10 @@ return [
                     'messages_limit' => 100,
                 ],
                 'fixed' => [
-                    'agents_instruction_limit' => 1,
-                    'agents_knowledge_limit' => 1,
+                    'agents_limit' => 2,
                     'pages_limit' => 50,
                     'minutes_limit' => 30,
+                    'links_limit' => 50,
                     'custom_domains_limit' => 0,
                     'members_limit' => 1,
                 ],
@@ -128,7 +135,8 @@ return [
                     'Access to all models',
                     '1,000 messages per month',
                     '500 pages',
-                    '4 AI agents (2 instruction-based and 2 training-based)',
+                    '1,000 links',
+                    '5 AI agents',
                     '2 Members',
                     'Advanced PDF',
                     'your-agent-name.chatvia.ai subdomain',
@@ -137,7 +145,8 @@ return [
                     'Access to all models',
                     '13,000 messages upfront (1000 free)',
                     '500 pages',
-                    '4 AI agents (2 instruction-based and 2 training-based)',
+                    '1,000 links',
+                    '4 AI agents',
                     '2 Members',
                     'Advanced PDF',
                     'your-agent-name.chatvia.ai subdomain',
@@ -158,8 +167,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STARTER_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STARTER_YEARLY_PRICE_ID'),
-            'monthly_price' => 2999, // $29/month
-            'yearly_price' => 28999, // $190/year (2 months free)
+            'monthly_price' => 1900,
+            'yearly_price' => 9000,
             'is_popular' => false,
 
             'quota_limits' => [
@@ -170,10 +179,10 @@ return [
                     'messages_limit' => 13000,
                 ],
                 'fixed' => [
-                    'agents_instruction_limit' => 2,
-                    'agents_knowledge_limit' => 2,
+                    'agents_limit' => 4,
                     'pages_limit' => 500,
                     'minutes_limit' => 300,
+                    'links_limit' => 1000,
                     'custom_domains_limit' => 0,
                     'members_limit' => 2,
                 ],
@@ -196,13 +205,15 @@ return [
                 'monthly' => [
                     '4,000 messages per month',
                     '2,000 pages',
-                    '10 AI agents (5 instruction-based and 5 training-based)',
+                    '5,000 links',
+                    '10 AI agents',
                     '5 Members',
                 ],
                 'yearly' => [
                     '60,000 messages upfront (11,000 free)',
                     '2,000 pages',
-                    '10 AI agents (5 instruction-based and 5 training-based)',
+                    '5,000 links',
+                    '10 AI agents',
                     '5 Members',
                 ],
             ],
@@ -221,8 +232,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STANDARD_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STANDARD_YEARLY_PRICE_ID'),
-            'monthly_price' => 9999, // $49.00
-            'yearly_price' => 99999, // $490.00 (2 months free)
+            'monthly_price' => 10000,
+            'yearly_price' => 60000,
             'is_popular' => true,
 
             'quota_limits' => [
@@ -233,10 +244,10 @@ return [
                     'messages_limit' => 6500,
                 ],
                 'fixed' => [
-                    'agents_instruction_limit' => 5,
-                    'agents_knowledge_limit' => 5,
+                    'agents_limit' => 10,
                     'pages_limit' => 1000,
                     'minutes_limit' => 1200,
+                    'links_limit' => 5000,
                     'custom_domains_limit' => 0,
                     'members_limit' => 5,
                 ],
@@ -259,7 +270,8 @@ return [
                 'monthly' => [
                     '25,000 messages per month',
                     '10,000 pages',
-                    '20 AI agents (10 instruction-based and 10 training-based)',
+                    '10,000 links',
+                    '20 AI agents',
                     '1 Custom Domain (www.your-company.com)',
                     '25 Members',
                     'Free custom integrations',
@@ -268,7 +280,8 @@ return [
                 'yearly' => [
                     '350,000 messages upfront (50,000 free)',
                     '140,000 pages upfront (2000,000 free)',
-                    '20 AI agents (10 instruction-based and 10 training-based)',
+                    '10,000 links',
+                    '20 AI agents',
                     '1 Custom Domain (www.your-company.com)',
                     '25 Members',
                     'Free custom integrations',
@@ -290,8 +303,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_PRO_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_PRO_YEARLY_PRICE_ID'),
-            'monthly_price' => 49999, // $499,99
-            'yearly_price' => 499999, // $2,490.00 (2 months free)
+            'monthly_price' => 50000, // $499,99
+            'yearly_price' => 300000, // $2,490.00 (2 months free)
             'is_popular' => false,
 
             'quota_limits' => [
@@ -302,10 +315,10 @@ return [
                     'messages_limit' => 35000,
                 ],
                 'fixed' => [
-                    'agents_instruction_limit' => 10,
-                    'agents_knowledge_limit' => 10,
+                    'agents_limit' => 20,
                     'pages_limit' => 10000,
                     'minutes_limit' => 6000,
+                    'links_limit' => 10000,
                     'custom_domains_limit' => 1,
                     'members_limit' => 25,
                 ],
@@ -332,12 +345,7 @@ return [
     |
     */
     'comparison_features' => [
-        'instruction_ai_agents' => [
-            'name' => 'Instruction-Based Agents',
-            'description' => 'AI agents that follow custom instructions and prompts you define',
-            'capability_key' => 'max_agents',
-        ],
-        'training_ai_agents' => [
+        'ai_agents' => [
             'name' => 'Document-Based Agents',
             'description' => 'AI agents trained on your documents, PDFs, and knowledge base',
             'capability_key' => 'max_agents',
@@ -497,8 +505,8 @@ return [
     |
     */
     'ui' => [
-        'yearly_savings_percentage' => 20, // Used for "Save X%" badge
-        'yearly_savings_text' => 'Save 20%',
+        'yearly_savings_percentage' => 50, // Used for "Save X%" badge
+        'yearly_savings_text' => 'Save 50%',
         'most_popular_text' => 'Most Popular',
         'current_plan_text' => 'Current Plan',
         'popular_badge_text' => 'Most Popular',

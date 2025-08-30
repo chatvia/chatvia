@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertCircle, Bot, Brain, Database, Lightbulb, LoaderCircle, AlertTriangle } from 'lucide-vue-next';
+import { AlertCircle, Bot, Brain, MessageSquare, Globe, LoaderCircle, AlertTriangle } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -20,8 +20,8 @@ const props = defineProps<{
 }>();
 
 enum AgentType {
-    INSTRUCTION_BASED = 'instruction',
-    KNOWLEDGE_BASED = 'knowledge',
+    WIDGET = 'widget',
+    CHATGPT_STYLE = 'knowledge_base',
 }
 
 interface UsageData {
@@ -29,12 +29,7 @@ interface UsageData {
         plan: string;
     };
     agents: {
-        knowledge: {
-            limit: number;
-            created: number;
-            remaining: number;
-        };
-        instruction: {
+        total: {
             limit: number;
             created: number;
             remaining: number;
@@ -69,51 +64,35 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     name: '',
-    sub_domain: '',
-    system_instructions: 'You are a helpful assistant.',
-    type: AgentType.INSTRUCTION_BASED,
+    type: AgentType.CHATGPT_STYLE,
 });
 
 const isSubmitting = ref(false);
-const isGeneratingSubdomain = ref(false);
+
 const isLoadingUsage = ref(false);
 const usageData = ref<UsageData | null>(null);
 
-// Compute whether user can create the selected agent type
+// Compute whether user can create any agents
 const canCreateAgent = computed(() => {
     if (!usageData.value) return false;
-
-    const agentType = form.type === AgentType.KNOWLEDGE_BASED ? 'knowledge' : 'instruction';
-    return usageData.value.agents[agentType].remaining > 0;
+    return usageData.value.agents.total.remaining > 0;
 });
 
-// Check if user cannot create any agents at all
+// Check if user cannot create any agents at all (same as above now)
 const canCreateAnyAgent = computed(() => {
     if (!usageData.value) return false;
-
-    return usageData.value.agents.knowledge.remaining > 0 || usageData.value.agents.instruction.remaining > 0;
+    return usageData.value.agents.total.remaining > 0;
 });
 
 // Get current agent quota info
 const currentAgentQuota = computed(() => {
     if (!usageData.value) return null;
-
-    const agentType = form.type === AgentType.KNOWLEDGE_BASED ? 'knowledge' : 'instruction';
-    return usageData.value.agents[agentType];
+    return usageData.value.agents.total;
 });
 
-// Update system instructions when switching agent type
-watch(
-    () => form.type,
-    (newType) => {
-        if (newType === AgentType.KNOWLEDGE_BASED) {
-            // Set the knowledge-based system instruction when switching to knowledge-based
-            form.system_instructions = props.knowledge_based_system_instruction;
-        } else {
-            form.system_instructions = 'You are a helpful assistant.';
-        }
-    },
-);
+
+
+
 
 // Fetch usage data
 const fetchUsageData = async () => {
@@ -132,28 +111,10 @@ const fetchUsageData = async () => {
     }
 };
 
-// Automatically switch to available agent type if current selection is at limit
+// No longer needed with unified limit
 const autoSwitchToAvailableAgentType = (showNotification = false) => {
-    if (!usageData.value) return;
-
-    const currentType = form.type === AgentType.KNOWLEDGE_BASED ? 'knowledge' : 'instruction';
-    const otherType = form.type === AgentType.KNOWLEDGE_BASED ? 'instruction' : 'knowledge';
-
-    // If current type is at limit but other type has quota, switch to it
-    if (usageData.value.agents[currentType].remaining === 0 && usageData.value.agents[otherType].remaining > 0) {
-        const previousType = form.type === AgentType.KNOWLEDGE_BASED ? 'knowledge-based' : 'instruction-based';
-        const newType = form.type === AgentType.KNOWLEDGE_BASED ? 'instruction-based' : 'knowledge-based';
-
-        form.type = form.type === AgentType.KNOWLEDGE_BASED ? AgentType.INSTRUCTION_BASED : AgentType.KNOWLEDGE_BASED;
-
-        // Notify user about the automatic switch only when requested
-        if (showNotification) {
-            toast.info('Agent type switched', {
-                description: `Switched to ${newType} agents since you've reached your ${previousType} agent limit.`,
-                duration: 4000,
-            });
-        }
-    }
+    // With unified limit, no need to switch between types
+    return;
 };
 
 
@@ -162,13 +123,10 @@ const autoSwitchToAvailableAgentType = (showNotification = false) => {
 const selectAgentType = (targetType: AgentType) => {
     if (!usageData.value) return;
 
-    const agentTypeKey = targetType === AgentType.KNOWLEDGE_BASED ? 'knowledge' : 'instruction';
-
-    // Check if the target type has quota available
-    if (usageData.value.agents[agentTypeKey].remaining === 0) {
-        const agentTypeName = targetType === AgentType.KNOWLEDGE_BASED ? 'knowledge-based' : 'instruction-based';
+    // Check if quota is available (unified limit)
+    if (usageData.value.agents.total.remaining === 0) {
         toast.error('Agent limit reached', {
-            description: `You've reached your limit for ${agentTypeName} agents. Try the other agent type or upgrade your plan.`,
+            description: 'You\'ve reached your agent limit. Please upgrade your plan or delete existing agents.',
             duration: 4000,
         });
         return;
@@ -176,13 +134,6 @@ const selectAgentType = (targetType: AgentType) => {
 
     // Switch to the target type
     form.type = targetType;
-
-    // Update system instructions based on the selected type
-    if (targetType === AgentType.KNOWLEDGE_BASED) {
-        form.system_instructions = props.knowledge_based_system_instruction;
-    } else {
-        form.system_instructions = 'You are a helpful assistant.';
-    }
 };
 
 
@@ -198,9 +149,8 @@ const submit = () => {
     }
 
     if (!canCreateAgent.value) {
-        const agentTypeName = form.type === AgentType.KNOWLEDGE_BASED ? 'knowledge-based' : 'instruction-based';
         toast.error('Agent limit reached', {
-            description: `You've reached your limit for ${agentTypeName} agents. Please upgrade your plan or delete existing agents.`,
+            description: 'You\'ve reached your agent limit. Please upgrade your plan or delete existing agents.',
             duration: 5000,
         });
         return;
@@ -226,19 +176,9 @@ const submit = () => {
     });
 };
 
-const generateNewSubdomain = () => {
-    isGeneratingSubdomain.value = true;
-    axios.get(route('generate-random-subdomain')).then((response) => {
-        isGeneratingSubdomain.value = false;
-        form.sub_domain = response.data.name;
-    });
-};
+
 
 onMounted(() => {
-    // Only auto-generate subdomain if user cannot register custom subdomains
-    if (!props.can_register_custom_sub_domain) {
-        generateNewSubdomain();
-    }
     fetchUsageData();
 });
 </script>
@@ -274,17 +214,7 @@ onMounted(() => {
                         </div>
                     </div>
                 </div>
-                <div v-else class="bg-muted/50 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm">
-                            <span class="font-medium">{{ form.type === 'knowledge' ? 'Knowledge-based' : 'Instruction-based' }} agents:</span>
-                            {{ currentAgentQuota.remaining }}/{{ currentAgentQuota.limit }} remaining
-                        </div>
-                        <div class="text-xs text-muted-foreground">
-                            {{ usageData.subscription.plan }} plan
-                        </div>
-                    </div>
-                </div>
+
             </div>
 
             <FormErrors :errors="form.errors" class="mb-6" />
@@ -303,72 +233,11 @@ onMounted(() => {
                         </CardHeader>
                         <CardContent>
                             <div class="grid gap-6">
-                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 items-start">
-                                    <div class="grid gap-2">
-                                        <Label for="name" required>Name</Label>
-                                        <Input id="name" v-model="form.name" :error="form.errors.name" :disabled="!canCreateAnyAgent" autofocus placeholder="E.g., Meetings" />
+                                <div class="grid gap-2">
+                                    <Label for="name" required>Name</Label>
+                                    <Input id="name" v-model="form.name" :error="form.errors.name" :disabled="!canCreateAnyAgent" autofocus placeholder="E.g., Customer Support Agent" />
 
-                                        <p v-if="form.errors.name" class="text-destructive text-sm">{{ form.errors.name }}</p>
-                                    </div>
-
-                                    <div class="grid gap-2">
-                                        <Label for="domain" required>Domain</Label>
-                                        <div class="flex items-center">
-                                            <Input
-                                                id="domain"
-                                                v-model="form.sub_domain"
-                                                :error="form.errors.sub_domain"
-                                                :readonly="!props.can_register_custom_sub_domain"
-                                                :disabled="!canCreateAnyAgent"
-                                                :class="[
-                                                    'rounded-r-none',
-                                                    !props.can_register_custom_sub_domain ? 'disabled' : ''
-                                                ]"
-                                                :placeholder="props.can_register_custom_sub_domain ? 'Enter custom subdomain' : ''"
-                                            />
-                                            <div
-                                                class="border-input bg-muted text-muted-foreground flex h-9 items-center rounded-r-md border border-l-0 px-3 text-sm"
-                                            >
-                                                .chatvia.ai
-                                            </div>
-                                            <Button
-                                                :disabled="isGeneratingSubdomain || !canCreateAnyAgent"
-                                                class="ml-1 h-6 w-6 p-0"
-                                                size="icon"
-                                                type="button"
-                                                variant="ghost"
-                                                @click="generateNewSubdomain"
-                                            >
-                                                <LoaderCircle v-if="isGeneratingSubdomain" class="h-3.5 w-3.5 animate-spin" />
-                                                <svg
-                                                    v-else
-                                                    class="h-3.5 w-3.5"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    viewBox="0 0 24 24"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                >
-                                                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
-                                                </svg>
-                                                <span class="sr-only">Generate new subdomain</span>
-                                            </Button>
-                                        </div>
-                                        <p v-if="form.errors.sub_domain" class="text-destructive text-sm">
-                                            {{ form.errors.sub_domain }}
-                                        </p>
-                                        <p v-if="!props.can_register_custom_sub_domain" class="text-muted-foreground text-sm mt-1">
-                                            <Link
-                                                :href="route('billing.packages')"
-                                                class="text-primary hover:underline font-medium"
-                                            >
-                                                Upgrade
-                                        </Link>
-                                            to create custom subdomains.
-                                        </p>
-                                    </div>
+                                    <p v-if="form.errors.name" class="text-destructive text-sm">{{ form.errors.name }}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -385,30 +254,30 @@ onMounted(() => {
                         </CardHeader>
                         <CardContent>
                             <div class="grid gap-4 md:grid-cols-2">
-                                <!-- Instruction-based (No Training) -->
+                                <!-- Widget -->
                                 <div
                                     :class="[
-                                        form.type === 'instruction' ? 'border-primary bg-primary/5' : 'border-border',
-                                        usageData && usageData.agents.instruction.remaining === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                        form.type === AgentType.WIDGET ? 'border-primary bg-primary/5' : 'border-border',
+                                        usageData && usageData.agents.total.remaining === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                                     ]"
                                     class="relative rounded-lg border-2 p-6 transition-all hover:shadow-md"
-                                    @click="selectAgentType(AgentType.INSTRUCTION_BASED)"
+                                    @click="selectAgentType(AgentType.WIDGET)"
                                 >
                                     <div class="flex items-start gap-4">
                                         <div class="flex-shrink-0">
                                             <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                                                <Lightbulb class="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                                <Globe class="h-6 w-6 text-blue-600 dark:text-blue-400" />
                                             </div>
                                         </div>
                                         <div class="flex-1">
                                             <div class="flex items-center gap-2">
-                                                <h3 class="font-semibold">Instruction-based</h3>
+                                                <h3 class="font-semibold">Widget</h3>
                                                 <span
                                                     class="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                                    >No Training</span
+                                                    >Embeddable</span
                                                 >
                                                 <div
-                                                    v-if="form.type === 'instruction'"
+                                                    v-if="form.type === AgentType.WIDGET"
                                                     class="bg-primary flex h-5 w-5 items-center justify-center rounded-full"
                                                 >
                                                     <svg class="text-primary-foreground h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
@@ -421,42 +290,39 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                             <p class="text-muted-foreground mt-1 mb-3 text-sm">
-                                                Ready-to-use agent guided by your instructions only
+                                                Chat widget that can be embedded on your website
                                             </p>
-                                            <!-- Quota indicator -->
-                                            <div v-if="usageData" class="mb-3 text-xs text-muted-foreground">
-                                                {{ usageData.agents.instruction.remaining }}/{{ usageData.agents.instruction.limit }} remaining
-                                            </div>
+
                                             <div class="space-y-2">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- DocumentData-based Training -->
+                                <!-- ChatGPT-style -->
                                 <div
                                     :class="[
-                                        form.type === 'knowledge' ? 'border-primary bg-primary/5' : 'border-border',
-                                        usageData && usageData.agents.knowledge.remaining === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                        form.type === AgentType.CHATGPT_STYLE ? 'border-primary bg-primary/5' : 'border-border',
+                                        usageData && usageData.agents.total.remaining === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                                     ]"
                                     class="relative rounded-lg border-2 p-6 transition-all hover:shadow-md"
-                                    @click="selectAgentType(AgentType.KNOWLEDGE_BASED)"
+                                    @click="selectAgentType(AgentType.CHATGPT_STYLE)"
                                 >
                                     <div class="flex items-start gap-4">
                                         <div class="flex-shrink-0">
                                             <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/20">
-                                                <Database class="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                                                <MessageSquare class="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                                             </div>
                                         </div>
                                         <div class="flex-1">
                                             <div class="flex items-center gap-2">
-                                                <h3 class="font-semibold">Knowledge-based</h3>
+                                                <h3 class="font-semibold">ChatGPT-style</h3>
                                                 <span
                                                     class="rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                                    >With Training</span
+                                                    >Team Access</span
                                                 >
                                                 <div
-                                                    v-if="form.type === 'knowledge'"
+                                                    v-if="form.type === AgentType.CHATGPT_STYLE"
                                                     class="bg-primary flex h-5 w-5 items-center justify-center rounded-full"
                                                 >
                                                     <svg class="text-primary-foreground h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
@@ -468,11 +334,8 @@ onMounted(() => {
                                                     </svg>
                                                 </div>
                                             </div>
-                                            <p class="text-muted-foreground mt-1 mb-3 text-sm">Agent trained on your documents and knowledge base</p>
-                                            <!-- Quota indicator -->
-                                            <div v-if="usageData" class="mb-3 text-xs text-muted-foreground">
-                                                {{ usageData.agents.knowledge.remaining }}/{{ usageData.agents.knowledge.limit }} remaining
-                                            </div>
+                                            <p class="text-muted-foreground mt-1 mb-3 text-sm">ChatGPT-like interface that can be shared with your team.</p>
+
                                             <div class="space-y-2">
                                             </div>
                                         </div>
@@ -484,46 +347,9 @@ onMounted(() => {
                         </CardContent>
                     </Card>
 
-                    <!-- Persona -->
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Persona</CardTitle>
-                            <CardDescription>Define your agent's personality and behavior</CardDescription>
-                        </CardHeader>
 
-                        <CardContent>
-                            <div class="grid gap-2">
-                                <Label for="persona" required>System Persona</Label>
-                                <Textarea
-                                    id="persona"
-                                    v-model="form.system_instructions"
-                                    :error="form.errors.system_instructions"
-                                    :disabled="!canCreateAnyAgent"
-                                    :placeholder="
-                                        form.type === AgentType.KNOWLEDGE_BASED
-                                            ? 'Describe your knowledge-based agent\'s personality, tone, and expertise...'
-                                            : 'You are a friendly customer support specialist who helps solve problems efficiently and professionally...'
-                                    "
-                                    rows="6"
-                                />
-                                <p v-if="form.errors.system_instructions" class="text-destructive text-sm">
-                                    {{ form.errors.system_instructions }}
-                                </p>
-                                <p class="text-muted-foreground text-sm">
-                                    This defines your agent's personality, tone, expertise, and how it should interact with users
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
 
-                    <!-- Knowledge Base Files Alert -->
-                    <Alert v-if="form.type === AgentType.KNOWLEDGE_BASED" class="bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-300">
-                        <Database class="h-4 w-4" />
-                        <AlertTitle>Knowledge Base Files</AlertTitle>
-                        <AlertDescription>
-                            After creating your agent, you'll be able to upload documents and files to train your agent on your specific knowledge base.
-                        </AlertDescription>
-                    </Alert>
+
 
 
 
@@ -531,7 +357,7 @@ onMounted(() => {
                     <CardFooter class="flex justify-end border-t p-6">
                         <Button :disabled="isSubmitting || !canCreateAnyAgent" size="lg" type="submit">
                             <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                            Create Agent
+                            Create
                         </Button>
                     </CardFooter>
                 </div>

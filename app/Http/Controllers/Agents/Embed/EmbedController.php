@@ -11,6 +11,10 @@ class EmbedController
 {
     public function __invoke(Request $request, Agent $agent, AgentMemberAuthTokenService $authTokenService)
     {
+        if (! $agent->isKnowledgeable()) {
+            return back()->with('error', 'Agent is not a knowledge base!');
+        }
+
         $authToken = null;
 
         if (! $agent->is_public) {

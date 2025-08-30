@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,11 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Check if agent is widget type
+const isWidgetAgent = computed(() => {
+    return props.agent.type === 'widget';
+});
 
 const form = useForm({
     is_active: props.agent.is_active,
@@ -41,7 +46,8 @@ const updateSecuritySettings = () => {
 <template>
     <AgentLayout :agent="agent" title="Security">
         <form @submit.prevent="updateSecuritySettings" class="space-y-6">
-            <Card>
+            <!-- Access Control (hidden for widget agents) -->
+            <Card v-if="!isWidgetAgent">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Lock class="h-5 w-5" />

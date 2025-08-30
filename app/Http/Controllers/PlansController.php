@@ -30,6 +30,7 @@ class PlansController
                 'packageIcons' => config('billing.package_icons'),
                 'currencySymbol' => config('billing.currency_symbol'),
                 'trial' => config('billing.trial'),
+                'discount' => config('billing.discount'),
             ],
             'llms' => $llms->map(function ($llm) {
                 return [

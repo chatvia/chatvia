@@ -48,6 +48,7 @@ class Crawler
             ->setDelayBetweenRequests($data->slow_crawling ? 1000 : 0)
             ->doNotExecuteJavaScript()
             ->respectRobots()
+            ->setTotalCrawlLimit($this->totalCrawlLimit)
             ->setCrawlProfile(new CrawlerProfile($data->url));
 
         if ($data->limit) {

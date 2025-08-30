@@ -44,6 +44,7 @@ import {
     Code,
     PanelLeftClose,
     PanelLeftOpen,
+    FileText,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
@@ -69,12 +70,14 @@ const features = page.props.features as Features;
 const isUiSectionExpanded = ref(true);
 const isControlPanelExpanded = ref(true);
 const isNavigationCollapsed = ref(false);
+const isKnowledgeBaseExpanded = ref(false);
 
 // Load states from localStorage on component mount
 onMounted(() => {
     const savedUiExpanded = localStorage.getItem('agent-layout-ui-expanded');
     const savedControlPanelExpanded = localStorage.getItem('agent-layout-control-panel-expanded');
     const savedNavigationCollapsed = localStorage.getItem('agent-layout-navigation-collapsed');
+    const savedKnowledgeBaseExpanded = localStorage.getItem('agent-layout-knowledge-base-expanded');
 
     if (savedUiExpanded !== null) {
         isUiSectionExpanded.value = savedUiExpanded === 'true';
@@ -84,6 +87,15 @@ onMounted(() => {
     }
     if (savedNavigationCollapsed !== null) {
         isNavigationCollapsed.value = savedNavigationCollapsed === 'true';
+    }
+    if (savedKnowledgeBaseExpanded !== null) {
+        isKnowledgeBaseExpanded.value = savedKnowledgeBaseExpanded === 'true';
+    }
+
+    // Auto-expand knowledge base if user is on a knowledge base page
+    const isOnKnowledgePage = currentRoute.value?.includes('KnowledgeBase');
+    if (isOnKnowledgePage) {
+        isKnowledgeBaseExpanded.value = true;
     }
 });
 
@@ -100,6 +112,10 @@ watch(isNavigationCollapsed, (newValue) => {
     localStorage.setItem('agent-layout-navigation-collapsed', newValue.toString());
 });
 
+watch(isKnowledgeBaseExpanded, (newValue) => {
+    localStorage.setItem('agent-layout-knowledge-base-expanded', newValue.toString());
+});
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Agents',
@@ -114,13 +130,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 const uiNavigationItems = computed(() => {
     const baseItems = [
         { id: 'preview', label: 'Chat', icon: BotIcon, route: 'agents.preview', tooltip: 'Preview your agent chat interface' },
-        { id: 'embed', label: 'Embed', icon: Code, route: 'agents.embed', tooltip: 'Generate embed code for your website' },
+        { 
+            id: 'embed', 
+            label: 'Embed', 
+            icon: props.agent.type === 'widget' ? Globe : Code, 
+            route: props.agent.type === 'widget' ? 'agents.widget' : 'agents.embed', 
+            tooltip: props.agent.type === 'widget' ? 'Configure and preview chat widget' : 'Generate embed code for your website' 
+        },
     ];
-
-    // Only add widget if the feature is enabled
-    if (features.widget) {
-        baseItems.push({ id: 'widget', label: 'Widget', icon: Globe, route: 'agents.widget', tooltip: 'Configure and preview chat widget' });
-    }
 
     return baseItems;
 });
@@ -131,30 +148,53 @@ const controlPanelNavigationItems = computed(() => {
         { id: 'persona', label: 'Persona', icon: Bot, route: 'agents.settings', tooltip: 'Configure agent personality and behavior' },
         { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models', tooltip: 'Manage AI models and settings' },
 
-        { id: 'knowledge', label: 'Knowledge Base', icon: Database, route: 'agents.knowledge', tooltip: 'Upload and manage knowledge files' },
         { id: 'starters', label: 'Starter Messages', icon: MessageSquare, route: 'agents.starters', tooltip: 'Create conversation starter messages' },
 
-        { id: 'appearance', label: 'Appearance', icon: Palette, route: 'agents.appearance', tooltip: 'Customize colors, themes, and branding' },
-
         { id: 'history', label: 'Message History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
-        { id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' },
-        { id: 'security', label: 'Security', icon: Lock, route: 'agents.security', tooltip: 'Configure access control and embedding settings' },
     ];
+
+    // Only add security if the agent is not a widget
+    if (props.agent.type !== 'widget') {
+        baseItems.push({ id: 'security', label: 'Security', icon: Lock, route: 'agents.security', tooltip: 'Configure access control and embedding settings' });
+    }
+
+    // Only add members if the agent is not a widget
+    if (props.agent.type !== 'widget') {
+        // Insert members after history (at index 5)
+        baseItems.splice(5, 0, { id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' });
+    }
+
+    // Only add appearance if the agent is not a widget
+    if (props.agent.type !== 'widget') {
+        // Insert appearance after starters (at index 4)
+        baseItems.splice(4, 0, { id: 'appearance', label: 'Appearance', icon: Palette, route: 'agents.appearance', tooltip: 'Customize colors, themes, and branding' });
+    }
 
     // Only add workflow if the feature is enabled
     if (features.workflow) {
-        // Insert workflow after knowledge base (at index 4)
-        baseItems.splice(4, 0, { id: 'workflow', label: 'Workflow', icon: Workflow, route: 'agents.workflow', tooltip: 'Create and manage agent workflows' });
+        // Insert workflow after models (at index 3)
+        baseItems.splice(3, 0, { id: 'workflow', label: 'Workflow', icon: Workflow, route: 'agents.workflow', tooltip: 'Create and manage agent workflows' });
     }
 
     // Only add actions if the feature is enabled
     if (features.actions) {
-        // Insert actions after workflow (or after knowledge base if workflow is disabled)
-        const insertIndex = features.workflow ? 5 : 4;
+        // Insert actions after workflow (or after models if workflow is disabled)
+        const insertIndex = features.workflow ? 4 : 3;
         baseItems.splice(insertIndex, 0, { id: 'actions', label: 'Actions', icon: Zap, route: 'agents.actions', tooltip: 'Set up automated actions based on user inputs' });
     }
 
     return baseItems;
+});
+
+// Knowledge Base submenu items
+const knowledgeBaseItems = computed(() => [
+    { id: 'knowledge-files', label: 'Files', icon: FileText, route: 'agents.knowledge', tooltip: 'Upload and manage knowledge files' },
+    { id: 'knowledge-web', label: 'Website', icon: Globe, route: 'agents.knowledge.web', tooltip: 'Crawl websites for knowledge' },
+]);
+
+// Knowledge Base parent should not be highlighted - only submenu items should be
+const isKnowledgeBaseActive = computed(() => {
+    return false; // Parent item is never highlighted, only submenu items
 });
 
 const showDeleteDialog = ref(false);
@@ -187,23 +227,26 @@ const canDelete = computed(() => {
 });
 
 const isActiveRoute = (routeName: string) => {
-    const routeSuffix = routeName.split('.')[1]; // Extract 'stats', 'settings', etc.
-
+    const routeParts = routeName.split('.'); // Extract parts like ['agents', 'knowledge', 'web']
+    
     // Handle special cases for component naming
     let componentName;
-    if (routeSuffix === 'embed') {
+    if (routeName === 'agents.embed') {
         componentName = 'Embed';
-    } else if (routeSuffix === 'preview') {
+    } else if (routeName === 'agents.preview') {
         componentName = 'Preview';
-    } else if (routeSuffix === 'settings') {
+    } else if (routeName === 'agents.settings') {
         componentName = 'Persona';  // Now maps to Persona component file
-    } else if (routeSuffix === 'knowledge') {
+    } else if (routeName === 'agents.knowledge') {
         componentName = 'KnowledgeBase';  // Maps to KnowledgeBase component file
-    } else if (routeSuffix === 'workflow') {
+    } else if (routeName === 'agents.knowledge.web') {
+        componentName = 'KnowledgeBase/Web';  // Maps to KnowledgeBase/Web component file
+    } else if (routeName === 'agents.workflow') {
         componentName = 'Workflow';  // Maps to Workflow component file
-    } else if (routeSuffix === 'actions') {
+    } else if (routeName === 'agents.actions') {
         componentName = 'Actions';  // Maps to Actions component file
     } else {
+        const routeSuffix = routeParts[routeParts.length - 1]; // Get last part
         componentName = routeSuffix.charAt(0).toUpperCase() + routeSuffix.slice(1);
     }
 
@@ -239,11 +282,11 @@ const isActiveRoute = (routeName: string) => {
                                 </span>
                             </div>
 
-                            <!-- Separator -->
-                            <div class="w-px h-4 bg-border flex-shrink-0"></div>
+                            <!-- Separator (hidden for widget agents) -->
+                            <div v-if="agent.type !== 'widget'" class="w-px h-4 bg-border flex-shrink-0"></div>
 
-                            <!-- Public/Protected Status -->
-                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                            <!-- Public/Protected Status (hidden for widget agents) -->
+                            <div v-if="agent.type !== 'widget'" class="flex items-center gap-1.5 flex-shrink-0">
                                 <component
                                     :is="agent.is_public ? Eye : Lock"
                                     class="h-4 w-4"
@@ -277,8 +320,8 @@ const isActiveRoute = (routeName: string) => {
                             </div>
                         </div>
 
-                        <!-- Actions Section -->
-                        <div class="flex items-center md:flex-shrink-0">
+                        <!-- Actions Section (hidden for widget agents) -->
+                        <div v-if="agent.type !== 'widget'" class="flex items-center md:flex-shrink-0">
                             <Button
                                 :href="`${agent.url}/chat`"
                                 as="a"
@@ -392,21 +435,77 @@ const isActiveRoute = (routeName: string) => {
                                     />
                                 </button>
                                 <div v-show="isControlPanelExpanded">
-                                    <div class="p-2">
-                                        <Link
-                                            v-for="item in controlPanelNavigationItems"
-                                            :key="item.id"
-                                            :href="route(item.route, { agent: agent.id })"
-                                            :class="cn(
-                                                'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                                                isActiveRoute(item.route)
-                                                    ? 'bg-primary text-primary-foreground'
-                                                    : 'text-muted-foreground hover:bg-muted'
-                                            )"
-                                        >
-                                            <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
-                                            <span>{{ item.label }}</span>
-                                        </Link>
+                                    <div class="p-2 space-y-1">
+                                        <!-- Regular navigation items -->
+                                        <template v-for="item in controlPanelNavigationItems" :key="item.id">
+                                            <!-- Insert Knowledge Base submenu after AI Models -->
+                                            <template v-if="item.id === 'models'">
+                                                <!-- AI Models item -->
+                                                <Link
+                                                    :href="route(item.route, { agent: agent.id })"
+                                                    :class="cn(
+                                                        'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                                        isActiveRoute(item.route)
+                                                            ? 'bg-primary text-primary-foreground'
+                                                            : 'text-muted-foreground hover:bg-muted'
+                                                    )"
+                                                >
+                                                    <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
+                                                    <span>{{ item.label }}</span>
+                                                </Link>
+
+                                                <!-- Knowledge Base expandable item -->
+                                                <div>
+                                                    <button
+                                                        @click="isKnowledgeBaseExpanded = !isKnowledgeBaseExpanded"
+                                                        :class="cn(
+                                                            'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                                            'text-muted-foreground hover:bg-muted'
+                                                        )"
+                                                    >
+                                                        <Database class="h-4 w-4 flex-shrink-0" />
+                                                        <span class="flex-1 text-left">Knowledge Base</span>
+                                                        <component 
+                                                            :is="isKnowledgeBaseExpanded ? ChevronUp : ChevronDown" 
+                                                            class="h-4 w-4 flex-shrink-0" 
+                                                        />
+                                                    </button>
+                                                    
+                                                    <!-- Knowledge Base submenu -->
+                                                    <div v-show="isKnowledgeBaseExpanded" class="ml-6 mt-1 space-y-1">
+                                                        <Link
+                                                            v-for="subItem in knowledgeBaseItems"
+                                                            :key="subItem.id"
+                                                            :href="route(subItem.route, { agent: agent.id })"
+                                                            :class="cn(
+                                                                'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                                                isActiveRoute(subItem.route)
+                                                                    ? 'bg-primary text-primary-foreground'
+                                                                    : 'text-muted-foreground hover:bg-muted'
+                                                            )"
+                                                        >
+                                                            <component :is="subItem.icon" class="h-4 w-4 flex-shrink-0" />
+                                                            <span>{{ subItem.label }}</span>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <!-- Regular navigation item -->
+                                                <Link
+                                                    :href="route(item.route, { agent: agent.id })"
+                                                    :class="cn(
+                                                        'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                                        isActiveRoute(item.route)
+                                                            ? 'bg-primary text-primary-foreground'
+                                                            : 'text-muted-foreground hover:bg-muted'
+                                                    )"
+                                                >
+                                                    <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
+                                                    <span>{{ item.label }}</span>
+                                                </Link>
+                                            </template>
+                                        </template>
                                     </div>
 
                                     <!-- Danger Zone in Navigation -->

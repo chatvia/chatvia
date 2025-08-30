@@ -116,12 +116,12 @@ class Agent extends Model
 
     public function isKnowledgeable(): bool
     {
-        return $this->type === 'knowledge';
+        return $this->type === 'knowledge_base';
     }
 
-    public function isInstruction(): bool
+    public function isWidget(): bool
     {
-        return $this->type === 'instruction';
+        return $this->type === 'widget';
     }
 
     public function stats(): Stats

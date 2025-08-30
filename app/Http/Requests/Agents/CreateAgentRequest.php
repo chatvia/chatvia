@@ -17,9 +17,7 @@ class CreateAgentRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string'],
-            'sub_domain' => ['required', new SubdomainRule],
-            'system_instructions' => ['required', 'string'],
-            'type' => ['required', 'string', 'in:knowledge,instruction'],
+            'type' => ['required', 'string', 'in:knowledge_base,widget'],
         ];
     }
 }

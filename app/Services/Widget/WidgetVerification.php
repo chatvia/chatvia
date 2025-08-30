@@ -62,7 +62,7 @@ class WidgetVerification
         foreach ($allowedSites as $allowedSite) {
             if (str_starts_with($allowedSite, '*.')) {
                 $baseDomain = substr($allowedSite, 2);
-                if (str_ends_with($domain, '.'.$baseDomain) || $domain === $baseDomain) {
+                if ($domain === $baseDomain || str_ends_with($domain, '.'.$baseDomain)) {
                     return true;
                 }
             }

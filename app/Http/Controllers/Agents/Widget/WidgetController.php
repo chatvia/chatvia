@@ -16,11 +16,14 @@ class WidgetController
             return back()->with('error', 'Widget feature is not enabled');
         }
 
-        $widgetSettings = $agent->settings('widget');
+        if (!$agent->isWidget()) {
+            return back()->with('error', 'This agent does not support the widget feature');
+        }
 
         return Inertia::render('agents/Widget', [
             'agent' => $agent,
-            'widgetSettings' => $widgetSettings,
+            'widgetSettings' => $agent->settings('widget'),
+            'appearanceSettings' => $agent->settings('appearance'),
             'embedScriptUrl' => config('widget.script_url_embed'),
         ]);
     }

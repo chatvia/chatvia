@@ -47,39 +47,17 @@
     <div class="container">
         <h1>Widget Preview</h1>
         <p>This is a preview page to test the ChatVia widget integration. The widget should appear in the bottom-right corner of the page.</p>
-
-        <div class="demo-content">
-            <h2>Demo Content</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-
-            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-
-            <h3>Features</h3>
-            <ul>
-                <li>Real-time chat functionality</li>
-                <li>Customizable appearance</li>
-                <li>Easy integration</li>
-                <li>Mobile responsive</li>
-            </ul>
-        </div>
-
-        <p>Try clicking the chat widget in the bottom-right corner to test the functionality.</p>
     </div>
 
-    <script>
-        const script = document.createElement('script');
-        script.id = 'chatbot-embed-script';
-        script.src = '{{ $embedScriptUrl  }}';
-        script.async = true;
+    <div id="chat-container"></div>
 
-        script.setAttribute('agent-id', '{{ $agentId }}');
-        script.setAttribute('client-id', '{{ $agentId }}');
 
-        // Optional props for customization
-        script.setAttribute('data-position', 'bottom-right'); // or 'bottom-left'
-        script.setAttribute('data-theme', 'light'); // or 'dark'
-
-        document.body.appendChild(script);
+    <script
+        id="chatbot-embed-script"
+        src="{{ $embedScriptUrl }}"
+        agent-id="{{ $agentId }}"
+        async>
     </script>
+
 </body>
 </html>

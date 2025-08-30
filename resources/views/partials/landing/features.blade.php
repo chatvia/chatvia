@@ -31,7 +31,7 @@
                 </h2>
                 <p class="text-lg text-zinc-500">Create custom AI agents that understand your data.</p>
                 <p class="text-lg text-zinc-500">
-                    Train on your documents or use instruction-based agents for immediate deployment.
+                    Train on your documents or use widget agents for immediate deployment.
                 </p>
             </div>
             <div x-data="{ tab: '1' }">
@@ -59,13 +59,13 @@
                             @click.prevent="tab = '2'"
                     >
                         <div class="flex items-center justify-between mb-1">
-                            <div class="font-inter-tight font-semibold text-zinc-900">Instruction Agents</div>
+                            <div class="font-inter-tight font-semibold text-zinc-900">Widget Agents</div>
                             <svg :class="tab !== '2' ? 'hidden' : ''" class="fill-zinc-400 shrink-0 ml-2"
                                  xmlns="http://www.w3.org/2000/svg" width="10" height="10">
                                 <path d="M8.667.186H2.675a.999.999 0 0 0 0 1.998h3.581L.971 7.469a.999.999 0 1 0 1.412 1.412l5.285-5.285v3.58a.999.999 0 1 0 1.998 0V1.186a.999.999 0 0 0-.999-.999Z"/>
                             </svg>
                         </div>
-                        <div class="text-sm text-zinc-500">Create agents with custom instructions without
+                        <div class="text-sm text-zinc-500">Create embeddable chat widgets without
                             training on documents.
                         </div>
                     </button>
@@ -134,7 +134,7 @@
                         >
                             <div class="inline-flex relative align-top">
                                 <img class="w-full max-w-5xl h-auto rounded-t-lg border border-transparent [background:linear-gradient(var(--color-white),var(--color-white))_padding-box,linear-gradient(120deg,var(--color-zinc-300),var(--color-zinc-100),var(--color-zinc-300))_border-box] box-content shadow-2xl"
-                                     src="{{ asset('images/landing/feature-02.png') }}" alt="AI Agent Instructions - Create custom AI agents with specific instructions" loading="lazy"/>
+                                     src="{{ asset('images/landing/feature-02.png') }}" alt="AI Agent Widgets - Create embeddable chat widgets" loading="lazy"/>
                             </div>
                         </div>
                         <!-- Item 3 -->

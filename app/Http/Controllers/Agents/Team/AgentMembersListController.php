@@ -10,6 +10,10 @@ class AgentMembersListController
 {
     public function __invoke(Agent $agent, Request $request)
     {
+        if (!$agent->isKnowledgeable()) {
+            return [];
+        }
+
         /** @var User $user */
         $user = $request->user();
 

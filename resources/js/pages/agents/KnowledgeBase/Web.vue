@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import axios from 'axios';
 import { toast } from 'vue-sonner';
 import { useForm, router } from '@inertiajs/vue3';
+import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -905,7 +906,8 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <AgentLayout :agent="agent" title="Knowledge Base - Web">
+        <div class="space-y-6">
         <!-- Smart Monitoring Info Banner -->
         <InfoBanner
             title="Smart Monitoring"
@@ -1873,9 +1875,8 @@ onMounted(() => {
                 </div>
             </CardContent>
         </Card>
-    </div>
-
-
+        </div>
+    </AgentLayout>
 
     <!-- Delete Confirmation Dialog -->
     <DeleteConfirmationDialog

@@ -17,7 +17,7 @@ class DashboardStatsController
         return [
             'agents' => [
                 'total' => $user->agents()->count(),
-                'recent' => $user->agents()->select(['id', 'name', 'sub_domain'])->latest()->limit(5)->get(),
+                'recent' => $user->agents()->select(['id', 'name', 'sub_domain', 'type', 'external_id'])->latest()->limit(5)->get(),
             ],
             'messages' => $user->creditSystem()->getTotalSentMessages(),
             'minutes' => '',

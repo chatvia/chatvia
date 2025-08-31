@@ -28,7 +28,8 @@ import {
   ArrowRight,
   Brain,
   Zap,
-  Database
+  Database,
+  Globe
 } from 'lucide-vue-next';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -37,6 +38,8 @@ interface Agent {
   id: number;
   name: string;
   sub_domain: string;
+  type: string;
+  external_id: string;
   url: string;
   chat_url: string;
 }
@@ -63,6 +66,8 @@ interface RecentAgent {
   id: number;
   name: string;
   domain: string;
+  type: string;
+  externalId: string;
   messages: number;
   users: number;
   lastActive: string;
@@ -133,6 +138,8 @@ const fetchDashboardData = async () => {
       id: agent.id,
       name: agent.name,
       domain: agent.sub_domain,
+      type: agent.type,
+      externalId: agent.external_id,
       messages: 0, // Not provided in API response
       users: 0, // Not provided in API response
       lastActive: 'Recently', // Not provided in API response
@@ -271,13 +278,25 @@ onMounted(() => {
                                     </div>
                                     <div>
                                         <h4 class="font-medium">{{ agent.name }}</h4>
-                                        <p class="text-sm text-muted-foreground">{{ agent.domain }}.chatvia.ai</p>
+                                        <div class="flex items-center gap-2">
+                                            <p v-if="agent.type !== 'widget'" class="text-sm text-muted-foreground">
+                                                {{ agent.domain }}.chatvia.ai
+                                            </p>
+                                            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full" 
+                                                  :class="agent.type === 'widget' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'">
+                                                <component :is="agent.type === 'widget' ? Globe : Brain" class="h-3 w-3" />
+                                                {{ agent.type === 'widget' ? 'Widget' : 'Knowledge Base' }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <div class="text-right">
                                         <p class="text-sm font-medium">{{ agent.messages }} messages</p>
                                         <p class="text-xs text-muted-foreground">{{ agent.users }} users</p>
+                                        <p v-if="agent.type !== 'widget'" class="text-xs text-muted-foreground">
+                                            <a :href="agent.chatUrl" target="_blank" class="hover:text-primary">Chat URL</a>
+                                        </p>
                                     </div>
                                     <Link :href="route('agents.stats', agent.id)" class="rounded-md p-2 hover:bg-muted">
                                         <ArrowRight class="h-4 w-4" />

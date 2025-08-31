@@ -47,20 +47,20 @@ return [
             'features' => [
                 'monthly' => [
                     'Access to fast models',
-                    '100 messages per month',
+                    '100 messages/month',
                     '50 pages',
                     '50 links',
-                    '2 AI agents',
+                    '1 AI agent',
                     '1 Member',
                     'Basic PDF',
                     'Random subdomain',
                 ],
                 'yearly' => [
                     'Access to fast models',
-                    '100 messages per month',
-                    '100 pages',
-                    '100 links',
-                    '2 AI agents',
+                    '100 messages/month',
+                    '50 pages',
+                    '50 links',
+                    '1 AI agent',
                     '1 Member',
                     'Basic PDF',
                     'Random subdomain',
@@ -108,7 +108,7 @@ return [
                     'messages_limit' => 100,
                 ],
                 'fixed' => [
-                    'agents_limit' => 2,
+                    'agents_limit' => 1,
                     'pages_limit' => 50,
                     'minutes_limit' => 30,
                     'links_limit' => 50,
@@ -133,23 +133,23 @@ return [
             'features' => [
                 'monthly' => [
                     'Access to all models',
-                    '1,000 messages per month',
+                    '1,000 messages/month',
                     '500 pages',
                     '1,000 links',
-                    '5 AI agents',
+                    '3 AI agents',
                     '2 Members',
                     'Advanced PDF',
-                    'your-agent-name.chatvia.ai subdomain',
+                    'Custom subdomain',
                 ],
                 'yearly' => [
                     'Access to all models',
-                    '13,000 messages upfront (1000 free)',
+                    '13,000 messages upfront',
                     '500 pages',
                     '1,000 links',
-                    '4 AI agents',
+                    '3 AI agents',
                     '2 Members',
                     'Advanced PDF',
-                    'your-agent-name.chatvia.ai subdomain',
+                    'Custom subdomain',
                 ],
             ],
 
@@ -179,7 +179,7 @@ return [
                     'messages_limit' => 13000,
                 ],
                 'fixed' => [
-                    'agents_limit' => 4,
+                    'agents_limit' => 3,
                     'pages_limit' => 500,
                     'minutes_limit' => 300,
                     'links_limit' => 1000,
@@ -203,17 +203,17 @@ return [
             'description' => 'Perfect for growing businesses and teams',
             'features' => [
                 'monthly' => [
-                    '4,000 messages per month',
-                    '2,000 pages',
-                    '5,000 links',
-                    '10 AI agents',
+                    '5,000 messages/month',
+                    '1,000 pages',
+                    '3,000 links',
+                    '5 AI agents',
                     '5 Members',
                 ],
                 'yearly' => [
-                    '60,000 messages upfront (11,000 free)',
-                    '2,000 pages',
-                    '5,000 links',
-                    '10 AI agents',
+                    '60,000 messages upfront',
+                    '1,000 pages',
+                    '3,000 links',
+                    '5 AI agents',
                     '5 Members',
                 ],
             ],
@@ -232,8 +232,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STANDARD_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STANDARD_YEARLY_PRICE_ID'),
-            'monthly_price' => 10000,
-            'yearly_price' => 60000,
+            'monthly_price' => 5000,
+            'yearly_price' => 30000,
             'is_popular' => true,
 
             'quota_limits' => [
@@ -241,13 +241,13 @@ return [
                     'messages_limit' => 5000,
                 ],
                 'yearly' => [
-                    'messages_limit' => 6500,
+                    'messages_limit' => 60000,
                 ],
                 'fixed' => [
-                    'agents_limit' => 10,
+                    'agents_limit' => 5,
                     'pages_limit' => 1000,
                     'minutes_limit' => 1200,
-                    'links_limit' => 5000,
+                    'links_limit' => 3000,
                     'custom_domains_limit' => 0,
                     'members_limit' => 5,
                 ],
@@ -268,22 +268,20 @@ return [
             'description' => 'Enterprise-grade solution for large organizations',
             'features' => [
                 'monthly' => [
-                    '25,000 messages per month',
-                    '10,000 pages',
+                    '25,000 messages/month',
+                    '5,000 pages',
                     '10,000 links',
                     '20 AI agents',
-                    '1 Custom Domain (www.your-company.com)',
-                    '25 Members',
+                    '100 Members',
                     'Free custom integrations',
                     'Priority support',
                 ],
                 'yearly' => [
-                    '350,000 messages upfront (50,000 free)',
-                    '140,000 pages upfront (2000,000 free)',
+                    '300,000 messages upfront',
+                    '5,000 pages',
                     '10,000 links',
                     '20 AI agents',
-                    '1 Custom Domain (www.your-company.com)',
-                    '25 Members',
+                    '100 Members',
                     'Free custom integrations',
                     'Priority support',
                 ],
@@ -303,8 +301,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_PRO_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_PRO_YEARLY_PRICE_ID'),
-            'monthly_price' => 50000, // $499,99
-            'yearly_price' => 300000, // $2,490.00 (2 months free)
+            'monthly_price' => 25000,
+            'yearly_price' => 150000,
             'is_popular' => false,
 
             'quota_limits' => [
@@ -312,15 +310,15 @@ return [
                     'messages_limit' => 25000,
                 ],
                 'yearly' => [
-                    'messages_limit' => 35000,
+                    'messages_limit' => 300000,
                 ],
                 'fixed' => [
                     'agents_limit' => 20,
-                    'pages_limit' => 10000,
+                    'pages_limit' => 5000,
                     'minutes_limit' => 6000,
                     'links_limit' => 10000,
                     'custom_domains_limit' => 1,
-                    'members_limit' => 25,
+                    'members_limit' => 100,
                 ],
             ],
         ],
@@ -505,7 +503,7 @@ return [
     |
     */
     'ui' => [
-        'yearly_savings_percentage' => 50, // Used for "Save X%" badge
+        'yearly_savings_percentage' => 50,
         'yearly_savings_text' => 'Save 50%',
         'most_popular_text' => 'Most Popular',
         'current_plan_text' => 'Current Plan',

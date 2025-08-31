@@ -12,10 +12,6 @@ class WidgetController
 {
     public function __invoke(Request $request, Agent $agent)
     {
-        if (! Feature::active(WidgetFeature::class)) {
-            return back()->with('error', 'Widget feature is not enabled');
-        }
-
         if (!$agent->isWidget()) {
             return back()->with('error', 'This agent does not support the widget feature');
         }

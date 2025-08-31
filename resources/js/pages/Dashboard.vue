@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import CreateAgentModal from '@/components/CreateAgentModal.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import {
   Card,
@@ -98,7 +99,11 @@ const dashboardData = ref<DashboardData>({
   weekly_usage: []
 });
 
+const page = usePage();
 const loading = ref(true);
+
+// Modal state
+const showCreateAgentModal = ref(false);
 
 // Computed properties for easier access
 const totalStats = ref({
@@ -112,10 +117,10 @@ const recentAgents = ref<RecentAgent[]>([]);
 const usageTrend = ref<Array<{day: string; value: number}>>([]);
 
 const quickActions = [
-  { title: 'Create New Agent', icon: Plus, href: route('agents.create'), color: 'text-emerald-500' },
-  { title: 'View All Agents', icon: Bot, href: route('agents.index'), color: 'text-blue-500' },
-  { title: 'Knowledge Base', icon: Database, href: route('knowledge-base.show'), color: 'text-amber-500' },
-  { title: 'Members', icon: Users, href: route('members.show'), color: 'text-purple-500' },
+  { title: 'Create New Agent', icon: Plus, action: () => showCreateAgentModal.value = true, color: 'text-emerald-500', href: null },
+  { title: 'View All Agents', icon: Bot, href: route('agents.index'), color: 'text-blue-500', action: null },
+  { title: 'Knowledge Base', icon: Database, href: route('knowledge-base.show'), color: 'text-amber-500', action: null },
+  { title: 'Members', icon: Users, href: route('members.show'), color: 'text-purple-500', action: null },
 ];
 
 // Fetch dashboard data from API
@@ -156,6 +161,11 @@ const fetchDashboardData = async () => {
   }
 };
 
+// Function to refresh dashboard data after agent creation
+const refreshDashboardData = () => {
+  fetchDashboardData();
+};
+
 const maxUsage = computed(() => {
   if (usageTrend.value.length === 0) return 1;
   return Math.max(...usageTrend.value.map(day => day.value));
@@ -189,12 +199,10 @@ onMounted(() => {
                         </p>
                     </CardContent>
                     <CardFooter>
-                        <Link :href="route('agents.create')">
-                            <Button class="gap-2">
-                                <Plus class="h-4 w-4" />
-                                Create New Agent
-                            </Button>
-                        </Link>
+                        <Button @click="showCreateAgentModal = true" class="gap-2">
+                            <Plus class="h-4 w-4" />
+                            Create New Agent
+                        </Button>
                     </CardFooter>
                 </Card>
 
@@ -264,11 +272,9 @@ onMounted(() => {
                         <div v-else-if="recentAgents.length === 0" class="text-center py-8">
                             <Bot class="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                             <p class="text-muted-foreground">No agents created yet</p>
-                            <Link :href="route('agents.create')">
-                                <Button variant="outline" class="mt-2">
-                                    Create Your First Agent
-                                </Button>
-                            </Link>
+                            <Button @click="showCreateAgentModal = true" variant="outline" class="mt-2">
+                                Create Your First Agent
+                            </Button>
                         </div>
                         <div v-else class="space-y-4">
                             <div v-for="agent in recentAgents" :key="agent.id" class="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
@@ -317,17 +323,28 @@ onMounted(() => {
                     </CardHeader>
                     <CardContent>
                         <div class="grid gap-2">
-                            <Link
-                                v-for="action in quickActions"
-                                :key="action.title"
-                                :href="action.href"
-                                class="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted transition-colors"
-                            >
-                                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-background" :class="action.color">
-                                    <component :is="action.icon" class="h-4 w-4" />
-                                </div>
-                                <div class="font-medium">{{ action.title }}</div>
-                            </Link>
+                            <template v-for="action in quickActions" :key="action.title">
+                                <Link
+                                    v-if="action.href"
+                                    :href="action.href"
+                                    class="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted transition-colors"
+                                >
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-background" :class="action.color">
+                                        <component :is="action.icon" class="h-4 w-4" />
+                                    </div>
+                                    <div class="font-medium">{{ action.title }}</div>
+                                </Link>
+                                <button
+                                    v-else-if="action.action"
+                                    @click="action.action"
+                                    class="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted transition-colors w-full text-left"
+                                >
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-background" :class="action.color">
+                                        <component :is="action.icon" class="h-4 w-4" />
+                                    </div>
+                                    <div class="font-medium">{{ action.title }}</div>
+                                </button>
+                            </template>
                         </div>
                     </CardContent>
                 </Card>
@@ -423,6 +440,14 @@ onMounted(() => {
         </div>
         </div>
         </div>
+
+        <!-- Create Agent Modal -->
+        <CreateAgentModal
+            v-model:open="showCreateAgentModal"
+            :can_register_custom_sub_domain="(page.props.can_register_custom_sub_domain as boolean)"
+            :knowledge_based_system_instruction="(page.props.knowledge_based_system_instruction as string)"
+            @agent-created="refreshDashboardData"
+        />
     </AppLayout>
 </template>
 

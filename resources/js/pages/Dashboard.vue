@@ -276,19 +276,16 @@ onMounted(() => {
                                 Create Your First Agent
                             </Button>
                         </div>
-                        <div v-else class="space-y-4">
-                            <div v-for="agent in recentAgents" :key="agent.id" class="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                        <div v-else class="space-y-3">
+                            <div v-for="agent in recentAgents" :key="agent.id" class="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors">
                                 <div class="flex items-center gap-3">
-                                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                                         <Bot class="h-5 w-5 text-primary" />
                                     </div>
                                     <div>
-                                        <h4 class="font-medium">{{ agent.name }}</h4>
-                                        <div class="flex items-center gap-2">
-                                            <p v-if="agent.type !== 'widget'" class="text-sm text-muted-foreground">
-                                                {{ agent.domain }}.chatvia.ai
-                                            </p>
-                                            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full" 
+                                        <h4 class="font-semibold text-base">{{ agent.name }}</h4>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full" 
                                                   :class="agent.type === 'widget' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'">
                                                 <component :is="agent.type === 'widget' ? Globe : Brain" class="h-3 w-3" />
                                                 {{ agent.type === 'widget' ? 'Widget' : 'Knowledge Base' }}
@@ -296,15 +293,18 @@ onMounted(() => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-4">
-                                    <div class="text-right">
-                                        <p class="text-sm font-medium">{{ agent.messages }} messages</p>
-                                        <p class="text-xs text-muted-foreground">{{ agent.users }} users</p>
-                                        <p v-if="agent.type !== 'widget'" class="text-xs text-muted-foreground">
-                                            <a :href="agent.chatUrl" target="_blank" class="hover:text-primary">Chat URL</a>
-                                        </p>
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex items-center gap-1.5">
+                                            <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                                            <span class="text-sm font-medium">{{ agent.messages }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5">
+                                            <Users class="h-4 w-4 text-muted-foreground" />
+                                            <span class="text-sm font-medium">{{ agent.users }}</span>
+                                        </div>
                                     </div>
-                                    <Link :href="route('agents.stats', agent.id)" class="rounded-md p-2 hover:bg-muted">
+                                    <Link :href="route('agents.stats', agent.id)" class="rounded-md p-2 hover:bg-muted transition-colors">
                                         <ArrowRight class="h-4 w-4" />
                                     </Link>
                                 </div>

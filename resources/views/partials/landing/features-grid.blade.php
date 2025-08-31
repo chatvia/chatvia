@@ -153,12 +153,12 @@
                                 <path d="M9.3 11.7c-.4-.4-.4-1 0-1.4l7-7c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0ZM9.3 17.7c-.4-.4-.4-1 0-1.4l7-7c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0ZM2.3 12.7c-.4-.4-.4-1 0-1.4l7-7c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0Z"/>
                             </svg>
                             <h3 class="font-inter-tight text-lg font-semibold text-zinc-900">
-                                Advanced Retrieval System
+                                Designed for simplicity
                             </h3>
                         </div>
 
                         <p class="text-base text-zinc-600 mb-6 leading-relaxed">
-                            ChatVia uses a combination of vector databases, bm25, knowledge graphs, and machine learning to provide the best results.
+                            Create, manage, and deploy AI Agents easily, even without technical skills.
                         </p>
 
                         <!-- Video Container -->

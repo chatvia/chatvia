@@ -32,7 +32,7 @@
                             class="px-4 py-2 rounded-md text-sm font-medium transition-all duration-200">
                             Yearly
                             <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                Save 20%
+                                Save {{ config('billing.ui.yearly_savings_percentage') }}%
                             </span>
                         </button>
                     </div>

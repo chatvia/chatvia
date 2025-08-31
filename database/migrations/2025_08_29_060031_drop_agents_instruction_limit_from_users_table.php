@@ -30,8 +30,8 @@ return new class extends Migration
         });
 
         Schema::table('agents', function (Blueprint $table) {
-           $table->enum('type', ['knowledge_base', 'widget'])->index()->nullable();
-           $table->string('sub_domain')->nullable()->change();
+            $table->enum('type', ['knowledge_base', 'widget'])->index()->nullable();
+            $table->string('sub_domain')->nullable()->change();
         });
     }
 

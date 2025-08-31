@@ -29,7 +29,7 @@ class WidgetSettingsController
             'color_theme' => $appearanceSettings['color_theme'],
             'color_shade' => $appearanceSettings['color_shade'],
             'bubbles' => $widgetSettings['bubbles'] ?? [],
-//            'show_theme_switcher' => $widgetSettings['show_theme_switcher'],
+            //            'show_theme_switcher' => $widgetSettings['show_theme_switcher'],
             'position' => $widgetSettings['position'],
             'show_on_load' => $widgetSettings['show_on_load'],
             'show_on_load_delay' => $widgetSettings['show_on_load_delay'],

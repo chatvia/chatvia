@@ -3,7 +3,7 @@
 namespace App\Jobs\Crawler;
 
 use App\Data\Crawler\CrawlerData;
-use App\Events\CrawlingWebsiteEvent;
+use App\Events\WebsiteCrawlerEvent;
 use App\Models\AgentWebsite;
 use App\Services\Crawler\Crawler;
 use Illuminate\Bus\Queueable;
@@ -39,7 +39,7 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
         $this->website->refresh();
 
-        CrawlingWebsiteEvent::dispatch($this->website);
+        WebsiteCrawlerEvent::dispatch($this->website);
     }
 
     public function uniqueId(): string

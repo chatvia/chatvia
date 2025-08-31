@@ -89,8 +89,9 @@
 
         @include('partials.landing.features-grid')
 
-
-        @include('partials.landing.pricing')
+        @if(request()->get('ref') !== 'reddit')
+            @include('partials.landing.pricing')
+        @endif
 
         @include('partials.landing.faqs')
 

@@ -6,11 +6,9 @@ use Symfony\Component\DomCrawler\Crawler as DOMCrawler;
 
 class HTMLParser
 {
-    public function getTextFromHtml(string $html): string
+    private function unwantedTags(): array
     {
-        $crawler = new DOMCrawler($html);
-
-        $unwantedSelectors = [
+        return [
             'script',
             'style',
             'noscript',
@@ -30,7 +28,13 @@ class HTMLParser
             'nav',
         ];
 
-        foreach ($unwantedSelectors as $selector) {
+    }
+
+    private function domCrawler($html): DOMCrawler
+    {
+        $crawler = new DOMCrawler($html);
+
+        foreach ($this->unwantedTags() as $selector) {
             $crawler->filter($selector)->each(function (DOMCrawler $node) {
                 if ($node->getNode(0) && $node->getNode(0)->parentNode) {
                     $node->getNode(0)->parentNode->removeChild($node->getNode(0));
@@ -38,11 +42,17 @@ class HTMLParser
             });
         }
 
-        $text = $crawler
-            ->filter('body')
-            ->text();
+        return $crawler->filter('body');
+    }
 
-        return $this->cleanText($text);
+    public function cleanHtml(string $html): string
+    {
+        return $this->domCrawler($html)->html();
+    }
+
+    public function getTextFromHtml(string $html): string
+    {
+        return $this->cleanText($this->domCrawler($html)->text());
     }
 
     private function cleanText(string $text): string

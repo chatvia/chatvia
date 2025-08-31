@@ -67,6 +67,15 @@ const webSources = ref<WebSource[]>([]);
 const isLoadingSources = ref(false);
 const isInitialLoad = ref(true);
 
+// Usage data for link limits
+const usageData = ref<{
+    links: {
+        limit: number;
+        used: number;
+        remaining: number;
+    };
+} | null>(null);
+
 // Form state using Inertia
 const websiteForm = useForm({
     url: '',
@@ -283,6 +292,38 @@ const getStatusLabel = (status: string): string => {
     }
 };
 
+// Fetch usage data for link limits
+const fetchUsageData = async () => {
+    try {
+        const response = await axios.get(route('usage'));
+        usageData.value = response.data;
+    } catch (error) {
+        console.error('Error fetching usage data:', error);
+    }
+};
+
+// Computed properties for link limit warnings
+const linkLimitWarning = computed(() => {
+    if (!usageData.value) return null;
+    
+    const { limit, used, remaining } = usageData.value.links;
+    const usagePercentage = (used / limit) * 100;
+    
+    if (usagePercentage >= 95) {
+        return {
+            type: 'critical',
+            message: `Critical: You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). Consider upgrading your plan.`
+        };
+    } else if (usagePercentage >= 80) {
+        return {
+            type: 'warning',
+            message: `Warning: You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%).`
+        };
+    }
+    
+    return null;
+});
+
 // API functions
 const fetchWebsiteLinks = async (websiteId: number): Promise<DiscoveredLink[]> => {
     try {
@@ -383,6 +424,22 @@ const addWebsite = () => {
         // Validate URL length
         if (websiteForm.url.length > 2048) {
             toast.error('URL is too long. Please use a shorter URL.');
+            return;
+        }
+
+        // Check if user has any links remaining
+        if (usageData.value && usageData.value.links.remaining <= 0) {
+            toast.error('You have no links remaining. Please upgrade your plan to add more websites.');
+            return;
+        }
+
+        // Check link limit warning
+        if (usageData.value && linkLimitWarning.value) {
+            const warningMessage = linkLimitWarning.value.type === 'critical' 
+                ? 'You have reached your link limit. Please upgrade your plan to add more websites.'
+                : 'You are approaching your link limit. Consider upgrading your plan for more capacity.';
+            
+            toast.error(warningMessage);
             return;
         }
 
@@ -491,6 +548,9 @@ const deleteWebSource = async () => {
         newSelected.delete(sourceToDelete.value.id);
         selectedWebsites.value = newSelected;
 
+        // Refresh usage data after deletion
+        await fetchUsageData();
+
         toast.success('Website deleted successfully.');
     } catch (error: any) {
         console.error('Error deleting website:', error);
@@ -532,7 +592,7 @@ const loadLinksForWebsite = async (websiteId: number) => {
     }
 };
 
-const handleCrawlingUpdate = (event: any) => {
+const handleCrawlingUpdate = async (event: any) => {
     // The event structure: { status: "crawling" | "crawled" | "ingesting" | "ingested" | "failed", id: number }
     const { status, id: website_id } = event;
 
@@ -576,6 +636,9 @@ const handleCrawlingUpdate = (event: any) => {
             if (website_id) {
                 loadLinksForWebsite(website_id);
             }
+            
+            // Refresh usage data after crawling completes
+            await fetchUsageData();
             break;
             
         case 'ingesting':
@@ -592,6 +655,9 @@ const handleCrawlingUpdate = (event: any) => {
                 status: 'ingested'
             };
             toast.success(`Training completed for ${source.name}!`);
+            
+            // Refresh usage data after training completes
+            await fetchUsageData();
             break;
             
         case 'failed':
@@ -873,6 +939,9 @@ const trainSelectedWebsites = async () => {
         selectedIds.forEach(websiteId => {
             selectedLinks.value.delete(websiteId);
         });
+        
+        // Refresh usage data after training starts
+        await fetchUsageData();
     }
 
     if (failedWebsites.length > 0) {
@@ -902,6 +971,7 @@ const stopRefreshInterval = () => {
 onMounted(() => {
     syncFormWithSettings();
     fetchWebSources();
+    fetchUsageData();
 });
 </script>
 
@@ -915,6 +985,14 @@ onMounted(() => {
             storage-key="smart-monitoring-banner-dismissed"
             variant="info"
         />
+
+        <!-- Link Limit Warning Banner -->
+        <Alert v-if="linkLimitWarning" :variant="linkLimitWarning.type === 'critical' ? 'destructive' : 'default'" class="mb-4">
+            <AlertCircle class="h-4 w-4" />
+            <AlertDescription>
+                {{ linkLimitWarning.message }}
+            </AlertDescription>
+        </Alert>
 
         <!-- Add Website Section -->
         <Card>
@@ -938,6 +1016,21 @@ onMounted(() => {
                 </div>
             </CardHeader>
             <CardContent>
+
+                <!-- Link Usage Info -->
+                <div v-if="usageData" class="mb-4 p-3 bg-muted/20 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-muted-foreground">
+                            {{ usageData.links.used }} / {{ usageData.links.limit }} links
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs mt-1">
+                        <span v-if="(usageData.links.used / usageData.links.limit) >= 0.9" class="text-red-600 font-medium">
+                            Consider upgrading
+                        </span>
+                    </div>
+                </div>
+
                 <div class="space-y-3">
                     <div class="flex gap-2">
                         <!-- URL Input with Integrated Protocol Dropdown -->

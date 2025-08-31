@@ -3,7 +3,7 @@
 namespace App\Jobs\Crawler;
 
 use App\Data\Crawler\LinkData;
-use App\Events\CrawlingWebsiteEvent;
+use App\Events\WebsiteCrawlerEvent;
 use App\Jobs\Ingestion\IngestionChunkJob;
 use App\Jobs\Ingestion\IngestionSummaryJob;
 use App\Models\AgentWebsite;
@@ -36,7 +36,7 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $this->website->refresh();
 
-        CrawlingWebsiteEvent::dispatch($this->website);
+        WebsiteCrawlerEvent::dispatch($this->website);
 
         $links = LinkData::collect($this->website->links);
 
@@ -88,12 +88,45 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $jobs = [];
 
-        $prompt = Str::of('Attention: The following chunks were created by a crawler from the website.')
-            ->append('You must carefully use these chunks, keeping only relevant and necessary content.')
-            ->append('Remove any irrelevant or unnecessary material. If the content does not provide any value, such as advertisements, banners, or filler text, remove it entirely.')
-            ->append('If after cleaning the chunk contains no useful content, return an empty string ("") as the output.')
-            ->append('You MUST NOT filter any data such as emails, phone numbers, or social media links. These are useful for data retrieval.')
-            ->toString();
+        $prompt = Str::of(<<<'PROMPT'
+You are a precise HTML-to-Text cleaner for RAG.
+
+INPUT:
+- You receive one HTML chunk (from a web crawler) converted to text.
+- It may include nav menus, cookie banners, ads, footers, repeated sections, or scattered text.
+
+OUTPUT:
+- Return TEXT ONLY (no HTML, no code, no JSON).
+- If the cleaned result has no meaningful content, return exactly: ""
+- Keep the original language of the content.
+
+STRICT RULES:
+1) Remove junk: navigation menus, cookie banners, ads, newsletters, generic CTAs, boilerplate footers, “related posts,” pagination chrome, duplicated headings.
+2) Keep useful content: product names, features, pricing/plans/quotas, addresses, opening hours, FAQs, docs, job details, important legal terms.
+3) Links: keep link text and URL. If meaningful → `Text (https://...)`. If meaningless (“click here”) → just the URL near the context.
+4) Headings/structure: preserve a clean hierarchy (H1–H3). Convert HTML lists → bullet lists. Merge broken paragraphs. Deduplicate repeated sections inside the chunk.
+5) Tables: convert to either bullet lists or a compact Markdown table — whichever is clearer.
+6) **Generic Pricing Rule:**
+   - Collect **all** pricing/plan/fee/discount/billing/free trial mentions into a single section titled: `Pricing`.
+   - For each plan/offer, include: **Plan name (if any) — price + currency + billing cycle (monthly, yearly, per user, per 1K units, per minute, etc.) — key limits/quotas/fees — discounts/free trials/notes (e.g., includes/excludes tax).**
+   - Supported formats:
+     • €19/month • $49/user/month • $0.002/1K tokens • €0.10/minute
+     • $499 one-time • 10% annual discount • starts at $X
+   - If both monthly & yearly → show both, note if yearly is billed upfront.
+   - If add-ons/overages exist → put them under **Add-ons & Overage**.
+   - If a plan has no price (e.g. “Contact Sales”) → list it as is, no guessing.
+   - If prices are scattered → consolidate them, remove duplicates.
+7) Normalize: collapse spaces, fix line breaks, keep units/symbols (€, $, %, GB, MB, min).
+8) No hallucinations: never infer values.
+9) Do NOT filter out contact info: keep emails, phone numbers, social links.
+10) If nothing valuable remains, return "".
+
+FORMAT:
+- Plain text or light Markdown (headings, bullets, simple tables).
+- No HTML tags, no backticks, no commentary.
+
+Now clean the following HTML chunk and produce the final text result.
+PROMPT)->toString();
 
         foreach ($linksWithChunks as $link => $chunks) {
             foreach ($chunks as $chunk) {
@@ -110,6 +143,7 @@ class WebsiteIngestionJob implements ShouldQueue
             ->name('Ingestion Agent WebSite ID: '.$websiteId)
             ->then(function (Batch $batch) use ($websiteId) {
                 AgentWebsite::find($websiteId)?->update(['status' => 'ingested']);
+                WebsiteCrawlerEvent::dispatch(AgentWebsite::find($websiteId));
             })
             ->dispatch();
 

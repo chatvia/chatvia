@@ -148,7 +148,7 @@
                             <Label>Chat Bubbles</Label>
                             <p class="text-xs text-muted-foreground">Add quick message bubbles that users can click to start conversations</p>
 
-                            <TagsInput v-model="widgetForm.bubbles" class="w-full">
+                            <TagsInput v-model="widgetForm.bubbles" class="w-full" delimiter="Enter">
                                 <TagsInputItem v-for="(bubble, index) in widgetForm.bubbles" :key="index" :value="bubble">
                                     <TagsInputItemText />
                                     <TagsInputItemDelete />

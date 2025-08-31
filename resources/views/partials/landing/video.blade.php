@@ -3,7 +3,7 @@
     <div class="relative max-w-5xl mx-auto" x-data="{
         currentImage: 0,
         images: [
-            '{{ asset('images/landing/how-to/001.png') }}',
+            '{{ asset('images/landing/how-to/001-how-to.png') }}',
         ]
     }" x-init="setInterval(() => { currentImage = (currentImage + 1) % images.length }, 2000)">
 

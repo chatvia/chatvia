@@ -30,9 +30,8 @@ class UsageController
             ->countBy('type');
 
         // Sum all agent types for unified limit
-        $totalAgents = $agentCounts->get('knowledge', 0) + 
-                      $agentCounts->get('instruction', 0) + 
-                      $agentCounts->get('widget', 0) + 
+        $totalAgents =
+                      $agentCounts->get('widget', 0) +
                       $agentCounts->get('knowledge_base', 0);
 
         $agentsLimit = $user->agents_limit;
@@ -41,6 +40,7 @@ class UsageController
 
         $pagesConsumed = $user->pagesConsumed();
         $minutesConsumed = $user->minutesConsumed();
+        $linksConsumed = $user->linksConsumed();
 
         return [
             'subscription' => [
@@ -62,6 +62,11 @@ class UsageController
                 'limit' => $user->minutes_limit,
                 'used' => $minutesConsumed,
                 'remaining' => ($user->minutes_limit - $minutesConsumed),
+            ],
+            'links' => [
+                'limit' => $user->links_limit,
+                'used' => $linksConsumed,
+                'remaining' => ($user->links_limit - $linksConsumed),
             ],
             'messages' => [
                 'limit' => $consumableMessages,

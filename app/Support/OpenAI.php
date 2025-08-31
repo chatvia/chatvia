@@ -134,6 +134,72 @@ class OpenAI
             : $completedItem['arguments'];
     }
 
+    public static function analyzeHtml(string $content): array
+    {
+        $prompt = <<<'PROMPT'
+You are an expert HTML analyzer for RAG systems.
+
+Your task is to:
+1. Clean the HTML content by removing navigation menus, cookie banners, ads, footers, and other non-content elements
+2. Extract meaningful text content and organize it into logical chunks
+3. For each chunk, provide a comprehensive summary and generate relevant questions
+4. Do not include any information that is not useful, such as CTAs.
+5. Each chunks must be between 500-1000 tokens.
+6. You must never ever prefix the output with anything, use only the provided HTML content.
+
+STRICT RULES:
+1) Remove junk: navigation menus, cookie banners, ads, newsletters, generic CTAs, boilerplate footers, "related posts," pagination chrome, duplicated headings.
+2) Keep useful content: product names, features, pricing/plans/quotas, addresses, opening hours, FAQs, docs, job details, important legal terms.
+3) Organize content into logical chunks (paragraphs, sections, topics)
+4) For each chunk, create a detailed summary prefixed with "Summary: "
+5) Generate 3-5 questions that can be answered by each chunk
+6) Preserve the original language of the content
+7) If no meaningful content exists, return empty chunks array
+
+**Generic Pricing Rule:**
+- Collect **all** pricing/plan/fee/discount/billing/free trial mentions into a single section titled: `Pricing`.
+- For each plan/offer, include: **Plan name (if any) — price + currency + billing cycle — key limits/quotas/fees — discounts/free trials/notes.**
+
+Now analyze the following HTML content:
+
+PROMPT;
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.config('services.openai.api_key'),
+            'Content-Type' => 'application/json',
+        ])
+            ->timeout(600)
+            ->post(config('services.openai.api_endpoint').'/responses', [
+                'model' => 'gpt-5-mini',
+                'input' => [
+                    [
+                        'role' => 'user',
+                        'content' => $prompt."\n\nHTML Content:\n".$content,
+                    ],
+                ],
+                'tools' => [
+                    [
+                        'type' => 'function',
+                        'name' => 'analyze_document',
+                        'description' => 'Analyze the given HTML and provide comprehensive structured chunks',
+                        'parameters' => self::htmlFileAnalysisSchema(),
+                    ],
+                ],
+            ])
+            ->throw()
+            ->json('output');
+
+        $completedItem = collect($response)->firstWhere('status', 'completed');
+
+        if (! $completedItem || ! isset($completedItem['arguments'])) {
+            throw new \Exception('No completed function call found in response');
+        }
+
+        return is_string($completedItem['arguments'])
+            ? json_decode($completedItem['arguments'], true, 512, JSON_THROW_ON_ERROR)
+            : $completedItem['arguments'];
+    }
+
     private static function fileAnalysisSchema()
     {
         return [
@@ -303,6 +369,44 @@ class OpenAI
             'additionalProperties' => false,
         ];
 
+    }
+
+    private static function htmlFileAnalysisSchema()
+    {
+        return [
+            'type' => 'object',
+            'properties' => [
+                'chunks' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'content' => [
+                                'type' => 'string',
+                                'description' => 'The main text content of the chunk',
+                            ],
+                            'summary' => [
+                                'type' => 'string',
+                                'description' => 'Comprehensive detailed summary of this chunk. Must include main purpose, key findings, important details, conclusions, specific data/statistics, and significant insights. Must be prefixed with "Summary: ".',
+                            ],
+                            'questions' => [
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'string',
+                                ],
+                                'description' => 'Array of questions that can be answered by this chunk',
+                            ],
+                        ],
+                        'required' => ['content', 'summary', 'questions'],
+                    ],
+                    'description' => 'Array of text chunks extracted from the html, each with its own summary and questions',
+                ],
+            ],
+            'required' => [
+                'chunks',
+            ],
+            'additionalProperties' => false,
+        ];
     }
 
     public static function calculateCostInCents(string $inputText, string $outputText, float $pricePerInputMilToken = 0.40, float $pricePerOutputMilToken = 1.60): float

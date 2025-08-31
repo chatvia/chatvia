@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Agents;
 
-use App\Rules\SubdomainRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 

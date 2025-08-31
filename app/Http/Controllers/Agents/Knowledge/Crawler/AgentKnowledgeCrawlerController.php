@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Knowledge\Crawler;
 
 use App\Data\Crawler\CrawlerData;
-use App\Events\CrawlingWebsiteEvent;
+use App\Events\WebsiteCrawlerEvent;
 use App\Jobs\Crawler\WebsiteCrawlerJob;
 use App\Models\Agent;
 use Exception;
@@ -56,7 +56,7 @@ class AgentKnowledgeCrawlerController
             'options' => $data->exclude('url')->toArray(),
         ]);
 
-        CrawlingWebsiteEvent::dispatch($website);
+        WebsiteCrawlerEvent::dispatch($website);
 
         WebsiteCrawlerJob::dispatch($website, $data);
     }

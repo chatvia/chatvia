@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
             'is_public' => 1,
             'is_active' => 1,
             'type' => 'widget',
-            'external_id' => '407f7fdfa1cf19'
+            'external_id' => '407f7fdfa1cf19',
         ]);
     }
 }

@@ -75,10 +75,12 @@
 
                     <!-- Desktop menu items -->
                     <ul class="flex grow justify-start flex-wrap items-center ml-8">
+                        @if(request()->get('ref') !== 'reddit')
                         <li>
                             <a class="text-sm font-medium text-zinc-500 hover:text-zinc-900 px-3 lg:px-5 py-2 flex items-center transition"
                                href="#pricing" onclick="document.getElementById('pricing').scrollIntoView({behavior: 'smooth', block: 'start'})">Pricing</a>
                         </li>
+                        @endif
                         <li>
                             <a class="text-sm font-medium text-zinc-500 hover:text-zinc-900 px-3 lg:px-5 py-2 flex items-center transition"
                                href="#features" onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth', block: 'start'})">Features</a>

@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers\Agents\Widget;
 
-use App\Features\Widget as WidgetFeature;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Laravel\Pennant\Feature;
 
 class WidgetController
 {
     public function __invoke(Request $request, Agent $agent)
     {
-        if (!$agent->isWidget()) {
+        if (! $agent->isWidget()) {
             return back()->with('error', 'This agent does not support the widget feature');
         }
 

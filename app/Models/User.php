@@ -367,6 +367,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             ->sum('length');
     }
 
+    public function linksConsumed(): int
+    {
+        return $this
+            ->agents()
+            ->join('agent_websites', 'agents.id', '=', 'agent_websites.agent_id')
+            ->whereIn('agent_websites.status', ['crawled', 'ingested'])
+            ->sum('agent_websites.length');
+    }
+
     public function consumableMessages(): int
     {
         return $this->creditSystem()->consumableMessages();

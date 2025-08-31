@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Agents\Actions\AgentActionsController;
-use App\Http\Controllers\Agents\Agents\AgentCreateController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteSettingsController;
 use App\Http\Controllers\Agents\Agents\AgentFileSummaryController;
@@ -59,7 +58,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('agents/list', AgentsListController::class)->name('agents.list');
 
     Route::post('agents', AgentStoreController::class)->name('agents.store');
-    Route::get('agents/create', AgentCreateController::class)->name('agents.create');
 
     Route::prefix('agents/{agent}')->name('agents.')->group(function () {
         Route::get('stats', AgentStatsController::class)->name('stats');

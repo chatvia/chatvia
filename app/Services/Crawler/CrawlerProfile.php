@@ -23,7 +23,7 @@ class CrawlerProfile extends CrawlInternalUrls
             '/register',
         ];
 
-        if (array_any($excludePatterns, fn($pattern) => str_contains($urlString, $pattern))) {
+        if (array_any($excludePatterns, fn ($pattern) => str_contains($urlString, $pattern))) {
             return false;
         }
 

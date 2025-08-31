@@ -3,9 +3,21 @@
 return [
     'versions' => [
         [
+            'version' => '31-08-2025',
+            'release_date' => 'Aug 31, 2025',
+            'status' => 'Latest',
+            'status_color' => 'blue',
+            'changes' => [
+                'new_features' => [
+                    'Chat widget for your website',
+                    'User interface refinements with additional customization options',
+                ],
+            ],
+        ],
+        [
             'version' => '22-08-2025',
             'release_date' => 'Aug 22, 2025',
-            'status' => 'Latest',
+            'status' => 'Released',
             'status_color' => 'blue',
             'changes' => [
                 'new_features' => [

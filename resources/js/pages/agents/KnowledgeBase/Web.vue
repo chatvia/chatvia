@@ -56,7 +56,7 @@ const props = defineProps<Props>();
 // WebSocket event listener for crawling status updates
 useEcho(
     `agents.${props.agent.id}.crawler`,
-    "CrawlingWebsiteEvent",
+    "WebsiteCrawlerEvent",
     (e) => {
         handleCrawlingUpdate(e);
     },
@@ -305,10 +305,10 @@ const fetchUsageData = async () => {
 // Computed properties for link limit warnings
 const linkLimitWarning = computed(() => {
     if (!usageData.value) return null;
-    
+
     const { limit, used, remaining } = usageData.value.links;
     const usagePercentage = (used / limit) * 100;
-    
+
     if (usagePercentage >= 95) {
         return {
             type: 'critical',
@@ -320,7 +320,7 @@ const linkLimitWarning = computed(() => {
             message: `Warning: You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%).`
         };
     }
-    
+
     return null;
 });
 
@@ -435,10 +435,10 @@ const addWebsite = () => {
 
         // Check link limit warning
         if (usageData.value && linkLimitWarning.value) {
-            const warningMessage = linkLimitWarning.value.type === 'critical' 
+            const warningMessage = linkLimitWarning.value.type === 'critical'
                 ? 'You have reached your link limit. Please upgrade your plan to add more websites.'
                 : 'You are approaching your link limit. Consider upgrading your plan for more capacity.';
-            
+
             toast.error(warningMessage);
             return;
         }
@@ -567,19 +567,19 @@ const deleteWebSource = async () => {
 const loadLinksForWebsite = async (websiteId: number) => {
     try {
         const discoveredLinks = await fetchWebsiteLinks(websiteId);
-        
+
         // Update the source with discovered links
         const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
-        
+
         if (sourceIndex !== -1) {
             webSources.value[sourceIndex].discovered_links = discoveredLinks;
             webSources.value[sourceIndex].length = discoveredLinks.length; // Update the length property
-            
+
             // Auto-select all links by default
             if (discoveredLinks.length > 0) {
                 const allUrls = new Set(discoveredLinks.map(link => link.link));
                 selectedLinks.value.set(websiteId, allUrls);
-                
+
                 // Initialize search query for this source
                 if (!linkSearchQueries.value.has(websiteId)) {
                     linkSearchQueries.value.set(websiteId, '');
@@ -602,8 +602,8 @@ const handleCrawlingUpdate = async (event: any) => {
         sourceIndex = webSources.value.findIndex(source => source.id === website_id);
     } else {
         // Fallback: find by current status
-        sourceIndex = webSources.value.findIndex(source => 
-            source.status === 'crawling' || source.status === 'pending' || 
+        sourceIndex = webSources.value.findIndex(source =>
+            source.status === 'crawling' || source.status === 'pending' ||
             source.status === 'crawled' || source.status === 'ingesting'
         );
     }
@@ -613,7 +613,7 @@ const handleCrawlingUpdate = async (event: any) => {
     }
 
     const source = webSources.value[sourceIndex];
-    
+
     switch (status) {
         case 'crawling':
         case 'started':
@@ -623,7 +623,7 @@ const handleCrawlingUpdate = async (event: any) => {
             };
             toast.success(`Crawling started for ${source.name}`);
             break;
-            
+
         case 'crawled':
             webSources.value[sourceIndex] = {
                 ...source,
@@ -631,16 +631,16 @@ const handleCrawlingUpdate = async (event: any) => {
                 length: 0 // We'll get the actual length when we fetch the links
             };
             toast.success(`Crawling completed for ${source.name}! Fetching discovered links...`);
-            
+
             // Always fetch links when crawling finishes, regardless of event data
             if (website_id) {
                 loadLinksForWebsite(website_id);
             }
-            
+
             // Refresh usage data after crawling completes
             await fetchUsageData();
             break;
-            
+
         case 'ingesting':
             webSources.value[sourceIndex] = {
                 ...source,
@@ -648,18 +648,18 @@ const handleCrawlingUpdate = async (event: any) => {
             };
             toast.info(`Training started for ${source.name}`);
             break;
-            
+
         case 'ingested':
             webSources.value[sourceIndex] = {
                 ...source,
                 status: 'ingested'
             };
             toast.success(`Training completed for ${source.name}!`);
-            
+
             // Refresh usage data after training completes
             await fetchUsageData();
             break;
-            
+
         case 'failed':
             webSources.value[sourceIndex] = {
                 ...source,
@@ -668,7 +668,7 @@ const handleCrawlingUpdate = async (event: any) => {
             };
             toast.error(`Operation failed for ${source.name}`);
             break;
-            
+
         default:
             console.warn('Unknown status received:', status);
             break;
@@ -876,15 +876,15 @@ const trainSelectedWebsites = async () => {
         try {
             // Ensure links are loaded and selected for this website
             let selectedLinksForWebsite = selectedLinks.value.get(websiteId) || new Set();
-            
+
             // If no links are selected, try to load and auto-select all links
             if (selectedLinksForWebsite.size === 0) {
                 console.log(`No links selected for website ${websiteId}, loading all links...`);
-                
-                const websiteName = webSources.value.find(s => s.id === websiteId)?.name || 
+
+                const websiteName = webSources.value.find(s => s.id === websiteId)?.name ||
                                   getDomainFromUrl(webSources.value.find(s => s.id === websiteId)?.url || '');
                 toast.info(`Loading links for ${websiteName}...`);
-                
+
                 const discoveredLinks = await fetchWebsiteLinks(websiteId);
                 if (discoveredLinks.length > 0) {
                     const allUrls = new Set(discoveredLinks.map(link => link.link));
@@ -904,9 +904,9 @@ const trainSelectedWebsites = async () => {
 
             // Send individual request for each website
             await new Promise<void>((resolve, reject) => {
-                router.post(route('agents.knowledge.website.train', { 
-                    agent: props.agent.id, 
-                    website: websiteId 
+                router.post(route('agents.knowledge.website.train', {
+                    agent: props.agent.id,
+                    website: websiteId
                 }), payload, {
                     preserveScroll: true,
                     onSuccess: () => {
@@ -914,7 +914,7 @@ const trainSelectedWebsites = async () => {
                         resolve();
                     },
                     onError: (errors) => {
-                        const websiteName = webSources.value.find(s => s.id === websiteId)?.name || 
+                        const websiteName = webSources.value.find(s => s.id === websiteId)?.name ||
                                           getDomainFromUrl(webSources.value.find(s => s.id === websiteId)?.url || '');
                         failedWebsites.push(websiteName);
                         console.error(`Error training website ${websiteId}:`, errors);
@@ -931,15 +931,15 @@ const trainSelectedWebsites = async () => {
     // Show results
     if (successCount > 0) {
         toast.success(`Training started for ${successCount} website${successCount !== 1 ? 's' : ''}!`);
-        
+
         // Clear selection after successful training
         selectedWebsites.value = new Set();
-        
+
         // Clear selected links for successfully trained websites
         selectedIds.forEach(websiteId => {
             selectedLinks.value.delete(websiteId);
         });
-        
+
         // Refresh usage data after training starts
         await fetchUsageData();
     }

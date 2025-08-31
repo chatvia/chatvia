@@ -30,11 +30,8 @@ class MessageProcessor
 
     public function searchKnowledgeBase(Agent $agent, ChatInputPayload $payload, array $lastMessages): Collection
     {
-        if (! $agent->isKnowledgeable()) {
-            return collect();
-        }
-
         $shouldSearch = true;
+
         if (count($lastMessages) > 1) {
             $lastMessageContents = collect($lastMessages)->pluck('content')->toArray();
             $shouldSearch = $this->knowledgeBase->shouldContinueSearching(

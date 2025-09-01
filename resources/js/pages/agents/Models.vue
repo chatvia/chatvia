@@ -14,7 +14,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
+import HeaderActions from '@/components/HeaderActions.vue';
 import {
     Brain,
     Zap,
@@ -80,6 +80,21 @@ const form = useForm({
     top_p: 1.0,
     presence_penalty: 0.0,
     frequency_penalty: 0.0,
+});
+
+// Computed properties for header actions
+const hasUnsavedChanges = computed(() => {
+    return (
+        form.temperature !== 1.0 ||
+        form.top_k !== 0 ||
+        form.top_p !== 1.0 ||
+        form.presence_penalty !== 0.0 ||
+        form.frequency_penalty !== 0.0
+    );
+});
+
+const hasFormErrors = computed(() => {
+    return Object.keys(form.errors).length > 0;
 });
 
 const fetchModels = async () => {
@@ -284,12 +299,33 @@ onMounted(() => {
 
 <template>
     <AgentLayout :agent="agent" title="AI Models">
+        <template #header-actions>
+            <HeaderActions
+                :is-submitting="form.processing"
+                :has-unsaved-changes="hasUnsavedChanges"
+                :show-success-message="showSuccessMessage"
+                success-message="Settings saved successfully"
+                :show-error-message="hasFormErrors"
+                error-message="Please fix errors above"
+                save-label="Save Settings"
+                :save-icon="Zap"
+                form-id="models-form"
+                :secondary-actions="[
+                    {
+                        id: 'reset-defaults',
+                        label: 'Reset to Recommended',
+                        icon: RotateCcw,
+                        onClick: resetToDefaults
+                    }
+                ]"
+            />
+        </template>
         <TooltipProvider>
-            <div class="space-y-6">
-
-                <form @submit.prevent="submit" class="space-y-8">
-                    <!-- Model Selection - Now First -->
-                    <Card class="overflow-hidden">
+            <form id="models-form" @submit.prevent="submit">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <!-- Left Column - Model Selection -->
+                    <div class="space-y-6">
+                        <Card class="overflow-hidden">
                         <CardHeader>
                             <CardTitle class="flex items-center gap-3">
                                 <Sparkles class="h-6 w-6 text-primary" />
@@ -460,9 +496,11 @@ onMounted(() => {
                             </div>
                         </CardContent>
                     </Card>
+                    </div>
 
-                    <!-- Model Parameters - Now Second -->
-                    <Card class="overflow-hidden">
+                    <!-- Right Column - Response Settings -->
+                    <div class="space-y-6">
+                        <Card class="overflow-hidden">
                         <CardHeader class="bg-gradient-to-r from-secondary/5 to-secondary/10">
                             <CardTitle class="flex items-center gap-3">
                                 <Settings class="h-6 w-6 text-secondary-foreground" />
@@ -473,13 +511,12 @@ onMounted(() => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent class="p-6">
-                            <div class="grid gap-8 lg:grid-cols-2">
-                                <!-- Creativity & Style -->
-                                <div class="space-y-6">
-                                    <div class="flex items-center gap-2 mb-4">
-                                        <Thermometer class="h-5 w-5 text-primary" />
-                                        <h3 class="text-lg font-semibold">Creativity & Style</h3>
-                                    </div>
+                            <div class="space-y-8">
+                                <!-- Section Header -->
+                                <div class="flex items-center gap-2">
+                                    <Thermometer class="h-5 w-5 text-primary" />
+                                    <h3 class="text-lg font-semibold">Response Parameters</h3>
+                                </div>
 
                                     <!-- Temperature -->
                                     <div class="space-y-4">
@@ -595,18 +632,8 @@ onMounted(() => {
                                             Lower = more focused responses. Higher = broader, more diverse responses.
                                         </p>
                                     </div>
-                                </div>
 
-                                <!-- Repetition Control -->
-                                <div class="space-y-6">
-                                    <div class="flex items-center gap-2 mb-4">
-                                        <Target class="h-5 w-5 text-primary" />
-                                        <h3 class="text-lg font-semibold">Repetition Control</h3>
-                                    </div>
-
-
-
-                                    <!-- Presence Penalty -->
+                                <!-- Presence Penalty -->
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
                                             <Label class="text-base font-medium">Avoid Repeating Topics <span class="text-sm text-muted-foreground">(Presence Penalty)</span></Label>
@@ -681,48 +708,12 @@ onMounted(() => {
                                             Higher values discourage using the same words multiple times.
                                         </p>
                                     </div>
-                                </div>
                             </div>
                         </CardContent>
                     </Card>
-
-                    <!-- Actions -->
-                    <div class="flex items-center justify-between pt-6">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            @click="resetToDefaults"
-                            class="gap-2"
-                        >
-                            <RotateCcw class="h-4 w-4" />
-                            Reset to Recommended Settings
-                        </Button>
-
-                                                <div class="flex items-center gap-3">
-                            <FormSuccessMessage 
-                                :show="showSuccessMessage"
-                                message="Settings saved successfully"
-                            />
-                            
-                            <!-- General form errors -->
-                            <div v-if="Object.keys(form.errors).length > 0 && !showSuccessMessage" class="text-sm text-destructive">
-                                Please fix the errors above and try again.
-                            </div>
-                            
-                            <Button
-                                type="submit"
-                                :disabled="form.processing"
-                                class="gap-2 min-w-[160px]"
-                                size="lg"
-                            >
-                                <Zap v-if="!form.processing" class="h-4 w-4" />
-                                <div v-else class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                                {{ form.processing ? 'Saving...' : 'Save Settings' }}
-                            </Button>
-                        </div>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </TooltipProvider>
     </AgentLayout>
 </template>

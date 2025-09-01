@@ -10,9 +10,9 @@ use App\Services\Chat\Data\StreamRequestMessageData;
 use App\Services\Memory\ChatSession;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class ChatStreamController
+readonly class ChatStreamController
 {
-    public function __construct(private readonly ChatStreamService $chatStreamService, private ChatSession $session) {}
+    public function __construct(private ChatStreamService $chatStreamService, private ChatSession $session) {}
 
     public function __invoke(ChatStreamRequest $request, string $conversationId): StreamedResponse
     {
@@ -25,6 +25,7 @@ class ChatStreamController
                 ),
                 sessionId: $this->session->firstOrCreateChatSession(),
                 conversationId: $conversationId,
+                streamSources: true,
             ),
         );
     }

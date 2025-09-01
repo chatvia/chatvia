@@ -6,49 +6,51 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Widget Preview</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        html, body {
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
-            line-height: 1.6;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden; /* Prevents scrollbars */
+        }
+        #chat-container {
+            width: 70%;
+            height: 90%;
+            margin: 0 auto;
+            border: solid 1px #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .container {
-            max-width: none;
-            margin: 0;
-            background: white;
-            padding: 20px;
-            border-radius: 0;
-            box-shadow: none;
-            min-height: 100vh;
+        @media (max-width: 768px) {
+            #chat-container {
+                width: 95%;
+                height: 98%;
+                border-radius: 4px;
+            }
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        p {
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        .demo-content {
-            margin: 40px 0;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            border-left: 4px solid #007bff;
+        @media (max-width: 480px) {
+            #chat-container {
+                width: 100%;
+                height: 100%;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Widget Preview</h1>
-        <p>This is a preview page to test the ChatVia widget integration. The widget should appear in the bottom-right corner of the page.</p>
-    </div>
 
+@if(request()->get('full-preview') === 'true')
+    <script
+        id="chatbot-embed-script"
+        src="{{ $embedScriptUrl }}"
+        agent-id="{{ $agentId }}"
+        async>
+    </script>
+@else
     <div id="chat-container"></div>
 
 
@@ -56,8 +58,9 @@
         id="chatbot-embed-script"
         src="{{ $embedScriptUrl }}"
         agent-id="{{ $agentId }}"
+        mount-id="chat-container"
         async>
     </script>
-
+@endif
 </body>
 </html>

@@ -1,7 +1,30 @@
 <template>
     <AgentLayout :agent="agent" title="Widget Configuration">
-        <div class="space-y-6">
-            <Card>
+        <template #header-actions>
+            <HeaderActions
+                :is-submitting="isSubmitting"
+                :has-unsaved-changes="hasUnsavedChanges"
+                :show-success-message="showSuccessMessage"
+                success-message="Widget settings saved successfully"
+                :show-error-message="hasFormErrors"
+                error-message="Please fix errors below"
+                save-label="Save"
+                :save-icon="Save"
+                form-id="widget-settings-form"
+                :secondary-actions="[
+                    {
+                        id: 'restore-defaults',
+                        label: 'Restore Defaults',
+                        icon: RotateCcw,
+                        onClick: restoreDefaults
+                    }
+                ]"
+            />
+        </template>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left Column - Widget Configuration -->
+            <div class="space-y-6 order-1 lg:order-none">
+                <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Globe class="h-5 w-5" />
@@ -226,41 +249,71 @@
                 </CardContent>
             </Card>
 
-            <!-- Actions (outside Card) -->
-            <div class="flex items-center justify-between pt-6">
-                <Button
-                    type="button"
-                    variant="outline"
-                    @click="restoreDefaults"
-                    class="gap-2"
-                >
-                    <RotateCcw class="h-4 w-4" />
-                    Restore Default Settings
-                </Button>
 
-                <div class="flex items-center gap-3">
-                    <FormSuccessMessage
-                        :show="showSuccessMessage"
-                        message="Widget settings saved successfully"
-                    />
+            </div>
 
-                    <!-- General form errors -->
-                    <div v-if="Object.keys(widgetForm.errors).length > 0 && !showSuccessMessage" class="text-sm text-destructive">
-                        Please fix the errors above and try again.
-                    </div>
+            <!-- Right Column - Live Preview -->
+            <div class="flex flex-col order-2 lg:order-none">
+                <!-- Live Widget Preview -->
+                <Card class="flex flex-col lg:h-full min-h-[500px]">
+                    <CardHeader>
+                        <CardTitle class="flex items-center gap-2">
+                            <Eye class="h-5 w-5" />
+                            Live Preview
+                        </CardTitle>
+                        <CardDescription>
+                            See how your widget will appear on websites. Preview updates when you save changes.
+                            <span class="block lg:hidden text-xs mt-1 text-orange-600">
+                                Tip: Use "Full Preview" button for better mobile viewing experience.
+                            </span>
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent class="flex flex-col h-full">
+                        <div class="space-y-4 flex flex-col flex-1">
+                            <!-- Preview Controls -->
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="refreshPreview"
+                                        class="gap-2"
+                                    >
+                                        <RotateCcw class="h-4 w-4" />
+                                        <span class="hidden sm:inline">Refresh</span>
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="openFullPreview"
+                                        class="gap-2"
+                                    >
+                                        <Eye class="h-4 w-4" />
+                                        <span class="hidden sm:inline">Full Preview</span>
+                                    </Button>
+                                </div>
+                                <div class="text-xs text-muted-foreground">
+                                    Click Save to update preview
+                                </div>
+                            </div>
 
-                    <Button
-                        :disabled="isSubmitting"
-                        size="lg"
-                        type="submit"
-                        form="widget-settings-form"
-                        class="gap-2 min-w-[160px]"
-                    >
-                        <Save v-if="!isSubmitting" class="h-4 w-4" />
-                        <div v-else class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                        {{ isSubmitting ? 'Saving...' : 'Save Widget' }}
-                    </Button>
-                </div>
+                            <!-- Live Preview Iframe -->
+                            <div class="border rounded-lg bg-muted/30 p-4 flex-1">
+                                <iframe
+                                    :key="previewKey"
+                                    :src="previewUrl"
+                                    class="w-full border-0 rounded bg-white h-[400px] md:h-[500px] lg:h-full lg:min-h-[600px]"
+                                    title="Widget Live Preview"
+                                    sandbox="allow-scripts allow-same-origin allow-forms"
+                                />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+
             </div>
         </div>
 
@@ -268,7 +321,7 @@
         <PreviewModal
             v-model="showPreviewModal"
             preview-type="widget"
-            :preview-url="route('agents.widget.preview', { agent: agent.id })"
+            :preview-url="fullPreviewUrl"
             iframe-title="Widget Preview"
         />
 
@@ -400,8 +453,10 @@
 </style>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch, reactive } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { route } from 'ziggy-js';
+import { cn } from '@/lib/utils';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -413,7 +468,7 @@ import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
 import { Textarea } from '@/components/ui/textarea';
 import { Globe, LoaderCircle, Save, RotateCcw, Eye, X, Copy, Palette } from 'lucide-vue-next';
-import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
+import HeaderActions from '@/components/HeaderActions.vue';
 import ColorTheme from '@/components/ui/ColorTheme.vue';
 import { toast } from 'vue-sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -451,7 +506,33 @@ const showSuccessMessage = ref(false);
 const newSite = ref('');
 const showPreviewModal = ref(false);
 const showColorPicker = ref(false);
+const previewKey = ref(0);
 
+// Computed properties for header button states
+const hasUnsavedChanges = computed(() => {
+    // Check if any form data has changed from initial values
+    const appearanceChanged = (
+        appearanceForm.welcome_message !== (props.appearanceSettings.welcome_message || 'Hello! How can I help you today?') ||
+        appearanceForm.chat_window_title !== (props.appearanceSettings.chat_window_title || 'Chat with us') ||
+        appearanceForm.color_theme !== (props.appearanceSettings.color_theme || 'blue') ||
+        appearanceForm.color_shade !== (props.appearanceSettings.color_shade || 500)
+    );
+    
+    const widgetChanged = (
+        widgetForm.position !== props.widgetSettings.position ||
+        widgetForm.show_on_load !== props.widgetSettings.show_on_load ||
+        widgetForm.show_on_load_delay !== props.widgetSettings.show_on_load_delay ||
+        widgetForm.window_size !== props.widgetSettings.window_size ||
+        JSON.stringify(widgetForm.bubbles) !== JSON.stringify(props.widgetSettings.bubbles || []) ||
+        JSON.stringify(widgetForm.sites) !== JSON.stringify(props.widgetSettings.sites || [])
+    );
+    
+    return appearanceChanged || widgetChanged;
+});
+
+const hasFormErrors = computed(() => {
+    return Object.keys(appearanceForm.errors).length > 0 || Object.keys(widgetForm.errors).length > 0;
+});
 
 const updateWidgetSettings = async () => {
     isSubmitting.value = true;
@@ -479,6 +560,10 @@ const updateWidgetSettings = async () => {
         // Both requests succeeded
         isSubmitting.value = false;
         showSuccessMessage.value = true;
+        
+        // Refresh preview after successful save
+        previewKey.value += 1;
+        
         setTimeout(() => {
             showSuccessMessage.value = false;
         }, 3000);
@@ -551,4 +636,42 @@ const copyEmbedSnippet = async () => {
         toast.error('Failed to copy');
     }
 };
+
+// Live preview URL that updates with current settings
+const previewUrl = computed(() => {
+    const baseUrl = route('agents.widget.preview', { agent: props.agent.id });
+    const params = new URLSearchParams();
+    
+    // Add current settings as query parameters to force preview updates
+    params.set('title', appearanceForm.chat_window_title || '');
+    params.set('welcome', appearanceForm.welcome_message || '');
+    params.set('theme', appearanceForm.color_theme || '');
+    params.set('shade', appearanceForm.color_shade?.toString() || '');
+    params.set('position', widgetForm.position || '');
+    params.set('size', widgetForm.window_size || '');
+    params.set('show_on_load', widgetForm.show_on_load ? '1' : '0');
+    params.set('delay', widgetForm.show_on_load_delay?.toString() || '');
+    params.set('bubbles', JSON.stringify(widgetForm.bubbles || []));
+    params.set('sites', JSON.stringify(widgetForm.sites || []));
+    params.set('t', Date.now().toString()); // Cache buster
+    
+    return `${baseUrl}?${params.toString()}`;
+});
+
+// Full preview URL - just adds full-preview=true to the base URL
+const fullPreviewUrl = computed(() => {
+    const baseUrl = route('agents.widget.preview', { agent: props.agent.id });
+    return `${baseUrl}?full-preview=true`;
+});
+
+// Methods for preview management
+const refreshPreview = () => {
+    previewKey.value += 1;
+};
+
+const openFullPreview = () => {
+    showPreviewModal.value = true;
+};
+
+// Preview updates only when Save is clicked - removed auto-update watcher
 </script>

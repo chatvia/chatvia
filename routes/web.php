@@ -40,5 +40,6 @@ require __DIR__.'/auth.php';
 require __DIR__.'/chat.php';
 require __DIR__.'/agents.php';
 require __DIR__.'/billing.php';
+require __DIR__.'/leads.php';
 require __DIR__.'/ingestion.php';
 require __DIR__.'/local.php';

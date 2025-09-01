@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Clock, LoaderCircle, Save, MessageSquare, Database, Trash2, Download } from 'lucide-vue-next';
-import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
+import HeaderActions from '@/components/HeaderActions.vue';
 import { usePage} from '@inertiajs/vue3';
 
 const page = usePage();
@@ -53,11 +53,36 @@ const retentionOptions = [
     { value: 90, label: '90 days' },
 ];
 
+// Computed properties for header actions
+const hasUnsavedChanges = computed(() => {
+    return (
+        form.retention !== settings.retention ||
+        form.context_window_enabled !== settings.context_window_enabled
+    );
+});
+
+const hasFormErrors = computed(() => {
+    return Object.keys(form.errors).length > 0;
+});
+
 </script>
 
 <template>
     <AgentLayout :agent="agent" title="Message History">
-        <form @submit.prevent="updateHistorySettings" class="space-y-6">
+        <template #header-actions>
+            <HeaderActions
+                :is-submitting="isSubmitting"
+                :has-unsaved-changes="hasUnsavedChanges"
+                :show-success-message="form.recentlySuccessful"
+                success-message="Settings saved successfully"
+                :show-error-message="hasFormErrors"
+                error-message="Please fix errors below"
+                save-label="Save Settings"
+                :save-icon="Save"
+                form-id="history-form"
+            />
+        </template>
+        <form id="history-form" @submit.prevent="updateHistorySettings" class="space-y-6">
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
@@ -116,18 +141,7 @@ const retentionOptions = [
                 </CardContent>
             </Card>
 
-            <!-- Save Button -->
-            <div class="flex justify-end">
-                <FormSuccessMessage
-                    :show="form.recentlySuccessful"
-                    message="Settings saved successfully"
-                />
-                <Button :disabled="isSubmitting" size="lg" type="submit">
-                    <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                    <Save v-else class="mr-2 h-4 w-4" />
-                    Save Settings
-                </Button>
-            </div>
+
         </form>
     </AgentLayout>
 </template>

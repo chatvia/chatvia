@@ -28,6 +28,7 @@ use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeCrawlerWebsiteLi
 use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeCrawlerWebsiteTrainController;
 use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeWebsiteDeleteController;
 use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeWebsitesListController;
+use App\Http\Controllers\Agents\Leads\AgentLeadsController;
 use App\Http\Controllers\Agents\Models\AgentModelsListController;
 use App\Http\Controllers\Agents\Models\AgentModelsShowController;
 use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
@@ -90,6 +91,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('starters/{id}', StarterDeleteController::class)->name('starters.delete');
 
         Route::get('history', AgentHistoryController::class)->name('history');
+        Route::get('leads', AgentLeadsController::class)->name('leads');
 
         Route::get('appearance', AgentAppearanceController::class)->name('appearance');
 

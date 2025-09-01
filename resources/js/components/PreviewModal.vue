@@ -58,8 +58,8 @@
                         :class="[
                             'relative overflow-hidden transition-all duration-300',
                             selectedDevice === 'desktop' ? 'w-full h-full' : 
-                            selectedDevice === 'tablet' ? 'w-[768px] h-[1024px] border rounded-xl shadow-lg' :
-                            'w-[414px] h-[896px] border rounded-xl shadow-lg'
+                            selectedDevice === 'tablet' ? 'w-[768px] h-[calc(100vh-8rem)] max-h-[800px] border rounded-xl shadow-lg' :
+                            'w-[414px] h-[calc(100vh-8rem)] max-h-[700px] border rounded-xl shadow-lg'
                         ]"
                     >
                         <iframe

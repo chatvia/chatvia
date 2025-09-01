@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Bot, LoaderCircle, Save } from 'lucide-vue-next';
 import axios from 'axios';
-import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
+import HeaderActions from '@/components/HeaderActions.vue';
 
 interface Props {
     agent: any
@@ -46,12 +46,38 @@ const generateNewSubdomain = () => {
         isGeneratingSubdomain.value = false;
         form.sub_domain = response.data.name;
     });
-}
+};
+
+// Computed properties for header actions
+const hasUnsavedChanges = computed(() => {
+    return (
+        form.name !== props.agent.name ||
+        form.sub_domain !== props.agent.sub_domain ||
+        form.system_instructions !== props.agent.system_instructions
+    );
+});
+
+const hasFormErrors = computed(() => {
+    return Object.keys(form.errors).length > 0;
+});
 </script>
 
 <template>
     <AgentLayout :agent="agent" title="Persona">
-        <form @submit.prevent="updateGeneralSettings" class="space-y-6">
+        <template #header-actions>
+            <HeaderActions
+                :is-submitting="isSubmitting"
+                :has-unsaved-changes="hasUnsavedChanges"
+                :show-success-message="form.recentlySuccessful"
+                success-message="Persona saved successfully"
+                :show-error-message="hasFormErrors"
+                error-message="Please fix errors below"
+                save-label="Save Changes"
+                :save-icon="Save"
+                form-id="persona-form"
+            />
+        </template>
+        <form id="persona-form" @submit.prevent="updateGeneralSettings" class="space-y-6">
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
@@ -135,19 +161,7 @@ const generateNewSubdomain = () => {
                 </CardContent>
             </Card>
 
-            <!-- Save Button -->
-            <div class="flex justify-end">
-                <FormSuccessMessage
-                    :show="form.recentlySuccessful"
-                    message="Saved"
-                />
-                <Button :disabled="isSubmitting" size="lg" type="submit">
-                    <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                    <Save v-else class="mr-2 h-4 w-4" />
-                    Save Changes
-                </Button>
 
-            </div>
         </form>
     </AgentLayout>
 </template>

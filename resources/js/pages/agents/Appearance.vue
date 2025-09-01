@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
 
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Palette, Upload, Trash2, LoaderCircle, Save, User, RotateCcw, Image } from 'lucide-vue-next';
-import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
+import HeaderActions from '@/components/HeaderActions.vue';
 
 interface Props {
     agent: any;
@@ -30,6 +30,24 @@ const appearanceForm = useForm({
     composer_placeholder: props.settings.composer_placeholder,
     avatar: null as File | null,
     logo: null as File | null
+});
+
+// Computed properties for header actions
+const hasUnsavedChanges = computed(() => {
+    return (
+        appearanceForm.color_theme !== (props.settings.color_theme || 'black') ||
+        appearanceForm.color_shade !== (props.settings.color_shade || 500) ||
+        appearanceForm.welcome_message !== props.settings.welcome_message ||
+        appearanceForm.chat_window_title !== props.settings.chat_window_title ||
+        appearanceForm.chat_footer_text !== props.settings.chat_footer_text ||
+        appearanceForm.composer_placeholder !== props.settings.composer_placeholder ||
+        appearanceForm.avatar !== null ||
+        appearanceForm.logo !== null
+    );
+});
+
+const hasFormErrors = computed(() => {
+    return Object.keys(appearanceForm.errors).length > 0;
 });
 
 // States
@@ -181,8 +199,29 @@ const restoreDefaults = () => {
 
 <template>
     <AgentLayout :agent="agent" title="Appearance Settings">
+        <template #header-actions>
+            <HeaderActions
+                :is-submitting="isSubmitting"
+                :has-unsaved-changes="hasUnsavedChanges"
+                :show-success-message="showSuccessMessage"
+                success-message="Appearance settings saved successfully"
+                :show-error-message="hasFormErrors"
+                error-message="Please fix errors above"
+                save-label="Save Appearance"
+                :save-icon="Save"
+                form-id="appearance-form"
+                :secondary-actions="[
+                    {
+                        id: 'restore-defaults',
+                        label: 'Restore Defaults',
+                        icon: RotateCcw,
+                        onClick: restoreDefaults
+                    }
+                ]"
+            />
+        </template>
         <div class="space-y-6">
-            <form @submit.prevent="updateAppearance">
+            <form id="appearance-form" @submit.prevent="updateAppearance">
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
@@ -402,41 +441,7 @@ const restoreDefaults = () => {
                 </CardContent>
             </Card>
 
-            <!-- Actions -->
-            <div class="flex items-center justify-between pt-6">
-                <Button
-                    type="button"
-                    variant="outline"
-                    @click="restoreDefaults"
-                    class="gap-2"
-                >
-                    <RotateCcw class="h-4 w-4" />
-                    Restore Default Settings
-                </Button>
-                
-                <div class="flex items-center gap-3">
-                    <FormSuccessMessage 
-                        :show="showSuccessMessage" 
-                        message="Appearance settings saved successfully" 
-                    />
-                    
-                    <!-- General form errors -->
-                    <div v-if="Object.keys(appearanceForm.errors).length > 0 && !showSuccessMessage" class="text-sm text-destructive">
-                        Please fix the errors above and try again.
-                    </div>
-                    
-                    <Button 
-                        :disabled="isSubmitting" 
-                        size="lg" 
-                        type="submit"
-                        class="gap-2 min-w-[160px]"
-                    >
-                        <Save v-if="!isSubmitting" class="h-4 w-4" />
-                        <div v-else class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                        {{ isSubmitting ? 'Saving...' : 'Save Appearance' }}
-                    </Button>
-                </div>
-            </div>
+
         </form>
         </div>
 

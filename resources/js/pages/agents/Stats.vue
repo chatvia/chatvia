@@ -19,7 +19,7 @@ const { formatTimeAgo } = useTimeAgo();
 // Process chart data for last 14 days
 const chartData = computed(() => {
     if (!props.analytics?.dailyMessages) return [];
-    
+
     return props.analytics.dailyMessages.map((item: any) => ({
         date: item.date,
         dayMonth: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -98,7 +98,7 @@ const stats = computed(() => ({
                                 <Clock class="h-4 w-4" />
                                 <span class="text-sm font-medium">Avg. Response Time</span>
                             </div>
-                            <div class="mt-2 text-2xl font-bold">{{ stats.avgResponseTime }}s</div>
+                            <div class="mt-2 text-2xl font-bold">{{ stats.avgResponseTime }}</div>
                             <div class="mt-1 text-xs text-muted-foreground">
                                 Time taken to respond to a message
                             </div>
@@ -107,7 +107,7 @@ const stats = computed(() => ({
                         <div class="rounded-lg border bg-card p-4">
                             <div class="flex items-center gap-2 text-muted-foreground">
                                 <ThumbsUp class="h-4 w-4" />
-                                <span class="text-sm font-medium">Satisfaction Rate</span>
+                                <span class="text-sm font-medium">Thumbs up</span>
                             </div>
                             <div class="mt-2 text-2xl font-bold">{{ stats.satisfactionRate }}%</div>
                             <div class="mt-1 text-xs text-muted-foreground">
@@ -186,9 +186,9 @@ const stats = computed(() => ({
                                     <div class="flex items-center gap-3">
                                         <!-- Model Icon in Circle -->
                                         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50 border">
-                                            <img 
-                                                v-if="model.icon" 
-                                                :src="`/images/llms/${model.icon}`" 
+                                            <img
+                                                v-if="model.icon"
+                                                :src="`/images/llms/${model.icon}`"
                                                 :alt="model.name"
                                                 class="h-6 w-6 object-contain"
                                             />

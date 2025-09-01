@@ -16,16 +16,15 @@ class StreamHandler
     public function createStreamResponse(
         ChatContext $context,
         array $llmMessages,
-        OpenRouter $openRouter,
         ?callable $onComplete = null,
         ?callable $onError = null
     ): StreamedResponse {
-        return new StreamedResponse(function () use ($context, $llmMessages, $openRouter, $onComplete, $onError) {
+        return new StreamedResponse(function () use ($context, $llmMessages, $onComplete, $onError) {
             $this->setupStreamHeaders();
             ignore_user_abort(false);
 
             try {
-                $response = $openRouter->stream(
+                $response = app(OpenRouter::class)->stream(
                     $context->requestData->message->model->internal_name,
                     $llmMessages,
                     $context->requestData->agent->llmSettings(),

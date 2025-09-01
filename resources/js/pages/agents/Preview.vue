@@ -1,49 +1,49 @@
 <template>
     <AgentLayout :agent="agent" title="Preview">
+        <template #header-actions>
+            <div class="flex items-center gap-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="showPreviewModal = true"
+                    class="gap-2"
+                >
+                    <BotIcon class="h-4 w-4" />
+                    <span class="hidden sm:inline">Preview</span>
+                </Button>
+
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="openFullPreview"
+                    class="gap-2"
+                >
+                    <ExternalLink class="h-4 w-4" />
+                    <span class="hidden sm:inline">Open</span>
+                </Button>
+
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="copyUrl"
+                    class="gap-2"
+                >
+                    <Copy class="h-4 w-4" />
+                    <span class="hidden sm:inline">Copy</span>
+                </Button>
+            </div>
+        </template>
         <div class="space-y-6">
             <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <CardTitle class="flex items-center gap-2">
-                                <BotIcon class="h-5 w-5" />
-                                Chat
-                            </CardTitle>
-                            <CardDescription>
-                                Start chatting with the agent
-                            </CardDescription>
-                        </div>
 
-                        <!-- Actions Dropdown -->
-                        <DropdownMenu>
-                            <DropdownMenuTrigger as-child>
-                                <Button variant="outline" size="sm" class="gap-2">
-                                    <MoreHorizontal class="h-4 w-4" />
-                                    Actions
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem @click="showPreviewModal = true">
-                                    <BotIcon class="mr-2 h-4 w-4" />
-                                    Preview
-                                </DropdownMenuItem>
-                                <DropdownMenuItem @click="openFullPreview">
-                                    <ExternalLink class="mr-2 h-4 w-4" />
-                                    Open in New Tab
-                                </DropdownMenuItem>
-                                <DropdownMenuItem @click="copyUrl">
-                                    <Copy class="mr-2 h-4 w-4" />
-                                    Copy URL
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </CardHeader>
                 <CardContent>
                     <!-- Preview Container -->
                     <div class="bg-muted rounded-lg p-6">
                         <div class="flex justify-center">
-                            <div class="w-full max-w-6xl h-[800px] border rounded-lg overflow-hidden bg-white shadow-lg">
+                            <div class="w-full h-[800px] border rounded-lg overflow-hidden bg-white shadow-lg">
                                 <iframe
                                     :src="buildIframeUrl(props.agent.chat_url)"
                                     class="w-full h-full border-0"
@@ -98,7 +98,7 @@ const buildIframeUrl = (baseUrl: string) => {
     if (props.agent.type === 'widget') {
         return route('agents.widget.preview', { agent: props.agent.id });
     }
-    
+
     // Use regular chat URL with auth token for other agents
     if (props.authToken) {
         const separator = baseUrl.includes('?') ? '&' : '?';

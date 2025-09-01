@@ -78,7 +78,10 @@ const hasFormErrors = computed(() => {
             />
         </template>
         <form id="persona-form" @submit.prevent="updateGeneralSettings" class="space-y-6">
-            <Card>
+            <div class="flex justify-center">
+
+                <Card class="w-full max-w-6xl">
+
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Bot class="h-5 w-5" />
@@ -104,7 +107,7 @@ const hasFormErrors = computed(() => {
                                 </p>
                             </div>
 
-                            <div class="grid gap-2">
+                            <div class="grid gap-2" v-if="props.agent.type !== 'widget'">
                                 <Label for="domain" required>Domain</Label>
                                 <div class="flex items-center">
                                     <Input
@@ -148,7 +151,7 @@ const hasFormErrors = computed(() => {
                                 v-model="form.system_instructions"
                                 :error="form.errors.system_instructions"
                                 placeholder="You are a helpful assistant that specializes in..."
-                                rows="6"
+                                rows="15"
                             />
                             <p v-if="form.errors.system_instructions" class="text-sm text-destructive">
                                 {{ form.errors.system_instructions }}
@@ -160,6 +163,7 @@ const hasFormErrors = computed(() => {
                     </div>
                 </CardContent>
             </Card>
+            </div>
 
 
         </form>

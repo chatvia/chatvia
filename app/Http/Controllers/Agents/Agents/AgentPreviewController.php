@@ -11,6 +11,10 @@ class AgentPreviewController
 {
     public function __invoke(Request $request, Agent $agent, AgentMemberAuthTokenService $authTokenService)
     {
+        if ($agent->isWidget()) {
+            return to_route('agents.widget', ['agent' => $agent]);
+        }
+
         $authToken = null;
 
         if (! $agent->is_public && $agent->isKnowledgeable()) {

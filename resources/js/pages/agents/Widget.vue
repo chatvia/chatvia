@@ -90,7 +90,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Color Info and Button -->
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-1">
@@ -110,7 +110,7 @@
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
                                 {{ appearanceForm.errors.color_theme }}
                             </p>
@@ -118,6 +118,11 @@
                                 Choose the primary color for your widget
                             </p>
                         </div>
+                        <Alert>
+                            <AlertDescription class="font-bold">
+                                Position, Window Size and Chat Bubbles are only visible in the preview mode.
+                            </AlertDescription>
+                        </Alert>
 
                         <!-- Widget Settings -->
                         <div class="space-y-6">
@@ -397,7 +402,7 @@
                                     const target = e.target as HTMLInputElement;
                                     const value = parseInt(target.value);
                                     const validShades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-                                    const closest = validShades.reduce((prev, curr) => 
+                                    const closest = validShades.reduce((prev, curr) =>
                                         Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
                                     );
                                     appearanceForm.color_shade = closest;
@@ -422,57 +427,25 @@
     </AgentLayout>
 </template>
 
-<style scoped>
-/* Custom slider styling */
-.slider::-webkit-slider-thumb {
-    appearance: none;
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #ffffff;
-    border: 2px solid #e2e8f0;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-}
-
-.slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.slider::-moz-range-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #ffffff;
-    border: 2px solid #e2e8f0;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-</style>
 
 <script setup lang="ts">
 import { computed, ref, watch, reactive } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
-import { cn } from '@/lib/utils';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
-import { Textarea } from '@/components/ui/textarea';
-import { Globe, LoaderCircle, Save, RotateCcw, Eye, X, Copy, Palette } from 'lucide-vue-next';
+import { Globe, Save, RotateCcw, Eye, Copy, Palette } from 'lucide-vue-next';
 import HeaderActions from '@/components/HeaderActions.vue';
-import ColorTheme from '@/components/ui/ColorTheme.vue';
 import { toast } from 'vue-sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PreviewModal from '@/components/PreviewModal.vue';
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 
 interface Props {
     agent: any;
@@ -485,10 +458,10 @@ const props = defineProps<Props>();
 
 // Separate forms for different setting groups
 const appearanceForm = useForm({
-    welcome_message: props.appearanceSettings.welcome_message || 'Hello! How can I help you today?',
-    chat_window_title: props.appearanceSettings.chat_window_title || 'Chat with us',
-    color_theme: props.appearanceSettings.color_theme || 'blue',
-    color_shade: props.appearanceSettings.color_shade || 500,
+    welcome_message: props.appearanceSettings.welcome_message,
+    chat_window_title: props.appearanceSettings.chat_window_title,
+    color_theme: props.appearanceSettings.color_theme,
+    color_shade: props.appearanceSettings.color_shade,
 });
 
 const widgetForm = useForm({
@@ -512,12 +485,12 @@ const previewKey = ref(0);
 const hasUnsavedChanges = computed(() => {
     // Check if any form data has changed from initial values
     const appearanceChanged = (
-        appearanceForm.welcome_message !== (props.appearanceSettings.welcome_message || 'Hello! How can I help you today?') ||
-        appearanceForm.chat_window_title !== (props.appearanceSettings.chat_window_title || 'Chat with us') ||
-        appearanceForm.color_theme !== (props.appearanceSettings.color_theme || 'blue') ||
-        appearanceForm.color_shade !== (props.appearanceSettings.color_shade || 500)
+        appearanceForm.welcome_message !== (props.appearanceSettings.welcome_message) ||
+        appearanceForm.chat_window_title !== (props.appearanceSettings.chat_window_title) ||
+        appearanceForm.color_theme !== (props.appearanceSettings.color_theme) ||
+        appearanceForm.color_shade !== (props.appearanceSettings.color_shade)
     );
-    
+
     const widgetChanged = (
         widgetForm.position !== props.widgetSettings.position ||
         widgetForm.show_on_load !== props.widgetSettings.show_on_load ||
@@ -526,7 +499,7 @@ const hasUnsavedChanges = computed(() => {
         JSON.stringify(widgetForm.bubbles) !== JSON.stringify(props.widgetSettings.bubbles || []) ||
         JSON.stringify(widgetForm.sites) !== JSON.stringify(props.widgetSettings.sites || [])
     );
-    
+
     return appearanceChanged || widgetChanged;
 });
 
@@ -560,10 +533,10 @@ const updateWidgetSettings = async () => {
         // Both requests succeeded
         isSubmitting.value = false;
         showSuccessMessage.value = true;
-        
+
         // Refresh preview after successful save
         previewKey.value += 1;
-        
+
         setTimeout(() => {
             showSuccessMessage.value = false;
         }, 3000);
@@ -639,23 +612,7 @@ const copyEmbedSnippet = async () => {
 
 // Live preview URL that updates with current settings
 const previewUrl = computed(() => {
-    const baseUrl = route('agents.widget.preview', { agent: props.agent.id });
-    const params = new URLSearchParams();
-    
-    // Add current settings as query parameters to force preview updates
-    params.set('title', appearanceForm.chat_window_title || '');
-    params.set('welcome', appearanceForm.welcome_message || '');
-    params.set('theme', appearanceForm.color_theme || '');
-    params.set('shade', appearanceForm.color_shade?.toString() || '');
-    params.set('position', widgetForm.position || '');
-    params.set('size', widgetForm.window_size || '');
-    params.set('show_on_load', widgetForm.show_on_load ? '1' : '0');
-    params.set('delay', widgetForm.show_on_load_delay?.toString() || '');
-    params.set('bubbles', JSON.stringify(widgetForm.bubbles || []));
-    params.set('sites', JSON.stringify(widgetForm.sites || []));
-    params.set('t', Date.now().toString()); // Cache buster
-    
-    return `${baseUrl}?${params.toString()}`;
+    return route('agents.widget.preview', { agent: props.agent.id });
 });
 
 // Full preview URL - just adds full-preview=true to the base URL

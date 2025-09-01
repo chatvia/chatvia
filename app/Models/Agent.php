@@ -109,6 +109,11 @@ class Agent extends Model
         });
     }
 
+    public function llmForWidget()
+    {
+
+    }
+
     public function activeLlms(): BelongsToMany
     {
         return $this->llms()->wherePivot('is_active', true);

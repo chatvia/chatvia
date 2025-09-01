@@ -1,17 +1,19 @@
 <template>
     <AgentLayout :agent="agent" :title="agent.type === 'widget' ? 'Widget Configuration' : 'Embed Chat'">
-        <div class="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Eye class="h-5 w-5" />
-                        Embed Chat
-                    </CardTitle>
-                    <CardDescription>
-                        Embed your chat agent on your website for a seamless chat experience.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left Column - Embed Configuration -->
+            <div class="space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle class="flex items-center gap-2">
+                            <Eye class="h-5 w-5" />
+                            Embed Configuration
+                        </CardTitle>
+                        <CardDescription>
+                            Configure and customize your chat embed for your website.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
                     <div class="space-y-8">
 
 
@@ -71,7 +73,7 @@
                                     </div>
 
                                     <!-- Quick Size Presets -->
-                                    <div class="flex flex-wrap gap-2">
+                                    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                                         <Button
                                             type="button"
                                             variant="outline"
@@ -149,7 +151,7 @@
                                 <div class="space-y-4 pt-4 border-t">
                                     <h4 class="text-sm font-medium text-foreground">Iframe Options</h4>
 
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <div class="flex items-center space-x-2">
                                             <Switch
                                                 id="allow_fullscreen"
@@ -168,14 +170,16 @@
                                             <Label for="loading_lazy" class="text-sm">Lazy loading</Label>
                                         </div>
 
-
+                                        <!-- Placeholder for third column to maintain grid structure -->
+                                        <div></div>
                                     </div>
 
                                     <!-- Embed-specific Settings -->
                                     <div class="space-y-4 pt-4 border-t">
                                         <h4 class="text-sm font-medium text-foreground">Chat Interface Options</h4>
 
-                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            <!-- Row 1 -->
                                             <div class="flex items-center space-x-2">
                                                 <Switch
                                                     id="remove_sidebar"
@@ -183,21 +187,6 @@
                                                     @update:model-value="(value: any) => updateSetting('remove_sidebar', value)"
                                                 />
                                                 <Label for="remove_sidebar" class="text-sm">Remove sidebar</Label>
-                                            </div>
-
-                                            <div class="space-y-1">
-                                                <div class="flex items-center space-x-2">
-                                                    <Switch
-                                                        id="hide_sidebar_on_page_load"
-                                                        :model-value="embedForm.hide_sidebar_on_page_load && !embedForm.remove_sidebar"
-                                                        @update:model-value="(value: any) => updateSetting('hide_sidebar_on_page_load', value)"
-                                                        :disabled="embedForm.remove_sidebar"
-                                                    />
-                                                    <Label for="hide_sidebar_on_page_load" :class="['text-sm', { 'text-muted-foreground': embedForm.remove_sidebar }]">Hide Sidebar on page loading</Label>
-                                                </div>
-                                                <p v-if="embedForm.remove_sidebar" class="text-xs text-muted-foreground ml-6">
-                                                    Disabled because sidebar is completely removed
-                                                </p>
                                             </div>
 
                                             <div class="flex items-center space-x-2">
@@ -218,6 +207,22 @@
                                                 <Label for="enable_theme_switcher" class="text-sm">Enable theme switcher</Label>
                                             </div>
 
+                                            <!-- Row 2 -->
+                                            <div class="space-y-1">
+                                                <div class="flex items-center space-x-2">
+                                                    <Switch
+                                                        id="hide_sidebar_on_page_load"
+                                                        :model-value="embedForm.hide_sidebar_on_page_load && !embedForm.remove_sidebar"
+                                                        @update:model-value="(value: any) => updateSetting('hide_sidebar_on_page_load', value)"
+                                                        :disabled="embedForm.remove_sidebar"
+                                                    />
+                                                    <Label for="hide_sidebar_on_page_load" :class="['text-sm', { 'text-muted-foreground': embedForm.remove_sidebar }]">Hide Sidebar on page loading</Label>
+                                                </div>
+                                                <p v-if="embedForm.remove_sidebar" class="text-xs text-muted-foreground ml-6">
+                                                    Disabled because sidebar is completely removed
+                                                </p>
+                                            </div>
+
                                             <div class="space-y-2">
                                                 <Label for="default_theme" class="text-sm">Default theme</Label>
                                                 <Select
@@ -234,6 +239,9 @@
                                                     </SelectContent>
                                                 </Select>
                                             </div>
+
+                                            <!-- Empty cell to maintain grid structure -->
+                                            <div></div>
                                         </div>
                                     </div>
 
@@ -251,8 +259,67 @@
 
 
                     </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <!-- Right Column - Live Preview -->
+            <div class="flex flex-col">
+                <Card class="flex flex-col h-full">
+                    <CardHeader>
+                        <CardTitle class="flex items-center gap-2">
+                            <Eye class="h-5 w-5" />
+                            Live Preview
+                        </CardTitle>
+                        <CardDescription>
+                            See how your embed will appear on websites.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent class="flex flex-col h-full">
+                        <div class="space-y-4 flex flex-col flex-1">
+                            <!-- Preview Controls -->
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="refreshPreview"
+                                        class="gap-2"
+                                    >
+                                        <Eye class="h-4 w-4" />
+                                        <span class="hidden sm:inline">Refresh</span>
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="showPreviewModal = true"
+                                        class="gap-2"
+                                    >
+                                        <Eye class="h-4 w-4" />
+                                        <span class="hidden sm:inline">Full Preview</span>
+                                    </Button>
+                                </div>
+                                <div class="text-xs text-muted-foreground">
+                                    Preview updates automatically
+                                </div>
+                            </div>
+
+                            <!-- Live Preview Iframe -->
+                            <div class="border rounded-lg bg-muted/30 p-4 flex-1">
+                                <iframe
+                                    :key="embedKey"
+                                    :src="buildIframeUrl(props.agent.chat_embed_url)"
+                                    class="w-full border-0 rounded bg-white h-[400px] md:h-[500px] lg:h-full lg:min-h-[600px]"
+                                    title="Embed Preview"
+                                    sandbox="allow-scripts allow-same-origin allow-forms"
+                                />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
 
         <!-- Preview Modal -->
@@ -406,6 +473,10 @@ const setPresetSize = (preset: string) => {
             iframeOptions.height = '400px';
             break;
     }
+};
+
+const refreshPreview = () => {
+    embedKey.value += 1;
 };
 
 

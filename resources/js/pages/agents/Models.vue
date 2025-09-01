@@ -106,7 +106,7 @@ const fetchModels = async () => {
         models.value = response.data.models;
         currentSettings.value = response.data.settings;
         defaultSettings.value = response.data.default_settings;
-        
+
         // Update form with settings from API
         form.temperature = response.data.settings.temperature;
         form.top_k = response.data.settings.top_k;
@@ -128,8 +128,14 @@ const toggleModel = async (model: AIModel) => {
     toggleLoadingModels.value.add(model.id);
 
     try {
-        // For widget agents, if selecting a new model, deselect all others first
-        if (props.agent.type === 'widget' && !model.is_selected) {
+        // For widget agents, handle single selection differently
+        if (props.agent.type === 'widget') {
+            // If this model is already selected, don't allow deselection (must have one selected)
+            if (model.is_selected) {
+                toggleLoadingModels.value.delete(model.id);
+                return;
+            }
+
             // Deselect all other models first
             for (const otherModel of models.value) {
                 if (otherModel.id !== model.id && otherModel.is_selected) {
@@ -137,7 +143,7 @@ const toggleModel = async (model: AIModel) => {
                     if (otherModelIndex !== -1) {
                         models.value[otherModelIndex].is_selected = false;
                     }
-                    
+
                     // Send request to deselect other model
                     await axios.patch(route('agents.models.toggle', { agent: props.agent.id }), {
                         model_id: otherModel.id,
@@ -150,7 +156,7 @@ const toggleModel = async (model: AIModel) => {
         // Optimistic update - immediately update UI
         const originalStatus = model.is_selected;
         const newStatus = !model.is_selected;
-        
+
         const modelIndex = models.value.findIndex(m => m.id === model.id);
         if (modelIndex !== -1) {
             models.value[modelIndex].is_selected = newStatus;
@@ -164,14 +170,13 @@ const toggleModel = async (model: AIModel) => {
 
     } catch (error) {
         console.error('Failed to toggle model:', error);
-        
+
         // Revert optimistic update on error
         const modelIndex = models.value.findIndex(m => m.id === model.id);
         if (modelIndex !== -1) {
             models.value[modelIndex].is_selected = !models.value[modelIndex].is_selected;
         }
-        
-        // You could add a toast notification here to inform the user of the error
+
         alert('Failed to update model. Please try again.');
     } finally {
         // Remove from loading set
@@ -192,7 +197,7 @@ const isModelToggling = (model: AIModel) => {
 };
 
 const submit = () => {
-    // Include selected models in the form data
+    // Include selected models in the form data for all agent types
     const selectedModelIds = models.value
         .filter(model => model.is_selected && model.user_allowed_to_use)
         .map(model => model.id);
@@ -328,13 +333,13 @@ onMounted(() => {
                         <Card class="overflow-hidden">
                         <CardHeader>
                             <CardTitle class="flex items-center gap-3">
-                                <Sparkles class="h-6 w-6 text-primary" />
-                                Available AI Models
+                                <Brain class="h-6 w-6 text-primary" />
+                                AI Models
                             </CardTitle>
                             <CardDescription class="text-base text-foreground/80">
-                                {{ props.agent.type === 'widget' 
-                                    ? 'Select one AI model for your widget agent. Click on model cards to enable/disable them and hover over the info icons to learn more about each model\'s capabilities.' 
-                                    : 'Select one or more AI models for your agent. Click on model cards to enable/disable them and hover over the info icons to learn more about each model\'s capabilities.' 
+                                {{ props.agent.type === 'widget'
+                                    ? 'Select an AI model for your widget agent. Click on a model card to select it. Only one model can be active at a time for widget agents. Hover over the info icons to learn more about each model\'s capabilities.'
+                                    : 'Select one or more AI models for your agent. Click on model cards to enable/disable them and hover over the info icons to learn more about each model\'s capabilities.'
                                 }}
                             </CardDescription>
 
@@ -364,7 +369,7 @@ onMounted(() => {
                             </div>
 
                             <!-- Models Grid -->
-                            <div v-else-if="models.length > 0" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            <div v-else-if="models.length > 0" class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                                 <div
                                     v-for="model in models"
                                     :key="model.id"
@@ -378,7 +383,9 @@ onMounted(() => {
                                                 : isModelToggling(model)
                                                     ? 'border-muted bg-muted/10 opacity-75 cursor-wait'
                                                     : isModelSelected(model)
-                                                        ? 'border-primary bg-primary/5 shadow-md cursor-pointer'
+                                                        ? props.agent.type === 'widget'
+                                                            ? 'border-primary bg-primary/5 shadow-md cursor-default'
+                                                            : 'border-primary bg-primary/5 shadow-md cursor-pointer'
                                                         : 'border-border hover:border-primary/30 hover:bg-accent/20 cursor-pointer hover:shadow-lg'
                                         ]"
                                         @click="toggleModel(model)"
@@ -398,17 +405,17 @@ onMounted(() => {
                                                             isModelDisabled(model) ? 'opacity-50' : ''
                                                         ]"
                                                     />
-                                                    <Brain 
-                                                        v-else 
+                                                    <Brain
+                                                        v-else
                                                         class="h-8 w-8"
                                                         :class="[
-                                                            isModelDisabled(model) 
-                                                                ? 'text-muted-foreground/50' 
+                                                            isModelDisabled(model)
+                                                                ? 'text-muted-foreground/50'
                                                                 : 'text-muted-foreground'
                                                         ]"
                                                     />
                                                 </div>
-                                                
+
                                                 <!-- Selection Indicator -->
                                                 <div
                                                     class="w-5 h-5 rounded-full border flex items-center justify-center transition-all flex-shrink-0"
@@ -421,8 +428,8 @@ onMounted(() => {
                                                     ]"
                                                 >
                                                     <!-- Loading Spinner -->
-                                                    <div 
-                                                        v-if="isModelToggling(model)" 
+                                                    <div
+                                                        v-if="isModelToggling(model)"
                                                         class="h-3 w-3 rounded-full border border-white/30 border-t-white animate-spin"
                                                     />
                                                     <!-- Checkmark -->
@@ -432,11 +439,21 @@ onMounted(() => {
                                                     />
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Bottom Row: Model Name and Help Button -->
                                             <div class="flex items-center justify-between">
-                                                <h3 class="font-medium text-sm leading-tight">{{ model.name }}</h3>
-                                                
+                                                <div class="flex items-center gap-2">
+                                                    <h3 class="font-medium text-sm leading-tight">{{ model.name }}</h3>
+                                                    <!-- Active indicator for widget agents -->
+                                                    <Badge
+                                                        v-if="props.agent.type === 'widget' && isModelSelected(model)"
+                                                        variant="secondary"
+                                                        class="text-[10px] h-auto py-0.5 px-1.5"
+                                                    >
+                                                        Active
+                                                    </Badge>
+                                                </div>
+
                                                 <!-- Help Button -->
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
@@ -464,8 +481,8 @@ onMounted(() => {
                                                                 <div v-if="model.features && model.features.length > 0" class="pt-1">
                                                                     <div class="text-xs text-muted-foreground mb-1">Features:</div>
                                                                     <div class="flex flex-wrap gap-1">
-                                                                        <Badge 
-                                                                            v-for="feature in model.features" 
+                                                                        <Badge
+                                                                            v-for="feature in model.features"
                                                                             :key="feature"
                                                                             variant="secondary"
                                                                             class="text-[10px] h-auto py-0.5"
@@ -489,7 +506,7 @@ onMounted(() => {
                                 <Brain class="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                                 <p class="text-muted-foreground">No models available</p>
                             </div>
-                            
+
                             <!-- Model selection errors -->
                             <div v-if="(form.errors as any)['selected_models']" class="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                                 <p class="text-sm text-destructive">{{ (form.errors as any)['selected_models'] }}</p>

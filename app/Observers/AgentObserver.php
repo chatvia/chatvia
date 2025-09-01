@@ -20,20 +20,20 @@ class AgentObserver
 
         $llms = $user->llms();
 
-        $agentLlms = $llms->pluck('id')->toArray();
+        $agentLlms = $agent->isKnowledgeable() ? $llms->pluck('id')->toArray() : [1];
+
+        $llmIds = Llm::query()
+            ->select('id')
+            ->whereIn('id', $agentLlms)
+            ->get()
+            ->pluck('id')
+            ->toArray();
 
         $agent
             ->llms()
             ->attach(
-                Llm::query()
-                    ->select('id')
-                    ->whereIn('id', $agentLlms)
-                    ->get()
-                    ->pluck('id')
-                    ->toArray()
+                $llmIds
             );
-
-        $this->decreaseAgentLimit($agent);
     }
 
     public function updated(Agent $agent): void

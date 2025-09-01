@@ -86,7 +86,6 @@ return [
                 'theme_shade' => 700,
                 'show_on_load' => false,
                 'show_on_load_delay' => 500,
-                'model' => 'gpt-5-mini',
                 'bubbles' => [],
             ],
             'embed' => [

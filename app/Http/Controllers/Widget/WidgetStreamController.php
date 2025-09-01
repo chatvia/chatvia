@@ -19,11 +19,16 @@ class WidgetStreamController
 
         $message = $request->input('content');
 
+        $agent = current_agent_from_widget();
+
+        /** @var Llm $llm */
+        $llm = $agent->llms()->first();
+
         return $this->chatStreamService->stream(
             new StreamRequestData(
-                agent: current_agent_from_widget(),
+                agent: $agent,
                 message: new StreamRequestMessageData(
-                    model: Llm::whereExternalName('llama-4')->first(),
+                    model: $llm,
                     message: $message,
                 ),
                 sessionId: $sessionId,

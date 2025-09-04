@@ -192,10 +192,14 @@ class ChatMemory implements ChatMemoryInterface
         // Dispatch job for database persistence
         $role = $payload instanceof ChatInputPayload ? 'user' : 'assistant';
 
+        $conversation = $this->getConversationById($this->conversationId);
+
         StoreChatMessageJob::dispatch(
             $this->agent,
+            $this->sessionId,
             $role,
             $this->conversationId,
+            $conversation['title'] ?? null,
             $messageId,
             $payload,
         );

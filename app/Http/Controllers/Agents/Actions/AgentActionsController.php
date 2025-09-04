@@ -17,7 +17,7 @@ class AgentActionsController
 
         // Available action types
         $actionTypes = [
-            'send_slack_message' => 'Send Slack Message',
+            'send_slack_message' => 'Send Slack ChatMessage',
             'send_email' => 'Send Email',
             'webhook' => 'Send Webhook',
             'create_ticket' => 'Create Support Ticket',

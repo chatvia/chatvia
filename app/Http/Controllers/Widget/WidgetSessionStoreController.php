@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Widget;
 
-use App\Services\Widget\WidgetSession;
+use App\Services\Memory\ChatSession;
 use App\Services\Widget\WidgetVerification;
 use Illuminate\Http\Request;
 
 class WidgetSessionStoreController
 {
-    public function __invoke(Request $request, WidgetVerification $widgetVerification, WidgetSession $session)
+    public function __invoke(Request $request, WidgetVerification $widgetVerification, ChatSession $session)
     {
         $agentId = $request->header('x-agent-id');
 
@@ -17,7 +17,7 @@ class WidgetSessionStoreController
         }
 
         return [
-            'id' => $session->generateSession(),
+            'id' => $session->firstOrCreateChatSession(),
         ];
     }
 }

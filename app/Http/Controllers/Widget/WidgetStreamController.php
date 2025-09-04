@@ -8,9 +8,9 @@ use App\Services\Chat\Data\StreamRequestData;
 use App\Services\Chat\Data\StreamRequestMessageData;
 use Illuminate\Http\Request;
 
-class WidgetStreamController
+readonly class WidgetStreamController
 {
-    public function __construct(private readonly ChatStreamService $chatStreamService) {}
+    public function __construct(private ChatStreamService $chatStreamService) {}
 
     public function __invoke(Request $request)
     {
@@ -20,9 +20,15 @@ class WidgetStreamController
         $message = $request->input('content');
 
         $agent = current_agent_from_widget();
+        $leadCollected = $agent->leads()->where('session_id', $sessionId)->exists();
 
         /** @var Llm $llm */
         $llm = $agent->llms()->first();
+
+        $referer = $request->header('referer') ?: $request->server('HTTP_REFERER');
+
+        // Do not persist the message if the request comes from the preview page
+        $persistMessage = ! str_starts_with($referer, route('agents.widget.preview', ['agent' => $agent->id]));
 
         return $this->chatStreamService->stream(
             new StreamRequestData(
@@ -33,9 +39,12 @@ class WidgetStreamController
                 ),
                 sessionId: $sessionId,
                 conversationId: $threadId,
-                saveUserMessageImmediately: true,
+                saveUserMessageImmediately: true, // TODO: this is a work-around, needs to be fixed
+                persistMessage: $persistMessage,
                 streamSources: false,
                 streamLanguage: false,
+                canCollectLead: $agent->canCollectLeads(),
+                leadAlreadyCollected: $leadCollected,
             ),
         );
     }

@@ -5,7 +5,7 @@ namespace App\Support\Agents;
 use App\Data\Agent\StatsData;
 use App\Models\Agent;
 use App\Models\AgentFile;
-use App\Models\Message;
+use App\Models\ChatMessage;
 use App\Support\Llms;
 
 class Stats
@@ -21,9 +21,11 @@ class Stats
 
     public function getTotalMessages(): int
     {
-        return Message::query()
-            ->where('agent_id', $this->agent->id)
-            ->where('role', 'assistant')
+        return ChatMessage::query()
+            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->where('chat_sessions.agent_id', $this->agent->id)
+            ->where('chat_messages.role', 'assistant')
             ->count();
     }
 
@@ -34,27 +36,31 @@ class Stats
 
     public function averageResponseTime()
     {
-        return Message::query()
-            ->where('agent_id', $this->agent->id)
-            ->where('role', 'assistant')
-            ->selectRaw('ROUND(AVG(response_time_ms) / 1000, 1) as avg_response_time')
+        return ChatMessage::query()
+            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->where('chat_sessions.agent_id', $this->agent->id)
+            ->where('chat_messages.role', 'assistant')
+            ->selectRaw('ROUND(AVG(chat_messages.response_time_ms) / 1000, 1) as avg_response_time')
             ->value('avg_response_time');
     }
 
     public function satisfactionRate()
     {
-        $result = Message::query()
-            ->where('agent_id', $this->agent->id)
-            ->where('role', 'assistant')
-            ->whereNotNull('feedback')
+        $result = ChatMessage::query()
+            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->where('chat_sessions.agent_id', $this->agent->id)
+            ->where('chat_messages.role', 'assistant')
+            ->whereNotNull('chat_messages.feedback')
             ->selectRaw('
-                COUNT(CASE WHEN feedback = ? THEN 1 END) as positive_count,
-                COUNT(CASE WHEN feedback = ? THEN 1 END) as negative_count,
+                COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as positive_count,
+                COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as negative_count,
                 COUNT(*) as total_feedback,
                 CASE
                     WHEN COUNT(*) = 0 THEN 0
                     ELSE ROUND(
-                        (COUNT(CASE WHEN feedback = ? THEN 1 END) * 100.0) / COUNT(*),
+                        (COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) * 100.0) / COUNT(*),
                         1
                     )
                 END as satisfaction_rate
@@ -64,36 +70,67 @@ class Stats
         return $result->satisfaction_rate ?? 0;
     }
 
-    public function getMessagesLastWeek(): int
+    public function getMessagesLastWeek(): array
     {
-        return Message::query()
-            ->where('agent_id', $this->agent->id)
-            ->where('role', 'assistant')
-            ->where('created_at', '>=', now()->subWeek())
-            ->count();
+        $startDate = now()->subDays(6)->startOfDay();
+        $endDate = now()->endOfDay();
+
+        // Get daily message counts for the last 7 days
+        $dailyMessages = ChatMessage::query()
+            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->where('chat_sessions.agent_id', $this->agent->id)
+            ->where('chat_messages.role', 'assistant')
+            ->whereRaw('DATE(chat_messages.created_at) >= ?', [$startDate->format('Y-m-d')])
+            ->whereRaw('DATE(chat_messages.created_at) <= ?', [$endDate->format('Y-m-d')])
+            ->selectRaw('DATE(chat_messages.created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('count', 'date')
+            ->toArray();
+
+        // Generate last 7 days with day names, ensuring all days are present
+        $weeklyData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $dateKey = $date->format('Y-m-d');
+            $dayName = $date->format('D'); // Mon, Tue, Wed, etc.
+
+            $weeklyData[] = [
+                'day' => $dayName,
+                'date' => $dateKey,
+                'value' => $dailyMessages[$dateKey] ?? 0,
+            ];
+        }
+
+        return $weeklyData;
     }
 
     public function getMostUsedModels()
     {
-        return Message::query()
-            ->where('agent_id', $this->agent->id)
-            ->where('role', 'assistant')
-            ->whereNotNull('model')
+        return ChatMessage::query()
+            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->where('chat_sessions.agent_id', $this->agent->id)
+            ->where('chat_messages.role', 'assistant')
+            ->whereNotNull('chat_messages.model')
             ->selectRaw('
-            model,
-            COUNT(*) as usage_count,
-            ROUND(
-                (COUNT(*) * 100.0) / (
-                    SELECT COUNT(*)
-                    FROM messages
-                    WHERE agent_id = ?
-                    AND role = ?
-                    AND model IS NOT NULL
-                ),
-                1
-            ) as percentage
-        ', [$this->agent->id, 'assistant'])
-            ->groupBy('model')
+                chat_messages.model,
+                COUNT(*) as usage_count,
+                ROUND(
+                    (COUNT(*) * 100.0) / (
+                        SELECT COUNT(*)
+                        FROM chat_messages cm2
+                        JOIN chat_conversations cc2 ON cm2.conversation_id = cc2.id
+                        JOIN chat_sessions cs2 ON cc2.session_id = cs2.id
+                        WHERE cs2.agent_id = ?
+                        AND cm2.role = ?
+                        AND cm2.model IS NOT NULL
+                    ),
+                    1
+                ) as percentage
+            ', [$this->agent->id, 'assistant'])
+            ->groupBy('chat_messages.model')
             ->orderByDesc('usage_count')
             ->get()
             ->map(function ($item) {
@@ -127,11 +164,13 @@ class Stats
     {
         $startDate = now()->subDays($days)->startOfDay();
 
-        return Message::query()
-            ->where('agent_id', $this->agent->id)
-            ->where('role', 'assistant')
-            ->where('created_at', '>=', $startDate)
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as messages')
+        return ChatMessage::query()
+            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->where('chat_sessions.agent_id', $this->agent->id)
+            ->where('chat_messages.role', 'assistant')
+            ->where('chat_messages.created_at', '>=', $startDate)
+            ->selectRaw('DATE(chat_messages.created_at) as date, COUNT(*) as messages')
             ->groupBy('date')
             ->orderBy('date')
             ->get()

@@ -20,10 +20,10 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { 
-    Plus, 
-    Play, 
-    Save, 
+import {
+    Plus,
+    Play,
+    Save,
     Trash2,
     MessageSquare,
     Database,
@@ -90,7 +90,7 @@ const initialNodes: Node[] = [
 
 const initialEdges: Edge[] = [
     { id: 'e1-2', source: '1', target: '2', animated: true },
-    { id: 'e1-3', source: '1', target: '3' }
+    { id: 'e1-3', source: '2', target: '3' }
 ];
 
 // Workflow state
@@ -98,16 +98,17 @@ const nodes = ref<Node[]>(initialNodes);
 const edges = ref<Edge[]>(initialEdges);
 
 // Vue Flow composable with event hooks
-const { 
-    onInit, 
-    onNodeDragStop, 
-    onConnect, 
-    addEdges, 
-    addNodes, 
-    removeNodes, 
-    removeEdges, 
-    setViewport, 
-    toObject 
+const {
+    getEdges,
+    onInit,
+    onNodeDragStop,
+    onConnect,
+    addEdges,
+    addNodes,
+    removeNodes,
+    removeEdges,
+    setViewport,
+    toObject
 } = useVueFlow();
 
 const showNodeLibrary = ref(false);
@@ -179,9 +180,9 @@ const addNode = (nodeType: any) => {
     const newNode: Node = {
         id: Date.now().toString(),
         type: 'workflowNode',
-        position: { 
-            x: Math.random() * 400 + 100, 
-            y: Math.random() * 300 + 100 
+        position: {
+            x: Math.random() * 400 + 100,
+            y: Math.random() * 300 + 100
         },
         data: {
             name: nodeType.name,
@@ -190,7 +191,7 @@ const addNode = (nodeType: any) => {
             nodeType: nodeType.id
         }
     };
-    
+
     addNodes([newNode]);
     showNodeLibrary.value = false;
 };
@@ -215,43 +216,43 @@ onNodeDragStop(({ event, nodes, node }) => {
  */
 onConnect((connection: Connection) => {
     console.log('Creating connection:', connection);
-    
+
     // Validate the connection
     if (!connection.source || !connection.target) {
         console.warn('Invalid connection:', connection);
         return;
     }
-    
+
     // Prevent connecting to itself
     if (connection.source === connection.target) {
         console.warn('Cannot connect node to itself');
         return;
     }
-    
+
     // Check if this exact connection already exists
-    const existingConnection = edges.value.find(edge => 
+    const existingConnection = edges.value.find(edge =>
         edge.source === connection.source && edge.target === connection.target
     );
-    
+
     if (existingConnection) {
         console.warn('Connection already exists between these nodes');
         return;
     }
-    
+
     // Check for existing connections - enforce 1-to-1 rule
     const existingOutgoing = edges.value.find(edge => edge.source === connection.source);
     const existingIncoming = edges.value.find(edge => edge.target === connection.target);
-    
+
     // Remove existing outgoing connection from source node
     if (existingOutgoing) {
         removeEdges([existingOutgoing.id]);
     }
-    
+
     // Remove existing incoming connection to target node
     if (existingIncoming) {
         removeEdges([existingIncoming.id]);
     }
-    
+
     // Add the new edge with a unique ID
     const newEdge: Edge = {
         id: `e${connection.source}-${connection.target}-${Date.now()}`,
@@ -261,7 +262,7 @@ onConnect((connection: Connection) => {
         targetHandle: connection.targetHandle,
         animated: Math.random() > 0.5,
     };
-    
+
     addEdges([newEdge]);
 });
 
@@ -342,16 +343,28 @@ const runWorkflow = () => {
 onMounted(() => {
     // Initial nodes are already set, no need to add more
     console.log('Workflow mounted with initial nodes');
-    
+
     // Initialize dark mode based on current theme
     dark.value = document.documentElement.classList.contains('dark');
 });
+
+// Allow only one incoming edge per target node
+function isValidConnection(connection) {
+    const { target } = connection
+    if (!target) return false
+
+    // check if target already has an incoming edge
+    const edges = getEdges.value
+    const alreadyConnected = edges.some(e => e.target === target)
+
+    return !alreadyConnected
+}
 </script>
 
 <template>
     <AgentLayout :agent="agent" title="Workflow">
         <Head title="Workflow" />
-        
+
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
@@ -361,7 +374,7 @@ onMounted(() => {
                         Create and manage automated workflows for your agent
                     </p>
                 </div>
-                
+
                 <div class="flex items-center gap-2">
                     <Button variant="outline" @click="showNodeLibrary = true">
                         <Plus class="h-4 w-4 mr-2" />
@@ -380,9 +393,10 @@ onMounted(() => {
 
             <!-- Workflow Canvas -->
             <Card class="relative h-[600px] overflow-hidden">
-                <VueFlow 
-                    v-model:nodes="nodes" 
+                <VueFlow
+                    v-model:nodes="nodes"
                     v-model:edges="edges"
+                    is-valid-connection="isValidConnection"
                     :class="{ dark }"
                     class="workflow-canvas"
                     :snap-to-grid="true"
@@ -400,12 +414,12 @@ onMounted(() => {
 
                     <!-- Custom Node Template -->
                     <template #node-workflowNode="{ data, id }">
-                        <div 
+                        <div
                             class="workflow-node group relative"
                         >
                             <div class="flex flex-col items-center">
                                 <!-- Main node box with handles positioned on it -->
-                                <div 
+                                <div
                                     class="w-36 h-12 bg-white border-2 rounded-md transition-all duration-200 select-none relative cursor-move flex items-center justify-center"
                                     :class="[
                                         {
@@ -421,15 +435,15 @@ onMounted(() => {
                                     @click="selectedNode = id"
                                 >
                                     <!-- Vue Flow Handles - Now positioned relative to the box itself -->
-                                    <Handle 
-                                        type="target" 
-                                        :position="Position.Left" 
+                                    <Handle
+                                        type="target"
+                                        :position="Position.Left"
                                         class="!w-3 !h-3 !bg-gray-800 !border-0 !rounded-full !absolute"
                                         style="left: -6px; top: 50%; transform: translateY(-50%);"
                                     />
-                                    <Handle 
-                                        type="source" 
-                                        :position="Position.Right" 
+                                    <Handle
+                                        type="source"
+                                        :position="Position.Right"
                                         class="!w-3 !h-3 !bg-gray-800 !border-0 !rounded-full !absolute"
                                         style="right: -6px; top: 50%; transform: translateY(-50%);"
                                     />
@@ -438,7 +452,7 @@ onMounted(() => {
                                         <h3 class="text-sm font-medium text-gray-900 leading-tight">{{ data.name }}</h3>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Delete button below the box, centered -->
                                 <Button
                                     variant="ghost"
@@ -475,7 +489,7 @@ onMounted(() => {
                         Choose a node type to add to your workflow
                     </DialogDescription>
                 </DialogHeader>
-                
+
                 <ScrollArea class="h-96">
                     <div class="space-y-4">
                         <div

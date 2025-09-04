@@ -1,18 +1,18 @@
 <template>
     <div class="flex items-center gap-2">
-        <!-- Success Message -->
+        <!-- Success ChatMessage -->
         <FormSuccessMessage
             v-if="showSuccessMessage"
             :show="showSuccessMessage"
             :message="successMessage"
             class="mr-2"
         />
-        
-        <!-- Error Message -->
+
+        <!-- Error ChatMessage -->
         <div v-if="showErrorMessage && !showSuccessMessage" class="text-xs text-destructive mr-2">
             {{ errorMessage }}
         </div>
-        
+
         <!-- Secondary Actions (like Restore Defaults) -->
         <template v-for="action in secondaryActions" :key="action.id">
             <Button
@@ -41,9 +41,9 @@
                 <div v-else-if="isSubmitting" class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                 {{ isSubmitting ? 'Saving...' : saveLabel }}
             </Button>
-            
+
             <!-- Pulse Badge Circle -->
-            <div 
+            <div
                 v-if="hasUnsavedChanges && !isSubmitting"
                 class="absolute -top-1 -right-1 h-3 w-3 bg-orange-500 rounded-full animate-pulse shadow-lg"
             >
@@ -73,13 +73,13 @@ interface Props {
     saveLabel?: string;
     saveIcon?: any;
     formId?: string;
-    
-    // Message props
+
+    // ChatMessage props
     showSuccessMessage?: boolean;
     successMessage?: string;
     showErrorMessage?: boolean;
     errorMessage?: string;
-    
+
     // Secondary actions
     secondaryActions?: SecondaryAction[];
 }

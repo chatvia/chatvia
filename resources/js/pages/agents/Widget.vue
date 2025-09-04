@@ -31,13 +31,13 @@
                         Widget Configuration
                     </CardTitle>
                     <CardDescription>
-                        Configure your agent as an embeddable chat widget for your website.
+                        Configure your agent as an embeddable chaWt widget for your website.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form id="widget-settings-form" @submit.prevent="updateWidgetSettings" class="space-y-8">
-                        <!-- Title and Welcome Message -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Title, Welcome ChatMessage, and Widget Color -->
+                        <div class="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-6">
                             <!-- Chat Title -->
                             <div class="space-y-2">
                                 <Label for="chat_window_title">Title</Label>
@@ -54,7 +54,7 @@
                                 </p>
                             </div>
 
-                            <!-- Welcome Message -->
+                            <!-- Welcome ChatMessage -->
                             <div class="space-y-2">
                                 <Label for="welcome_message">Welcome Message</Label>
                                 <Input
@@ -69,54 +69,32 @@
                                     This message will be shown when users first open the widget
                                 </p>
                             </div>
-                        </div>
 
-                        <!-- Color Theme -->
-                        <div class="space-y-2">
-                            <Label>Widget Color</Label>
-                            <div class="flex items-center gap-3">
-                                <!-- Selected Color Preview -->
-                                <div class="relative cursor-pointer" @click="showColorPicker = true">
-                                    <div
-                                        class="h-12 w-12 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
-                                        :style="{
-                                            backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
-                                        }"
-                                    >
-                                        <div class="flex h-full items-center justify-center">
-                                            <div class="h-6 w-6 rounded-full bg-white/90 shadow-sm flex items-center justify-center">
-                                                <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                            <!-- Widget Color -->
+                            <div class="space-y-2">
+                                <Label>Color</Label>
+                                <div class="flex items-center gap-3">
+                                    <!-- Selected Color Preview -->
+                                    <div class="relative cursor-pointer" @click="showColorPicker = true">
+                                        <div
+                                            class="h-10 w-10 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                                            :style="{
+                                                backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
+                                            }"
+                                        >
+                                            <div class="flex h-full items-center justify-center">
+                                                <div class="h-6 w-6 rounded-full bg-white/90 shadow-sm flex items-center justify-center">
+                                                    <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Color Info and Button -->
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <p class="text-sm font-medium capitalize">{{ appearanceForm.color_theme }}</p>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="showColorPicker = true"
-                                            class="gap-2"
-                                        >
-                                            Choose Color
-                                        </Button>
-                                    </div>
-                                    <p class="text-xs text-muted-foreground">
-                                        Current: {{ appearanceForm.color_theme.charAt(0).toUpperCase() + appearanceForm.color_theme.slice(1) }} {{ appearanceForm.color_shade }}
-                                    </p>
-                                </div>
+                                <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
+                                    {{ appearanceForm.errors.color_theme }}
+                                </p>
                             </div>
-
-                            <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
-                                {{ appearanceForm.errors.color_theme }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Choose the primary color for your widget
-                            </p>
                         </div>
                         <Alert>
                             <AlertDescription class="font-bold">

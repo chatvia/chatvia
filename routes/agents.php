@@ -14,6 +14,7 @@ use App\Http\Controllers\Agents\Agents\AgentUpdateActivityController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateSettingsController;
 use App\Http\Controllers\Agents\Appearance\AgentAppearanceController;
+use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agents\Embed\EmbedController;
 use App\Http\Controllers\Agents\Files\AgentKnowledgeController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
@@ -66,7 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('widget/preview', WidgetPreviewController::class)->name('widget.preview');
         Route::get('preview', AgentPreviewController::class)->name('preview');
 
-        Route::get('settings', AgentShowPersonaController::class)->name('settings');
+        Route::get('persona', AgentShowPersonaController::class)->name('persona');
         Route::get('security', AgentSecurityController::class)->name('security');
 
         // Knowledge
@@ -92,6 +93,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('history', AgentHistoryController::class)->name('history');
         Route::get('leads', AgentLeadsController::class)->name('leads');
+        Route::patch('leads/{lead}/pipeline-stage', [AgentLeadsController::class, 'updatePipelineStage'])->name('leads.update-pipeline-stage');
+        Route::patch('leads/{lead}/assign', [AgentLeadsController::class, 'assign'])->name('leads.assign');
+        Route::post('leads/{lead}/notes', [AgentLeadsController::class, 'addNote'])->name('leads.add-note');
+        Route::post('leads/{lead}/tags', [AgentLeadsController::class, 'addTag'])->name('leads.add-tag');
+
+        Route::get('logs', AgentChatLogController::class)->name('logs');
 
         Route::get('appearance', AgentAppearanceController::class)->name('appearance');
 

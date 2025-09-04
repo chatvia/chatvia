@@ -27,7 +27,7 @@
             padding: 25px 25px;
         }
 
-        /* Message Styles */
+        /* ChatMessage Styles */
         .messages {
             margin-top: 0;
         }
@@ -251,7 +251,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Message Content -->
+        <!-- ChatMessage Content -->
         <div class="messages">
             <div class="message-content no-break">
                 @foreach ($messages as $message)

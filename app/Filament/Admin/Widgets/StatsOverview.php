@@ -3,7 +3,7 @@
 namespace App\Filament\Admin\Widgets;
 
 use App\Models\Agent;
-use App\Models\Message;
+use App\Models\ChatMessage;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -22,17 +22,17 @@ class StatsOverview extends BaseWidget
             $query->where('stripe_status', 'active');
         })->orWhere('trial_ends_at', '>', now())->count();
 
-        $totalMessages = Message::count();
+        $totalMessages = ChatMessage::count();
         $totalAgents = Agent::count();
 
         // Get messages from last 30 days
-        $messagesLast30Days = Message::where('created_at', '>=', now()->subDays(30))->count();
+        $messagesLast30Days = ChatMessage::where('created_at', '>=', now()->subDays(30))->count();
 
         // Get new users from last 30 days
         $newUsersLast30Days = User::where('created_at', '>=', now()->subDays(30))->count();
 
         // Get total tokens used (if available)
-        $totalTokens = Message::whereNotNull('token_count')->sum('token_count');
+        $totalTokens = ChatMessage::whereNotNull('token_count')->sum('token_count');
 
         // Get subscription revenue (basic calculation)
         $activeSubscriptions = User::whereHas('subscriptions', function ($query) {

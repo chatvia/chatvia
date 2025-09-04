@@ -57,7 +57,8 @@ const removeStarter = (id) => {
 <template>
     <AgentLayout :agent="agent" title="Starter Messages">
         <div class="space-y-6">
-            <Card>
+            <div class="flex justify-center">
+                <Card class="w-full max-w-6xl">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <MessageSquare class="h-5 w-5" />
@@ -113,8 +114,9 @@ const removeStarter = (id) => {
                     </div>
                 </CardContent>
             </Card>
+            </div>
 
-            <!-- Add Starter Message Dialog -->
+            <!-- Add Starter ChatMessage Dialog -->
             <Dialog v-model:open="showAddStarterDialog">
                 <DialogContent>
                     <DialogHeader>

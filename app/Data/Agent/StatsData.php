@@ -11,7 +11,7 @@ class StatsData extends Data
         public int $totalMembers,
         public ?float $avgResponseTime,
         public float $satisfactionRate,
-        public int $messagesLastWeek,
+        public array $messagesLastWeek,
         public array $modelUsage,
         public array $dailyMessages,
         public array $topKnowledge,

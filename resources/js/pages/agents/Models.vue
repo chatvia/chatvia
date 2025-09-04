@@ -443,15 +443,7 @@ onMounted(() => {
                                             <!-- Bottom Row: Model Name and Help Button -->
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
-                                                    <h3 class="font-medium text-sm leading-tight">{{ model.name }}</h3>
-                                                    <!-- Active indicator for widget agents -->
-                                                    <Badge
-                                                        v-if="props.agent.type === 'widget' && isModelSelected(model)"
-                                                        variant="secondary"
-                                                        class="text-[10px] h-auto py-0.5 px-1.5"
-                                                    >
-                                                        Active
-                                                    </Badge>
+                                                    <h3 class="font-medium text-sm leading-tight">{{ model.name }}</h3>                                                    
                                                 </div>
 
                                                 <!-- Help Button -->

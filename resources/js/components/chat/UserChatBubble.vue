@@ -40,7 +40,7 @@ const isCopied = ref(false)
 function startEditing() {
   editedContent.value = props.message.content
   isEditing.value = true
-  
+
   nextTick(() => {
     const textarea = document.getElementById(`edit-user-${props.message.id}`)
     if (textarea) {
@@ -57,7 +57,7 @@ function cancelEditing() {
 
 function saveEditedMessage() {
   if (!editedContent.value.trim() || !props.message.id) return
-  
+
   emit('messageUpdated', props.message.id, editedContent.value.trim())
   isEditing.value = false
 }
@@ -92,8 +92,8 @@ async function deleteMessage() {
           message_id: props.message.id
         }
       });
-      
-      console.log('Message deleted successfully:', props.message.id);
+
+      console.log('ChatMessage deleted successfully:', props.message.id);
       emit('messageDeleted', props.message.id);
     } catch (error) {
       console.error('Failed to delete message:', error);
@@ -137,7 +137,7 @@ async function deleteMessage() {
           <p class="text-sm whitespace-pre-wrap break-words" :data-rtl="isRTL">{{ message.content }}</p>
         </div>
       </Card>
-      
+
       <div class="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           size="icon"
@@ -200,4 +200,4 @@ async function deleteMessage() {
 [data-rtl="true"] p {
   font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-</style> 
+</style>

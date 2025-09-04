@@ -5,7 +5,9 @@ namespace App\Jobs;
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Models\Agent;
-use App\Models\Message;
+use App\Models\ChatConversation;
+use App\Models\ChatMessage;
+use App\Models\ChatSession;
 use App\Models\User;
 use App\Support\TikToken;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -18,8 +20,10 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
     public function __construct(
         public Agent $agent,
+        public string $sessionId,
         public string $role,
         public ?string $conversationId,
+        public ?string $title,
         public string $messageId,
         public ChatInputPayload|ChatOutputPayload $payload
     ) {
@@ -30,12 +34,29 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
     {
         $isInputMessage = $this->payload instanceof ChatInputPayload;
 
-        Message::create([
+        $sessionId = $this->sessionId;
+        //        $exp = explode(':', $sessionId);
+        //        $type = $exp[1] ?? null;
+        //
+        //        if (count($exp) === 3) {
+        //            $sessionId = $exp[2];
+        //        }
+
+        ChatSession::firstOrCreate([
+            'id' => $sessionId,
+            'agent_id' => $this->agent->id,
+            'user_id' => $this->agent->user_id,
+            'member_id' => $isInputMessage ? $this->payload->member_id : null,
+        ]);
+
+        ChatConversation::firstOrCreate([
+            'id' => $this->conversationId,
+            'session_id' => $sessionId,
+        ], ['title' => $this->title]);
+
+        ChatMessage::create([
             'id' => $this->messageId,
             'conversation_id' => $this->conversationId,
-            'agent_id' => $this->agent->id,
-            'member_id' => $isInputMessage ? $this->payload->member_id : null,
-            'user_id' => $this->agent->user_id,
             'content' => $this->payload->message,
             'role' => $this->role,
             'model' => $this->payload->model,

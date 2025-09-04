@@ -4,21 +4,22 @@ namespace App\Services\Chat;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Models\Agent;
+use App\Services\Chat\Data\StreamRequestData;
 use App\Support\KnowledgeBase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class MessageProcessor
+readonly class MessageProcessor
 {
     public function __construct(
-        private readonly KnowledgeBase $knowledgeBase
+        private KnowledgeBase $knowledgeBase
     ) {}
 
-    public function prepareLlmMessages(Agent $agent, ChatInputPayload $payload, array $messages): array
+    public function prepareLlmMessages(StreamRequestData $data, ChatInputPayload $payload, array $messages): array
     {
-        $systemPrompt = $this->buildSystemPrompt($agent);
-        $userMessageContent = $this->buildUserMessage($agent, $payload);
+        $systemPrompt = $this->buildSystemPrompt($data);
+        $userMessageContent = $this->buildUserMessage($data->agent, $payload);
 
         $userMessage = [
             'role' => 'user',
@@ -49,7 +50,7 @@ class MessageProcessor
         return $this->enrichSourcesWithMetadata($searchResults);
     }
 
-    private function buildSystemPrompt(Agent $agent): array
+    private function buildSystemPrompt(StreamRequestData $data): array
     {
         $preconditions = '
 If the response contains mathematical expression, then you must use the following format:
@@ -64,9 +65,29 @@ For right-to-left languages, always place equations on a new line and format the
 Important: Your response will be used in a Retrieval-Augmented Generation (RAG) system. Do not reference or reveal internal processes, technical terms, or implementation details (e.g., data segmentation, embeddings, or indexing). Focus only on providing a clear, natural, and helpful answer to the user\'s query.
 ';
 
+        if (! $data->leadAlreadyCollected) {
+            $id = '<ShowLeadForm/>';
+            $preconditions .= "\n\nLEAD COLLECTION INSTRUCTIONS:
+- If the user asks about pricing, costs, or plans, include $id at the end of your response
+- If the user asks to contact sales, get a demo, or speak to someone, include $id at the end of your response
+- If the user asks how to get started, sign up, or purchase, include $id at the end of your response
+- If the user provides contact information (name, email, phone), include $id at the end of your response
+- If the user asks about implementation, setup, or onboarding help, include $id at the end of your response
+- Only include $id once per conversation
+- Place $id on a new line at the very end of your response
+- Do not mention the $id command in your actual response text
+
+Example response format:
+'I'd be happy to help you with pricing information. Our plans start at $29/month...'
+$id
+";
+        }
+
+        ray($preconditions);
+
         return [
             'role' => 'system',
-            'content' => $agent->system_instructions."\n".$preconditions,
+            'content' => $data->agent->system_instructions."\n".$preconditions,
         ];
     }
 
@@ -74,7 +95,7 @@ Important: Your response will be used in a Retrieval-Augmented Generation (RAG) 
     {
         $userMessageContent = $payload->message_for_llm;
 
-        if (! $agent->isKnowledgeable()) {
+        if (! $agent->isStandalone()) {
             return $userMessageContent;
         }
 

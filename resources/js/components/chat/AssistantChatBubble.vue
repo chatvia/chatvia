@@ -154,7 +154,7 @@ async function deleteMessage() {
         }
       });
 
-      console.log('Message deleted successfully:', props.message.id);
+      console.log('ChatMessage deleted successfully:', props.message.id);
       emit('messageDeleted', props.message.id);
     } catch (error) {
       console.error('Failed to delete message:', error);

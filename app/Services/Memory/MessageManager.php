@@ -5,7 +5,7 @@ namespace App\Services\Memory;
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Models\Agent;
-use App\Models\Message;
+use App\Models\ChatMessage;
 use Illuminate\Support\Str;
 
 /**
@@ -84,7 +84,7 @@ class MessageManager
 
                     // Handle feedback persistence to database
                     if ($key === 'feedback') {
-                        Message::where('id', $message['id'])->update([
+                        ChatMessage::where('id', $message['id'])->update([
                             'feedback' => $value ? 'positive' : 'negative',
                         ]);
                     }

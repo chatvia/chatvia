@@ -17,5 +17,8 @@ class StreamRequestData extends Data
         public bool $persistMessage = true,
         public bool $streamSources = true,
         public bool $streamLanguage = false,
+        public bool $canCollectLead = true,
+        public bool $leadAlreadyCollected = false,
+        public bool $persistMessages = true,
     ) {}
 }

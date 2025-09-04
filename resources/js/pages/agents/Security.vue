@@ -3,11 +3,10 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Lock, LoaderCircle, Save } from 'lucide-vue-next';
-import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
+import { Lock, Save } from 'lucide-vue-next';
+import HeaderActions from '@/components/HeaderActions.vue';
 
 interface Props {
     agent: any
@@ -23,8 +22,6 @@ const isWidgetAgent = computed(() => {
 const form = useForm({
     is_active: props.agent.is_active,
     is_public: props.agent.is_public,
-    enable_widget: props.agent.enable_widget ?? true,
-    enable_iframe_embedding: props.agent.enable_iframe_embedding ?? true,
 });
 
 const isSubmitting = ref(false);
@@ -41,13 +38,40 @@ const updateSecuritySettings = () => {
         }
     });
 };
+
+// Computed properties for header actions
+const hasUnsavedChanges = computed(() => {
+    return (
+        form.is_active !== props.agent.is_active ||
+        form.is_public !== props.agent.is_public
+    );
+});
+
+const hasFormErrors = computed(() => {
+    return Object.keys(form.errors).length > 0;
+});
 </script>
 
 <template>
     <AgentLayout :agent="agent" title="Security">
-        <form @submit.prevent="updateSecuritySettings" class="space-y-6">
-            <!-- Access Control (hidden for widget agents) -->
-            <Card v-if="!isWidgetAgent">
+        <template #header-actions>
+            <HeaderActions
+                :is-submitting="isSubmitting"
+                :has-unsaved-changes="hasUnsavedChanges"
+                :show-success-message="form.recentlySuccessful"
+                success-message="Security settings saved"
+                :show-error-message="hasFormErrors"
+                error-message="Please fix errors below"
+                save-label="Save Changes"
+                :save-icon="Save"
+                form-id="security-form"
+            />
+        </template>
+
+        <form @submit.prevent="updateSecuritySettings" id="security-form" class="space-y-6">
+            <div class="flex justify-center">
+                <!-- Access Control (hidden for widget agents) -->
+                <Card v-if="!isWidgetAgent" class="w-full max-w-6xl">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Lock class="h-5 w-5" />
@@ -83,53 +107,6 @@ const updateSecuritySettings = () => {
                     </div>
                 </CardContent>
             </Card>
-
-            <!-- Embedding Settings -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>Embedding Settings</CardTitle>
-                    <CardDescription>
-                        Control how your agent can be embedded and integrated
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div class="space-y-6">
-                        <!-- Enable Widget -->
-                        <div class="flex items-center justify-between space-x-2">
-                            <div>
-                                <Label class="text-base" for="enable_widget">Enable Widget</Label>
-                                <p class="text-sm text-muted-foreground">
-                                    Allow this agent to be embedded as a widget on websites
-                                </p>
-                            </div>
-                            <Switch id="enable_widget" v-model="form.enable_widget" />
-                        </div>
-
-                        <!-- Enable Iframe Embedding -->
-                        <div class="flex items-center justify-between space-x-2">
-                            <div>
-                                <Label class="text-base" for="enable_iframe_embedding">Enable Iframe embedding</Label>
-                                <p class="text-sm text-muted-foreground">
-                                    Allow this agent to be embedded using iframe on external websites
-                                </p>
-                            </div>
-                            <Switch id="enable_iframe_embedding" v-model="form.enable_iframe_embedding" />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Save Button -->
-            <div class="flex justify-end">
-                <FormSuccessMessage
-                    :show="form.recentlySuccessful"
-                    message="Security settings saved"
-                />
-                <Button :disabled="isSubmitting" size="lg" type="submit">
-                    <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                    <Save v-else class="mr-2 h-4 w-4" />
-                    Save Changes
-                </Button>
             </div>
         </form>
     </AgentLayout>

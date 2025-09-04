@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Widget\WidgetAgentVerifyController;
+use App\Http\Controllers\Widget\WidgetLeadCollectController;
+use App\Http\Controllers\Widget\WidgetLeadFormController;
 use App\Http\Controllers\Widget\WidgetSessionStoreController;
 use App\Http\Controllers\Widget\WidgetSettingsController;
 use App\Http\Controllers\Widget\WidgetStreamController;
@@ -28,4 +30,8 @@ Route::prefix('widget')->group(function () {
     Route::post('/stream', WidgetStreamController::class)->name('widget.stream');
 
     Route::get('/agents/settings', WidgetSettingsController::class)->name('widget.settings');
+
+    Route::get('/leads/form', WidgetLeadFormController::class)->name('widget.leads.form');
+
+    Route::post('/leads/form', WidgetLeadCollectController::class)->name('widget.leads.collect');
 });

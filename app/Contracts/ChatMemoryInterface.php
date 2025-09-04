@@ -44,7 +44,7 @@ interface ChatMemoryInterface
     public function getConversationsForCurrentSession(bool $onlyVisible = false, bool $orderByDate = false): array;
 
     /**
-     * Message management
+     * ChatMessage management
      */
     public function addMessage(string $role, string $message, ?string $messageId = null, ?string $model = null, string $type = 'text', array $append = []): string;
 

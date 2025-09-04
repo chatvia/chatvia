@@ -109,9 +109,9 @@ class Agent extends Model
         });
     }
 
-    public function llmForWidget()
+    public function leads(): HasMany
     {
-
+        return $this->hasMany(Lead::class);
     }
 
     public function activeLlms(): BelongsToMany
@@ -119,9 +119,9 @@ class Agent extends Model
         return $this->llms()->wherePivot('is_active', true);
     }
 
-    public function isKnowledgeable(): bool
+    public function isStandalone(): bool
     {
-        return $this->type === 'knowledge_base';
+        return $this->type === 'standalone';
     }
 
     public function isWidget(): bool
@@ -197,9 +197,14 @@ class Agent extends Model
         return Attribute::get(fn () => $this->permanent_url.'/chat/embed');
     }
 
-    public function messages(): HasMany
+    public function chatMessages(): HasMany
     {
-        return $this->hasMany(Message::class);
+        return $this->hasMany(ChatMessage::class);
+    }
+
+    public function chatSessions(): HasMany
+    {
+        return $this->hasMany(ChatSession::class);
     }
 
     protected function casts(): array
@@ -217,5 +222,10 @@ class Agent extends Model
     public function images(): Collection
     {
         return $this->files()->select('metadata->images as images')->get();
+    }
+
+    public function canCollectLeads(): bool
+    {
+        return $this->collect_leads === true;
     }
 }

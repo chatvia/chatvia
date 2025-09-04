@@ -25,10 +25,13 @@ return new class extends Migration
             $table->string('facebook_id')->nullable();
             $table->string('google_id')->nullable();
 
+            $table->boolean('is_owner')->default(false);
+
             $table->timestamp('email_verified_at')->nullable();
 
             $table->timestamps();
 
+            $table->unique(['user_id', 'is_owner']);
             $table->unique(['email', 'user_id']);
         });
     }

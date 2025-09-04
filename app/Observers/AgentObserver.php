@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\PermissionEnum;
 use App\Models\Agent;
 use App\Models\Llm;
 use App\Models\User;
@@ -18,16 +19,26 @@ class AgentObserver
         /** @var User $user */
         $user = $agent->user;
 
-        $llms = $user->llms();
-
-        $agentLlms = $agent->isKnowledgeable() ? $llms->pluck('id')->toArray() : [1];
-
-        $llmIds = Llm::query()
+        $defaultLlm = Llm::query()
             ->select('id')
-            ->whereIn('id', $agentLlms)
-            ->get()
-            ->pluck('id')
-            ->toArray();
+            ->where('is_default', true)
+            ->value('id');
+
+        if ($user->hasPermission(PermissionEnum::MODELS_VIEW)) {
+            $llms = $user->llms();
+
+            $agentLlms = $agent->isStandalone() ? $llms->pluck('id')->toArray() : [$defaultLlm];
+
+            $llmIds = Llm::query()
+                ->select('id')
+                ->whereIn('id', $agentLlms)
+                ->get()
+                ->pluck('id')
+                ->toArray();
+
+        } else {
+            $llmIds = [$defaultLlm];
+        }
 
         $agent
             ->llms()

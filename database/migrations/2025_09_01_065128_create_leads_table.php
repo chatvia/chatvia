@@ -1,19 +1,17 @@
  <?php
 
 use App\Models\Agent;
+ use App\Models\ChatConversation;
  use App\Models\ChatSession;
+ use App\Models\PipelineStage;
  use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        // Create pipeline stages table first (no dependencies)
         Schema::create('pipeline_stages', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -27,24 +25,20 @@ return new class extends Migration
 
             $table->index('order');
         });
+
         Schema::create('leads', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(ChatSession::class)->nullable()->constrained()->nullOnDelete();
-            $table->uuid('conversation_id')->unique();
-            $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(ChatConversation::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(PipelineStage::class)->constrained()->cascadeOnDelete();
 
-            // Contact Information
             $table->string('name')->nullable();
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->string('company')->nullable();
             $table->string('location')->nullable();
-            $table->text('message')->nullable();
-
-            // Pipeline & Status
-            $table->string('pipeline_stage')->default('new');
 
             $table->enum('status', ['new', 'contacted', 'qualified', 'converted', 'lost'])->default('new');
+
             $table->string('priority', 20)->default('medium'); // low, medium, high, urgent
             $table->decimal('score', 5, 2)->default(0); // Lead scoring 0-100
             $table->decimal('value', 10, 2)->nullable(); // Potential deal value
@@ -142,9 +136,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('lead_tasks');

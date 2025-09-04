@@ -449,7 +449,7 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
             },
             onDone: () => {
                 streamingForMessageIndex.value = null;
-                
+
                 // For new conversations, wait for title generation to complete
                 // before emitting the event to ensure conversation is visible
                 if (isNewConversation) {
@@ -593,7 +593,7 @@ const messageDeleted = (messageId) => {
         return;
     }
 
-    console.log('Message deleted from UI:', messageId);
+    console.log('ChatMessage deleted from UI:', messageId);
 };
 
 const feedbackProvided = (messageId, type) => {
@@ -1042,7 +1042,7 @@ const handleScrollToBottomClick = () => {
     }
 }
 
-/* Message container expansion animation */
+/* ChatMessage container expansion animation */
 .mx-auto.px-4.sm\\:px-8 {
     transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1084,7 +1084,7 @@ body,
     height: 100%;
 }
 
-/* Message list animations removed */
+/* ChatMessage list animations removed */
 
 /* Smooth scrolling */
 #messages-container {

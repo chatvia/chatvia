@@ -16,15 +16,16 @@ const props = defineProps<Props>();
 // Use time ago composable
 const { formatTimeAgo } = useTimeAgo();
 
-// Process chart data for last 14 days
+// Process chart data for last 7 days
 const chartData = computed(() => {
-    if (!props.analytics?.dailyMessages) return [];
+    if (!props.analytics?.messagesLastWeek) return [];
 
-    return props.analytics.dailyMessages.map((item: any) => ({
+    return props.analytics.messagesLastWeek.map((item: any) => ({
         date: item.date,
+        day: item.day,
         dayMonth: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         fullDate: new Date(item.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-        messages: item.messages || 0,
+        messages: item.value || 0,
     }));
 });
 
@@ -165,7 +166,7 @@ const stats = computed(() => ({
                         <!-- Usage Over Time Chart -->
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-medium">Messages Over Time - Last 14 Days</h3>
+                                <h3 class="text-lg font-medium">Messages Over Time - Last 7 Days</h3>
                                 <a href="#" class="text-sm text-primary hover:underline">View More</a>
                             </div>
                             <div class="h-64 w-full">
@@ -178,8 +179,9 @@ const stats = computed(() => ({
                                 </div>
                                 <div v-else class="h-full flex items-end gap-1">
                                     <div v-for="day in chartData" :key="day.date" class="flex flex-1 flex-col items-center gap-2 group">
-                                        <div class="w-full bg-primary rounded-t-sm cursor-pointer relative"
-                                             :style="{ height: `${(day.messages / maxMessages) * 200}px` }">
+                                        <div class="w-full rounded-t-sm cursor-pointer relative bg-primary"
+                                             
+                                             :style="{ height: `${day.messages === 0 ? 5 : Math.max(4, (day.messages / maxMessages) * 200)}px` }">
                                             <!-- Hover tooltip -->
                                             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                                 {{ day.fullDate }}: {{ day.messages }} messages

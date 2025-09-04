@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Widgets;
 
-use App\Models\Message;
+use App\Models\ChatMessage;
 use Filament\Widgets\ChartWidget;
 
 class MessagesChart extends ChartWidget
@@ -22,7 +22,7 @@ class MessagesChart extends ChartWidget
             $date = now()->subDays($i);
             $days->push($date->format('M d'));
 
-            $count = Message::whereDate('created_at', $date)->count();
+            $count = ChatMessage::whereDate('created_at', $date)->count();
             $messageCounts->push($count);
         }
 

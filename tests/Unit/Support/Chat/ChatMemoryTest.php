@@ -457,8 +457,8 @@ class ChatMemoryTest extends TestCase
         $conversationId = $this->chatMemory->createConversation('Test Conversation');
         $this->chatMemory->setConversationId($conversationId);
 
-        $messageId1 = $this->chatMemory->addMessage('user', 'Message 1');
-        $messageId2 = $this->chatMemory->addMessage('assistant', 'Message 2');
+        $messageId1 = $this->chatMemory->addMessage('user', 'ChatMessage 1');
+        $messageId2 = $this->chatMemory->addMessage('assistant', 'ChatMessage 2');
 
         $messages = $this->chatMemory->getMessagesForConversation();
         $this->assertCount(2, $messages);
@@ -481,16 +481,16 @@ class ChatMemoryTest extends TestCase
 
         // Add 5 messages
         for ($i = 1; $i <= 5; $i++) {
-            $this->chatMemory->addMessage('user', "Message {$i}");
+            $this->chatMemory->addMessage('user', "ChatMessage {$i}");
         }
 
         $lastMessages = $this->chatMemory->getLastMessages(3);
         $this->assertCount(3, $lastMessages);
 
         // Should return in reverse order (most recent first)
-        $this->assertEquals('Message 5', $lastMessages[0]['content']);
-        $this->assertEquals('Message 4', $lastMessages[1]['content']);
-        $this->assertEquals('Message 3', $lastMessages[2]['content']);
+        $this->assertEquals('ChatMessage 5', $lastMessages[0]['content']);
+        $this->assertEquals('ChatMessage 4', $lastMessages[1]['content']);
+        $this->assertEquals('ChatMessage 3', $lastMessages[2]['content']);
     }
 
     public function test_manager_reset_when_configuration_changes(): void

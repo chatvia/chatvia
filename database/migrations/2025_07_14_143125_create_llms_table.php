@@ -27,6 +27,8 @@ return new class extends Migration
             $table->boolean('reasoning')->default(false);
             $table->boolean('requires_paid_plan')->index();
 
+            $table->boolean('is_default')->default(false);
+
             $table->timestamps();
         });
 
@@ -46,6 +48,7 @@ return new class extends Migration
                 'location' => $llmData['location'],
                 'requires_paid_plan' => $llmData['requires_paid_plan'],
                 'reasoning' => $llmData['reasoning'],
+                'is_default' => $llmData['default'] ?? false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

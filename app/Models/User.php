@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Data\Chat\LlmModelData;
+use App\Enums\PermissionEnum;
 use App\Enums\UserCapabilityEnum;
 use App\Services\Billing\UserCapabilities;
 use App\Services\Billing\UserCreditSystem;
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use InvalidArgumentException;
 use Laravel\Cashier\Billable;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
@@ -68,7 +70,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function messages(): HasMany
     {
-        return $this->hasMany(Message::class);
+        return $this->hasMany(ChatMessage::class);
     }
 
     public function getCurrentPackage(): array
@@ -394,5 +396,81 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function memberOwner()
     {
         return $this->hasOne(Member::class)->where('is_owner', true)->latestOfMany();
+    }
+
+    public function quota(): HasOne
+    {
+        return $this->hasOne(UserQuota::class);
+    }
+
+    public function permissions(): HasMany
+    {
+        return $this->hasMany(UserPermission::class);
+    }
+
+    public function hasPermission(PermissionEnum $permissionEnum): bool
+    {
+        [$group, $name] = explode('.', $permissionEnum->value);
+
+        return $this->permissions()
+            ->whereRelation('permission', fn ($query) => $query->where('resource', $group)->where('action', $name))
+            ->exists();
+    }
+
+    public function missingPermission(PermissionEnum $permissionEnum): bool
+    {
+        return ! $this->hasPermission($permissionEnum);
+    }
+
+    public function grantPermission(PermissionEnum $permissionEnum)
+    {
+        if ($this->hasPermission($permissionEnum)) {
+            return;
+        }
+
+        $list = explode('.', $permissionEnum->value);
+
+        if (count($list) !== 2) {
+            throw new InvalidArgumentException('Invalid permission format');
+        }
+
+        $permission = Permission::firstOrCreate([
+            'resource' => $list[0],
+            'action' => $list[1],
+        ]);
+
+        $this->permissions()->create([
+            'permission_id' => $permission->id,
+        ]);
+    }
+
+    public function permissionsKeyValue(): ?array
+    {
+        // Get user's actual permissions
+        $userPermissions = $this?->permissions()->with('permission')
+            ->get()
+            ->groupBy('permission.resource')
+            ->map(function ($permissions) {
+                return $permissions->pluck('permission.action')->toArray();
+            })
+            ->toArray();
+
+        // Get all possible permissions from PermissionEnum
+        $allPermissions = [];
+        foreach (PermissionEnum::cases() as $permission) {
+            [$resource, $action] = explode('.', $permission->value);
+
+            if (! isset($allPermissions[$resource])) {
+                $allPermissions[$resource] = [];
+            }
+
+            // Check if user has this permission
+            $hasPermission = isset($userPermissions[$resource]) &&
+                            in_array($action, $userPermissions[$resource]);
+
+            $allPermissions[$resource][$action] = $hasPermission;
+        }
+
+        return $allPermissions;
     }
 }

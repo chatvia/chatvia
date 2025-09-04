@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Palette, Upload, Trash2, LoaderCircle, Save, User, RotateCcw, Image } from 'lucide-vue-next';
+import { Palette, Upload, Trash2, LoaderCircle, Save, User, RotateCcw, Image, Settings } from 'lucide-vue-next';
 import HeaderActions from '@/components/HeaderActions.vue';
 
 interface Props {
@@ -220,230 +220,247 @@ const restoreDefaults = () => {
                 ]"
             />
         </template>
-        <div class="space-y-6">
-            <form id="appearance-form" @submit.prevent="updateAppearance">
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Palette class="h-5 w-5" />
-                        Appearance
-                    </CardTitle>
-                    <CardDescription>
-                        Customize how your agent looks
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div class="grid gap-6">
-                        <div class="grid gap-2">
-                            <Label for="color_theme">Color Theme</Label>
-                            <div class="flex items-center gap-3">
-                                <!-- Selected Color Preview -->
-                                <div class="relative cursor-pointer" @click="showColorPicker = true">
-                                    <div
-                                        class="h-12 w-12 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
-                                        :style="{
-                                            backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
-                                        }"
-                                    >
-                                        <div class="flex h-full items-center justify-center">
-                                            <div class="h-6 w-6 rounded-full bg-white/90 shadow-sm flex items-center justify-center">
-                                                <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+        <form id="appearance-form" @submit.prevent="updateAppearance">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Column - Visual Branding -->
+                <div class="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle class="flex items-center gap-2">
+                                <Palette class="h-5 w-5" />
+                                Visual Branding
+                            </CardTitle>
+                            <CardDescription>
+                                Customize colors, avatar, and logo for your agent
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="space-y-6">
+                                <div class="grid gap-2">
+                                    <Label for="color_theme">Color Theme</Label>
+                                    <div class="flex items-center gap-3">
+                                        <!-- Selected Color Preview -->
+                                        <div class="relative cursor-pointer" @click="showColorPicker = true">
+                                            <div
+                                                class="h-12 w-12 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                                                :style="{
+                                                    backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
+                                                }"
+                                            >
+                                                <div class="flex h-full items-center justify-center">
+                                                    <div class="h-6 w-6 rounded-full bg-white/90 shadow-sm flex items-center justify-center">
+                                                        <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
+                                        
+                                        <!-- Color Info and Button -->
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <p class="text-sm font-medium capitalize">{{ appearanceForm.color_theme }}</p>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    @click="showColorPicker = true"
+                                                    class="h-7 px-3 text-xs"
+                                                >
+                                                    Choose Color Theme
+                                                </Button>
+                                            </div>
+                                            <p class="text-xs text-muted-foreground">
+                                                Current theme: {{ appearanceForm.color_theme.charAt(0).toUpperCase() + appearanceForm.color_theme.slice(1) }}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <!-- Color Info and Button -->
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <p class="text-sm font-medium capitalize">{{ appearanceForm.color_theme }}</p>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="showColorPicker = true"
-                                            class="h-7 px-3 text-xs"
-                                        >
-                                            Choose Color Theme
-                                        </Button>
-                                    </div>
+                                    
+                                    <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
+                                        {{ appearanceForm.errors.color_theme }}
+                                    </p>
                                     <p class="text-xs text-muted-foreground">
-                                        Current theme: {{ appearanceForm.color_theme.charAt(0).toUpperCase() + appearanceForm.color_theme.slice(1) }}
+                                        Choose a color theme for your agent.
+                                    </p>
+                                </div>
+
+                                <div class="grid gap-2">
+                                    <Label for="avatar">Agent Avatar</Label>
+                                    <div class="flex items-center gap-4">
+                                        <div class="h-16 w-16 overflow-hidden rounded-full border bg-muted">
+                                            <img
+                                                v-if="avatarPreview"
+                                                :src="avatarPreview"
+                                                alt="Agent avatar"
+                                                class="h-full w-full object-cover"
+                                            />
+                                            <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
+                                                <User class="h-8 w-8" />
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col gap-2">
+                                            <input
+                                                ref="avatarInputRef"
+                                                accept="image/*"
+                                                class="hidden"
+                                                type="file"
+                                                @change="handleAvatarUpload"
+                                            />
+                                            <Button type="button" variant="outline" @click="triggerAvatarInput">
+                                                <Upload class="mr-2 h-4 w-4" />
+                                                Upload Avatar
+                                            </Button>
+                                            <Button
+                                                v-if="avatarPreview"
+                                                class="text-destructive hover:text-destructive/80"
+                                                size="sm"
+                                                type="button"
+                                                variant="ghost"
+                                                @click="removeAvatar"
+                                            >
+                                                <Trash2 class="mr-2 h-4 w-4" />
+                                                Remove
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <p v-if="appearanceForm.errors.avatar" class="text-sm text-destructive">
+                                        {{ appearanceForm.errors.avatar }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        Recommended size: 256x256 pixels
+                                    </p>
+                                </div>
+
+                                <div class="grid gap-2">
+                                    <Label for="logo">Logo Image</Label>
+                                    <div class="flex items-center gap-4">
+                                        <div class="h-16 w-16 overflow-hidden rounded-full border bg-muted">
+                                            <img
+                                                v-if="logoPreview"
+                                                :src="logoPreview"
+                                                alt="Logo"
+                                                class="h-full w-full object-cover"
+                                            />
+                                            <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
+                                                <Image class="h-8 w-8" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col gap-2">
+                                            <input
+                                                ref="logoInputRef"
+                                                accept="image/*"
+                                                class="hidden"
+                                                type="file"
+                                                @change="handleLogoUpload"
+                                            />
+                                            <Button type="button" variant="outline" @click="triggerLogoInput">
+                                                <Upload class="mr-2 h-4 w-4" />
+                                                Upload Logo
+                                            </Button>
+                                            <Button
+                                                v-if="logoPreview"
+                                                class="text-destructive hover:text-destructive/80"
+                                                size="sm"
+                                                type="button"
+                                                variant="ghost"
+                                                @click="removeLogo"
+                                            >
+                                                <Trash2 class="mr-2 h-4 w-4" />
+                                                Remove
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <p v-if="appearanceForm.errors.logo" class="text-sm text-destructive">
+                                        {{ appearanceForm.errors.logo }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        Recommended size: 256x256 pixels
                                     </p>
                                 </div>
                             </div>
-                            
-                            <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
-                                {{ appearanceForm.errors.color_theme }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Choose a color theme for your agent.
-                            </p>
-                        </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
-
-
-                        <div class="grid gap-2">
-                            <Label for="avatar">Agent Avatar</Label>
-                            <div class="flex items-center gap-4">
-                                <div class="h-16 w-16 overflow-hidden rounded-full border bg-muted">
-                                    <img
-                                        v-if="avatarPreview"
-                                        :src="avatarPreview"
-                                        alt="Agent avatar"
-                                        class="h-full w-full object-cover"
+                <!-- Right Column - Text Content -->
+                <div class="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle class="flex items-center gap-2">
+                                <Settings class="h-5 w-5" />
+                                Text Content
+                            </CardTitle>
+                            <CardDescription>
+                                Configure messages and text displayed to users
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="space-y-6">
+                                <div class="grid gap-2">
+                                    <Label for="welcome_message">Welcome Message</Label>
+                                    <Textarea
+                                        id="welcome_message"
+                                        v-model="appearanceForm.welcome_message"
+                                        :error="appearanceForm.errors.welcome_message"
+                                        placeholder="Hi there! How can I help you today?"
+                                        rows="3"
                                     />
-                                    <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
-                                        <User class="h-8 w-8" />
-                                    </div>
+                                    <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
+                                        {{ appearanceForm.errors.welcome_message }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        This message will be shown when users first visit your agent
+                                    </p>
                                 </div>
-                                <div class="flex flex-col gap-2">
-                                    <input
-                                        ref="avatarInputRef"
-                                        accept="image/*"
-                                        class="hidden"
-                                        type="file"
-                                        @change="handleAvatarUpload"
-                                    />
-                                    <Button type="button" variant="outline" @click="triggerAvatarInput">
-                                        <Upload class="mr-2 h-4 w-4" />
-                                        Upload Avatar
-                                    </Button>
-                                    <Button
-                                        v-if="avatarPreview"
-                                        class="text-destructive hover:text-destructive/80"
-                                        size="sm"
-                                        type="button"
-                                        variant="ghost"
-                                        @click="removeAvatar"
-                                    >
-                                        <Trash2 class="mr-2 h-4 w-4" />
-                                        Remove
-                                    </Button>
-                                </div>
-                            </div>
-                            <p v-if="appearanceForm.errors.avatar" class="text-sm text-destructive">
-                                {{ appearanceForm.errors.avatar }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Recommended size: 256x256 pixels
-                            </p>
-                        </div>
 
-                        <div class="grid gap-2">
-                            <Label for="logo">Logo Image</Label>
-                            <div class="flex items-center gap-4">
-                                <div class="h-16 w-16 overflow-hidden rounded-full border bg-muted">
-                                    <img
-                                        v-if="logoPreview"
-                                        :src="logoPreview"
-                                        alt="Logo"
-                                        class="h-full w-full object-cover"
+                                <div class="grid gap-2">
+                                    <Label for="chat_window_title">Chat Window Title</Label>
+                                    <Input
+                                        id="chat_window_title"
+                                        v-model="appearanceForm.chat_window_title"
+                                        :error="appearanceForm.errors.chat_window_title"
+                                        placeholder="Chat with our AI Assistant"
                                     />
-                                    <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
-                                        <Image class="h-8 w-8" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-
-                                    </div>
+                                    <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
+                                        {{ appearanceForm.errors.chat_window_title }}
+                                    </p>
                                 </div>
-                                <div class="flex flex-col gap-2">
-                                    <input
-                                        ref="logoInputRef"
-                                        accept="image/*"
-                                        class="hidden"
-                                        type="file"
-                                        @change="handleLogoUpload"
+
+                                <div class="grid gap-2">
+                                    <Label for="chat_footer_text">Chat Footer Text</Label>
+                                    <Input
+                                        id="chat_footer_text"
+                                        v-model="appearanceForm.chat_footer_text"
+                                        :error="appearanceForm.errors.chat_footer_text"
+                                        placeholder="Consider checking important information"
                                     />
-                                    <Button type="button" variant="outline" @click="triggerLogoInput">
-                                        <Upload class="mr-2 h-4 w-4" />
-                                        Upload Logo
-                                    </Button>
-                                    <Button
-                                        v-if="logoPreview"
-                                        class="text-destructive hover:text-destructive/80"
-                                        size="sm"
-                                        type="button"
-                                        variant="ghost"
-                                        @click="removeLogo"
-                                    >
-                                        <Trash2 class="mr-2 h-4 w-4" />
-                                        Remove
-                                    </Button>
+                                    <p v-if="appearanceForm.errors.chat_footer_text" class="text-sm text-destructive">
+                                        {{ appearanceForm.errors.chat_footer_text }}
+                                    </p>
+                                </div>
+
+                                <div class="grid gap-2">
+                                    <Label for="composer_placeholder">Composer Placeholder</Label>
+                                    <Input
+                                        id="composer_placeholder"
+                                        v-model="appearanceForm.composer_placeholder"
+                                        :error="appearanceForm.errors.composer_placeholder"
+                                        placeholder="Ask anything..."
+                                    />
+                                    <p v-if="appearanceForm.errors.composer_placeholder" class="text-sm text-destructive">
+                                        {{ appearanceForm.errors.composer_placeholder }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        Placeholder text shown in the chat input field
+                                    </p>
                                 </div>
                             </div>
-                            <p v-if="appearanceForm.errors.logo" class="text-sm text-destructive">
-                                {{ appearanceForm.errors.logo }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Recommended size: 256x256 pixels
-                            </p>
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="welcome_message">Welcome Message</Label>
-                            <Textarea
-                                id="welcome_message"
-                                v-model="appearanceForm.welcome_message"
-                                :error="appearanceForm.errors.welcome_message"
-                                placeholder="Hi there! How can I help you today?"
-                                rows="3"
-                            />
-                            <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
-                                {{ appearanceForm.errors.welcome_message }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                This message will be shown when users first visit your agent
-                            </p>
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="chat_window_title">Chat Window Title</Label>
-                            <Input
-                                id="chat_window_title"
-                                v-model="appearanceForm.chat_window_title"
-                                :error="appearanceForm.errors.chat_window_title"
-                                placeholder="Chat with our AI Assistant"
-                            />
-                            <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
-                                {{ appearanceForm.errors.chat_window_title }}
-                            </p>
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="chat_footer_text">Chat Footer Text</Label>
-                            <Input
-                                id="chat_footer_text"
-                                v-model="appearanceForm.chat_footer_text"
-                                :error="appearanceForm.errors.chat_footer_text"
-                                placeholder="Consider checking important information"
-                            />
-                            <p v-if="appearanceForm.errors.chat_footer_text" class="text-sm text-destructive">
-                                {{ appearanceForm.errors.chat_footer_text }}
-                            </p>
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="composer_placeholder">Composer Placeholder</Label>
-                            <Input
-                                id="composer_placeholder"
-                                v-model="appearanceForm.composer_placeholder"
-                                :error="appearanceForm.errors.composer_placeholder"
-                                placeholder="Ask anything..."
-                            />
-                            <p v-if="appearanceForm.errors.composer_placeholder" class="text-sm text-destructive">
-                                {{ appearanceForm.errors.composer_placeholder }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Placeholder text shown in the chat input field
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         </form>
-        </div>
 
         <!-- Color Picker Dialog -->
         <Dialog :open="showColorPicker" @update:open="showColorPicker = false">

@@ -21,6 +21,7 @@ class StreamHandler
     ): StreamedResponse {
         return new StreamedResponse(function () use ($context, $llmMessages, $onComplete, $onError) {
             $this->setupStreamHeaders();
+
             ignore_user_abort(false);
 
             try {

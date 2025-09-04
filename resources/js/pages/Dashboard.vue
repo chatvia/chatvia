@@ -444,8 +444,6 @@ onMounted(() => {
         <!-- Create Agent Modal -->
         <CreateAgentModal
             v-model:open="showCreateAgentModal"
-            :can_register_custom_sub_domain="(page.props.can_register_custom_sub_domain as boolean)"
-            :knowledge_based_system_instruction="(page.props.knowledge_based_system_instruction as string)"
             @agent-created="refreshDashboardData"
         />
     </AppLayout>

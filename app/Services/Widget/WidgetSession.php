@@ -10,8 +10,6 @@ class WidgetSession
 {
     private Agent $agent;
 
-    private const string WIDGET_SESSION_CACHE_KEY = 'chat-session.widget.%s.%s';
-
     public function setAgent(Agent $agent): static
     {
         $this->agent = $agent;

@@ -44,6 +44,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => false,
         'reasoning' => false,
+        'default' => true,
         'price_per_million_tokens' => [
             'input' => 0.15,
             'output' => 0.60,

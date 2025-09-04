@@ -14,12 +14,10 @@
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
+
                     <div class="space-y-8">
-
-
                         <!-- Embed Code -->
                         <div class="space-y-4">
-
                             <div class="space-y-4">
                                 <!-- Size Options -->
                                 <div class="space-y-3">

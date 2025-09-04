@@ -41,7 +41,7 @@ class StripeEventListener
         $endsAt = $isYearly ? now()->addYear() : now()->addMonth();
 
         if ($user->agents_limit < $fixedLimit['agents_limit']) {
-            $user->update([
+            $user->quota()->updateOrCreate([
                 'agents_limit' => $fixedLimit['agents_limit'],
                 'pages_limit' => $fixedLimit['pages_limit'],
                 'minutes_limit' => $fixedLimit['minutes_limit'],

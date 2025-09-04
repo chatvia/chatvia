@@ -14,7 +14,7 @@ class UserObserver
         $freeQuotaLimit = config('billing.packages.free.quota_limits.monthly');
         $fixed = config('billing.packages.free.quota_limits.fixed');
 
-        $user->update([
+        $user->quota()->create([
             'agents_limit' => $fixed['agents_limit'],
             'pages_limit' => $fixed['pages_limit'],
             'minutes_limit' => $fixed['minutes_limit'],

@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Bot, LoaderCircle, Save } from 'lucide-vue-next';
 import axios from 'axios';
 import HeaderActions from '@/components/HeaderActions.vue';
@@ -116,7 +115,7 @@ const hasFormErrors = computed(() => {
                                         :error="form.errors.sub_domain"
                                         class="rounded-r-none disabled"
                                         placeholder=""
-                                        :readonly="true"
+                                        :readonly="!$page.props.subscribed"
                                     />
                                     <div
                                         class="border-input bg-muted text-muted-foreground flex h-9 items-center rounded-r-md border border-l-0 px-3 text-sm"

@@ -20,8 +20,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-    Plus, 
+import {
+    Plus,
     Trash2,
     Save,
     Zap,
@@ -55,16 +55,16 @@ const addAction = () => {
     if (!newActionInput.value.trim() || !newActionType.value) {
         return;
     }
-    
+
     const newAction: ActionRule = {
         id: Date.now().toString(),
         input: newActionInput.value.trim(),
         actionType: newActionType.value,
         config: getDefaultConfig(newActionType.value)
     };
-    
+
     actions.value.push(newAction);
-    
+
     // Reset form
     newActionInput.value = '';
     newActionType.value = '';
@@ -106,7 +106,7 @@ const getDefaultConfig = (actionType: string): Record<string, any> => {
             fields: '{"input": "{input}", "timestamp": "{timestamp}"}'
         }
     };
-    
+
     return defaults[actionType] || {};
 };
 
@@ -139,18 +139,12 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
 <template>
     <AgentLayout :agent="agent" title="Actions">
         <Head title="Actions" />
-        
-        <div class="space-y-6">
-            <!-- Header -->
-            <div>
-                <h1 class="text-2xl font-semibold">Actions</h1>
-                <p class="text-muted-foreground">
-                    Set up automated actions based on user inputs
-                </p>
-            </div>
 
-            <!-- Add New Action -->
-            <Card>
+        <div class="space-y-6">
+
+            <div class="flex justify-center">
+                <!-- Add New Action -->
+                <Card class="w-full max-w-6xl">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Plus class="h-5 w-5" />
@@ -171,7 +165,7 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                 class="w-full text-lg py-3"
                             />
                         </div>
-                        
+
                         <div class="space-y-2">
                             <Label for="action-type">Do this</Label>
                             <Select v-model="newActionType">
@@ -189,9 +183,9 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                 </SelectContent>
                             </Select>
                         </div>
-                        
+
                         <div class="flex items-end">
-                            <Button 
+                            <Button
                                 @click="addAction"
                                 :disabled="!newActionInput.trim() || !newActionType"
                                 class="w-full"
@@ -203,18 +197,20 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                     </div>
                 </CardContent>
             </Card>
+            </div>
 
             <!-- Existing Actions -->
-            <div class="space-y-4">
-                <h2 class="text-lg font-semibold">Active Actions</h2>
-                
-                <div v-if="actions.length === 0" class="text-center py-12">
-                    <Zap class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p class="text-muted-foreground">No actions configured yet</p>
-                    <p class="text-sm text-muted-foreground">Add your first action above to get started</p>
-                </div>
-                
-                <Card v-for="action in actions" :key="action.id" class="relative">
+            <div class="flex justify-center">
+                <div class="w-full max-w-6xl space-y-4">
+                    <h2 class="text-lg font-semibold">Active Actions</h2>
+
+                    <div v-if="actions.length === 0" class="text-center py-12">
+                        <Zap class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p class="text-muted-foreground">No actions configured yet</p>
+                        <p class="text-sm text-muted-foreground">Add your first action above to get started</p>
+                    </div>
+
+                    <Card v-for="action in actions" :key="action.id" class="relative">
                     <CardHeader class="pb-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
@@ -238,15 +234,15 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                             </Button>
                         </div>
                     </CardHeader>
-                    
+
                     <CardContent class="pt-0">
                         <div class="space-y-3">
-                            <!-- Slack Message Config -->
+                            <!-- Slack ChatMessage Config -->
                             <div v-if="action.actionType === 'send_slack_message'" class="space-y-3">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <Label class="text-xs">Channel</Label>
-                                        <Input 
+                                        <Input
                                             :value="action.config.channel"
                                             @input="updateActionConfig(action.id, 'channel', $event.target.value)"
                                             placeholder="#general"
@@ -256,7 +252,7 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                 </div>
                                 <div>
                                     <Label class="text-xs">Message Template</Label>
-                                    <Textarea 
+                                    <Textarea
                                         :value="action.config.message"
                                         @input="updateActionConfig(action.id, 'message', $event.target.value)"
                                         placeholder="User input: {input}"
@@ -264,13 +260,13 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                     />
                                 </div>
                             </div>
-                            
+
                             <!-- Email Config -->
                             <div v-else-if="action.actionType === 'send_email'" class="space-y-3">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <Label class="text-xs">To Email</Label>
-                                        <Input 
+                                        <Input
                                             :value="action.config.to"
                                             @input="updateActionConfig(action.id, 'to', $event.target.value)"
                                             placeholder="admin@example.com"
@@ -279,7 +275,7 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                     </div>
                                     <div>
                                         <Label class="text-xs">Subject</Label>
-                                        <Input 
+                                        <Input
                                             :value="action.config.subject"
                                             @input="updateActionConfig(action.id, 'subject', $event.target.value)"
                                             placeholder="New user input"
@@ -289,7 +285,7 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                 </div>
                                 <div>
                                     <Label class="text-xs">Email Body</Label>
-                                    <Textarea 
+                                    <Textarea
                                         :value="action.config.body"
                                         @input="updateActionConfig(action.id, 'body', $event.target.value)"
                                         placeholder="User said: {input}"
@@ -297,13 +293,13 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                     />
                                 </div>
                             </div>
-                            
+
                             <!-- Webhook Config -->
                             <div v-else-if="action.actionType === 'webhook'" class="space-y-3">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <Label class="text-xs">URL</Label>
-                                        <Input 
+                                        <Input
                                             :value="action.config.url"
                                             @input="updateActionConfig(action.id, 'url', $event.target.value)"
                                             placeholder="https://api.example.com/webhook"
@@ -312,7 +308,7 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                     </div>
                                     <div>
                                         <Label class="text-xs">Method</Label>
-                                        <Select 
+                                        <Select
                                             :value="action.config.method"
                                             @update:modelValue="updateActionConfig(action.id, 'method', $event)"
                                         >
@@ -329,7 +325,7 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                 </div>
                                 <div>
                                     <Label class="text-xs">Payload (JSON)</Label>
-                                    <Textarea 
+                                    <Textarea
                                         :value="action.config.payload"
                                         @input="updateActionConfig(action.id, 'payload', $event.target.value)"
                                         placeholder='{"input": "{input}"}'
@@ -337,7 +333,7 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                                     />
                                 </div>
                             </div>
-                            
+
                             <!-- Generic config for other types -->
                             <div v-else class="text-sm text-muted-foreground">
                                 <p>{{ getActionTypeLabel(action.actionType) }} configuration coming soon...</p>
@@ -345,6 +341,7 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
                         </div>
                     </CardContent>
                 </Card>
+            </div>
             </div>
         </div>
     </AgentLayout>

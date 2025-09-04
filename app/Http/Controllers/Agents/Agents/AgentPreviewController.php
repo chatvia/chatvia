@@ -17,7 +17,7 @@ class AgentPreviewController
 
         $authToken = null;
 
-        if (! $agent->is_public && $agent->isKnowledgeable()) {
+        if (! $agent->is_public && $agent->isStandalone()) {
             $user = $request->user();
             $authToken = $authTokenService->generateTokenFromUser($agent, $user, 60);
         }

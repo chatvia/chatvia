@@ -18,7 +18,9 @@ import {
     Plus,
     Search,
     ExternalLink,
-    Loader2
+    Loader2,
+    MessageSquare,
+    Code
 } from 'lucide-vue-next';
 import axios from 'axios';
 
@@ -34,6 +36,7 @@ interface Agent {
     created_at: string;
     total_messages?: number;
     unique_users?: number;
+    total_members?: number;
 }
 
 // Fetch agents from the server
@@ -86,12 +89,23 @@ const formatDate = (dateString: string) => {
 
 const getAgentTypeBadgeClass = (type: string) => {
     const lowerType = type.toLowerCase();
-    if (lowerType === 'knowledge_base') {
-        return 'rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
+    if (lowerType === 'standalone') {
+        return 'rounded-full bg-blue-100 p-2 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
     } else if (lowerType === 'widget') {
-        return 'rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-400';
+        return 'rounded-full bg-green-100 p-2 text-green-700 dark:bg-green-900/20 dark:text-green-400';
     } else {
-        return 'rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary';
+        return 'rounded-full bg-primary/10 p-2 text-primary';
+    }
+};
+
+const getAgentTypeIcon = (type: string) => {
+    const lowerType = type.toLowerCase();
+    if (lowerType === 'standalone') {
+        return MessageSquare;
+    } else if (lowerType === 'widget') {
+        return Code;
+    } else {
+        return Bot;
     }
 };
 </script>
@@ -166,24 +180,24 @@ const getAgentTypeBadgeClass = (type: string) => {
                                 <Bot class="h-5 w-5 flex-shrink-0" />
                                 <span class="truncate">{{ agent.name }}</span>
                             </CardTitle>
-                            <span :class="getAgentTypeBadgeClass(agent.type)">
-                                {{ agent.type === 'knowledge_base' ? 'ChatGPT-style' : agent.type === 'widget' ? 'Widget' : agent.type }}
-                            </span>
+                            <div :class="getAgentTypeBadgeClass(agent.type)">
+                                <component :is="getAgentTypeIcon(agent.type)" class="h-4 w-4" />
+                            </div>
                         </div>
 
                     </CardHeader>
 
                     <CardContent>
-                        <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="grid gap-4 text-sm" :class="agent.type.toLowerCase() === 'widget' ? 'grid-cols-1' : 'grid-cols-2'">
                             <div class="flex flex-col">
                                 <span class="text-muted-foreground">Messages</span>
                                 <span class="text-lg font-medium">{{ agent.total_messages || 0 }}</span>
                             </div>
-                            <div class="flex flex-col">
+                            <div v-if="agent.type.toLowerCase() !== 'widget'" class="flex flex-col">
                                 <span class="text-muted-foreground">Members</span>
                                 <span class="text-lg font-medium">{{ agent.total_members || 0 }}</span>
                             </div>
-                            <div class="flex flex-col col-span-2">
+                            <div class="flex flex-col" :class="agent.type.toLowerCase() === 'widget' ? '' : 'col-span-2'">
                                 <span class="text-muted-foreground">Created</span>
                                 <span>{{ formatDate(agent.created_at) }}</span>
                             </div>
@@ -208,8 +222,6 @@ const getAgentTypeBadgeClass = (type: string) => {
         <!-- Create Agent Modal -->
         <CreateAgentModal
             v-model:open="showCreateAgentModal"
-            :can_register_custom_sub_domain="(page.props.can_register_custom_sub_domain as boolean)"
-            :knowledge_based_system_instruction="(page.props.knowledge_based_system_instruction as string)"
             @agent-created="refreshAgents"
         />
     </AppLayout>

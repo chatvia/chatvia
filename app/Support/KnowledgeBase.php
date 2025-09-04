@@ -244,7 +244,7 @@ LIMIT ?
 
     public function searchInKnowledgeBaseIfNeeded(\App\Models\Agent $agent, string $userMessage): string
     {
-        if ($agent->isKnowledgeable()) {
+        if ($agent->isStandalone()) {
             $chunks = $this->chunks($agent->id, $userMessage);
 
             if ($chunks->isEmpty()) {

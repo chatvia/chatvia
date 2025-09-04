@@ -117,7 +117,7 @@ class AgentResource extends Resource
                 TextColumn::make('messages_count')
                     ->label('Messages')
                     ->getStateUsing(function (Agent $record): int {
-                        return $record->messages()->count();
+                        return $record->chatMessages()->count();
                     })
                     ->sortable(),
                 TextColumn::make('created_at')

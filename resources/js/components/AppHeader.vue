@@ -75,11 +75,7 @@ const mainNavItems: NavItem[] = [
         href: route('agents.index'),
         icon: BotMessageSquare,
     },
-    {
-        title: 'Leads',
-        href: route('leads.index'),
-        icon: Users,
-    },
+
     {
         title: 'Knowledge',
         href: route('knowledge-base.show'),

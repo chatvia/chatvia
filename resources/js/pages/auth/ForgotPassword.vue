@@ -32,7 +32,7 @@ const submit = () => {
 
         <!-- Clean, spacious container -->
         <div class="w-full max-w-lg mx-auto space-y-8">
-            <!-- Status Message -->
+            <!-- Status ChatMessage -->
             <div v-if="status" class="p-4 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg">
                 <p class="text-center text-sm font-medium text-green-600 dark:text-green-400">
                     {{ status }}
@@ -48,13 +48,13 @@ const submit = () => {
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
                             <Mail class="h-5 w-5" />
                         </div>
-                        <Input 
-                            id="email" 
-                            type="email" 
-                            name="email" 
-                            autocomplete="email" 
-                            v-model="form.email" 
-                            autofocus 
+                        <Input
+                            id="email"
+                            type="email"
+                            name="email"
+                            autocomplete="email"
+                            v-model="form.email"
+                            autofocus
                             placeholder="email@example.com"
                             class="h-12 text-base pl-10"
                         />

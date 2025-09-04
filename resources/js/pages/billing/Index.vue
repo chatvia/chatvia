@@ -109,7 +109,7 @@ const cancelScheduleForm = useForm({});
 const usageData = ref<UsageData | null>(null);
 const isLoadingUsage = ref(true);
 
-// Message credits dialog state
+// ChatMessage credits dialog state
 const isCreditsDialogOpen = ref(false);
 const creditsQuantity = ref(1);
 const basePrice = 10; // $10 USD per 1000 messages

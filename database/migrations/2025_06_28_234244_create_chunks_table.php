@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Agent;
-use App\Models\AgentFile;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +13,9 @@ return new class extends Migration
         Schema::create('chunks', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Agent::class)->index()->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(AgentFile::class)->index()->constrained()->cascadeOnDelete();
+
+            $table->morphs('chunkable');
+
             $table->enum('type', ['text', 'image', 'table']);
             $table->unsignedInteger('chunk_index');
             $table->text('chunk');
@@ -28,7 +29,7 @@ return new class extends Migration
             $table->unsignedInteger('retrieval_count')->default(0);
             $table->timestamps();
 
-            $table->unique(['agent_file_id', 'md5_hash']);
+            $table->unique(['chunkable_type', 'chunkable_id', 'md5_hash']);
         });
 
         DB::statement('CREATE INDEX chunks_embedding_bm25 ON chunks USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);');

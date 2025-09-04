@@ -3,7 +3,7 @@
 namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\MessageResource\Pages;
-use App\Models\Message;
+use App\Models\ChatMessage;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class MessageResource extends Resource
 {
-    protected static ?string $model = Message::class;
+    protected static ?string $model = ChatMessage::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
@@ -28,7 +28,7 @@ class MessageResource extends Resource
     {
         return $form
             ->schema([
-                Section::make('Message Information')
+                Section::make('ChatMessage Information')
                     ->schema([
                         Grid::make(2)
                             ->schema([
@@ -79,7 +79,7 @@ class MessageResource extends Resource
                     ->sortable(),
                 TextColumn::make('agent.name')
                     ->label('Agent')
-                    ->url(fn (Message $record) => $record->agent?->url)
+                    ->url(fn (ChatMessage $record) => $record->agent?->url)
                     ->openUrlInNewTab()
                     ->searchable()
                     ->sortable(),
@@ -99,7 +99,7 @@ class MessageResource extends Resource
                     ->sortable(),
                 TextColumn::make('cost')
                     ->label('Cost')
-                    ->getStateUsing(function (Message $record): string {
+                    ->getStateUsing(function (ChatMessage $record): string {
                         $models = config('llms', []);
                         $modelKey = strtolower((string) ($record->model ?? ''));
                         $entry = collect($models)->first(function ($m) use ($modelKey) {

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { BreadcrumbItem } from '@/types';
 import { useForm, router } from '@inertiajs/vue3';
@@ -16,8 +15,6 @@ import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     open: boolean;
-    can_register_custom_sub_domain: boolean;
-    knowledge_based_system_instruction: string;
 }>();
 
 const emit = defineEmits<{
@@ -27,7 +24,7 @@ const emit = defineEmits<{
 
 enum AgentType {
     WIDGET = 'widget',
-    CHATGPT_STYLE = 'knowledge_base',
+    CHATGPT_STYLE = 'standalone',
 }
 
 interface UsageData {
@@ -84,12 +81,6 @@ const currentAgentQuota = computed(() => {
     return usageData.value.agents.total;
 });
 
-// Get display name for selected agent type
-const selectedAgentTypeName = computed(() => {
-    if (form.type === AgentType.CHATGPT_STYLE) return 'ChatGPT-style';
-    if (form.type === AgentType.WIDGET) return 'Website widget';
-    return '';
-});
 
 // Fetch usage data
 const fetchUsageData = async () => {
@@ -120,7 +111,7 @@ const submit = () => {
     // Check quota before submitting
     if (!canCreateAnyAgent.value) {
         toast.error('Agent limit reached', {
-            description: 'You\'ve reached your agent limit. Please upgrade your plan or delete existing agents to create new ones.',
+            description: 'You\'ve reached your agent limit.',
             duration: 5000,
         });
         return;
@@ -136,8 +127,9 @@ const submit = () => {
             emit('update:open', false);
             emit('agent-created');
             fetchUsageData();
-            // Reset form
+            // Reset form and clear errors
             form.reset();
+            form.clearErrors();
         },
         onError: () => {
             isSubmitting.value = false;
@@ -148,12 +140,15 @@ const submit = () => {
 const closeModal = () => {
     emit('update:open', false);
     form.reset();
+    form.clearErrors();
 };
 
 // Watch for modal open state to fetch usage data
 watch(() => props.open, (newValue) => {
     if (newValue) {
         fetchUsageData();
+        // Clear any previous errors when opening modal
+        form.clearErrors();
     }
 });
 
@@ -185,7 +180,7 @@ onMounted(() => {
                         <div class="flex-1">
                             <h3 class="text-sm font-medium text-red-800 dark:text-red-200">Agent Limit Reached</h3>
                             <p class="mt-1 text-sm text-red-700 dark:text-red-300">
-                                You've reached your agent limit. Please upgrade your plan or delete existing agents to create new ones.
+                                You've reached your agent limit.
                             </p>
                             <div class="mt-3">
                                 <Button
@@ -221,40 +216,96 @@ onMounted(() => {
                     </div>
 
                     <!-- Agent Type -->
-                    <div class="space-y-2">
-                        <Label for="type" required>Agent Type</Label>
-                        <Select v-model="form.type" :disabled="!canCreateAnyAgent">
-                            <SelectTrigger class="w-full">
-                                <SelectValue>
-                                    <template #default>
-                                        <span>{{ selectedAgentTypeName || 'Select agent type' }}</span>
-                                    </template>
-                                </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem :value="AgentType.CHATGPT_STYLE">
-                                    <div class="flex items-center gap-2">
-                                        <MessageSquare class="h-4 w-4 text-emerald-600" />
-                                        <span>ChatGPT-style</span>
-                                        <span class="ml-auto text-xs text-muted-foreground">Team Access</span>
+                    <div class="space-y-3">
+                        <Label required>Choose Agent Type</Label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- ChatGPT-style Agent -->
+                            <button
+                                type="button"
+                                :disabled="!canCreateAnyAgent"
+                                @click="form.type = AgentType.CHATGPT_STYLE"
+                                :class="[
+                                    'relative p-6 rounded-lg border-2 transition-all duration-200 text-center group',
+                                    form.type === AgentType.CHATGPT_STYLE
+                                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20'
+                                        : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-25 dark:border-gray-700 dark:hover:border-emerald-600',
+                                    !canCreateAnyAgent ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                ]"
+                            >
+                                <div class="flex flex-col items-center space-y-3">
+                                    <div :class="[
+                                        'p-4 rounded-full',
+                                        form.type === AgentType.CHATGPT_STYLE
+                                            ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                                            : 'bg-gray-100 group-hover:bg-emerald-100 dark:bg-gray-800 dark:group-hover:bg-emerald-900/30'
+                                    ]">
+                                        <MessageSquare :class="[
+                                            'h-8 w-8',
+                                            form.type === AgentType.CHATGPT_STYLE
+                                                ? 'text-emerald-600 dark:text-emerald-400'
+                                                : 'text-gray-600 group-hover:text-emerald-600 dark:text-gray-400 dark:group-hover:text-emerald-400'
+                                        ]" />
                                     </div>
-                                </SelectItem>
-                                <SelectItem :value="AgentType.WIDGET">
-                                    <div class="flex items-center gap-2">
-                                        <Globe class="h-4 w-4 text-blue-600" />
-                                        <span>Website widget</span>
-                                        <span class="ml-auto text-xs text-muted-foreground">Embeddable</span>
+                                    <div>
+                                        <h3 class="font-semibold text-lg mb-1">ChatGPT-style</h3>
+                                        <p class="text-sm text-muted-foreground">
+                                            Perfect for teams and internal use, can either be private or public
+                                        </p>
                                     </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                                </div>
+                                <div v-if="form.type === AgentType.CHATGPT_STYLE" class="absolute top-3 right-3">
+                                    <div class="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <!-- Website Widget Agent -->
+                            <button
+                                type="button"
+                                :disabled="!canCreateAnyAgent"
+                                @click="form.type = AgentType.WIDGET"
+                                :class="[
+                                    'relative p-6 rounded-lg border-2 transition-all duration-200 text-center group',
+                                    form.type === AgentType.WIDGET
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25 dark:border-gray-700 dark:hover:border-blue-600',
+                                    !canCreateAnyAgent ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                ]"
+                            >
+                                <div class="flex flex-col items-center space-y-3">
+                                    <div :class="[
+                                        'p-4 rounded-full',
+                                        form.type === AgentType.WIDGET
+                                            ? 'bg-blue-100 dark:bg-blue-900/30'
+                                            : 'bg-gray-100 group-hover:bg-blue-100 dark:bg-gray-800 dark:group-hover:bg-blue-900/30'
+                                    ]">
+                                        <Globe :class="[
+                                            'h-8 w-8',
+                                            form.type === AgentType.WIDGET
+                                                ? 'text-blue-600 dark:text-blue-400'
+                                                : 'text-gray-600 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400'
+                                        ]" />
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-lg mb-1">Website Widget</h3>
+                                        <p class="text-sm text-muted-foreground">
+                                            Embed as a widget on your website, perfect for 24/7 supportO
+                                        </p>
+                                    </div>
+                                </div>
+                                <div v-if="form.type === AgentType.WIDGET" class="absolute top-3 right-3">
+                                    <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
                         <p v-if="form.errors.type" class="text-destructive text-sm">{{ form.errors.type }}</p>
-                        <p class="text-xs text-muted-foreground">
-                            {{ form.type === AgentType.CHATGPT_STYLE
-                                ? 'ChatGPT-like interface that can be shared with your team.'
-                                : 'Chat widget that can be embedded on your website.'
-                            }}
-                        </p>
                     </div>
                 </div>
             </form>

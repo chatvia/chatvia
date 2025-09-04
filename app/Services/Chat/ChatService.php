@@ -39,7 +39,7 @@ class ChatService
         $userMessageId = null;
 
         // Add user message if not the first conversation
-        if ($data->saveUserMessageImmediately || count($llmMessages) > 1) {
+        if ($data->persistMessage && ($data->saveUserMessageImmediately || count($llmMessages) > 1)) {
             $userMessageId = $this
                 ->memory
                 ->setAgent($data->agent)
@@ -61,7 +61,7 @@ class ChatService
     public function prepareLlmMessages(ChatContext $context): array
     {
         return $this->messageProcessor->prepareLlmMessages(
-            $context->requestData->agent,
+            $context->requestData,
             $context->payload,
             $context->llmMessages
         );
@@ -118,9 +118,10 @@ class ChatService
             return;
         }
 
-        $this->saveAssistantMessage($context);
+        if ($context->requestData->persistMessage) {
+            $this->saveAssistantMessage($context);
+        }
 
-        // TODO: it does not update the conversation's title
         if (count($context->llmMessages) <= 2) {
             $this
                 ->memory
@@ -147,6 +148,10 @@ class ChatService
 
     private function saveAssistantMessage(ChatContext $context): void
     {
+        $strip = '<ShowLeadForm/>';
+
+        $message = str_replace($strip, '', $context->streamedMessage);
+
         $this
             ->memory
             ->setAgent($context->requestData->agent)
@@ -156,7 +161,7 @@ class ChatService
                 new ChatOutputPayload(
                     message_id: $context->assistantMessageId,
                     role: 'assistant',
-                    message: $context->streamedMessage,
+                    message: $message,
                     model: $context->requestData->message->model->external_name,
                     generation_id: $context->generationId,
                     response_time_ms: $context->getResponseTimeMs(),

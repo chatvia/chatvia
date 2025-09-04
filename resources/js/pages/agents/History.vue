@@ -83,7 +83,8 @@ const hasFormErrors = computed(() => {
             />
         </template>
         <form id="history-form" @submit.prevent="updateHistorySettings" class="space-y-6">
-            <Card>
+            <div class="flex justify-center">
+                <Card class="w-full max-w-6xl">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Clock class="h-5 w-5" />
@@ -113,9 +114,11 @@ const hasFormErrors = computed(() => {
                     </div>
                 </CardContent>
             </Card>
+            </div>
 
             <!-- Context Window Settings -->
-            <Card>
+            <div class="flex justify-center">
+                <Card class="w-full max-w-6xl">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <MessageSquare class="h-5 w-5" />
@@ -140,6 +143,7 @@ const hasFormErrors = computed(() => {
 
                 </CardContent>
             </Card>
+            </div>
 
 
         </form>

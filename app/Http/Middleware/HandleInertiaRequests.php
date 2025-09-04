@@ -21,14 +21,11 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
-        $subDomain = $request->subdomain();
-
-        $data = [
+        return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
-                //                'member' => $request->user('member'),
+                'user' => $request->user('web'),
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
@@ -41,7 +38,6 @@ class HandleInertiaRequests extends Middleware
                 'info' => $request->session()->get('info'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            //            'chatSession' => app(ChatMemory::class)->getOrGenerateSession(),
             'subscribed' => $request->user()?->subscribed(),
             'onTrial' => $request->user()?->onTrial(),
             'schema' => $request->getScheme(),
@@ -54,9 +50,8 @@ class HandleInertiaRequests extends Middleware
                 'workflow' => Feature::active(Workflow::class),
                 'actions' => Feature::active(Actions::class),
             ],
+            'permissions' => $request->user('web')?->permissionsKeyValue() ?? [],
         ];
-
-        return $data;
     }
 
     private function subDomain(string $host): ?string

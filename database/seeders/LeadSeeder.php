@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Agent;
 use App\Models\Lead;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class LeadSeeder extends Seeder
@@ -13,38 +14,52 @@ class LeadSeeder extends Seeder
      */
     public function run(): void
     {
-        // Only create leads if we have agents
+        // Make sure we have agents and users
         if (Agent::count() === 0) {
-            $this->command->warn('No agents found. Please create some agents first.');
+            $this->command->info('No agents found. Please run the database seeder first.');
 
             return;
         }
 
-        $agents = Agent::all();
+        if (User::count() === 0) {
+            $this->command->info('No users found. Please run the database seeder first.');
 
-        // Create leads with different statuses
-        foreach ($agents as $agent) {
-            // New leads
-            Lead::factory(3)
-                ->newLead()
-                ->create(['agent_id' => $agent->id]);
-
-            // Contacted leads
-            Lead::factory(2)
-                ->contacted()
-                ->create(['agent_id' => $agent->id]);
-
-            // Qualified leads
-            Lead::factory(2)
-                ->qualified()
-                ->create(['agent_id' => $agent->id]);
-
-            // Converted leads
-            Lead::factory(1)
-                ->converted()
-                ->create(['agent_id' => $agent->id]);
+            return;
         }
 
-        $this->command->info('Created '.Lead::count().' leads across '.$agents->count().' agents.');
+        $this->command->info('Creating sample leads...');
+
+        // Create leads for each pipeline stage
+        $stages = ['new', 'contacted', 'qualified', 'proposal-sent', 'negotiation', 'converted', 'lost'];
+
+        foreach ($stages as $stage) {
+            $count = match ($stage) {
+                'new' => 8,
+                'contacted' => 6,
+                'qualified' => 5,
+                'proposal-sent' => 4,
+                'negotiation' => 3,
+                'converted' => 4,
+                'lost' => 2,
+            };
+
+            Lead::factory($count)->create([
+                'pipeline_stage' => $stage,
+                'status' => $this->getStatusForStage($stage),
+            ]);
+        }
+
+        $this->command->info('Created '.Lead::count().' sample leads across all pipeline stages.');
+    }
+
+    private function getStatusForStage(string $stage): string
+    {
+        return match ($stage) {
+            'new' => 'new',
+            'contacted' => 'contacted',
+            'qualified', 'proposal-sent', 'negotiation' => 'qualified',
+            'converted' => 'converted',
+            'lost' => 'lost',
+        };
     }
 }

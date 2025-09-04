@@ -11,15 +11,16 @@ return new class extends Migration
     {
         Schema::create('agents', function (Blueprint $table) {
             $table->id();
+            $table->string('external_id', 20)->unique();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            $table->enum('type', ['standalone', 'widget']);
             $table->string('name');
-            $table->string('sub_domain')->unique();
+            $table->string('sub_domain')->nullable()->unique();
             $table->string('domain')->nullable();
-            $table->text('system_instructions');
+            $table->text('system_instructions')->nullable();
             $table->boolean('is_public')->default(false);
             $table->boolean('is_active')->default(true);
-            $table->enum('type', ['knowledge', 'instruction']);
-            $table->unsignedInteger('messages_used_all_time')->default(0);
+            $table->boolean('collect_leads')->default(false);
             $table->timestamps();
         });
     }

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Agent;
-use App\Models\AgentFile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -17,34 +16,32 @@ class DatabaseSeeder extends Seeder
             'is_admin' => 1,
         ]);
 
-        $agent = Agent::factory()->create([
+        Agent::factory()->create([
             'user_id' => $user->id,
-            'name' => 'Translation',
-            'sub_domain' => 'translation',
+            'name' => 'Knowledge Base',
+            'sub_domain' => 'knowledge',
             'system_instructions' => config('prompts.knowledge-based-system-instruction'),
             'is_public' => 1,
             'is_active' => 1,
-            'type' => 'knowledge_base',
+            'type' => 'standalone',
             'external_id' => '407f7fdfa1cf18',
-        ]);
-
-        AgentFile::factory()->create(['agent_id' => $agent->id]);
-
-        $user2 = User::factory()->create([
-            'name' => 'Ahmad',
-            'email' => 'ahmad.mayagi@gmail.com',
-            'is_admin' => 0,
         ]);
 
         Agent::factory()->create([
             'user_id' => $user->id,
             'name' => 'Assistant',
-            'sub_domain' => 'assistant',
+            'sub_domain' => '',
             'system_instructions' => config('prompts.knowledge-based-system-instruction'),
             'is_public' => 1,
             'is_active' => 1,
             'type' => 'widget',
-            'external_id' => '407f7fdfa1cf19',
+            'external_id' => 'e8c75295bf6572',
+        ]);
+
+        // Seed pipeline stages and sample leads
+        $this->call([
+            PipelineStageSeeder::class,
+            LeadSeeder::class,
         ]);
     }
 }

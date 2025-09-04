@@ -105,14 +105,11 @@
 
 @include('partials.landing.scripts')
 
-@if(\Illuminate\Support\Facades\App::isProduction())
 <script
     id="chatbot-embed-script"
-    src="https://cdn.chatvia.ai/widget/embed.js"
+    src="{{ config('widget.script_url_embed') }}"
     agent-id="e8c75295bf6572"
-    async>
-</script>
-@endif
+    async></script>
 </body>
 
 </html>

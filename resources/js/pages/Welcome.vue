@@ -84,7 +84,7 @@ const page = usePage<{
 
                                 <!-- Chat Messages -->
                                 <div class="h-96 overflow-y-auto bg-background p-4 space-y-4">
-                                    <!-- User Message -->
+                                    <!-- User ChatMessage -->
                                     <div class="flex justify-end">
                                         <div class="max-w-[70%]">
                                             <div class="rounded-lg bg-primary px-4 py-2 text-primary-foreground">
@@ -94,7 +94,7 @@ const page = usePage<{
                                         </div>
                                     </div>
 
-                                    <!-- AI Message -->
+                                    <!-- AI ChatMessage -->
                                     <div class="flex justify-start gap-2">
                                         <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                                             <svg class="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,7 +114,7 @@ const page = usePage<{
                                         </div>
                                     </div>
 
-                                    <!-- User Message -->
+                                    <!-- User ChatMessage -->
                                     <div class="flex justify-end">
                                         <div class="max-w-[70%]">
                                             <div class="rounded-lg bg-primary px-4 py-2 text-primary-foreground">

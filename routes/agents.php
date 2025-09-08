@@ -108,7 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('widget', WidgetController::class)->name('widget');
         Route::get('embed', EmbedController::class)->name('embed');
 
-//        Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
+        //        Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
         Route::patch('security', AgentSecurityUpdateController::class)->name('security.update');
 
         // Settings

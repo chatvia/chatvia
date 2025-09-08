@@ -61,6 +61,13 @@
                                    href="{{ route('dashboard') }}">Dashboard</a>
                             </li>
                         @else
+                            @if ($demo === true)
+                                <li>
+                                    <a class="font-medium text-blue-600 dark:text-slate-300 dark:hover:text-white px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out group"
+                                       href="{{ route('demo') }}">Request Demo <span
+                                            class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span></a>
+                                </li>
+                            @else
     <li class="ml-2">
     <a class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out"
        href="{{ route('register') }}">Register</a>
@@ -69,14 +76,8 @@
     <a class="bg-white hover:bg-gray-50 text-slate-800 font-medium px-4 py-2 rounded-lg border border-slate-200 flex items-center transition duration-150 ease-in-out"
        href="{{ route('login') }}">Login</a>
 </li>
-
-                        @if ($demo === true)
-                            <li>
-                                <a class="font-medium text-blue-600 dark:text-slate-300 dark:hover:text-white px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out group"
-                                   href="{{ route('demo') }}">Request Demo <span
-                                        class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span></a>
-                            </li>
                             @endif
+
                         @endif
                     </ul>
 
@@ -172,13 +173,13 @@
 
                     <!-- Hero content -->
                     <div
-                        class="max-w-xl mx-auto md:max-w-none md:flex md:items-center md:justify-center md:space-x-8 lg:space-x-16 xl:space-x-20 space-y-16 md:space-y-0">
+                        class="max-w-xl mx-auto md:max-w-none flex flex-col items-center justify-center text-center md:space-y-16 space-y-16">
 
                         <div class="text-center" data-aos="fade-right">
                             <p class="text-xl text-slate-400">
                                 {{ $landing['hero']['top'] }}
                             </p>
-                            <h1 class="md:max-w-3xl text-5xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold font-rubik text-slate-100 mb-4 leading-tight">
+                            <h1 class="mx-auto md:max-w-3xl text-5xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold font-rubik text-slate-100 mb-4 leading-tight text-center">
     {{ $landing['hero']['headline'] }}
 </h1>
 
@@ -281,7 +282,7 @@
 
         <!-- Features Section Wrapper -->
         <div id="features">
-        @if (count($landing['features']['short']) !== 0)
+        @if (isset($landing['features']) && count($landing['features']['short']) !== 0)
             <section>
             <div class="max-w-6xl mx-auto px-4 sm:px-6">
                 <div class="py-12 md:py-20">
@@ -325,7 +326,7 @@
         @endif
 
 
-        @if (count($landing['features']['slide']['tabs']) !== 0)
+        @if (isset(['features']['slide']['tabs']) && count($landing['features']['slide']['tabs']) !== 0)
             <section class="relative">
 
             <div class="absolute inset-0 bg-slate-100 pointer-events-none mb-96 md:mb-[40rem]" aria-hidden="true"></div>
@@ -574,7 +575,7 @@
         </section>
         @endif
 
-        @if (count($landing['features']['steps']['steps']) !== 0)
+        @if (isset($landing['features']['steps']['steps']) && count($landing['features']['steps']['steps']) !== 0)
         <section class="relative">
             <!-- Dark background -->
             <div
@@ -689,6 +690,7 @@
         <!-- End Features Section Wrapper -->
 
         <!-- Target -->
+        @if(isset($landing['show-why-chatbot']) && $landing['show-why-chatbot'] === true)
         <section>
             <div class="max-w-6xl mx-auto px-4 sm:px-6">
                 <div class="py-12 md:py-20 border-t border-slate-200">
@@ -769,6 +771,7 @@
                 </div>
             </div>
         </section>
+        @endif
 
 
         <!-- Pricing -->
@@ -940,11 +943,11 @@
                             @foreach($landing['faqs'] as $index => $faq)
                             <div class="bg-white rounded-lg border border-slate-200 shadow-sm"
                                  x-data="{ open: {{ $index === 0 ? 'true' : 'false' }} }"
-                                 data-aos="fade-up" 
+                                 data-aos="fade-up"
                                  @if($index > 0) data-aos-delay="{{ $index * 100 }}" @endif>
-                                
+
                                 <!-- Question -->
-                                <button 
+                                <button
                                     class="w-full text-left px-6 py-4 focus:outline-none rounded-lg transition-colors duration-200"
                                     :class="open ? 'bg-slate-50' : 'hover:bg-slate-50'"
                                     @click="open = !open"
@@ -956,8 +959,8 @@
                                         <div class="flex-shrink-0">
                                             <svg class="w-5 h-5 text-slate-500 transition-transform duration-200 transform"
                                                  :class="open ? 'rotate-45' : 'rotate-0'"
-                                                 fill="none" 
-                                                 stroke="currentColor" 
+                                                 fill="none"
+                                                 stroke="currentColor"
                                                  viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                             </svg>
@@ -983,12 +986,12 @@
                             @endforeach
                         </div>
 
-                        <!-- Still have questions? -->
+                        @if(isset($landing['has-widget']) && $landing['has-widget'] === true)
                         <div class="text-center mt-12">
                             <p class="text-lg text-slate-600 mb-4">
                                 Still have questions?
                             </p>
-                            <button onclick="window.chatbot('open')" 
+                            <button onclick="window.chatbot('open')"
                                class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 cursor-pointer">
                                 Get in touch with our support team
                                 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -996,6 +999,7 @@
                                 </svg>
                             </button>
                         </div>
+                        @endif
                     </div>
 
                 </div>

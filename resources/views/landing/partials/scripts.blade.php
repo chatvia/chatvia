@@ -13,7 +13,7 @@
 
 <script
     id="chatbot-embed-script"
-    src="http://localhost:3000/dist/embed.js"
-    agent-id="e8c75295bf6572"
+    src="{{ config('widget.script_url_embed') }}"
+    agent-id="407f7fdfa1cf18"
     async>
 </script>

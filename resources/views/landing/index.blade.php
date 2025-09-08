@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8">
@@ -13,7 +13,7 @@
     @include('partials.cover')
 
     @vite(['resources/css/landing.css'])
-    
+
     <style>
         @keyframes marquee {
             0% { transform: translateX(0%); }
@@ -49,7 +49,7 @@
                     <ul class="flex grow justify-start flex-wrap items-center">
                         @foreach($landing['navigation'] as $navItem)
                             <a class="font-medium text-slate-800 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-600 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out"
-                               href="{{ route($navItem['route']) }}">{{ $navItem['label'] }}</a>
+                               href="{{ $navItem['link'] }}">{{ $navItem['label'] }}</a>
                         @endforeach
                     </ul>
 
@@ -120,41 +120,33 @@
                         x-cloak
                     >
                         <ul class="px-5 py-2">
+                            @foreach($landing['navigation'] as $navItem)
                             <li>
-                                <a class="flex font-medium text-slate-800 hover:text-blue-600 py-2" href="pricing.html">Pricing</a>
+                                <a class="flex font-medium text-slate-800 hover:text-blue-600 py-2" href="{{ $navItem['link'] }}">{{ $navItem['label'] }}</a>
                             </li>
+                            @endforeach
+                            @auth
                             <li>
-                                <a class="flex font-medium text-slate-800 hover:text-blue-600 py-2" href="about.html">About</a>
+                                <a class="flex font-medium text-slate-800 hover:text-blue-600 py-2" href="{{ route('dashboard') }}">Dashboard</a>
                             </li>
-                            <li>
-                                <a class="flex font-medium text-slate-800 hover:text-blue-600 py-2" href="blog.html">Blog</a>
-                            </li>
-                            <li>
-                                <a class="flex font-medium text-slate-800 hover:text-blue-600 py-2"
-                                   href="wall-of-love.html">Wall of Love</a>
-                            </li>
-                            <li class="py-2 my-2 border-t border-b border-slate-200">
-                                <span class="flex font-medium text-slate-800 hover:text-blue-600 py-2">Resources</span>
-                                <ul class="pl-4">
-                                    <li>
-                                        <a class="text-sm flex font-medium text-slate-600 hover:text-blue-600 py-2"
-                                           href="404.html">404</a>
-                                    </li>
-                                    <li>
-                                        <a class="text-sm flex font-medium text-slate-600 hover:text-blue-600 py-2"
-                                           href="support.html">Support</a>
-                                    </li>
-                                </ul>
-                            </li>
+                            @else
                             <li>
                                 <a class="flex font-medium w-full text-slate-800 hover:text-blue-600 py-2"
-                                   href="signin.html">Sign in</a>
+                                   href="{{ route('login') }}">Sign in</a>
                             </li>
                             <li>
-                                <a class="flex font-medium text-blue-600 py-2 group" href="request-demo.html">Request
-                                    Demo <span
-                                        class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span></a>
+                                <a class="flex font-medium text-blue-600 py-2 group" href="{{ route('register') }}">Register
+                                    <span
+                                        class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">→</span></a>
                             </li>
+                            @if ($demo === true)
+                            <li>
+                                <a class="flex font-medium text-blue-600 py-2 group" href="{{ route('demo') }}">Request Demo
+                                    <span
+                                        class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">→</span></a>
+                            </li>
+                            @endif
+                            @endauth
                         </ul>
                     </nav>
 
@@ -263,21 +255,21 @@
                     <!-- Gradient overlays for smooth fade effect -->
                     <div class="absolute left-0 top-0 w-20 h-full bg-gradient-to-r from-slate-50 to-transparent z-10"></div>
                     <div class="absolute right-0 top-0 w-20 h-full bg-gradient-to-l from-slate-50 to-transparent z-10"></div>
-                    
+
                     <!-- Marquee content -->
                     <div class="flex whitespace-nowrap" style="animation: marquee 20s linear infinite;">
                         @foreach($landing['llm_marquee']['llms'] as $llm)
                         <div class="flex items-center justify-center mx-8 min-w-[120px]">
-                            <img src="{{ asset('images/llms/' . $llm['logo']) }}" 
-                                 alt="{{ $llm['name'] }}" 
+                            <img src="{{ asset('images/llms/' . $llm['logo']) }}"
+                                 alt="{{ $llm['name'] }}"
                                  class="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
                         </div>
                         @endforeach
                         <!-- Duplicate for seamless loop -->
                         @foreach($landing['llm_marquee']['llms'] as $llm)
                         <div class="flex items-center justify-center mx-8 min-w-[120px]">
-                            <img src="{{ asset('images/llms/' . $llm['logo']) }}" 
-                                 alt="{{ $llm['name'] }}" 
+                            <img src="{{ asset('images/llms/' . $llm['logo']) }}"
+                                 alt="{{ $llm['name'] }}"
                                  class="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
                         </div>
                         @endforeach
@@ -287,6 +279,8 @@
         </section>
         @endif
 
+        <!-- Features Section Wrapper -->
+        <div id="features">
         @if (count($landing['features']['short']) !== 0)
             <section>
             <div class="max-w-6xl mx-auto px-4 sm:px-6">
@@ -691,6 +685,8 @@
             </div>
         </section>
         @endif
+        </div>
+        <!-- End Features Section Wrapper -->
 
         <!-- Target -->
         <section>
@@ -777,7 +773,7 @@
 
         <!-- Pricing -->
         @if ($pricing && isset($packages))
-        <section class="relative">
+        <section class="relative" id="pricing">
 
             <!-- Dark background -->
             <div class="absolute inset-0 bg-slate-900 pointer-events-none -z-10 h-1/3 lg:h-2/3"
@@ -921,6 +917,92 @@
             </div>
         </section>
         @endif
+
+        <!-- FAQs -->
+        @if (isset($landing['faqs']) && count($landing['faqs']) > 0)
+        <section id="faqs">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                <div class="py-12 md:py-20 border-t border-slate-200">
+
+                    <!-- Section header -->
+                    <div class="max-w-3xl mx-auto text-center pb-12 md:pb-20">
+                        <h2 class="h2 font-playfair-display text-slate-800 mb-4">
+                            Frequently Asked Questions
+                        </h2>
+                        <p class="text-xl text-slate-500">
+                            Everything you need to know about our AI chatbot platform.
+                        </p>
+                    </div>
+
+                    <!-- FAQ Content -->
+                    <div class="max-w-4xl mx-auto">
+                        <div class="space-y-4">
+                            @foreach($landing['faqs'] as $index => $faq)
+                            <div class="bg-white rounded-lg border border-slate-200 shadow-sm"
+                                 x-data="{ open: {{ $index === 0 ? 'true' : 'false' }} }"
+                                 data-aos="fade-up" 
+                                 @if($index > 0) data-aos-delay="{{ $index * 100 }}" @endif>
+                                
+                                <!-- Question -->
+                                <button 
+                                    class="w-full text-left px-6 py-4 focus:outline-none rounded-lg transition-colors duration-200"
+                                    :class="open ? 'bg-slate-50' : 'hover:bg-slate-50'"
+                                    @click="open = !open"
+                                    :aria-expanded="open">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-lg font-semibold text-slate-800 pr-4">
+                                            {{ $faq['question'] }}
+                                        </h3>
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-slate-500 transition-transform duration-200 transform"
+                                                 :class="open ? 'rotate-45' : 'rotate-0'"
+                                                 fill="none" 
+                                                 stroke="currentColor" 
+                                                 viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <!-- Answer -->
+                                <div x-show="open"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 -translate-y-2"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     x-transition:leave="transition ease-in duration-150"
+                                     x-transition:leave-start="opacity-100 translate-y-0"
+                                     x-transition:leave-end="opacity-0 -translate-y-2">
+                                    <div class="px-6 pb-4">
+                                        <div class="text-slate-600 leading-relaxed">
+                                            {!! nl2br(e($faq['answer'])) !!}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Still have questions? -->
+                        <div class="text-center mt-12">
+                            <p class="text-lg text-slate-600 mb-4">
+                                Still have questions?
+                            </p>
+                            <button onclick="window.chatbot('open')" 
+                               class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 cursor-pointer">
+                                Get in touch with our support team
+                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+        @endif
+
         <!-- Cta -->
         <section class="bg-slate-100">
             <div class="relative max-w-6xl mx-auto px-4 sm:px-6">

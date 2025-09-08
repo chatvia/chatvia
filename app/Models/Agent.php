@@ -154,7 +154,6 @@ class Agent extends Model
         return $settings;
     }
 
-
     public function messageRetentionInDays(): int
     {
         return $this->settings('message_history')->get('retention', 30);

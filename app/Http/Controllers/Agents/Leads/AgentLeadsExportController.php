@@ -55,7 +55,7 @@ class AgentLeadsExportController
             'Company',
             'Location',
             'Message',
-            'Created At'
+            'Created At',
         ];
 
         $rows = [];

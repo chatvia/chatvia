@@ -17,7 +17,7 @@ class WidgetLeadCollectController
         $threadId = $request->header('x-thread-id');
         $sessionId = $request->header('x-session-id');
 
-        if (!$widgetVerification->verifyByAgentExternalId($agentId, $request)) {
+        if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
             return response()->json(['error' => 'Could not verify the agent'], 403);
         }
 
@@ -37,7 +37,7 @@ class WidgetLeadCollectController
             'user_agent' => ['sometimes', 'string', 'max:255'],
         ]);
 
-        if (!$agent->leads()->where('email', $validated['email'])->exists()) {
+        if (! $agent->leads()->where('email', $validated['email'])->exists()) {
             $agent->leads()->create(
                 array_merge($validated, [
                     'chat_conversation_id' => $threadId,
@@ -62,8 +62,7 @@ class WidgetLeadCollectController
                         message: 'We have received your contact information. We will get back to you shortly. Thank you!',
                         model: $llm->internal_name,
                     )
-                )
-            ;
+                );
         }
 
         return response(status: 201);

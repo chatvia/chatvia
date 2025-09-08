@@ -11,8 +11,21 @@
     @include('partials.cover')
 
     <style>
-        @keyframes pulseSoft { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .6; transform: scale(1.2); } }
-        .pulse-dot { background-color: #10b981; animation: pulseSoft 1.2s ease-in-out infinite; }
+        @keyframes pulseSoft {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: .6;
+                transform: scale(1.2);
+            }
+        }
+
+        .pulse-dot {
+            background-color: #10b981;
+            animation: pulseSoft 1.2s ease-in-out infinite;
+        }
 
         /* CookieConsent v3 Custom Styles */
         .cc-window {
@@ -64,12 +77,12 @@
 
     @include('analytics')
 
-    <link rel="icon" type="image/png" href="{{ asset('images/favicons/favicon-96x96.png') }}" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicons/favicon.svg') }}" />
-    <link rel="shortcut icon" href="{{ asset('images/favicons/favicon.ico') }}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicons/apple-touch-icon.png') }}" />
-    <meta name="apple-mobile-web-app-title" content="ChatVia.ai" />
-    <link rel="manifest" href="{{ asset('images/favicons/site.webmanifest') }}" />
+    <link rel="icon" type="image/png" href="{{ asset('images/favicons/favicon-96x96.png') }}" sizes="96x96"/>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicons/favicon.svg') }}"/>
+    <link rel="shortcut icon" href="{{ asset('images/favicons/favicon.ico') }}"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicons/apple-touch-icon.png') }}"/>
+    <meta name="apple-mobile-web-app-title" content="ChatVia.ai"/>
+    <link rel="manifest" href="{{ asset('images/favicons/site.webmanifest') }}"/>
 
     <!-- CookieConsent v3 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.0/dist/cookieconsent.css">
@@ -100,7 +113,7 @@
 
 </div>
 
-@include('partials.landing.scripts')
+@include('landing.partials.scripts')
 
 </body>
 </html>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LoaderCircle, Search, MessageSquare, RefreshCcw, FilterX, User as UserIcon, Mail, Phone, Building2 } from 'lucide-vue-next';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from '@/components/ui/sheet';
+import LeadDetailsSheet from '@/components/LeadDetailsSheet.vue';
 import MessageCard from '@/components/chat/MessageCard.vue';
 
 interface Message {
@@ -25,6 +25,7 @@ interface ConversationSummary {
   conversation_id: string;
   last_at: string;
   messages_count: number;
+  first_message_excerpt?: string;
 }
 
 const page = usePage();
@@ -43,71 +44,6 @@ function openLeadPanel() {
   showLeadPanel.value = true;
 }
 
-// Lead presentation helpers (for avatar & status)
-const leadInitials = computed(() => {
-  if (!lead) return '';
-  if (lead.name) return lead.name.split(' ').map((p:string)=>p[0]).join('').slice(0,2).toUpperCase();
-  if (lead.email) return lead.email[0].toUpperCase();
-  return '?';
-});
-
-const statusStyles: Record<string, string> = {
-  new: 'bg-blue-500/10 text-blue-600 border-blue-200',
-  contacted: 'bg-yellow-500/10 text-yellow-600 border-yellow-200',
-  qualified: 'bg-green-500/10 text-green-600 border-green-200',
-  converted: 'bg-purple-500/10 text-purple-600 border-purple-200'
-};
-
-const leadStatusClass = computed(() => {
-  if (!lead || !lead.status) return statusStyles.new;
-  return statusStyles[lead.status] || statusStyles.new;
-});
-
-// --- User Agent Parsing (lightweight) ---
-interface ParsedUA { browser: string; os: string; device: string; raw: string; }
-function parseUserAgent(ua?: string | null): ParsedUA | null {
-  if (!ua) return null;
-  const raw = ua;
-  let browser = 'Unknown';
-  let os = 'Unknown';
-  let device = 'Desktop';
-
-  // Browser detection order matters
-  const browserRegexes: { name: string; regex: RegExp }[] = [
-    { name: 'Edge', regex: /Edg\/(\d+[\.\d+]*)/ },
-    { name: 'Opera', regex: /OPR\/(\d+[\.\d+]*)/ },
-    { name: 'Chrome', regex: /Chrome\/(\d+[\.\d+]*)/ },
-    { name: 'Firefox', regex: /Firefox\/(\d+[\.\d+]*)/ },
-    { name: 'Safari', regex: /Version\/(\d+[\.\d+]*) Safari/ },
-  ];
-  for (const b of browserRegexes) {
-    const m = ua.match(b.regex);
-    if (m) { browser = `${b.name} ${m[1]}`; break; }
-  }
-
-  // OS detection
-  if (/Windows NT 10\.0/.test(ua)) os = 'Windows 10/11';
-  else if (/Windows NT 6\.3/.test(ua)) os = 'Windows 8.1';
-  else if (/Windows NT 6\.2/.test(ua)) os = 'Windows 8';
-  else if (/Windows NT 6\.1/.test(ua)) os = 'Windows 7';
-  else if (/Mac OS X (\d+[._]\d+)/.test(ua)) {
-    os = 'macOS ' + ua.match(/Mac OS X (\d+[._]\d+)/)![1].replace(/_/g,'.');
-  } else if (/iPhone OS (\d+[._]\d+)/.test(ua)) {
-    os = 'iOS ' + ua.match(/iPhone OS (\d+[._]\d+)/)![1].replace(/_/g,'.');
-  } else if (/iPad; CPU OS (\d+[._]\d+)/.test(ua)) {
-    os = 'iPadOS ' + ua.match(/iPad; CPU OS (\d+[._]\d+)/)![1].replace(/_/g,'.');
-  } else if (/Android (\d+[\.\d]*)/.test(ua)) {
-    os = 'Android ' + ua.match(/Android (\d+[\.\d]*)/)![1];
-  } else if (/Linux/.test(ua)) os = 'Linux';
-
-  // Device type
-  if (/Mobile|iPhone|Android.*Mobile/.test(ua)) device = 'Mobile';
-  else if (/Tablet|iPad|Android(?!.*Mobile)/.test(ua)) device = 'Tablet';
-
-  return { browser, os, device, raw };
-}
-
-const parsedLeadUA = computed(() => parseUserAgent(lead?.user_agent));
 
 // Page title (could include session short id)
 const title = computed(() => conversationTitle ? `Chat Log – ${conversationTitle}` : 'Chat Log');
@@ -238,7 +174,7 @@ function formatDate(dt: string | null | undefined) {
                           <div class="flex items-center gap-2 text-xs text-muted-foreground">
                             <Badge variant="outline" class="text-[10px] uppercase">{{ m.role }}</Badge>
                             <span>{{ formatDate(m.created_at) }}</span>
-                            <span v-if="m.model && $page.props.permissions.models.view" class="hidden sm:inline">• {{ m.model }}</span>
+                            <span v-if="m.model" class="hidden sm:inline">• {{ m.model }}</span>
 
                           </div>
                         </div>
@@ -270,123 +206,10 @@ function formatDate(dt: string | null | undefined) {
         </div>
       </div>
 
-      <!-- Lead Info Sheet -->
-      <Sheet v-model:open="showLeadPanel">
-        <SheetContent side="right" class="w-full sm:max-w-xl overflow-y-auto p-0 flex flex-col">
-          <div class="px-6 pt-6 pb-4 border-b bg-gradient-to-b from-background/60 to-background backdrop-blur supports-[backdrop-filter]:bg-background/40">
-            <SheetHeader class="items-start text-left">
-              <SheetTitle class="flex items-center gap-2 text-base font-semibold">
-                <span>Lead Details</span>
-                <Badge v-if="lead" :class="['border text-xs font-medium tracking-wide', leadStatusClass]">
-                  {{ lead.status_label || lead.status }}
-                </Badge>
-              </SheetTitle>
-              <SheetDescription v-if="lead" class="text-xs mt-1">
-                Session <code class="font-mono text-[11px] px-1.5 py-0.5 rounded bg-muted">{{ lead.session_id }}</code>
-              </SheetDescription>
-              <SheetDescription v-else class="text-xs">No lead data.</SheetDescription>
-            </SheetHeader>
-          </div>
-
-          <div v-if="lead" class="flex-1 overflow-y-auto px-6 py-6 space-y-8">
-            <div class="flex items-start gap-4">
-              <div class="relative h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary select-none">
-                {{ leadInitials }}
-              </div>
-              <div class="flex-1 space-y-1">
-                <h2 class="text-base font-semibold leading-tight">{{ lead.name || 'Unnamed Lead' }}</h2>
-                <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <span v-if="lead.email" class="inline-flex items-center gap-1"><Mail class="h-3.5 w-3.5" />{{ lead.email }}</span>
-                  <span v-if="lead.phone" class="inline-flex items-center gap-1"><Phone class="h-3.5 w-3.5" />{{ lead.phone }}</span>
-                  <span v-if="lead.company" class="inline-flex items-center gap-1"><Building2 class="h-3.5 w-3.5" />{{ lead.company }}</span>
-                </div>
-              </div>
-            </div>
-            <div v-if="lead.message" class="space-y-2">
-              <h3 class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Submitted Message</h3>
-              <div class="text-sm leading-relaxed rounded-md border bg-muted/40 px-3 py-3 whitespace-pre-wrap">
-                {{ lead.message }}
-              </div>
-            </div>
-            <div v-if="lead.custom_fields && Object.keys(lead.custom_fields).length" class="space-y-3">
-              <h3 class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Custom Fields</h3>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div v-for="(val,key) in lead.custom_fields" :key="key" class="group rounded-md border bg-card/50 hover:bg-card transition-colors p-2">
-                  <div class="text-[10px] font-medium tracking-wide uppercase text-muted-foreground mb-1">{{ key }}</div>
-                  <div class="text-xs font-medium truncate" :title="val">{{ val }}</div>
-                </div>
-              </div>
-            </div>
-            <div class="space-y-3">
-              <h3 class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Lifecycle Timeline</h3>
-              <ol class="relative ml-3 border-l pl-4 space-y-4 border-border/60">
-                <li class="space-y-1">
-                  <div class="flex items-center gap-2">
-                    <span class="absolute -left-[7px] w-3 h-3 rounded-full bg-primary ring-2 ring-background"></span>
-                    <span class="text-xs font-medium">Created</span>
-                    <span class="text-[10px] text-muted-foreground">{{ formatDate(lead.created_at) }}</span>
-                  </div>
-                </li>
-                <li v-if="lead.contacted_at" class="space-y-1">
-                  <div class="flex items-center gap-2">
-                    <span class="absolute -left-[7px] w-3 h-3 rounded-full bg-blue-500 ring-2 ring-background"></span>
-                    <span class="text-xs font-medium">Contacted</span>
-                    <span class="text-[10px] text-muted-foreground">{{ formatDate(lead.contacted_at) }}</span>
-                  </div>
-                </li>
-                <li v-if="lead.qualified_at" class="space-y-1">
-                  <div class="flex items-center gap-2">
-                    <span class="absolute -left-[7px] w-3 h-3 rounded-full bg-green-500 ring-2 ring-background"></span>
-                    <span class="text-xs font-medium">Qualified</span>
-                    <span class="text-[10px] text-muted-foreground">{{ formatDate(lead.qualified_at) }}</span>
-                  </div>
-                </li>
-                <li v-if="lead.converted_at" class="space-y-1">
-                  <div class="flex items-center gap-2">
-                    <span class="absolute -left-[7px] w-3 h-3 rounded-full bg-purple-500 ring-2 ring-background"></span>
-                    <span class="text-xs font-medium">Converted</span>
-                    <span class="text-[10px] text-muted-foreground">{{ formatDate(lead.converted_at) }}</span>
-                  </div>
-                </li>
-              </ol>
-            </div>
-            <div class="space-y-3">
-              <h3 class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Technical</h3>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
-                <div class="flex flex-col gap-0.5">
-                  <span class="font-medium text-muted-foreground">IP Address</span>
-                  <span class="font-mono text-xs">{{ lead.ip_address || '—' }}</span>
-                </div>
-                <div class="flex flex-col gap-0.5">
-                  <span class="font-medium text-muted-foreground">Referrer</span>
-                  <span class="font-mono text-xs truncate" :title="lead.referrer">{{ lead.referrer || '—' }}</span>
-                </div>
-                <div class="flex flex-col gap-0.5">
-                  <span class="font-medium text-muted-foreground">Browser</span>
-                  <span class="font-mono text-xs">{{ parsedLeadUA?.browser || '—' }}</span>
-                </div>
-                <div class="flex flex-col gap-0.5">
-                  <span class="font-medium text-muted-foreground">OS</span>
-                  <span class="font-mono text-xs">{{ parsedLeadUA?.os || '—' }}</span>
-                </div>
-                <div class="flex flex-col gap-0.5">
-                  <span class="font-medium text-muted-foreground">Device</span>
-                  <span class="font-mono text-xs">{{ parsedLeadUA?.device || '—' }}</span>
-                </div>
-                <div class="flex flex-col gap-0.5 sm:col-span-2">
-                  <span class="font-medium text-muted-foreground">User Agent (Raw)</span>
-                  <span class="font-mono text-[10px] break-all leading-relaxed max-h-20 overflow-y-auto pr-1">{{ parsedLeadUA?.raw || '—' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else class="flex-1 flex items-center justify-center p-10 text-sm text-muted-foreground">No lead data.</div>
-          <div class="px-6 py-4 border-t bg-background/80 backdrop-blur flex items-center justify-end gap-2">
-            <SheetClose as-child>
-              <Button variant="outline" size="sm">Close</Button>
-            </SheetClose>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <!-- Lead Details Sheet -->
+      <LeadDetailsSheet 
+        v-model:open="showLeadPanel" 
+        :lead="lead" 
+      />
     </AgentLayout>
   </template>

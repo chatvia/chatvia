@@ -16,8 +16,20 @@ class WidgetSessionStoreController
             return response()->json(['error' => 'Could not verify the agent'], 403);
         }
 
+        $sessionId = $session->firstOrCreateChatSession();
+
+        $agent = current_agent_from_widget();
+
+        $agent
+            ->chatSessions()
+            ->create([
+                'id' => $sessionId,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
         return [
-            'id' => $session->firstOrCreateChatSession(),
+            'id' => $sessionId,
         ];
     }
 }

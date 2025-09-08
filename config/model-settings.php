@@ -65,8 +65,6 @@ return [
         \App\Models\Agent::class => [
             'message_history' => [
                 'retention' => 30,
-                'context_window_enabled' => true,
-                'context_window_size' => -1,
             ],
             'appearance' => [
                 'avatar' => null,
@@ -95,6 +93,50 @@ return [
                 'default_theme' => 'auto',
                 'enable_chat_expand' => true,
             ],
+            'leads' => [
+                'title' => 'Get in touch',
+                'fields' => [
+                    'name' => [
+                        'title' => 'Name',
+                        'required' => true,
+                        'enabled' => true,
+                    ],
+                    'email' => [
+                        'title' => 'Email',
+                        'required' => true,
+                        'enabled' => true,
+                    ],
+                    'phone' => [
+                        'title' => 'Phone Number',
+                        'required' => false,
+                        'enabled' => true,
+                    ],
+                    'job_title' => [
+                        'title' => 'Job Title',
+                        'required' => false,
+                        'enabled' => false,
+                    ],
+                    'company' => [
+                        'title' => 'Company',
+                        'required' => false,
+                        'enabled' => false,
+                    ],
+                    'location' => [
+                        'title' => 'Location',
+                        'required' => false,
+                        'enabled' => false,
+                    ],
+                    'message' => [
+                        'title' => 'Message',
+                        'required' => false,
+                        'enabled' => false,
+                    ],
+                ],
+                'success' => [
+                    'title' => 'Thank you',
+                    'message' => 'Your information has been received and someone will get back to you soon.',
+                ],
+            ],
         ],
     ],
 
@@ -110,8 +152,6 @@ return [
     'validation' => [
         'message_history' => [
             'retention' => ['nullable', 'integer'],
-            'context_window_enabled' => ['nullable', 'boolean'],
-            'context_window_size' => ['nullable', 'integer'],
         ],
         'appearance' => [
             'avatar' => ['nullable', 'image'],

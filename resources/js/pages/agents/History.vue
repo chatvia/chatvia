@@ -19,7 +19,6 @@ interface Props {
 
 interface Settings {
     retention: number;
-    context_window_enabled: boolean;
 }
 
 const props = defineProps<Props>();
@@ -28,7 +27,6 @@ const settings = page.props.settings as Settings;
 
 const form = useForm({
     retention: settings.retention,
-    context_window_enabled: settings.context_window_enabled,
 });
 
 const isSubmitting = ref(false);
@@ -56,8 +54,7 @@ const retentionOptions = [
 // Computed properties for header actions
 const hasUnsavedChanges = computed(() => {
     return (
-        form.retention !== settings.retention ||
-        form.context_window_enabled !== settings.context_window_enabled
+        form.retention !== settings.retention
     );
 });
 
@@ -115,36 +112,6 @@ const hasFormErrors = computed(() => {
                 </CardContent>
             </Card>
             </div>
-
-            <!-- Context Window Settings -->
-            <div class="flex justify-center">
-                <Card class="w-full max-w-6xl">
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <MessageSquare class="h-5 w-5" />
-                        Context Window
-                    </CardTitle>
-                    <CardDescription>
-                        Allow the agent to reference previous messages in the conversation
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="space-y-6">
-                    <!-- Enable Context -->
-                    <div class="flex items-center justify-between space-x-2">
-                        <div>
-                            <Label class="text-base" for="enable_context">Enable context window</Label>
-                            <p class="text-sm text-muted-foreground">
-                                Disabling the context window will disable reference to previous messages in the conversation.
-                            </p>
-                        </div>
-                        <Switch id="enable_context" v-model="form.context_window_enabled" />
-                    </div>
-
-
-                </CardContent>
-            </Card>
-            </div>
-
 
         </form>
     </AgentLayout>

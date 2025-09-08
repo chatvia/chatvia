@@ -28,7 +28,7 @@ class ChatService
         ['lang' => $lang, 'query' => $query] = $this->knowledgeBase->rewriteQuery($data->message->message);
 
         $payload = ChatInputPayload::from([
-            'model' => $data->message->model->internal_name,
+            'model' => $data->message->model->external_name,
             'message' => $data->message->message,
             'updated_message_info' => [],
             'message_for_llm' => $query,
@@ -53,7 +53,7 @@ class ChatService
             payload: $payload,
             llmMessages: $llmMessages,
             userMessageId: $userMessageId,
-            assistantMessageId: Str::uuid()->toString(),
+            assistantMessageId: Str::ulid()->toString(),
             queryLanguage: $lang,
         );
     }

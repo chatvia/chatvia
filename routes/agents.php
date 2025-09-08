@@ -6,6 +6,7 @@ use App\Http\Controllers\Agents\Agents\AgentDeleteSettingsController;
 use App\Http\Controllers\Agents\Agents\AgentFileSummaryController;
 use App\Http\Controllers\Agents\Agents\AgentKnowledgeFilesAnalyzeController;
 use App\Http\Controllers\Agents\Agents\AgentPreviewController;
+use App\Http\Controllers\Agents\Agents\AgentRenameController;
 use App\Http\Controllers\Agents\Agents\AgentsGenerateRandomSubDomainController;
 use App\Http\Controllers\Agents\Agents\AgentsIndexController;
 use App\Http\Controllers\Agents\Agents\AgentsListController;
@@ -30,6 +31,9 @@ use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeCrawlerWebsiteTr
 use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeWebsiteDeleteController;
 use App\Http\Controllers\Agents\Knowledge\Crawler\AgentKnowledgeWebsitesListController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsController;
+use App\Http\Controllers\Agents\Leads\AgentLeadsDeleteController;
+use App\Http\Controllers\Agents\Leads\AgentLeadsExportController;
+use App\Http\Controllers\Agents\Leads\AgentLeadsUpdateSettingsController;
 use App\Http\Controllers\Agents\Models\AgentModelsListController;
 use App\Http\Controllers\Agents\Models\AgentModelsShowController;
 use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
@@ -93,10 +97,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('history', AgentHistoryController::class)->name('history');
         Route::get('leads', AgentLeadsController::class)->name('leads');
-        Route::patch('leads/{lead}/pipeline-stage', [AgentLeadsController::class, 'updatePipelineStage'])->name('leads.update-pipeline-stage');
-        Route::patch('leads/{lead}/assign', [AgentLeadsController::class, 'assign'])->name('leads.assign');
-        Route::post('leads/{lead}/notes', [AgentLeadsController::class, 'addNote'])->name('leads.add-note');
-        Route::post('leads/{lead}/tags', [AgentLeadsController::class, 'addTag'])->name('leads.add-tag');
+        Route::delete('leads', AgentLeadsDeleteController::class)->name('leads.delete');
+        Route::patch('leads/settings', AgentLeadsUpdateSettingsController::class)->name('leads.settings');
+        Route::post('leads/export', AgentLeadsExportController::class)->name('leads.export');
 
         Route::get('logs', AgentChatLogController::class)->name('logs');
 
@@ -105,7 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('widget', WidgetController::class)->name('widget');
         Route::get('embed', EmbedController::class)->name('embed');
 
-        Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
+//        Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
         Route::patch('security', AgentSecurityUpdateController::class)->name('security.update');
 
         // Settings
@@ -130,6 +133,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Actions
         Route::get('actions', AgentActionsController::class)->name('actions');
+
+        // Rename Agent
+        Route::patch('rename', AgentRenameController::class)->name('rename');
 
         // Delete Agent
         Route::delete('/', AgentDeleteController::class)->name('delete');

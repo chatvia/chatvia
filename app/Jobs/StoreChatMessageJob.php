@@ -45,18 +45,17 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         ChatSession::firstOrCreate([
             'id' => $sessionId,
             'agent_id' => $this->agent->id,
-            'user_id' => $this->agent->user_id,
             'member_id' => $isInputMessage ? $this->payload->member_id : null,
         ]);
 
         ChatConversation::firstOrCreate([
             'id' => $this->conversationId,
-            'session_id' => $sessionId,
+            'chat_session_id' => $sessionId,
         ], ['title' => $this->title]);
 
         ChatMessage::create([
             'id' => $this->messageId,
-            'conversation_id' => $this->conversationId,
+            'chat_conversation_id' => $this->conversationId,
             'content' => $this->payload->message,
             'role' => $this->role,
             'model' => $this->payload->model,

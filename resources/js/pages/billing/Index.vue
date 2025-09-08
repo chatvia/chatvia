@@ -513,7 +513,7 @@ const cancelScheduledPlanChange = () => {
                                 </div>
 
 
-                                <template v-if="subscription">
+                                <template v-if="subscription && !subscription_canceled">
                                     <Button class="w-full gap-2 justify-start" as-child>
                                         <Link :href="route('billing.packages')">
                                             <Package class="h-4 w-4" />

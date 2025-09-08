@@ -121,7 +121,7 @@ class Agent extends Model
 
     public function isStandalone(): bool
     {
-        return $this->type === 'standalone';
+        return $this->type === 'knowledge_base';
     }
 
     public function isWidget(): bool
@@ -154,10 +154,6 @@ class Agent extends Model
         return $settings;
     }
 
-    public function contextWindowEnabled(): bool
-    {
-        return $this->settings('message_history')->get('context_window_enabled', true) === true;
-    }
 
     public function messageRetentionInDays(): int
     {
@@ -195,11 +191,6 @@ class Agent extends Model
     public function chatEmbedUrl(): Attribute
     {
         return Attribute::get(fn () => $this->permanent_url.'/chat/embed');
-    }
-
-    public function chatMessages(): HasMany
-    {
-        return $this->hasMany(ChatMessage::class);
     }
 
     public function chatSessions(): HasMany

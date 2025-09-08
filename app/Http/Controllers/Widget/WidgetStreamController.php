@@ -20,14 +20,19 @@ readonly class WidgetStreamController
         $message = $request->input('content');
 
         $agent = current_agent_from_widget();
-        $leadCollected = $agent->leads()->where('session_id', $sessionId)->exists();
+        $leadCollected = $agent
+            ->leads()
+            ->with('conversation.session')
+            ->whereHas('conversation', function ($query) use ($sessionId) {
+                $query->where('chat_session_id', $sessionId);
+            })
+            ->exists();
 
         /** @var Llm $llm */
         $llm = $agent->llms()->first();
 
         $referer = $request->header('referer') ?: $request->server('HTTP_REFERER');
 
-        // Do not persist the message if the request comes from the preview page
         $persistMessage = ! str_starts_with($referer, route('agents.widget.preview', ['agent' => $agent->id]));
 
         return $this->chatStreamService->stream(

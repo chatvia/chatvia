@@ -20,7 +20,6 @@ const isWidgetAgent = computed(() => {
 });
 
 const form = useForm({
-    is_active: props.agent.is_active,
     is_public: props.agent.is_public,
 });
 
@@ -42,7 +41,6 @@ const updateSecuritySettings = () => {
 // Computed properties for header actions
 const hasUnsavedChanges = computed(() => {
     return (
-        form.is_active !== props.agent.is_active ||
         form.is_public !== props.agent.is_public
     );
 });
@@ -83,17 +81,6 @@ const hasFormErrors = computed(() => {
                 </CardHeader>
                 <CardContent>
                     <div class="space-y-6">
-                        <!-- Accessible Toggle -->
-                        <div class="flex items-center justify-between space-x-2">
-                            <div>
-                                <Label class="text-base" for="is_active">Accessible</Label>
-                                <p class="text-sm text-muted-foreground">
-                                    When enabled, users can access and interact with this agent
-                                </p>
-                            </div>
-                            <Switch id="is_active" v-model="form.is_active" />
-                        </div>
-
                         <!-- Public Access Toggle -->
                         <div class="flex items-center justify-between space-x-2">
                             <div>

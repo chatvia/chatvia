@@ -10,12 +10,13 @@ interface Props {
 }
 
 defineProps<Props>();
+// <!--        :class="['logo-adaptive', className]"-->
 </script>
 
 <template>
     <img
-        src="/images/logo.svg"
-        :class="['logo-adaptive', className]"
+        src="/images/logo.png"
+        :class="[className]"
         v-bind="$attrs"
         alt="ChatVIA"
     />

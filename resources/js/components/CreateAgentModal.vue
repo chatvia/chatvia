@@ -24,7 +24,7 @@ const emit = defineEmits<{
 
 enum AgentType {
     WIDGET = 'widget',
-    CHATGPT_STYLE = 'standalone',
+    CHATGPT_STYLE = 'knowledge_base',
 }
 
 interface UsageData {
@@ -247,7 +247,7 @@ onMounted(() => {
                                         ]" />
                                     </div>
                                     <div>
-                                        <h3 class="font-semibold text-lg mb-1">ChatGPT-style</h3>
+                                        <h3 class="font-semibold text-lg mb-1">Knowledge Base</h3>
                                         <p class="text-sm text-muted-foreground">
                                             Perfect for teams and internal use, can either be private or public
                                         </p>
@@ -290,7 +290,7 @@ onMounted(() => {
                                         ]" />
                                     </div>
                                     <div>
-                                        <h3 class="font-semibold text-lg mb-1">Website Widget</h3>
+                                        <h3 class="font-semibold text-lg mb-1">Support Widget</h3>
                                         <p class="text-sm text-muted-foreground">
                                             Embed as a widget on your website, perfect for 24/7 supportO
                                         </p>
@@ -310,8 +310,10 @@ onMounted(() => {
                 </div>
             </form>
 
+            <div class="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+
             <DialogFooter class="flex justify-between">
-                <Button variant="outline" @click="closeModal">
+                <Button variant="outline" size="lg" @click="closeModal">
                     Cancel
                 </Button>
                 <Button :disabled="isSubmitting || !canCreateAnyAgent" size="lg" @click="submit">

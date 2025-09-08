@@ -62,8 +62,6 @@ class AgentResource extends Resource
                             ->required(),
                         Grid::make(2)
                             ->schema([
-                                Toggle::make('is_active')
-                                    ->required(),
                                 Toggle::make('is_public')
                                     ->required(),
                             ]),
@@ -81,7 +79,6 @@ class AgentResource extends Resource
                         TextEntry::make('sub_domain')->label('Subdomain'),
                         TextEntry::make('domain')->label('Custom Domain')->default('-'),
                         TextEntry::make('type')->badge(),
-                        IconEntry::make('is_active')->boolean()->label('Active'),
                         IconEntry::make('is_public')->boolean()->label('Public'),
                         TextEntry::make('system_instructions')->label('System Instructions')->columnSpanFull(),
                     ])->columns(2),
@@ -106,10 +103,6 @@ class AgentResource extends Resource
                     ->label('Domain')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('is_active')
-                    ->label('Active')
-                    ->badge()
-                    ->color(fn (bool $state): string => $state ? 'success' : 'danger'),
                 TextColumn::make('is_public')
                     ->label('Public')
                     ->badge()

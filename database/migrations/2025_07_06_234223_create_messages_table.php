@@ -2,7 +2,6 @@
 
 use App\Models\Agent;
 use App\Models\Member;
-use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -13,32 +12,35 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('chat_sessions', function (Blueprint $table) {
-            $table->uuid('id')->unique()->primary();
+            $table->ulid('id')->unique()->primary();
 
             $table->foreignIdFor(Agent::class)->nullable()->constrained()->nullOnDelete();
-            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(Member::class)->nullable()->constrained()->nullOnDelete();
+
+            $table->ipAddress()->nullable();
+
+            $table->text('user_agent')->nullable();
 
             $table->timestamps();
 
-            $table->index(['user_id', 'created_at']);
+            $table->index(['agent_id', 'created_at']);
             $table->index(['member_id', 'created_at']);
         });
 
         Schema::create('chat_conversations', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('session_id')->constrained('chat_sessions')->cascadeOnDelete();
+            $table->ulid('id')->primary();
+            $table->foreignUlid('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
             $table->string('title')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['session_id', 'created_at']);
+            $table->index(['chat_session_id', 'created_at']);
             $table->index(['deleted_at', 'created_at']);
         });
 
         Schema::create('chat_messages', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
+            $table->ulid('id')->primary();
+            $table->foreignUlid('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
             $table->string('generation_id')->nullable()->index();
 
             $table->text('content');
@@ -55,7 +57,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamp('expires_at')->nullable();
 
-            $table->index(['conversation_id', 'created_at']);
+            $table->index(['chat_conversation_id', 'created_at']);
             $table->index(['role', 'created_at']);
             $table->index(['model', 'created_at']);
             $table->index(['feedback', 'created_at']);
@@ -70,9 +72,9 @@ return new class extends Migration
     private function createBasicIndexes(): void
     {
         // Create regular indexes (non-concurrent) within the transaction
-        DB::statement('CREATE INDEX messages_active_idx ON chat_messages (conversation_id, created_at) WHERE deleted_at IS NULL');
-        DB::statement("CREATE INDEX messages_assistant_active_idx ON chat_messages (conversation_id, created_at) WHERE role = 'assistant' AND deleted_at IS NULL");
-        DB::statement("CREATE INDEX messages_user_active_idx ON chat_messages (conversation_id, created_at) WHERE role = 'user' AND deleted_at IS NULL");
+        DB::statement('CREATE INDEX messages_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE deleted_at IS NULL');
+        DB::statement("CREATE INDEX messages_assistant_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'assistant' AND deleted_at IS NULL");
+        DB::statement("CREATE INDEX messages_user_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'user' AND deleted_at IS NULL");
 
         // Date-based indexes for analytics
         DB::statement('CREATE INDEX messages_created_date_idx ON chat_messages USING btree (date(created_at)) WHERE deleted_at IS NULL');
@@ -83,10 +85,7 @@ return new class extends Migration
         DB::statement('CREATE INDEX messages_expires_cleanup_idx ON chat_messages (expires_at) WHERE expires_at IS NOT NULL');
 
         // Conversation-level indexes
-        DB::statement('CREATE INDEX conversations_active_idx ON chat_conversations (session_id, created_at) WHERE deleted_at IS NULL');
-
-        // Session-level indexes
-        DB::statement('CREATE INDEX sessions_user_recent_idx ON chat_sessions (user_id, created_at DESC) WHERE user_id IS NOT NULL');
+        DB::statement('CREATE INDEX conversations_active_idx ON chat_conversations (chat_session_id, created_at) WHERE deleted_at IS NULL');
 
         // Multi-language full-text search indexes
         $this->createMultiLanguageSearchIndexes();

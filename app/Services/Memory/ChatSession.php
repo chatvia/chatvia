@@ -31,7 +31,7 @@ class ChatSession
 
     public function generateSessionKey(): string
     {
-        return Str::uuid();
+        return Str::ulid();
     }
 
     public function isMemberAuth(): bool

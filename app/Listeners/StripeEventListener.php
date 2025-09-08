@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Models\User;
+use App\Models\UserQuota;
 use Laravel\Cashier\Events\WebhookReceived;
 
 class StripeEventListener
@@ -40,16 +41,20 @@ class StripeEventListener
 
         $endsAt = $isYearly ? now()->addYear() : now()->addMonth();
 
-        if ($user->agents_limit < $fixedLimit['agents_limit']) {
-            $user->quota()->updateOrCreate([
-                'agents_limit' => $fixedLimit['agents_limit'],
-                'pages_limit' => $fixedLimit['pages_limit'],
-                'minutes_limit' => $fixedLimit['minutes_limit'],
-                'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
-                'members_limit' => $fixedLimit['members_limit'],
-                'links_limit' => $fixedLimit['links_limit'],
-            ]);
-        }
+        /** @var UserQuota $quota */
+        $quota = $user->quota;
+
+        $user->quota()->updateOrCreate(
+            [],
+            [
+                'agents_limit' => ($quota->agents_limit ?? 0) + $fixedLimit['agents_limit'],
+                'pages_limit' => ($quota->pages_limit ?? 0) + $fixedLimit['pages_limit'],
+                'minutes_limit' => ($quota->minutes_limit ?? 0) + $fixedLimit['minutes_limit'],
+                'custom_domains_limit' => ($quota->custom_domains_limit ?? 0) + $fixedLimit['custom_domains_limit'],
+                'members_limit' => ($quota->members_limit ?? 0) + $fixedLimit['members_limit'],
+                'links_limit' => ($quota->links_limit ?? 0) + $fixedLimit['links_limit'],
+            ]
+        );
 
         $user->addCredit(
             $quotaLimit,

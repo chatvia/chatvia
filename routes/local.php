@@ -1,11 +1,8 @@
 <?php
 
-use App\Models\Llm;
-
 if (app()->isLocal()) {
     Route::get('playground', function () {
-        $user = \App\Models\User::query()->first();
-
-        $user->grantPermission(\App\Enums\PermissionEnum::MODELS_VIEW);
+        $agent = \App\Models\Agent::query()->whereExternalId('407f7fdfa1cf18')->first();
+        dd($agent->leads);
     });
 }

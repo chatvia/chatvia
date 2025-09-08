@@ -15,12 +15,6 @@ class WidgetLeadFormController
 
         abort_if(! $status, 403);
 
-        return [
-            'name',
-            'email',
-            'phone',
-            'company',
-            'location',
-        ];
+        return current_agent_from_widget()->settings('leads');
     }
 }

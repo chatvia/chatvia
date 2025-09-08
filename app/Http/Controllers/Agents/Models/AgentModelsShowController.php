@@ -13,9 +13,9 @@ class AgentModelsShowController
     {
         $user = $request->user();
 
-        if ($user->missingPermission(PermissionEnum::MODELS_VIEW)) {
-            return back()->with('error', 'You do not have permission to view page');
-        }
+        //        if ($user->missingPermission(PermissionEnum::MODELS_VIEW)) {
+        //            return back()->with('error', 'You do not have permission to view page');
+        //        }
 
         abort_if(
             boolean: $request->user()->cannot('view', $agent),

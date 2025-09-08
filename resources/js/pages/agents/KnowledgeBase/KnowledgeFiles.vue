@@ -795,7 +795,8 @@ const showFileSummary = async (file: KnowledgeFile) => {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="flex justify-center">
+        <div class="w-full max-w-6xl space-y-6">
 
 
             <!-- Upload Section -->
@@ -928,7 +929,6 @@ const showFileSummary = async (file: KnowledgeFile) => {
                     </CardContent>
                 </Card>
             </div>
-
             <!-- Current Knowledge Base -->
             <Card>
                 <CardHeader>
@@ -1182,6 +1182,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                     </div>
                 </CardContent>
             </Card>
+        </div>
     </div>
 
     <!-- Delete Confirmation Dialog for Knowledge Files -->

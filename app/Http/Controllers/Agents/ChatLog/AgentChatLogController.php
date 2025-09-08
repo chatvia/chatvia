@@ -26,7 +26,7 @@ class AgentChatLogController
         if ($conversationId) {
             $messages = ChatMessage::query()
                 ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
-                ->where('conversation_id', $conversationId)
+                ->where('chat_conversation_id', $conversationId)
                 ->orderBy('created_at')
                 ->paginate(50)
                 ->withQueryString();
@@ -74,15 +74,15 @@ class AgentChatLogController
             $conversationIds = $conversations->pluck('conversation_id')->map(fn ($id) => (string) $id);
 
             $firstMessagesRaw = ChatMessage::query()
-                ->whereIn('conversation_id', $conversationIds)
+                ->whereIn('chat_conversation_id', $conversationIds)
                 ->orderBy('created_at')
-                ->get(['conversation_id', 'content', 'created_at']);
+                ->get(['chat_conversation_id', 'content', 'created_at']);
 
             $firstPerConversation = [];
             foreach ($firstMessagesRaw as $message) {
                 // Only store the first message per conversation (since we're ordered by created_at)
-                if (! isset($firstPerConversation[$message->conversation_id])) {
-                    $firstPerConversation[$message->conversation_id] = str($message->content)->stripTags()->limit(80)->value();
+                if (! isset($firstPerConversation[$message->chat_conversation_id])) {
+                    $firstPerConversation[$message->chat_conversation_id] = str($message->content)->stripTags()->limit(80)->value();
                 }
             }
 
@@ -96,14 +96,14 @@ class AgentChatLogController
         // Gather lead presence per conversation
         $leadConversationIds = Lead::query()
             ->where('agent_id', $agent->id)
-            ->whereIn('conversation_id', $conversations->pluck('conversation_id'))
-            ->pluck('conversation_id');
+            ->whereIn('chat_conversation_id', $conversations->pluck('conversation_id'))
+            ->pluck('chat_conversation_id');
 
         $lead = null;
         if ($conversationId) {
             $lead = Lead::query()
                 ->where('agent_id', $agent->id)
-                ->where('conversation_id', $conversationId)
+                ->where('chat_conversation_id', $conversationId)
                 ->first();
         }
 

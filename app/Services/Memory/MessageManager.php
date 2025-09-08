@@ -27,7 +27,7 @@ class MessageManager
         string $type = 'text',
         array $append = []
     ): string {
-        $messageId = $messageId ?? Str::uuid()->toString();
+        $messageId = $messageId ?? Str::ulid()->toString();
 
         $formattedMessage = [
             'id' => $messageId,
@@ -53,7 +53,6 @@ class MessageManager
         $isInputMessage = $payload instanceof ChatInputPayload;
 
         $append = [
-            'include_in_conversation' => $this->agent->contextWindowEnabled(),
             'language' => $payload->language,
         ];
 
@@ -164,9 +163,6 @@ class MessageManager
                 'role' => $message['role'],
                 'content' => $message['message_for_llm'] ?? $message['content'],
             ])
-            ->filter(fn ($item) => ! isset($item['include_in_conversation']) ||
-                $item['include_in_conversation'] === true
-            )
             ->toArray();
 
         if ($asText) {

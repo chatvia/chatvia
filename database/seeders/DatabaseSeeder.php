@@ -22,26 +22,21 @@ class DatabaseSeeder extends Seeder
             'sub_domain' => 'knowledge',
             'system_instructions' => config('prompts.knowledge-based-system-instruction'),
             'is_public' => 1,
-            'is_active' => 1,
-            'type' => 'standalone',
-            'external_id' => '407f7fdfa1cf18',
+            'type' => 'knowledge_base',
+            'external_id' => 'e8c75295bf6572',
+            'collect_leads' => false,
         ]);
 
         Agent::factory()->create([
             'user_id' => $user->id,
-            'name' => 'Assistant',
+            'name' => 'Widget',
             'sub_domain' => '',
             'system_instructions' => config('prompts.knowledge-based-system-instruction'),
             'is_public' => 1,
-            'is_active' => 1,
             'type' => 'widget',
-            'external_id' => 'e8c75295bf6572',
+            'external_id' => '407f7fdfa1cf18',
+            'collect_leads' => true,
         ]);
 
-        // Seed pipeline stages and sample leads
-        $this->call([
-            PipelineStageSeeder::class,
-            LeadSeeder::class,
-        ]);
     }
 }

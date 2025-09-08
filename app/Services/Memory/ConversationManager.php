@@ -19,7 +19,7 @@ class ConversationManager
 
     public function createConversation(string $title): string
     {
-        $conversationId = Str::uuid()->toString();
+        $conversationId = Str::ulid()->toString();
 
         $conversations = $this->getConversationsFromSession();
 

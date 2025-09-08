@@ -75,7 +75,7 @@ const filteredAgents = computed(() => {
     return agents.value.filter(agent =>
         agent.name.toLowerCase().includes(query) ||
         agent.type.toLowerCase().includes(query) ||
-        agent.sub_domain.toLowerCase().includes(query)
+        (agent.sub_domain && agent.sub_domain.toLowerCase().includes(query))
     );
 });
 
@@ -89,10 +89,10 @@ const formatDate = (dateString: string) => {
 
 const getAgentTypeBadgeClass = (type: string) => {
     const lowerType = type.toLowerCase();
-    if (lowerType === 'standalone') {
-        return 'rounded-full bg-blue-100 p-2 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
-    } else if (lowerType === 'widget') {
+    if (lowerType === 'knowledge_base') {
         return 'rounded-full bg-green-100 p-2 text-green-700 dark:bg-green-900/20 dark:text-green-400';
+    } else if (lowerType === 'widget') {
+        return 'rounded-full bg-blue-100 p-2 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
     } else {
         return 'rounded-full bg-primary/10 p-2 text-primary';
     }
@@ -100,7 +100,7 @@ const getAgentTypeBadgeClass = (type: string) => {
 
 const getAgentTypeIcon = (type: string) => {
     const lowerType = type.toLowerCase();
-    if (lowerType === 'standalone') {
+    if (lowerType === 'knowledge_base') {
         return MessageSquare;
     } else if (lowerType === 'widget') {
         return Code;
@@ -178,7 +178,9 @@ const getAgentTypeIcon = (type: string) => {
                         <div class="flex items-center justify-between">
                             <CardTitle class="flex items-center gap-2 text-xl">
                                 <Bot class="h-5 w-5 flex-shrink-0" />
-                                <span class="truncate">{{ agent.name }}</span>
+                                <span class="truncate">
+                                    <Link :href="route('agents.preview', { agent: agent.id})">{{ agent.name }}</Link>
+                                </span>
                             </CardTitle>
                             <div :class="getAgentTypeBadgeClass(agent.type)">
                                 <component :is="getAgentTypeIcon(agent.type)" class="h-4 w-4" />
@@ -204,11 +206,7 @@ const getAgentTypeIcon = (type: string) => {
                         </div>
                     </CardContent>
 
-                    <CardFooter class="flex justify-between border-t p-4">
-                        <Button variant="outline" size="sm" :href="`${page.props.schema}://${agent.sub_domain}.${page.props.domain}`" as="a" target="_blank" class="gap-1">
-                            <ExternalLink class="h-3.5 w-3.5" />
-                            View
-                        </Button>
+                    <CardFooter class="flex justify-end border-t p-4">
                         <Button as-child size="sm">
                             <Link :href="route('agents.preview', {agent: agent.id})" class="gap-1">
                                 Manage

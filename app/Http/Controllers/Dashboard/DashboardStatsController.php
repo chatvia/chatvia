@@ -35,13 +35,15 @@ class DashboardStatsController
         $endDate = now()->endOfDay();
 
         // Get daily message counts from user's agents using the date index
-        $dailyMessages = DB::table('messages')
-            ->join('agents', 'messages.agent_id', '=', 'agents.id')
+        $dailyMessages = DB::table('chat_messages')
+            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
+            ->join('agents', 'chat_sessions.agent_id', '=', 'agents.id')
             ->where('agents.user_id', $user->id)
-            ->where('messages.role', 'assistant')
-            ->whereRaw('date(messages.created_at) >= ?', [$startDate->format('Y-m-d')])
-            ->whereRaw('date(messages.created_at) <= ?', [$endDate->format('Y-m-d')])
-            ->selectRaw('DATE(messages.created_at) as date, COUNT(*) as count')
+            ->where('chat_messages.role', 'assistant')
+            ->whereRaw('date(chat_messages.created_at) >= ?', [$startDate->format('Y-m-d')])
+            ->whereRaw('date(chat_messages.created_at) <= ?', [$endDate->format('Y-m-d')])
+            ->selectRaw('DATE(chat_messages.created_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
             ->pluck('count', 'date')

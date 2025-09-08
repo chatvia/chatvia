@@ -22,8 +22,8 @@ class Stats
     public function getTotalMessages(): int
     {
         return ChatMessage::query()
-            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
-            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $this->agent->id)
             ->where('chat_messages.role', 'assistant')
             ->count();
@@ -37,8 +37,8 @@ class Stats
     public function averageResponseTime()
     {
         return ChatMessage::query()
-            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
-            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $this->agent->id)
             ->where('chat_messages.role', 'assistant')
             ->selectRaw('ROUND(AVG(chat_messages.response_time_ms) / 1000, 1) as avg_response_time')
@@ -48,8 +48,8 @@ class Stats
     public function satisfactionRate()
     {
         $result = ChatMessage::query()
-            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
-            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $this->agent->id)
             ->where('chat_messages.role', 'assistant')
             ->whereNotNull('chat_messages.feedback')
@@ -77,8 +77,8 @@ class Stats
 
         // Get daily message counts for the last 7 days
         $dailyMessages = ChatMessage::query()
-            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
-            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $this->agent->id)
             ->where('chat_messages.role', 'assistant')
             ->whereRaw('DATE(chat_messages.created_at) >= ?', [$startDate->format('Y-m-d')])
@@ -109,8 +109,8 @@ class Stats
     public function getMostUsedModels()
     {
         return ChatMessage::query()
-            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
-            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $this->agent->id)
             ->where('chat_messages.role', 'assistant')
             ->whereNotNull('chat_messages.model')
@@ -121,8 +121,8 @@ class Stats
                     (COUNT(*) * 100.0) / (
                         SELECT COUNT(*)
                         FROM chat_messages cm2
-                        JOIN chat_conversations cc2 ON cm2.conversation_id = cc2.id
-                        JOIN chat_sessions cs2 ON cc2.session_id = cs2.id
+                        JOIN chat_conversations cc2 ON cm2.chat_conversation_id = cc2.id
+                        JOIN chat_sessions cs2 ON cc2.chat_session_id = cs2.id
                         WHERE cs2.agent_id = ?
                         AND cm2.role = ?
                         AND cm2.model IS NOT NULL
@@ -165,8 +165,8 @@ class Stats
         $startDate = now()->subDays($days)->startOfDay();
 
         return ChatMessage::query()
-            ->join('chat_conversations', 'chat_messages.conversation_id', '=', 'chat_conversations.id')
-            ->join('chat_sessions', 'chat_conversations.session_id', '=', 'chat_sessions.id')
+            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $this->agent->id)
             ->where('chat_messages.role', 'assistant')
             ->where('chat_messages.created_at', '>=', $startDate)

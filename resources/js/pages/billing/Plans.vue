@@ -134,7 +134,7 @@ const currentLLMs = ref<LLM[]>([]);
 
 // Discount functionality
 const isDiscountActive = computed(() => {
-    return props.billingConfig.discount.percentage > 0 && 
+    return props.billingConfig.discount.percentage > 0 &&
            (!props.billingConfig.discount.ends_at || new Date(props.billingConfig.discount.ends_at) > new Date());
 });
 
@@ -168,7 +168,7 @@ const subscribingPackage = ref('');
 
 const getPackagePrice = (pkg: Package) => {
     let priceCents: number;
-    
+
     if (isYearly.value && pkg.id !== 'free') {
         // Use yearly price divided by 12 to get monthly equivalent
         priceCents = pkg.yearly_price / 12;
@@ -176,12 +176,12 @@ const getPackagePrice = (pkg: Package) => {
         // Use regular monthly price
         priceCents = pkg.monthly_price;
     }
-    
+
     // Apply active discount if available
     if (isDiscountActive.value && pkg.id !== 'free') {
         priceCents = priceCents * (1 - props.billingConfig.discount.percentage / 100);
     }
-    
+
     const roundedCents = Math.round(priceCents);
     const amount = (roundedCents / 100).toFixed(2);
     return `${props.billingConfig.currencySymbol}${amount}`;
@@ -189,9 +189,9 @@ const getPackagePrice = (pkg: Package) => {
 
 const getOriginalPrice = (pkg: Package) => {
     if (pkg.id === 'free' || !isDiscountActive.value) return null;
-    
+
     let originalPriceCents: number;
-    
+
     if (isYearly.value) {
         // Use yearly price divided by 12 to get monthly equivalent (before discount)
         originalPriceCents = pkg.yearly_price / 12;
@@ -199,7 +199,7 @@ const getOriginalPrice = (pkg: Package) => {
         // Use regular monthly price
         originalPriceCents = pkg.monthly_price;
     }
-    
+
     const amount = (originalPriceCents / 100).toFixed(2);
     return `${props.billingConfig.currencySymbol}${amount}`;
 };
@@ -210,14 +210,14 @@ const getPackagePeriod = () => {
 
 const getYearlyTotal = (pkg: Package) => {
     if (!isYearly.value || pkg.id === 'free') return null;
-    
+
     let yearlyPriceCents = pkg.yearly_price;
-    
+
     // Apply active discount if available
     if (isDiscountActive.value) {
         yearlyPriceCents = yearlyPriceCents * (1 - props.billingConfig.discount.percentage / 100);
     }
-    
+
     const amount = (yearlyPriceCents / 100).toFixed(2);
     return `${props.billingConfig.currencySymbol}${amount}`;
 };
@@ -475,7 +475,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
 
                 <!-- Packages Grid -->
                 <div class="flex justify-center">
-                    <div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 max-w-6xl">
+                    <div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 max-w-7xl">
                         <div
                             v-for="(pkg, packageKey) in packages"
                             :key="pkg.id"

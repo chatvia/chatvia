@@ -15,8 +15,6 @@ class AgentStoreController
     {
         $user = $request->user();
 
-        // TODO: check if user can create more agents
-
         try {
             DB::beginTransaction();
 
@@ -28,12 +26,18 @@ class AgentStoreController
             $agent = Agent::create([
                 'user_id' => $user->id,
                 'name' => $validatedData['name'],
-                'sub_domain' => $validatedData['type'] === 'standalone' ? $subdomain->generateRandomSubdomain() : null,
+                'sub_domain' => $validatedData['type'] === 'knowledge_base' ? $subdomain->generateRandomSubdomain() : null,
                 'system_instructions' => config('prompts.knowledge-based-system-instruction'),
                 'is_public' => false,
                 'type' => $validatedData['type'],
                 'external_id' => $externalId,
             ]);
+
+            $agent->setSetting(
+                key: 'collect_leads',
+                value: true,
+                group: 'leads',
+            );
 
             DB::commit();
 

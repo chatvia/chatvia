@@ -47,10 +47,6 @@ class EnsureChatIsAccessible
             return to_route('chat.home');
         }
 
-        if (! $agent->is_active) {
-            return Inertia::render('agents/chat/AgentDisabled');
-        }
-
         return $next($request);
     }
 }

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->morphs('model');
             $table->string('group')->index();
             $table->string('key');
-            $table->string('value');
+            $table->text('value');
             $table->string('data_type');
             $table->timestamps();
         });

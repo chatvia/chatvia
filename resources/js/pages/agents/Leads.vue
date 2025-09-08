@@ -1,916 +1,627 @@
-<script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+<script lang="ts" setup>
+import { ref, computed, watch } from 'vue';
+import { router, Link, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import InputError from '@/components/InputError.vue';
+import FormErrors from '@/components/FormErrors.vue';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle
+} from '@/components/ui/dialog';
 import {
     Users,
-    Mail,
-    Phone,
-    Building2,
-    Calendar,
-    ExternalLink,
-    MessageSquare,
-    Maximize,
-    Minimize,
     Search,
-    Filter,
+    Trash2,
     Download,
-    Plus,
-    Tag,
-    Clock,
+    LoaderCircle,
     AlertTriangle,
-    CheckCircle,
-    Star,
+    ExternalLink,
     Eye,
     Settings
 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
-
-interface PipelineStage {
-    id: number;
-    name: string;
-    slug: string;
-    color: string;
-    order: number;
-    is_active: boolean;
-    is_default: boolean;
-}
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
+import LeadDetailsSheet from '@/components/LeadDetailsSheet.vue';
 
 interface Lead {
     id: number;
     name: string | null;
     email: string | null;
-    phone: string | null;
-    company: string | null;
-    message: string | null;
-    pipeline_stage: string;
-    status: string;
-    priority: string;
-    score: number;
-    value: number | null;
-    tags: string[] | null;
-    assigned_to: number | null;
-    source: string | null;
-    notes: string | null;
-    next_follow_up: string | null;
-    follow_up_type: string | null;
-    last_activity_at: string | null;
+    phone?: string | null;
+    job_title?: string | null;
+    company?: string | null;
+    location?: string | null;
+    message?: string | null;
+    referrer_url?: string | null;
+    page_url?: string | null;
+    locale?: string | null;
+    country?: string | null;
+    ip_address?: string | null;
+    user_agent?: string | null;
+    status?: string;
+    status_label?: string;
+    custom_fields?: Record<string, any>;
     created_at: string;
-    agent: {
-        id: number;
-        name: string;
+    contacted_at?: string | null;
+    qualified_at?: string | null;
+    converted_at?: string | null;
+    conversation_id: string;
+    conversation?: {
+        id: string;
     };
-    assigned_to_user?: User;
-    status_color: string;
-    status_label: string;
-    priority_color: string;
-    priority_label: string;
-    display_name: string;
-    initials: string;
-}
-
-interface Agent {
-    id: number;
-    name: string;
-    type: string;
-}
-
-interface Analytics {
-    total_leads: number;
-    new_leads_today: number;
-    conversion_rate: number;
-    avg_response_time: number | null;
-    leads_by_source: Record<string, number>;
-    leads_by_priority: Record<string, number>;
 }
 
 interface Props {
-    agent: Agent;
-    leads: Record<string, Lead[]>;
-    pipelineStages: Record<string, string>;
-    pipelineStagesData: PipelineStage[];
-    teamMembers: User[];
-    analytics: Analytics;
-    filters: {
-        search?: string;
-        status?: string;
-        priority?: string;
-        assigned_to?: number;
-        pipeline_stage?: string;
-        tags?: string;
-    };
+    agent: any;
+    leads: Lead[];
+    settings?: {
+        fields?: any;
+    } | null;
 }
 
 const props = defineProps<Props>();
 
-// Reactive state
-const draggedLead = ref<Lead | null>(null);
-const dragOverColumn = ref<string | null>(null);
-const isFullscreen = ref<boolean>(false);
-const showFilters = ref<boolean>(false);
-const showLeadDetail = ref<boolean>(false);
-const selectedLead = ref<Lead | null>(null);
+// Get dynamic lead fields from settings or use static defaults
+const getLeadFieldsFromSettings = (): Record<LeadFieldKey, LeadFieldConfig> => {
+    const leadsSettings = props.settings?.fields; // This is settings('leads')
+    const settingsFields = leadsSettings?.fields; // The fields within the leads settings
+    
+    // If we have settings fields, use them
+    if (settingsFields && typeof settingsFields === 'object') {
+        const result: Record<LeadFieldKey, LeadFieldConfig> = {} as any;
+        
+        leadFieldOrder.forEach((key) => {
+            const settingValue = settingsFields[key];
+            if (settingValue && typeof settingValue === 'object') {
+                const defaultField = createDefaultLeadField(key);
+                result[key] = {
+                    title: settingValue.title || defaultField.title,
+                    required: Boolean(settingValue.required),
+                    enabled: Boolean(settingValue.enabled ?? defaultField.enabled),
+                };
+            } else {
+                result[key] = createDefaultLeadField(key);
+            }
+        });
+        
+        return result;
+    }
+    
+    // Fallback to static defaults
+    const result: Record<LeadFieldKey, LeadFieldConfig> = {} as any;
+    leadFieldOrder.forEach((key) => {
+        result[key] = createDefaultLeadField(key);
+    });
+    return result;
+};
 
-// Form state for lead interactions
-const newNote = ref('');
-const newTag = ref('');
+// Get dynamic form title from settings
+const getFormTitleFromSettings = (): string => {
+    const leadsSettings = props.settings?.fields; // This is settings('leads')
+    return leadsSettings?.title || '';
+};
 
-// Search and filter state
-const searchQuery = ref<string>(props.filters.search || '');
-const selectedStatus = ref<string>(props.filters.status || '');
-const selectedPriority = ref<string>(props.filters.priority || '');
-const selectedAssignee = ref<number | undefined>(props.filters.assigned_to);
-const selectedPipelineStage = ref<string>(props.filters.pipeline_stage || '');
-const selectedTags = ref<string>(props.filters.tags || '');
+// State
+const searchQuery = ref('');
+const selectedLeads = ref<number[]>([]);
+const showDeleteDialog = ref(false);
+const isDeleting = ref(false);
+const isExporting = ref(false);
+const showLeadDetails = ref(false);
+const selectedLeadForView = ref<Lead | null>(null);
+
+// Settings dialog state
+const showSettingsDialog = ref(false);
+type LeadFieldKey = 'name' | 'email' | 'phone' | 'job_title' | 'company' | 'location' | 'message';
+type LeadFieldConfig = { title: string; required: boolean; enabled: boolean };
+const leadFieldOrder: LeadFieldKey[] = ['name', 'email', 'phone', 'job_title', 'company', 'location', 'message'];
+
+// Create default field configuration when no settings exist
+const createDefaultLeadField = (key: LeadFieldKey): LeadFieldConfig => {
+    const defaults: Record<LeadFieldKey, LeadFieldConfig> = {
+        name: { title: 'Name', required: false, enabled: true },
+        email: { title: 'Email', required: false, enabled: true },
+        phone: { title: 'Phone', required: false, enabled: false },
+        job_title: { title: 'Job Title', required: false, enabled: false },
+        company: { title: 'Company', required: false, enabled: false },
+        location: { title: 'Location', required: false, enabled: false },
+        message: { title: 'Message', required: false, enabled: false },
+    };
+    return defaults[key];
+};
+
+// Inertia form for settings
+const settingsForm = useForm({
+    collect_leads: false as boolean,
+    title: getFormTitleFromSettings(),
+    fields: getLeadFieldsFromSettings()
+});
+
+// Watch for changes to collect_leads to automatically enable name and email
+watch(() => settingsForm.collect_leads, (newValue) => {
+    if (newValue) {
+        // When lead collection is enabled, name and email must be enabled and required
+        settingsForm.fields.name.required = true;
+        settingsForm.fields.name.enabled = true;
+        settingsForm.fields.email.required = true;
+        settingsForm.fields.email.enabled = true;
+    }
+});
 
 // Computed properties
-const getLeadsForStage = (stage: string): Lead[] => {
-    return props.leads[stage] || [];
-};
+const filteredLeads = computed(() => {
+    if (!searchQuery.value.trim()) return props.leads;
 
-const getTotalLeads = computed(() => {
-    return Object.values(props.leads).flat().length;
+    const query = searchQuery.value.toLowerCase();
+    return props.leads.filter(lead =>
+        (lead.name?.toLowerCase().includes(query)) ||
+        (lead.email?.toLowerCase().includes(query))
+    );
 });
 
-const hasActiveFilters = computed(() => {
-    return searchQuery.value || selectedStatus.value || selectedPriority.value ||
-           selectedAssignee.value || selectedPipelineStage.value || selectedTags.value;
+const isAllSelected = computed(() => {
+    return filteredLeads.value.length > 0 &&
+           filteredLeads.value.every(lead => selectedLeads.value.includes(lead.id));
 });
 
-// Helper methods
-const getLeadInitials = (lead: Lead): string => {
-    return lead.initials || '?';
-};
+const isIndeterminate = computed(() => {
+    const selectedCount = filteredLeads.value.filter(lead => selectedLeads.value.includes(lead.id)).length;
+    return selectedCount > 0 && selectedCount < filteredLeads.value.length;
+});
 
-const getDisplayName = (lead: Lead): string => {
-    return lead.display_name || 'Anonymous Lead';
-};
+const hasSelectedLeads = computed(() => selectedLeads.value.length > 0);
 
-const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-        case 'urgent': return AlertTriangle;
-        case 'high': return Star;
-        default: return null;
+// Methods
+const toggleSelectAll = (checked: boolean | "indeterminate") => {
+    const isChecked = checked === true;
+    
+    if (isChecked) {
+        // Select all visible leads
+        const visibleIds = filteredLeads.value.map(lead => lead.id);
+        const newSelection = [...new Set([...selectedLeads.value, ...visibleIds])];
+        selectedLeads.value = newSelection;
+    } else {
+        // Deselect all visible leads
+        selectedLeads.value = selectedLeads.value.filter(id =>
+            !filteredLeads.value.some(lead => lead.id === id)
+        );
     }
 };
 
-const getStageColor = (stage: string): string => {
-    const stageData = props.pipelineStagesData.find(s => s.slug === stage);
-    return stageData?.color || '#6B7280';
-};
-
-const isOverdue = (lead: Lead): boolean => {
-    if (!lead.next_follow_up) return false;
-    return new Date(lead.next_follow_up) < new Date();
-};
-
-const hasRecentActivity = (lead: Lead): boolean => {
-    if (!lead.last_activity_at) return false;
-    const daysSince = (new Date().getTime() - new Date(lead.last_activity_at).getTime()) / (1000 * 3600 * 24);
-    return daysSince <= 7;
-};
-
-const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-    });
-};
-
-// Drag and drop methods
-const onDragStart = (event: DragEvent, lead: Lead) => {
-    draggedLead.value = lead;
-    if (event.dataTransfer) {
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/html', '');
-    }
-};
-
-const onDragEnd = () => {
-    draggedLead.value = null;
-    dragOverColumn.value = null;
-};
-
-const onDragOver = (event: DragEvent, stage: string) => {
-    event.preventDefault();
-    dragOverColumn.value = stage;
-    if (event.dataTransfer) {
-        event.dataTransfer.dropEffect = 'move';
-    }
-};
-
-const onDragLeave = () => {
-    dragOverColumn.value = null;
-};
-
-const onDrop = (event: DragEvent, newStage: string) => {
-    event.preventDefault();
-    dragOverColumn.value = null;
-
-    if (draggedLead.value && draggedLead.value.pipeline_stage !== newStage) {
-        updateLeadPipelineStage(draggedLead.value, newStage);
-    }
-
-    draggedLead.value = null;
-};
-
-// Lead management methods
-const updateLeadPipelineStage = (lead: Lead, newStage: string) => {
-    router.patch(route('agents.leads.update-pipeline-stage', { agent: props.agent.id, lead: lead.id }), {
-        pipeline_stage: newStage
-    }, {
-        onSuccess: () => {
-            const stageName = props.pipelineStages[newStage];
-            toast.success(`Lead moved to ${stageName}`);
-        },
-        onError: () => {
-            toast.error('Failed to update pipeline stage');
+const toggleSelectLead = (leadId: number, checked: boolean | "indeterminate") => {
+    const isChecked = checked === true;
+    
+    if (isChecked) {
+        if (!selectedLeads.value.includes(leadId)) {
+            selectedLeads.value.push(leadId);
         }
-    });
+    } else {
+        selectedLeads.value = selectedLeads.value.filter(id => id !== leadId);
+    }
+};
+
+const clearSelection = () => {
+    selectedLeads.value = [];
 };
 
 const viewLead = (lead: Lead) => {
-    selectedLead.value = lead;
-    showLeadDetail.value = true;
+    selectedLeadForView.value = lead;
+    showLeadDetails.value = true;
 };
 
-const assignLead = (userId: number) => {
-    if (!selectedLead.value) return;
-
-    router.patch(route('agents.leads.assign', { agent: props.agent.id, lead: selectedLead.value.id }), {
-        assigned_to: userId
-    }, {
+const saveSettings = () => {
+    settingsForm.patch(route('agents.leads.settings', { agent: (props as any).agent.id }), {
+        preserveScroll: true,
         onSuccess: () => {
-            toast.success('Lead assigned successfully');
-            showLeadDetail.value = false;
+            showSettingsDialog.value = false;
+            toast.success('Lead settings saved');
+            // Clear any errors on successful save
+            settingsForm.clearErrors();
         },
-        onError: () => {
-            toast.error('Failed to assign lead');
+        onError: (errors) => {
+            console.error('Form errors:', errors);
+            // Errors will be displayed inline via FormErrors component and individual field errors
+        },
+    });
+};
+
+const openSettings = () => {
+    // Clear any previous errors when opening the dialog
+    settingsForm.clearErrors();
+    
+    // Initialize from props.agent
+    settingsForm.collect_leads = Boolean(props.agent?.collect_leads);
+    
+    // Get current settings from the dynamic functions
+    settingsForm.title = getFormTitleFromSettings();
+    settingsForm.fields = getLeadFieldsFromSettings();
+
+    // If lead collection is enabled, ensure name and email are always enabled and required
+    if (settingsForm.collect_leads) {
+        settingsForm.fields.name.required = true;
+        settingsForm.fields.name.enabled = true;
+        settingsForm.fields.email.required = true;
+        settingsForm.fields.email.enabled = true;
+    }
+
+    showSettingsDialog.value = true;
+};
+
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
+const openDeleteDialog = () => {
+    if (!hasSelectedLeads.value) return;
+    showDeleteDialog.value = true;
+};
+
+const deleteSelectedLeads = () => {
+    if (!hasSelectedLeads.value) return;
+
+    isDeleting.value = true;
+
+    router.delete(route('agents.leads.delete', { agent: props.agent.id }), {
+        data: {
+            lead_ids: selectedLeads.value
+        },
+        preserveScroll: true,
+        onSuccess: () => {
+            isDeleting.value = false;
+            showDeleteDialog.value = false;
+            clearSelection();
+            toast.success('Leads deleted successfully');
+        },
+        onError: (errors) => {
+            isDeleting.value = false;
+            toast.error('Failed to delete leads. Please try again.');
         }
     });
 };
 
-const addNote = () => {
-    if (!newNote.value.trim() || !selectedLead.value) return;
+const exportSelectedLeads = async () => {
+    if (!hasSelectedLeads.value) return;
 
-    router.post(route('agents.leads.add-note', { agent: props.agent.id, lead: selectedLead.value.id }), {
-        note: newNote.value
-    }, {
-        onSuccess: () => {
-            newNote.value = '';
-            toast.success('Note added successfully');
-        },
-        onError: () => {
-            toast.error('Failed to add note');
-        }
-    });
+    isExporting.value = true;
+
+    try {
+        const res = await axios.post(route('agents.leads.export', { agent: props.agent.id }), {
+            lead_ids: selectedLeads.value
+        }, { 
+            responseType: 'blob' 
+        });
+
+        const blob = new Blob([res.data], { type: res.headers['content-type'] ?? 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'leads.csv'; // fallback filename
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        toast.success('Leads exported successfully');
+    } catch (error) {
+        console.error('Export error:', error);
+        toast.error('Failed to export leads. Please try again.');
+    } finally {
+        isExporting.value = false;
+    }
 };
 
-const addTag = () => {
-    if (!newTag.value.trim() || !selectedLead.value) return;
-
-    router.post(route('agents.leads.add-tag', { agent: props.agent.id, lead: selectedLead.value.id }), {
-        tag: newTag.value
-    }, {
-        onSuccess: () => {
-            newTag.value = '';
-            toast.success('Tag added successfully');
-        },
-        onError: () => {
-            toast.error('Failed to add tag');
-        }
-    });
-};
-
-// Filter methods
-const applyFilters = () => {
-    const params = new URLSearchParams();
-
-    if (searchQuery.value) params.set('search', searchQuery.value);
-    if (selectedStatus.value) params.set('status', selectedStatus.value);
-    if (selectedPriority.value) params.set('priority', selectedPriority.value);
-    if (selectedAssignee.value) params.set('assigned_to', selectedAssignee.value.toString());
-    if (selectedPipelineStage.value) params.set('pipeline_stage', selectedPipelineStage.value);
-    if (selectedTags.value) params.set('tags', selectedTags.value);
-
-    router.visit(route('agents.leads', { agent: props.agent.id, ...Object.fromEntries(params) }));
-};
-
-const clearFilters = () => {
-    searchQuery.value = '';
-    selectedStatus.value = '';
-    selectedPriority.value = '';
-    selectedAssignee.value = undefined;
-    selectedPipelineStage.value = '';
-    selectedTags.value = '';
-    applyFilters();
-};
-
-const toggleFullscreen = () => {
-    isFullscreen.value = !isFullscreen.value;
+const cancelDelete = () => {
+    showDeleteDialog.value = false;
 };
 </script>
 
 <template>
     <AgentLayout :agent="agent" title="Leads">
-        <Head title="Leads" />
-
-        <div class="space-y-6">
-            <!-- Analytics Header -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                    <CardContent class="p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                                <Users class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <div class="flex justify-center">
+            <Card class="w-full max-w-6xl">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <Users class="h-5 w-5" />
+                        Leads
+                    </CardTitle>
+                    <CardDescription>
+                        Manage leads captured by your agent
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div class="space-y-4">
+                        <!-- Search and Actions Bar -->
+                        <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                            <!-- Search Input -->
+                            <div class="relative w-full sm:w-64">
+                                <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    v-model="searchQuery"
+                                    placeholder="Search leads..."
+                                    class="pl-10"
+                                />
                             </div>
-                            <div>
-                                <p class="text-sm text-muted-foreground">Total Leads</p>
-                                <p class="text-2xl font-bold">{{ props.analytics.total_leads.toLocaleString() }}</p>
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <Button
+                                    @click="openSettings"
+                                    variant="outline"
+                                    size="sm"
+                                    class="flex-1 sm:flex-none"
+                                >
+                                    <Settings class="h-4 w-4 mr-2" />
+                                    Settings
+                                </Button>
+                                <Button
+                                    @click="exportSelectedLeads"
+                                    variant="outline"
+                                    size="sm"
+                                    :disabled="!hasSelectedLeads || isExporting"
+                                    class="flex-1 sm:flex-none"
+                                >
+                                    <LoaderCircle v-if="isExporting" class="h-4 w-4 mr-2 animate-spin" />
+                                    <Download v-else class="h-4 w-4 mr-2" />
+                                    {{ isExporting ? 'Exporting...' : 'Export CSV' }}
+                                </Button>
+                                <Button
+                                    @click="openDeleteDialog"
+                                    variant="outline"
+                                    size="sm"
+                                    :disabled="!hasSelectedLeads"
+                                    class="text-destructive hover:text-destructive flex-1 sm:flex-none"
+                                >
+                                    <Trash2 class="h-4 w-4 mr-2" />
+                                    Delete
+                                </Button>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
 
-                <Card>
-                    <CardContent class="p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                                <Plus class="h-5 w-5 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div>
-                                <p class="text-sm text-muted-foreground">New Today</p>
-                                <p class="text-2xl font-bold">{{ props.analytics.new_leads_today }}</p>
-                            </div>
+                        <!-- Results Counter -->
+                        <div v-if="props.leads.length > 0" class="flex justify-between items-center text-sm text-muted-foreground">
+                            <span>
+                                Showing {{ filteredLeads.length }} of {{ props.leads.length }} leads
+                                <span v-if="searchQuery.trim()">
+                                    (filtered)
+                                </span>
+                            </span>
                         </div>
-                    </CardContent>
-                </Card>
 
-                <Card>
-                    <CardContent class="p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                                <CheckCircle class="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <div>
-                                <p class="text-sm text-muted-foreground">Conversion Rate</p>
-                                <p class="text-2xl font-bold">{{ props.analytics.conversion_rate }}%</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent class="p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
-                                <Clock class="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                            </div>
-                            <div>
-                                <p class="text-sm text-muted-foreground">Avg Response Time</p>
-                                <p class="text-2xl font-bold">
-                                    {{ props.analytics.avg_response_time ? `${props.analytics.avg_response_time}h` : 'N/A' }}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- Header -->
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-semibold text-foreground">Leads</h1>
-                    <p class="text-sm text-muted-foreground">
-                        Manage leads generated by {{ agent.name }}
-                    </p>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users class="h-4 w-4" />
-                        <span>{{ getTotalLeads }} total leads</span>
-                    </div>
-
-                    <!-- Filter Toggle -->
-                    <Button
-                        @click="showFilters = !showFilters"
-                        variant="outline"
-                        size="sm"
-                        class="gap-2"
-                        :class="{ 'bg-primary/10': hasActiveFilters }"
-                    >
-                        <Filter class="h-4 w-4" />
-                        Filters
-                        <Badge v-if="hasActiveFilters" variant="secondary" class="ml-1">
-                            Active
-                        </Badge>
-                    </Button>
-
-                    <Button
-                        @click="toggleFullscreen"
-                        variant="outline"
-                        size="sm"
-                        class="gap-2"
-                    >
-                        <component :is="isFullscreen ? Minimize : Maximize" class="h-4 w-4" />
-                        {{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}
-                    </Button>
-                </div>
-            </div>
-
-            <!-- Filters Panel -->
-            <Card v-if="showFilters" class="p-4">
-                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-                    <!-- Search -->
-                    <div class="md:col-span-2">
-                        <div class="relative">
-                            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                v-model="searchQuery"
-                                placeholder="Search leads..."
-                                class="pl-10"
-                                @keyup.enter="applyFilters"
+                        <!-- Leads Table -->
+                        <div class="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                    <TableRow>
+                        <TableHead class="w-12">
+                            <Checkbox
+                                id="select-all"
+                                :model-value="isAllSelected"
+                                :indeterminate="isIndeterminate"
+                                @update:model-value="toggleSelectAll"
                             />
-                        </div>
-                    </div>
-
-                    <!-- Priority Filter -->
-                    <Select v-model="selectedPriority">
-                        <SelectTrigger>
-                            <SelectValue placeholder="Priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="">All Priorities</SelectItem>
-                            <SelectItem value="urgent">Urgent</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="low">Low</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <!-- Assignee Filter -->
-                    <Select v-model="selectedAssignee">
-                        <SelectTrigger>
-                            <SelectValue placeholder="Assignee" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem :value="undefined">All Team Members</SelectItem>
-                            <SelectItem v-for="member in props.teamMembers" :key="member.id" :value="member.id">
-                                {{ member.name }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <!-- Pipeline Stage Filter -->
-                    <Select v-model="selectedPipelineStage">
-                        <SelectTrigger>
-                            <SelectValue placeholder="Stage" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="">All Stages</SelectItem>
-                            <SelectItem v-for="(name, slug) in props.pipelineStages" :key="slug" :value="slug">
-                                {{ name }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <!-- Filter Actions -->
-                    <div class="flex gap-2">
-                        <Button @click="applyFilters" size="sm" class="flex-1">
-                            Apply
-                        </Button>
-                        <Button @click="clearFilters" variant="outline" size="sm" class="flex-1">
-                            Clear
-                        </Button>
-                    </div>
-                </div>
-            </Card>
-
-            <!-- Kanban Board Card Container -->
-            <Card class="p-0 overflow-hidden"
-                :class="[
-                    isFullscreen ? 'fixed inset-6 z-50 h-[calc(100vh-3rem)]' : ''
-                ]"
-            >
-
-                <!-- Fullscreen Header -->
-                <div v-if="isFullscreen" class="flex items-center justify-between p-6 border-b">
-                    <div>
-                        <h2 class="text-xl font-semibold text-foreground">{{ agent.name }} - Leads</h2>
-                        <p class="text-sm text-muted-foreground">{{ getTotalLeads }} total leads</p>
-                    </div>
-                    <Button
-                        @click="toggleFullscreen"
-                        variant="outline"
-                        size="sm"
-                        class="gap-2"
+                        </TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Conversation</TableHead>
+                        <TableHead>Created At</TableHead>
+                        <TableHead class="w-20">Actions</TableHead>
+                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                    <TableRow v-if="filteredLeads.length === 0">
+                        <TableCell colspan="6" class="text-center py-8 text-muted-foreground">
+                                            <div v-if="props.leads.length === 0">
+                                                <Users class="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                                                <p>No leads captured yet.</p>
+                                                <p class="text-sm">Leads will appear here when visitors interact with your agent.</p>
+                                            </div>
+                                            <div v-else>
+                                                <p>No leads found matching your search.</p>
+                                                <p class="text-sm">Try adjusting your search terms.</p>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                    <TableRow
+                        v-for="lead in filteredLeads"
+                        :key="lead.id"
+                        :class="{ 'bg-muted/50': selectedLeads.includes(lead.id) }"
                     >
-                        <Minimize class="h-4 w-4" />
-                        Exit Fullscreen
-                    </Button>
-                </div>
-
-                <!-- Kanban Columns Container -->
-                <ScrollArea
-                    :class="[
-                        'w-full whitespace-nowrap',
-                        isFullscreen ? 'h-[calc(100vh-15rem)]' : 'h-[calc(100vh-16rem)]'
-                    ]"
-                >
-                    <div class="flex w-max space-x-6 p-4">
-                        <div
-                            v-for="stage in props.pipelineStagesData"
-                            :key="stage.slug"
-                            :class="[
-                                'flex flex-col w-80 h-full bg-muted/30 rounded-lg border transition-all duration-200 shrink-0',
-                                dragOverColumn === stage.slug && draggedLead?.pipeline_stage !== stage.slug
-                                    ? 'ring-2 ring-primary shadow-lg scale-105'
-                                    : ''
-                            ]"
-                        >
-                    <!-- Column Header -->
-                    <div class="flex items-center justify-between p-4 border-b bg-card/50 rounded-t-lg">
-                        <div class="flex items-center gap-2">
-                            <div
-                                class="w-3 h-3 rounded-full"
-                                :style="{ backgroundColor: stage.color }"
-                            ></div>
-                            <h3 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                                {{ stage.name }}
-                            </h3>
-                        </div>
-                        <Badge variant="secondary" class="h-5 px-2 text-xs font-medium">
-                            {{ getLeadsForStage(stage.slug).length }}
-                        </Badge>
-                    </div>
-
-                    <!-- Drop Zone -->
-                    <div
-                        class="flex-1 p-3 space-y-3 transition-all duration-200"
-                        @dragover="onDragOver($event, stage.slug)"
-                        @dragleave="onDragLeave"
-                        @drop="onDrop($event, stage.slug)"
-                        :class="[
-                            dragOverColumn === stage.slug && draggedLead?.pipeline_stage !== stage.slug
-                                ? 'bg-primary/5 border-2 border-dashed border-primary/50 rounded-md'
-                                : ''
-                        ]"
-                    >
-                            <!-- Lead Cards -->
-                            <Card
-                                v-for="lead in getLeadsForStage(stage.slug)"
-                                :key="lead.id"
-                                draggable="true"
-                                @dragstart="onDragStart($event, lead)"
-                                @dragend="onDragEnd"
-                                @click="viewLead(lead)"
-                                :class="[
-                                    'cursor-pointer transition-all duration-200 hover:shadow-md group',
-                                    draggedLead?.id === lead.id ? 'opacity-60 rotate-2 shadow-lg cursor-grabbing' : 'hover:scale-[1.02]'
-                                ]"
+                        <TableCell>
+                            <Checkbox
+                                :id="`lead-${lead.id}`"
+                                :model-value="selectedLeads.includes(lead.id)"
+                                @update:model-value="checked => toggleSelectLead(lead.id, checked)"
+                            />
+                        </TableCell>
+                        <TableCell class="font-medium">
+                            {{ lead.name || 'Anonymous' }}
+                        </TableCell>
+                        <TableCell>
+                            {{ lead.email || 'No email provided' }}
+                        </TableCell>
+                        <TableCell>
+                            <Link
+                                v-if="lead.conversation_id"
+                                :href="route('agents.logs', { agent: agent.id, conversation_id: lead.conversation_id })"
+                                class="inline-flex items-center gap-1 text-primary hover:underline text-sm"
                             >
-                                <CardHeader class="pb-3">
-                                    <div class="flex items-start gap-3">
-                                        <Avatar class="h-8 w-8 flex-shrink-0">
-                                            <AvatarFallback
-                                                class="text-xs font-medium text-white"
-                                                :style="{ backgroundColor: getStageColor(lead.pipeline_stage) }"
-                                            >
-                                                {{ getLeadInitials(lead) }}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div class="min-w-0 flex-1">
-                                            <div class="flex items-center gap-2">
-                                                <CardTitle class="text-sm font-medium truncate">
-                                                    {{ getDisplayName(lead) }}
-                                                </CardTitle>
-                                                <!-- Lead Score -->
-                                                <Badge
-                                                    v-if="lead.score > 0"
-                                                    variant="secondary"
-                                                    class="text-xs px-1.5 py-0.5"
-                                                >
-                                                    {{ Math.round(lead.score) }}
-                                                </Badge>
-                                            </div>
-                                            <p class="text-xs text-muted-foreground truncate mt-1">
-                                                {{ lead.company || 'No company' }}
-                                            </p>
+                                View Chat
+                                <ExternalLink class="h-3 w-3" />
+                            </Link>
+                            <span v-else class="text-muted-foreground text-sm">No conversation</span>
+                        </TableCell>
+                        <TableCell>
+                            {{ formatDate(lead.created_at) }}
+                        </TableCell>
+                        <TableCell>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                @click="viewLead(lead)"
+                                class="h-8 w-8 p-0"
+                            >
+                                <Eye class="h-4 w-4" />
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
 
-                                            <!-- Lead Value -->
-                                            <div v-if="lead.value" class="text-xs font-medium text-green-600 dark:text-green-400 mt-1">
-                                                ${{ lead.value.toLocaleString() }}
-                                            </div>
-                                        </div>
+        <!-- Delete Confirmation Dialog -->
+        <Dialog v-model:open="showDeleteDialog">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <AlertTriangle class="h-5 w-5 text-destructive" />
+                        Delete Selected Leads
+                    </DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete {{ selectedLeads.length }} selected lead{{ selectedLeads.length === 1 ? '' : 's' }}?
+                        This action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button variant="outline" @click="cancelDelete" :disabled="isDeleting">
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="destructive"
+                        @click="deleteSelectedLeads"
+                        :disabled="isDeleting"
+                    >
+                        <LoaderCircle v-if="isDeleting" class="h-4 w-4 mr-2 animate-spin" />
+                        <Trash2 v-else class="h-4 w-4 mr-2" />
+                        {{ isDeleting ? 'Deleting...' : 'Delete Leads' }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
-                                        <!-- Priority Icon -->
-                                        <component
-                                            v-if="getPriorityIcon(lead.priority)"
-                                            :is="getPriorityIcon(lead.priority)"
-                                            :class="[
-                                                'h-4 w-4',
-                                                lead.priority === 'urgent' ? 'text-red-500' : 'text-orange-500'
-                                            ]"
-                                        />
-                                    </div>
-                                </CardHeader>
+        <!-- Lead Details Sheet -->
+        <LeadDetailsSheet
+            v-model:open="showLeadDetails"
+            :lead="selectedLeadForView"
+        />
 
-                                <CardContent class="pt-0 space-y-3">
-                                    <!-- Tags -->
-                                    <div v-if="lead.tags && lead.tags.length > 0" class="flex flex-wrap gap-1">
-                                        <Badge
-                                            v-for="tag in lead.tags.slice(0, 2)"
-                                            :key="tag"
-                                            variant="outline"
-                                            class="text-xs px-2 py-0.5"
-                                        >
-                                            {{ tag }}
-                                        </Badge>
-                                        <Badge
-                                            v-if="lead.tags.length > 2"
-                                            variant="outline"
-                                            class="text-xs px-2 py-0.5"
-                                        >
-                                            +{{ lead.tags.length - 2 }}
-                                        </Badge>
-                                    </div>
+        <!-- Lead Settings Dialog -->
+        <Dialog v-model:open="showSettingsDialog">
+            <DialogContent class="sm:max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>Lead Settings</DialogTitle>
+                    <DialogDescription>
+                        Enable lead collection and customize field titles and required flags.
+                    </DialogDescription>
+                </DialogHeader>
 
-                                    <!-- Contact Info -->
-                                    <div class="space-y-2">
-                                        <div v-if="lead.email" class="flex items-center gap-2 text-xs">
-                                            <Mail class="h-3 w-3 flex-shrink-0 text-muted-foreground" />
-                                            <span class="truncate text-muted-foreground">{{ lead.email }}</span>
-                                        </div>
-                                        <div v-if="lead.phone" class="flex items-center gap-2 text-xs">
-                                            <Phone class="h-3 w-3 flex-shrink-0 text-muted-foreground" />
-                                            <span class="text-muted-foreground">{{ lead.phone }}</span>
-                                        </div>
-                                    </div>
+                <!-- Display form errors at the top -->
+                <FormErrors :errors="settingsForm.errors" title="Validation Error" class="mb-4" />
 
-                                    <!-- Assignment Info -->
-                                    <div v-if="lead.assigned_to_user" class="flex items-center gap-2 text-xs">
-                                        <Users class="h-3 w-3 flex-shrink-0 text-muted-foreground" />
-                                        <span class="text-muted-foreground">{{ lead.assigned_to_user.name }}</span>
-                                    </div>
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <Checkbox 
+                            id="collect-leads"
+                            v-model="settingsForm.collect_leads" 
+                        />
+                        <label for="collect-leads" class="text-sm cursor-pointer">Enable lead collection</label>
+                    </div>
 
-                                    <!-- Follow-up Info -->
-                                    <div v-if="lead.next_follow_up" class="flex items-center gap-2 text-xs">
-                                        <Clock class="h-3 w-3 flex-shrink-0 text-muted-foreground" />
-                                        <span :class="[
-                                            'text-muted-foreground',
-                                            isOverdue(lead) ? 'text-red-500 font-medium' : ''
-                                        ]">
-                                            {{ formatDate(lead.next_follow_up) }}
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">Form Title</label>
+                        <Input 
+                            v-model="settingsForm.title" 
+                            placeholder="e.g. Contact details" 
+                            :disabled="!settingsForm.collect_leads"
+                        />
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="text-sm font-medium">Fields</div>
+                        <div class="border rounded-lg overflow-hidden" :class="{ 'opacity-50 pointer-events-none': !settingsForm.collect_leads }">
+                            <!-- Table Header -->
+                            <div class="bg-muted/50 px-4 py-3 border-b">
+                                <div class="grid grid-cols-3 gap-4 text-sm font-medium">
+                                    <div>Field</div>
+                                    <div class="text-center">Enabled</div>
+                                    <div class="text-center">Required</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Table Rows -->
+                            <div class="divide-y">
+                                <div v-for="key in leadFieldOrder" :key="key" 
+                                     class="px-4 py-4 grid grid-cols-3 gap-4 items-center hover:bg-muted/30 transition-colors"
+                                     :class="{ 'bg-blue-50/50 dark:bg-blue-950/20': settingsForm.collect_leads && (key === 'name' || key === 'email') }">
+                                    <!-- Field Name -->
+                                    <div class="flex flex-col">
+                                        <span class="font-medium text-sm capitalize">
+                                            {{ key.replace('_', ' ') }}
                                         </span>
                                     </div>
-
-                                    <!-- ChatMessage Preview -->
-                                    <div v-if="lead.message">
-                                        <Separator class="my-2" />
-                                        <div class="flex items-start gap-2">
-                                            <MessageSquare class="h-3 w-3 flex-shrink-0 mt-0.5 text-muted-foreground" />
-                                            <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                                                {{ lead.message }}
-                                            </p>
-                                        </div>
+                                    
+                                    <!-- Enabled Checkbox -->
+                                    <div class="flex justify-center">
+                                        <Checkbox 
+                                            :id="`field-${key}-enabled`"
+                                            v-model="settingsForm.fields[key].enabled" 
+                                            :disabled="!settingsForm.collect_leads || (key === 'name' || key === 'email')" 
+                                        />
                                     </div>
-
-                                    <!-- Date -->
-                                    <div class="flex items-center justify-center pt-2 text-xs text-muted-foreground">
-                                        <div class="flex items-center gap-1">
-                                            <Calendar class="h-3 w-3" />
-                                            <span>{{ formatDate(lead.created_at) }}</span>
-                                        </div>
+                                    
+                                    <!-- Required Checkbox -->
+                                    <div class="flex justify-center">
+                                        <Checkbox 
+                                            :id="`field-${key}-required`"
+                                            v-model="settingsForm.fields[key].required" 
+                                            :disabled="!settingsForm.collect_leads || !settingsForm.fields[key].enabled || (key === 'name' || key === 'email')" 
+                                        />
                                     </div>
-                                </CardContent>
-                            </Card>
-
-                            <!-- Empty State -->
-                            <div
-                                v-if="getLeadsForStage(stage.slug).length === 0"
-                                class="flex flex-col items-center justify-center h-96 text-center"
-                            >
-                                <div
-                                    class="w-12 h-12 rounded-full mb-3 flex items-center justify-center opacity-20"
-                                    :style="{ backgroundColor: stage.color }"
-                                >
-                                    <Users class="h-6 w-6 text-white" />
                                 </div>
-                                <p class="text-sm text-muted-foreground mb-1">
-                                    No {{ stage.name.toLowerCase() }} leads
-                                </p>
-                                <p class="text-xs text-muted-foreground/60">
-                                    Drag leads here to update stage
-                                </p>
                             </div>
-                    </div>
                         </div>
                     </div>
-                    <ScrollBar orientation="horizontal" />
-                </ScrollArea>
-            </Card>
+                </div>
 
-            <!-- Lead Detail Modal -->
-            <Dialog v-model:open="showLeadDetail">
-                <DialogContent class="max-w-4xl max-h-[90vh] overflow-hidden">
-                    <DialogHeader v-if="selectedLead">
-                        <DialogTitle class="flex items-center gap-4 pb-4 border-b">
-                            <Avatar class="h-12 w-12">
-                                <AvatarFallback
-                                    class="text-sm font-semibold text-white"
-                                    :style="{ backgroundColor: getStageColor(selectedLead.pipeline_stage) }"
-                                >
-                                    {{ getLeadInitials(selectedLead) }}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div class="flex-1">
-                                <h2 class="text-2xl font-bold">{{ getDisplayName(selectedLead) }}</h2>
-                                <p class="text-muted-foreground">{{ selectedLead.company || selectedLead.email }}</p>
-                                <div class="flex items-center gap-2 mt-2">
-                                    <Badge variant="outline">{{ props.pipelineStages[selectedLead.pipeline_stage] }}</Badge>
-                                    <Badge
-                                        :variant="selectedLead.priority === 'urgent' ? 'destructive' : 'secondary'"
-                                        class="gap-1"
-                                    >
-                                        <component
-                                            v-if="getPriorityIcon(selectedLead.priority)"
-                                            :is="getPriorityIcon(selectedLead.priority)"
-                                            class="h-3 w-3"
-                                        />
-                                        {{ selectedLead.priority_label }}
-                                    </Badge>
-                                    <Badge v-if="selectedLead.score > 0" variant="secondary">
-                                        Score: {{ Math.round(selectedLead.score) }}
-                                    </Badge>
-                                </div>
-                            </div>
-                            <div v-if="selectedLead.value" class="text-right">
-                                <p class="text-sm text-muted-foreground">Potential Value</p>
-                                <p class="text-2xl font-bold text-green-600 dark:text-green-400">
-                                    ${{ selectedLead.value.toLocaleString() }}
-                                </p>
-                            </div>
-                        </DialogTitle>
-                    </DialogHeader>
-
-                    <div v-if="selectedLead" class="mt-6">
-                        <Tabs default-value="overview" class="w-full">
-                            <TabsList class="grid w-full grid-cols-4">
-                                <TabsTrigger value="overview">Overview</TabsTrigger>
-                                <TabsTrigger value="contact">Contact</TabsTrigger>
-                                <TabsTrigger value="notes">Notes</TabsTrigger>
-                                <TabsTrigger value="activity">Activity</TabsTrigger>
-                            </TabsList>
-
-                            <div class="mt-6 max-h-[50vh] overflow-y-auto">
-                                <!-- Overview Tab -->
-                                <TabsContent value="overview" class="space-y-6">
-                                    <!-- Tags -->
-                                    <div class="space-y-3">
-                                        <h3 class="font-semibold">Tags</h3>
-                                        <div v-if="selectedLead.tags && selectedLead.tags.length > 0" class="flex flex-wrap gap-2">
-                                            <Badge
-                                                v-for="tag in selectedLead.tags"
-                                                :key="tag"
-                                                variant="outline"
-                                            >
-                                                {{ tag }}
-                                            </Badge>
-                                        </div>
-
-                                        <!-- Add Tag -->
-                                        <div class="flex gap-2">
-                                            <Input
-                                                v-model="newTag"
-                                                placeholder="Add tag..."
-                                                @keyup.enter="addTag"
-                                                class="text-sm"
-                                            />
-                                            <Button @click="addTag" size="sm" variant="outline">
-                                                <Plus class="h-3 w-3" />
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Assignment -->
-                                    <div class="space-y-3">
-                                        <h3 class="font-semibold">Assignment</h3>
-                                        <Select :model-value="selectedLead.assigned_to" @update:model-value="assignLead">
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Assign to team member" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem :value="null">Unassigned</SelectItem>
-                                                <SelectItem v-for="member in props.teamMembers" :key="member.id" :value="member.id">
-                                                    {{ member.name }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </TabsContent>
-
-                                <!-- Contact Tab -->
-                                <TabsContent value="contact" class="space-y-4">
-                                    <div v-if="selectedLead.email" class="flex items-center gap-3 p-4 bg-muted/20 rounded-lg">
-                                        <Mail class="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                            <p class="font-medium">{{ selectedLead.email }}</p>
-                                            <p class="text-sm text-muted-foreground">Email Address</p>
-                                        </div>
-                                    </div>
-                                    <div v-if="selectedLead.phone" class="flex items-center gap-3 p-4 bg-muted/20 rounded-lg">
-                                        <Phone class="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                            <p class="font-medium">{{ selectedLead.phone }}</p>
-                                            <p class="text-sm text-muted-foreground">Phone Number</p>
-                                        </div>
-                                    </div>
-                                    <div v-if="selectedLead.company" class="flex items-center gap-3 p-4 bg-muted/20 rounded-lg">
-                                        <Building2 class="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                            <p class="font-medium">{{ selectedLead.company }}</p>
-                                            <p class="text-sm text-muted-foreground">Company</p>
-                                        </div>
-                                    </div>
-                                </TabsContent>
-
-                                <!-- Notes Tab -->
-                                <TabsContent value="notes" class="space-y-4">
-                                    <!-- Existing Notes -->
-                                    <div v-if="selectedLead.notes">
-                                        <h3 class="font-semibold mb-3">Current Notes</h3>
-                                        <div class="p-4 bg-muted/20 rounded-lg">
-                                            <p class="text-sm whitespace-pre-wrap">{{ selectedLead.notes }}</p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Add Note -->
-                                    <div>
-                                        <h3 class="font-semibold mb-3">Add Note</h3>
-                                        <div class="space-y-3">
-                                            <textarea
-                                                v-model="newNote"
-                                                placeholder="Add a note..."
-                                                rows="4"
-                                                class="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                            ></textarea>
-                                            <Button @click="addNote" class="w-full gap-2">
-                                                <Plus class="h-4 w-4" />
-                                                Add Note
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </TabsContent>
-
-                                <!-- Activity Tab -->
-                                <TabsContent value="activity" class="space-y-4">
-                                    <!-- Original ChatMessage -->
-                                    <div v-if="selectedLead.message">
-                                        <h3 class="font-semibold mb-3">Original Message</h3>
-                                        <div class="p-4 bg-muted/20 rounded-lg">
-                                            <p class="text-sm leading-relaxed">{{ selectedLead.message }}</p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Activity placeholder -->
-                                    <div class="text-center py-12 text-muted-foreground">
-                                        <Clock class="h-12 w-12 mx-auto mb-4 opacity-30" />
-                                        <h3 class="font-medium mb-2">Activity Timeline</h3>
-                                        <p class="text-sm">Detailed activity tracking coming soon</p>
-                                    </div>
-                                </TabsContent>
-                            </div>
-                        </Tabs>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        </div>
+                <DialogFooter>
+                    <Button 
+                        variant="outline" 
+                        @click="showSettingsDialog = false" 
+                        :disabled="settingsForm.processing"
+                    >
+                        Cancel
+                    </Button>
+                    <Button :disabled="settingsForm.processing" @click="saveSettings">
+                        <LoaderCircle v-if="settingsForm.processing" class="h-4 w-4 mr-2 animate-spin" />
+                        Save
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AgentLayout>
 </template>
-
-<style scoped>
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-</style>

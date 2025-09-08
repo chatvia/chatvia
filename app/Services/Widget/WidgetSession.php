@@ -4,7 +4,6 @@ namespace App\Services\Widget;
 
 use App\Models\Agent;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 
 class WidgetSession
 {
@@ -15,19 +14,6 @@ class WidgetSession
         $this->agent = $agent;
 
         return $this;
-    }
-
-    public function generateSession(): string
-    {
-        $newChatSessionId = Str::uuid()->toString();
-
-        $this->getChatCache()->put(
-            key: $newChatSessionId,
-            value: ['conversations' => []],
-            ttl: now()->addDays(3),
-        );
-
-        return $newChatSessionId;
     }
 
     public function getChatCache()

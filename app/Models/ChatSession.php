@@ -2,20 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ChatSession extends Model
 {
-    use HasUuids;
+    use HasUlids;
 
     protected $guarded = [];
 
     public function conversations(): HasMany
     {
-        return $this->hasMany(ChatConversation::class, 'session_id');
+        return $this->hasMany(ChatConversation::class, 'chat_session_id');
     }
 
     public function agent(): BelongsTo

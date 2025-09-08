@@ -15,11 +15,11 @@ class ChatConversation extends Model
 
     public function session(): BelongsTo
     {
-        return $this->belongsTo(ChatSession::class, 'session_id');
+        return $this->belongsTo(ChatSession::class, 'chat_session_id');
     }
 
     public function messages(): HasMany
     {
-        return $this->hasMany(ChatMessage::class, 'conversation_id');
+        return $this->hasMany(ChatMessage::class, 'chat_conversation_id');
     }
 }

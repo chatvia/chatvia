@@ -15,7 +15,7 @@ class ChatMessage extends Model
 
     public function conversation(): BelongsTo
     {
-        return $this->belongsTo(ChatConversation::class, 'conversation_id');
+        return $this->belongsTo(ChatConversation::class, 'chat_conversation_id');
     }
 
     /**
@@ -24,8 +24,6 @@ class ChatMessage extends Model
      */
     public function lead(): HasOne
     {
-        return $this
-            ->hasOne(Lead::class, 'conversation_id', 'conversation_id')
-            ->where('agent_id', 'messages.agent_id');
+        return $this->hasOne(Lead::class, 'chat_conversation_id', 'chat_conversation_id');
     }
 }

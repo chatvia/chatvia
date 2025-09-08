@@ -23,7 +23,7 @@ class LeadFactory extends Factory
         $pipelineStage = $this->faker->randomElement($pipelineStages);
 
         return [
-            'session_id' => $this->faker->unique()->regexify('[A-Za-z0-9]{60}'),
+            'chat_session_id' => $this->faker->unique()->regexify('[A-Za-z0-9]{60}'),
             'conversation_id' => $this->faker->uuid(),
             'agent_id' => Agent::inRandomOrder()->first()?->id ?? Agent::factory(),
 

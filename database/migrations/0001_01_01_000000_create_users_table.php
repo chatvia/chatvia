@@ -17,6 +17,8 @@ return new class extends Migration
             $table->boolean('is_admin')->index()->default(false);
             $table->rememberToken();
 
+            $table->unsignedBigInteger('team_id')->nullable();
+
             $table->string('stripe_id')->nullable()->index();
             $table->string('pm_type')->nullable();
             $table->string('pm_last_four', 4)->nullable();
@@ -24,6 +26,7 @@ return new class extends Migration
 
             $table->string('google_id')->index()->nullable();
             $table->string('microsoft_id')->index()->nullable();
+            $table->string('facebook_id')->index()->nullable();
 
             $table->ipAddress('registered_ip')->nullable();
             $table->string('domain')->nullable();

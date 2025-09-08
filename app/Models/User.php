@@ -68,11 +68,6 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(Agent::class);
     }
 
-    public function messages(): HasMany
-    {
-        return $this->hasMany(ChatMessage::class);
-    }
-
     public function getCurrentPackage(): array
     {
         $stripePrice = $this->subscription()?->stripe_price;

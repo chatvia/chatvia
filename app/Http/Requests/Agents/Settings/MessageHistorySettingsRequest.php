@@ -15,8 +15,6 @@ class MessageHistorySettingsRequest extends FormRequest
     {
         return [
             'retention' => ['sometimes', 'integer'],
-            'context_window_enabled' => ['sometimes', 'boolean'],
-            'context_window_size' => ['sometimes', 'integer'],
         ];
     }
 }

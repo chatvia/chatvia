@@ -10,7 +10,6 @@ class AgentSecurityUpdateController
     public function __invoke(Request $request, Agent $agent)
     {
         $validated = $request->validate([
-            'is_active' => ['required', 'boolean'],
             'is_public' => ['required', 'boolean'],
         ]);
 

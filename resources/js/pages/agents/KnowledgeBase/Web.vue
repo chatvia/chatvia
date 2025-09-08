@@ -977,7 +977,8 @@ onMounted(() => {
 
 <template>
     <AgentLayout :agent="agent" title="Knowledge Base - Web">
-        <div class="space-y-6">
+        <div class="flex justify-center">
+            <div class="w-full max-w-6xl space-y-6">
         <!-- Smart Monitoring Info Banner -->
         <InfoBanner
             title="Smart Monitoring"
@@ -1968,6 +1969,7 @@ onMounted(() => {
                 </div>
             </CardContent>
         </Card>
+            </div>
         </div>
     </AgentLayout>
 

@@ -16,6 +16,9 @@ return new class extends Migration
             $table->text('value');
             $table->string('data_type');
             $table->timestamps();
+
+            $table->index(['model_type', 'model_id', 'group']);
+            $table->index(['group', 'key']);
         });
     }
 

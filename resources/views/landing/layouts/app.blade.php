@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>{{ config('app.name') }} - Home</title>
+    <title>@yield('title', config('app.name')) - Home</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"
@@ -11,6 +11,13 @@
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
     @vite(['resources/css/landing.css'])
+
+    <style>
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+    </style>
 </head>
 <body class="font-inter antialiased bg-white text-slate-800 tracking-tight">
 

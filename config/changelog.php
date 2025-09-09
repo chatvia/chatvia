@@ -3,9 +3,27 @@
 return [
     'versions' => [
         [
+            'version' => '08-09-2025',
+            'release_date' => 'Sep 8, 2025',
+            'status' => 'Latest',
+            'status_color' => 'blue',
+            'changes' => [
+                'new_features' => [
+                    'New modern design with improved user experience',
+                    'Chat logs - view and manage all conversations with your agents',
+                    'Lead collection - capture visitor information through chat widgets',
+                    'Enhanced widget customization options with color themes and positioning',
+                ],
+                'improvements' => [
+                    'Better widget performance and responsiveness',
+                    'Improved chat interface with better message handling',
+                ],
+            ],
+        ],
+        [
             'version' => '31-08-2025',
             'release_date' => 'Aug 31, 2025',
-            'status' => 'Latest',
+            'status' => 'Released',
             'status_color' => 'blue',
             'changes' => [
                 'new_features' => [

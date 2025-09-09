@@ -19,7 +19,7 @@ readonly class ChatExportController
     public function __invoke(Request $request, string $conversationId)
     {
         $request->validate([
-            'messageId' => ['sometimes',  'uuid:4'],
+            'messageId' => ['sometimes'],
             'type' => ['required', 'string', 'in:pdf,text,markdown'],
         ]);
 

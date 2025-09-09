@@ -217,7 +217,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function canUploadPages(int $amount): bool
     {
-        return ($this->pages_limit - $this->pagesConsumed()) <= $amount;
+        return ($this->quota->pages_limit - $this->pagesConsumed()) <= $amount;
     }
 
     public function formattedLlms()

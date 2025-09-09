@@ -12,6 +12,7 @@
         "ext-intl": "*",
         "ext-libxml": "*",
         "aws/aws-sdk-php": "^3.351",
+        "coderflex/laravel-turnstile": "^2.1",
         "crwlr/crawler": "^3.5",
         "filament/filament": "^3.3",
         "firebase/php-jwt": "^6.11",

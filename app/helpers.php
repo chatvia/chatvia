@@ -349,3 +349,16 @@ if (! function_exists('current_agent_from_widget')) {
         return \App\Models\Agent::where('external_id', $agentId)->first();
     }
 }
+
+if (! function_exists('landing')) {
+    function landing(?string $key = null): string|array
+    {
+        $landing = \App\Support\HostConfig::landing(request()->host());
+
+        if ($key) {
+            return $landing[$key];
+        }
+
+        return $landing;
+    }
+}

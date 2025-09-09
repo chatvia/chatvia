@@ -21,10 +21,12 @@ return new class extends Migration
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->json('meta')->nullable();
+            $table->boolean('featured')->default(false);
+            $table->boolean('popular')->default(false);
+            $table->unsignedInteger('views')->default(0);
             $table->timestamps();
 
             $table->index(['status', 'published_at']);
-            $table->index('slug');
         });
     }
 

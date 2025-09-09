@@ -43,8 +43,6 @@ import {
     Brain,
     Workflow,
     Zap,
-    ChevronDown,
-    ChevronUp,
     Code,
     PanelLeftClose,
     PanelLeftOpen,
@@ -78,14 +76,12 @@ const features = page.props.features as Features;
 const isUiSectionExpanded = ref(true);
 const isControlPanelExpanded = ref(true);
 const isNavigationCollapsed = ref(true); // Default to collapsed on mobile
-const isKnowledgeBaseExpanded = ref(false);
 
 // Load states from localStorage on component mount
 onMounted(() => {
     const savedUiExpanded = localStorage.getItem('agent-layout-ui-expanded');
     const savedControlPanelExpanded = localStorage.getItem('agent-layout-control-panel-expanded');
     const savedNavigationCollapsed = localStorage.getItem('agent-layout-navigation-collapsed');
-    const savedKnowledgeBaseExpanded = localStorage.getItem('agent-layout-knowledge-base-expanded');
 
     if (savedUiExpanded !== null) {
         isUiSectionExpanded.value = savedUiExpanded === 'true';
@@ -105,15 +101,6 @@ onMounted(() => {
         }
     }
 
-    if (savedKnowledgeBaseExpanded !== null) {
-        isKnowledgeBaseExpanded.value = savedKnowledgeBaseExpanded === 'true';
-    }
-
-    // Auto-expand knowledge base if user is on a knowledge base page
-    const isOnKnowledgePage = currentRoute.value?.includes('KnowledgeBase');
-    if (isOnKnowledgePage) {
-        isKnowledgeBaseExpanded.value = true;
-    }
 });
 
 // Watch for changes and save to localStorage
@@ -129,9 +116,6 @@ watch(isNavigationCollapsed, (newValue) => {
     localStorage.setItem('agent-layout-navigation-collapsed', newValue.toString());
 });
 
-watch(isKnowledgeBaseExpanded, (newValue) => {
-    localStorage.setItem('agent-layout-knowledge-base-expanded', newValue.toString());
-});
 
 // Remove breadcrumbs as we're creating a knowledge_base layout
 
@@ -176,9 +160,9 @@ const controlPanelNavigationItems = computed(() => {
         { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models', tooltip: 'Manage AI models and settings' },
     )
 
-    // Always add Knowledge Base after models (or after persona if models is not available)
+    // Always add Sources after models (or after persona if models is not available)
     baseItems.push(
-        { id: 'knowledge', label: 'Knowledge Base', icon: Database, route: 'agents.knowledge', tooltip: 'Manage agent knowledge and training data' },
+        { id: 'knowledge', label: 'Sources', icon: Database, route: 'agents.sources', tooltip: 'Manage agent knowledge and training data' },
     );
 
     baseItems.push(
@@ -224,11 +208,7 @@ const controlPanelNavigationItems = computed(() => {
     return baseItems;
 });
 
-// Knowledge Base submenu items
-const knowledgeBaseItems = computed(() => [
-    { id: 'knowledge-files', label: 'Files', icon: FileText, route: 'agents.knowledge', tooltip: 'Upload and manage knowledge files' },
-    { id: 'knowledge-web', label: 'Website', icon: Globe, route: 'agents.knowledge.web', tooltip: 'Crawl websites for knowledge' },
-]);
+// Removed Sources submenu - now handled within the component
 
 const showDeleteDialog = ref(false);
 const isDeleting = ref(false);
@@ -301,6 +281,12 @@ const canDelete = computed(() => {
 const isActiveRoute = (routeName: string) => {
     const routeParts = routeName.split('.'); // Extract parts like ['agents', 'knowledge', 'web']
 
+    // Special handling for knowledge base routes - if checking for agents.knowledge,
+    // also match any sub-routes like agents.knowledge.web or agents.knowledge.text
+    if (routeName === 'agents.sources') {
+        return currentRoute.value.startsWith('agents/Sources');
+    }
+
     // Handle special cases for component naming
     let componentName;
     if (routeName === 'agents.embed') {
@@ -309,10 +295,16 @@ const isActiveRoute = (routeName: string) => {
         componentName = 'Preview';
     } else if (routeName === 'agents.settings') {
         componentName = 'Persona';  // Now maps to Persona component file
-    } else if (routeName === 'agents.knowledge') {
-        componentName = 'KnowledgeBase';  // Maps to KnowledgeBase component file
-    } else if (routeName === 'agents.knowledge.web') {
-        componentName = 'KnowledgeBase/Web';  // Maps to KnowledgeBase/Web component file
+    } else if (routeName === 'agents.sources') {
+        componentName = 'Sources';  // Maps to Sources component file
+    } else if (routeName === 'agents.sources.web') {
+        componentName = 'Sources/Web';  // Maps to Sources/Web component file
+    } else if (routeName === 'agents.sources.text') {
+        componentName = 'Sources/Text';  // Maps to Sources/Text component file
+    } else if (routeName === 'agents.sources.pdf') {
+        componentName = 'Sources/Pdf';  // Maps to Sources/Pdf component file
+    } else if (routeName === 'agents.sources.word') {
+        componentName = 'Sources/Word';  // Maps to Sources/Word component file
     } else if (routeName === 'agents.workflow') {
         componentName = 'Workflow';  // Maps to Workflow component file
     } else if (routeName === 'agents.actions') {
@@ -476,59 +468,20 @@ const isActiveRoute = (routeName: string) => {
                             <template v-if="!isNavigationCollapsed">
                                 <!-- Regular navigation items -->
                                 <template v-for="item in controlPanelNavigationItems" :key="item.id">
-                                    <!-- Special handling for Knowledge Base item -->
-                                    <template v-if="item.id === 'knowledge'">
-                                        <!-- Knowledge Base expandable item -->
-                                        <div class="space-y-1">
-                                            <button
-                                                @click="isKnowledgeBaseExpanded = !isKnowledgeBaseExpanded"
-                                                :class="cn(
-                                                    'w-full flex items-center gap-3 px-3 py-3 lg:py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group touch-manipulation',
-                                                    'text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted'
-                                                )"
-                                            >
-                                                <Database class="h-4 w-4 flex-shrink-0" />
-                                                <span class="flex-1 text-left">Knowledge Base</span>
-                                                <component
-                                                    :is="isKnowledgeBaseExpanded ? ChevronUp : ChevronDown"
-                                                    class="h-4 flex-shrink-0"
-                                                />
-                                            </button>
-
-                                            <!-- Knowledge Base submenu -->
-                                            <div v-show="isKnowledgeBaseExpanded" class="ml-6 space-y-1">
-                                                <Link
-                                                    v-for="subItem in knowledgeBaseItems"
-                                                    :key="subItem.id"
-                                                    :href="route(subItem.route, { agent: agent.id })"
-                                                    :class="cn(
-                                                        'flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group',
-                                                        isActiveRoute(subItem.route)
-                                                            ? 'bg-primary text-primary-foreground shadow-sm'
-                                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                                    )"
-                                                >
-                                                    <component :is="subItem.icon" class="h-4 w-4 flex-shrink-0" />
-                                                    <span>{{ subItem.label }}</span>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </template>
-                                    <template v-else>
-                                        <!-- Regular navigation item -->
-                                        <Link
-                                            :href="route(item.route, { agent: agent.id })"
-                                            :class="cn(
-                                                'flex items-center gap-3 px-3 py-3 lg:py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group touch-manipulation',
-                                                isActiveRoute(item.route)
-                                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted'
-                                            )"
-                                        >
-                                            <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
-                                            <span>{{ item.label }}</span>
-                                        </Link>
-                                    </template>
+                                    <!-- Special handling for Sources item -->
+                                    <!-- Regular navigation item -->
+                                    <Link
+                                        :href="route(item.route, { agent: agent.id })"
+                                        :class="cn(
+                                            'flex items-center gap-3 px-3 py-3 lg:py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group touch-manipulation cursor-pointer',
+                                            isActiveRoute(item.route)
+                                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                                : 'text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted'
+                                        )"
+                                    >
+                                        <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
+                                        <span>{{ item.label }}</span>
+                                    </Link>
                                 </template>
                             </template>
 
@@ -539,10 +492,10 @@ const isActiveRoute = (routeName: string) => {
                                         <Tooltip v-for="item in controlPanelNavigationItems" :key="item.id">
                                             <TooltipTrigger as-child>
                                                 <Link
-                                                    v-if="item.id !== 'knowledge'"
+                                                    v-if="item.id !== 'sources'"
                                                     :href="route(item.route, { agent: agent.id })"
                                                     :class="cn(
-                                                        'flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200',
+                                                        'flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200 cursor-pointer',
                                                         isActiveRoute(item.route)
                                                             ? 'bg-primary text-primary-foreground shadow-sm'
                                                             : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -550,13 +503,13 @@ const isActiveRoute = (routeName: string) => {
                                                 >
                                                     <component :is="item.icon" class="h-4 w-4" />
                                                 </Link>
-                                                <!-- Knowledge Base collapsed icon - just link to main knowledge page -->
+                                                <!-- Sources collapsed icon - just link to main knowledge page -->
                                                 <Link
                                                     v-else
-                                                    :href="route('agents.knowledge', { agent: agent.id })"
+                                                    :href="route('agents.sources', { agent: agent.id })"
                                                     :class="cn(
-                                                        'flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200',
-                                                        isActiveRoute('agents.knowledge') || isActiveRoute('agents.knowledge.web')
+                                                        'flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200 cursor-pointer',
+                                                        isActiveRoute('agents.sources')
                                                             ? 'bg-primary text-primary-foreground shadow-sm'
                                                             : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                                     )"

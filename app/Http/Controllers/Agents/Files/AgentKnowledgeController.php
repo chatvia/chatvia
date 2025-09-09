@@ -15,7 +15,7 @@ class AgentKnowledgeController
             code: 404,
         );
 
-        return Inertia::render('agents/KnowledgeBase', [
+        return Inertia::render('agents/Sources/Sources', [
             'agent' => $agent,
         ]);
     }

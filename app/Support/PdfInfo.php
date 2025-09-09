@@ -73,48 +73,6 @@ final class PdfInfo
         return $this->parseOutput($result->output());
     }
 
-    public function isEncrypted(string $pdfPath): bool
-    {
-        return $this->getInfo($pdfPath)->encrypted;
-    }
-
-    public function hasForm(string $pdfPath): bool
-    {
-        $data = $this->getInfo($pdfPath);
-
-        return $data->form !== 'none';
-    }
-
-    public function batchGetInfo(array $pdfPaths): array
-    {
-        $results = [];
-
-        foreach ($pdfPaths as $pdfPath) {
-            try {
-                $results[$pdfPath] = $this->getInfo($pdfPath);
-            } catch (Exception $e) {
-                Log::error('Batch PDF info extraction failed for file', [
-                    'file' => $pdfPath,
-                    'error' => $e->getMessage(),
-                ]);
-                $results[$pdfPath] = null;
-            }
-        }
-
-        return $results;
-    }
-
-    private function validateInstallation(): void
-    {
-        $result = Process::timeout(30)->run([
-            $this->pdfInfoPath, '-v',
-        ]);
-
-        if (! $result->successful()) {
-            throw new RuntimeException("PDFInfo test run failed: {$result->errorOutput()}");
-        }
-    }
-
     private function validatePdfFile(string $path): void
     {
         if (! File::exists($path)) {
@@ -138,6 +96,8 @@ final class PdfInfo
 
     private function parseOutput(string $output): array
     {
+        $output = mb_convert_encoding($output, 'UTF-8', 'UTF-8');
+
         $info = [];
         $lines = explode("\n", trim($output));
 
@@ -163,24 +123,6 @@ final class PdfInfo
         }
 
         return $info;
-    }
-
-    private function parseDate(?string $date): ?string
-    {
-        if (! $date) {
-            return null;
-        }
-
-        // PDFInfo dates are in format: D:20240101123000+00'00'
-        if (preg_match('/D:(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', $date, $matches)) {
-            return sprintf(
-                '%s-%s-%s %s:%s:%s',
-                $matches[1], $matches[2], $matches[3],
-                $matches[4], $matches[5], $matches[6]
-            );
-        }
-
-        return $date;
     }
 
     public static function make(): self

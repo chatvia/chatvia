@@ -75,12 +75,6 @@ const mainNavItems: NavItem[] = [
         href: route('agents.index'),
         icon: BotMessageSquare,
     },
-
-    {
-        title: 'Knowledge',
-        href: route('knowledge-base.show'),
-        icon: Database,
-    },
     {
         title: 'Billing',
         href: route('billing.index'),

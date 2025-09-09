@@ -53,7 +53,7 @@ return [
                     'title' => '',
                     'subheadline' => '',
                     'tabs' => [
-                        
+
                     ],
                 ],
                 'slide2' => [
@@ -145,7 +145,7 @@ return [
             ],
             'hero' => [
                 'top' => 'From PDFs, websites, and knowledge bases',
-                'headline' => 'Instantly create GPTs tailored to your business',
+                'headline' => 'Create custom ChatGPT tailored to your business',
                 'subheadlines' => [
                     'ChatVia instantly turns your data into intelligent chatbots that answer your questions 24/7',
                 ],
@@ -222,8 +222,8 @@ return [
                     'title' => 'Discover our unique properties',
                     'subheadline' => '',
                     'slides' => [
-//                        ['img' => 'images/chatvia/001-create-agent.png', 'title' => 'Create a custom GPT from your data in minutes', 'description' => 'Upload your documents, connect your knowledge base, or point to your website - and create a custom AI agent that understands your business.'],
-//                        ['img' => 'images/chatvia/002-control-panel.png', 'title' => 'Knowledage base and support widgets, all in one'],
+                        //                        ['img' => 'images/chatvia/001-create-agent.png', 'title' => 'Create a custom GPT from your data in minutes', 'description' => 'Upload your documents, connect your knowledge base, or point to your website - and create a custom AI agent that understands your business.'],
+                        //                        ['img' => 'images/chatvia/002-control-panel.png', 'title' => 'Knowledage base and support widgets, all in one'],
 
                     ],
                 ],

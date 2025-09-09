@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Agents\Knowledge\Crawler;
+namespace App\Http\Controllers\Agents\Sources\Crawler;
 
 use App\Models\Agent;
 use App\Models\AgentWebsite;

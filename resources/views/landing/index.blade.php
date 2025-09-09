@@ -304,9 +304,8 @@
         @endif
 
 
-        @if (isset(['features']['slide']['tabs']) && count($landing['features']['slide']['tabs']) !== 0)
+        @if (isset($landing['features']['slide']['tabs']) && count($landing['features']['slide']['tabs']) !== 0)
             <section class="relative">
-
             <div class="absolute inset-0 bg-slate-100 pointer-events-none mb-96 md:mb-[40rem]" aria-hidden="true"></div>
 
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6">

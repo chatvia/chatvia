@@ -9,6 +9,6 @@ class KnowledgeFilesShowController
 {
     public function __invoke(Request $request)
     {
-        return Inertia::render('KnowledgeBase');
+        return Inertia::render('Sources');
     }
 }

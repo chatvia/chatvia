@@ -3,7 +3,6 @@ import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import axios from 'axios';
 import { toast } from 'vue-sonner';
 import { useForm, router } from '@inertiajs/vue3';
-import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -334,7 +333,7 @@ const fetchWebsiteLinks = async (websiteId: number): Promise<DiscoveredLink[]> =
         }
 
         // Fetch all links from API
-        const response = await axios.get(route('agents.knowledge.websites.links', {
+        const response = await axios.get(route('agents.sources.websites.links', {
             agent: props.agent.id,
             website: websiteId
         }));
@@ -375,7 +374,7 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
     }
 
     try {
-        const response = await axios.get(route('agents.knowledge.websites.list', { agent: props.agent.id }));
+        const response = await axios.get(route('agents.sources.websites.list', { agent: props.agent.id }));
 
         // Transform the response data to match our WebSource interface
         webSources.value = response.data.map((website: any) => {
@@ -453,7 +452,7 @@ const addWebsite = () => {
         websiteForm.url = getFullUrl.value;
 
         // Submit form with comprehensive error handling
-        websiteForm.post(route('agents.knowledge.website.crawl', { agent: props.agent.id }), {
+        websiteForm.post(route('agents.sources.website.crawl', { agent: props.agent.id }), {
             preserveScroll: true,
             onStart: () => {
                 console.log('Form submission started');
@@ -535,7 +534,7 @@ const deleteWebSource = async () => {
     if (!sourceToDelete.value) return;
 
     try {
-        await axios.delete(route('agents.knowledge.websites.delete', {
+        await axios.delete(route('agents.sources.websites.delete', {
             agent: props.agent.id,
             website: sourceToDelete.value.id
         }));
@@ -904,7 +903,7 @@ const trainSelectedWebsites = async () => {
 
             // Send individual request for each website
             await new Promise<void>((resolve, reject) => {
-                router.post(route('agents.knowledge.website.train', {
+                router.post(route('agents.sources.website.train', {
                     agent: props.agent.id,
                     website: websiteId
                 }), payload, {
@@ -976,9 +975,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Knowledge Base - Web">
-        <div class="flex justify-center">
-            <div class="w-full max-w-6xl space-y-6">
+    <div class="space-y-6">
         <!-- Smart Monitoring Info Banner -->
         <InfoBanner
             title="Smart Monitoring"
@@ -1969,9 +1966,6 @@ onMounted(() => {
                 </div>
             </CardContent>
         </Card>
-            </div>
-        </div>
-    </AgentLayout>
 
     <!-- Delete Confirmation Dialog -->
     <DeleteConfirmationDialog
@@ -1982,4 +1976,5 @@ onMounted(() => {
         cancel-text="Cancel"
         @confirm="deleteWebSource"
     />
+    </div>
 </template>

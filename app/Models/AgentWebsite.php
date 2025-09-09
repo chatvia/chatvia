@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Contracts\ChunkableContract;
 use App\Jobs\Crawler\WebsiteIngestionJob;
 use App\Traits\Chunkable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AgentWebsite extends Model
+class AgentWebsite extends Model implements ChunkableContract
 {
     use Chunkable;
 

@@ -41,7 +41,7 @@ class AgentStoreController
 
             DB::commit();
 
-            return to_route('agents.knowledge', ['agent' => $agent->id, 'new' => true])
+            return to_route('agents.sources', ['agent' => $agent->id, 'new' => true])
                 ->with('success', 'Agent created successfully.');
 
         } catch (Throwable $exception) {

@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
+use App\Contracts\ChunkableContract;
 use App\Data\Ingestion\ChunkIngestionData;
-use App\Models\AgentFile;
-use App\Models\AgentWebsite;
 use App\Services\Ingestion\RecursiveCharacterTextSplitter;
 use App\Support\TikToken;
 use Illuminate\Http\File;
@@ -14,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 class Chunker
 {
     public function __construct(
-        private readonly AgentFile|AgentWebsite $source,
+        private readonly ChunkableContract $source,
         private readonly int $maxTokensPerChunk = 800,
     ) {}
 

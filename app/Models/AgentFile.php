@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\ChunkableContract;
 use App\Support\Ingestion;
 use App\Traits\Chunkable;
 use Exception;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class AgentFile extends Model
+class AgentFile extends Model implements ChunkableContract
 {
     use Chunkable, HasFactory;
 

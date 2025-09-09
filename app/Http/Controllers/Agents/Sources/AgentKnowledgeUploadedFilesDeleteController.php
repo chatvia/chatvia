@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Agents\Knowledge;
+namespace App\Http\Controllers\Agents\Sources;
 
-use App\Data\Agent\KnowledgeFileData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 
-class AgentKnowledgeFilesController
+class AgentKnowledgeUploadedFilesDeleteController
 {
     public function __invoke(Request $request, Agent $agent)
     {
@@ -15,6 +14,6 @@ class AgentKnowledgeFilesController
             code: 404,
         );
 
-        return KnowledgeFileData::fromFiles($agent->files);
+        $agent->files()->where('status', 'uploaded')->delete();
     }
 }

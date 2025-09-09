@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Agents\Knowledge;
+namespace App\Http\Controllers\Agents\Sources;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
@@ -11,7 +11,7 @@ class AgentKnowledgeWebController extends Controller
 {
     public function __invoke(Request $request, Agent $agent)
     {
-        return Inertia::render('agents/KnowledgeBase/Web', [
+        return Inertia::render('agents/Sources/Web', [
             'agent' => $agent,
         ]);
     }

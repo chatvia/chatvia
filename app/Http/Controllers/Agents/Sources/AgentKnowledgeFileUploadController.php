@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Agents\Knowledge;
+namespace App\Http\Controllers\Agents\Sources;
 
 use App\Actions\Agents\AgentKnowledgeAnalyzeFileAction;
 use App\Models\Agent;

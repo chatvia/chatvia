@@ -22,6 +22,7 @@ const page = usePage();
 
 interface Props {
     agent: any
+    fileType?: string // 'pdf', 'word', or undefined for all files
     // Removed quota and usage props - will fetch from API
 }
 
@@ -98,24 +99,38 @@ const usageData = ref<UsageData>({
 });
 const isLoadingUsage = ref(false);
 
-// File uploader configuration for Knowledge page
-const fileUploaderConfig: FileUploaderConfig = {
-    maxFiles: maxFilesToUpload,
-    acceptedTypes: '.pdf,.doc,.docx',
-    analyzeEndpoint: (file: File) => route('agents.knowledge.files.upload', { agent: props.agent.id }),
-    onFileAnalyzed: (file: BaseUploadingFileData, data: any) => {
-        // For Knowledge.vue, the upload endpoint uploads the file
-        // Remove the file from FileUploader since it's now uploaded and will show in "Ready to Train"
-        if (fileUploaderRef.value) {
-            fileUploaderRef.value.removeFileById(file.id);
-        }
-        // Refresh the knowledge files list to show in "Ready to Train"
-        fetchKnowledgeFiles();
-    },
-    onFileError: (file: BaseUploadingFileData, error: string) => {
-        console.error('File upload error:', error);
+// File uploader configuration for Knowledge page - dynamic based on file type
+const fileUploaderConfig = computed<FileUploaderConfig>(() => {
+    let acceptedTypes = '.pdf,.doc,.docx'; // default to all
+    let description = 'Add documents to your agent\'s knowledge base. Supported formats: PDF and Word (more soon)';
+
+    if (props.fileType === 'pdf') {
+        acceptedTypes = '.pdf';
+        description = 'Add PDF documents to your agent\'s knowledge base.';
+    } else if (props.fileType === 'word') {
+        acceptedTypes = '.doc,.docx';
+        description = 'Add Word documents to your agent\'s knowledge base.';
     }
-};
+
+    return {
+        maxFiles: maxFilesToUpload,
+        acceptedTypes,
+        description,
+        analyzeEndpoint: (file: File) => route('agents.sources.files.upload', { agent: props.agent.id }),
+        onFileAnalyzed: (file: BaseUploadingFileData, data: any) => {
+            // For Knowledge.vue, the upload endpoint uploads the file
+            // Remove the file from FileUploader since it's now uploaded and will show in "Ready to Train"
+            if (fileUploaderRef.value) {
+                fileUploaderRef.value.removeFileById(file.id);
+            }
+            // Refresh the knowledge files list to show in "Ready to Train"
+            fetchKnowledgeFiles();
+        },
+        onFileError: (file: BaseUploadingFileData, error: string) => {
+            console.error('File upload error:', error);
+        }
+    };
+});
 const isLoadingFiles = ref(false);
 const isInitialLoad = ref(true);
 const isProcessingFiles = ref(false);
@@ -488,7 +503,7 @@ const clearAllFiles = async () => {
     try {
         // If there are uploaded files, delete them from server
         if (uploadedFiles.value.length > 0) {
-            const deleteUrl = route('agents.knowledge.uploaded-files', { agent: props.agent.id });
+            const deleteUrl = route('agents.sources.uploaded-files', { agent: props.agent.id });
             await axios.delete(deleteUrl);
         }
 
@@ -588,7 +603,7 @@ const processAllFiles = async () => {
 
     try {
         // Send single request to process all files
-        const processUrl = route('agents.knowledge.files.process', {
+        const processUrl = route('agents.sources.files.process', {
             agent: props.agent.id
         });
 
@@ -633,7 +648,7 @@ const removeKnowledgeFile = async () => {
     try {
         console.log(`Deleting knowledge file: ${fileToDelete.value.name} (ID: ${fileToDelete.value.id})`);
 
-        const deleteUrl = route('agents.knowledge.files.delete', {
+        const deleteUrl = route('agents.sources.files.delete', {
             agent: props.agent.id,
             file: fileToDelete.value.id
         });
@@ -677,7 +692,7 @@ const fetchKnowledgeFiles = async (isBackgroundRefresh = false) => {
 
     try {
         const response = await axios.get(
-            route('agents.knowledge.files', { agent: props.agent.id })
+            route('agents.sources.files', { agent: props.agent.id })
         );
 
         const allFiles = response.data as KnowledgeFile[];
@@ -795,16 +810,15 @@ const showFileSummary = async (file: KnowledgeFile) => {
 </script>
 
 <template>
-    <div class="flex justify-center">
-        <div class="w-full max-w-6xl space-y-6">
+    <div class="space-y-6">
 
 
             <!-- Upload Section -->
             <FileUploader
                 ref="fileUploaderRef"
                 :config="fileUploaderConfig"
-                title="Upload New Documents"
-                description="Add documents to your agent's knowledge base. Supported formats: PDF and Word (more soon)"
+                :title="props.fileType === 'pdf' ? 'Upload PDF Documents' : props.fileType === 'word' ? 'Upload Word Documents' : 'Upload New Documents'"
+                :description="fileUploaderConfig.description"
                 :show-quota="!isLoadingUsage"
                 :quota-used="totalUploadedPagesOnly"
                 :quota-limit="usageData.pages.limit"
@@ -934,7 +948,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Database class="h-5 w-5" />
-                        Current Knowledge Base
+                        Trained Files
                     </CardTitle>
                     <CardDescription>
                         Files trained and available to your agent. {{ processedKnowledgeFiles.length }} file{{ processedKnowledgeFiles.length !== 1 ? 's' : '' }} in total.
@@ -1182,8 +1196,6 @@ const showFileSummary = async (file: KnowledgeFile) => {
                     </div>
                 </CardContent>
             </Card>
-        </div>
-    </div>
 
     <!-- Delete Confirmation Dialog for Knowledge Files -->
     <DeleteConfirmationDialog
@@ -1315,6 +1327,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
             </div>
         </DialogContent>
     </Dialog>
+    </div>
 </template>
 
 <style>

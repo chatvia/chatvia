@@ -5,6 +5,10 @@ return [
         'alias' => 'chatvia.ai',
     ],
 
+    '0.0.0.0' => [
+        'alias' => 'chatvia.ai',
+    ],
+
     'estate.chat' => [
         'user' => [
             'demo' => true,

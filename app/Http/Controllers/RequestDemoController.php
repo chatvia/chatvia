@@ -13,14 +13,14 @@ class RequestDemoController
     {
         if ($request->method() === 'POST') {
             $request->validate([
-                'name' => ['required','string'],
-                'email' => ['required','email'],
-                'website' => ['required','url'],
-                'city' => ['required','string'],
-                'postal_code' => ['required','string'],
-                'country' => ['required','string'],
-                'usage_timeline' => ['required','string'],
-                'cf-turnstile-response' => [new TurnstileCheck()]
+                'name' => ['required', 'string'],
+                'email' => ['required', 'email'],
+                'website' => ['required', 'url'],
+                'city' => ['required', 'string'],
+                'postal_code' => ['required', 'string'],
+                'country' => ['required', 'string'],
+                'usage_timeline' => ['required', 'string'],
+                'cf-turnstile-response' => [new TurnstileCheck],
             ]);
 
             Mail::to('info@chatvia.ai')

@@ -21,10 +21,10 @@ return [
             'keywords' => ['Estate.chat', 'Real Estate Chatbot', 'Residential Real Estate', 'Home Buying AI', 'Real Estate Agency'],
             'description' => 'Estate.chat is an AI-powered chatbot platform designed specifically for residential real estate agencies to engage homebuyers and sellers 24/7.',
             'navigation' => [
-//                ['label' => 'Home', 'link' => '/'],
-//                ['label' => 'Features', 'link' => '#features'],
-//                ['label' => 'Pricing', 'link' => '#pricing'],
-//                ['label' => 'Changelog', 'link' => '/changelog'],
+                //                ['label' => 'Home', 'link' => '/'],
+                //                ['label' => 'Features', 'link' => '#features'],
+                //                ['label' => 'Pricing', 'link' => '#pricing'],
+                //                ['label' => 'Changelog', 'link' => '/changelog'],
             ],
             'hero' => [
                 'top' => 'While you\'re busy showing homes and closing deals',
@@ -85,14 +85,14 @@ return [
                     'subheadline' => '',
                     'slides' => [],
                 ],
-//                'steps' => [
-//                    'title' => 'Transform your residential real estate agency in three steps',
-//                    'steps' => [
-//                        ['title' => 'Upload', 'description' => 'Upload your home listings, neighborhood guides, and market data'],
-//                        ['title' => 'Train', 'description' => 'Train your AI agent to understand your local market and client needs'],
-//                        ['title' => 'Convert', 'description' => 'Start converting website visitors into qualified buyers and sellers'],
-//                    ],
-//                ],
+                //                'steps' => [
+                //                    'title' => 'Transform your residential real estate agency in three steps',
+                //                    'steps' => [
+                //                        ['title' => 'Upload', 'description' => 'Upload your home listings, neighborhood guides, and market data'],
+                //                        ['title' => 'Train', 'description' => 'Train your AI agent to understand your local market and client needs'],
+                //                        ['title' => 'Convert', 'description' => 'Start converting website visitors into qualified buyers and sellers'],
+                //                    ],
+                //                ],
             ],
             'cta' => [
                 'headline' => 'Stop losing homebuyers to <span class="text-emerald-500">other agencies</span>.',
@@ -138,7 +138,7 @@ return [
                 ],
             ],
             'why-chatbot' => false,
-            'target'
+            'target',
         ],
     ],
 
@@ -246,11 +246,11 @@ return [
                     'title' => 'Discover our unique properties',
                     'subheadline' => '',
                     'slides' => [
-                        //                        ['img' => 'images/chatvia/001-create-agent.png', 'title' => 'Knowledage base and support widgets, all in one'],
-                        //                        ['img' => 'images/chatvia/002-control-panel.png', 'title' => 'Knowledage base and support widgets, all in one'],
-                        //                        ['img' => 'images/chatvia/003-leads.png', 'title' => 'Leads'],
-                        //                        ['img' => 'images/chatvia/004-customization.png', 'title' => 'Fully customizable'],
-                        //                        ['img' => 'images/chatvia/005-chat-logs.png', 'title' => 'Fully customizable'],
+//                        ['img' => 'images/chatvia/001-create-agent.png', 'title' => 'Knowledage base and support widgets, all in one'],
+//                        ['img' => 'images/chatvia/002-control-panel.png', 'title' => 'Knowledage base and support widgets, all in one'],
+//                        ['img' => 'images/chatvia/003-leads.png', 'title' => 'Leads'],
+//                        ['img' => 'images/chatvia/004-customization.png', 'title' => 'Fully customizable'],
+//                        ['img' => 'images/chatvia/005-chat-logs.png', 'title' => 'Fully customizable'],
                     ],
                 ],
                 'steps' => [

@@ -128,8 +128,16 @@
                                                 value="New Zealand" {{ old('country') == 'New Zealand' ? 'selected' : '' }}>
                                                 New Zealand
                                             </option>
+                                            <option
+                                                value="Canada" {{ old('country') == 'Canada' ? 'selected' : '' }}>
+                                                Canada
+                                            </option>
+                                            <option
+                                                value="Europe" {{ old('country') == 'Europe' ? 'selected' : '' }}>
+                                                Europe
+                                            </option>
                                             <option value="Other" {{ old('country') == 'Other' ? 'selected' : '' }}>
-                                                Other...
+                                                Other
                                             </option>
                                         </select>
                                         @error('country')

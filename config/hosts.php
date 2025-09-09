@@ -53,31 +53,7 @@ return [
                     'title' => '',
                     'subheadline' => '',
                     'tabs' => [
-                        [
-                            'img' => 'images/estate/001-home-search.png',
-                            'title' => 'Smart Home Search & Matching',
-                            'description' => 'Create AI agents that understand what families are looking for. Upload your home listings and let AI match buyers with their perfect family home based on bedrooms, location, and budget.',
-                        ],
-                        [
-                            'img' => 'images/estate/002-buyer-qualification.png',
-                            'title' => 'Instant Buyer & Seller Qualification',
-                            'description' => 'Automatically qualify potential homebuyers and sellers through intelligent conversations. Capture budget, timeline, and preferences to prioritize your hottest leads.',
-                        ],
-                        [
-                            'img' => 'images/estate/003-neighborhood-info.png',
-                            'title' => 'Neighborhood & School Information',
-                            'description' => 'Provide instant access to neighborhood details, school ratings, local amenities, and community information that families care about most when choosing a home.',
-                        ],
-                        [
-                            'img' => 'images/estate/004-home-valuation.png',
-                            'title' => 'Instant Home Valuations & Market Updates',
-                            'description' => 'Offer preliminary home valuations and current market insights to sellers. Keep clients informed about market trends and pricing in their area.',
-                        ],
-                        [
-                            'img' => 'images/estate/005-showing-scheduler.png',
-                            'title' => 'Automated Home Showing Scheduler',
-                            'description' => 'Let families book home showings, open house visits, and consultations directly through chat. Integrate with your calendar for seamless appointment management.',
-                        ],
+                        
                     ],
                 ],
                 'slide2' => [

@@ -31,6 +31,9 @@ Route::get('/post', PostController::class)->name('blog.post');
 Route::get('demo', RequestDemoController::class)->name('demo');
 Route::post('demo', RequestDemoController::class)->name('demo.submit');
 
+Route::get('docs', \App\Http\Controllers\DocsController::class)->name('docs');
+
+
 Route::get('/auth/google', GoogleAuthController::class)->name('auth.google');
 Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->name('auth.google.callback');
 

@@ -246,11 +246,9 @@ return [
                     'title' => 'Discover our unique properties',
                     'subheadline' => '',
                     'slides' => [
-//                        ['img' => 'images/chatvia/001-create-agent.png', 'title' => 'Knowledage base and support widgets, all in one'],
+//                        ['img' => 'images/chatvia/001-create-agent.png', 'title' => 'Create a custom GPT from your data in minutes', 'description' => 'Upload your documents, connect your knowledge base, or point to your website - and create a custom AI agent that understands your business.'],
 //                        ['img' => 'images/chatvia/002-control-panel.png', 'title' => 'Knowledage base and support widgets, all in one'],
-//                        ['img' => 'images/chatvia/003-leads.png', 'title' => 'Leads'],
-//                        ['img' => 'images/chatvia/004-customization.png', 'title' => 'Fully customizable'],
-//                        ['img' => 'images/chatvia/005-chat-logs.png', 'title' => 'Fully customizable'],
+
                     ],
                 ],
                 'steps' => [

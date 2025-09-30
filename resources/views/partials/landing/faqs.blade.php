@@ -18,7 +18,7 @@
                             ],
                             [
                                 'question' => 'What types of files can I upload?',
-                                'answer' => 'Currently PDF and Word files are supported, however I\'m working hard to support 44+ file types including Excel spreadsheets, PowerPoint presentations, images, videos, and more.',
+                                'answer' => 'You can upload PDFs, Word documents, videos, audio files, and over 44+ other file types. You can also add plain text or crawl your website, and let the AI agent handle all your users’ questions automatically.',
                                 'expanded' => false
                             ],
                             [

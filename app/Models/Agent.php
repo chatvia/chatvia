@@ -89,6 +89,11 @@ class Agent extends Model
         return $this->hasMany(AgentWebsite::class);
     }
 
+    public function texts(): HasMany
+    {
+        return $this->hasMany(AgentText::class);
+    }
+
     public function starters(): HasMany
     {
         return $this->hasMany(Starter::class);
@@ -217,5 +222,15 @@ class Agent extends Model
     public function canCollectLeads(): bool
     {
         return $this->collect_leads === true;
+    }
+
+    public function wordFiles(): HasMany
+    {
+        return $this->files()->whereIn('mime_type', config('mimes.word'));
+    }
+
+    public function pdfFiles(): HasMany
+    {
+        return $this->files()->whereIn('mime_type', config('mimes.pdf'));
     }
 }

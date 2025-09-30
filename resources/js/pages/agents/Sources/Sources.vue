@@ -6,16 +6,6 @@ import Files from './Files.vue';
 import WebComponent from './WebComponent.vue';
 import TextComponent from './TextComponent.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Globe,
-    Headphones,
-    Video,
-    Youtube,
-    Type,
-    Database,
-    FileImage,
-    FileCheck
-} from 'lucide-vue-next';
 
 interface Props {
     agent: any;
@@ -30,49 +20,49 @@ const contentTypes = [
     {
         id: 'pdf',
         label: 'PDF',
-        icon: FileImage,
+        icon: 'pi-file-pdf',
         description: 'Upload and manage PDF documents',
         route: 'agents.sources.pdf'
     },
     {
         id: 'word',
         label: 'Word',
-        icon: FileCheck,
+        icon: 'pi-file-word',
         description: 'Upload and manage Word documents',
         route: 'agents.sources.word'
     },
     {
         id: 'text',
         label: 'Text',
-        icon: Type,
+        icon: 'pi-align-justify',
         description: 'Add custom text content and notes directly',
         route: 'agents.sources.text'
     },
     {
         id: 'web',
         label: 'Website',
-        icon: Globe,
+        icon: 'pi-globe',
         description: 'Crawl websites and web pages for knowledge',
         route: 'agents.sources.web'
     },
     {
         id: 'audio',
         label: 'Audio',
-        icon: Headphones,
+        icon: 'pi-volume-up',
         description: 'Upload audio files and podcasts for transcription',
         route: null // Will be implemented later
     },
     {
         id: 'video',
         label: 'Video',
-        icon: Video,
+        icon: 'pi-video',
         description: 'Upload video files for transcription and analysis',
         route: null // Will be implemented later
     },
     {
         id: 'youtube',
         label: 'YouTube',
-        icon: Youtube,
+        icon: 'pi-youtube',
         description: 'Import YouTube videos and extract transcripts',
         route: null // Will be implemented later
     },
@@ -80,6 +70,7 @@ const contentTypes = [
 
 const getCurrentType = () => {
     const currentRoute = page.url;
+
     if (currentRoute.includes('/sources/web')) {
         return 'web';
     }
@@ -140,7 +131,7 @@ onMounted(() => {
                 <Card>
                     <CardHeader>
                         <CardTitle class="text-sm font-medium flex items-center gap-2">
-                            <Database class="h-4 w-4" />
+                            <i class="pi pi-database h-4 w-4" />
                             Sources
                         </CardTitle>
                     </CardHeader>
@@ -154,7 +145,7 @@ onMounted(() => {
                                 :class="[
                                     'group relative p-4 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer',
                                     selectedContentType === contentType.id
-                                        ? 'border-primary bg-primary/5 ring-2 ring-primary ring-offset-2'
+                                        ? 'border-primary bg-primary/5 ring-2 ring-primary'
                                         : 'border-border bg-background'
                                 ]"
                             >
@@ -165,7 +156,7 @@ onMounted(() => {
                                             ? 'bg-primary text-primary-foreground'
                                             : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
                                     ]">
-                                        <component :is="contentType.icon" class="h-6 w-6" />
+                                        <i :class="`pi ${contentType.icon} text-2xl`" />
                                     </div>
                                     <h3 class="font-medium text-sm">{{ contentType.label }}</h3>
                                 </div>
@@ -198,9 +189,8 @@ onMounted(() => {
                 >
                     <CardContent class="flex items-center justify-center h-full p-8">
                         <div class="text-center">
-                            <component
-                                :is="contentTypes.find(t => t.id === selectedContentType)?.icon"
-                                class="h-16 w-16 mx-auto mb-4 text-muted-foreground"
+                            <i
+                                :class="`pi ${contentTypes.find(t => t.id === selectedContentType)?.icon} text-6xl mx-auto mb-4 text-muted-foreground`"
                             />
                             <h3 class="text-lg font-medium mb-2">
                                 {{ contentTypes.find(t => t.id === selectedContentType)?.label }} Coming Soon

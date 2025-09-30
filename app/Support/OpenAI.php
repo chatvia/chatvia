@@ -94,7 +94,7 @@ class OpenAI
         return json_decode($response, true, 512, JSON_THROW_ON_ERROR);
     }
 
-    public static function analyzeContent(string $content): array
+    public static function analyzeContent(string $content, string $model = 'gpt-5-mini'): array
     {
         $prompt = template(config('prompts.file-description'), ['text' => $content]);
 
@@ -104,7 +104,7 @@ class OpenAI
         ])
             ->timeout(600)
             ->post(config('services.openai.api_endpoint').'/responses', [
-                'model' => 'gpt-5-mini',
+                'model' => $model,
                 'input' => [
                     [
                         'role' => 'user',

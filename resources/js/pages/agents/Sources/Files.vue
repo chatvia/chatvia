@@ -604,7 +604,8 @@ const processAllFiles = async () => {
     try {
         // Send single request to process all files
         const processUrl = route('agents.sources.files.process', {
-            agent: props.agent.id
+            agent: props.agent.id,
+            file_type: props.fileType,
         });
 
         console.log(`PROCESS URL: ${processUrl}`);
@@ -692,7 +693,7 @@ const fetchKnowledgeFiles = async (isBackgroundRefresh = false) => {
 
     try {
         const response = await axios.get(
-            route('agents.sources.files', { agent: props.agent.id })
+            route('agents.sources.files', { agent: props.agent.id, file_type: props.fileType })
         );
 
         const allFiles = response.data as KnowledgeFile[];

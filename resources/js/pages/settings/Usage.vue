@@ -6,7 +6,7 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { type BreadcrumbItem } from '@/types';
-import { 
+import {
     MessageSquare,
     FileText,
     Bot,
@@ -92,7 +92,7 @@ onMounted(() => {
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
         <Head title="Usage statistics" />
-        
+
         <SettingsLayout>
             <div class="space-y-8">
                 <!-- Usage Header -->
@@ -200,7 +200,7 @@ onMounted(() => {
                                     Total Agents
                                 </CardTitle>
                                 <CardDescription>
-                                    All AI agents (Widget & ChatGPT-style)
+                                    All AI agents
                                 </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
@@ -262,4 +262,4 @@ onMounted(() => {
             </div>
         </SettingsLayout>
     </AppLayout>
-</template> 
+</template>

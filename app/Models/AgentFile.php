@@ -56,11 +56,6 @@ class AgentFile extends Model implements ChunkableContract
         return Attribute::get(fn () => Storage::url($this->filepath));
     }
 
-    public function tempUrl(): string
-    {
-        return Storage::temporaryUrl($this->filepath, now()->addMinutes(60));
-    }
-
     public function cancelIngestionJob(): void
     {
         app(Ingestion::class)->cancelJob($this);

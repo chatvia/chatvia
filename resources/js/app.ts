@@ -15,6 +15,7 @@ import { router } from '@inertiajs/vue3';
 const chatEventBus = createChatEventBus()
 import { createGtag } from "vue-gtag";
 import { configureEcho } from '@laravel/echo-vue';
+import 'primeicons/primeicons.css'
 
 configureEcho({
     broadcaster: 'reverb',

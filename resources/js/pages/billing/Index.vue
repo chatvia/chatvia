@@ -273,7 +273,6 @@ const cancelScheduledPlanChange = () => {
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
                     <div>
                         <h1 class="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
-                            <CreditCard class="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                             Billing
                         </h1>
                         <p class="text-muted-foreground mt-2 flex items-center gap-2 text-sm sm:text-base">

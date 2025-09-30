@@ -43,6 +43,10 @@ use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteTrai
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeWebsiteDeleteController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeWebsitesListController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextController;
+use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController;
+use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextListController;
+use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController;
+use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController;
 use App\Http\Controllers\Agents\Starters\StarterDeleteController;
 use App\Http\Controllers\Agents\Starters\StartersShowController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
@@ -81,9 +85,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('sources/pdf', AgentKnowledgePdfController::class)->name('sources.pdf');
         Route::get('sources/word', AgentKnowledgeWordController::class)->name('sources.word');
         Route::get('sources/web', AgentKnowledgeWebController::class)->name('sources.web');
+
         Route::get('sources/text', AgentKnowledgeTextController::class)->name('sources.text');
+        Route::get('sources/text/{id}', AgentKnowledgeTextShowController::class)->name('sources.text.show');
+        Route::post('sources/text', AgentKnowledgeTextStoreController::class)->name('sources.text.store');
+        Route::get('sources/text/list', AgentKnowledgeTextListController::class)->name('sources.text.index');
+
         Route::get('sources/files', AgentKnowledgeFilesController::class)->name('sources.files');
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
+        Route::delete('sources/text/{id}', AgentKnowledgeTextDestroyController::class)->name('sources.text.destroy');
         Route::delete('sources/files/{file}', AgentKnowledgeFileDeleteController::class)->name('sources.files.delete');
         Route::delete('sources/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->name('sources.uploaded-files');
         Route::post('sources/files/process', AgentKnowledgeFilesProcessController::class)->name('sources.files.process');

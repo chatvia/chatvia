@@ -149,9 +149,9 @@ return [
             ],
             'hero' => [
                 'top' => 'From PDFs, websites, and knowledge bases',
-                'headline' => 'Create custom ChatGPT tailored to your business',
+                'headline' => 'AI agents for customer support and knowledge bases',
                 'subheadlines' => [
-                    'ChatVia instantly turns your data into intelligent chatbots that answer your questions 24/7',
+                    'No more silos. Chatvia transforms your knowledge base and support chat into a single, smart experience',
                 ],
                 'button' => [
                     'label' => 'Get started for free',

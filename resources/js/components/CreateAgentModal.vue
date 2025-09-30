@@ -81,6 +81,18 @@ const currentAgentQuota = computed(() => {
     return usageData.value.agents.total;
 });
 
+// Dynamic placeholder based on agent type
+const namePlaceholder = computed(() => {
+    switch (form.type) {
+        case AgentType.WIDGET:
+            return 'E.g., Customer Support Agent';
+        case AgentType.CHATGPT_STYLE:
+            return 'E.g., Company Knowledge Assistant';
+        default:
+            return 'Enter agent name';
+    }
+});
+
 
 // Fetch usage data
 const fetchUsageData = async () => {
@@ -210,7 +222,7 @@ onMounted(() => {
                             :error="form.errors.name"
                             :disabled="!canCreateAnyAgent"
                             autofocus
-                            placeholder="E.g., Customer Support Agent"
+                            :placeholder="namePlaceholder"
                         />
                         <p v-if="form.errors.name" class="text-destructive text-sm">{{ form.errors.name }}</p>
                     </div>
@@ -219,6 +231,49 @@ onMounted(() => {
                     <div class="space-y-3">
                         <Label required>Choose Agent Type</Label>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Website Widget Agent -->
+                            <button
+                                type="button"
+                                :disabled="!canCreateAnyAgent"
+                                @click="form.type = AgentType.WIDGET"
+                                :class="[
+                                    'relative p-6 rounded-lg border-2 transition-all duration-200 text-center group',
+                                    form.type === AgentType.WIDGET
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25 dark:border-gray-700 dark:hover:border-blue-600',
+                                    !canCreateAnyAgent ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                ]"
+                            >
+                                <div class="flex flex-col items-center space-y-3">
+                                    <div :class="[
+                                        'p-4 rounded-full',
+                                        form.type === AgentType.WIDGET
+                                            ? 'bg-blue-100 dark:bg-blue-900/30'
+                                            : 'bg-gray-100 group-hover:bg-blue-100 dark:bg-gray-800 dark:group-hover:bg-blue-900/30'
+                                    ]">
+                                        <Globe :class="[
+                                            'h-8 w-8',
+                                            form.type === AgentType.WIDGET
+                                                ? 'text-blue-600 dark:text-blue-400'
+                                                : 'text-gray-600 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400'
+                                        ]" />
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-lg mb-1">Widget</h3>
+                                        <p class="text-sm text-muted-foreground">
+                                            Embed as a widget on your website, perfect for 24/7 support
+                                        </p>
+                                    </div>
+                                </div>
+                                <div v-if="form.type === AgentType.WIDGET" class="absolute top-3 right-3">
+                                    <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </button>
+
                             <!-- ChatGPT-style Agent -->
                             <button
                                 type="button"
@@ -262,48 +317,7 @@ onMounted(() => {
                                 </div>
                             </button>
 
-                            <!-- Website Widget Agent -->
-                            <button
-                                type="button"
-                                :disabled="!canCreateAnyAgent"
-                                @click="form.type = AgentType.WIDGET"
-                                :class="[
-                                    'relative p-6 rounded-lg border-2 transition-all duration-200 text-center group',
-                                    form.type === AgentType.WIDGET
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25 dark:border-gray-700 dark:hover:border-blue-600',
-                                    !canCreateAnyAgent ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                                ]"
-                            >
-                                <div class="flex flex-col items-center space-y-3">
-                                    <div :class="[
-                                        'p-4 rounded-full',
-                                        form.type === AgentType.WIDGET
-                                            ? 'bg-blue-100 dark:bg-blue-900/30'
-                                            : 'bg-gray-100 group-hover:bg-blue-100 dark:bg-gray-800 dark:group-hover:bg-blue-900/30'
-                                    ]">
-                                        <Globe :class="[
-                                            'h-8 w-8',
-                                            form.type === AgentType.WIDGET
-                                                ? 'text-blue-600 dark:text-blue-400'
-                                                : 'text-gray-600 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400'
-                                        ]" />
-                                    </div>
-                                    <div>
-                                        <h3 class="font-semibold text-lg mb-1">Support Widget</h3>
-                                        <p class="text-sm text-muted-foreground">
-                                            Embed as a widget on your website, perfect for 24/7 supportO
-                                        </p>
-                                    </div>
-                                </div>
-                                <div v-if="form.type === AgentType.WIDGET" class="absolute top-3 right-3">
-                                    <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </button>
+
                         </div>
                         <p v-if="form.errors.type" class="text-destructive text-sm">{{ form.errors.type }}</p>
                     </div>

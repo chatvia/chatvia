@@ -2,8 +2,7 @@
 
 namespace App\Jobs\Ingestion;
 
-use App\Models\AgentFile;
-use App\Models\AgentWebsite;
+use App\Contracts\ChunkableContract;
 use App\Models\Chunk;
 use App\Support\OpenAI;
 use App\Support\TikToken;
@@ -17,7 +16,7 @@ class IngestionSummaryJob implements ShouldQueue
 {
     use Batchable, Queueable, SerializesModels;
 
-    public function __construct(public AgentFile|AgentWebsite $source, public string $content)
+    public function __construct(public ChunkableContract $source, public string $content)
     {
         $this->onQueue('ingestion');
     }
@@ -41,7 +40,12 @@ class IngestionSummaryJob implements ShouldQueue
             $chunk .= PHP_EOL.'<Questions>'.$response['questions'].'</Questions>';
         }
 
-        $costInCents = OpenAI::calculateCostInCents($this->source->url, config('prompts.file-description').$chunk, 2.0, 8.0);
+        $costInCents = OpenAI::calculateCostInCents(
+            inputText: $this->content,
+            outputText: config('prompts.file-description').strip_tags($chunk),
+            pricePerInputMilToken: 2.0,
+            pricePerOutputMilToken: 8.0,
+        );
 
         Chunk::query()->create([
             'agent_id' => $this->source->agent_id,

@@ -68,7 +68,7 @@ return [
             'bucket' => env('SCALEWAY_BUCKET'),
             'url' => env('SCALEWAY_URL'),
             'endpoint' => env('SCALEWAY_ENDPOINT'),
-            'use_path_style_endpoint' => env('SCLAEWAY_USE_PATH_STYLE_ENDPOINT', false),
+            'use_path_style_endpoint' => env('SCALEWAY_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => true,
             'report' => true,
         ],

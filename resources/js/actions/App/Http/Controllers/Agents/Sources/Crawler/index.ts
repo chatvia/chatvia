@@ -1,0 +1,15 @@
+import AgentKnowledgeCrawlerController from './AgentKnowledgeCrawlerController'
+import AgentKnowledgeWebsitesListController from './AgentKnowledgeWebsitesListController'
+import AgentKnowledgeWebsiteDeleteController from './AgentKnowledgeWebsiteDeleteController'
+import AgentKnowledgeCrawlerWebsiteLinksController from './AgentKnowledgeCrawlerWebsiteLinksController'
+import AgentKnowledgeCrawlerWebsiteTrainController from './AgentKnowledgeCrawlerWebsiteTrainController'
+
+const Crawler = {
+    AgentKnowledgeCrawlerController: Object.assign(AgentKnowledgeCrawlerController, AgentKnowledgeCrawlerController),
+    AgentKnowledgeWebsitesListController: Object.assign(AgentKnowledgeWebsitesListController, AgentKnowledgeWebsitesListController),
+    AgentKnowledgeWebsiteDeleteController: Object.assign(AgentKnowledgeWebsiteDeleteController, AgentKnowledgeWebsiteDeleteController),
+    AgentKnowledgeCrawlerWebsiteLinksController: Object.assign(AgentKnowledgeCrawlerWebsiteLinksController, AgentKnowledgeCrawlerWebsiteLinksController),
+    AgentKnowledgeCrawlerWebsiteTrainController: Object.assign(AgentKnowledgeCrawlerWebsiteTrainController, AgentKnowledgeCrawlerWebsiteTrainController),
+}
+
+export default Crawler

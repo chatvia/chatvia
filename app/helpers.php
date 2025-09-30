@@ -2,6 +2,7 @@
 
 use App\Support\Agent;
 use App\Support\Cohere;
+use App\Support\HostConfig;
 use App\Support\LibreOffice;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -353,7 +354,7 @@ if (! function_exists('current_agent_from_widget')) {
 if (! function_exists('landing')) {
     function landing(?string $key = null): string|array
     {
-        $landing = \App\Support\HostConfig::landing(request()->host());
+        $landing = HostConfig::landing(request()->host());
 
         if ($key) {
             return $landing[$key];
@@ -362,3 +363,17 @@ if (! function_exists('landing')) {
         return $landing;
     }
 }
+
+if (! function_exists('host_config')) {
+    function host_config(?string $key = null): mixed
+    {
+        $config = HostConfig::get(request()->host());
+
+        if ($key) {
+            return $config[$key];
+        }
+
+        return $config;
+    }
+}
+

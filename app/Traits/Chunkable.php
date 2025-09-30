@@ -14,6 +14,11 @@ trait Chunkable
         return $this->morphMany(Chunk::class, 'chunkable');
     }
 
+    public function tempUrl(): string
+    {
+        return Storage::temporaryUrl($this->filepath, now()->addMinutes(60));
+    }
+
     public function ingestionProgress(): int
     {
         $totalChunks = $this->chunks ?? 0;

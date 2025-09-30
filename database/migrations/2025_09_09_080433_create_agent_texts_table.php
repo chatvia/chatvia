@@ -18,10 +18,14 @@ return new class extends Migration
             $table->string('language')->nullable();
             $table->string('classification')->nullable();
 
-            $table->text('text');
+            $table->string('excerpt');
+            $table->text('content');
+
+            $table->unsignedInteger('length')->default(0)->comment('This is the number of pages not characters in the text');
 
             $table->unsignedInteger('chunks')->nullable();
-            $table->unsignedInteger('length')->default(0);
+
+            $table->string('md5_hash');
 
             $table->string('internal_ingestion_job_id')->unique()->nullable();
             $table->string('internal_chunking_batch_id')->unique()->nullable();
@@ -30,6 +34,8 @@ return new class extends Migration
             $table->unsignedInteger('took_in_seconds')->default(0);
 
             $table->timestamps();
+
+            $table->unique(['agent_id','md5_hash']);
         });
     }
 

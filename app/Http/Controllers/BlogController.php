@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use Illuminate\Http\Request;
 
 class BlogController
 {
-    /**
-     * Handle the incoming request.
-     */
     public function __invoke(Request $request)
     {
-        return view('landing.blog');
+        return view('landing.blog', [
+            'featured' => Post::featured()->first(),
+            'posts' => Post::query()->where('featured', false)->get(),
+        ]);
     }
 }

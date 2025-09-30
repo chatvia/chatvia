@@ -8,6 +8,9 @@ use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -47,36 +50,8 @@ class UserResource extends Resource
                                     ->password()
                                     ->dehydrated(fn ($state) => filled($state))
                                     ->required(fn (string $context): bool => $context === 'create')
-                                    ->maxLength(255),
-                            ]),
-                    ]),
-
-                Section::make('Subscription & Billing')
-                    ->schema([
-                        Grid::make(2)
-                            ->schema([
-                                Forms\Components\TextInput::make('stripe_id')
-                                    ->label('Stripe Customer ID')
                                     ->maxLength(255)
-                                    ->disabled(fn (string $context): bool => $context === 'edit')
-                                    ->dehydrated(fn (string $context): bool => $context === 'create'),
-                                Forms\Components\TextInput::make('pm_type')
-                                    ->label('Payment Method Type')
-                                    ->maxLength(255)
-                                    ->disabled(fn (string $context): bool => $context === 'edit')
-                                    ->dehydrated(fn (string $context): bool => $context === 'create'),
-                            ]),
-                        Grid::make(2)
-                            ->schema([
-                                Forms\Components\TextInput::make('pm_last_four')
-                                    ->label('Last 4 Digits')
-                                    ->maxLength(4)
-                                    ->disabled(fn (string $context): bool => $context === 'edit')
-                                    ->dehydrated(fn (string $context): bool => $context === 'create'),
-                                Forms\Components\DateTimePicker::make('trial_ends_at')
-                                    ->label('Trial Ends At')
-                                    ->disabled(fn (string $context): bool => $context === 'edit')
-                                    ->dehydrated(fn (string $context): bool => $context === 'create'),
+                                    ->placeholder(fn (string $context): string => $context === 'edit' ? 'Leave blank to keep current password' : ''),
                             ]),
                     ]),
 
@@ -84,52 +59,113 @@ class UserResource extends Resource
                     ->schema([
                         Grid::make(3)
                             ->schema([
-                                Forms\Components\TextInput::make('agents_limit')
-                                    ->label('Total Agents Limit')
-                                    ->numeric()
-                                    ->default(0),
-                                Forms\Components\TextInput::make('pages_limit')
-                                    ->numeric()
-                                    ->default(0),
+                                Forms\Components\TextInput::make('quota.agents_limit')
+                                    ->label('Agents Limit')
+                                    ->numeric(),
+                                Forms\Components\TextInput::make('quota.pages_limit')
+                                    ->label('Pages Limit')
+                                    ->numeric(),
+                                Forms\Components\TextInput::make('quota.links_limit')
+                                    ->label('Links Limit')
+                                    ->numeric(),
                             ]),
                         Grid::make(3)
                             ->schema([
-                                Forms\Components\TextInput::make('minutes_limit')
-                                    ->numeric()
-                                    ->default(0),
-                                Forms\Components\TextInput::make('custom_domains_limit')
-                                    ->numeric()
-                                    ->default(0),
-                                Forms\Components\TextInput::make('members_limit')
-                                    ->numeric()
-                                    ->default(0),
+                                Forms\Components\TextInput::make('quota.minutes_limit')
+                                    ->label('Minutes Limit')
+                                    ->numeric(),
+                                Forms\Components\TextInput::make('quota.custom_domains_limit')
+                                    ->label('Custom Domains Limit')
+                                    ->numeric(),
+                                Forms\Components\TextInput::make('quota.members_limit')
+                                    ->label('Members Limit')
+                                    ->numeric(),
                             ]),
                     ]),
+            ]);
+    }
 
-                Section::make('Additional Information')
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                InfolistSection::make('Basic Information')
                     ->schema([
-                        Grid::make(2)
-                            ->schema([
-                                Forms\Components\TextInput::make('google_id')
-                                    ->maxLength(255)
-                                    ->disabled(fn (string $context): bool => $context === 'edit')
-                                    ->dehydrated(fn (string $context): bool => $context === 'create'),
-                                Forms\Components\TextInput::make('microsoft_id')
-                                    ->maxLength(255)
-                                    ->disabled(fn (string $context): bool => $context === 'edit')
-                                    ->dehydrated(fn (string $context): bool => $context === 'create'),
-                            ]),
-                        Grid::make(2)
-                            ->schema([
-                                Forms\Components\TextInput::make('registered_ip')
-                                    ->disabled(fn (string $context): bool => $context === 'edit')
-                                    ->dehydrated(fn (string $context): bool => $context === 'create'),
-                                Forms\Components\TextInput::make('country_code')
-                                    ->maxLength(5)
-                                    ->disabled(fn (string $context): bool => $context === 'edit')
-                                    ->dehydrated(fn (string $context): bool => $context === 'create'),
-                            ]),
-                    ]),
+                        TextEntry::make('name'),
+                        TextEntry::make('email'),
+                        TextEntry::make('email_verified_at')
+                            ->dateTime()
+                            ->placeholder('Not verified'),
+                        TextEntry::make('created_at')
+                            ->dateTime()
+                            ->label('Member Since'),
+                        TextEntry::make('registered_ip')
+                            ->label('Registration IP'),
+                        TextEntry::make('country_code')
+                            ->label('Country'),
+                    ])->columns(2),
+
+                InfolistSection::make('Limits & Quotas')
+                    ->schema([
+                        TextEntry::make('quota.agents_limit')
+                            ->label('Agents Limit')
+                            ->default(fn ($record) => $record?->quota?->agents_limit ?? 0),
+                        TextEntry::make('quota.pages_limit')
+                            ->label('Pages Limit')
+                            ->default(fn ($record) => $record?->quota?->pages_limit ?? 0),
+                        TextEntry::make('quota.links_limit')
+                            ->label('Links Limit')
+                            ->default(fn ($record) => $record?->quota?->links_limit ?? 0),
+                        TextEntry::make('quota.minutes_limit')
+                            ->label('Minutes Limit')
+                            ->default(fn ($record) => $record?->quota?->minutes_limit ?? 0),
+                        TextEntry::make('quota.custom_domains_limit')
+                            ->label('Custom Domains Limit')
+                            ->default(fn ($record) => $record?->quota?->custom_domains_limit ?? 0),
+                        TextEntry::make('quota.members_limit')
+                            ->label('Members Limit')
+                            ->default(fn ($record) => $record?->quota?->members_limit ?? 0),
+                    ])->columns(3),
+
+                InfolistSection::make('Usage')
+                    ->schema([
+                        TextEntry::make('usage.messages')
+                            ->label('Messages Used')
+                            ->getStateUsing(function ($record): int {
+                                return $record->usage?->messages ?? 0;
+                            }),
+                        TextEntry::make('tokens_used')
+                            ->label('Tokens Used')
+                            ->getStateUsing(function ($record): int {
+                                return $record->messages()->sum('token_count') ?? 0;
+                            })
+                            ->formatStateUsing(fn ($state) => number_format($state)),
+                        TextEntry::make('average_response_time')
+                            ->label('Avg Response Time')
+                            ->getStateUsing(function ($record): string {
+                                $avgTime = $record->messages()
+                                    ->whereNotNull('response_time_ms')
+                                    ->avg('response_time_ms');
+                                
+                                if (!$avgTime) {
+                                    return 'N/A';
+                                }
+                                
+                                return number_format($avgTime, 0) . ' ms';
+                            }),
+                        TextEntry::make('most_used_model')
+                            ->label('Most Used Model')
+                            ->getStateUsing(function ($record): string {
+                                $mostUsedModel = $record->messages()
+                                    ->selectRaw('model, COUNT(*) as count')
+                                    ->whereNotNull('model')
+                                    ->groupBy('model')
+                                    ->orderByDesc('count')
+                                    ->first();
+                                
+                                return $mostUsedModel?->model ?? 'N/A';
+                            }),
+                    ])->columns(4),
             ]);
     }
 

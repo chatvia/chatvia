@@ -78,7 +78,7 @@ class IngestionChunkJob implements ShouldQueue
         ]).$this->appendUserPrompt;
 
         $chunk = OpenAI::chunk($userPrompt);
-        ray($chunk);
+
         $tokens = TikToken::countTokens($chunk);
 
         $costInCents = OpenAI::calculateCostInCents($systemPrompt.$userPrompt, $chunk);

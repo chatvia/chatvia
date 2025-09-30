@@ -3,12 +3,12 @@ import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import axios from "axios";
 import {
     Type,
     Plus,
@@ -28,8 +28,7 @@ interface Props {
 
 interface TextEntry {
     id: number;
-    title: string;
-    content: string;
+    excerpt: string;
     status: 'draft' | 'saved' | 'processing' | 'trained' | 'failed';
     created_at: string;
     updated_at: string;
@@ -51,7 +50,6 @@ const entryToDelete = ref<TextEntry | null>(null);
 
 // Form for creating/editing text entries
 const form = useForm({
-    title: '',
     content: ''
 });
 
@@ -65,10 +63,6 @@ const charCount = computed(() => {
     return form.content ? form.content.length : 0;
 });
 
-const isFormValid = computed(() => {
-    return form.title.trim().length > 0 && form.content.trim().length > 10;
-});
-
 // Methods
 const openCreateForm = () => {
     showCreateForm.value = true;
@@ -79,8 +73,7 @@ const openCreateForm = () => {
 const openEditForm = (entry: TextEntry) => {
     showCreateForm.value = true;
     editingEntry.value = entry;
-    form.title = entry.title;
-    form.content = entry.content;
+    // form.content = entry.content;
 };
 
 const cancelForm = () => {
@@ -90,39 +83,37 @@ const cancelForm = () => {
     form.clearErrors();
 };
 
-const saveTextEntry = async () => {
-    if (!isFormValid.value) return;
-
+const saveTextEntry = () => {
     isSubmitting.value = true;
 
-    try {
-        if (editingEntry.value) {
-            // Update existing entry
-            await form.patch(route('agents.sources.text.update', {
-                agent: props.agent.id,
-                textEntry: editingEntry.value.id
-            }), {
-                onSuccess: () => {
-                    showCreateForm.value = false;
-                    editingEntry.value = null;
-                    form.reset();
-                    fetchTextEntries();
-                }
-            });
-        } else {
-            // Create new entry
-            await form.post(route('agents.sources.text.store', { agent: props.agent.id }), {
-                onSuccess: () => {
-                    showCreateForm.value = false;
-                    form.reset();
-                    fetchTextEntries();
-                }
-            });
-        }
-    } catch (error) {
-        console.error('Failed to save text entry:', error);
-    } finally {
+    const onSuccess = () => {
+        showCreateForm.value = false;
+        editingEntry.value = null;
+        form.reset();
+        fetchTextEntries();
         isSubmitting.value = false;
+    };
+
+    const onError = (error: any) => {
+        console.error('Failed to save text entry:', error);
+        isSubmitting.value = false;
+    };
+
+    if (editingEntry.value) {
+        // Update existing entry
+        form.patch(route('agents.sources.text.update', {
+            agent: props.agent.id,
+            textEntry: editingEntry.value.id
+        }), {
+            onSuccess,
+            onError
+        });
+    } else {
+        // Create new entry
+        form.post(route('agents.sources.text.store', { agent: props.agent.id }), {
+            onSuccess,
+            onError
+        });
     }
 };
 
@@ -135,15 +126,10 @@ const deleteTextEntry = async () => {
     if (!entryToDelete.value) return;
 
     try {
-        await fetch(route('agents.sources.text.destroy', {
+        await axios.delete(route('agents.sources.text.destroy', {
             agent: props.agent.id,
-            textEntry: entryToDelete.value.id
-        }), {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            }
-        });
+            id: entryToDelete.value.id
+        }));
 
         fetchTextEntries();
     } catch (error) {
@@ -157,9 +143,8 @@ const deleteTextEntry = async () => {
 const fetchTextEntries = async () => {
     isLoading.value = true;
     try {
-        const response = await fetch(route('agents.sources.text.index', { agent: props.agent.id }));
-        const data = await response.json();
-        textEntries.value = data;
+        const response = await axios.get(route('agents.sources.text.index', { agent: props.agent.id }));
+        textEntries.value = response.data;
     } catch (error) {
         console.error('Failed to fetch text entries:', error);
     } finally {
@@ -168,7 +153,7 @@ const fetchTextEntries = async () => {
 };
 
 const getStatusBadge = (status: string) => {
-    const statusConfig = {
+    const statusConfig: Record<string, { variant: 'default' | 'destructive' | 'outline' | 'secondary'; label: string; icon: any }> = {
         draft: { variant: 'secondary', label: 'Draft', icon: Edit3 },
         saved: { variant: 'outline', label: 'Saved', icon: FileText },
         processing: { variant: 'default', label: 'Processing', icon: LoaderCircle },
@@ -190,12 +175,11 @@ const formatDate = (dateString: string) => {
 };
 
 // Load text entries on component mount
-// fetchTextEntries();
+fetchTextEntries();
 </script>
 
 <template>
     <div class="space-y-6">
-        <!-- Header -->
         <Card>
             <CardHeader>
                 <div class="flex items-center justify-between">
@@ -228,18 +212,6 @@ const formatDate = (dateString: string) => {
                 </CardDescription>
             </CardHeader>
             <CardContent class="space-y-6">
-                <!-- Title Input -->
-                <div class="space-y-2">
-                    <Label for="title">Title *</Label>
-                    <Input
-                        id="title"
-                        v-model="form.title"
-                        placeholder="Enter a descriptive title for your text content"
-                        :class="{ 'border-red-500': form.errors.title }"
-                    />
-                    <p v-if="form.errors.title" class="text-sm text-red-600">{{ form.errors.title }}</p>
-                </div>
-
                 <!-- Content Textarea -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
@@ -252,14 +224,15 @@ const formatDate = (dateString: string) => {
                     <Textarea
                         id="content"
                         v-model="form.content"
+                        :disabled="isSubmitting"
                         placeholder="Enter your text content here. This can include FAQs, policies, instructions, or any structured information you want your agent to know about..."
                         rows="12"
                         :class="{ 'border-red-500': form.errors.content }"
                         class="resize-none"
                     />
-                    <p v-if="form.errors.content" class="text-sm text-red-600">{{ form.errors.content }}</p>
-                    <p v-else class="text-sm text-muted-foreground">
-                        Minimum 10 characters required. Use clear, structured text for best results.
+                    <InputError :message="form.errors.content" />
+                    <p v-if="!form.errors.content" class="text-sm text-muted-foreground">
+                        Minimum 250 words required. Use clear, structured text for best results.
                     </p>
                 </div>
 
@@ -270,12 +243,12 @@ const formatDate = (dateString: string) => {
                     </Button>
                     <Button
                         @click="saveTextEntry"
-                        :disabled="!isFormValid || isSubmitting"
+                        :disabled="isSubmitting"
                         class="flex items-center gap-2"
                     >
                         <LoaderCircle v-if="isSubmitting" class="h-4 w-4 animate-spin" />
                         <Save v-else class="h-4 w-4" />
-                        {{ editingEntry ? 'Update Entry' : 'Save Entry' }}
+                        {{ isSubmitting ? 'Saving...' : (editingEntry ? 'Update Entry' : 'Save Entry') }}
                     </Button>
                 </div>
             </CardContent>
@@ -301,7 +274,9 @@ const formatDate = (dateString: string) => {
                     <div class="flex items-start justify-between">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-2">
-                                <h3 class="font-medium text-sm truncate">{{ entry.title }}</h3>
+                                <h3 class="font-medium text-sm truncate">
+                                    {{ entry.excerpt }}
+                                </h3>
                                 <Badge :variant="getStatusBadge(entry.status).variant" class="flex items-center gap-1">
                                     <component :is="getStatusBadge(entry.status).icon" class="h-3 w-3" />
                                     {{ getStatusBadge(entry.status).label }}
@@ -385,7 +360,7 @@ const formatDate = (dateString: string) => {
         <!-- Delete Confirmation Dialog -->
         <DeleteConfirmationDialog
             v-model:open="deleteDialogOpen"
-            :title="`Delete '${entryToDelete?.title}'?`"
+            title="Delete text entry?"
             description="This will permanently remove this text entry from your agent's knowledge base. This action cannot be undone."
             confirm-text="Yes, delete entry"
             cancel-text="Cancel"
@@ -398,6 +373,7 @@ const formatDate = (dateString: string) => {
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

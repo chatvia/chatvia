@@ -32,7 +32,7 @@
                                href="{{ route('dashboard') }}">Dashboard</a>
                         </li>
                     @else
-                        @if ($demo === true)
+                        @if (host_config('user')['demo'] === true)
                             <li>
                                 <a class="font-medium text-blue-600 dark:text-slate-300 dark:hover:text-white px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out group"
                                    href="{{ route('demo') }}">Request Demo <span
@@ -111,7 +111,7 @@
                                     <span
                                         class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">→</span></a>
                             </li>
-                            @if ($demo === true)
+                            @if (host_config('user')['demo'] === true)
                                 <li>
                                     <a class="flex font-medium text-blue-600 py-2 group" href="{{ route('demo') }}">Request Demo
                                         <span

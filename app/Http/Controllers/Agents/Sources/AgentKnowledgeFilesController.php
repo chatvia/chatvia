@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Agents\Sources;
 
 use App\Data\Agent\KnowledgeFileData;
 use App\Models\Agent;
+use App\Models\AgentFile;
+use App\Models\Post;
+use Exception;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeFilesController
@@ -15,6 +18,18 @@ class AgentKnowledgeFilesController
             code: 404,
         );
 
-        return KnowledgeFileData::fromFiles($agent->files);
+        $request->validate([
+            'file_type' => ['required','in:pdf,word'],
+        ]);
+
+        $fileType = $request->input('file_type');
+
+        $files = match($fileType) {
+            'pdf' => $agent->pdfFiles()->get(),
+            'word' => $agent->wordFiles()->get(),
+            default => throw new Exception('Invalid file type'),
+        };
+
+        return KnowledgeFileData::fromFiles($files);
     }
 }

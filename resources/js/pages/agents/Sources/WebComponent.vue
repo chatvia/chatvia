@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import InputError from '@/components/InputError.vue';
 import { Globe, LoaderCircle, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, Play, Settings, ChevronDown, ChevronUp, ChevronRight, Database } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -1071,6 +1072,7 @@ onMounted(() => {
                                     class="flex-1"
                                 />
                             </div>
+                            <InputError :message="websiteForm.errors.url" />
                         </div>
 
                         <!-- Add Button -->
@@ -1100,8 +1102,10 @@ onMounted(() => {
                                         type="text"
                                         placeholder="Ex: blog/*, dev/*"
                                         v-model="crawlSettings.include_paths"
+                                        :class="{ 'border-red-500': websiteForm.errors.include_paths }"
                                         class="text-sm"
                                     />
+                                    <InputError :message="websiteForm.errors.include_paths" />
                                     <div class="text-xs text-muted-foreground">
                                         Use wildcards (*) to match patterns. Leave empty to include all paths.
                                     </div>
@@ -1115,8 +1119,10 @@ onMounted(() => {
                                         type="text"
                                         placeholder="Ex: blog/*, dev/*"
                                         class="text-sm"
+                                        :class="{ 'border-red-500': websiteForm.errors.exclude_paths }"
                                         v-model="crawlSettings.exclude_paths"
                                     />
+                                    <InputError :message="websiteForm.errors.exclude_paths" />
                                     <div class="text-xs text-muted-foreground">
                                         Use wildcards (*) to match patterns. These paths will be skipped.
                                     </div>
@@ -1142,14 +1148,11 @@ onMounted(() => {
                         </CollapsibleContent>
                     </Collapsible>
 
-                    <!-- Error message -->
-                    <div v-if="websiteForm.errors.url" class="text-sm text-red-600">
-                        {{ websiteForm.errors.url }}
-                    </div>
-
-                    <!-- General error message -->
-                    <div v-if="Object.keys(websiteForm.errors).length > 0 && !websiteForm.errors.url" class="text-sm text-red-600">
-                        Please check your input and try again.
+                    <!-- General error message for any other form errors -->
+                    <div v-if="websiteForm.hasErrors && !websiteForm.errors.url && !websiteForm.errors.include_paths && !websiteForm.errors.exclude_paths" class="space-y-1">
+                        <div v-for="(error, field) in websiteForm.errors" :key="field" class="text-sm text-red-600">
+                            {{ Array.isArray(error) ? error[0] : error }}
+                        </div>
                     </div>
                 </div>
             </CardContent>

@@ -16,8 +16,8 @@
                                 <path class="fill-blue-600" d="m33.917 14.499-3.94 19.698a1 1 0 0 1-1.58.6l-6.505-4.876 12.025-15.422Z" fill-opacity=".5" fill="#2174EA" />
                             </svg>
                         </div>
-                        <h3 class="h4 font-playfair-display text-slate-100 mb-2">Sign up for Tidy Digest</h3>
-                        <p class="text-slate-400 mb-6">Stay in the loop with the Tidy industry - get the latest news, stories and tools.</p>
+                        <h3 class="h4 font-playfair-display text-slate-100 mb-2">Sign up for ChatVia.ai</h3>
+                        <p class="text-slate-400 mb-6">Get the latest news about AI agents.</p>
 
                         <!-- CTA form -->
                         <form class="w-full">
@@ -25,8 +25,6 @@
                                 <input type="email" class="form-input w-full appearance-none bg-slate-800 border border-slate-700 focus:border-slate-600 rounded-xs px-4 py-3 mb-2 sm:mb-0 sm:mr-2 text-white placeholder-slate-500" placeholder="Your email" aria-label="Your email…" />
                                 <button class="btn text-white bg-blue-600 hover:bg-blue-700">Subscribe</button>
                             </div>
-                            <!-- Success message -->
-                            <!-- <p class="text-xs text-slate-500 mt-3 italic">Thanks for subscribing!</p> -->
                             <p class="text-xs text-slate-500 mt-3 italic">No spam. You can unsubscribe at any time.</p>
                         </form>
                     </div>

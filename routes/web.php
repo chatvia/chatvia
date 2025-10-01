@@ -26,7 +26,7 @@ Route::get('/terms-of-service', TermsController::class)->name('terms');
 Route::get('/refund', RefundController::class)->name('refund');
 Route::get('/changelog', ChangelogController::class)->name('changelog');
 Route::get('/blog', BlogController::class)->name('blog');
-Route::get('/post/{post:slug}', PostController::class)->name('blog.post');
+Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
 
 Route::get('demo', RequestDemoController::class)->name('demo');
 Route::post('demo', RequestDemoController::class)->name('demo.submit');

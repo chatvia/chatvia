@@ -12,7 +12,7 @@ class Post extends Model
 {
     protected $guarded = ['id'];
 
-    protected $appends = 'img_url';
+    protected $appends = ['img_url'];
 
     protected function casts(): array
     {
@@ -24,7 +24,7 @@ class Post extends Model
 
     public function imgUrl(): Attribute
     {
-        return Attribute::get(fn() => Storage::url($this->image_path));
+        return Attribute::get(fn() => $this->image_path ? Storage::url($this->image_path) : null);
     }
 
     #[Scope]

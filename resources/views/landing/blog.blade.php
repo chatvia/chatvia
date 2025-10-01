@@ -66,7 +66,7 @@
                                 </h2>
                             </header>
                             <p class="text-lg text-slate-500 grow">
-                                {{ $featured->excerpt  }}
+                                {!! \Illuminate\Mail\Markdown::parse($featured->excerpt)->toHtml() !!}
                             </p>
                             <footer class="flex items-center mt-4">
                                 <div>

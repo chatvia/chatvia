@@ -95,24 +95,27 @@
                                 <article class="h-full flex flex-col space-y-5" data-aos="fade-up">
                                     <!-- Image -->
                                     <a class="block group overflow-hidden" href="{{ route('blog.post', ['post' => $post->slug]) }}">
-                                        <img class="w-full aspect-16/9 md:aspect-27/17 object-cover group-hover:scale-105 transition duration-700 ease-out" src="./images/blog-post-02.jpg" width="540" height="340" alt="News 02" />
+                                        @if($post->img_url)
+                                            <img class="w-full aspect-16/9 md:aspect-27/17 object-cover group-hover:scale-105 transition duration-700 ease-out" src="{{ $post->img_url }}" width="540" height="340" alt="{{ $post->title }}" />
+                                        @else
+                                            <div class="w-full aspect-16/9 md:aspect-27/17 bg-slate-200 flex items-center justify-center group-hover:scale-105 transition duration-700 ease-out">
+                                                <span class="text-slate-500">No Image</span>
+                                            </div>
+                                        @endif
                                     </a>
                                     <!-- Content -->
                                     <div class="grow flex flex-col">
                                         <header>
                                             <h3 class="h4 font-playfair-display mb-3">
-                                                <a class="text-slate-800 hover:underline hover:decoration-blue-100" href="blog-post.html">A sneak peek of the new Tidy Web Portal</a>
+                                                <a class="text-slate-800 hover:underline hover:decoration-blue-100" href="{{ route('blog.post', ['post' => $post->slug]) }}">{{ $post->title }}</a>
                                             </h3>
                                         </header>
-                                        <p class="text-lg text-slate-500 grow">Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod tempor incididunt.</p>
+                                        
                                         <footer class="flex items-center mt-4">
-                                            <a href="#0">
-                                                <img class="rounded-full shrink-0 mr-3" src="./images/news-author-02.jpg" width="32" height="32" alt="Author 02" />
-                                            </a>
                                             <div>
-                                                <a class="font-medium text-slate-800 hover:text-blue-600 transition duration-150 ease-in-out" href="#0">Knut Mayer</a>
+                                                <span class="font-medium transition duration-150 ease-in-out">Ahmad Mayahi</span>
                                                 <span class="text-slate-300"> · </span>
-                                                <span class="text-slate-500">Sep 24, 2021</span>
+                                                <span class="text-slate-500">{{ $post->published_at->diffForHumans() }}</span>
                                             </div>
                                         </footer>
                                     </div>

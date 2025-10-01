@@ -266,9 +266,7 @@ return [
                 ],
                 [
                     'question' => 'What types of files can I upload?',
-                    'answer' => 'Currently PDF and Word files are supported, however I\'m working hard to support 44+ file types including Excel spreadsheets, PowerPoint presentations, images, videos, and more.',
-                ],
-                [
+                    'answer' => 'ChatVia supports PDF, Word, Text, Video, and Audio files. You can also crawl your website to add its content automatically.',                [
                     'question' => 'How many AI agents can I create?',
                     'answer' => 'It depends on your plan. Please refer to the pricing section.',
                 ],

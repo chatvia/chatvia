@@ -52,7 +52,7 @@
 
                         <!-- Article image -->
                         <figure>
-                            <img class="w-full" src="{{ $post->img_url }}" width="768" height="432" alt="News single" />
+                            <img class="w-full" src="{{ $post->img_url }}" width="768" height="432" alt="{{ $post->title }}" />
                         </figure>
 
                     </div>

@@ -45,7 +45,10 @@ class LibreOffice
 
         $this->profileDir = $profilePath;
 
-        $this->validateInstallation();
+        // Skip validation during package discovery to avoid issues
+        if (! $this->isPackageDiscovery()) {
+            $this->validateInstallation();
+        }
     }
 
     public function convert(string $filepath, string $format): string
@@ -175,6 +178,17 @@ class LibreOffice
     public static function make(): self
     {
         return new self;
+    }
+
+    private function isPackageDiscovery(): bool
+    {
+        if (! app()->runningInConsole()) {
+            return false;
+        }
+
+        $argv = $_SERVER['argv'] ?? [];
+
+        return in_array('package:discover', $argv, true);
     }
 
     private function getLibreOfficeEnv(): array

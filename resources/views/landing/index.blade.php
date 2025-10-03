@@ -606,7 +606,7 @@
                             @php $numericIndex = $loop->index; @endphp
 
                             <div class="relative flex flex-col h-full px-6 py-5 bg-white shadow-lg" data-aos="fade-up"
-                                 @if($numericIndex > 0) data-aos-delay="{{ $numericIndex * 100 }}" @endif>
+                                 @if($numericIndex > 0) data-aos-delay="{{ (int)$numericIndex * 100 }}" @endif>
                                 @if($package['is_popular'])
                                 <div class="absolute top-0 right-0 mr-6 -mt-4">
                                     <div
@@ -735,7 +735,7 @@
                             <div class="bg-white rounded-lg border border-slate-200 shadow-sm"
                                  x-data="{ open: {{ $index === 0 ? 'true' : 'false' }} }"
                                  data-aos="fade-up"
-                                 @if($index > 0) data-aos-delay="{{ $index * 100 }}" @endif>
+                                 @if($index > 0) data-aos-delay="{{ (int)$index * 100 }}" @endif>
 
                                 <!-- Question -->
                                 <button

@@ -291,9 +291,9 @@ return [
                         'answer' => 'Yes! All the plans include team collaboration. You can invite team members and share agents.',
                     ],
                 ],
-                'show-why-chatbot' => true,
-                'has-widget' => true,
             ],
+            'show-why-chatbot' => true,
+            'has-widget' => true,
         ],
     ],
 ];

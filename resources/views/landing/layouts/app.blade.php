@@ -11,7 +11,7 @@
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
     @include('partials.cover')
-    
+
     @vite(['resources/css/landing.css'])
 
     <style>

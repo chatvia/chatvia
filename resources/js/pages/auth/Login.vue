@@ -28,10 +28,6 @@ const submit = () => {
     });
 };
 
-const loginWithFacebook = () => {
-
-}
-
 const loginWithGoogle = () => {
     window.location.href = route('auth.google');
 }

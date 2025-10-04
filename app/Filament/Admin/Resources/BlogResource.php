@@ -55,6 +55,9 @@ class BlogResource extends Resource
                         Forms\Components\MarkdownEditor::make('markdown')
                             ->required()
                             ->columnSpanFull()
+                            ->fileAttachmentsDisk('scaleway')
+                            ->fileAttachmentsDirectory('blog/content-images')
+                            ->fileAttachmentsVisibility('public')
                             ->helperText('Write your post content in Markdown. HTML will be generated automatically.'),
                     ]),
 
@@ -141,7 +144,7 @@ class BlogResource extends Resource
                     ->label('Popular'),
                 Tables\Columns\ImageColumn::make('image_path')
                     ->label('Image')
-                    ->disk('s3')
+                    ->disk('scaleway')
                     ->size(50),
                 TextColumn::make('published_at')
                     ->dateTime()

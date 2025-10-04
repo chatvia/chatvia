@@ -10,3 +10,4 @@ Disallow: /_debugbar
 Disallow: /telescope
 Disallow: /horizon
 Disallow: /pulse
+Disallow: /cdn-cgi/

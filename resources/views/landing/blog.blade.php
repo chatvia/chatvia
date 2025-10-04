@@ -22,7 +22,7 @@
                         Blog
                     </h1>
                     <p class="text-xl text-slate-400 mb-8">
-                        Lessons designed to help you kick start and grow your business and turn your idea into a thriving empire.
+                        Expert insights on AI chatbots, knowledge management, and leveraging intelligent automation for your business.
                     </p>
                     <!-- Subscribe form -->
                     <form>

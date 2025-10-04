@@ -18,8 +18,6 @@
 <meta name="robots" content="index, follow" />
 <link rel="canonical" href="{{ url()->current() }}" />
 
-<!-- Social Media Meta Tags -->
-
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ url()->current() }}" />

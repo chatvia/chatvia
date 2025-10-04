@@ -190,7 +190,7 @@ const loginWithGoogle = () => {
                     <span class="bg-background px-4 text-muted-foreground font-medium">Or</span>
                 </div>
             </div>
-            
+
             <div>
                 <Button
                     type="button"

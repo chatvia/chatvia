@@ -152,7 +152,7 @@ return [
                 'top' => 'From PDFs, websites, and knowledge bases',
                 'headline' => 'AI agents for customer support and knowledge bases',
                 'subheadlines' => [
-                    'No more silos. Chatvia transforms your knowledge base and support chat into a single, smart experience',
+                    'Transform your knowledge base and support chat into a single, smart experience',
                 ],
                 'button' => [
                     'label' => 'Get started for free',

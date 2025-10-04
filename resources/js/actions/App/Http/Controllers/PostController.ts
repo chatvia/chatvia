@@ -2,7 +2,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefa
 /**
 * @see \App\Http\Controllers\PostController::__invoke
 * @see app/Http/Controllers/PostController.php:10
-* @route '/post/{post}'
+* @route '/blog/{post}'
 */
 const PostController = (args: { post: string | { slug: string } } | [post: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: PostController.url(args, options),
@@ -11,13 +11,13 @@ const PostController = (args: { post: string | { slug: string } } | [post: strin
 
 PostController.definition = {
     methods: ["get","head"],
-    url: '/post/{post}',
+    url: '/blog/{post}',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\PostController::__invoke
 * @see app/Http/Controllers/PostController.php:10
-* @route '/post/{post}'
+* @route '/blog/{post}'
 */
 PostController.url = (args: { post: string | { slug: string } } | [post: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
@@ -50,7 +50,7 @@ PostController.url = (args: { post: string | { slug: string } } | [post: string 
 /**
 * @see \App\Http\Controllers\PostController::__invoke
 * @see app/Http/Controllers/PostController.php:10
-* @route '/post/{post}'
+* @route '/blog/{post}'
 */
 PostController.get = (args: { post: string | { slug: string } } | [post: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: PostController.url(args, options),
@@ -60,7 +60,7 @@ PostController.get = (args: { post: string | { slug: string } } | [post: string 
 /**
 * @see \App\Http\Controllers\PostController::__invoke
 * @see app/Http/Controllers/PostController.php:10
-* @route '/post/{post}'
+* @route '/blog/{post}'
 */
 PostController.head = (args: { post: string | { slug: string } } | [post: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: PostController.url(args, options),

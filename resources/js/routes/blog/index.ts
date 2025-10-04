@@ -2,7 +2,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefa
 /**
 * @see \App\Http\Controllers\PostController::__invoke
 * @see app/Http/Controllers/PostController.php:10
-* @route '/post/{post}'
+* @route '/blog/{post}'
 */
 export const post = (args: { post: string | { slug: string } } | [post: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: post.url(args, options),
@@ -11,13 +11,13 @@ export const post = (args: { post: string | { slug: string } } | [post: string |
 
 post.definition = {
     methods: ["get","head"],
-    url: '/post/{post}',
+    url: '/blog/{post}',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\PostController::__invoke
 * @see app/Http/Controllers/PostController.php:10
-* @route '/post/{post}'
+* @route '/blog/{post}'
 */
 post.url = (args: { post: string | { slug: string } } | [post: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
@@ -50,7 +50,7 @@ post.url = (args: { post: string | { slug: string } } | [post: string | { slug: 
 /**
 * @see \App\Http\Controllers\PostController::__invoke
 * @see app/Http/Controllers/PostController.php:10
-* @route '/post/{post}'
+* @route '/blog/{post}'
 */
 post.get = (args: { post: string | { slug: string } } | [post: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: post.url(args, options),
@@ -60,7 +60,7 @@ post.get = (args: { post: string | { slug: string } } | [post: string | { slug: 
 /**
 * @see \App\Http\Controllers\PostController::__invoke
 * @see app/Http/Controllers/PostController.php:10
-* @route '/post/{post}'
+* @route '/blog/{post}'
 */
 post.head = (args: { post: string | { slug: string } } | [post: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: post.url(args, options),

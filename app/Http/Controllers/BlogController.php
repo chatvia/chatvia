@@ -11,7 +11,7 @@ class BlogController
     {
         return view('landing.blog', [
             'featured' => Post::featured()->first(),
-            'posts' => Post::query()->where('featured', false)->get(),
+            'posts' => Post::query()->where('featured', false)->latest()->get(),
         ]);
     }
 }

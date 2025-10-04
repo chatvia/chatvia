@@ -149,8 +149,8 @@ return [
                 ['label' => 'Changelog', 'link' => '/changelog'],
             ],
             'hero' => [
-                'top' => 'From PDFs, websites, and knowledge bases',
-                'headline' => 'AI agents for customer support and knowledge bases',
+                'top' => 'Train from PDFs, Word, Text, Video, Audio files or crawl your website',
+                'headline' => 'AI Agents That Power Your Support and Knowledge Base',
                 'subheadlines' => [
                     'Transform your knowledge base and support chat into a single, smart experience',
                 ],
@@ -266,30 +266,31 @@ return [
                 ],
                 [
                     'question' => 'What types of files can I upload?',
-                    'answer' => 'ChatVia supports PDF, Word, Text, Video, and Audio files. You can also crawl your website to add its content automatically.', [
+                    'answer' => 'ChatVia supports PDF, Word, Text, Video, and Audio files. You can also crawl your website to add its content automatically.',
+                ],
+                [
                     'question' => 'How many AI agents can I create?',
                     'answer' => 'It depends on your plan. Please refer to the pricing section.',
                 ],
-                    [
-                        'question' => 'What AI models does ChatVIA use?',
-                        'answer' => 'ChatVIA supports multiple leading AI models including GPT, Claude, Gemini, Mistral, Cohere, LLaMA, and more. You can choose the best model for your needs and switch between them anytime.',
-                    ],
-                    [
-                        'question' => 'Is my data secure and private?',
-                        'answer' => 'ChatVIA is GDPR compliant, hosted in the EU, and uses enterprise-grade security. Your documents and conversations remain private and encrypted. Please read our privacy policy for more information.',
-                    ],
-                    [
-                        'question' => 'Can I customize the AI agent\'s appearance?',
-                        'answer' => 'Yes! You can customize your agent\'s name, personality, and you can also add custom branding, logos, and even use your own domain for a white-label experience.',
-                    ],
-                    [
-                        'question' => 'What payment methods do you accept?',
-                        'answer' => 'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal. All payments are processed securely through Stripe. You can upgrade, downgrade, or cancel your plan anytime.',
-                    ],
-                    [
-                        'question' => 'Do you offer team collaboration features?',
-                        'answer' => 'Yes! All the plans include team collaboration. You can invite team members and share agents.',
-                    ],
+                [
+                    'question' => 'What AI models does ChatVIA use?',
+                    'answer' => 'ChatVIA supports multiple leading AI models including GPT, Claude, Gemini, Mistral, Cohere, LLaMA, and more. You can choose the best model for your needs and switch between them anytime.',
+                ],
+                [
+                    'question' => 'Is my data secure and private?',
+                    'answer' => 'ChatVIA is GDPR compliant, hosted in the EU, and uses enterprise-grade security. Your documents and conversations remain private and encrypted. Please read our privacy policy for more information.',
+                ],
+                [
+                    'question' => 'Can I customize the AI agent\'s appearance?',
+                    'answer' => 'Yes! You can customize your agent\'s name, personality, and you can also add custom branding, logos, and even use your own domain for a white-label experience.',
+                ],
+                [
+                    'question' => 'What payment methods do you accept?',
+                    'answer' => 'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal. All payments are processed securely through Stripe. You can upgrade, downgrade, or cancel your plan anytime.',
+                ],
+                [
+                    'question' => 'Do you offer team collaboration features?',
+                    'answer' => 'Yes! All the plans include team collaboration. You can invite team members and share agents.',
                 ],
             ],
             'show-why-chatbot' => true,

@@ -10,6 +10,8 @@
           integrity="sha512-1cK78a1o+ht2JcaW6g8OXYwqpev9+6GqOkz9xmBN9iUUhIndKtxwILGWYOSibOKjLsEdjyjZvYDq/cZwNeak0w=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
+    @include('partials.cover')
+    
     @vite(['resources/css/landing.css'])
 
     <style>

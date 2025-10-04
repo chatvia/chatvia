@@ -143,8 +143,8 @@ return [
             'description' => 'Chatvia.ai is a powerful chatbot platform that helps you create engaging and personalized interactions with your customers.',
             'navigation' => [
                 ['label' => 'Home', 'link' => '/'],
-                ['label' => 'Features', 'link' => '#features'],
-                ['label' => 'Pricing', 'link' => '#pricing'],
+                ['label' => 'Features', 'link' => '/#features'],
+                ['label' => 'Pricing', 'link' => '/#pricing'],
                 ['label' => 'Blog', 'link' => '/blog'],
                 ['label' => 'Changelog', 'link' => '/changelog'],
             ],

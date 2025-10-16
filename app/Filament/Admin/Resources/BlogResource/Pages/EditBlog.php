@@ -28,7 +28,7 @@ class EditBlog extends EditRecord
         }
 
         // Set published_at if status changed to published and not already set
-        if ($data['status'] === 'published' && !$record->published_at && empty($data['published_at'])) {
+        if ($data['status'] === 'published' && ! $record->published_at && empty($data['published_at'])) {
             $data['published_at'] = now();
         }
 

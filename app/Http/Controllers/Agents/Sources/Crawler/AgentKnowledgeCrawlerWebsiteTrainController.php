@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agents\Sources\Crawler;
 
-use App\Data\Crawler\LinkData;
 use App\Models\Agent;
 use App\Models\AgentWebsite;
 use Illuminate\Http\Request;
@@ -18,19 +17,13 @@ class AgentKnowledgeCrawlerWebsiteTrainController
 
         $request->validate([
             'links' => ['required', 'array'],
-            'links.*' => ['required', 'url'],
+            'links.*' => ['required', 'integer'],
         ]);
 
-        /** @var array<LinkData> $websiteLinks */
-        $websiteLinks = LinkData::collect($website->links);
-        $requestLinks = $request->input('links');
+        $requestLinkIds = $request->input('links');
 
-        $filteredWebsiteLinks = collect($websiteLinks)
-            ->filter(fn (LinkData $linkData) => in_array($linkData->link, $requestLinks, true))
-            ->values()
-            ->toArray();
-
-        $website->update(['links' => $filteredWebsiteLinks]);
+        // Delete links that are not in the selected IDs
+        $website->links()->whereNotIn('id', $requestLinkIds)->delete();
 
         $website->startTraining();
 

@@ -55,7 +55,7 @@ class OpenAI
 
     public static function analyzeFile(string $fileUrl): array
     {
-        $prompt = config('prompts.file-description');
+        $prompt = PromptLoader::load('file/describe');
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.config('services.openai.api_key'),
@@ -96,7 +96,7 @@ class OpenAI
 
     public static function analyzeContent(string $content, string $model = 'gpt-5-mini'): array
     {
-        $prompt = template(config('prompts.file-description'), ['text' => $content]);
+        $prompt = PromptLoader::load('file/describe', ['text' => $content]);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.config('services.openai.api_key'),
@@ -475,7 +475,7 @@ Example: en|Here is my text
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => config('prompts.chunking-system'),
+                    'content' => PromptLoader::load('chunking/system'),
                 ],
                 [
                     'role' => 'user',

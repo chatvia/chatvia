@@ -1,6 +1,6 @@
 @extends('landing.layouts.app')
 
-@section('title', 'Post')
+@section('title', $post->title)
 
 @section('content')
     @include('landing.partials.header')

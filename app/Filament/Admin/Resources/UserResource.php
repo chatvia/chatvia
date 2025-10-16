@@ -146,12 +146,12 @@ class UserResource extends Resource
                                 $avgTime = $record->messages()
                                     ->whereNotNull('response_time_ms')
                                     ->avg('response_time_ms');
-                                
-                                if (!$avgTime) {
+
+                                if (! $avgTime) {
                                     return 'N/A';
                                 }
-                                
-                                return number_format($avgTime, 0) . ' ms';
+
+                                return number_format($avgTime, 0).' ms';
                             }),
                         TextEntry::make('most_used_model')
                             ->label('Most Used Model')
@@ -162,7 +162,7 @@ class UserResource extends Resource
                                     ->groupBy('model')
                                     ->orderByDesc('count')
                                     ->first();
-                                
+
                                 return $mostUsedModel?->model ?? 'N/A';
                             }),
                     ])->columns(4),

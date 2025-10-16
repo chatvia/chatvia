@@ -4,6 +4,8 @@ namespace App\Services\Crawler;
 
 use App\Data\Crawler\CrawlerData;
 use App\Data\Crawler\LinkData;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Support\Facades\Http;
 use Spatie\Crawler\Crawler as CrawlerSpatie;
 use Spatie\Crawler\CrawlUrl;
 
@@ -35,11 +37,12 @@ class Crawler
     }
 
     /**
-     * @return array [\Spatie\Crawler\CrawlUrl]
+     * @return array<\App\Data\Crawler\LinkData>
      */
     public function crawl(CrawlerData $data): array
     {
         $queue = new CrawlerQueue;
+        $parser = app(HTMLParser::class);
 
         $crawler = CrawlerSpatie::create()
             ->setCrawlObserver(new CrawlerObserver)
@@ -59,21 +62,35 @@ class Crawler
 
         $crawledUrls = $queue->getUrls();
 
+        $responses = Http::pool(fn (Pool $pool) => collect($crawledUrls)->map(fn (CrawlUrl $link) => $pool->as($link->getId())->get($link->getId())));
+
+        $linkHashes = [];
+
+        foreach ($responses as $link => $response) {
+            if ($response->successful()) {
+                $linkHashes[$link] = md5($parser->getTextFromHtml($response->body()));
+            }
+        }
+
         if ($data->include_paths || $data->exclude_paths) {
             $urls = collect($this->filterUrls($crawledUrls, $data->include_paths, $data->exclude_paths))
-                ->map(function (CrawlUrl $crawlUrl) {
+                ->map(function (CrawlUrl $crawlUrl) use ($linkHashes) {
                     return new LinkData(
                         link: $crawlUrl->getId(),
+                        crawled_at: now(),
                         found_on_url: $crawlUrl->foundOnUrl,
                         text: $crawlUrl->linkText,
+                        hash: $linkHashes[$crawlUrl->getId()],
                     );
                 });
         } else {
-            $urls = collect(array_values($crawledUrls))->map(function (CrawlUrl $crawlUrl) {
+            $urls = collect(array_values($crawledUrls))->map(function (CrawlUrl $crawlUrl) use ($linkHashes) {
                 return new LinkData(
                     link: $crawlUrl->getId(),
+                    crawled_at: now(),
                     found_on_url: $crawlUrl->foundOnUrl,
                     text: trim($crawlUrl->linkText),
+                    hash: $linkHashes[$crawlUrl->getId()],
                 );
             });
         }

@@ -376,4 +376,3 @@ if (! function_exists('host_config')) {
         return $config;
     }
 }
-

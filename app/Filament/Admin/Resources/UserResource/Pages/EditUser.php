@@ -3,7 +3,6 @@
 namespace App\Filament\Admin\Resources\UserResource\Pages;
 
 use App\Filament\Admin\Resources\UserResource;
-use App\Models\UserQuota;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
@@ -90,10 +89,10 @@ class EditUser extends EditRecord
     {
         // Ensure quota relationship is loaded
         $this->record->load('quota');
-        
+
         // Load quota data into the form with fallback defaults
         $quota = $this->record->quota;
-        
+
         // Map quota data to form fields
         $data['agents_limit'] = $quota?->agents_limit ?? 0;
         $data['pages_limit'] = $quota?->pages_limit ?? 0;
@@ -114,12 +113,12 @@ class EditUser extends EditRecord
             'links_limit',
             'minutes_limit',
             'custom_domains_limit',
-            'members_limit'
+            'members_limit',
         ];
-        
+
         $quotaData = [];
         $userData = [];
-        
+
         foreach ($data as $key => $value) {
             if (in_array($key, $quotaFields)) {
                 $quotaData[$key] = $value;
@@ -129,7 +128,7 @@ class EditUser extends EditRecord
         }
 
         // Hash password if provided
-        if (!empty($userData['password'])) {
+        if (! empty($userData['password'])) {
             $userData['password'] = bcrypt($userData['password']);
         } else {
             // Remove empty password to avoid overwriting with null
@@ -140,7 +139,7 @@ class EditUser extends EditRecord
         $record->update($userData);
 
         // Update or create the quota record
-        if (!empty($quotaData)) {
+        if (! empty($quotaData)) {
             $record->quota()->updateOrCreate(
                 ['user_id' => $record->id],
                 $quotaData

@@ -104,8 +104,13 @@ class BlogResource extends Resource
                                 '4:3',
                                 '1:1',
                             ])
+                            ->imageResizeMode('cover')
+                            ->imageResizeTargetWidth('768')
+                            ->imageResizeTargetHeight('432')
+                            ->imageCropAspectRatio('16:9')
+                            ->imagePreviewHeight('250')
                             ->maxSize(5120) // 5MB
-                            ->helperText('Upload a featured image for your post (max 5MB).'),
+                            ->helperText('Upload a featured image for your post (max 5MB). Images will be automatically resized to 768x432px.'),
                     ]),
 
                 Section::make('Meta Data')

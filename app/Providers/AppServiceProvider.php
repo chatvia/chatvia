@@ -6,11 +6,13 @@ use App\Models\Agent;
 use App\Models\AgentFile;
 use App\Models\AgentWebsite;
 use App\Models\ModelSetting;
+use App\Models\Post;
 use App\Models\User;
 use App\Observers\AgentFileObserver;
 use App\Observers\AgentObserver;
 use App\Observers\AgentWebsiteObserver;
 use App\Observers\ModelSettingObserver;
+use App\Observers\PostObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -64,6 +66,7 @@ class AppServiceProvider extends ServiceProvider
         AgentFile::observe(AgentFileObserver::class);
         ModelSetting::observe(ModelSettingObserver::class);
         AgentWebsite::observe(AgentWebsiteObserver::class);
+        Post::observe(PostObserver::class);
 
         if (app()->isProduction()) {
             URL::forceScheme('https');

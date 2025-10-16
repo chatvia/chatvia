@@ -4,7 +4,9 @@ namespace App\Jobs\Ingestion;
 
 use App\Data\Ingestion\ChunkIngestionData;
 use App\Models\Chunk;
+use App\Models\ChunkReference;
 use App\Support\OpenAI;
+use App\Support\PromptLoader;
 use App\Support\TikToken;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,6 +27,7 @@ class IngestionChunkJob implements ShouldQueue
         public ChunkIngestionData $chunk,
         public string $appendUserPrompt = '',
         public array $metadata = [],
+        public array $chunkReference = [],
     ) {
         $this->onQueue('ingestion');
     }
@@ -35,9 +38,9 @@ class IngestionChunkJob implements ShouldQueue
             return;
         }
 
-        $systemPrompt = config('prompts.chunking-system');
+        $systemPrompt = PromptLoader::load('chunking/system');
 
-        $visionPrompt = config('prompts.image-description');
+        $visionPrompt = PromptLoader::load('image/describe');
 
         $chunkText = $this->chunk->chunk_text;
 
@@ -51,7 +54,7 @@ class IngestionChunkJob implements ShouldQueue
             return;
         }
 
-        $userPrompt = config('prompts.chunking-user');
+        $userPrompt = PromptLoader::load('chunking/user');
 
         foreach ($this->chunk->chunk_images as $imagePath) {
             $description = OpenAI::vision(
@@ -83,7 +86,7 @@ class IngestionChunkJob implements ShouldQueue
 
         $costInCents = OpenAI::calculateCostInCents($systemPrompt.$userPrompt, $chunk);
 
-        Chunk::query()->create([
+        $createdChunk = Chunk::query()->create([
             'agent_id' => $this->chunk->agent_id,
             'chunkable_type' => $this->chunk->chunkable_type,
             'chunkable_id' => $this->chunk->chunkable_id,
@@ -101,5 +104,12 @@ class IngestionChunkJob implements ShouldQueue
             'md5_hash' => md5($this->chunk->chunk_text),
             'retrieval_count' => 0,
         ]);
+
+        // Create chunk reference if provided
+        if ($this->chunkReference) {
+            ChunkReference::create(array_merge($this->chunkReference, [
+                'chunk_id' => $createdChunk->id,
+            ]));
+        }
     }
 }

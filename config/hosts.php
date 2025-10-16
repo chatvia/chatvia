@@ -150,7 +150,7 @@ return [
             ],
             'hero' => [
                 'top' => 'Train from PDFs, Word, Text, Video, Audio files or crawl your website',
-                'headline' => 'AI Agents That Power Your Support and Knowledge Base',
+                'headline' => 'Create ChatGPT-like<br> AI Agents from your data',
                 'subheadlines' => [
                     'Transform your knowledge base and support chat into a single, smart experience',
                 ],

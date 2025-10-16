@@ -344,7 +344,7 @@ class IngestionJobEvaluationTest extends TestCase
         $chunkCount = count($evaluations);
 
         return [
-            'total_chunks_evaluated' => $chunkCount,
+            'expected_chunks_evaluated' => $chunkCount,
             'average_score' => $chunkCount > 0 ? round($totalScore / $chunkCount, 2) : 0,
             'coherent_chunks_percentage' => $chunkCount > 0 ? round(($coherentCount / $chunkCount) * 100, 2) : 0,
             'proper_start_percentage' => $chunkCount > 0 ? round(($properStartCount / $chunkCount) * 100, 2) : 0,

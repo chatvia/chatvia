@@ -11,7 +11,7 @@ class ChunkIngestionData extends Data
         public string $chunkable_type,
         public int $chunkable_id,
         public int $chunk_index,
-        public int $total_chunks,
+        public int $expected_chunks,
         public string $chunk_text,
         public array $metadata = [],
         public array $chunk_images = [],

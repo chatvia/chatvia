@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Agent;
 use App\Models\User;
+use App\Support\PromptLoader;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -20,7 +21,7 @@ class DatabaseSeeder extends Seeder
             'user_id' => $user->id,
             'name' => 'Knowledge Base',
             'sub_domain' => 'knowledge',
-            'system_instructions' => config('prompts.knowledge-based-system-instruction'),
+            'system_instructions' => PromptLoader::load('knowledge/system'),
             'is_public' => 1,
             'type' => 'knowledge_base',
             'external_id' => 'e8c75295bf6572',
@@ -31,7 +32,7 @@ class DatabaseSeeder extends Seeder
             'user_id' => $user->id,
             'name' => 'Widget',
             'sub_domain' => '',
-            'system_instructions' => config('prompts.knowledge-based-system-instruction'),
+            'system_instructions' => PromptLoader::load('knowledge/system'),
             'is_public' => 1,
             'type' => 'widget',
             'external_id' => '407f7fdfa1cf18',

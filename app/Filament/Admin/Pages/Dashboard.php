@@ -26,7 +26,7 @@ class Dashboard extends BaseDashboard
 
     public function getHeaderWidgetsColumns(): int|string|array
     {
-        return 3; // three stats per row like the example
+        return 3;
     }
 
     protected function getFooterWidgets(): array
@@ -39,6 +39,6 @@ class Dashboard extends BaseDashboard
 
     public function getFooterWidgetsColumns(): int|string|array
     {
-        return 2; // two charts side-by-side
+        return 2;
     }
 }

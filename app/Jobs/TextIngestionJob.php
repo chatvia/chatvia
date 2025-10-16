@@ -2,11 +2,9 @@
 
 namespace App\Jobs;
 
-use App\Events\WebsiteCrawlerEvent;
 use App\Jobs\Ingestion\IngestionChunkJob;
 use App\Jobs\Ingestion\IngestionSummaryJob;
 use App\Models\AgentText;
-use App\Models\AgentWebsite;
 use App\Services\Chunker;
 use App\Services\Ingestion\RecursiveCharacterTextSplitter;
 use Illuminate\Bus\Batch;
@@ -20,11 +18,9 @@ use Illuminate\Support\Facades\Bus;
 
 class TextIngestionJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, Batchable;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public AgentText $text)
-    {
-    }
+    public function __construct(public AgentText $text) {}
 
     public function handle(RecursiveCharacterTextSplitter $splitter): void
     {
@@ -52,7 +48,7 @@ class TextIngestionJob implements ShouldQueue
         // TODO: send websocket event
 
         $jobs = collect($chunks)
-            ->map(fn($chunk) => new IngestionChunkJob($chunk));
+            ->map(fn ($chunk) => new IngestionChunkJob($chunk));
 
         $jobs->add(
             new IngestionSummaryJob($this->text, $this->text->text)
@@ -69,7 +65,7 @@ class TextIngestionJob implements ShouldQueue
             ->dispatch();
 
         $this->text->update([
-            'chunks' => $chunks[0]->total_chunks,
+            'expected_chunks' => $chunks[0]->expected_chunks,
             'internal_ingestion_job_id' => $batch->id,
         ]);
 

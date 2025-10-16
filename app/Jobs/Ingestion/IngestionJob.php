@@ -119,7 +119,7 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             $this->agentFile->update([
                 'status' => 'processing',
                 'internal_chunking_batch_id' => $batch->id,
-                'chunks' => $chunks->count(),
+                'expected_chunks' => $chunks->count(),
             ]);
         });
     }

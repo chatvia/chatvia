@@ -44,6 +44,7 @@ interface WebSource {
     };
 }
 interface DiscoveredLink {
+    id: number;
     link: string;
     text: string;
     found_on_url: string;
@@ -92,7 +93,7 @@ const selectedProtocol = ref<'https://' | 'http://'>('https://');
 const expandedSources = ref<Map<number, boolean>>(new Map());
 
 // Link selection and search state
-const selectedLinks = ref<Map<number, Set<string>>>(new Map()); // sourceId -> Set of selected URLs
+const selectedLinks = ref<Map<number, Set<number>>>(new Map()); // sourceId -> Set of selected link IDs
 const linkSearchQueries = ref<Map<number, string>>(new Map()); // sourceId -> search query
 
 // Full links cache - stores all links
@@ -354,6 +355,7 @@ const fetchWebsiteLinks = async (websiteId: number): Promise<DiscoveredLink[]> =
 
         // Convert to DiscoveredLink format and cache
         const allDiscoveredLinks = allLinksArray.map((linkObj: any) => ({
+            id: linkObj.id,
             link: linkObj.link || linkObj.url || linkObj,
             text: linkObj.text || linkObj.title || (typeof linkObj === 'string' ? linkObj.split('/').pop() || linkObj : ''),
             found_on_url: linkObj.found_on_url || ''
@@ -577,8 +579,13 @@ const loadLinksForWebsite = async (websiteId: number) => {
 
             // Auto-select all links by default
             if (discoveredLinks.length > 0) {
-                const allUrls = new Set(discoveredLinks.map(link => link.link));
-                selectedLinks.value.set(websiteId, allUrls);
+                const allIds = new Set(discoveredLinks.map(link => link.id));
+                selectedLinks.value.set(websiteId, allIds);
+
+                // Auto-select the parent website when links are auto-selected
+                const newSelectedWebsites = new Set(selectedWebsites.value);
+                newSelectedWebsites.add(websiteId);
+                selectedWebsites.value = newSelectedWebsites;
 
                 // Initialize search query for this source
                 if (!linkSearchQueries.value.has(websiteId)) {
@@ -702,15 +709,20 @@ const handleCollapsibleToggle = async (sourceId: number, isExpanding: boolean) =
 
             // Auto-select all links by default
             if (discoveredLinks.length > 0) {
-                const allUrls = new Set(discoveredLinks.map(link => link.link));
-                selectedLinks.value.set(sourceId, allUrls);
+                const allIds = new Set(discoveredLinks.map(link => link.id));
+                selectedLinks.value.set(sourceId, allIds);
+
+                // Auto-select the parent website when links are auto-selected
+                const newSelectedWebsites = new Set(selectedWebsites.value);
+                newSelectedWebsites.add(sourceId);
+                selectedWebsites.value = newSelectedWebsites;
 
                 // Initialize search query for this source
                 if (!linkSearchQueries.value.has(sourceId)) {
                     linkSearchQueries.value.set(sourceId, '');
                 }
 
-                console.log(`Auto-selected ${allUrls.size} links for website ${sourceId}`);
+                console.log(`Auto-selected ${allIds.size} links for website ${sourceId}`);
             } else {
                 console.log(`No links found for website ${sourceId}`);
             }
@@ -751,14 +763,24 @@ const toggleSourceExpansion = (sourceId: number) => {
 };
 
 // Link selection functions
-const toggleLinkSelection = (sourceId: number, link: string, checked: boolean | string) => {
+const toggleLinkSelection = (sourceId: number, linkId: number, checked: boolean | string) => {
     const isChecked = checked === true || checked === 'true';
     const sourceLinks = selectedLinks.value.get(sourceId) || new Set();
 
     if (isChecked) {
-        sourceLinks.add(link);
+        sourceLinks.add(linkId);
+        // Auto-select the parent website when a link is selected
+        const newSelectedWebsites = new Set(selectedWebsites.value);
+        newSelectedWebsites.add(sourceId);
+        selectedWebsites.value = newSelectedWebsites;
     } else {
-        sourceLinks.delete(link);
+        sourceLinks.delete(linkId);
+        // If no links are selected anymore, deselect the website
+        if (sourceLinks.size === 0) {
+            const newSelectedWebsites = new Set(selectedWebsites.value);
+            newSelectedWebsites.delete(sourceId);
+            selectedWebsites.value = newSelectedWebsites;
+        }
     }
 
     selectedLinks.value.set(sourceId, sourceLinks);
@@ -766,7 +788,7 @@ const toggleLinkSelection = (sourceId: number, link: string, checked: boolean | 
 
 const toggleSelectAllLinks = (sourceId: number, links: DiscoveredLink[], checked: boolean | string | 'indeterminate') => {
     const isChecked = checked === true || checked === 'true';
-    const sourceLinks = new Set<string>();
+    const sourceLinks = new Set<number>();
 
     if (isChecked) {
         // Get all cached links for selection, not just displayed ones
@@ -775,7 +797,17 @@ const toggleSelectAllLinks = (sourceId: number, links: DiscoveredLink[], checked
 
         // Apply search filter to all links
         const filteredLinks = getFilteredLinks(sourceId, allLinks);
-        filteredLinks.forEach(link => sourceLinks.add(link.link));
+        filteredLinks.forEach(link => sourceLinks.add(link.id));
+        
+        // Auto-select the parent website when selecting all links
+        const newSelectedWebsites = new Set(selectedWebsites.value);
+        newSelectedWebsites.add(sourceId);
+        selectedWebsites.value = newSelectedWebsites;
+    } else {
+        // Deselect the parent website when deselecting all links
+        const newSelectedWebsites = new Set(selectedWebsites.value);
+        newSelectedWebsites.delete(sourceId);
+        selectedWebsites.value = newSelectedWebsites;
     }
 
     selectedLinks.value.set(sourceId, sourceLinks);
@@ -804,7 +836,7 @@ const getSelectionState = (sourceId: number, links: DiscoveredLink[]) => {
 
     if (filteredLinks.length === 0) return { allSelected: false, someSelected: false, selectedCount: 0 };
 
-    const selectedFilteredLinks = filteredLinks.filter(link => sourceLinks.has(link.link));
+    const selectedFilteredLinks = filteredLinks.filter(link => sourceLinks.has(link.id));
     const allSelected = selectedFilteredLinks.length === filteredLinks.length;
     const someSelected = selectedFilteredLinks.length > 0 && selectedFilteredLinks.length < filteredLinks.length;
 
@@ -887,10 +919,15 @@ const trainSelectedWebsites = async () => {
 
                 const discoveredLinks = await fetchWebsiteLinks(websiteId);
                 if (discoveredLinks.length > 0) {
-                    const allUrls = new Set(discoveredLinks.map(link => link.link));
-                    selectedLinks.value.set(websiteId, allUrls);
-                    selectedLinksForWebsite = allUrls;
-                    console.log(`Auto-selected ${allUrls.size} links for website ${websiteId}`);
+                    const allIds = new Set(discoveredLinks.map(link => link.id));
+                    selectedLinks.value.set(websiteId, allIds);
+                    selectedLinksForWebsite = allIds;
+
+                    // Auto-select the parent website when links are auto-selected
+                    const newSelectedWebsites = new Set(selectedWebsites.value);
+                    newSelectedWebsites.add(websiteId);
+                    selectedWebsites.value = newSelectedWebsites;
+                    console.log(`Auto-selected ${allIds.size} links for website ${websiteId}`);
                 } else {
                     console.warn(`No links found for website ${websiteId}`);
                 }
@@ -1419,9 +1456,9 @@ onMounted(() => {
                                                     class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors"
                                                 >
                                                     <Checkbox
-                                                        :model-value="(selectedLinks.get(source.id) || new Set()).has(link.link)"
-                                                        @update:model-value="(checked) => toggleLinkSelection(source.id, link.link, checked)"
-                                                        :id="`link-${source.id}-${link.link}`"
+                                                        :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
+                                                        @update:model-value="(checked) => toggleLinkSelection(source.id, link.id, checked)"
+                                                        :id="`link-${source.id}-${link.id}`"
                                                         class="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                     />
                                                     <ExternalLink class="h-3 w-3 mt-0.5 text-muted-foreground flex-shrink-0" />
@@ -1434,9 +1471,6 @@ onMounted(() => {
                                                         >
                                                             {{ link.link }}
                                                         </a>
-                                                        <div v-if="link.text" class="text-xs text-muted-foreground mt-1">
-                                                            {{ link.text }}
-                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -1763,9 +1797,9 @@ onMounted(() => {
                                                                         class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors"
                                                                     >
                                                                         <Checkbox
-                                                                            :model-value="(selectedLinks.get(source.id) || new Set()).has(link.link)"
-                                                                            @update:model-value="(checked) => toggleLinkSelection(source.id, link.link, checked)"
-                                                                            :id="`link-${source.id}-${link.link}`"
+                                                                            :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
+                                                                            @update:model-value="(checked) => toggleLinkSelection(source.id, link.id, checked)"
+                                                                            :id="`link-${source.id}-${link.id}`"
                                                                             class="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                                         />
                                                                         <ExternalLink class="h-3 w-3 mt-0.5 text-muted-foreground flex-shrink-0" />
@@ -1778,9 +1812,6 @@ onMounted(() => {
                                                                             >
                                                                                 {{ link.link }}
                                                                             </a>
-                                                                            <div v-if="link.text" class="text-xs text-muted-foreground mt-1">
-                                                                                {{ link.text }}
-                                                                            </div>
                                                                         </div>
                                                                     </div>
 
@@ -1931,9 +1962,9 @@ onMounted(() => {
                                                                     class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors"
                                                                 >
                                                                     <Checkbox
-                                                                        :model-value="(selectedLinks.get(source.id) || new Set()).has(link.link)"
-                                                                        @update:model-value="(checked) => toggleLinkSelection(source.id, link.link, checked)"
-                                                                        :id="`link-${source.id}-${link.link}`"
+                                                                        :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
+                                                                        @update:model-value="(checked) => toggleLinkSelection(source.id, link.id, checked)"
+                                                                        :id="`link-${source.id}-${link.id}`"
                                                                         class="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                                     />
                                                                     <ExternalLink class="h-3 w-3 mt-0.5 text-muted-foreground flex-shrink-0" />
@@ -1946,9 +1977,6 @@ onMounted(() => {
                                                                         >
                                                                             {{ link.link }}
                                                                         </a>
-                                                                        <div v-if="link.text" class="text-xs text-muted-foreground mt-1">
-                                                                            {{ link.text }}
-                                                                        </div>
                                                                     </div>
                                                                 </div>
 

@@ -107,7 +107,7 @@ class Chunker
             'chunkable_type' => get_class($this->source),
             'chunkable_id' => $this->source->id,
             'chunk_index' => $chunkIndex,
-            'total_chunks' => 0, // Will be set later
+            'expected_chunks' => 0, // Will be set later
             'chunk_text' => trim($text),
             'chunk_images' => $images,
             'prev_chunk' => '',
@@ -149,7 +149,7 @@ class Chunker
                 'chunkable_type' => $this->source::class,
                 'chunkable_id' => $this->source->id,
                 'chunk_index' => $chunk->chunk_index,
-                'total_chunks' => $totalChunks,
+                'expected_chunks' => $totalChunks,
                 'chunk_text' => $chunk->chunk_text,
                 'chunk_images' => $chunk->chunk_images,
                 'prev_chunk' => $prevChunk,

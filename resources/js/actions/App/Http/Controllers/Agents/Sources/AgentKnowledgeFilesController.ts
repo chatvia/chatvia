@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesController::__invoke
-* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFilesController.php:14
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFilesController.php:12
 * @route '/agents/{agent}/sources/files'
 */
 const AgentKnowledgeFilesController = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ AgentKnowledgeFilesController.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesController::__invoke
-* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFilesController.php:14
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFilesController.php:12
 * @route '/agents/{agent}/sources/files'
 */
 AgentKnowledgeFilesController.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ AgentKnowledgeFilesController.url = (args: { agent: number | { id: number } } | 
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesController::__invoke
-* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFilesController.php:14
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFilesController.php:12
 * @route '/agents/{agent}/sources/files'
 */
 AgentKnowledgeFilesController.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -59,7 +59,7 @@ AgentKnowledgeFilesController.get = (args: { agent: number | { id: number } } | 
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesController::__invoke
-* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFilesController.php:14
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFilesController.php:12
 * @route '/agents/{agent}/sources/files'
 */
 AgentKnowledgeFilesController.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({

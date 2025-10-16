@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Agents\AgentStoreController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:14
+* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:15
 * @route '/agents'
 */
 const AgentStoreController = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ AgentStoreController.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Agents\AgentStoreController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:14
+* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:15
 * @route '/agents'
 */
 AgentStoreController.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ AgentStoreController.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Agents\Agents\AgentStoreController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:14
+* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:15
 * @route '/agents'
 */
 AgentStoreController.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({

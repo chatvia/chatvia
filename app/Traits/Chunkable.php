@@ -21,7 +21,7 @@ trait Chunkable
 
     public function ingestionProgress(): int
     {
-        $totalChunks = $this->chunks ?? 0;
+        $totalChunks = $this->expected_chunks ?? 0;
         $importedChunks = $this->chunks()->count();
 
         return round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);

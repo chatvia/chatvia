@@ -27,7 +27,6 @@ class HTMLParser
             'textarea',
             'nav',
         ];
-
     }
 
     private function domCrawler($html): DOMCrawler
@@ -43,11 +42,6 @@ class HTMLParser
         }
 
         return $crawler->filter('body');
-    }
-
-    public function cleanHtml(string $html): string
-    {
-        return $this->domCrawler($html)->html();
     }
 
     public function getTextFromHtml(string $html): string

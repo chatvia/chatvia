@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agents\Agents;
 use App\Http\Requests\Agents\CreateAgentRequest;
 use App\Models\Agent;
 use App\Support\Ingestion;
+use App\Support\PromptLoader;
 use App\Support\Subdomain;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -27,7 +28,7 @@ class AgentStoreController
                 'user_id' => $user->id,
                 'name' => $validatedData['name'],
                 'sub_domain' => $validatedData['type'] === 'knowledge_base' ? $subdomain->generateRandomSubdomain() : null,
-                'system_instructions' => config('prompts.knowledge-based-system-instruction'),
+                'system_instructions' => PromptLoader::load('knowledge/system'),
                 'is_public' => false,
                 'type' => $validatedData['type'],
                 'external_id' => $externalId,

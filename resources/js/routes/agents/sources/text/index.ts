@@ -190,7 +190,7 @@ index.head = (args: { agent: number | { id: number } } | [agent: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:10
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
 * @route '/agents/{agent}/sources/text/{id}'
 */
 export const destroy = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -205,7 +205,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:10
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
 * @route '/agents/{agent}/sources/text/{id}'
 */
 destroy.url = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions) => {
@@ -233,7 +233,7 @@ destroy.url = (args: { agent: number | { id: number }, id: string | number } | [
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:10
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
 * @route '/agents/{agent}/sources/text/{id}'
 */
 destroy.delete = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

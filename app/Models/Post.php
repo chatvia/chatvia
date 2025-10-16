@@ -24,7 +24,7 @@ class Post extends Model
 
     public function imgUrl(): Attribute
     {
-        return Attribute::get(fn() => $this->image_path ? Storage::url($this->image_path) : null);
+        return Attribute::get(fn () => $this->image_path ? Storage::disk('scaleway')->url($this->image_path) : null);
     }
 
     #[Scope]

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextController.php:11
 * @route '/agents/{agent}/sources/text'
 */
 const AgentKnowledgeTextController = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ AgentKnowledgeTextController.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextController.php:11
 * @route '/agents/{agent}/sources/text'
 */
 AgentKnowledgeTextController.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ AgentKnowledgeTextController.url = (args: { agent: number | { id: number } } | [
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextController.php:11
 * @route '/agents/{agent}/sources/text'
 */
 AgentKnowledgeTextController.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -59,7 +59,7 @@ AgentKnowledgeTextController.get = (args: { agent: number | { id: number } } | [
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextController.php:11
 * @route '/agents/{agent}/sources/text'
 */
 AgentKnowledgeTextController.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({

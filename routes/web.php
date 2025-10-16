@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\Social\GoogleCallbackAuthController;
 use App\Http\Controllers\Auth\Social\MicrosoftAuthController;
 use App\Http\Controllers\Auth\Social\MicrosoftCallbackAuthController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\ChatPdfController;
 use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Landing\ChangelogController;
@@ -40,6 +41,8 @@ Route::get('/auth/microsoft', MicrosoftAuthController::class)->name('auth.micros
 Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->name('auth.microsoft.callback');
 
 Route::get('/use-cases/{case}', UseCasesController::class)->name('use-cases');
+
+Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-tools.chat-with-pdf');
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

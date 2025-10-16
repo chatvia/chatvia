@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteTrainController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteTrainController.php:12
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteTrainController.php:11
 * @route '/agents/{agent}/sources/website/{website}/train'
 */
 const AgentKnowledgeCrawlerWebsiteTrainController = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ AgentKnowledgeCrawlerWebsiteTrainController.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteTrainController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteTrainController.php:12
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteTrainController.php:11
 * @route '/agents/{agent}/sources/website/{website}/train'
 */
 AgentKnowledgeCrawlerWebsiteTrainController.url = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -46,7 +46,7 @@ AgentKnowledgeCrawlerWebsiteTrainController.url = (args: { agent: number | { id:
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteTrainController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteTrainController.php:12
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteTrainController.php:11
 * @route '/agents/{agent}/sources/website/{website}/train'
 */
 AgentKnowledgeCrawlerWebsiteTrainController.post = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({

@@ -5,6 +5,7 @@ namespace App\Jobs\Ingestion;
 use App\Contracts\ChunkableContract;
 use App\Models\Chunk;
 use App\Support\OpenAI;
+use App\Support\PromptLoader;
 use App\Support\TikToken;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -42,7 +43,7 @@ class IngestionSummaryJob implements ShouldQueue
 
         $costInCents = OpenAI::calculateCostInCents(
             inputText: $this->content,
-            outputText: config('prompts.file-description').strip_tags($chunk),
+            outputText: PromptLoader::load('file/describe').strip_tags($chunk),
             pricePerInputMilToken: 2.0,
             pricePerOutputMilToken: 8.0,
         );

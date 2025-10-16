@@ -33,7 +33,7 @@ class AgentKnowledgeTextStoreController
         $agent->texts()->create([
             'user_id' => $request->user()->id,
             'content' => $content,
-            'excerpt' => Str::of($content)->limit(200)->replace("\n", " ")->trim()->toString(),
+            'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
             'length' => $numberOfPages, // number of pages, 450 word = 1 page
             'md5_hash' => md5($content),
         ]);

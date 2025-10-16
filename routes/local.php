@@ -1,7 +1,12 @@
 <?php
 
+use App\Support\PromptLoader;
+
 if (app()->isLocal()) {
     Route::get('playground', function () {
-        \Illuminate\Support\Facades\Storage::put('playground.txt', 'Hello, Playground!');
+        /** @var \App\Models\Chunk $chunk */
+        $chunk = \App\Models\Chunk::find(1);
+
+        dd($chunk->links[0]->chunk);
     });
 }

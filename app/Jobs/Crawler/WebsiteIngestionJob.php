@@ -2,14 +2,15 @@
 
 namespace App\Jobs\Crawler;
 
-use App\Data\Crawler\LinkData;
 use App\Events\WebsiteCrawlerEvent;
 use App\Jobs\Ingestion\IngestionChunkJob;
 use App\Jobs\Ingestion\IngestionSummaryJob;
 use App\Models\AgentWebsite;
+use App\Models\Link;
 use App\Services\Chunker;
 use App\Services\Crawler\HTMLParser;
 use App\Services\Ingestion\RecursiveCharacterTextSplitter;
+use App\Support\PromptLoader;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -19,14 +20,12 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 class WebsiteIngestionJob implements ShouldQueue
 {
-    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable;
 
     public function __construct(public AgentWebsite $website) {}
 
@@ -38,17 +37,20 @@ class WebsiteIngestionJob implements ShouldQueue
 
         WebsiteCrawlerEvent::dispatch($this->website);
 
-        $links = LinkData::collect($this->website->links);
+        $links = $this->website->links;
 
-        $pool = Http::pool(function (Pool $pool) use ($links) {
-            return collect($links)->map(function (LinkData $link) use ($pool) {
+        // Create a mapping of URL to Link ID
+        $linkUrlToId = $links->pluck('id', 'link');
+
+        // First, we get all the responses for the given $links
+        $responses = Http::pool(function (Pool $pool) use ($links) {
+            return $links->map(function ($link) use ($pool) {
                 $pool->as($link->link)->get($link->link);
             });
         });
 
-        $linksFingerprints = [];
-
-        $linksWithChunks = collect($pool)
+        // Then we filter the responses, because we might have invalid responses
+        $linksWithChunks = collect($responses)
             ->reject(function ($response) {
                 // Filter out exceptions first
                 if ($response instanceof ConnectionException) {
@@ -62,25 +64,23 @@ class WebsiteIngestionJob implements ShouldQueue
                     $response->noContent() ||
                     ! str_contains($response->header('content-type'), 'text/html');
             })
-            ->mapWithKeys(function (Response $response, string $url) use ($splitter, &$linksFingerprints, $parser) {
+            ->mapWithKeys(function (Response $response, string $link) use ($splitter, $parser) {
                 $text = $parser->getTextFromHtml($response->getBody());
-
-                $linksFingerprints[$url] = md5($text);
 
                 $chunks = $splitter->splitText($text);
                 $chunks = collect($chunks)->map(fn ($item) => ['text' => $item])->toArray();
                 $chunks = new Chunker($this->website)->createChunks($chunks);
 
                 return [
-                    $url => $chunks,
+                    $link => $chunks,
                 ];
             });
 
         $totalChunks = $linksWithChunks->flatten()->count();
 
-        $linksWithChunks = $linksWithChunks->mapWithKeys(function ($chunks, string $url) use ($totalChunks) {
-            return [$url => collect($chunks)->map(function ($chunk) use ($totalChunks) {
-                $chunk->total_chunks = $totalChunks;
+        $linksWithChunks = $linksWithChunks->mapWithKeys(function ($chunks, string $link) use ($totalChunks) {
+            return [$link => collect($chunks)->map(function ($chunk) use ($totalChunks) {
+                $chunk->expected_chunks = $totalChunks;
 
                 return $chunk;
             })];
@@ -88,52 +88,14 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $jobs = [];
 
-        $prompt = Str::of(<<<'PROMPT'
-You are a precise HTML-to-Text cleaner for RAG.
-
-INPUT:
-- You receive one HTML chunk (from a web crawler) converted to text.
-- It may include nav menus, cookie banners, ads, footers, repeated sections, or scattered text.
-
-OUTPUT:
-- Return TEXT ONLY (no HTML, no code, no JSON).
-- If the cleaned result has no meaningful content, return exactly: ""
-- Keep the original language of the content.
-
-STRICT RULES:
-1) Remove junk: navigation menus, cookie banners, ads, newsletters, generic CTAs, boilerplate footers, “related posts,” pagination chrome, duplicated headings.
-2) Keep useful content: product names, features, pricing/plans/quotas, addresses, opening hours, FAQs, docs, job details, important legal terms.
-3) Links: keep link text and URL. If meaningful → `Text (https://...)`. If meaningless (“click here”) → just the URL near the context.
-4) Headings/structure: preserve a clean hierarchy (H1–H3). Convert HTML lists → bullet lists. Merge broken paragraphs. Deduplicate repeated sections inside the chunk.
-5) Tables: convert to either bullet lists or a compact Markdown table — whichever is clearer.
-6) **Generic Pricing Rule:**
-   - Collect **all** pricing/plan/fee/discount/billing/free trial mentions into a single section titled: `Pricing`.
-   - For each plan/offer, include: **Plan name (if any) — price + currency + billing cycle (monthly, yearly, per user, per 1K units, per minute, etc.) — key limits/quotas/fees — discounts/free trials/notes (e.g., includes/excludes tax).**
-   - Supported formats:
-     • €19/month • $49/user/month • $0.002/1K tokens • €0.10/minute
-     • $499 one-time • 10% annual discount • starts at $X
-   - If both monthly & yearly → show both, note if yearly is billed upfront.
-   - If add-ons/overages exist → put them under **Add-ons & Overage**.
-   - If a plan has no price (e.g. “Contact Sales”) → list it as is, no guessing.
-   - If prices are scattered → consolidate them, remove duplicates.
-7) Normalize: collapse spaces, fix line breaks, keep units/symbols (€, $, %, GB, MB, min).
-8) No hallucinations: never infer values.
-9) Do NOT filter out contact info: keep emails, phone numbers, social links.
-10) If nothing valuable remains, return "".
-
-FORMAT:
-- Plain text or light Markdown (headings, bullets, simple tables).
-- No HTML tags, no backticks, no commentary.
-
-Now clean the following HTML chunk and produce the final text result.
-PROMPT)->toString();
+        $prompt = PromptLoader::load('chunking/web');
 
         foreach ($linksWithChunks as $link => $chunks) {
             foreach ($chunks as $chunk) {
-                $jobs[] = new IngestionChunkJob($chunk, $prompt, [
-                    'link' => $link,
-                    'link_md5' => $linksFingerprints[$link]],
-                );
+                $jobs[] = new IngestionChunkJob($chunk, $prompt, chunkReference: [
+                    'referenceable_type' => Link::class,
+                    'referenceable_id' => $linkUrlToId[$link],
+                ]);
             }
         }
 
@@ -148,12 +110,13 @@ PROMPT)->toString();
             ->dispatch();
 
         $content = $linksWithChunks->first()->pluck('chunk_text')->implode("\n\n");
+
         dispatch(new IngestionSummaryJob($this->website, $content));
 
         $this->website->update([
             'internal_ingestion_job_id' => $this->job->getJobId(),
             'internal_chunking_batch_id' => $batch->id,
-            'chunks' => $totalChunks,
+            'expected_chunks' => $totalChunks,
         ]);
     }
 }

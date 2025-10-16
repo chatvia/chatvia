@@ -6,6 +6,7 @@ use App\Data\Crawler\CrawlerData;
 use App\Events\WebsiteCrawlerEvent;
 use App\Models\AgentWebsite;
 use App\Services\Crawler\Crawler;
+use App\Services\Crawler\HTMLParser;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,12 +31,13 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
         $tookInSeconds = ceil($endTime - $startTime);
 
         $this->website->update([
-            'links' => $links,
             'status' => 'crawled',
             'length' => count($links),
             'took_in_seconds' => $tookInSeconds,
             'job_id' => $this->job->getJobId(),
         ]);
+
+        $this->website->links()->createMany($links);
 
         $this->website->refresh();
 

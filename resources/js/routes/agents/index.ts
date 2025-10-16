@@ -99,7 +99,7 @@ list.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Agents\Agents\AgentStoreController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:14
+* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:15
 * @route '/agents'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -114,7 +114,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Agents\AgentStoreController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:14
+* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:15
 * @route '/agents'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -123,7 +123,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Agents\Agents\AgentStoreController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:14
+* @see app/Http/Controllers/Agents/Agents/AgentStoreController.php:15
 * @route '/agents'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({

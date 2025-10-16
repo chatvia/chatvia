@@ -7,6 +7,7 @@ use App\Jobs\Crawler\WebsiteIngestionJob;
 use App\Traits\Chunkable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AgentWebsite extends Model implements ChunkableContract
 {
@@ -22,7 +23,6 @@ class AgentWebsite extends Model implements ChunkableContract
     protected function casts(): array
     {
         return [
-            'links' => 'json',
             'options' => 'json',
         ];
     }
@@ -30,5 +30,10 @@ class AgentWebsite extends Model implements ChunkableContract
     public function startTraining(): void
     {
         WebsiteIngestionJob::dispatch($this);
+    }
+
+    public function links(): HasMany
+    {
+        return $this->hasMany(Link::class);
     }
 }

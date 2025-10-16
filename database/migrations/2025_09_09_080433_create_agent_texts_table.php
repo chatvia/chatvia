@@ -35,7 +35,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['agent_id','md5_hash']);
+            $table->unique(['agent_id', 'md5_hash']);
         });
     }
 

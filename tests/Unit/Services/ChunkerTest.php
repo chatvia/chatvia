@@ -96,7 +96,7 @@ class ChunkerTest extends TestCase
 
         foreach ($chunks as $index => $chunk) {
             // Verify metadata
-            $this->assertEquals($totalChunks, $chunk->total_chunks);
+            $this->assertEquals($totalChunks, $chunk->expected_chunks);
             $this->assertEquals($index + 1, $chunk->chunk_index);
 
             // Verify prev/next relationships

@@ -8,6 +8,7 @@ import RequestDemoController from './RequestDemoController'
 import DocsController from './DocsController'
 import Auth from './Auth'
 import UseCasesController from './UseCasesController'
+import ChatPdfController from './ChatPdfController'
 import Dashboard from './Dashboard'
 import FeaturesController from './FeaturesController'
 import KnowledgeFiles from './KnowledgeFiles'
@@ -34,6 +35,7 @@ const Controllers = {
     DocsController: Object.assign(DocsController, DocsController),
     Auth: Object.assign(Auth, Auth),
     UseCasesController: Object.assign(UseCasesController, UseCasesController),
+    ChatPdfController: Object.assign(ChatPdfController, ChatPdfController),
     Dashboard: Object.assign(Dashboard, Dashboard),
     FeaturesController: Object.assign(FeaturesController, FeaturesController),
     KnowledgeFiles: Object.assign(KnowledgeFiles, KnowledgeFiles),

@@ -268,11 +268,11 @@ LIMIT ?
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => config('prompts.follow-up-system-prompt'),
+                    'content' => PromptLoader::load('knowledge/follow-up/system'),
                 ],
                 [
                     'role' => 'user',
-                    'content' => template(config('prompts.follow-up'), [
+                    'content' => PromptLoader::load('knowledge/follow-up/user', [
                         'retrieved_chunks' => collect($chunks)->implode("\n\n"),
                         'user_query' => $userQuery,
                     ]),

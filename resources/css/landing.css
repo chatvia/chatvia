@@ -1,14 +1,10 @@
 @import 'tailwindcss';
-@plugin "@tailwindcss/typography";
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&display=fallback')
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Sans+Arabic:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
-
-/* Additional styles */
 @import './additional-styles/utility-patterns.css' layer(components);
 @import './additional-styles/range-slider.css' layer(components);
 @import './additional-styles/toggle-switch.css' layer(components);
 @import './additional-styles/theme.css';
+
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 

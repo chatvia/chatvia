@@ -35,7 +35,7 @@ return [
     ],
     [
         'internal_name' => 'openai/gpt-4o-mini',
-        'external_name' => 'gpt4o-mini',
+        'external_name' => 'gpt-4o-mini',
         'descriptive_name' => 'GPT-4o mini',
         'description' => 'Quick and reliable for everyday conversations and simple tasks.',
         'context_window' => 128000,

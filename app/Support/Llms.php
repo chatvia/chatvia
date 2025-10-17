@@ -14,6 +14,6 @@ class Llms
 
     public function getByExternalName(string $modelExternalId): LlmModelData
     {
-        return LlmModelData::fromLlmModel(Llm::query()->where('external_name', $modelExternalId)->first());
+        return LlmModelData::fromLlmModel(Llm::query()->where('external_name', $modelExternalId)->firstOrFail());
     }
 }

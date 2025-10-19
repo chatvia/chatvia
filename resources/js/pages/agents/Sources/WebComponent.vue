@@ -1225,7 +1225,7 @@ onUnmounted(() => {
                     <div>
                         <CardTitle class="flex items-center gap-2">
                             <Globe class="h-5 w-5" />
-                            Crawl links
+                            Crawler
                         </CardTitle>
                         <CardDescription>
                             Fetch links from websites to crawl and include in your agent's knowledge base.
@@ -1513,7 +1513,7 @@ onUnmounted(() => {
                                         @click="trainSelectedWebsites"
                                         :disabled="!canTrain || isTraining"
                                         size="sm"
-                                        
+
                                     >
                                         <LoaderCircle v-if="isTraining" class="h-4 w-4 mr-2 animate-spin" />
                                         <Database v-else class="h-4 w-4 mr-2" />
@@ -1780,9 +1780,6 @@ onUnmounted(() => {
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center gap-2 mb-1">
                                             <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
-                                            <Badge variant="outline" class="text-xs flex-shrink-0">
-                                                Website
-                                            </Badge>
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
@@ -1950,9 +1947,6 @@ onUnmounted(() => {
                                                     <div class="min-w-0 flex-1">
                                                         <div class="flex items-center gap-2 mb-1">
                                                             <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
-                                                            <Badge variant="outline" class="text-xs flex-shrink-0">
-                                                                Website
-                                                            </Badge>
                                                             <TooltipProvider>
                                                                 <Tooltip>
                                                                     <TooltipTrigger asChild>
@@ -2164,9 +2158,6 @@ onUnmounted(() => {
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center gap-2 mb-1">
                                                         <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
-                                                        <Badge variant="outline" class="text-xs flex-shrink-0">
-                                                            Website
-                                                        </Badge>
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>

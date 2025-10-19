@@ -29,6 +29,7 @@ interface Props {
 interface TextEntry {
     id: number;
     excerpt: string;
+    content?: string;
     status: 'draft' | 'saved' | 'processing' | 'trained' | 'failed';
     created_at: string;
     updated_at: string;
@@ -273,18 +274,15 @@ fetchTextEntries();
                 >
                     <div class="flex items-start justify-between">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-2">
-                                <h3 class="font-medium text-sm truncate">
+                            <div class="flex items-start gap-2 mb-2">
+                                <p class="text-sm text-muted-foreground line-clamp-2 flex-1">
                                     {{ entry.excerpt }}
-                                </h3>
-                                <Badge :variant="getStatusBadge(entry.status).variant" class="flex items-center gap-1">
+                                </p>
+                                <Badge :variant="getStatusBadge(entry.status).variant" class="flex items-center gap-1 flex-shrink-0">
                                     <component :is="getStatusBadge(entry.status).icon" class="h-3 w-3" />
                                     {{ getStatusBadge(entry.status).label }}
                                 </Badge>
                             </div>
-                            <p class="text-sm text-muted-foreground line-clamp-2 mb-2">
-                                {{ entry.content.substring(0, 150) }}{{ entry.content.length > 150 ? '...' : '' }}
-                            </p>
                             <div class="flex items-center gap-4 text-xs text-muted-foreground">
                                 <span>{{ entry.word_count }} words</span>
                                 <span>Created {{ formatDate(entry.created_at) }}</span>

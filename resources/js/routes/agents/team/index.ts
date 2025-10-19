@@ -2,7 +2,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefa
 import member from './member'
 /**
 * @see \App\Http\Controllers\Agents\Team\AgentMemberInvitationSendController::__invoke
-* @see app/Http/Controllers/Agents/Team/AgentMemberInvitationSendController.php:13
+* @see app/Http/Controllers/Agents/Team/AgentMemberInvitationSendController.php:14
 * @route '/agents/{agent}/team/invite'
 */
 export const invite = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -17,7 +17,7 @@ invite.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Team\AgentMemberInvitationSendController::__invoke
-* @see app/Http/Controllers/Agents/Team/AgentMemberInvitationSendController.php:13
+* @see app/Http/Controllers/Agents/Team/AgentMemberInvitationSendController.php:14
 * @route '/agents/{agent}/team/invite'
 */
 invite.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -50,7 +50,7 @@ invite.url = (args: { agent: number | { id: number } } | [agent: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Agents\Team\AgentMemberInvitationSendController::__invoke
-* @see app/Http/Controllers/Agents/Team/AgentMemberInvitationSendController.php:13
+* @see app/Http/Controllers/Agents/Team/AgentMemberInvitationSendController.php:14
 * @route '/agents/{agent}/team/invite'
 */
 invite.post = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({

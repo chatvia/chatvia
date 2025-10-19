@@ -26,7 +26,7 @@ class AgentFileFactory extends Factory
             'filepath' => 'test/files/'.$this->faker->uuid().'.txt',
             'size_in_kb' => $this->faker->numberBetween(1, 1000),
             'mime_type' => 'text/plain',
-            'md5_hash' => $this->faker->md5(),
+            'checksum' => $this->faker->md5(),
             'status' => 'uploaded',
             'length' => $this->faker->numberBetween(1, 50),
         ];

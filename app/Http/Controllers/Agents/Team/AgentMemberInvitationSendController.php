@@ -7,6 +7,7 @@ use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class AgentMemberInvitationSendController
 {
@@ -33,10 +34,16 @@ class AgentMemberInvitationSendController
             return response();
         }
 
-        $user = $request->user();
+        $authUser = $request->user();
+
+        if ($authUser->email === $email) {
+            throw ValidationException::withMessages([
+                'email' => ['You cannot invite yourself'],
+            ]);
+        }
 
         /** @var Member $member */
-        $member = $user->members()->where('email', $email)->first();
+        $member = $authUser->members()->where('email', $email)->first();
 
         if (! $member) {
             /** @var Member $member */

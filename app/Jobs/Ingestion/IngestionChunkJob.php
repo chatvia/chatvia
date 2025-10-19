@@ -49,7 +49,7 @@ class IngestionChunkJob implements ShouldQueue
         if (Chunk::query()
             ->where('chunkable_type', $this->chunk->chunkable_type)
             ->where('chunkable_id', $this->chunk->chunkable_id)
-            ->where('md5_hash', md5($this->chunk->chunk_text))
+            ->where('checksum', md5($this->chunk->chunk_text))
             ->exists()) {
             return;
         }
@@ -101,7 +101,7 @@ class IngestionChunkJob implements ShouldQueue
             'metadata' => array_merge($this->metadata, [
                 'images' => $describedImages,
             ]),
-            'md5_hash' => md5($this->chunk->chunk_text),
+            'checksum' => md5($this->chunk->chunk_text),
             'retrieval_count' => 0,
         ]);
 

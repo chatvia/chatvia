@@ -2,6 +2,8 @@ import AgentKnowledgeCrawlerController from './AgentKnowledgeCrawlerController'
 import AgentKnowledgeWebsitesListController from './AgentKnowledgeWebsitesListController'
 import AgentKnowledgeWebsiteDeleteController from './AgentKnowledgeWebsiteDeleteController'
 import AgentKnowledgeCrawlerWebsiteLinksController from './AgentKnowledgeCrawlerWebsiteLinksController'
+import AgentKnowledgeCrawlerWebsiteLinkDeleteController from './AgentKnowledgeCrawlerWebsiteLinkDeleteController'
+import AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController from './AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController'
 import AgentKnowledgeCrawlerWebsiteTrainController from './AgentKnowledgeCrawlerWebsiteTrainController'
 
 const Crawler = {
@@ -9,6 +11,8 @@ const Crawler = {
     AgentKnowledgeWebsitesListController: Object.assign(AgentKnowledgeWebsitesListController, AgentKnowledgeWebsitesListController),
     AgentKnowledgeWebsiteDeleteController: Object.assign(AgentKnowledgeWebsiteDeleteController, AgentKnowledgeWebsiteDeleteController),
     AgentKnowledgeCrawlerWebsiteLinksController: Object.assign(AgentKnowledgeCrawlerWebsiteLinksController, AgentKnowledgeCrawlerWebsiteLinksController),
+    AgentKnowledgeCrawlerWebsiteLinkDeleteController: Object.assign(AgentKnowledgeCrawlerWebsiteLinkDeleteController, AgentKnowledgeCrawlerWebsiteLinkDeleteController),
+    AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController: Object.assign(AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController, AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController),
     AgentKnowledgeCrawlerWebsiteTrainController: Object.assign(AgentKnowledgeCrawlerWebsiteTrainController, AgentKnowledgeCrawlerWebsiteTrainController),
 }
 

@@ -52,12 +52,12 @@ class Chunk extends Model
     public function links(): HasManyThrough
     {
         return $this->hasManyThrough(
-            Link::class,
+            AgentWebsiteUrl::class,
             ChunkReference::class,
             'chunk_id',      // Foreign key on ChunkReference
             'id',          // Foreign key on Link
             'id',            // Local key on Chunk
             'referenceable_id' // Local key on ChunkReference
-        )->where('chunk_references.referenceable_type', Link::class);
+        )->where('chunk_references.referenceable_type', AgentWebsiteUrl::class);
     }
 }

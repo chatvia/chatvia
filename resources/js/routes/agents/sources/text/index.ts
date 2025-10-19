@@ -1,68 +1,5 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
-* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:10
-* @route '/agents/{agent}/sources/text/{id}'
-*/
-export const show = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: show.url(args, options),
-    method: 'get',
-})
-
-show.definition = {
-    methods: ["get","head"],
-    url: '/agents/{agent}/sources/text/{id}',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:10
-* @route '/agents/{agent}/sources/text/{id}'
-*/
-show.url = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions) => {
-    if (Array.isArray(args)) {
-        args = {
-            agent: args[0],
-            id: args[1],
-        }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-        agent: typeof args.agent === 'object'
-        ? args.agent.id
-        : args.agent,
-        id: args.id,
-    }
-
-    return show.definition.url
-            .replace('{agent}', parsedArgs.agent.toString())
-            .replace('{id}', parsedArgs.id.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:10
-* @route '/agents/{agent}/sources/text/{id}'
-*/
-show.get = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: show.url(args, options),
-    method: 'get',
-})
-
-/**
-* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:10
-* @route '/agents/{agent}/sources/text/{id}'
-*/
-show.head = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: show.url(args, options),
-    method: 'head',
-})
-
-/**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController::__invoke
 * @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:12
 * @route '/agents/{agent}/sources/text'
@@ -189,6 +126,69 @@ index.head = (args: { agent: number | { id: number } } | [agent: number | { id: 
 })
 
 /**
+* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:9
+* @route '/agents/{agent}/sources/text/{id}'
+*/
+export const show = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show.url(args, options),
+    method: 'get',
+})
+
+show.definition = {
+    methods: ["get","head"],
+    url: '/agents/{agent}/sources/text/{id}',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:9
+* @route '/agents/{agent}/sources/text/{id}'
+*/
+show.url = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions) => {
+    if (Array.isArray(args)) {
+        args = {
+            agent: args[0],
+            id: args[1],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        agent: typeof args.agent === 'object'
+        ? args.agent.id
+        : args.agent,
+        id: args.id,
+    }
+
+    return show.definition.url
+            .replace('{agent}', parsedArgs.agent.toString())
+            .replace('{id}', parsedArgs.id.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:9
+* @route '/agents/{agent}/sources/text/{id}'
+*/
+show.get = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:9
+* @route '/agents/{agent}/sources/text/{id}'
+*/
+show.head = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: show.url(args, options),
+    method: 'head',
+})
+
+/**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
 * @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
 * @route '/agents/{agent}/sources/text/{id}'
@@ -242,9 +242,9 @@ destroy.delete = (args: { agent: number | { id: number }, id: string | number } 
 })
 
 const text = {
-    show: Object.assign(show, show),
     store: Object.assign(store, store),
     index: Object.assign(index, index),
+    show: Object.assign(show, show),
     destroy: Object.assign(destroy, destroy),
 }
 

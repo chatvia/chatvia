@@ -11,7 +11,8 @@ class AgentKnowledgeWebsitesListController
     {
         return $agent
             ->websites()
-            ->select(['id', 'url', 'status', 'length', 'created_at', 'options'])
+            ->select(['id', 'url', 'status', 'created_at', 'options'])
+            ->withCount('urls')
             ->get();
     }
 }

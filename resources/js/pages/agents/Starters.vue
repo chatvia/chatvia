@@ -55,14 +55,14 @@ const removeStarter = (id) => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Starter Messages">
+    <AgentLayout :agent="agent" title="Starters">
         <div class="space-y-6">
             <div class="flex justify-center">
                 <Card class="w-full max-w-6xl">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <MessageSquare class="h-5 w-5" />
-                        Starter Messages
+                        Starters
                     </CardTitle>
                     <CardDescription>
                         Suggest conversation starters for your users
@@ -71,7 +71,7 @@ const removeStarter = (id) => {
                 <CardContent>
                     <div class="grid gap-6">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-medium">Current Starter Messages</h3>
+                            <h3 class="text-lg font-medium">Current Starters</h3>
                             <Button variant="outline" @click="showAddStarterDialog = true">
                                 <PlusCircle class="mr-2 h-4 w-4" />
                                 Add Starter

@@ -15,16 +15,6 @@ class AgentKnowledgeCrawlerWebsiteTrainController
             code: 404,
         );
 
-        $request->validate([
-            'links' => ['required', 'array'],
-            'links.*' => ['required', 'integer'],
-        ]);
-
-        $requestLinkIds = $request->input('links');
-
-        // Delete links that are not in the selected IDs
-        $website->links()->whereNotIn('id', $requestLinkIds)->delete();
-
         $website->startTraining();
 
         return back()->with('success', 'Training started successfully');

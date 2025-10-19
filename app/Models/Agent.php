@@ -59,7 +59,7 @@ class Agent extends Model
                 'filepath' => $path,
                 'size_in_kb' => round($file->getSize() / 1024),
                 'mime_type' => $file->getClientMimeType(),
-                'md5_hash' => md5_file($file->getPathname()),
+                'checkum' => md5_file($file->getPathname()),
                 'status' => $status->value,
                 'length' => $analyzer->length,
                 'metadata' => $analyzer->toArray(),

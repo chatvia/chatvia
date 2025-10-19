@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
-import { Globe, LoaderCircle, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, Play, Settings, ChevronDown, ChevronUp, ChevronRight, Database } from 'lucide-vue-next';
+import { Globe, LoaderCircle, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, Play, Settings, ChevronDown, ChevronUp, ChevronRight, Database, NetworkIcon, BrainIcon } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -35,7 +35,7 @@ interface WebSource {
     created_at: string;
     error_message?: string;
     discovered_links?: DiscoveredLink[];
-    length?: number;
+    urls_count?: number;
     options?: {
         include_paths?: string;
         exclude_paths?: string;
@@ -96,8 +96,17 @@ const expandedSources = ref<Map<number, boolean>>(new Map());
 const selectedLinks = ref<Map<number, Set<number>>>(new Map()); // sourceId -> Set of selected link IDs
 const linkSearchQueries = ref<Map<number, string>>(new Map()); // sourceId -> search query
 
-// Full links cache - stores all links
-const fullLinksCache = ref<Map<number, DiscoveredLink[]>>(new Map());
+// Search debounce timers
+const searchDebounceTimers = ref<Map<number, number>>(new Map());
+
+// Pagination state for each website
+const linksPagination = ref<Map<number, {
+    currentPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    totalLinks: number;
+    isLoading: boolean;
+}>>(new Map());
 
 // Website selection for training
 const selectedWebsites = ref<Set<number>>(new Set()); // Set of selected website IDs
@@ -201,7 +210,42 @@ const getCrawlCriteriaMessage = (source: WebSource): string => {
 
 // Website selection computed properties
 const selectedWebsiteCount = computed(() => selectedWebsites.value.size);
-const canTrain = computed(() => selectedWebsiteCount.value > 0);
+
+// Calculate total links for selected websites
+const selectedWebsitesTotalLinks = computed(() => {
+    let total = 0;
+    for (const websiteId of selectedWebsites.value) {
+        const source = webSources.value.find(s => s.id === websiteId);
+        total += source?.urls_count || 0;
+    }
+    return total;
+});
+
+// Check if user can train based on selection and remaining quota
+const canTrain = computed(() => {
+    if (selectedWebsiteCount.value === 0) return false;
+    if (!usageData.value) return false;
+
+    const remaining = usageData.value.links.remaining;
+    return selectedWebsitesTotalLinks.value <= remaining;
+});
+
+// Check if a specific website can be added to selection
+const canSelectWebsite = (websiteId: number): boolean => {
+    if (!usageData.value) return true; // Allow selection if usage data not loaded yet
+
+    const source = webSources.value.find(s => s.id === websiteId);
+    const websiteLinks = source?.urls_count || 0;
+
+    // If already selected, always allow (for deselection)
+    if (selectedWebsites.value.has(websiteId)) return true;
+
+    const remaining = usageData.value.links.remaining;
+    const currentTotal = selectedWebsitesTotalLinks.value;
+
+    return (currentTotal + websiteLinks) <= remaining;
+};
+
 const allCrawledWebsitesSelected = computed(() => {
     return crawledSources.value.length > 0 && crawledSources.value.every(source => selectedWebsites.value.has(source.id));
 });
@@ -264,7 +308,7 @@ const getStatusIcon = (status: string) => {
         case 'ingesting':
             return LoaderCircle;
         case 'crawled':
-            return CheckCircle;
+            return NetworkIcon;
         case 'failed':
             return AlertCircle;
         case 'pending':
@@ -310,15 +354,20 @@ const linkLimitWarning = computed(() => {
     const { limit, used, remaining } = usageData.value.links;
     const usagePercentage = (used / limit) * 100;
 
-    if (usagePercentage >= 95) {
+    if (remaining === 0) {
         return {
             type: 'critical',
-            message: `Critical: You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). Consider upgrading your plan.`
+            message: `You've used all ${limit} links in your plan. Upgrade to train more links.`
+        };
+    } else if (usagePercentage >= 95) {
+        return {
+            type: 'critical',
+            message: `You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). Only ${remaining} link${remaining !== 1 ? 's' : ''} remaining for training. Consider upgrading your plan.`
         };
     } else if (usagePercentage >= 80) {
         return {
             type: 'warning',
-            message: `Warning: You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%).`
+            message: `You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). ${remaining} link${remaining !== 1 ? 's' : ''} remaining for training.`
         };
     }
 
@@ -326,47 +375,68 @@ const linkLimitWarning = computed(() => {
 });
 
 // API functions
-const fetchWebsiteLinks = async (websiteId: number): Promise<DiscoveredLink[]> => {
+const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuery: string = ''): Promise<DiscoveredLink[]> => {
     try {
-        // Check if we already have all links cached
-        const cachedLinks = fullLinksCache.value.get(websiteId);
-        if (cachedLinks) {
-            return cachedLinks;
+        // Set loading state
+        const currentPagination = linksPagination.value.get(websiteId) || {
+            currentPage: 1,
+            hasNextPage: false,
+            hasPrevPage: false,
+            totalLinks: 0,
+            isLoading: false
+        };
+        linksPagination.value.set(websiteId, { ...currentPagination, isLoading: true });
+
+        // Build params object
+        const params: { page: number; q?: string } = { page };
+        if (searchQuery.trim()) {
+            params.q = searchQuery.trim();
         }
 
-        // Fetch all links from API
+        // Fetch paginated links from API
         const response = await axios.get(route('agents.sources.websites.links', {
             agent: props.agent.id,
             website: websiteId
-        }));
+        }), {
+            params
+        });
 
-        // Handle different response formats and convert to DiscoveredLink[]
-        let allLinksArray: string[] = [];
+        // Handle paginated response format
+        const paginatedData = response.data;
 
-        if (Array.isArray(response.data)) {
-            allLinksArray = response.data;
-        } else if (response.data && Array.isArray(response.data.links)) {
-            allLinksArray = response.data.links;
-        } else if (response.data && Array.isArray(response.data.data)) {
-            allLinksArray = response.data.data;
-        } else {
+        if (!paginatedData || !Array.isArray(paginatedData.data)) {
+            linksPagination.value.set(websiteId, { ...currentPagination, isLoading: false });
             return [];
         }
 
-        // Convert to DiscoveredLink format and cache
-        const allDiscoveredLinks = allLinksArray.map((linkObj: any) => ({
+        // Convert to DiscoveredLink format
+        const discoveredLinks = paginatedData.data.map((linkObj: any) => ({
             id: linkObj.id,
             link: linkObj.link || linkObj.url || linkObj,
             text: linkObj.text || linkObj.title || (typeof linkObj === 'string' ? linkObj.split('/').pop() || linkObj : ''),
             found_on_url: linkObj.found_on_url || ''
         }));
 
-        fullLinksCache.value.set(websiteId, allDiscoveredLinks);
+        // Update pagination state
+        linksPagination.value.set(websiteId, {
+            currentPage: paginatedData.current_page || page,
+            hasNextPage: !!paginatedData.next_page_url,
+            hasPrevPage: !!paginatedData.prev_page_url,
+            totalLinks: paginatedData.to || 0,
+            isLoading: false
+        });
 
-        return allDiscoveredLinks;
+        return discoveredLinks;
 
     } catch (error) {
         console.error(`Failed to fetch links for website ${websiteId}:`, error);
+
+        // Reset loading state on error
+        const currentPagination = linksPagination.value.get(websiteId);
+        if (currentPagination) {
+            linksPagination.value.set(websiteId, { ...currentPagination, isLoading: false });
+        }
+
         return [];
     }
 };
@@ -381,14 +451,19 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
 
         // Transform the response data to match our WebSource interface
         webSources.value = response.data.map((website: any) => {
+            // Find existing source to preserve discovered_links
+            const existingSource = webSources.value.find(s => s.id === website.id);
+
             const source = {
                 id: website.id,
                 url: website.url,
                 name: getDomainFromUrl(website.url),
                 status: website.status,
                 created_at: website.created_at,
-                length: website.length || 0,
-                options: website.options || {}
+                urls_count: website.urls_count || 0,
+                options: website.options || {},
+                // Preserve discovered_links if they exist
+                discovered_links: existingSource?.discovered_links
             } as WebSource;
 
             return source;
@@ -426,22 +501,6 @@ const addWebsite = () => {
         // Validate URL length
         if (websiteForm.url.length > 2048) {
             toast.error('URL is too long. Please use a shorter URL.');
-            return;
-        }
-
-        // Check if user has any links remaining
-        if (usageData.value && usageData.value.links.remaining <= 0) {
-            toast.error('You have no links remaining. Please upgrade your plan to add more websites.');
-            return;
-        }
-
-        // Check link limit warning
-        if (usageData.value && linkLimitWarning.value) {
-            const warningMessage = linkLimitWarning.value.type === 'critical'
-                ? 'You have reached your link limit. Please upgrade your plan to add more websites.'
-                : 'You are approaching your link limit. Consider upgrading your plan for more capacity.';
-
-            toast.error(warningMessage);
             return;
         }
 
@@ -575,24 +634,17 @@ const loadLinksForWebsite = async (websiteId: number) => {
 
         if (sourceIndex !== -1) {
             webSources.value[sourceIndex].discovered_links = discoveredLinks;
-            webSources.value[sourceIndex].length = discoveredLinks.length; // Update the length property
+            // Don't update urls_count here as it's only the first page (50 links)
+            // The correct total count will come from fetchWebSources
 
-            // Auto-select all links by default
-            if (discoveredLinks.length > 0) {
-                const allIds = new Set(discoveredLinks.map(link => link.id));
-                selectedLinks.value.set(websiteId, allIds);
-
-                // Auto-select the parent website when links are auto-selected
-                const newSelectedWebsites = new Set(selectedWebsites.value);
-                newSelectedWebsites.add(websiteId);
-                selectedWebsites.value = newSelectedWebsites;
-
-                // Initialize search query for this source
-                if (!linkSearchQueries.value.has(websiteId)) {
-                    linkSearchQueries.value.set(websiteId, '');
-                }
+            // Initialize search query for this source
+            if (!linkSearchQueries.value.has(websiteId)) {
+                linkSearchQueries.value.set(websiteId, '');
             }
         }
+
+        // Refresh web sources to get the correct urls_count from backend
+        await fetchWebSources(true);
     } catch (error) {
         console.error(`Failed to auto-load links for website ${websiteId}:`, error);
         // Don't show error toast for auto-loading, just log it
@@ -635,7 +687,7 @@ const handleCrawlingUpdate = async (event: any) => {
             webSources.value[sourceIndex] = {
                 ...source,
                 status: 'crawled',
-                length: 0 // We'll get the actual length when we fetch the links
+                urls_count: 0 // We'll get the actual urls_count when we fetch the links
             };
             toast.success(`Crawling completed for ${source.name}! Fetching discovered links...`);
 
@@ -659,9 +711,21 @@ const handleCrawlingUpdate = async (event: any) => {
         case 'ingested':
             webSources.value[sourceIndex] = {
                 ...source,
-                status: 'ingested'
+                status: 'ingested',
+                discovered_links: undefined // Remove links since they're now trained
             };
             toast.success(`Training completed for ${source.name}!`);
+
+            // Clean up selection state for this trained website
+            if (website_id) {
+                selectedLinks.value.delete(website_id);
+                const newSelectedWebsites = new Set(selectedWebsites.value);
+                newSelectedWebsites.delete(website_id);
+                selectedWebsites.value = newSelectedWebsites;
+                linkSearchQueries.value.delete(website_id);
+                expandedSources.value.delete(website_id);
+                linksPagination.value.delete(website_id);
+            }
 
             // Refresh usage data after training completes
             await fetchUsageData();
@@ -707,24 +771,9 @@ const handleCollapsibleToggle = async (sourceId: number, isExpanding: boolean) =
         if (sourceIndex !== -1) {
             webSources.value[sourceIndex].discovered_links = discoveredLinks;
 
-            // Auto-select all links by default
-            if (discoveredLinks.length > 0) {
-                const allIds = new Set(discoveredLinks.map(link => link.id));
-                selectedLinks.value.set(sourceId, allIds);
-
-                // Auto-select the parent website when links are auto-selected
-                const newSelectedWebsites = new Set(selectedWebsites.value);
-                newSelectedWebsites.add(sourceId);
-                selectedWebsites.value = newSelectedWebsites;
-
-                // Initialize search query for this source
-                if (!linkSearchQueries.value.has(sourceId)) {
-                    linkSearchQueries.value.set(sourceId, '');
-                }
-
-                console.log(`Auto-selected ${allIds.size} links for website ${sourceId}`);
-            } else {
-                console.log(`No links found for website ${sourceId}`);
+            // Initialize search query for this source
+            if (!linkSearchQueries.value.has(sourceId)) {
+                linkSearchQueries.value.set(sourceId, '');
             }
         } else {
             console.warn(`Website ${sourceId} not found in webSources array`);
@@ -769,18 +818,8 @@ const toggleLinkSelection = (sourceId: number, linkId: number, checked: boolean 
 
     if (isChecked) {
         sourceLinks.add(linkId);
-        // Auto-select the parent website when a link is selected
-        const newSelectedWebsites = new Set(selectedWebsites.value);
-        newSelectedWebsites.add(sourceId);
-        selectedWebsites.value = newSelectedWebsites;
     } else {
         sourceLinks.delete(linkId);
-        // If no links are selected anymore, deselect the website
-        if (sourceLinks.size === 0) {
-            const newSelectedWebsites = new Set(selectedWebsites.value);
-            newSelectedWebsites.delete(sourceId);
-            selectedWebsites.value = newSelectedWebsites;
-        }
     }
 
     selectedLinks.value.set(sourceId, sourceLinks);
@@ -788,51 +827,36 @@ const toggleLinkSelection = (sourceId: number, linkId: number, checked: boolean 
 
 const toggleSelectAllLinks = (sourceId: number, links: DiscoveredLink[], checked: boolean | string | 'indeterminate') => {
     const isChecked = checked === true || checked === 'true';
-    const sourceLinks = new Set<number>();
+    const currentSelectedLinks = selectedLinks.value.get(sourceId) || new Set<number>();
 
     if (isChecked) {
-        // Get all cached links for selection, not just displayed ones
-        const cachedLinks = fullLinksCache.value.get(sourceId);
-        const allLinks = cachedLinks || links; // Fallback to provided links if not cached
+        // Apply search filter to current page links
+        const filteredLinks = getFilteredLinks(sourceId, links);
 
-        // Apply search filter to all links
-        const filteredLinks = getFilteredLinks(sourceId, allLinks);
-        filteredLinks.forEach(link => sourceLinks.add(link.id));
-        
-        // Auto-select the parent website when selecting all links
-        const newSelectedWebsites = new Set(selectedWebsites.value);
-        newSelectedWebsites.add(sourceId);
-        selectedWebsites.value = newSelectedWebsites;
+        // Add filtered links to existing selection
+        filteredLinks.forEach(link => currentSelectedLinks.add(link.id));
+
+        selectedLinks.value.set(sourceId, currentSelectedLinks);
     } else {
-        // Deselect the parent website when deselecting all links
-        const newSelectedWebsites = new Set(selectedWebsites.value);
-        newSelectedWebsites.delete(sourceId);
-        selectedWebsites.value = newSelectedWebsites;
-    }
+        // Remove filtered links from selection
+        const filteredLinks = getFilteredLinks(sourceId, links);
+        filteredLinks.forEach(link => currentSelectedLinks.delete(link.id));
 
-    selectedLinks.value.set(sourceId, sourceLinks);
+        selectedLinks.value.set(sourceId, currentSelectedLinks);
+    }
 };
 
-// Get filtered links based on search query
+// Get filtered links - now just returns links as filtering is done server-side
 const getFilteredLinks = (sourceId: number, links: DiscoveredLink[]) => {
-    const searchQuery = linkSearchQueries.value.get(sourceId) || '';
-    if (!searchQuery.trim()) return links;
-
-    const query = searchQuery.toLowerCase().trim();
-    return links.filter(link =>
-        link.link.toLowerCase().includes(query) ||
-        link.text.toLowerCase().includes(query)
-    );
+    // Server-side filtering is now handled by the API
+    return links;
 };
 
 // Get selection state for checkboxes
 const getSelectionState = (sourceId: number, links: DiscoveredLink[]) => {
     const sourceLinks = selectedLinks.value.get(sourceId) || new Set();
 
-    // Use cached links if available for more accurate selection state
-    const cachedLinks = fullLinksCache.value.get(sourceId);
-    const allLinks = cachedLinks || links;
-    const filteredLinks = getFilteredLinks(sourceId, allLinks);
+    const filteredLinks = getFilteredLinks(sourceId, links);
 
     if (filteredLinks.length === 0) return { allSelected: false, someSelected: false, selectedCount: 0 };
 
@@ -843,9 +867,63 @@ const getSelectionState = (sourceId: number, links: DiscoveredLink[]) => {
     return { allSelected, someSelected, selectedCount: sourceLinks.size };
 };
 
-// Update search query
+// Update search query - triggers API call with debouncing
 const updateSearchQuery = (sourceId: number, query: string) => {
     linkSearchQueries.value.set(sourceId, query);
+
+    // Clear existing timer for this source
+    const existingTimer = searchDebounceTimers.value.get(sourceId);
+    if (existingTimer) {
+        clearTimeout(existingTimer);
+    }
+
+    // Set new timer for debounced search
+    const timerId = window.setTimeout(async () => {
+        const searchQuery = linkSearchQueries.value.get(sourceId) || '';
+        const discoveredLinks = await fetchWebsiteLinks(sourceId, 1, searchQuery);
+
+        // Update the source with new links
+        const sourceIndex = webSources.value.findIndex(s => s.id === sourceId);
+        if (sourceIndex !== -1) {
+            webSources.value[sourceIndex].discovered_links = discoveredLinks;
+        }
+
+        // Clean up timer
+        searchDebounceTimers.value.delete(sourceId);
+    }, 500); // 500ms debounce delay
+
+    searchDebounceTimers.value.set(sourceId, timerId);
+};
+
+// Pagination navigation functions
+const loadNextPage = async (websiteId: number) => {
+    const pagination = linksPagination.value.get(websiteId);
+    if (!pagination || !pagination.hasNextPage || pagination.isLoading) return;
+
+    const nextPage = pagination.currentPage + 1;
+    const searchQuery = linkSearchQueries.value.get(websiteId) || '';
+    const discoveredLinks = await fetchWebsiteLinks(websiteId, nextPage, searchQuery);
+
+    // Update the source with new links
+    const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
+    if (sourceIndex !== -1) {
+        webSources.value[sourceIndex].discovered_links = discoveredLinks;
+    }
+};
+
+const loadPrevPage = async (websiteId: number) => {
+    const pagination = linksPagination.value.get(websiteId);
+    if (!pagination || !pagination.hasPrevPage || pagination.isLoading) return;
+
+    const prevPage = pagination.currentPage - 1;
+    const searchQuery = linkSearchQueries.value.get(websiteId) || '';
+    const discoveredLinks = await fetchWebsiteLinks(websiteId, prevPage, searchQuery);
+
+    // Update the source with new links
+    const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
+    if (sourceIndex !== -1) {
+        webSources.value[sourceIndex].discovered_links = discoveredLinks;
+    }
 };
 
 
@@ -854,20 +932,113 @@ const updateSearchQuery = (sourceId: number, query: string) => {
 
 // Get total links count for display
 const getTotalLinksCount = (sourceId: number): number => {
-    // First check if we have cached links (this is the authoritative count)
-    const cachedLinks = fullLinksCache.value.get(sourceId);
-    if (cachedLinks) {
-        return cachedLinks.length;
-    }
-
-    // Fallback to the source's length from API
+    // Get the source's urls_count from backend (most accurate)
     const source = webSources.value.find(s => s.id === sourceId);
-    if (source?.length) {
-        return source.length;
+    if (source?.urls_count) {
+        return source.urls_count;
     }
 
-    // Last fallback to currently displayed links
+    // Fallback to currently displayed links (only for edge cases)
     return source?.discovered_links?.length || 0;
+};
+
+// Delete individual link
+const deleteLink = async (websiteId: number, linkId: number) => {
+    // Check if this is the last link
+    const source = webSources.value.find(s => s.id === websiteId);
+    const totalLinks = source?.urls_count || 0;
+
+    if (totalLinks <= 1) {
+        toast.error('Cannot delete the last link. At least one link must remain.');
+        return;
+    }
+
+    try {
+        await axios.delete(route('agents.sources.websites.links.delete', {
+            agent: props.agent.id,
+            website: websiteId,
+            link: linkId
+        }));
+
+        // Reload the current page of links
+        const pagination = linksPagination.value.get(websiteId);
+        const currentPage = pagination?.currentPage || 1;
+        const searchQuery = linkSearchQueries.value.get(websiteId) || '';
+        const discoveredLinks = await fetchWebsiteLinks(websiteId, currentPage, searchQuery);
+
+        // Update the source with new links and decrement urls_count
+        const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
+        if (sourceIndex !== -1) {
+            webSources.value[sourceIndex].discovered_links = discoveredLinks;
+            // Decrement the urls_count to reflect the deletion
+            if (webSources.value[sourceIndex].urls_count && webSources.value[sourceIndex].urls_count! > 0) {
+                webSources.value[sourceIndex].urls_count = webSources.value[sourceIndex].urls_count! - 1;
+            }
+        }
+
+        // Refresh usage data after deletion
+        await fetchUsageData();
+
+        toast.success('Link deleted successfully.');
+    } catch (error: any) {
+        console.error('Error deleting link:', error);
+        toast.error(error.response?.data?.message || 'Failed to delete link.');
+    }
+};
+
+// Delete selected links in bulk
+const deleteSelectedLinks = async (websiteId: number) => {
+    const selectedLinksForWebsite = selectedLinks.value.get(websiteId);
+    if (!selectedLinksForWebsite || selectedLinksForWebsite.size === 0) {
+        toast.error('No links selected for deletion.');
+        return;
+    }
+
+    // Check if trying to delete all links
+    const source = webSources.value.find(s => s.id === websiteId);
+    const totalLinks = source?.urls_count || 0;
+
+    if (totalLinks > 0 && selectedLinksForWebsite.size >= totalLinks) {
+        toast.error('Cannot delete all links. At least one link must remain.');
+        return;
+    }
+
+    try {
+        await axios.post(route('agents.sources.websites.links.bulk-delete', {
+            agent: props.agent.id,
+            website: websiteId
+        }), {
+            link_ids: Array.from(selectedLinksForWebsite)
+        });
+
+        // Store the count before clearing selection
+        const deletedCount = selectedLinksForWebsite.size;
+
+        // Clear selection and reload
+        selectedLinks.value.delete(websiteId);
+
+        const pagination = linksPagination.value.get(websiteId);
+        const currentPage = pagination?.currentPage || 1;
+        const searchQuery = linkSearchQueries.value.get(websiteId) || '';
+        const discoveredLinks = await fetchWebsiteLinks(websiteId, currentPage, searchQuery);
+
+        const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
+        if (sourceIndex !== -1) {
+            webSources.value[sourceIndex].discovered_links = discoveredLinks;
+            // Decrement the urls_count to reflect the bulk deletion
+            if (webSources.value[sourceIndex].urls_count && webSources.value[sourceIndex].urls_count! >= deletedCount) {
+                webSources.value[sourceIndex].urls_count = webSources.value[sourceIndex].urls_count! - deletedCount;
+            }
+        }
+
+        // Refresh usage data after deletion
+        await fetchUsageData();
+
+        toast.success(`Deleted ${deletedCount} link${deletedCount !== 1 ? 's' : ''} successfully.`);
+    } catch (error: any) {
+        console.error('Error deleting links:', error);
+        toast.error(error.response?.data?.message || 'Failed to delete links.');
+    }
 };
 
 // Website selection functions
@@ -876,20 +1047,62 @@ const toggleWebsiteSelection = (websiteId: number, checked: boolean | string) =>
     const newSelected = new Set(selectedWebsites.value);
 
     if (isChecked) {
-        newSelected.add(websiteId);
+        // Check if this website can be added without exceeding quota
+        if (canSelectWebsite(websiteId)) {
+            newSelected.add(websiteId);
+            selectedWebsites.value = newSelected;
+        } else {
+            // Show error message if selection would exceed quota
+            const source = webSources.value.find(s => s.id === websiteId);
+            const websiteLinks = source?.urls_count || 0;
+            const remaining = usageData.value?.links.remaining || 0;
+
+            if (remaining <= 0) {
+                toast.error('No links remaining', {
+                    description: 'Please upgrade your plan to train websites.',
+                    duration: 5000
+                });
+            } else {
+                const currentTotal = selectedWebsitesTotalLinks.value;
+                const exceedBy = (currentTotal + websiteLinks) - remaining;
+                toast.error('Cannot select website', {
+                    description: `${websiteLinks} links would exceed your quota by ${exceedBy}. Deselect other websites or upgrade.`,
+                    duration: 5000
+                });
+            }
+            // Don't update selectedWebsites when selection fails
+            return;
+        }
     } else {
         newSelected.delete(websiteId);
+        selectedWebsites.value = newSelected;
     }
-
-    selectedWebsites.value = newSelected;
 };
 
 const toggleSelectAllWebsites = (checked: boolean | string | 'indeterminate') => {
     const isChecked = checked === true || checked === 'true';
     const newSelected = new Set<number>();
 
-    if (isChecked) {
-        crawledSources.value.forEach(source => newSelected.add(source.id));
+    if (isChecked && usageData.value) {
+        // Smart select: only select websites that fit within remaining quota
+        const remaining = usageData.value.links.remaining;
+        let currentTotal = 0;
+
+        for (const source of crawledSources.value) {
+            const websiteLinks = source.urls_count || 0;
+            if (currentTotal + websiteLinks <= remaining) {
+                newSelected.add(source.id);
+                currentTotal += websiteLinks;
+            }
+        }
+
+        // Show message if not all could be selected
+        if (newSelected.size < crawledSources.value.length) {
+            const skipped = crawledSources.value.length - newSelected.size;
+            toast.info(`Selected ${newSelected.size} of ${crawledSources.value.length} websites`, {
+                description: `${skipped} website${skipped !== 1 ? 's were' : ' was'} skipped to stay within your ${remaining} link limit.`
+            });
+        }
     }
 
     selectedWebsites.value = newSelected;
@@ -898,61 +1111,33 @@ const toggleSelectAllWebsites = (checked: boolean | string | 'indeterminate') =>
 const trainSelectedWebsites = async () => {
     if (!canTrain.value || isTraining.value) return;
 
-    isTraining.value = true;
     const selectedIds = Array.from(selectedWebsites.value);
+    const totalLinksToTrain = selectedWebsitesTotalLinks.value;
+
+    isTraining.value = true;
     let successCount = 0;
     let failedWebsites: string[] = [];
 
-    // Process each website individually
+    // Process each website individually - train ALL links
     for (const websiteId of selectedIds) {
         try {
-            // Ensure links are loaded and selected for this website
-            let selectedLinksForWebsite = selectedLinks.value.get(websiteId) || new Set();
+            const websiteName = webSources.value.find(s => s.id === websiteId)?.name ||
+                              getDomainFromUrl(webSources.value.find(s => s.id === websiteId)?.url || '');
 
-            // If no links are selected, try to load and auto-select all links
-            if (selectedLinksForWebsite.size === 0) {
-                console.log(`No links selected for website ${websiteId}, loading all links...`);
-
-                const websiteName = webSources.value.find(s => s.id === websiteId)?.name ||
-                                  getDomainFromUrl(webSources.value.find(s => s.id === websiteId)?.url || '');
-                toast.info(`Loading links for ${websiteName}...`);
-
-                const discoveredLinks = await fetchWebsiteLinks(websiteId);
-                if (discoveredLinks.length > 0) {
-                    const allIds = new Set(discoveredLinks.map(link => link.id));
-                    selectedLinks.value.set(websiteId, allIds);
-                    selectedLinksForWebsite = allIds;
-
-                    // Auto-select the parent website when links are auto-selected
-                    const newSelectedWebsites = new Set(selectedWebsites.value);
-                    newSelectedWebsites.add(websiteId);
-                    selectedWebsites.value = newSelectedWebsites;
-                    console.log(`Auto-selected ${allIds.size} links for website ${websiteId}`);
-                } else {
-                    console.warn(`No links found for website ${websiteId}`);
-                }
-            }
-
-            const payload = {
-                links: Array.from(selectedLinksForWebsite)
-            };
-
-            console.log(`Training website ${websiteId} with ${payload.links.length} links:`, payload.links);
-
-            // Send individual request for each website
+            // Send request to train all links from the website
             await new Promise<void>((resolve, reject) => {
                 router.post(route('agents.sources.website.train', {
                     agent: props.agent.id,
                     website: websiteId
-                }), payload, {
+                }), {
+                    // Empty payload means train all links
+                }, {
                     preserveScroll: true,
                     onSuccess: () => {
                         successCount++;
                         resolve();
                     },
                     onError: (errors) => {
-                        const websiteName = webSources.value.find(s => s.id === websiteId)?.name ||
-                                          getDomainFromUrl(webSources.value.find(s => s.id === websiteId)?.url || '');
                         failedWebsites.push(websiteName);
                         console.error(`Error training website ${websiteId}:`, errors);
                         reject(errors);
@@ -971,11 +1156,6 @@ const trainSelectedWebsites = async () => {
 
         // Clear selection after successful training
         selectedWebsites.value = new Set();
-
-        // Clear selected links for successfully trained websites
-        selectedIds.forEach(websiteId => {
-            selectedLinks.value.delete(websiteId);
-        });
 
         // Refresh usage data after training starts
         await fetchUsageData();
@@ -1009,6 +1189,14 @@ onMounted(() => {
     syncFormWithSettings();
     fetchWebSources();
     fetchUsageData();
+});
+
+onUnmounted(() => {
+    // Clean up all debounce timers
+    searchDebounceTimers.value.forEach((timerId) => {
+        clearTimeout(timerId);
+    });
+    searchDebounceTimers.value.clear();
 });
 </script>
 
@@ -1057,11 +1245,17 @@ onMounted(() => {
                 <div v-if="usageData" class="mb-4 p-3 bg-muted/20 rounded-lg">
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-muted-foreground">
-                            {{ usageData.links.used }} / {{ usageData.links.limit }} links
+                            {{ usageData.links.used }} / {{ usageData.links.limit }} links used
+                        </span>
+                        <span class="text-sm font-medium" :class="usageData.links.remaining <= 0 ? 'text-red-600' : 'text-green-600'">
+                            {{ usageData.links.remaining }} remaining
                         </span>
                     </div>
                     <div class="flex items-center justify-between text-xs mt-1">
-                        <span v-if="(usageData.links.used / usageData.links.limit) >= 0.9" class="text-red-600 font-medium">
+                        <span v-if="usageData.links.remaining <= 0" class="text-red-600 font-medium">
+                            Upgrade required to train more links
+                        </span>
+                        <span v-else-if="(usageData.links.used / usageData.links.limit) >= 0.9" class="text-yellow-600 font-medium">
                             Consider upgrading
                         </span>
                     </div>
@@ -1215,9 +1409,6 @@ onMounted(() => {
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
-                                        <Badge variant="outline" class="text-xs flex-shrink-0">
-                                            Website
-                                        </Badge>
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
@@ -1262,7 +1453,6 @@ onMounted(() => {
                                                 class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
                                                 size="sm"
                                                 variant="ghost"
-                                                :disabled="source.status === 'crawling'"
                                                 @click="confirmDeleteSource(source)"
                                             >
                                                 <span class="sr-only">Remove source</span>
@@ -1285,7 +1475,7 @@ onMounted(() => {
         <Card v-if="crawledSources.length > 0">
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
-                    <CheckCircle class="h-5 w-5 text-purple-600" />
+                    <NetworkIcon class="h-5 w-5" />
                     Crawled Websites
                 </CardTitle>
                 <CardDescription>
@@ -1309,24 +1499,50 @@ onMounted(() => {
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="text-sm text-muted-foreground">
-                            {{ selectedWebsiteCount }} selected
+                            <template v-if="selectedWebsiteCount > 0">
+                                {{ selectedWebsiteCount }} selected ({{ selectedWebsitesTotalLinks }} link{{ selectedWebsitesTotalLinks !== 1 ? 's' : '' }})
+                            </template>
+                            <template v-else>
+                                No websites selected
+                            </template>
                         </span>
-                        <Button
-                            @click="trainSelectedWebsites"
-                            :disabled="!canTrain || isTraining"
-                            size="sm"
-                        >
-                            <LoaderCircle v-if="isTraining" class="h-4 w-4 mr-2 animate-spin" />
-                            <Database v-else class="h-4 w-4 mr-2" />
-                            Train
-                        </Button>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        @click="trainSelectedWebsites"
+                                        :disabled="!canTrain || isTraining"
+                                        size="sm"
+                                        
+                                    >
+                                        <LoaderCircle v-if="isTraining" class="h-4 w-4 mr-2 animate-spin" />
+                                        <Database v-else class="h-4 w-4 mr-2" />
+                                        Train
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent v-if="!canTrain && selectedWebsiteCount > 0 && usageData">
+                                    <p>Selected links ({{ selectedWebsitesTotalLinks }}) exceed your remaining quota ({{ usageData.links.remaining }})</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                 </div>
+
+                <!-- Info note about training links -->
+                <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div class="flex items-start gap-2">
+                        <AlertCircle class="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                        <div class="text-sm text-blue-700 dark:text-blue-300">
+                            <strong>All links from selected websites will be included in training.</strong> You can expand each website to view its discovered links and delete any links you don't want to train.
+                        </div>
+                    </div>
+                </div>
+
                 <div class="space-y-2">
                     <template v-for="source in crawledSources" :key="source.id">
-                        <Collapsible v-if="source.length && source.length > 0" v-slot="{ open }" class="border rounded-lg" @update:open="(isOpen) => handleCollapsibleToggle(source.id, isOpen)">
+                        <Collapsible v-if="source.urls_count && source.urls_count > 0" v-slot="{ open }" class="border rounded-lg" @update:open="(isOpen) => handleCollapsibleToggle(source.id, isOpen)">
                             <div class="flex items-center justify-between p-3">
-                                <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <div class="flex items-center gap-3 min-w-0 flex-1" @click.stop>
                                     <Checkbox
                                         :model-value="selectedWebsites.has(source.id)"
                                         @update:model-value="(checked) => toggleWebsiteSelection(source.id, checked)"
@@ -1342,11 +1558,31 @@ onMounted(() => {
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <Badge variant="secondary" class="text-xs">
-                                                            {{ source.length }} links
+                                                            {{ source.urls_count }} links
                                                         </Badge>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
                                                         <p>{{ getStatusLabel(source.status) }}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+
+                                            <!-- Show warning if website cannot be selected -->
+                                            <TooltipProvider v-if="!canSelectWebsite(source.id) && !selectedWebsites.has(source.id) && usageData">
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Badge variant="outline" class="text-xs border-yellow-500 text-yellow-700 dark:text-yellow-400">
+                                                            <AlertCircle class="h-3 w-3 mr-1" />
+                                                            {{ usageData.links.remaining <= 0 ? 'Upgrade required' : 'Exceeds quota' }}
+                                                        </Badge>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p v-if="usageData.links.remaining <= 0">
+                                                            You have no links remaining in your plan. Please upgrade to train this website.
+                                                        </p>
+                                                        <p v-else>
+                                                            This website has {{ source.urls_count }} links, which would exceed your remaining {{ usageData.links.remaining }} link{{ usageData.links.remaining !== 1 ? 's' : '' }}. Deselect other websites first or upgrade your plan.
+                                                        </p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
@@ -1405,14 +1641,22 @@ onMounted(() => {
                             <!-- Collapsible Content for discovered links -->
                             <CollapsibleContent>
                                 <div class="border-t bg-muted/20 p-3">
-                                    <!-- Header with search and select all -->
+                                    <!-- Header with search and controls -->
                                     <div class="flex items-center justify-between mb-3">
                                         <div class="text-sm font-medium text-muted-foreground">
-                                            Discovered Links ({{ getTotalLinksCount(source.id) }})
+                                            Discovered Links
+                                            <span v-if="linkSearchQueries.get(source.id)?.trim()" class="text-xs text-blue-600 ml-1">(filtered)</span>
                                         </div>
-                                        <div class="text-xs text-muted-foreground">
-                                            {{ source.discovered_links ? getSelectionState(source.id, source.discovered_links).selectedCount : 0 }} selected
-                                        </div>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            @click="deleteSelectedLinks(source.id)"
+                                            :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
+                                            class="h-7 text-xs"
+                                        >
+                                            <Trash2 class="h-3 w-3 mr-1" />
+                                            Delete selected links
+                                        </Button>
                                     </div>
 
                                     <!-- Search box -->
@@ -1435,7 +1679,7 @@ onMounted(() => {
                                             class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                         />
                                         <Label :for="`select-all-${source.id}`" class="text-xs font-medium cursor-pointer select-none">
-                                            Select All ({{ getTotalLinksCount(source.id) }})
+                                            Select All on Page ({{ source.discovered_links.length }})
                                         </Label>
                                     </div>
 
@@ -1443,7 +1687,7 @@ onMounted(() => {
                                     <ScrollArea class="h-72 w-full rounded-md border">
                                         <div class="p-4">
                                             <!-- Initial loading state -->
-                                            <div v-if="!source.discovered_links" class="flex items-center justify-center py-8">
+                                            <div v-if="!source.discovered_links || linksPagination.get(source.id)?.isLoading" class="flex items-center justify-center py-8">
                                                 <LoaderCircle class="h-6 w-6 animate-spin text-muted-foreground" />
                                                 <span class="ml-2 text-sm text-muted-foreground">Loading links...</span>
                                             </div>
@@ -1453,8 +1697,9 @@ onMounted(() => {
                                                 <div
                                                     v-for="link in getFilteredLinks(source.id, source.discovered_links)"
                                                     :key="link.link"
-                                                    class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors"
+                                                    class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors group"
                                                 >
+                                                    <!-- Checkbox -->
                                                     <Checkbox
                                                         :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
                                                         @update:model-value="(checked) => toggleLinkSelection(source.id, link.id, checked)"
@@ -1472,9 +1717,16 @@ onMounted(() => {
                                                             {{ link.link }}
                                                         </a>
                                                     </div>
+                                                    <!-- Individual delete button -->
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        @click="deleteLink(source.id, link.id)"
+                                                        class="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
+                                                    >
+                                                        <Trash2 class="h-3 w-3" />
+                                                    </Button>
                                                 </div>
-
-
 
                                                 <!-- No results message -->
                                                 <div v-if="getFilteredLinks(source.id, source.discovered_links).length === 0" class="text-center py-4 text-muted-foreground text-xs">
@@ -1483,6 +1735,33 @@ onMounted(() => {
                                             </div>
                                         </div>
                                     </ScrollArea>
+
+                                    <!-- Pagination Controls -->
+                                    <div v-if="linksPagination.get(source.id)" class="flex items-center justify-between mt-3 px-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            @click="loadPrevPage(source.id)"
+                                            :disabled="!linksPagination.get(source.id)?.hasPrevPage || linksPagination.get(source.id)?.isLoading"
+                                            class="h-8"
+                                        >
+                                            <ChevronRight class="h-4 w-4 rotate-180 mr-1" />
+                                            Previous
+                                        </Button>
+                                        <span class="text-xs text-muted-foreground">
+                                            Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            @click="loadNextPage(source.id)"
+                                            :disabled="!linksPagination.get(source.id)?.hasNextPage || linksPagination.get(source.id)?.isLoading"
+                                            class="h-8"
+                                        >
+                                            Next
+                                            <ChevronRight class="h-4 w-4 ml-1" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </CollapsibleContent>
                         </Collapsible>
@@ -1568,8 +1847,8 @@ onMounted(() => {
         <Card v-if="trainingSources.length > 0">
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
-                    <Database class="h-5 w-5 text-blue-600" />
-                    Training Websites
+                    <BrainIcon class="h-5 w-5" />
+                    Training
                 </CardTitle>
                 <CardDescription>
                     {{ trainingSources.length }} website{{ trainingSources.length !== 1 ? 's' : '' }} currently being trained.
@@ -1584,9 +1863,6 @@ onMounted(() => {
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
-                                        <Badge variant="outline" class="text-xs flex-shrink-0">
-                                            Website
-                                        </Badge>
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
@@ -1753,14 +2029,22 @@ onMounted(() => {
                                             <div v-if="source.discovered_links && source.discovered_links.length > 0 && expandedSources.get(source.id)" class="debug-collapsible">
                                                 <div class="border-t bg-muted/20">
                                                     <div class="p-3">
-                                                        <!-- Header with search and select all -->
+                                                        <!-- Header with search and controls -->
                                                         <div class="flex items-center justify-between mb-3">
                                                             <div class="text-sm font-medium text-muted-foreground">
-                                                                Discovered Links ({{ getFilteredLinks(source.id, source.discovered_links).length }}{{ getFilteredLinks(source.id, source.discovered_links).length !== source.discovered_links.length ? ` of ${source.discovered_links.length}` : '' }})
+                                                                Discovered Links
+                                                                <span v-if="linkSearchQueries.get(source.id)?.trim()" class="text-xs text-blue-600 ml-1">(filtered)</span>
                                                             </div>
-                                                            <div class="text-xs text-muted-foreground">
-                                                                {{ getSelectionState(source.id, source.discovered_links).selectedCount }} selected
-                                                            </div>
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                @click="deleteSelectedLinks(source.id)"
+                                                                :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
+                                                                class="h-7 text-xs"
+                                                            >
+                                                                <Trash2 class="h-3 w-3 mr-1" />
+                                                                Delete selected links
+                                                            </Button>
                                                         </div>
 
                                                         <!-- Search box -->
@@ -1783,18 +2067,24 @@ onMounted(() => {
                                                                 class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                             />
                                                             <Label :for="`select-all-${source.id}`" class="text-xs font-medium cursor-pointer select-none">
-                                                                Select All {{ getFilteredLinks(source.id, source.discovered_links).length > 0 ? `(${getFilteredLinks(source.id, source.discovered_links).length})` : '' }}
+                                                                Select All on Page ({{ source.discovered_links.length }})
                                                             </Label>
                                                         </div>
 
                                                         <!-- Links list with infinite scroll -->
                                                         <ScrollArea class="h-72 w-full rounded-md border">
                                                             <div class="p-4">
-                                                                <div class="space-y-2">
+                                                                <!-- Loading state -->
+                                                                <div v-if="linksPagination.get(source.id)?.isLoading" class="flex items-center justify-center py-8">
+                                                                    <LoaderCircle class="h-6 w-6 animate-spin text-muted-foreground" />
+                                                                    <span class="ml-2 text-sm text-muted-foreground">Loading links...</span>
+                                                                </div>
+
+                                                                <div v-else class="space-y-2">
                                                                     <div
                                                                         v-for="link in getFilteredLinks(source.id, source.discovered_links)"
                                                                         :key="link.link"
-                                                                        class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors"
+                                                                        class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors group"
                                                                     >
                                                                         <Checkbox
                                                                             :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
@@ -1813,9 +2103,16 @@ onMounted(() => {
                                                                                 {{ link.link }}
                                                                             </a>
                                                                         </div>
+                                                                        <!-- Individual delete button -->
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            @click="deleteLink(source.id, link.id)"
+                                                                            class="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
+                                                                        >
+                                                                            <Trash2 class="h-3 w-3" />
+                                                                        </Button>
                                                                     </div>
-
-
 
                                                                     <!-- No results message -->
                                                                     <div v-if="getFilteredLinks(source.id, source.discovered_links || []).length === 0" class="text-center py-4 text-muted-foreground text-xs">
@@ -1824,6 +2121,33 @@ onMounted(() => {
                                                                 </div>
                                                             </div>
                                                         </ScrollArea>
+
+                                                        <!-- Pagination Controls -->
+                                                        <div v-if="linksPagination.get(source.id)" class="flex items-center justify-between mt-3 px-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                @click="loadPrevPage(source.id)"
+                                                                :disabled="!linksPagination.get(source.id)?.hasPrevPage || linksPagination.get(source.id)?.isLoading"
+                                                                class="h-8"
+                                                            >
+                                                                <ChevronRight class="h-4 w-4 rotate-180 mr-1" />
+                                                                Previous
+                                                            </Button>
+                                                            <span class="text-xs text-muted-foreground">
+                                                                Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
+                                                            </span>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                @click="loadNextPage(source.id)"
+                                                                :disabled="!linksPagination.get(source.id)?.hasNextPage || linksPagination.get(source.id)?.isLoading"
+                                                                class="h-8"
+                                                            >
+                                                                Next
+                                                                <ChevronRight class="h-4 w-4 ml-1" />
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1918,14 +2242,22 @@ onMounted(() => {
                                         <div v-if="source.discovered_links && source.discovered_links.length > 0 && expandedSources.get(source.id)">
                                             <div class="border-t bg-muted/20">
                                                 <div class="p-3">
-                                                    <!-- Header with search and select all -->
+                                                    <!-- Header with search and controls -->
                                                     <div class="flex items-center justify-between mb-3">
                                                         <div class="text-sm font-medium text-muted-foreground">
-                                                            Discovered Links ({{ getTotalLinksCount(source.id) }})
+                                                            Discovered Links
+                                                            <span v-if="linkSearchQueries.get(source.id)?.trim()" class="text-xs text-blue-600 ml-1">(filtered)</span>
                                                         </div>
-                                                        <div class="text-xs text-muted-foreground">
-                                                            {{ getSelectionState(source.id, source.discovered_links).selectedCount }} selected
-                                                        </div>
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            @click="deleteSelectedLinks(source.id)"
+                                                            :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
+                                                            class="h-7 text-xs"
+                                                        >
+                                                            <Trash2 class="h-3 w-3 mr-1" />
+                                                            Delete selected links
+                                                        </Button>
                                                     </div>
 
                                                     <!-- Search box -->
@@ -1948,18 +2280,24 @@ onMounted(() => {
                                                             class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                         />
                                                         <Label :for="`select-all-${source.id}`" class="text-xs font-medium cursor-pointer select-none">
-                                                            Select All ({{ getTotalLinksCount(source.id) }})
+                                                            Select All on Page ({{ source.discovered_links.length }})
                                                         </Label>
                                                     </div>
 
                                                     <!-- Links list -->
                                                     <ScrollArea class="h-72 w-full rounded-md border">
                                                         <div class="p-4">
-                                                            <div class="space-y-2">
+                                                            <!-- Loading state -->
+                                                            <div v-if="linksPagination.get(source.id)?.isLoading" class="flex items-center justify-center py-8">
+                                                                <LoaderCircle class="h-6 w-6 animate-spin text-muted-foreground" />
+                                                                <span class="ml-2 text-sm text-muted-foreground">Loading links...</span>
+                                                            </div>
+
+                                                            <div v-else class="space-y-2">
                                                                 <div
                                                                     v-for="link in getFilteredLinks(source.id, source.discovered_links)"
                                                                     :key="link.link"
-                                                                    class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors"
+                                                                    class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors group"
                                                                 >
                                                                     <Checkbox
                                                                         :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
@@ -1978,6 +2316,15 @@ onMounted(() => {
                                                                             {{ link.link }}
                                                                         </a>
                                                                     </div>
+                                                                    <!-- Individual delete button -->
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        @click="deleteLink(source.id, link.id)"
+                                                                        class="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
+                                                                    >
+                                                                        <Trash2 class="h-3 w-3" />
+                                                                    </Button>
                                                                 </div>
 
                                                                 <!-- No results message -->
@@ -1987,6 +2334,33 @@ onMounted(() => {
                                                             </div>
                                                         </div>
                                                     </ScrollArea>
+
+                                                    <!-- Pagination Controls -->
+                                                    <div v-if="linksPagination.get(source.id)" class="flex items-center justify-between mt-3 px-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            @click="loadPrevPage(source.id)"
+                                                            :disabled="!linksPagination.get(source.id)?.hasPrevPage || linksPagination.get(source.id)?.isLoading"
+                                                            class="h-8"
+                                                        >
+                                                            <ChevronRight class="h-4 w-4 rotate-180 mr-1" />
+                                                            Previous
+                                                        </Button>
+                                                        <span class="text-xs text-muted-foreground">
+                                                            Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
+                                                        </span>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            @click="loadNextPage(source.id)"
+                                                            :disabled="!linksPagination.get(source.id)?.hasNextPage || linksPagination.get(source.id)?.isLoading"
+                                                            class="h-8"
+                                                        >
+                                                            Next
+                                                            <ChevronRight class="h-4 w-4 ml-1" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

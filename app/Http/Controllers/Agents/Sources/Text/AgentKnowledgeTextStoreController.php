@@ -35,7 +35,7 @@ class AgentKnowledgeTextStoreController
             'content' => $content,
             'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
             'length' => $numberOfPages, // number of pages, 450 word = 1 page
-            'md5_hash' => md5($content),
+            'checksum' => md5($content),
         ]);
     }
 }

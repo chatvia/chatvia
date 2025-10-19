@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:10
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:9
 * @route '/agents/{agent}/sources/text/{id}'
 */
 const AgentKnowledgeTextShowController = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ AgentKnowledgeTextShowController.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:10
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:9
 * @route '/agents/{agent}/sources/text/{id}'
 */
 AgentKnowledgeTextShowController.url = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ AgentKnowledgeTextShowController.url = (args: { agent: number | { id: number }, 
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:10
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:9
 * @route '/agents/{agent}/sources/text/{id}'
 */
 AgentKnowledgeTextShowController.get = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -54,7 +54,7 @@ AgentKnowledgeTextShowController.get = (args: { agent: number | { id: number }, 
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:10
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextShowController.php:9
 * @route '/agents/{agent}/sources/text/{id}'
 */
 AgentKnowledgeTextShowController.head = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({

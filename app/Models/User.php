@@ -377,8 +377,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this
             ->agents()
             ->join('agent_websites', 'agents.id', '=', 'agent_websites.agent_id')
-            ->whereIn('agent_websites.status', ['crawled', 'ingested'])
-            ->sum('agent_websites.length');
+            ->join('agent_website_urls', 'agent_websites.id', '=', 'agent_website_urls.agent_website_id')
+            ->whereNotNull('agent_website_urls.crawled_at')
+            ->count();
     }
 
     public function consumableMessages(): int

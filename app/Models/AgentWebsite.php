@@ -32,8 +32,8 @@ class AgentWebsite extends Model implements ChunkableContract
         WebsiteIngestionJob::dispatch($this);
     }
 
-    public function links(): HasMany
+    public function urls(): HasMany
     {
-        return $this->hasMany(Link::class);
+        return $this->hasMany(AgentWebsiteUrl::class);
     }
 }

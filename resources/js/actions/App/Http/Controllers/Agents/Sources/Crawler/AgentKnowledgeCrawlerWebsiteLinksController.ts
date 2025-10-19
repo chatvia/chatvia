@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:10
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:11
 * @route '/agents/{agent}/sources/websites/{website}/links'
 */
 const AgentKnowledgeCrawlerWebsiteLinksController = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ AgentKnowledgeCrawlerWebsiteLinksController.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:10
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:11
 * @route '/agents/{agent}/sources/websites/{website}/links'
 */
 AgentKnowledgeCrawlerWebsiteLinksController.url = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -46,7 +46,7 @@ AgentKnowledgeCrawlerWebsiteLinksController.url = (args: { agent: number | { id:
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:10
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:11
 * @route '/agents/{agent}/sources/websites/{website}/links'
 */
 AgentKnowledgeCrawlerWebsiteLinksController.get = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -56,7 +56,7 @@ AgentKnowledgeCrawlerWebsiteLinksController.get = (args: { agent: number | { id:
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:10
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:11
 * @route '/agents/{agent}/sources/websites/{website}/links'
 */
 AgentKnowledgeCrawlerWebsiteLinksController.head = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({

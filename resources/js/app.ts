@@ -10,6 +10,7 @@ import { createChatEventBus } from './utils/eventBus'
 import Vue3ColorPicker from "vue3-colorpicker";
 import "vue3-colorpicker/style.css";
 import { toast } from 'vue-sonner';
+import 'vue-sonner/style.css';
 import { router } from '@inertiajs/vue3';
 
 const chatEventBus = createChatEventBus()

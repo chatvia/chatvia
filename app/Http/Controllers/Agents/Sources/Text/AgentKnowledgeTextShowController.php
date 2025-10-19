@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Agents\Sources\Text;
 
-use App\Http\Controllers\Controller;
 use App\Models\Agent;
 
-class AgentKnowledgeTextShowController extends Controller
+class AgentKnowledgeTextShowController
 {
     public function __invoke(Agent $agent, int $id)
     {

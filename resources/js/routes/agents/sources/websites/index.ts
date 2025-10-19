@@ -1,4 +1,5 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../wayfinder'
+import linksB6b8f8 from './links'
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeWebsitesListController::__invoke
 * @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeWebsitesListController.php:10
@@ -124,7 +125,7 @@ deleteMethod.delete = (args: { agent: number | { id: number }, website: number |
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:10
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:11
 * @route '/agents/{agent}/sources/websites/{website}/links'
 */
 export const links = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -139,7 +140,7 @@ links.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:10
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:11
 * @route '/agents/{agent}/sources/websites/{website}/links'
 */
 links.url = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -169,7 +170,7 @@ links.url = (args: { agent: number | { id: number }, website: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:10
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:11
 * @route '/agents/{agent}/sources/websites/{website}/links'
 */
 links.get = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -179,7 +180,7 @@ links.get = (args: { agent: number | { id: number }, website: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:10
+* @see app/Http/Controllers/Agents/Sources/Crawler/AgentKnowledgeCrawlerWebsiteLinksController.php:11
 * @route '/agents/{agent}/sources/websites/{website}/links'
 */
 links.head = (args: { agent: number | { id: number }, website: number | { id: number } } | [agent: number | { id: number }, website: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -190,7 +191,7 @@ links.head = (args: { agent: number | { id: number }, website: number | { id: nu
 const websites = {
     list: Object.assign(list, list),
     delete: Object.assign(deleteMethod, deleteMethod),
-    links: Object.assign(links, links),
+    links: Object.assign(links, linksB6b8f8),
 }
 
 export default websites

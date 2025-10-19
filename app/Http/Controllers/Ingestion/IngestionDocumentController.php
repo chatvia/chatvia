@@ -22,7 +22,7 @@ class IngestionDocumentController
             'type' => $data->chunk->type->value,
             'original' => $data->chunk->original,
             'enhanced' => $data->chunk->enhanced,
-            'md5_hash' => $data->id,
+            'checksum' => $data->id,
             'embedding' => $cohere->embed($data->chunk->enhanced),
             'keywords' => $data->keywords,
             'metadata' => $data->metadata,

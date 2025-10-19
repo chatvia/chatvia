@@ -292,6 +292,10 @@ return [
                     'question' => 'Do you offer team collaboration features?',
                     'answer' => 'Yes! All the plans include team collaboration. You can invite team members and share agents.',
                 ],
+                [
+                    'question' => 'How fast the document processing is?',
+                    'answer' => 'Document processing times vary based on file size and type. Most documents are processed within minutes, but larger files may take longer. You will be notified once processing is complete.',
+                ],
             ],
             'show-why-chatbot' => true,
             'has-widget' => true,

@@ -38,6 +38,8 @@ use App\Http\Controllers\Agents\Sources\AgentKnowledgeUploadedFilesDeleteControl
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWordController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerController;
+use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinkDeleteController;
+use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteTrainController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeWebsiteDeleteController;
@@ -87,9 +89,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('sources/web', AgentKnowledgeWebController::class)->name('sources.web');
 
         Route::get('sources/text', AgentKnowledgeTextController::class)->name('sources.text');
-        Route::get('sources/text/{id}', AgentKnowledgeTextShowController::class)->name('sources.text.show');
         Route::post('sources/text', AgentKnowledgeTextStoreController::class)->name('sources.text.store');
         Route::get('sources/text/list', AgentKnowledgeTextListController::class)->name('sources.text.index');
+        Route::get('sources/text/{id}', AgentKnowledgeTextShowController::class)->name('sources.text.show');
 
         Route::get('sources/files', AgentKnowledgeFilesController::class)->name('sources.files');
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
@@ -103,6 +105,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('sources/websites/list', AgentKnowledgeWebsitesListController::class)->name('sources.websites.list');
         Route::delete('sources/websites/{website}', AgentKnowledgeWebsiteDeleteController::class)->name('sources.websites.delete');
         Route::get('sources/websites/{website}/links', AgentKnowledgeCrawlerWebsiteLinksController::class)->name('sources.websites.links');
+        Route::delete('sources/websites/{website}/links/{link}', AgentKnowledgeCrawlerWebsiteLinkDeleteController::class)->name('sources.websites.links.delete');
+        Route::post('sources/websites/{website}/links/bulk-delete', AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController::class)->name('sources.websites.links.bulk-delete');
         Route::post('sources/website/{website}/train', AgentKnowledgeCrawlerWebsiteTrainController::class)->name('sources.website.train');
 
         // Starters

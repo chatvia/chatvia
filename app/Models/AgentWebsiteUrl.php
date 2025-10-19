@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
-class Link extends Model
+class AgentWebsiteUrl extends Model
 {
     protected $guarded = ['id'];
 
@@ -25,6 +25,6 @@ class Link extends Model
             'id',               // Foreign key on Chunk
             'id',               // Local key on Link
             'chunk_id'          // Local key on ChunkReference pointing to Chunk
-        )->where('chunk_references.referenceable_type', Link::class);
+        )->where('chunk_references.referenceable_type', AgentWebsiteUrl::class);
     }
 }

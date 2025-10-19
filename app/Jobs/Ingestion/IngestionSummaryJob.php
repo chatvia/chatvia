@@ -61,7 +61,7 @@ class IngestionSummaryJob implements ShouldQueue
             'embedding' => embed(strip_tags($chunk), true),
             'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($chunk)).", 'llmlingua2')"),
             'metadata' => $response['metadata'],
-            'md5_hash' => md5($chunk),
+            'checksum' => md5($chunk),
             'retrieval_count' => 0,
         ]);
     }

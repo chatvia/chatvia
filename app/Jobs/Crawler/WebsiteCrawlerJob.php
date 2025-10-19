@@ -6,13 +6,13 @@ use App\Data\Crawler\CrawlerData;
 use App\Events\WebsiteCrawlerEvent;
 use App\Models\AgentWebsite;
 use App\Services\Crawler\Crawler;
-use App\Services\Crawler\HTMLParser;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Throwable;
 
 class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 {
@@ -24,20 +24,25 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
     {
         $startTime = microtime(true);
 
-        $links = $crawler->crawl($this->data);
+        $urls = $crawler->crawl($this->data);
 
         $endTime = microtime(true);
 
         $tookInSeconds = ceil($endTime - $startTime);
 
+        if (! $this->website) {
+            return;
+        }
+
         $this->website->update([
             'status' => 'crawled',
-            'length' => count($links),
             'took_in_seconds' => $tookInSeconds,
             'job_id' => $this->job->getJobId(),
         ]);
 
-        $this->website->links()->createMany($links);
+        $this->website->urls()->createMany(
+            array_map(static fn ($url) => ['url' => $url], $urls)
+        );
 
         $this->website->refresh();
 
@@ -47,5 +52,16 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
     public function uniqueId(): string
     {
         return 'agents:'.$this->website->agent->id.':website:'.$this->website->id.':crawler';
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        $this->website->update([
+            'status' => 'failed',
+        ]);
+
+        report($exception);
+
+        WebsiteCrawlerEvent::dispatch($this->website);
     }
 }

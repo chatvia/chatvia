@@ -162,7 +162,7 @@ return [
         ],
     ],
     [
-        'internal_name' => 'deepseek/deepseek-chat-v3-0324',
+        'internal_name' => 'deepseek/deepseek-chat-v3.1',
         'external_name' => 'deepseek-v3',
         'descriptive_name' => 'DeepSeek V3',
         'description' => 'Strong at technical topics and coding. Great for programming and analytical tasks.',
@@ -178,7 +178,7 @@ return [
         ],
     ],
     [
-        'internal_name' => 'qwen/qwen3-8b',
+        'internal_name' => 'qwen/qwen3-vl-8b-instruct',
         'external_name' => 'qwen3',
         'descriptive_name' => 'Qwen3',
         'description' => 'Simple and straightforward. Good for basic questions and everyday assistance.',

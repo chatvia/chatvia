@@ -3,11 +3,7 @@
 namespace App\Services\Crawler;
 
 use App\Data\Crawler\CrawlerData;
-use App\Data\Crawler\LinkData;
-use Illuminate\Http\Client\Pool;
-use Illuminate\Support\Facades\Http;
 use Spatie\Crawler\Crawler as CrawlerSpatie;
-use Spatie\Crawler\CrawlUrl;
 
 class Crawler
 {
@@ -36,13 +32,9 @@ class Crawler
         return $this;
     }
 
-    /**
-     * @return array<\App\Data\Crawler\LinkData>
-     */
     public function crawl(CrawlerData $data): array
     {
         $queue = new CrawlerQueue;
-        $parser = app(HTMLParser::class);
 
         $crawler = CrawlerSpatie::create()
             ->setCrawlObserver(new CrawlerObserver)
@@ -60,62 +52,32 @@ class Crawler
 
         $crawler->startCrawling($data->url);
 
-        $crawledUrls = $queue->getUrls();
-
-        $responses = Http::pool(fn (Pool $pool) => collect($crawledUrls)->map(fn (CrawlUrl $link) => $pool->as($link->getId())->get($link->getId())));
-
-        $linkHashes = [];
-
-        foreach ($responses as $link => $response) {
-            if ($response->successful()) {
-                $linkHashes[$link] = md5($parser->getTextFromHtml($response->body()));
-            }
-        }
+        $crawledLinks = array_keys($queue->getUrls());
 
         if ($data->include_paths || $data->exclude_paths) {
-            $urls = collect($this->filterUrls($crawledUrls, $data->include_paths, $data->exclude_paths))
-                ->map(function (CrawlUrl $crawlUrl) use ($linkHashes) {
-                    return new LinkData(
-                        link: $crawlUrl->getId(),
-                        crawled_at: now(),
-                        found_on_url: $crawlUrl->foundOnUrl,
-                        text: $crawlUrl->linkText,
-                        hash: $linkHashes[$crawlUrl->getId()],
-                    );
-                });
+            $urls = collect($this->filterUrls($crawledLinks, $data->include_paths, $data->exclude_paths));
         } else {
-            $urls = collect(array_values($crawledUrls))->map(function (CrawlUrl $crawlUrl) use ($linkHashes) {
-                return new LinkData(
-                    link: $crawlUrl->getId(),
-                    crawled_at: now(),
-                    found_on_url: $crawlUrl->foundOnUrl,
-                    text: trim($crawlUrl->linkText),
-                    hash: $linkHashes[$crawlUrl->getId()],
-                );
-            });
+            $urls = collect($crawledLinks);
         }
 
-        $urls = $urls->unique(function (LinkData $linkData) {
-            return rtrim($linkData->link, '/');
+        $urls = $urls->unique(function (string $link) {
+            return rtrim($link, '/');
         });
 
-        return $urls->values()->toArray();
+        return $urls->toArray();
     }
 
-    private function filterUrls(array $urls, ?string $includePaths = null, ?string $excludePaths = null): array
+    private function filterUrls(array $links, ?string $includePaths = null, ?string $excludePaths = null): array
     {
-        if (empty($urls)) {
+        if (empty($links)) {
             return [];
         }
 
         $filteredUrls = [];
 
-        /** @var CrawlUrl $crawlUrl */
-        foreach ($urls as $crawlUrl) {
-            $urlString = (string) $crawlUrl->url;
-
+        foreach ($links as $link) {
             // Extract the path from the URL
-            $urlPath = $this->extractUrlPath($urlString);
+            $urlPath = $this->extractUrlPath($link);
 
             // Check exclude patterns first
             if ($excludePaths && $this->matchesPatterns($urlPath, $excludePaths)) {
@@ -125,10 +87,10 @@ class Crawler
             // Check include patterns
             if ($includePaths) {
                 if ($this->matchesPatterns($urlPath, $includePaths)) {
-                    $filteredUrls[] = $crawlUrl;
+                    $filteredUrls[] = $link;
                 }
             } else {
-                $filteredUrls[] = $crawlUrl;
+                $filteredUrls[] = $link;
             }
         }
 

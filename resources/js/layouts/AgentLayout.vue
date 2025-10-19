@@ -19,6 +19,7 @@ import {
     TooltipTrigger
 } from '@/components/ui/tooltip';
 import { toast } from 'vue-sonner';
+import { Toaster } from '@/components/ui/sonner';
 import type { Features } from '@/types';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import UserMenu from '@/components/UserMenu.vue';
@@ -167,7 +168,7 @@ const controlPanelNavigationItems = computed(() => {
 
     baseItems.push(
         ...[
-            { id: 'starters', label: 'Starter Messages', icon: MessageSquare, route: 'agents.starters', tooltip: 'Create conversation starter messages' },
+            { id: 'starters', label: 'Starters', icon: MessageSquare, route: 'agents.starters', tooltip: 'Create conversation starter messages' },
 
             { id: 'history', label: 'History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
             { id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads', tooltip: 'Manage leads captured by your agent' },
@@ -327,6 +328,7 @@ const isActiveRoute = (routeName: string) => {
 </script>
 
 <template>
+    <Toaster position="bottom-center" :duration="4000" />
     <div class="min-h-screen bg-background">
         <Head :title="title" />
 

@@ -12,7 +12,6 @@ class ChatMemberAgentsController
             ->user('member')
             ->agents()
             ->select(['agents.id', 'agents.name', 'agents.sub_domain'])
-            ->where('is_active', true)
             ->get();
     }
 }

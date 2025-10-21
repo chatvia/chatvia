@@ -317,7 +317,7 @@ refund.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Landing\ChangelogController::__invoke
-* @see app/Http/Controllers/Landing/ChangelogController.php:13
+* @see app/Http/Controllers/Landing/ChangelogController.php:14
 * @route '/changelog'
 */
 export const changelog = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -332,7 +332,7 @@ changelog.definition = {
 
 /**
 * @see \App\Http\Controllers\Landing\ChangelogController::__invoke
-* @see app/Http/Controllers/Landing/ChangelogController.php:13
+* @see app/Http/Controllers/Landing/ChangelogController.php:14
 * @route '/changelog'
 */
 changelog.url = (options?: RouteQueryOptions) => {
@@ -341,7 +341,7 @@ changelog.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Landing\ChangelogController::__invoke
-* @see app/Http/Controllers/Landing/ChangelogController.php:13
+* @see app/Http/Controllers/Landing/ChangelogController.php:14
 * @route '/changelog'
 */
 changelog.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -351,7 +351,7 @@ changelog.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Landing\ChangelogController::__invoke
-* @see app/Http/Controllers/Landing/ChangelogController.php:13
+* @see app/Http/Controllers/Landing/ChangelogController.php:14
 * @route '/changelog'
 */
 changelog.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

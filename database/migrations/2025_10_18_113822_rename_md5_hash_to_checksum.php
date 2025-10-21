@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('agent_texts', function (Blueprint $table) {
-//            $table->dropUnique('agent_texts_agent_id_md5_hash_unique');
-//            $table->renameColumn('md5_hash', 'checksum');
-//            $table->unique(['agent_id', 'checksum']);
+            $table->dropUnique('agent_texts_agent_id_md5_hash_unique');
+            $table->renameColumn('md5_hash', 'checksum');
+            $table->unique(['agent_id', 'checksum']);
         });
 
         Schema::table('agent_files', function (Blueprint $table) {

@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Data\Crawler\CrawlerData;
 use App\Jobs\Crawler\WebsiteIngestionJob;
+use App\Jobs\TextIngestionJob;
+use App\Models\AgentText;
 use App\Models\AgentWebsite;
 use App\Services\Crawler\Crawler;
 use Illuminate\Console\Command;
@@ -26,6 +28,8 @@ class TestCommand extends Command
         //
         //        ray($result);
 
-        WebsiteIngestionJob::dispatchSync(AgentWebsite::find(1));
+        //        WebsiteIngestionJob::dispatchSync(AgentWebsite::find(1));
+
+        TextIngestionJob::dispatchSync(AgentText::find(3));
     }
 }

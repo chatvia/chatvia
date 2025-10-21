@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources\Text;
 
 use App\Models\Agent;
+use App\Models\AgentText;
 use App\Support\Text;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -30,12 +31,15 @@ class AgentKnowledgeTextStoreController
             message: 'This document requires '.$numberOfPages.' pages.',
         );
 
-        $agent->texts()->create([
+        /** @var AgentText $agentText */
+        $agentText = $agent->texts()->create([
             'user_id' => $request->user()->id,
             'content' => $content,
             'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
             'length' => $numberOfPages, // number of pages, 450 word = 1 page
             'checksum' => md5($content),
         ]);
+
+        $agentText->startTraining();
     }
 }

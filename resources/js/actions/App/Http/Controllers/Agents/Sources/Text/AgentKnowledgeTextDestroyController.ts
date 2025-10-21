@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:10
 * @route '/agents/{agent}/sources/text/{id}'
 */
 const AgentKnowledgeTextDestroyController = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -16,7 +16,7 @@ AgentKnowledgeTextDestroyController.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:10
 * @route '/agents/{agent}/sources/text/{id}'
 */
 AgentKnowledgeTextDestroyController.url = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ AgentKnowledgeTextDestroyController.url = (args: { agent: number | { id: number 
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:10
 * @route '/agents/{agent}/sources/text/{id}'
 */
 AgentKnowledgeTextDestroyController.delete = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Events\TextIngestionEvent;
 use App\Jobs\Ingestion\IngestionChunkJob;
 use App\Jobs\Ingestion\IngestionSummaryJob;
 use App\Models\AgentText;
 use App\Services\Chunker;
 use App\Services\Ingestion\RecursiveCharacterTextSplitter;
+use App\Support\TikToken;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -20,55 +22,54 @@ class TextIngestionJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public AgentText $text) {}
+    public function __construct(public AgentText $agentText) {}
 
     public function handle(RecursiveCharacterTextSplitter $splitter): void
     {
-        // TODO: Edge cases:
-        // What if the text is too small? How would that fit in the "ingestion summary"?
-        // What is the minium and maximum text length?
-        //
-
-        /*
-         * If tht text is less than 1000 tokens, then there is no need to chunk it.
-         * If the text is more than 1000 tokens, we have to scenarios here:
-         *  1.
-         */
-
         $startTime = microtime(true);
 
-        $texts = collect($splitter->splitText($this->text->text))
-            ->map(fn ($text) => ['text' => $text])
-            ->toArray();
+        if (TikToken::countTokens($this->agentText->content) <= 1000) {
+            $texts = [
+                ['text' => $this->agentText->content],
+            ];
+        } else {
+            $texts = collect($splitter->splitText($this->agentText->content))
+                ->map(fn ($text) => ['text' => $text])
+                ->toArray();
+        }
 
-        $chunks = new Chunker($this->text)->createChunks($texts);
+        $chunks = new Chunker($this->agentText)->createChunks($texts);
 
-        $this->text->update(['status' => 'ingesting']);
+        $this->agentText->update(['status' => 'ingesting']);
 
-        // TODO: send websocket event
+        TextIngestionEvent::dispatch($this->agentText);
 
-        $jobs = collect($chunks)
-            ->map(fn ($chunk) => new IngestionChunkJob($chunk));
+        $jobs = collect($chunks)->map(fn ($chunk) => new IngestionChunkJob($chunk));
 
         $jobs->add(
-            new IngestionSummaryJob($this->text, $this->text->text)
+            new IngestionSummaryJob($this->agentText, $this->agentText->content)
         );
 
-        $textId = $this->text->id;
+        $agentTextId = $this->agentText->id;
 
         $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent Text ID: '.$this->text->id)
-            ->then(function (Batch $batch) use ($textId) {
-                AgentText::find($textId)?->update(['status' => 'ingested']);
-                // TODO: send websocket event
+            ->name('Ingestion Agent Text ID: '.$this->agentText->id)
+            ->then(function (Batch $batch) use ($agentTextId) {
+                AgentText::find($agentTextId)?->update(['status' => 'ingested']);
+                TextIngestionEvent::dispatch(AgentText::find($agentTextId));
             })
             ->dispatch();
 
-        $this->text->update([
+        $endTime = microtime(true);
+
+        $tookInSeconds = ceil($endTime - $startTime);
+
+        $this->agentText->update([
             'expected_chunks' => $chunks[0]->expected_chunks,
             'internal_ingestion_job_id' => $batch->id,
+            'took_in_seconds' => $tookInSeconds,
         ]);
 
-        $this->text->refresh();
+        $this->agentText->refresh();
     }
 }

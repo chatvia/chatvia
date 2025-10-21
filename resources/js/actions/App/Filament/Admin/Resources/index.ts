@@ -1,5 +1,6 @@
 import AgentResource from './AgentResource'
 import BlogResource from './BlogResource'
+import ChangelogResource from './ChangelogResource'
 import LlmResource from './LlmResource'
 import MessageResource from './MessageResource'
 import SubscriptionResource from './SubscriptionResource'
@@ -9,6 +10,7 @@ import UserResource from './UserResource'
 const Resources = {
     AgentResource: Object.assign(AgentResource, AgentResource),
     BlogResource: Object.assign(BlogResource, BlogResource),
+    ChangelogResource: Object.assign(ChangelogResource, ChangelogResource),
     LlmResource: Object.assign(LlmResource, LlmResource),
     MessageResource: Object.assign(MessageResource, MessageResource),
     SubscriptionResource: Object.assign(SubscriptionResource, SubscriptionResource),

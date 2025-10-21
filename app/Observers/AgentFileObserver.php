@@ -3,27 +3,10 @@
 namespace App\Observers;
 
 use App\Models\AgentFile;
-use App\Models\Usage;
-use App\Models\User;
 
 class AgentFileObserver
 {
-    public function created(AgentFile $agentFile): void
-    {
-        $agentFile->load('user', 'user.credit', 'user.credit.usage');
-
-        /** @var User $user */
-        $user = $agentFile->user;
-
-        /** @var Usage $usage */
-        $usage = $user->usage;
-
-        //        if ($agentFile->isAudioFile()) {
-        //            $usage->increment('minutes', $agentFile->length);
-        //        } else {
-        //            $usage->increment('pages', $agentFile->length);
-        //        }
-    }
+    public function created(AgentFile $agentFile): void {}
 
     public function updated(AgentFile $agentFile): void {}
 

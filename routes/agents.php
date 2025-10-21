@@ -49,6 +49,7 @@ use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextListController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController;
+use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextUpdateController;
 use App\Http\Controllers\Agents\Starters\StarterDeleteController;
 use App\Http\Controllers\Agents\Starters\StartersShowController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
@@ -92,6 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('sources/text', AgentKnowledgeTextStoreController::class)->name('sources.text.store');
         Route::get('sources/text/list', AgentKnowledgeTextListController::class)->name('sources.text.index');
         Route::get('sources/text/{id}', AgentKnowledgeTextShowController::class)->name('sources.text.show');
+        Route::patch('sources/text/{id}', AgentKnowledgeTextUpdateController::class)->name('sources.text.update');
 
         Route::get('sources/files', AgentKnowledgeFilesController::class)->name('sources.files');
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');

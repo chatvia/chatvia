@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:13
 * @route '/agents/{agent}/sources/text'
 */
 const AgentKnowledgeTextStoreController = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ AgentKnowledgeTextStoreController.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:13
 * @route '/agents/{agent}/sources/text'
 */
 AgentKnowledgeTextStoreController.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ AgentKnowledgeTextStoreController.url = (args: { agent: number | { id: number } 
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:13
 * @route '/agents/{agent}/sources/text'
 */
 AgentKnowledgeTextStoreController.post = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({

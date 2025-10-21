@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:13
 * @route '/agents/{agent}/sources/text'
 */
 export const store = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:13
 * @route '/agents/{agent}/sources/text'
 */
 store.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ store.url = (args: { agent: number | { id: number } } | [agent: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:12
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextStoreController.php:13
 * @route '/agents/{agent}/sources/text'
 */
 store.post = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -189,8 +189,61 @@ show.head = (args: { agent: number | { id: number }, id: string | number } | [ag
 })
 
 /**
+* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextUpdateController::__invoke
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextUpdateController.php:13
+* @route '/agents/{agent}/sources/text/{id}'
+*/
+export const update = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: update.url(args, options),
+    method: 'patch',
+})
+
+update.definition = {
+    methods: ["patch"],
+    url: '/agents/{agent}/sources/text/{id}',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextUpdateController::__invoke
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextUpdateController.php:13
+* @route '/agents/{agent}/sources/text/{id}'
+*/
+update.url = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions) => {
+    if (Array.isArray(args)) {
+        args = {
+            agent: args[0],
+            id: args[1],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        agent: typeof args.agent === 'object'
+        ? args.agent.id
+        : args.agent,
+        id: args.id,
+    }
+
+    return update.definition.url
+            .replace('{agent}', parsedArgs.agent.toString())
+            .replace('{id}', parsedArgs.id.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextUpdateController::__invoke
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextUpdateController.php:13
+* @route '/agents/{agent}/sources/text/{id}'
+*/
+update.patch = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: update.url(args, options),
+    method: 'patch',
+})
+
+/**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:10
 * @route '/agents/{agent}/sources/text/{id}'
 */
 export const destroy = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -205,7 +258,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:10
 * @route '/agents/{agent}/sources/text/{id}'
 */
 destroy.url = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions) => {
@@ -233,7 +286,7 @@ destroy.url = (args: { agent: number | { id: number }, id: string | number } | [
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController::__invoke
-* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:9
+* @see app/Http/Controllers/Agents/Sources/Text/AgentKnowledgeTextDestroyController.php:10
 * @route '/agents/{agent}/sources/text/{id}'
 */
 destroy.delete = (args: { agent: number | { id: number }, id: string | number } | [agent: number | { id: number }, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -245,6 +298,7 @@ const text = {
     store: Object.assign(store, store),
     index: Object.assign(index, index),
     show: Object.assign(show, show),
+    update: Object.assign(update, update),
     destroy: Object.assign(destroy, destroy),
 }
 

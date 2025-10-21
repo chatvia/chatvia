@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Landing\ChangelogController::__invoke
-* @see app/Http/Controllers/Landing/ChangelogController.php:13
+* @see app/Http/Controllers/Landing/ChangelogController.php:14
 * @route '/changelog'
 */
 const ChangelogController = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ ChangelogController.definition = {
 
 /**
 * @see \App\Http\Controllers\Landing\ChangelogController::__invoke
-* @see app/Http/Controllers/Landing/ChangelogController.php:13
+* @see app/Http/Controllers/Landing/ChangelogController.php:14
 * @route '/changelog'
 */
 ChangelogController.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ ChangelogController.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Landing\ChangelogController::__invoke
-* @see app/Http/Controllers/Landing/ChangelogController.php:13
+* @see app/Http/Controllers/Landing/ChangelogController.php:14
 * @route '/changelog'
 */
 ChangelogController.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ ChangelogController.get = (options?: RouteQueryOptions): RouteDefinition<'get'> 
 
 /**
 * @see \App\Http\Controllers\Landing\ChangelogController::__invoke
-* @see app/Http/Controllers/Landing/ChangelogController.php:13
+* @see app/Http/Controllers/Landing/ChangelogController.php:14
 * @route '/changelog'
 */
 ChangelogController.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

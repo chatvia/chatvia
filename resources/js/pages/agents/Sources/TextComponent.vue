@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/InputError.vue';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useEcho } from "@laravel/echo-vue";
+import { toast } from 'vue-sonner';
 import axios from "axios";
 import {
     Type,
@@ -30,13 +31,22 @@ interface TextEntry {
     id: number;
     excerpt: string;
     content?: string;
-    status: 'draft' | 'saved' | 'processing' | 'trained' | 'failed';
+    status: 'pending' | 'ingesting' | 'ingested' | 'failed';
     created_at: string;
     updated_at: string;
     word_count: number;
 }
 
 const props = defineProps<Props>();
+
+// WebSocket event listener for text ingestion status updates
+useEcho(
+    `agents.${props.agent.id}.ingestion.text`,
+    "TextIngestionEvent",
+    (e) => {
+        handleIngestionUpdate(e);
+    },
+);
 
 // State
 const textEntries = ref<TextEntry[]>([]);
@@ -71,10 +81,25 @@ const openCreateForm = () => {
     form.reset();
 };
 
-const openEditForm = (entry: TextEntry) => {
-    showCreateForm.value = true;
-    editingEntry.value = entry;
-    // form.content = entry.content;
+const openEditForm = async (entry: TextEntry) => {
+    try {
+        isLoading.value = true;
+        const response = await axios.get(route('agents.sources.text.show', {
+            agent: props.agent.id,
+            id: entry.id
+        }));
+        
+        editingEntry.value = entry;
+        form.content = response.data.content;
+        showCreateForm.value = true;
+    } catch (error) {
+        console.error('Failed to fetch text entry:', error);
+        toast.error('Failed to load text entry', {
+            description: 'There was an error loading the text content for editing.',
+        });
+    } finally {
+        isLoading.value = false;
+    }
 };
 
 const cancelForm = () => {
@@ -104,7 +129,7 @@ const saveTextEntry = () => {
         // Update existing entry
         form.patch(route('agents.sources.text.update', {
             agent: props.agent.id,
-            textEntry: editingEntry.value.id
+            id: editingEntry.value.id
         }), {
             onSuccess,
             onError
@@ -153,16 +178,88 @@ const fetchTextEntries = async () => {
     }
 };
 
-const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { variant: 'default' | 'destructive' | 'outline' | 'secondary'; label: string; icon: any }> = {
-        draft: { variant: 'secondary', label: 'Draft', icon: Edit3 },
-        saved: { variant: 'outline', label: 'Saved', icon: FileText },
-        processing: { variant: 'default', label: 'Processing', icon: LoaderCircle },
-        trained: { variant: 'default', label: 'Trained', icon: CheckCircle },
-        failed: { variant: 'destructive', label: 'Failed', icon: AlertCircle }
+const handleIngestionUpdate = async (event: any) => {
+    // The event structure: { status: "pending" | "ingesting" | "ingested" | "failed", id: number }
+    const { status, id: entry_id } = event;
+
+    // Find the entry by ID
+    const entryIndex = textEntries.value.findIndex(entry => entry.id === entry_id);
+
+    if (entryIndex === -1) {
+        // If entry not found, refresh the list to ensure we have the latest data
+        await fetchTextEntries();
+        return;
+    }
+
+    const entry = textEntries.value[entryIndex];
+
+    // Update the entry status
+    textEntries.value[entryIndex] = {
+        ...entry,
+        status: status
     };
 
-    return statusConfig[status] || statusConfig.draft;
+    // Show toast notifications based on status
+    switch (status) {
+        case 'ingesting':
+            toast.info('Processing started', {
+                description: 'Your text entry is being processed...',
+            });
+            break;
+        case 'ingested':
+            toast.success('Success!', {
+                description: 'Text entry has been successfully added to your knowledge base.',
+            });
+            break;
+        case 'failed':
+            toast.error('Processing failed', {
+                description: 'There was an error processing your text entry.',
+            });
+            break;
+    }
+};
+
+const getStatusIcon = (status: string) => {
+    switch (status) {
+        case 'ingested':
+            return CheckCircle;
+        case 'pending':
+        case 'ingesting':
+            return LoaderCircle;
+        case 'failed':
+            return AlertCircle;
+        default:
+            return LoaderCircle;
+    }
+};
+
+const getStatusColor = (status: string): string => {
+    switch (status) {
+        case 'ingested':
+            return 'text-green-600';
+        case 'pending':
+        case 'ingesting':
+            return 'text-blue-600';
+        case 'failed':
+            return 'text-red-600';
+        default:
+            return 'text-gray-600';
+    }
+};
+
+const getStatusLabel = (status: string): string => {
+    switch (status) {
+        case 'ingested':
+            return 'Trained';
+        case 'pending':
+            return 'Pending';
+        case 'ingesting':
+            return 'Training';
+        case 'failed':
+            return 'Failed';
+        default:
+            return 'Unknown';
+    }
 };
 
 const formatDate = (dateString: string) => {
@@ -278,21 +375,28 @@ fetchTextEntries();
                                 <p class="text-sm text-muted-foreground line-clamp-2 flex-1">
                                     {{ entry.excerpt }}
                                 </p>
-                                <Badge :variant="getStatusBadge(entry.status).variant" class="flex items-center gap-1 flex-shrink-0">
-                                    <component :is="getStatusBadge(entry.status).icon" class="h-3 w-3" />
-                                    {{ getStatusBadge(entry.status).label }}
-                                </Badge>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div class="flex items-center">
+                                                <component
+                                                    :is="getStatusIcon(entry.status)"
+                                                    :class="`h-4 w-4 flex-shrink-0 ${getStatusColor(entry.status)} ${(entry.status === 'pending' || entry.status === 'ingesting') ? 'animate-spin' : ''}`"
+                                                />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{{ getStatusLabel(entry.status) }}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </div>
                             <div class="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span>{{ entry.word_count }} words</span>
-                                <span>Created {{ formatDate(entry.created_at) }}</span>
-                                <span v-if="entry.updated_at !== entry.created_at">
-                                    Updated {{ formatDate(entry.updated_at) }}
-                                </span>
+                                <span>{{ formatDate(entry.created_at) }}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 ml-4">
-                            <TooltipProvider>
+                            <TooltipProvider v-if="entry.status !== 'pending' && entry.status !== 'ingesting'">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button

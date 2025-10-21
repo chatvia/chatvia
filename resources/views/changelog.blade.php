@@ -34,22 +34,24 @@
 
         <!-- Changelog Timeline -->
         <div class="space-y-8">
-            @foreach(config('changelog.versions') as $index => $version)
+            @foreach($changelogs as $index => $changelog)
             <div class="relative">
                 <div class="absolute left-8 top-0 w-4 h-4 {{ $index === 0 ? 'bg-blue-500' : 'bg-gray-400' }} rounded-full border-4 border-white shadow-lg"></div>
                 <div class="ml-16">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
                         <div class="flex items-center justify-between mb-4">
-                            <h2 class="text-2xl font-bold text-gray-900">Version {{ $version['version'] }}</h2>
-                            <span class="px-3 py-1 bg-{{ $version['status_color'] }}-100 text-{{ $version['status_color'] }}-800 text-sm font-medium rounded-full">{{ $version['status'] }}</span>
+                            <h2 class="text-2xl font-bold text-gray-900">Version {{ $changelog->version }}</h2>
                         </div>
-                        <p class="text-gray-600 mb-4">Released on {{ $version['release_date'] }}</p>
+                        <p class="text-gray-600 mb-4">Released on {{ $changelog->release_date->format('M d, Y') }}</p>
 
                         <div class="space-y-4">
-                            @foreach($version['changes'] as $changeType => $changes)
-                                @if(isset(config('changelog.change_types')[$changeType]))
+                            @php
+                                $groupedItems = $changelog->items->groupBy('type');
+                            @endphp
+                            @foreach($groupedItems as $changeType => $items)
+                                @if(isset($changeTypes[$changeType]))
                                     @php
-                                        $changeTypeConfig = config('changelog.change_types')[$changeType];
+                                        $changeTypeConfig = $changeTypes[$changeType];
                                     @endphp
                                     <div>
                                         <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center">
@@ -57,10 +59,10 @@
                                             {{ $changeTypeConfig['label'] }}
                                         </h3>
                                         <ul class="space-y-2 text-gray-700">
-                                            @foreach($changes as $change)
+                                            @foreach($items as $item)
                                                 <li class="flex items-start">
                                                     <span class="text-{{ $changeTypeConfig['color'] }}-500 mr-2">{{ $changeTypeConfig['icon'] }}</span>
-                                                    {{ $change }}
+                                                    {{ $item->description }}
                                                 </li>
                                             @endforeach
                                         </ul>

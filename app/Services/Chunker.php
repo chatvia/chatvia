@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Contracts\ChunkableContract;
 use App\Data\Ingestion\ChunkIngestionData;
 use App\Services\Ingestion\RecursiveCharacterTextSplitter;
 use App\Support\TikToken;
@@ -10,11 +9,13 @@ use Illuminate\Http\File;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
-class Chunker
+readonly class Chunker
 {
     public function __construct(
-        private readonly ChunkableContract $source,
-        private readonly int $maxTokensPerChunk = 800,
+        private int $agentId,
+        private string $chunkableType,
+        private int $chunkableId,
+        private int $maxTokensPerChunk = 800,
     ) {}
 
     /**
@@ -103,9 +104,9 @@ class Chunker
     private function createChunk(string $text, array $images, int $chunkIndex): ChunkIngestionData
     {
         return ChunkIngestionData::from([
-            'agent_id' => $this->source->agent_id,
-            'chunkable_type' => get_class($this->source),
-            'chunkable_id' => $this->source->id,
+            'agent_id' => $this->agentId,
+            'chunkable_type' => $this->chunkableType,
+            'chunkable_id' => $this->chunkableId,
             'chunk_index' => $chunkIndex,
             'expected_chunks' => 0, // Will be set later
             'chunk_text' => trim($text),
@@ -146,8 +147,8 @@ class Chunker
 
             return ChunkIngestionData::from([
                 'agent_id' => $chunk->agent_id,
-                'chunkable_type' => $this->source::class,
-                'chunkable_id' => $this->source->id,
+                'chunkable_type' => $chunk->chunkable_type,
+                'chunkable_id' => $chunk->chunkable_id,
                 'chunk_index' => $chunk->chunk_index,
                 'expected_chunks' => $totalChunks,
                 'chunk_text' => $chunk->chunk_text,

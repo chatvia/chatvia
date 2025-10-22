@@ -38,7 +38,11 @@ class TextIngestionJob implements ShouldQueue
                 ->toArray();
         }
 
-        $chunks = new Chunker($this->agentText)->createChunks($texts);
+        $chunks = new Chunker(
+            agentId: $this->agentText->agent_id,
+            chunkableType: AgentText::class,
+            chunkableId: $this->agentText->id,
+        )->createChunks($texts);
 
         $this->agentText->update(['status' => 'ingesting']);
 

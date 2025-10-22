@@ -10,7 +10,14 @@ class AgentKnowledgeCrawlerWebsiteLinksController
 {
     public function __invoke(Request $request, Agent $agent, AgentWebsite $website)
     {
-        $query = $website->urls();
+        $query = $website->urls()->select([
+            'id',
+            'agent_website_id',
+            'url',
+            'status',
+            'created_at',
+            'crawled_at',
+        ]);
 
         // Apply search filter if q parameter is provided
         if ($request->filled('q')) {

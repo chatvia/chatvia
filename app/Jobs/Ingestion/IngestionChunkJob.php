@@ -3,6 +3,8 @@
 namespace App\Jobs\Ingestion;
 
 use App\Data\Ingestion\ChunkIngestionData;
+use App\Events\UrlIngestionEvent;
+use App\Models\AgentWebsiteUrl;
 use App\Models\Chunk;
 use App\Models\ChunkReference;
 use App\Support\OpenAI;
@@ -107,9 +109,17 @@ class IngestionChunkJob implements ShouldQueue
 
         // Create chunk reference if provided
         if ($this->chunkReference) {
-            ChunkReference::create(array_merge($this->chunkReference, [
+            $ref = ChunkReference::create(array_merge($this->chunkReference, [
                 'chunk_id' => $createdChunk->id,
             ]));
+
+            // Update status
+            if ($ref->referenceable_type === AgentWebsiteUrl::class) {
+                $url = AgentWebsiteUrl::find($ref->referenceable_id);
+                $url->update(['status' => 'ingested']);
+
+                UrlIngestionEvent::dispatch($url);
+            }
         }
     }
 }

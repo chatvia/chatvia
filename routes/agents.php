@@ -38,6 +38,7 @@ use App\Http\Controllers\Agents\Sources\AgentKnowledgeUploadedFilesDeleteControl
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWordController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerController;
+use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerLinkRetrainController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinkDeleteController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinksController;
@@ -108,6 +109,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('sources/websites/{website}', AgentKnowledgeWebsiteDeleteController::class)->name('sources.websites.delete');
         Route::get('sources/websites/{website}/links', AgentKnowledgeCrawlerWebsiteLinksController::class)->name('sources.websites.links');
         Route::delete('sources/websites/{website}/links/{link}', AgentKnowledgeCrawlerWebsiteLinkDeleteController::class)->name('sources.websites.links.delete');
+        Route::post('sources/websites/{website}/links/{link}/retrain', AgentKnowledgeCrawlerLinkRetrainController::class)->name('sources.websites.links.retrain');
         Route::post('sources/websites/{website}/links/bulk-delete', AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController::class)->name('sources.websites.links.bulk-delete');
         Route::post('sources/website/{website}/train', AgentKnowledgeCrawlerWebsiteTrainController::class)->name('sources.website.train');
 

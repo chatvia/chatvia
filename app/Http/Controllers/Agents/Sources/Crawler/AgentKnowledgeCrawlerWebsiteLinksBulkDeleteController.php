@@ -10,13 +10,20 @@ class AgentKnowledgeCrawlerWebsiteLinksBulkDeleteController
 {
     public function __invoke(Request $request, Agent $agent, AgentWebsite $website)
     {
+        abort_if(
+            boolean: $request->user()->cannot('delete', $website),
+            code: 404,
+        );
+
         $validated = $request->validate([
-            'link_ids' => 'required|array',
-            'link_ids.*' => 'required|integer|exists:links,id',
+            'link_ids' => ['required', 'array'],
+            'link_ids.*' => ['required', 'integer', 'exists:agent_website_urls,id'],
         ]);
 
-        // Delete only links that belong to this website
-        $website->urls()->whereIn('id', $validated['link_ids'])->delete();
+        $website
+            ->urls()
+            ->whereIn('id', $validated['link_ids'])
+            ->delete();
 
         return response()->json([
             'message' => 'Links deleted successfully.',

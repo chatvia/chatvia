@@ -26,15 +26,15 @@
                             class="max-w-xl mx-auto md:max-w-none flex flex-col items-center justify-center text-center md:space-y-16 space-y-16">
 
                             <div class="text-center" data-aos="fade-right">
-                                <p class="text-xl text-slate-400">
+                                <p class="text-base sm:text-lg md:text-xl text-slate-400">
                                     {!! $landing['hero']['top']  !!}
                                 </p>
-                                <h1 class="mx-auto md:max-w-4xl text-4xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold font-rubik text-slate-100 mb-4 leading-tight text-center">
+                                <h1 class="mx-auto md:max-w-4xl text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-extrabold font-rubik text-slate-100 mb-4 leading-tight md:leading-tight text-center">
                                     {!! $landing['hero']['headline'] !!}
                                 </h1>
 
                                 @foreach ($landing['hero']['subheadlines'] as $subheadline)
-                                    <p class="text-xl text-slate-400 mb-6">
+                                    <p class="text-base sm:text-lg md:text-xl text-slate-400 mb-6">
                                         {{ $subheadline }}
                                     </p>
                                 @endforeach

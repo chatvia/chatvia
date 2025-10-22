@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Contracts\ChunkableContract;
+use App\Jobs\Crawler\WebsiteUrlTrainJob;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-class AgentWebsiteUrl extends Model
+class AgentWebsiteUrl extends Model implements ChunkableContract
 {
     protected $guarded = ['id'];
 
@@ -16,9 +19,21 @@ class AgentWebsiteUrl extends Model
         ];
     }
 
-    public function chunk(): HasOneThrough
+    public function agentWebsite(): BelongsTo
     {
-        return $this->hasOneThrough(
+        return $this->belongsTo(AgentWebsite::class);
+    }
+
+    public function train(): void
+    {
+        $this->update(['status' => 'pending']);
+
+        WebsiteUrlTrainJob::dispatch($this);
+    }
+
+    public function chunks(): HasManyThrough
+    {
+        return $this->hasManyThrough(
             Chunk::class,
             ChunkReference::class,
             'referenceable_id', // Foreign key on ChunkReference pointing to Link

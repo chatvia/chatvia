@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Crawler;
 
+use App\Events\UrlIngestionEvent;
 use App\Events\WebsiteCrawlerEvent;
 use App\Jobs\Ingestion\IngestionChunkJob;
 use App\Jobs\Ingestion\IngestionSummaryJob;
@@ -21,6 +22,7 @@ use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class WebsiteIngestionJob implements ShouldQueue
@@ -38,17 +40,25 @@ class WebsiteIngestionJob implements ShouldQueue
         WebsiteCrawlerEvent::dispatch($this->website);
 
         /** @var AgentWebsiteUrl<array> $urls */
-        $urls = $this->website->urls;
+        $urls = $this->website->untrainedUrls;
 
         // Create a mapping of URL to Url ID
         $urlToId = $urls->pluck('id', 'url')->toArray();
 
-        // First, we get all the responses for the given $urls
-        $responses = Http::pool(function (Pool $pool) use ($urls) {
-            return $urls->map(function (AgentWebsiteUrl $websiteUrl) use ($pool) {
-                $pool->as($websiteUrl->url)->retry(1, 1000)->get($websiteUrl->url);
+        $responsesCacheId = 'agent:'.$this->website->agent->id.':website:'.$this->website->id.':ingestion:responses';
+
+        if (Cache::has($responsesCacheId)) {
+            $responses = Cache::get($responsesCacheId);
+        } else {
+            // First, we get all the responses for the given $urls
+            $responses = Http::pool(function (Pool $pool) use ($urls) {
+                return $urls->map(function (AgentWebsiteUrl $websiteUrl) use ($pool) {
+                    $pool->as($websiteUrl->url)->retry(1, 1000)->get($websiteUrl->url);
+                });
             });
-        });
+
+            Cache::put($responsesCacheId, $responses, now()->addHours(12));
+        }
 
         // Then we filter the responses, because we might have invalid responses
         $urlsWithChunks = collect($responses)
@@ -61,23 +71,38 @@ class WebsiteIngestionJob implements ShouldQueue
                 }
 
                 // Then filter out failed responses
-                return ! $response->ok() ||
-                    $response->noContent() ||
-                    ! str_contains($response->header('content-type'), 'text/html');
+                return ! $response->ok() || $response->noContent() || ! str_contains($response->header('content-type'), 'text/html');
             })
             ->mapWithKeys(function (Response $response, string $url) use ($splitter, $parser, $urls) {
-                $text = $parser->getTextFromHtml($response->getBody());
-
-                $chunks = $splitter->splitText($text);
-                $chunks = collect($chunks)->map(fn ($item) => ['text' => $item])->toArray();
-                $chunks = new Chunker($this->website)->createChunks($chunks);
-
+                $text = $parser->getTextFromHtml($response->body());
                 $checksum = md5($text);
 
-                $urls->where('url', $url)->first()->update([
+                $urlModel = $urls->where('url', $url)->first();
+
+                $status = 'ingesting';
+
+                if ($urlModel->checksum === $checksum) {
+                    $chunks = collect();
+                    $status = 'ingested';
+                } else {
+                    $chunks = $splitter->splitText($text);
+                    $chunks = collect($chunks)->map(fn ($item) => ['text' => $item])->toArray();
+                    $chunks = new Chunker(
+                        agentId: $this->website->agent->id,
+                        chunkableType: AgentWebsite::class,
+                        chunkableId: $this->website->id,
+                    )->createChunks($chunks);
+                }
+
+                $urlModel->update([
                     'checksum' => $checksum,
                     'crawled_at' => now(),
+                    'status' => $status,
                 ]);
+
+                if ($status === 'ingested') {
+                    UrlIngestionEvent::dispatch($urlModel);
+                }
 
                 return [
                     $url => [
@@ -120,7 +145,7 @@ class WebsiteIngestionJob implements ShouldQueue
             ->dispatch();
 
         $websiteHome = Http::get($this->website->url);
-        $text = $parser->getTextFromHtml($websiteHome->getBody());
+        $text = $parser->getTextFromHtml($websiteHome->body());
 
         dispatch(new IngestionSummaryJob($this->website, $text));
 

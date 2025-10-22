@@ -90,7 +90,11 @@ class IngestionJob implements ShouldBeUnique, ShouldQueue
             throw new RuntimeException('No valid pages data available for chunking');
         }
 
-        $chunker = new Chunker($this->agentFile);
+        $chunker = new Chunker(
+            agentId: $this->agentFile->agent_id,
+            chunkableType: AgentFile::class,
+            chunkableId: $this->agentFile->id,
+        );
         $chunks = $chunker->createChunks($pages);
 
         $jobs = $chunks->map(function (ChunkIngestionData $chunk) {

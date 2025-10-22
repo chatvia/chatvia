@@ -16,6 +16,8 @@ class AgentKnowledgeCrawlerWebsiteLinkDeleteController
             code: 404,
         );
 
+        $link->chunks()->delete();
+
         $link->delete();
 
         return response()->json([

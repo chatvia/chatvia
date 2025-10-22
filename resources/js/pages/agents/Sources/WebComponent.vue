@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
-import { Globe, LoaderCircle, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, Play, Settings, ChevronDown, ChevronUp, ChevronRight, Database, NetworkIcon, BrainIcon } from 'lucide-vue-next';
+import { Globe, LoaderCircle, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, Play, Settings, ChevronDown, ChevronUp, ChevronRight, Database, NetworkIcon, BrainIcon, Link2, RefreshCw, CheckCircle2 } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -48,6 +49,9 @@ interface DiscoveredLink {
     link: string;
     text: string;
     found_on_url: string;
+    crawled_at?: string;
+    status?: 'pending' | 'ingesting' | 'ingested' | 'failed';
+    agent_website_id?: number; // For WebSocket matching
 }
 
 
@@ -60,6 +64,15 @@ useEcho(
     "WebsiteCrawlerEvent",
     (e) => {
         handleCrawlingUpdate(e);
+    },
+)
+
+// WebSocket event listener for URL ingestion status updates
+useEcho(
+    `agents.${props.agent.id}.web.ingestion.url`,
+    "UrlIngestionEvent",
+    (e) => {
+        handleUrlIngestionUpdate(e);
     },
 )
 
@@ -140,6 +153,26 @@ const sourceToDelete = ref<WebSource | null>(null);
 
 // Auto-refresh for crawling sources
 const refreshInterval = ref<number | null>(null);
+
+// Links dialog state for viewing all links in a modal
+const linksDialogOpen = ref(false);
+const currentWebsite = ref<WebSource | null>(null);
+const dialogLinks = ref<DiscoveredLink[]>([]);
+const dialogLinksLoading = ref(false);
+const dialogLinksPagination = ref({
+    currentPage: 1,
+    lastPage: 1,
+    total: 0,
+    hasNextPage: false,
+    hasPrevPage: false
+});
+const dialogSearchQuery = ref('');
+const dialogSearchDebounceTimer = ref<number | null>(null);
+const dialogSelectedLinks = ref<Set<number>>(new Set());
+
+// Success animation state for links that just finished training
+const linkSuccessStates = ref<Map<number, boolean>>(new Map()); // linkId -> showSuccess
+const linkSuccessTimeouts = ref<Map<number, number>>(new Map()); // linkId -> timeoutId
 
 // Separate sources by their processing stage
 const crawlingSources = computed(() => {
@@ -412,9 +445,11 @@ const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuer
         // Convert to DiscoveredLink format
         const discoveredLinks = paginatedData.data.map((linkObj: any) => ({
             id: linkObj.id,
-            link: linkObj.link || linkObj.url || linkObj,
+            link: linkObj.url || linkObj.link || linkObj, // Backend uses 'url' field
             text: linkObj.text || linkObj.title || (typeof linkObj === 'string' ? linkObj.split('/').pop() || linkObj : ''),
-            found_on_url: linkObj.found_on_url || ''
+            found_on_url: linkObj.found_on_url || '',
+            status: linkObj.status || 'ingested',
+            agent_website_id: linkObj.agent_website_id // Store for WebSocket matching
         }));
 
         // Update pagination state
@@ -742,6 +777,94 @@ const handleCrawlingUpdate = async (event: any) => {
 
         default:
             console.warn('Unknown status received:', status);
+            break;
+    }
+};
+
+const handleUrlIngestionUpdate = (event: any) => {
+    // The event structure from backend: { status: string, id: number, url: string }
+    // Note: agent_website_id is NOT included in the event, so we search by link ID
+    const status = event.status;
+    const link_id = event.id;
+
+    if (!link_id) {
+        console.warn('Missing link_id in URL ingestion event', event);
+        return;
+    }
+
+    // Update link status in dialog links if currently viewing them
+    if (currentWebsite.value && dialogLinks.value.length > 0) {
+        const linkIndex = dialogLinks.value.findIndex(link => link.id === link_id);
+
+        if (linkIndex !== -1) {
+            // Create a new array to trigger reactivity
+            const updatedLinks = [...dialogLinks.value];
+            updatedLinks[linkIndex] = {
+                ...updatedLinks[linkIndex],
+                status
+            };
+            dialogLinks.value = updatedLinks;
+        }
+    }
+
+    // Search for the link across all website sources and update its status
+    const updatedSources = [...webSources.value];
+    let linkFound = false;
+
+    for (let sourceIndex = 0; sourceIndex < updatedSources.length; sourceIndex++) {
+        const source = updatedSources[sourceIndex];
+
+        if (source.discovered_links) {
+            const linkIndex = source.discovered_links.findIndex(link => link.id === link_id);
+
+            if (linkIndex !== -1) {
+                // Found the link - update its status
+                const updatedLinks = [...source.discovered_links];
+                updatedLinks[linkIndex] = {
+                    ...updatedLinks[linkIndex],
+                    status
+                };
+
+                updatedSources[sourceIndex] = {
+                    ...source,
+                    discovered_links: updatedLinks
+                };
+
+                linkFound = true;
+                break; // Exit loop once found
+            }
+        }
+    }
+
+    // Only update webSources if we found and modified a link
+    if (linkFound) {
+        webSources.value = updatedSources;
+    }
+
+    // Show toast notifications and handle success animation for status changes
+    switch (status) {
+        case 'ingesting':
+            break;
+        case 'ingested':
+            // Show success checkmark animation
+            linkSuccessStates.value.set(link_id, true);
+
+            // Clear any existing timeout for this link
+            const existingTimeout = linkSuccessTimeouts.value.get(link_id);
+            if (existingTimeout) {
+                clearTimeout(existingTimeout);
+            }
+
+            // Hide success animation after 2 seconds
+            const timeoutId = window.setTimeout(() => {
+                linkSuccessStates.value.delete(link_id);
+                linkSuccessTimeouts.value.delete(link_id);
+            }, 2000);
+
+            linkSuccessTimeouts.value.set(link_id, timeoutId);
+            break;
+        case 'failed':
+            toast.error('Link training failed');
             break;
     }
 };
@@ -1180,9 +1303,279 @@ const stopRefreshInterval = () => {
     }
 };
 
+// Links dialog functions
+const openLinksDialog = async (source: WebSource) => {
+    currentWebsite.value = source;
+    linksDialogOpen.value = true;
+    await fetchDialogLinks(source.id, 1);
+};
 
+const closeLinksDialog = () => {
+    linksDialogOpen.value = false;
+    currentWebsite.value = null;
+    dialogLinks.value = [];
+    dialogSearchQuery.value = '';
+    dialogSelectedLinks.value.clear();
+    if (dialogSearchDebounceTimer.value) {
+        clearTimeout(dialogSearchDebounceTimer.value);
+        dialogSearchDebounceTimer.value = null;
+    }
+    dialogLinksPagination.value = {
+        currentPage: 1,
+        lastPage: 1,
+        total: 0,
+        hasNextPage: false,
+        hasPrevPage: false
+    };
+};
 
+const fetchDialogLinks = async (websiteId: number, page: number = 1, searchQuery: string = '') => {
+    dialogLinksLoading.value = true;
+    try {
+        const params: { page: number; q?: string } = { page };
+        if (searchQuery.trim()) {
+            params.q = searchQuery.trim();
+        }
 
+        const response = await axios.get(route('agents.sources.websites.links', {
+            agent: props.agent.id,
+            website: websiteId
+        }), {
+            params
+        });
+
+        const paginatedData = response.data;
+
+        if (!paginatedData || !Array.isArray(paginatedData.data)) {
+            dialogLinks.value = [];
+            return;
+        }
+
+        dialogLinks.value = paginatedData.data.map((linkObj: any) => ({
+            id: linkObj.id,
+            link: linkObj.url || linkObj.link || linkObj, // Backend uses 'url' field
+            text: linkObj.text || linkObj.title || (typeof linkObj === 'string' ? linkObj.split('/').pop() || linkObj : ''),
+            found_on_url: linkObj.found_on_url || '',
+            crawled_at: linkObj.crawled_at || linkObj.created_at || '',
+            status: linkObj.status || 'ingested',
+            agent_website_id: linkObj.agent_website_id // Store for WebSocket matching
+        }));
+
+        dialogLinksPagination.value = {
+            currentPage: paginatedData.current_page || page,
+            lastPage: paginatedData.last_page || 1,
+            total: paginatedData.total || 0,
+            hasNextPage: !!paginatedData.next_page_url,
+            hasPrevPage: !!paginatedData.prev_page_url
+        };
+    } catch (error) {
+        console.error('Failed to fetch links:', error);
+        toast.error('Failed to load links');
+    } finally {
+        dialogLinksLoading.value = false;
+    }
+};
+
+const loadNextDialogLinksPage = async () => {
+    if (!currentWebsite.value || !dialogLinksPagination.value.hasNextPage || dialogLinksLoading.value) return;
+    await fetchDialogLinks(currentWebsite.value.id, dialogLinksPagination.value.currentPage + 1, dialogSearchQuery.value);
+};
+
+const loadPrevDialogLinksPage = async () => {
+    if (!currentWebsite.value || !dialogLinksPagination.value.hasPrevPage || dialogLinksLoading.value) return;
+    await fetchDialogLinks(currentWebsite.value.id, dialogLinksPagination.value.currentPage - 1, dialogSearchQuery.value);
+};
+
+const updateDialogSearchQuery = (query: string) => {
+    dialogSearchQuery.value = query;
+
+    // Clear existing timer
+    if (dialogSearchDebounceTimer.value) {
+        clearTimeout(dialogSearchDebounceTimer.value);
+    }
+
+    // Set new timer for debounced search
+    dialogSearchDebounceTimer.value = window.setTimeout(async () => {
+        if (!currentWebsite.value) return;
+        await fetchDialogLinks(currentWebsite.value.id, 1, dialogSearchQuery.value);
+        dialogSearchDebounceTimer.value = null;
+    }, 500); // 500ms debounce delay
+};
+
+const deleteDialogLink = async (linkId: number) => {
+    if (!currentWebsite.value) return;
+
+    try {
+        await axios.delete(route('agents.sources.websites.links.delete', {
+            agent: props.agent.id,
+            website: currentWebsite.value.id,
+            link: linkId
+        }));
+
+        toast.success('Link deleted successfully');
+
+        // Reload current page with search query
+        await fetchDialogLinks(currentWebsite.value.id, dialogLinksPagination.value.currentPage, dialogSearchQuery.value);
+
+        // Refresh usage data
+        await fetchUsageData();
+    } catch (error: any) {
+        console.error('Failed to delete link:', error);
+        toast.error(error.response?.data?.message || 'Failed to delete link');
+    }
+};
+
+// Dialog link selection computed properties
+const dialogAllLinksSelected = computed(() => {
+    if (dialogLinks.value.length === 0) return false;
+    return dialogLinks.value.every(link => dialogSelectedLinks.value.has(link.id));
+});
+
+const dialogSomeLinksSelected = computed(() => {
+    if (dialogLinks.value.length === 0) return false;
+    const selectedCount = dialogLinks.value.filter(link => dialogSelectedLinks.value.has(link.id)).length;
+    return selectedCount > 0 && selectedCount < dialogLinks.value.length;
+});
+
+// Dialog link selection functions
+const toggleDialogLinkSelection = (linkId: number, checked: boolean | string) => {
+    const isChecked = checked === true || checked === 'true';
+
+    if (isChecked) {
+        dialogSelectedLinks.value.add(linkId);
+    } else {
+        dialogSelectedLinks.value.delete(linkId);
+    }
+};
+
+const toggleSelectAllDialogLinks = (checked: boolean | string | 'indeterminate') => {
+    const isChecked = checked === true || checked === 'true';
+
+    if (isChecked) {
+        // Select all links on current page
+        dialogLinks.value.forEach(link => {
+            dialogSelectedLinks.value.add(link.id);
+        });
+    } else {
+        // Deselect all links on current page
+        dialogLinks.value.forEach(link => {
+            dialogSelectedLinks.value.delete(link.id);
+        });
+    }
+};
+
+const deleteSelectedDialogLinks = async () => {
+    if (!currentWebsite.value || dialogSelectedLinks.value.size === 0) {
+        toast.error('No links selected for deletion.');
+        return;
+    }
+
+    try {
+        await axios.post(route('agents.sources.websites.links.bulk-delete', {
+            agent: props.agent.id,
+            website: currentWebsite.value.id
+        }), {
+            link_ids: Array.from(dialogSelectedLinks.value)
+        });
+
+        const deletedCount = dialogSelectedLinks.value.size;
+
+        // Clear selection
+        dialogSelectedLinks.value.clear();
+
+        toast.success(`Deleted ${deletedCount} link${deletedCount !== 1 ? 's' : ''} successfully.`);
+
+        // Reload current page with search query
+        await fetchDialogLinks(currentWebsite.value.id, dialogLinksPagination.value.currentPage, dialogSearchQuery.value);
+
+        // Refresh usage data
+        await fetchUsageData();
+    } catch (error: any) {
+        console.error('Failed to delete links:', error);
+        toast.error(error.response?.data?.message || 'Failed to delete links.');
+    }
+};
+
+// Retrain individual link
+const retrainDialogLink = async (linkId: number) => {
+    if (!currentWebsite.value) return;
+
+    try {
+        // Optimistically update the status to pending in the UI
+        const linkIndex = dialogLinks.value.findIndex(link => link.id === linkId);
+        if (linkIndex !== -1) {
+            const updatedLinks = [...dialogLinks.value];
+            updatedLinks[linkIndex] = {
+                ...updatedLinks[linkIndex],
+                status: 'pending'
+            };
+            dialogLinks.value = updatedLinks;
+        }
+
+        // Also update in discovered_links if present
+        const sourceIndex = webSources.value.findIndex(source => source.id === currentWebsite.value!.id);
+        if (sourceIndex !== -1 && webSources.value[sourceIndex].discovered_links) {
+            const discoveredLinks = webSources.value[sourceIndex].discovered_links;
+            if (discoveredLinks) {
+                const discLinkIndex = discoveredLinks.findIndex(link => link.id === linkId);
+                if (discLinkIndex !== -1) {
+                    const updatedLinks = [...discoveredLinks];
+                    updatedLinks[discLinkIndex] = {
+                        ...updatedLinks[discLinkIndex],
+                        status: 'pending'
+                    };
+
+                    const updatedSources = [...webSources.value];
+                    updatedSources[sourceIndex] = {
+                        ...updatedSources[sourceIndex],
+                        discovered_links: updatedLinks
+                    };
+                    webSources.value = updatedSources;
+                }
+            }
+        }
+
+        await axios.post(route('agents.sources.websites.links.retrain', {
+            agent: props.agent.id,
+            website: currentWebsite.value.id,
+            link: linkId
+        }));
+
+        toast.success('Link retraining started successfully');
+    } catch (error: any) {
+        console.error('Failed to retrain link:', error);
+        toast.error(error.response?.data?.message || 'Failed to retrain link');
+
+        // Revert status on error
+        const linkIndex = dialogLinks.value.findIndex(link => link.id === linkId);
+        if (linkIndex !== -1) {
+            const updatedLinks = [...dialogLinks.value];
+            updatedLinks[linkIndex] = {
+                ...updatedLinks[linkIndex],
+                status: 'ingested'
+            };
+            dialogLinks.value = updatedLinks;
+        }
+    }
+};
+
+// Retrain entire website
+const retrainEntireWebsite = async (websiteId: number) => {
+    try {
+        await axios.post(route('agents.sources.website.retrain', {
+            agent: props.agent.id,
+            website: websiteId
+        }));
+
+        toast.success('Website retraining started successfully');
+
+        // Refresh the sources list
+        await fetchWebSources();
+    } catch (error: any) {
+        console.error('Failed to retrain website:', error);
+        toast.error(error.response?.data?.message || 'Failed to retrain website');
+    }
+};
 
 // Lifecycle
 onMounted(() => {
@@ -1197,6 +1590,18 @@ onUnmounted(() => {
         clearTimeout(timerId);
     });
     searchDebounceTimers.value.clear();
+
+    // Clean up dialog search debounce timer
+    if (dialogSearchDebounceTimer.value) {
+        clearTimeout(dialogSearchDebounceTimer.value);
+    }
+
+    // Clean up success animation timers
+    linkSuccessTimeouts.value.forEach((timerId) => {
+        clearTimeout(timerId);
+    });
+    linkSuccessTimeouts.value.clear();
+    linkSuccessStates.value.clear();
 });
 </script>
 
@@ -1528,15 +1933,6 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-                <!-- Info note about training links -->
-                <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <div class="flex items-start gap-2">
-                        <AlertCircle class="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
-                        <div class="text-sm text-blue-700 dark:text-blue-300">
-                            <strong>All links from selected websites will be included in training.</strong> You can expand each website to view its discovered links and delete any links you don't want to train.
-                        </div>
-                    </div>
-                </div>
 
                 <div class="space-y-2">
                     <template v-for="source in crawledSources" :key="source.id">
@@ -1890,6 +2286,24 @@ onUnmounted(() => {
                                 </div>
                             </div>
                             <div class="flex items-center gap-1">
+                                <!-- View Links Button -->
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                                                size="sm"
+                                                variant="ghost"
+                                                @click="openLinksDialog(source)"
+                                            >
+                                                <Link2 class="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>View all links</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -1986,6 +2400,42 @@ onUnmounted(() => {
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center gap-1">
+                                                    <!-- View Links Button -->
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    @click="openLinksDialog(source)"
+                                                                >
+                                                                    <Link2 class="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>View all links</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                    <!-- Retrain Website Button -->
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    class="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 flex-shrink-0"
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    @click="retrainEntireWebsite(source.id)"
+                                                                >
+                                                                    <RefreshCw class="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>Retrain entire website</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
                                                     <!-- Expand/Collapse button for completed sources with links -->
                                                     <Button
                                                         v-if="source.discovered_links && source.discovered_links.length > 0"
@@ -2196,6 +2646,42 @@ onUnmounted(() => {
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-1">
+                                                <!-- View Links Button -->
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                @click="openLinksDialog(source)"
+                                                            >
+                                                                <Link2 class="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>View all links</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                                <!-- Retrain Website Button -->
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                class="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 flex-shrink-0"
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                @click="retrainEntireWebsite(source.id)"
+                                                            >
+                                                                <RefreshCw class="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Retrain entire website</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                                 <!-- Expand/Collapse button for completed sources with links -->
                                                 <Button
                                                     v-if="source.discovered_links && source.discovered_links.length > 0"
@@ -2372,5 +2858,218 @@ onUnmounted(() => {
         cancel-text="Cancel"
         @confirm="deleteWebSource"
     />
+
+    <!-- Links Dialog Modal -->
+    <Dialog v-model:open="linksDialogOpen" @update:open="(open) => !open && closeLinksDialog()">
+        <DialogContent class="max-w-4xl h-[80vh] flex flex-col">
+            <DialogHeader>
+                <DialogTitle>Website Links</DialogTitle>
+                <DialogDescription>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span v-if="currentWebsite">View and manage links from {{ currentWebsite.name || getDomainFromUrl(currentWebsite.url) }}</span>
+                        <span v-if="dialogLinksPagination.total > 0" class="font-medium text-foreground">
+                            • {{ dialogLinksPagination.total }} link{{ dialogLinksPagination.total !== 1 ? 's' : '' }} total
+                        </span>
+                    </div>
+                </DialogDescription>
+            </DialogHeader>
+
+            <!-- Search Box and Controls -->
+            <div class="space-y-3 mb-4">
+                <Input
+                    :value="dialogSearchQuery"
+                    @input="(e: Event) => updateDialogSearchQuery((e.target as HTMLInputElement).value)"
+                    placeholder="Search links..."
+                    class="h-9"
+                />
+                <p v-if="dialogSearchQuery.trim()" class="text-xs text-blue-600">
+                    Showing filtered results
+                </p>
+
+                <!-- Select All and Bulk Delete -->
+                <div v-if="dialogLinks.length > 0" class="flex items-center justify-between p-2 bg-muted/30 rounded border">
+                    <div class="flex items-center gap-2">
+                        <Checkbox
+                            :model-value="dialogAllLinksSelected"
+                            :indeterminate="dialogSomeLinksSelected"
+                            @update:model-value="toggleSelectAllDialogLinks"
+                            id="select-all-dialog-links"
+                            class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        />
+                        <Label for="select-all-dialog-links" class="text-xs font-medium cursor-pointer select-none">
+                            Select All on Page ({{ dialogLinks.length }})
+                        </Label>
+                    </div>
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        @click="deleteSelectedDialogLinks"
+                        :disabled="dialogSelectedLinks.size === 0"
+                        class="h-7 text-xs"
+                    >
+                        <Trash2 class="h-3 w-3 mr-1" />
+                        Delete selected ({{ dialogSelectedLinks.size }})
+                    </Button>
+                </div>
+            </div>
+
+            <!-- Content Area (scrollable) -->
+            <div class="flex-1 overflow-hidden">
+                <!-- Loading State -->
+                <div v-if="dialogLinksLoading && dialogLinks.length === 0" class="flex items-center justify-center py-12">
+                    <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
+                    <span class="ml-2 text-sm text-muted-foreground">Loading links...</span>
+                </div>
+
+                <!-- Links List -->
+                <ScrollArea v-else-if="dialogLinks.length > 0" class="h-full pr-4">
+                    <div class="space-y-2">
+                        <div
+                            v-for="link in dialogLinks"
+                            :key="link.id"
+                            class="flex items-start gap-2 p-3 bg-background rounded border hover:bg-muted/50 transition-colors"
+                        >
+                            <Checkbox
+                                :model-value="dialogSelectedLinks.has(link.id)"
+                                @update:model-value="(checked) => toggleDialogLinkSelection(link.id, checked)"
+                                :id="`dialog-link-${link.id}`"
+                                class="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary flex-shrink-0"
+                            />
+                            <ExternalLink class="h-3 w-3 mt-0.5 text-muted-foreground flex-shrink-0" />
+                            <div class="min-w-0 flex-1">
+                                <a
+                                    :href="link.link"
+                                    target="_blank"
+                                    class="text-foreground hover:text-primary hover:underline block break-words text-sm"
+                                    @click.stop
+                                >
+                                    {{ link.link }}
+                                </a>
+                                <p v-if="link.crawled_at" class="text-xs text-muted-foreground mt-1">
+                                    Crawled {{ formatDate(link.crawled_at) }}
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                <!-- Success animation for just-trained links -->
+                                <TooltipProvider v-if="linkSuccessStates.has(link.id)">
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div class="h-7 w-7 flex items-center justify-center">
+                                                <CheckCircle2 class="h-4 w-4 text-green-600 animate-in zoom-in-50 duration-300" />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Training completed!</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <!-- Loading state for pending or ingesting -->
+                                <TooltipProvider v-else-if="link.status === 'pending' || link.status === 'ingesting'">
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div class="h-7 w-7 flex items-center justify-center">
+                                                <LoaderCircle class="h-3.5 w-3.5 animate-spin text-blue-600" />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{{ link.status === 'pending' ? 'Training pending...' : 'Training in progress...' }}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <!-- Failed state -->
+                                <TooltipProvider v-else-if="link.status === 'failed'">
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                @click="retrainDialogLink(link.id)"
+                                                class="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            >
+                                                <AlertCircle class="h-3.5 w-3.5" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Training failed. Click to retry</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <!-- Normal retrain button for ingested status -->
+                                <TooltipProvider v-else>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                @click="retrainDialogLink(link.id)"
+                                                class="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                            >
+                                                <RefreshCw class="h-3.5 w-3.5" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Retrain this link</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                @click="deleteDialogLink(link.id)"
+                                                class="h-7 w-7 p-0 text-destructive hover:text-destructive/80 hover:bg-red-50"
+                                            >
+                                                <Trash2 class="h-3.5 w-3.5" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Delete this link</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                        </div>
+                    </div>
+                </ScrollArea>
+
+                <!-- Empty State -->
+                <div v-else class="flex flex-col items-center justify-center py-12">
+                    <Globe class="h-12 w-12 text-muted-foreground mb-3" />
+                    <p class="text-sm text-muted-foreground">
+                        {{ dialogSearchQuery.trim() ? 'No links match your search' : 'No links found' }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div v-if="dialogLinks.length > 0 || dialogLinksPagination.total > 0" class="flex items-center justify-between pt-4 border-t mt-4 flex-shrink-0">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    @click="loadPrevDialogLinksPage"
+                    :disabled="!dialogLinksPagination.hasPrevPage || dialogLinksLoading"
+                    class="h-9"
+                >
+                    <ChevronRight class="h-4 w-4 rotate-180 mr-1" />
+                    Previous
+                </Button>
+                <span class="text-sm text-muted-foreground">
+                    Page {{ dialogLinksPagination.currentPage }} of {{ dialogLinksPagination.lastPage }}
+                </span>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    @click="loadNextDialogLinksPage"
+                    :disabled="!dialogLinksPagination.hasNextPage || dialogLinksLoading"
+                    class="h-9"
+                >
+                    Next
+                    <ChevronRight class="h-4 w-4 ml-1" />
+                </Button>
+            </div>
+        </DialogContent>
+    </Dialog>
     </div>
 </template>

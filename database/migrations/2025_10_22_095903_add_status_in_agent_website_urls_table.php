@@ -20,7 +20,7 @@ return new class extends Migration
         foreach ($urls as $url) {
             DB::table('agent_website_urls')
                 ->where('id', $url->id)
-                ->update(['status' => 'completed']);
+                ->update(['status' => 'ingested']);
         }
     }
 

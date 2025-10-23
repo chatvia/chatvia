@@ -84,7 +84,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
             ->name('Ingestion Agent WebSite URL ID: '.$websiteUrlId)
             ->then(function (Batch $batch) use ($websiteUrlId) {
                 $url = AgentWebsiteUrl::where('url', $websiteUrlId)->first();
-                $url->update(['status' => 'ingested']);
+                $url->update(['status' => 'ingested', 'crawled_at' => now()]);
             })
             ->dispatch();
 

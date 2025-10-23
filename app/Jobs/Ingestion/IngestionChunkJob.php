@@ -116,7 +116,7 @@ class IngestionChunkJob implements ShouldQueue
             // Update status
             if ($ref->referenceable_type === AgentWebsiteUrl::class) {
                 $url = AgentWebsiteUrl::find($ref->referenceable_id);
-                $url->update(['status' => 'ingested']);
+                $url->update(['status' => 'ingested', 'crawled_at' => now()]);
 
                 UrlIngestionEvent::dispatch($url);
             }

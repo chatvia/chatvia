@@ -26,6 +26,7 @@ class UrlIngestionEvent implements ShouldBroadcastNow
             'id' => $this->websiteUrl->id,
             'url' => $this->websiteUrl->url,
             'status' => $this->websiteUrl->status,
+            'crawled_at' => $this->websiteUrl->crawled_at,
         ];
     }
 }

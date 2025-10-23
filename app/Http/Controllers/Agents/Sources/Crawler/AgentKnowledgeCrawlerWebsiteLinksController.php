@@ -25,6 +25,6 @@ class AgentKnowledgeCrawlerWebsiteLinksController
             $query->where('url', 'like', '%'.$searchTerm.'%');
         }
 
-        return $query->simplePaginate(50);
+        return $query->latest('crawled_at')->simplePaginate(50);
     }
 }

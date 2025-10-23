@@ -448,6 +448,7 @@ const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuer
             link: linkObj.url || linkObj.link || linkObj, // Backend uses 'url' field
             text: linkObj.text || linkObj.title || (typeof linkObj === 'string' ? linkObj.split('/').pop() || linkObj : ''),
             found_on_url: linkObj.found_on_url || '',
+            crawled_at: linkObj.crawled_at || linkObj.created_at || linkObj.updated_at || '',
             status: linkObj.status || 'ingested',
             agent_website_id: linkObj.agent_website_id // Store for WebSocket matching
         }));
@@ -782,17 +783,18 @@ const handleCrawlingUpdate = async (event: any) => {
 };
 
 const handleUrlIngestionUpdate = (event: any) => {
-    // The event structure from backend: { status: string, id: number, url: string }
+    // The event structure from backend: { status: string, id: number, url: string, crawled_at: string }
     // Note: agent_website_id is NOT included in the event, so we search by link ID
     const status = event.status;
     const link_id = event.id;
+    const crawled_at = event.crawled_at;
 
     if (!link_id) {
         console.warn('Missing link_id in URL ingestion event', event);
         return;
     }
 
-    // Update link status in dialog links if currently viewing them
+    // Update link status and crawled_at in dialog links if currently viewing them
     if (currentWebsite.value && dialogLinks.value.length > 0) {
         const linkIndex = dialogLinks.value.findIndex(link => link.id === link_id);
 
@@ -801,13 +803,14 @@ const handleUrlIngestionUpdate = (event: any) => {
             const updatedLinks = [...dialogLinks.value];
             updatedLinks[linkIndex] = {
                 ...updatedLinks[linkIndex],
-                status
+                status,
+                crawled_at
             };
             dialogLinks.value = updatedLinks;
         }
     }
 
-    // Search for the link across all website sources and update its status
+    // Search for the link across all website sources and update its status and crawled_at
     const updatedSources = [...webSources.value];
     let linkFound = false;
 
@@ -818,11 +821,12 @@ const handleUrlIngestionUpdate = (event: any) => {
             const linkIndex = source.discovered_links.findIndex(link => link.id === link_id);
 
             if (linkIndex !== -1) {
-                // Found the link - update its status
+                // Found the link - update its status and crawled_at
                 const updatedLinks = [...source.discovered_links];
                 updatedLinks[linkIndex] = {
                     ...updatedLinks[linkIndex],
-                    status
+                    status,
+                    crawled_at
                 };
 
                 updatedSources[sourceIndex] = {
@@ -1356,7 +1360,7 @@ const fetchDialogLinks = async (websiteId: number, page: number = 1, searchQuery
             link: linkObj.url || linkObj.link || linkObj, // Backend uses 'url' field
             text: linkObj.text || linkObj.title || (typeof linkObj === 'string' ? linkObj.split('/').pop() || linkObj : ''),
             found_on_url: linkObj.found_on_url || '',
-            crawled_at: linkObj.crawled_at || linkObj.created_at || '',
+            crawled_at: linkObj.crawled_at || linkObj.created_at || linkObj.updated_at || '',
             status: linkObj.status || 'ingested',
             agent_website_id: linkObj.agent_website_id // Store for WebSocket matching
         }));

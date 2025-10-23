@@ -7,7 +7,7 @@
 
 <!-- Preload critical resources -->
 <link rel="preload" href="{{ asset('images/chatvia.png') }}" as="image" />
-<link rel="preload" href="{{ asset('images/landing/intro.png') }}" as="image" />
+<link rel="preload" href="{{ asset('images/chatvia.png') }}" as="image" />
 <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
 <link rel="dns-prefetch" href="//fonts.googleapis.com" />
 

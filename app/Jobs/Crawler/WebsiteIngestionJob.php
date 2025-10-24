@@ -125,6 +125,7 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $prompt = PromptLoader::load('chunking/web');
 
+        $checksums = [];
         foreach ($urlsWithChunks as $url => $data) {
             foreach ($data['chunks'] as $chunk) {
                 $jobs[] = new IngestionChunkJob($chunk, $prompt, chunkReference: [
@@ -132,6 +133,7 @@ class WebsiteIngestionJob implements ShouldQueue
                     'referenceable_id' => $urlToId[$url],
                 ]);
             }
+            $checksums[] = $data['checksum'];
         }
 
         $websiteId = $this->website->id;
@@ -153,6 +155,7 @@ class WebsiteIngestionJob implements ShouldQueue
             'internal_ingestion_job_id' => $this->job->getJobId(),
             'internal_chunking_batch_id' => $batch->id,
             'expected_chunks' => $totalChunks,
+            'checksum' => md5(collect($checksums)->implode('')),
         ]);
     }
 }

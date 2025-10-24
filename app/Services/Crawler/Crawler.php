@@ -37,14 +37,14 @@ class Crawler
         $queue = new CrawlerQueue;
 
         $crawler = CrawlerSpatie::create()
-            ->setCrawlObserver(new CrawlerObserver)
             ->setCrawlQueue($queue)
+            ->setCrawlObserver(new CrawlerObserver)
+            ->setCrawlProfile(new CrawlerProfile($data->url))
             ->setConcurrency($this->concurrency)
+            ->setTotalCrawlLimit($this->totalCrawlLimit)
             ->setDelayBetweenRequests($data->slow_crawling ? 1000 : 0)
             ->doNotExecuteJavaScript()
-            ->respectRobots()
-            ->setTotalCrawlLimit($this->totalCrawlLimit)
-            ->setCrawlProfile(new CrawlerProfile($data->url));
+            ->respectRobots();
 
         if ($data->limit) {
             $crawler = $crawler->setTotalCrawlLimit($data->limit);

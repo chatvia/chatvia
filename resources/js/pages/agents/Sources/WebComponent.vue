@@ -151,6 +151,12 @@ const syncFormWithSettings = () => {
 const deleteDialogOpen = ref(false);
 const sourceToDelete = ref<WebSource | null>(null);
 
+// Retrain dialog state
+const retrainDialogOpen = ref(false);
+const websiteToRetrain = ref<WebSource | null>(null);
+const reCrawlNewLinks = ref(false);
+const showRetrainButton = ref(false); // Control visibility of retrain website button
+
 // Auto-refresh for crawling sources
 const refreshInterval = ref<number | null>(null);
 
@@ -1563,13 +1569,27 @@ const retrainDialogLink = async (linkId: number) => {
     }
 };
 
+// Open retrain dialog
+const openRetrainDialog = (websiteId: number) => {
+    const website = webSources.value.find(s => s.id === websiteId);
+    if (website) {
+        websiteToRetrain.value = website;
+        reCrawlNewLinks.value = false;
+        retrainDialogOpen.value = true;
+    }
+};
+
 // Retrain entire website
-const retrainEntireWebsite = async (websiteId: number) => {
+const retrainEntireWebsite = async () => {
+    if (!websiteToRetrain.value) return;
+
     try {
-        await axios.post(route('agents.sources.website.retrain', {
+        await axios.post(route('agents.sources.website.train', {
             agent: props.agent.id,
-            website: websiteId
-        }));
+            website: websiteToRetrain.value.id
+        }), {
+            recrawl: reCrawlNewLinks.value
+        });
 
         toast.success('Website retraining started successfully');
 
@@ -1578,6 +1598,10 @@ const retrainEntireWebsite = async (websiteId: number) => {
     } catch (error: any) {
         console.error('Failed to retrain website:', error);
         toast.error(error.response?.data?.message || 'Failed to retrain website');
+    } finally {
+        retrainDialogOpen.value = false;
+        websiteToRetrain.value = null;
+        reCrawlNewLinks.value = false;
     }
 };
 
@@ -1802,8 +1826,8 @@ onUnmounted(() => {
         <Card v-if="crawlingSources.length > 0">
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
-                    <LoaderCircle class="h-5 w-5 animate-spin text-blue-600" />
-                    Crawling Websites
+                    <NetworkIcon class="h-5 w-5" />
+                    Crawling...
                 </CardTitle>
                 <CardDescription>
                     {{ crawlingSources.length }} website{{ crawlingSources.length !== 1 ? 's' : '' }} currently being crawled.
@@ -1885,7 +1909,7 @@ onUnmounted(() => {
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <NetworkIcon class="h-5 w-5" />
-                    Crawled Websites
+                    Crawled
                 </CardTitle>
                 <CardDescription>
                     {{ crawledSources.length }} website{{ crawledSources.length !== 1 ? 's' : '' }} crawled and ready for training.
@@ -2423,14 +2447,14 @@ onUnmounted(() => {
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                     <!-- Retrain Website Button -->
-                                                    <TooltipProvider>
+                                                    <TooltipProvider v-if="showRetrainButton">
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <Button
                                                                     class="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 flex-shrink-0"
                                                                     size="sm"
                                                                     variant="ghost"
-                                                                    @click="retrainEntireWebsite(source.id)"
+                                                                    @click="openRetrainDialog(source.id)"
                                                                 >
                                                                     <RefreshCw class="h-4 w-4" />
                                                                 </Button>
@@ -2669,14 +2693,14 @@ onUnmounted(() => {
                                                     </Tooltip>
                                                 </TooltipProvider>
                                                 <!-- Retrain Website Button -->
-                                                <TooltipProvider>
+                                                <TooltipProvider v-if="showRetrainButton">
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button
                                                                 class="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 flex-shrink-0"
                                                                 size="sm"
                                                                 variant="ghost"
-                                                                @click="retrainEntireWebsite(source.id)"
+                                                                @click="openRetrainDialog(source.id)"
                                                             >
                                                                 <RefreshCw class="h-4 w-4" />
                                                             </Button>
@@ -2862,6 +2886,51 @@ onUnmounted(() => {
         cancel-text="Cancel"
         @confirm="deleteWebSource"
     />
+
+    <!-- Retrain Website Dialog -->
+    <Dialog v-model:open="retrainDialogOpen">
+        <DialogContent class="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Retrain Website</DialogTitle>
+                <DialogDescription>
+                    Retrain {{ websiteToRetrain?.name || getDomainFromUrl(websiteToRetrain?.url || '') }} to update your agent's knowledge with the latest content.
+                </DialogDescription>
+            </DialogHeader>
+            <div class="space-y-4 py-4">
+                <div class="flex items-start gap-3 p-3 rounded-lg border bg-muted/50">
+                    <Checkbox
+                        :id="'recrawl-checkbox'"
+                        :checked="reCrawlNewLinks"
+                        @update:checked="(checked: boolean) => reCrawlNewLinks = checked"
+                    />
+                    <div class="grid gap-1.5 leading-none">
+                        <Label
+                            :for="'recrawl-checkbox'"
+                            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                            Re-crawl and train new links
+                        </Label>
+                        <p class="text-sm text-muted-foreground">
+                            If checked, the website will be crawled again to discover and train any new pages that have been added since the last crawl.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <Button
+                    variant="outline"
+                    @click="retrainDialogOpen = false"
+                >
+                    Cancel
+                </Button>
+                <Button
+                    @click="retrainEntireWebsite"
+                >
+                    Start Retraining
+                </Button>
+            </div>
+        </DialogContent>
+    </Dialog>
 
     <!-- Links Dialog Modal -->
     <Dialog v-model:open="linksDialogOpen" @update:open="(open) => !open && closeLinksDialog()">

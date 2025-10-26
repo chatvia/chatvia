@@ -4,6 +4,74 @@ import filesDccab9 from './files'
 import website from './website'
 import websites from './websites'
 /**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesStatsController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeSourcesStatsController.php:10
+* @route '/agents/{agent}/sources/stats'
+*/
+export const stats = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: stats.url(args, options),
+    method: 'get',
+})
+
+stats.definition = {
+    methods: ["get","head"],
+    url: '/agents/{agent}/sources/stats',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesStatsController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeSourcesStatsController.php:10
+* @route '/agents/{agent}/sources/stats'
+*/
+stats.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { agent: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { agent: args.id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            agent: args[0],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        agent: typeof args.agent === 'object'
+        ? args.agent.id
+        : args.agent,
+    }
+
+    return stats.definition.url
+            .replace('{agent}', parsedArgs.agent.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesStatsController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeSourcesStatsController.php:10
+* @route '/agents/{agent}/sources/stats'
+*/
+stats.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: stats.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesStatsController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeSourcesStatsController.php:10
+* @route '/agents/{agent}/sources/stats'
+*/
+stats.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: stats.url(args, options),
+    method: 'head',
+})
+
+/**
 * @see \App\Http\Controllers\Agents\Sources\AgentKnowledgePdfController::__invoke
 * @see app/Http/Controllers/Agents/Sources/AgentKnowledgePdfController.php:12
 * @route '/agents/{agent}/sources/pdf'
@@ -402,6 +470,7 @@ uploadedFiles.delete = (args: { agent: number | { id: number } } | [agent: numbe
 })
 
 const sources = {
+    stats: Object.assign(stats, stats),
     pdf: Object.assign(pdf, pdf),
     word: Object.assign(word, word),
     web: Object.assign(web, web),

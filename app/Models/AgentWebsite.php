@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Contracts\ChunkableContract;
+use App\Data\Crawler\CrawlerData;
+use App\Events\WebsiteCrawlerEvent;
+use App\Jobs\Crawler\WebsiteCrawlerJob;
 use App\Jobs\Crawler\WebsiteIngestionJob;
 use App\Traits\Chunkable;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +33,26 @@ class AgentWebsite extends Model implements ChunkableContract
     public function startTraining(): void
     {
         WebsiteIngestionJob::dispatch($this);
+    }
+
+    public function startCrawling(): void
+    {
+        // Update status to crawling
+        $this->update(['status' => 'crawling']);
+
+        // Prepare crawler data from the website's URL and options
+        $crawlerData = CrawlerData::from([
+            'url' => $this->url,
+            'slow_crawling' => $this->options['slow_crawling'] ?? false,
+            'include_paths' => $this->options['include_paths'] ?? null,
+            'exclude_paths' => $this->options['exclude_paths'] ?? null,
+        ]);
+
+        // Dispatch crawler event
+        WebsiteCrawlerEvent::dispatch($this);
+
+        // Dispatch crawler job
+        WebsiteCrawlerJob::dispatch($this, $crawlerData);
     }
 
     public function urls(): HasMany

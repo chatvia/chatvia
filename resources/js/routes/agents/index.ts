@@ -462,8 +462,8 @@ security.head = (args: { agent: number | { id: number } } | [agent: number | { i
 })
 
 /**
-* @see \App\Http\Controllers\Agents\Files\AgentKnowledgeController::__invoke
-* @see app/Http/Controllers/Agents/Files/AgentKnowledgeController.php:11
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeSourcesController.php:11
 * @route '/agents/{agent}/sources'
 */
 export const sources = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -477,8 +477,8 @@ sources.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see \App\Http\Controllers\Agents\Files\AgentKnowledgeController::__invoke
-* @see app/Http/Controllers/Agents/Files/AgentKnowledgeController.php:11
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeSourcesController.php:11
 * @route '/agents/{agent}/sources'
 */
 sources.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -510,8 +510,8 @@ sources.url = (args: { agent: number | { id: number } } | [agent: number | { id:
 }
 
 /**
-* @see \App\Http\Controllers\Agents\Files\AgentKnowledgeController::__invoke
-* @see app/Http/Controllers/Agents/Files/AgentKnowledgeController.php:11
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeSourcesController.php:11
 * @route '/agents/{agent}/sources'
 */
 sources.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -520,8 +520,8 @@ sources.get = (args: { agent: number | { id: number } } | [agent: number | { id:
 })
 
 /**
-* @see \App\Http\Controllers\Agents\Files\AgentKnowledgeController::__invoke
-* @see app/Http/Controllers/Agents/Files/AgentKnowledgeController.php:11
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeSourcesController.php:11
 * @route '/agents/{agent}/sources'
 */
 sources.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({

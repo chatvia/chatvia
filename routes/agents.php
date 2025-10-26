@@ -16,7 +16,6 @@ use App\Http\Controllers\Agents\Agents\AgentUpdateSettingsController;
 use App\Http\Controllers\Agents\Appearance\AgentAppearanceController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agents\Embed\EmbedController;
-use App\Http\Controllers\Agents\Files\AgentKnowledgeController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsDeleteController;
@@ -34,6 +33,8 @@ use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesProcessController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFileUploadController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgePdfController;
+use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesController;
+use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesStatsController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeUploadedFilesDeleteController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWordController;
@@ -85,7 +86,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('security', AgentSecurityController::class)->name('security');
 
         // Knowledge
-        Route::get('sources', AgentKnowledgeController::class)->name('sources');
+        Route::get('sources', AgentKnowledgeSourcesController::class)->name('sources');
+        Route::get('sources/stats', AgentKnowledgeSourcesStatsController::class)->name('sources.stats');
         Route::get('sources/pdf', AgentKnowledgePdfController::class)->name('sources.pdf');
         Route::get('sources/word', AgentKnowledgeWordController::class)->name('sources.word');
         Route::get('sources/web', AgentKnowledgeWebController::class)->name('sources.web');

@@ -15,7 +15,17 @@ class AgentKnowledgeCrawlerWebsiteTrainController
             code: 404,
         );
 
-        $website->startTraining();
+        $validated = $request->validate([
+            'recrawl' => ['nullable', 'boolean'],
+        ]);
+
+        if ($validated['recrawl'] ?? false) {
+            // Re-crawl the website to discover new links
+            $website->startCrawling();
+        } else {
+            // Just retrain existing links
+            $website->startTraining();
+        }
 
         return back()->with('success', 'Training started successfully');
     }

@@ -6,14 +6,24 @@ import Files from './Files.vue';
 import WebComponent from './WebComponent.vue';
 import TextComponent from './TextComponent.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import axios from 'axios';
 
 interface Props {
     agent: any;
-    currentType?: string;
+}
+
+interface SourceStats {
+    websites: number;
+    texts: number;
+    pdf: number;
+    word: number;
+    [key: string]: number;
 }
 
 const props = defineProps<Props>();
 const page = usePage();
+const stats = ref<SourceStats | null>(null);
+const isLoadingStats = ref(true);
 
 // Knowledge base content types
 const contentTypes = [
@@ -22,49 +32,56 @@ const contentTypes = [
         label: 'PDF',
         icon: 'pi-file-pdf',
         description: 'Upload and manage PDF documents',
-        route: 'agents.sources.pdf'
+        route: 'agents.sources.pdf',
+        statsKey: 'pdf'
     },
     {
         id: 'word',
         label: 'Word',
         icon: 'pi-file-word',
         description: 'Upload and manage Word documents',
-        route: 'agents.sources.word'
+        route: 'agents.sources.word',
+        statsKey: 'word'
     },
     {
         id: 'text',
         label: 'Text',
         icon: 'pi-align-justify',
         description: 'Add custom text content and notes directly',
-        route: 'agents.sources.text'
+        route: 'agents.sources.text',
+        statsKey: 'texts'
     },
     {
         id: 'web',
         label: 'Website',
         icon: 'pi-globe',
         description: 'Crawl websites and web pages for knowledge',
-        route: 'agents.sources.web'
+        route: 'agents.sources.web',
+        statsKey: 'websites'
     },
     {
         id: 'audio',
         label: 'Audio',
         icon: 'pi-volume-up',
         description: 'Upload audio files and podcasts for transcription',
-        route: null // Will be implemented later
+        route: null, // Will be implemented later
+        statsKey: null
     },
     {
         id: 'video',
         label: 'Video',
         icon: 'pi-video',
         description: 'Upload video files for transcription and analysis',
-        route: null // Will be implemented later
+        route: null, // Will be implemented later
+        statsKey: null
     },
     {
         id: 'youtube',
         label: 'YouTube',
         icon: 'pi-youtube',
         description: 'Import YouTube videos and extract transcripts',
-        route: null // Will be implemented later
+        route: null, // Will be implemented later
+        statsKey: null
     },
 ];
 
@@ -117,9 +134,43 @@ const selectContentType = (typeId: string) => {
     }
 };
 
+// Fetch stats from API
+const fetchStats = async () => {
+    try {
+        isLoadingStats.value = true;
+        const response = await axios.get(route('agents.sources.stats', { agent: props.agent.id }));
+        stats.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch source stats:', error);
+    } finally {
+        isLoadingStats.value = false;
+    }
+};
+
+// Get stat count for a content type
+const getStatCount = (statsKey: string | null): number | null => {
+    if (!statsKey || !stats.value || !(statsKey in stats.value)) {
+        return null;
+    }
+    return stats.value[statsKey] || 0;
+};
+
+// Format label with count
+const formatLabel = (contentType: any): string => {
+    if (isLoadingStats.value) {
+        return contentType.label;
+    }
+    const count = getStatCount(contentType.statsKey);
+    if (count !== null) {
+        return `${contentType.label} (${count})`;
+    }
+    return contentType.label;
+};
+
 // Update selected type when component mounts or route changes
 onMounted(() => {
     selectedContentType.value = getCurrentType();
+    fetchStats();
 });
 </script>
 
@@ -158,7 +209,7 @@ onMounted(() => {
                                     ]">
                                         <i :class="`pi ${contentType.icon} text-2xl`" />
                                     </div>
-                                    <h3 class="font-medium text-sm">{{ contentType.label }}</h3>
+                                    <h3 class="font-medium text-sm">{{ formatLabel(contentType) }}</h3>
                                 </div>
 
                                 <!-- Selected indicator -->

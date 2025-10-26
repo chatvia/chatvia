@@ -1,3 +1,5 @@
+import AgentKnowledgeSourcesController from './AgentKnowledgeSourcesController'
+import AgentKnowledgeSourcesStatsController from './AgentKnowledgeSourcesStatsController'
 import AgentKnowledgePdfController from './AgentKnowledgePdfController'
 import AgentKnowledgeWordController from './AgentKnowledgeWordController'
 import AgentKnowledgeWebController from './AgentKnowledgeWebController'
@@ -10,6 +12,8 @@ import AgentKnowledgeFilesProcessController from './AgentKnowledgeFilesProcessCo
 import Crawler from './Crawler'
 
 const Sources = {
+    AgentKnowledgeSourcesController: Object.assign(AgentKnowledgeSourcesController, AgentKnowledgeSourcesController),
+    AgentKnowledgeSourcesStatsController: Object.assign(AgentKnowledgeSourcesStatsController, AgentKnowledgeSourcesStatsController),
     AgentKnowledgePdfController: Object.assign(AgentKnowledgePdfController, AgentKnowledgePdfController),
     AgentKnowledgeWordController: Object.assign(AgentKnowledgeWordController, AgentKnowledgeWordController),
     AgentKnowledgeWebController: Object.assign(AgentKnowledgeWebController, AgentKnowledgeWebController),

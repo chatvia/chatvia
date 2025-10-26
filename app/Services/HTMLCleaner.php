@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Services\Crawler;
+namespace App\Services;
 
 use Symfony\Component\DomCrawler\Crawler as DOMCrawler;
 
-class HTMLParser
+class HTMLCleaner
 {
     private function unwantedTags(): array
     {
+        // TODO: this should be the way around (allowed list not blacklist)
         return [
             'script',
             'style',

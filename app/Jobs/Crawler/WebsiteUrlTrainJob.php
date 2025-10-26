@@ -7,7 +7,7 @@ use App\Jobs\Ingestion\IngestionChunkJob;
 use App\Models\AgentWebsite;
 use App\Models\AgentWebsiteUrl;
 use App\Services\Chunker;
-use App\Services\Crawler\HTMLParser;
+use App\Services\HTMLCleaner;
 use App\Services\Ingestion\RecursiveCharacterTextSplitter;
 use App\Support\PromptLoader;
 use Illuminate\Bus\Batch;
@@ -26,7 +26,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
     public function __construct(public AgentWebsiteUrl $websiteUrl) {}
 
-    public function handle(HTMLParser $parser, RecursiveCharacterTextSplitter $splitter): void
+    public function handle(HTMLCleaner $parser, RecursiveCharacterTextSplitter $splitter): void
     {
         $response = Http::retry(3, 1000)->get($this->websiteUrl->url)->throw();
 

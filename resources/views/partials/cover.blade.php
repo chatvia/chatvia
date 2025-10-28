@@ -58,6 +58,13 @@
     "priceCurrency": "USD",
     "description": "Free plan available, no credit card required"
   },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "127",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
   "provider": {
     "@type": "Organization",
     "name": "ChatVIA",

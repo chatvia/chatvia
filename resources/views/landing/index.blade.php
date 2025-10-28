@@ -64,7 +64,7 @@
                  x-data="{ bubbles: {{ Js::from($landing['bubbles']) }}, visible: [] }"
                  x-init="bubbles.forEach((b, i) => setTimeout(() => visible.push(i), b.delay))">
                 <div class="relative w-full flex items-center justify-center">
-                    <img src="{{ asset('images/girl.png') }}" alt="Girl holding phone"
+                    <img src="{{ asset('images/girl.webp') }}" alt="Girl holding phone"
                          class="w-full max-w-3xl h-auto rounded-2xl z-10"/>
                     <!-- Chat bubbles -->
                     <template x-for="(bubble, i) in bubbles" :key="i">

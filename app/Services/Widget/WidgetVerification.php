@@ -26,7 +26,7 @@ class WidgetVerification
         // Check if domain is in the agent's allowed sites
         $widgetSettings = $agent->settings('widget');
 
-        $allowedSites = array_merge($widgetSettings['sites'], ['localhost', 'chatvia.ai', 'chatvia.test']) ?? [];
+        $allowedSites = array_merge($widgetSettings['sites'], ['localhost', 'chatvia.test']) ?? [];
 
         return $this->isDomainAllowed($requestingDomain, $allowedSites);
     }

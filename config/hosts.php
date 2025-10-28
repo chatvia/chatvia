@@ -143,8 +143,8 @@ return [
         ],
         'landing' => [
             'title' => 'Chatvia.ai',
-            'keywords' => ['Chatvia.ai', 'Chatbot', 'Chat widget', 'Chat platform'],
-            'description' => 'Chatvia.ai is a powerful chatbot platform that helps you create engaging and personalized interactions with your customers.',
+            'keywords' => ['Chatvia.ai', 'AI Chatbot', 'Custom GPT', 'ChatGPT Alternative', 'AI Agents', 'Document AI', 'Knowledge Base AI'],
+            'description' => 'Create custom ChatGPT-like AI agents from your data.',
             'navigation' => [
                 ['label' => 'Home', 'link' => '/'],
                 ['label' => 'Features', 'link' => '/#features'],

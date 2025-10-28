@@ -20,6 +20,7 @@
         "inertiajs/inertia-laravel": "^2.0",
         "intervention/image": "^3.11",
         "intervention/image-laravel": "^1.5",
+        "james-heinrich/getid3": "^1.9",
         "kreait/laravel-firebase": "^6.0",
         "laravel/cashier": "^15.6",
         "laravel/framework": "^12.0",

@@ -13,7 +13,7 @@ class RedirectToAgent
         $subdomain = $request->subdomain();
         $path = $request->path();
 
-        if ($subdomain && ! str_starts_with($path, 'chat')) {
+        if ($subdomain && $subdomain !== 'www' && ! str_starts_with($path, 'chat')) {
             return to_route('chat.home');
         }
 

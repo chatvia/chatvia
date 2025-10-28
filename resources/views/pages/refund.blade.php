@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Refund Policy - ChatVia</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('partials.cover')
 </head>
 <body class="bg-gray-50 text-gray-900">
 <div class="min-h-screen">
@@ -102,7 +103,7 @@
                     <li><strong>Review:</strong> 2-3 business days for request review</li>
                     <li><strong>Processing:</strong> 5-10 business days for refund to appear</li>
                     <li><strong>Bank Processing:</strong> Additional 3-5 business days for bank processing</li>
-                </ul>                
+                </ul>
             </section>
 
             <!-- Exclusions and Limitations -->
@@ -191,7 +192,7 @@
                     This refund policy is subject to applicable local consumer protection laws. If local laws provide greater refund rights, those laws will take precedence over this policy.
                 </p>
 
-               
+
             </section>
 
             <!-- Contact Information -->

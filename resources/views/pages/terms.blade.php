@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service - ChatVia</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('partials.cover')
 </head>
 <body class="bg-gray-50 text-gray-900">
 <div class="min-h-screen">

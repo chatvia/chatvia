@@ -1,6 +1,6 @@
 @extends('landing.layouts.app')
 
-@section('title', 'Blog')
+@section('title', 'Blog - AI Chatbot Insights, Knowledge Management & Automation Tips')
 
 @section('content')
     @include('landing.partials.header')

@@ -6,6 +6,7 @@ use App\Http\Middleware\ChatHandleInertiaRequests;
 use App\Http\Middleware\ContentSecurityPolicy;
 use App\Http\Middleware\EnsureAgentHasMessagesCapacity;
 use App\Http\Middleware\EnsureChatIsAccessible;
+use App\Http\Middleware\ForceWww;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\MemberGuestMiddleware;
@@ -40,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             //            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            ForceWww::class,
         ]);
 
         $middleware->group('chat', [

@@ -30,6 +30,12 @@ export default defineConfig({
             threshold: 10240, // Only compress files larger than 10kb
             deleteOriginFile: false,
         }),
+        compression({
+            algorithm: 'brotliCompress',
+            ext: '.br',
+            threshold: 10240, // Only compress files larger than 10kb
+            deleteOriginFile: false,
+        }),
     ],
     resolve: {
         alias: {
@@ -46,5 +52,7 @@ export default defineConfig({
                 drop_debugger: true,
             },
         },
+        cssMinify: 'lightningcss', // Better CSS minification
+        cssCodeSplit: true, // Split CSS for better caching
     },
 });

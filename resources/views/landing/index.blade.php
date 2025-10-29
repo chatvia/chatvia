@@ -440,6 +440,11 @@
                                                 {{ $landing['features']['steps']['steps'][0]['title'] }}
                                             </div>
                                         </h2>
+                                        @if(isset($landing['features']['steps']['steps'][0]['description']))
+                                            <p class="text-slate-500 text-lg">
+                                                {{ $landing['features']['steps']['steps'][0]['description'] }}
+                                            </p>
+                                        @endif
 
                                     </article>
 
@@ -470,6 +475,11 @@
                                                 {{ $landing['features']['steps']['steps'][1]['title'] }}
                                             </div>
                                         </h2>
+                                        @if(isset($landing['features']['steps']['steps'][1]['description']))
+                                            <p class="text-slate-500 text-lg">
+                                                {{ $landing['features']['steps']['steps'][1]['description'] }}
+                                            </p>
+                                        @endif
 
                                     </article>
 
@@ -500,6 +510,11 @@
                                                 {{ $landing['features']['steps']['steps'][2]['title'] }}
                                             </div>
                                         </h2>
+                                        @if(isset($landing['features']['steps']['steps'][2]['description']))
+                                            <p class="text-slate-500 text-lg">
+                                                {{ $landing['features']['steps']['steps'][2]['description'] }}
+                                            </p>
+                                        @endif
 
                                     </article>
 

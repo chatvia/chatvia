@@ -1,5 +1,5 @@
 <template>
-    <AgentLayout :agent="agent" title="Preview">
+    <AgentLayout :agent="agent" title="Playground">
         <template #header-actions>
             <div class="flex items-center gap-2">
                 <Button

@@ -12,8 +12,8 @@
 <link rel="dns-prefetch" href="//fonts.googleapis.com" />
 
 <!-- SEO Meta Tags -->
-<meta name="description" content="Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files. Launch in minutes with different data sources and deployment options. No credit card required." />
-<meta name="keywords" content="AI agents, ChatGPT alternative, RAG, document processing, PDF analysis, AI chatbot, custom AI, knowledge base, document upload, AI training" />
+<meta name="description" content="@yield('description', 'Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files. Launch in minutes with different data sources and deployment options. No credit card required.')" />
+<meta name="keywords" content="@yield('keywords', 'AI agents, ChatGPT alternative, RAG, document processing, PDF analysis, AI chatbot, custom AI, knowledge base, document upload, AI training')" />
 <meta name="author" content="ChatVIA" />
 <meta name="robots" content="index, follow" />
 <link rel="canonical" href="{{ url()->current() }}" />
@@ -21,9 +21,9 @@
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ url()->current() }}" />
-<meta property="og:title" content="ChatVIA - Create AI Agents similar to ChatGPT but with your own data" />
-<meta property="og:description" content="Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files. Launch in minutes with different data sources and deployment options." />
-<meta property="og:image" content="{{ asset('images/chatvia.png') }}" />
+<meta property="og:title" content="@yield('og_title', 'ChatVIA - Create AI Agents similar to ChatGPT but with your own data')" />
+<meta property="og:description" content="@yield('og_description', 'Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files. Launch in minutes with different data sources and deployment options.')" />
+<meta property="og:image" content="@yield('og_image', asset('images/chatvia.png'))" />
 <meta property="og:image:width" content="1920" />
 <meta property="og:image:height" content="1080" />
 <meta property="og:site_name" content="ChatVIA.ai" />
@@ -32,9 +32,9 @@
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:url" content="{{ url()->current() }}" />
-<meta name="twitter:title" content="ChatVIA - Create AI Agents similar to ChatGPT but with your own data" />
-<meta name="twitter:description" content="Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files." />
-<meta name="twitter:image" content="{{ asset('images/chatvia.png') }}" />
+<meta name="twitter:title" content="@yield('twitter_title', 'ChatVIA - Create AI Agents similar to ChatGPT but with your own data')" />
+<meta name="twitter:description" content="@yield('twitter_description', 'Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files.')" />
+<meta name="twitter:image" content="@yield('twitter_image', asset('images/chatvia.png'))" />
 <meta name="twitter:site" content="@ahmadmayahi" />
 <meta name="twitter:creator" content="@ahmadmayahi" />
 

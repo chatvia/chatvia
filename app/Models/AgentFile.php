@@ -78,23 +78,12 @@ class AgentFile extends Model implements ChunkableContract
 
     public function isAudioFile(): bool
     {
-        $audioMimeTypes = [
-            'audio/mpeg',           // .mp3
-            'audio/mp4',            // .m4a
-            'audio/wav',            // .wav
-            'audio/wave',           // .wav (alternative)
-            'audio/x-wav',          // .wav (alternative)
-            'audio/ogg',            // .ogg
-            'audio/webm',           // .webm
-            'audio/flac',           // .flac
-            'audio/aac',            // .aac
-            'audio/x-ms-wma',       // .wma
-            'audio/amr',            // .amr
-            'audio/3gpp',           // .3gp
-            'audio/x-m4a',          // .m4a (alternative)
-        ];
+        return in_array($this->mime_type, config('mimes.audio'), true);
+    }
 
-        return in_array($this->mime_type, $audioMimeTypes, true);
+    public function isVideoFile(): bool
+    {
+        return in_array($this->mime_type, config('mimes.video'), true);
     }
 
     public function convertToPdf(): ?File

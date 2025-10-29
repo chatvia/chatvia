@@ -84,7 +84,15 @@ return [
     */
 
     'waits' => [
-        'redis:default' => 900,
+        'redis:default' => 60,
+        'redis:ingestion.video' => 900,
+        'redis:ingestion.audio' => 900,
+        'redis:ingestion.pdf' => 300,
+        'redis:ingestion.word' => 300,
+        'redis:ingestion.website' => 300,
+        'redis:ingestion.youtube' => 300,
+        'redis:ingestion.text' => 60,
+        'redis:ingestion.markdown' => 60,
     ],
 
     /*
@@ -182,7 +190,7 @@ return [
     'defaults' => [
         'app' => [
             'connection' => 'redis',
-            'queue' => ['default', 'ingestion', 'messages'],
+            'queue' => ['default', 'messages'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
@@ -190,7 +198,46 @@ return [
             'maxJobs' => 0,
             'memory' => 128,
             'tries' => 1,
-            'timeout' => 2000,
+            'timeout' => 60,
+            'nice' => 0,
+        ],
+        'ingestion-heavy' => [
+            'connection' => 'redis',
+            'queue' => ['ingestion.video', 'ingestion.audio'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 3,
+            'timeout' => 900, // 15 minutes for video/audio processing
+            'nice' => 0,
+        ],
+        'ingestion-medium' => [
+            'connection' => 'redis',
+            'queue' => ['ingestion.pdf', 'ingestion.word', 'ingestion.website', 'ingestion.youtube'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 3,
+            'timeout' => 600, // 10 minutes for PDF/Word/Website
+            'nice' => 0,
+        ],
+        'ingestion-light' => [
+            'connection' => 'redis',
+            'queue' => ['ingestion.text', 'ingestion.markdown'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 120, // 2 minute for text/markdown
             'nice' => 0,
         ],
         'monitor' => [
@@ -203,7 +250,7 @@ return [
             'maxJobs' => 0,
             'memory' => 128,
             'tries' => 1,
-            'timeout' => 2000,
+            'timeout' => 60,
             'nice' => 0,
         ],
     ],
@@ -211,7 +258,22 @@ return [
     'environments' => [
         'production' => [
             'app' => [
-                'maxProcesses' => 100,
+                'maxProcesses' => 50,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'ingestion-heavy' => [
+                'maxProcesses' => 50, // Limited for CPU-intensive video/audio
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'ingestion-medium' => [
+                'maxProcesses' => 100, // More for PDF/Word/Website
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'ingestion-light' => [
+                'maxProcesses' => 50, // Most for fast text/markdown
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
@@ -224,6 +286,15 @@ return [
 
         'local' => [
             'app' => [
+                'maxProcesses' => 3,
+            ],
+            'ingestion-heavy' => [
+                'maxProcesses' => 1,
+            ],
+            'ingestion-medium' => [
+                'maxProcesses' => 2,
+            ],
+            'ingestion-light' => [
                 'maxProcesses' => 3,
             ],
         ],

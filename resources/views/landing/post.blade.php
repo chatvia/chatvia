@@ -1,6 +1,16 @@
 @extends('landing.layouts.app')
 
-@section('title', $post->title)
+@section('title', $post->title . ' - ChatVia Blog')
+
+@section('description', Str::limit(strip_tags($post->excerpt ?? $post->html), 155))
+
+@section('og_title', $post->title)
+@section('og_description', Str::limit(strip_tags($post->excerpt ?? $post->html), 200))
+@section('og_image', $post->img_url)
+
+@section('twitter_title', $post->title)
+@section('twitter_description', Str::limit(strip_tags($post->excerpt ?? $post->html), 200))
+@section('twitter_image', $post->img_url)
 
 @section('content')
     @include('landing.partials.header')

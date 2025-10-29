@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms of Service - ChatVia</title>
+    <title>Terms of Service - ChatVia | AI Chatbot Platform</title>
+    
+    @section('description', 'Read ChatVia\'s Terms of Service. Learn about our AI chatbot platform policies, user agreements, data processing terms, and service conditions.')
+    @section('og_title', 'Terms of Service - ChatVia')
+    @section('og_description', 'ChatVia Terms of Service - Understand your rights and responsibilities when using our AI-powered chatbot platform.')
+    
     @vite(['resources/css/landing.css'])
     @include('partials.cover')
 </head>

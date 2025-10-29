@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Data\PdfInfoData;
+use App\Data\FileAnalysisData;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
@@ -25,28 +25,13 @@ final class PdfInfo
 
     }
 
-    public function getInfo(string $pdfPath): PdfInfoData
+    public function getInfo(string $pdfPath): FileAnalysisData
     {
         $info = $this->getRawInfo($pdfPath);
 
-        return new PdfInfoData(
-            title: $info['title'] ?? '',
-            subject: $info['subject'] ?? '',
-            keywords: $info['keywords'] ?? '',
-            author: $info['author'] ?? '',
-            creator: $info['creator'] ?? '',
-            producer: $info['producer'] ?? '',
-            creation_date: $info['creationdate'] ?? '',
-            modification_date: $info['moddate'] ?? '',
-            tagged: isset($info['tagged']) && $info['tagged'] === 'yes',
-            form: $info['form'] ?? '',
-            javascript: isset($info['javascript']) && $info['javascript'] === 'yes',
-            length: (int) $info['pages'],
-            encrypted: $info['encrypted'] === 'yes',
-            page_size_width: $info['page_size_width'],
-            page_size_height: $info['page_size_height'],
-            file_size: $info['file_size'],
-            pdf_version: $info['pdf_version'],
+        return new FileAnalysisData(
+            length: $info['pages'],
+            metadata: $info
         );
     }
 

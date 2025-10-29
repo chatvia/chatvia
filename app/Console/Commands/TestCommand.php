@@ -2,12 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Data\Crawler\CrawlerData;
-use App\Jobs\Crawler\WebsiteIngestionJob;
-use App\Jobs\TextIngestionJob;
-use App\Models\AgentText;
-use App\Models\AgentWebsite;
-use App\Services\Crawler\Crawler;
+use App\Services\AudioCompressor;
+use App\Support\OpenAI;
 use Illuminate\Console\Command;
 
 class TestCommand extends Command
@@ -18,18 +14,12 @@ class TestCommand extends Command
 
     public function handle(): void
     {
-        //        $c = app(Crawler::class);
-        //
-        //        $result = $c->crawl(
-        //            new CrawlerData(
-        //                url: 'https://chatvia.ai',
-        //            )
-        //        );
-        //
-        //        ray($result);
+        //        $res = OpenAI::transcribe('/Users/ahmad/Desktop/output.mp3');
+        //        dd($res);
 
-        //        WebsiteIngestionJob::dispatchSync(AgentWebsite::find(1));
+        $audio = app(AudioCompressor::class);
 
-        TextIngestionJob::dispatchSync(AgentText::find(3));
+        $d = $audio->process('/Users/ahmad/Desktop/audio.mp3');
+        dd($d);
     }
 }

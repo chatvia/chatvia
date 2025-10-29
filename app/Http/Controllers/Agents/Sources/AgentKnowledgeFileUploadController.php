@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Agents\Sources;
 
 use App\Actions\Agents\AgentKnowledgeAnalyzeFileAction;
 use App\Models\Agent;
-use App\Support\PdfInfo;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeFileUploadController
 {
-    public function __invoke(Request $request, Agent $agent, PdfInfo $pdfInfo, AgentKnowledgeAnalyzeFileAction $action)
+    public function __invoke(Request $request, Agent $agent, AgentKnowledgeAnalyzeFileAction $action)
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),
@@ -17,6 +16,12 @@ class AgentKnowledgeFileUploadController
         );
 
         $uploadedFile = $request->file('file');
+
+        abort_if(
+            boolean: ! is_pdf_file($uploadedFile) && ! is_word_file($uploadedFile) && ! is_audio_file($uploadedFile) && ! is_video_file($uploadedFile),
+            code: 422,
+            message: 'File upload failed'
+        );
 
         $info = $action->execute($uploadedFile, $request->user(), $agent);
 
@@ -26,7 +31,6 @@ class AgentKnowledgeFileUploadController
             'id' => $file->id,
             'length' => $info->length,
             'mime_type' => $uploadedFile->getMimeType(),
-            'encrypted' => $info->encrypted,
         ];
     }
 }

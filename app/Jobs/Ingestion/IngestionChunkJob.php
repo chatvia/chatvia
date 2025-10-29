@@ -31,7 +31,7 @@ class IngestionChunkJob implements ShouldQueue
         public array $metadata = [],
         public array $chunkReference = [],
     ) {
-        $this->onQueue('ingestion');
+        // Queue is inherited from parent job via batch
     }
 
     public function handle(): void

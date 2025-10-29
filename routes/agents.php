@@ -5,7 +5,7 @@ use App\Http\Controllers\Agents\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteSettingsController;
 use App\Http\Controllers\Agents\Agents\AgentFileSummaryController;
 use App\Http\Controllers\Agents\Agents\AgentKnowledgeFilesAnalyzeController;
-use App\Http\Controllers\Agents\Agents\AgentPreviewController;
+use App\Http\Controllers\Agents\Agents\AgentPlaygroundController;
 use App\Http\Controllers\Agents\Agents\AgentRenameController;
 use App\Http\Controllers\Agents\Agents\AgentsGenerateRandomSubDomainController;
 use App\Http\Controllers\Agents\Agents\AgentsIndexController;
@@ -28,14 +28,17 @@ use App\Http\Controllers\Agents\Models\AgentModelsToggleController;
 use App\Http\Controllers\Agents\Persona\AgentShowPersonaController;
 use App\Http\Controllers\Agents\Security\AgentSecurityController;
 use App\Http\Controllers\Agents\Security\AgentSecurityUpdateController;
+use App\Http\Controllers\Agents\Sources\AgentKnowledgeAudioController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFileDeleteController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesProcessController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFileUploadController;
+use App\Http\Controllers\Agents\Sources\AgentKnowledgeMarkdownController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgePdfController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesStatsController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeUploadedFilesDeleteController;
+use App\Http\Controllers\Agents\Sources\AgentKnowledgeVideoController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWordController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerController;
@@ -80,7 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('stats', AgentStatsController::class)->name('stats');
         Route::patch('/', AgentUpdateController::class)->name('update');
         Route::get('widget/preview', WidgetPreviewController::class)->name('widget.preview');
-        Route::get('preview', AgentPreviewController::class)->name('preview');
+        Route::get('playground', AgentPlaygroundController::class)->name('playground');
 
         Route::get('persona', AgentShowPersonaController::class)->name('persona');
         Route::get('security', AgentSecurityController::class)->name('security');
@@ -90,6 +93,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('sources/stats', AgentKnowledgeSourcesStatsController::class)->name('sources.stats');
         Route::get('sources/pdf', AgentKnowledgePdfController::class)->name('sources.pdf');
         Route::get('sources/word', AgentKnowledgeWordController::class)->name('sources.word');
+        Route::get('sources/markdown', AgentKnowledgeMarkdownController::class)->name('sources.markdown');
+        Route::get('sources/audio', AgentKnowledgeAudioController::class)->name('sources.audio');
+        Route::get('sources/video', AgentKnowledgeVideoController::class)->name('sources.video');
         Route::get('sources/web', AgentKnowledgeWebController::class)->name('sources.web');
 
         Route::get('sources/text', AgentKnowledgeTextController::class)->name('sources.text');

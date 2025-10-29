@@ -13,18 +13,32 @@ class AgentKnowledgeSourcesStatsController
             'websites' => $agent->websites()->where('status', 'ingested')->count(),
             'texts' => $agent->texts()->where('status', 'ingested')->count(),
             'pdf' => $agent->files()
-                ->where('status', 'ingested')
+                ->where('status', 'completed')
                 ->where('mime_type', 'application/pdf')
                 ->count(),
             'word' => $agent->files()
-                ->where('status', 'ingested')
+                ->where('status', 'completed')
                 ->whereIn('mime_type', [
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     'application/msword',
                     'application/vnd.oasis.opendocument.text',
                 ])
                 ->count(),
+            'markdown' => $agent->files()
+                ->where('status', 'completed')
+                ->where('mime_type', 'text/markdown')
+                ->count(),
+            'audio' => $agent->files()
+                ->where('status', 'completed')
+                ->whereIn('mime_type', [
+                    'audio/mpeg',
+                    'audio/mp4',
+                    'audio/x-m4a',
+                    'audio/wav',
+                    'audio/x-wav',
+                    'audio/webm',
+                ])
+                ->count(),
         ];
-
     }
 }

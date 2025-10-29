@@ -18,6 +18,7 @@ class KnowledgeFileData extends Data
         public int $length,
         public int $ingestion_progress,
         public bool $is_audio_file,
+        public bool $is_video_file,
         public DateTime $created_at
     ) {}
 
@@ -32,6 +33,7 @@ class KnowledgeFileData extends Data
             length: $file->length,
             ingestion_progress: $file->ingestionProgress(),
             is_audio_file: $file->isAudioFile(),
+            is_video_file: $file->isVideoFile(),
             created_at: $file->created_at,
         );
     }

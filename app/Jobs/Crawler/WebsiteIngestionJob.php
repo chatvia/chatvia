@@ -24,7 +24,10 @@ class WebsiteIngestionJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable;
 
-    public function __construct(public AgentWebsite $website) {}
+    public function __construct(public AgentWebsite $website)
+    {
+        $this->onQueue('ingestion.website');
+    }
 
     public function handle(RecursiveCharacterTextSplitter $splitter, HTMLCleaner $parser): void
     {

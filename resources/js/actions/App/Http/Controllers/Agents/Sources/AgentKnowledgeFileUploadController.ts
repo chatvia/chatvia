@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeFileUploadController::__invoke
-* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFileUploadController.php:12
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFileUploadController.php:11
 * @route '/agents/{agent}/sources/files/upload'
 */
 const AgentKnowledgeFileUploadController = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ AgentKnowledgeFileUploadController.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeFileUploadController::__invoke
-* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFileUploadController.php:12
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFileUploadController.php:11
 * @route '/agents/{agent}/sources/files/upload'
 */
 AgentKnowledgeFileUploadController.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ AgentKnowledgeFileUploadController.url = (args: { agent: number | { id: number }
 
 /**
 * @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeFileUploadController::__invoke
-* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFileUploadController.php:12
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeFileUploadController.php:11
 * @route '/agents/{agent}/sources/files/upload'
 */
 AgentKnowledgeFileUploadController.post = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({

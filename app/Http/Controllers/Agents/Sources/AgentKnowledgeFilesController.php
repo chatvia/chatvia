@@ -17,7 +17,7 @@ class AgentKnowledgeFilesController
         );
 
         $request->validate([
-            'file_type' => ['required', 'in:pdf,word'],
+            'file_type' => ['required', 'in:pdf,word,audio,video'],
         ]);
 
         $fileType = $request->input('file_type');
@@ -25,6 +25,8 @@ class AgentKnowledgeFilesController
         $files = match ($fileType) {
             'pdf' => $agent->pdfFiles()->get(),
             'word' => $agent->wordFiles()->get(),
+            'audio' => $agent->audioFiles()->get(),
+            'video' => $agent->videoFiles()->get(),
             default => throw new Exception('Invalid file type'),
         };
 

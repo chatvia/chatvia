@@ -2,9 +2,11 @@
 
 namespace App\Support;
 
-use App\Jobs\Ingestion\IngestionJob;
+use App\Jobs\Ingestion\IngestionPdfJob;
+use App\Jobs\Ingestion\MediaIngestionJob;
 use App\Models\AgentFile;
 use Illuminate\Support\Facades\Bus;
+use InvalidArgumentException;
 
 class Ingestion
 {
@@ -17,7 +19,13 @@ class Ingestion
     {
         $agentFile->update(['status' => 'processing']);
 
-        dispatch(new IngestionJob($agentFile));
+        if ($agentFile->isAudioFile() || $agentFile->isVideoFile()) {
+            dispatch(new MediaIngestionJob($agentFile));
+        } elseif ($agentFile->isPdfFile() || $agentFile->isWordFile()) {
+            dispatch(new IngestionPdfJob($agentFile));
+        } else {
+            throw new InvalidArgumentException('Invalid agent file type');
+        }
     }
 
     public function cancelJob(AgentFile $agentFile): void

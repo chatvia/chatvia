@@ -16,8 +16,11 @@ class AgentKnowledgeFilesProcessController
             code: 404,
         );
 
-        $agent->files()->where('status', 'uploaded')->each(function (AgentFile $agentFile) {
-            $agentFile->ingest();
-        });
+        $agent
+            ->files()
+            ->where('status', 'uploaded')
+            ->each(function (AgentFile $agentFile) {
+                $agentFile->ingest();
+            });
     }
 }

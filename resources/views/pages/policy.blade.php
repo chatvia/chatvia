@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - ChatVia</title>
+    <title>Privacy Policy - ChatVia | Data Protection & GDPR Compliance</title>
+    
+    @section('description', 'ChatVia Privacy Policy - Learn how we protect your data, GDPR compliance, data processing with AI providers, and your privacy rights.')
+    @section('og_title', 'Privacy Policy - ChatVia')
+    @section('og_description', 'Understand how ChatVia handles your data with complete transparency. GDPR compliant, secure storage, and full data control.')
+    
     @vite(['resources/css/landing.css'])
     @include('partials.cover')
 </head>
@@ -14,7 +19,7 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between">
                 <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-gray-900">ChatVia</h1>
+                    <div class="text-2xl font-bold text-gray-900">ChatVia</div>
                 </div>
                 <a href="{{ route('home') }}" class="text-sm text-gray-600 hover:text-gray-900">← Back to Home</a>
             </div>

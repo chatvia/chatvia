@@ -2,6 +2,11 @@
 
 @section('title', 'Blog - AI Chatbot Insights, Knowledge Management & Automation Tips')
 
+@section('description', 'Expert insights on AI chatbots, knowledge management, RAG technology, and intelligent automation. Learn how to leverage AI for your business with ChatVia.')
+
+@section('og_title', 'ChatVia Blog - AI Chatbot & Automation Insights')
+@section('og_description', 'Discover expert tips on AI chatbots, document processing, RAG systems, and customer support automation.')
+
 @section('content')
     @include('landing.partials.header')
 
@@ -48,7 +53,7 @@
                     <article class="max-w-sm mx-auto space-y-5 md:max-w-none md:flex md:items-center md:space-y-0 md:space-x-8 lg:space-x-16">
                         <!-- Image -->
                         <a class="relative block group overflow-hidden md:w-1/2" href="{{ route('blog.post', ['post' => $featured->slug]) }}" data-aos="fade-down">
-                            <img class="w-full aspect-16/9 md:aspect-27/17 object-cover group-hover:scale-105 transition duration-700 ease-out" src="{{ $featured->img_url }}" width="540" height="340" alt="News 01" />
+                            <img class="w-full aspect-16/9 md:aspect-27/17 object-cover group-hover:scale-105 transition duration-700 ease-out" src="{{ $featured->img_url }}" width="540" height="340" alt="{{ $featured->title }}" />
                             <div class="absolute top-6 right-6">
                                 <svg class="w-8 h-8" viewBox="0 0 32 32">
                                     <circle class="fill-slate-900" fill-opacity=".48"cx="16" cy="16" r="16" />

@@ -3,8 +3,10 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Docs HTML Demo - Basics & Fundamentals</title>
+    <title>Documentation - ChatVia API Basics & Fundamentals</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="ChatVia API documentation. Learn the basics and fundamentals of integrating AI chatbots into your application with our comprehensive API guide.">
+    <link rel="canonical" href="{{ url()->current() }}">
 
     @vite(['resources/css/docs.css'])
 

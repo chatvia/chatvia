@@ -6,6 +6,7 @@ export interface FileStats {
     pages?: number;
     length?: number;
     is_audio_file?: boolean;
+    is_video_file?: boolean;
     mime_type: string;
     encrypted: boolean;
 }
@@ -30,6 +31,7 @@ export interface FileUploaderConfig {
     maxFiles: number;
     analyzeEndpoint: (file: File) => string;
     acceptedTypes: string;
+    maxFileSize?: number; // in MB
     onFileAnalyzed?: (file: UploadingFileData, data: any) => void;
     onFileError?: (file: UploadingFileData, error: string) => void;
 }
@@ -95,7 +97,7 @@ export function useFileUploader(config: FileUploaderConfig) {
     const totalFiles = computed(() => uploadingFiles.value.length);
 
     const totalPages = computed(() => {
-        return uploadingFiles.value.reduce((total, file) => total + (file.stats?.pages || 0), 0);
+        return uploadingFiles.value.reduce((total, file) => total + (file.stats?.length || 0), 0);
     });
 
     // Drag and drop handlers
@@ -147,6 +149,22 @@ export function useFileUploader(config: FileUploaderConfig) {
                 position: 'top-center',
             });
             return;
+        }
+
+        // Check file size if maxFileSize is specified
+        if (config.maxFileSize) {
+            const maxSizeBytes = config.maxFileSize * 1024 * 1024; // Convert MB to bytes
+            const oversizedFiles = files.filter(file => file.size > maxSizeBytes);
+            
+            if (oversizedFiles.length > 0) {
+                const fileList = oversizedFiles.map(f => f.name).join(', ');
+                toast.error('File size limit exceeded', {
+                    description: `The following file(s) exceed the ${config.maxFileSize} MB limit: ${fileList}`,
+                    duration: 7000,
+                    position: 'top-center',
+                });
+                return;
+            }
         }
 
         // Add files to the array and start analyzing them

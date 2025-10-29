@@ -23,6 +23,7 @@ interface Props {
     showQuota?: boolean;
     quotaUsed?: number;
     quotaLimit?: number;
+    quotaLabel?: string;
     disabled?: boolean;
     disabledMessage?: string;
 }
@@ -33,6 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
     showQuota: false,
     quotaUsed: 0,
     quotaLimit: 100,
+    quotaLabel: 'pages',
     disabled: false,
     disabledMessage: 'Upload disabled'
 });
@@ -178,7 +180,7 @@ defineExpose({
                     </span>
                     <div v-if="showQuota" class="flex items-center gap-2">
                         <span class="text-sm text-muted-foreground">
-                            {{ quotaUsed + totalPages }} / {{ quotaLimit }} pages
+                            {{ quotaUsed + totalPages }} / {{ quotaLimit }} {{ quotaLabel }}
                         </span>
                         <div class="w-20 bg-muted rounded-full h-2">
                             <div
@@ -198,7 +200,7 @@ defineExpose({
                 <Alert v-if="showQuota && quotaRemaining <= 0" variant="destructive">
                     <AlertCircle class="h-4 w-4" />
                     <AlertDescription>
-                        You have reached your page limit of {{ quotaLimit }} pages. Please upgrade your plan to process more documents.
+                        You have reached your {{ quotaLabel }} limit of {{ quotaLimit }} {{ quotaLabel }}. Please upgrade your plan to process more documents.
                     </AlertDescription>
                 </Alert>
 
@@ -232,14 +234,14 @@ defineExpose({
                     <div class="mb-1 text-base font-medium">
                         {{ !canUpload && !disabled
                             ? (totalFiles >= config.maxFiles ? 'File limit reached' :
-                               'Page limit reached')
+                               `${quotaLabel.charAt(0).toUpperCase() + quotaLabel.slice(1)} limit reached`)
                             : 'Select files'
                         }}
                     </div>
                     <p class="text-sm text-muted-foreground">
                         {{ !canUpload && !disabled
                             ? (totalFiles >= config.maxFiles ? `Maximum ${config.maxFiles} files allowed. Remove some files to add more.` :
-                               showQuota ? `You've used all ${quotaLimit} pages. Upgrade your plan to continue.` :
+                               showQuota ? `You've used all ${quotaLimit} ${quotaLabel}. Upgrade your plan to continue.` :
                                'Upload not available')
                             : 'Drag and drop or click to select files'
                         }}
@@ -252,10 +254,10 @@ defineExpose({
                         <div>
                             <p class="text-sm text-muted-foreground">
                                 <span v-if="totalPages > 0">
-                                    {{ totalPages }} page{{ totalPages !== 1 ? 's' : '' }} total
+                                    {{ totalPages }} {{ totalPages !== 1 ? quotaLabel : quotaLabel.replace(/s$/, '') }} total
                                 </span>
                                 <span v-if="showQuota && wouldExceedQuota" class="ml-2 text-destructive font-medium">
-                                    • Exceeds quota by {{ totalPages - quotaRemaining }} pages
+                                    • Exceeds quota by {{ totalPages - quotaRemaining }} {{ quotaLabel }}
                                 </span>
                             </p>
                         </div>

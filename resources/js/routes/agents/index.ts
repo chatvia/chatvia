@@ -258,26 +258,26 @@ update.patch = (args: { agent: number | { id: number } } | [agent: number | { id
 })
 
 /**
-* @see \App\Http\Controllers\Agents\Agents\AgentPreviewController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentPreviewController.php:12
-* @route '/agents/{agent}/preview'
+* @see \App\Http\Controllers\Agents\Agents\AgentPlaygroundController::__invoke
+* @see app/Http/Controllers/Agents/Agents/AgentPlaygroundController.php:12
+* @route '/agents/{agent}/playground'
 */
-export const preview = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: preview.url(args, options),
+export const playground = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: playground.url(args, options),
     method: 'get',
 })
 
-preview.definition = {
+playground.definition = {
     methods: ["get","head"],
-    url: '/agents/{agent}/preview',
+    url: '/agents/{agent}/playground',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see \App\Http\Controllers\Agents\Agents\AgentPreviewController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentPreviewController.php:12
-* @route '/agents/{agent}/preview'
+* @see \App\Http\Controllers\Agents\Agents\AgentPlaygroundController::__invoke
+* @see app/Http/Controllers/Agents/Agents/AgentPlaygroundController.php:12
+* @route '/agents/{agent}/playground'
 */
-preview.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+playground.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { agent: args }
     }
@@ -300,28 +300,28 @@ preview.url = (args: { agent: number | { id: number } } | [agent: number | { id:
         : args.agent,
     }
 
-    return preview.definition.url
+    return playground.definition.url
             .replace('{agent}', parsedArgs.agent.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
-* @see \App\Http\Controllers\Agents\Agents\AgentPreviewController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentPreviewController.php:12
-* @route '/agents/{agent}/preview'
+* @see \App\Http\Controllers\Agents\Agents\AgentPlaygroundController::__invoke
+* @see app/Http/Controllers/Agents/Agents/AgentPlaygroundController.php:12
+* @route '/agents/{agent}/playground'
 */
-preview.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: preview.url(args, options),
+playground.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: playground.url(args, options),
     method: 'get',
 })
 
 /**
-* @see \App\Http\Controllers\Agents\Agents\AgentPreviewController::__invoke
-* @see app/Http/Controllers/Agents/Agents/AgentPreviewController.php:12
-* @route '/agents/{agent}/preview'
+* @see \App\Http\Controllers\Agents\Agents\AgentPlaygroundController::__invoke
+* @see app/Http/Controllers/Agents/Agents/AgentPlaygroundController.php:12
+* @route '/agents/{agent}/playground'
 */
-preview.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: preview.url(args, options),
+playground.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: playground.url(args, options),
     method: 'head',
 })
 
@@ -1463,7 +1463,7 @@ const agents = {
     stats: Object.assign(stats, stats),
     update: Object.assign(update, update),
     widget: Object.assign(widget, widget),
-    preview: Object.assign(preview, preview),
+    playground: Object.assign(playground, playground),
     persona: Object.assign(persona, persona),
     security: Object.assign(security, security176da1),
     sources: Object.assign(sources, sources4cea9d),

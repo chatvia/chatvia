@@ -18,7 +18,10 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public AgentWebsite $website, public CrawlerData $data) {}
+    public function __construct(public AgentWebsite $website, public CrawlerData $data)
+    {
+        $this->onQueue('ingestion.website');
+    }
 
     public function handle(Crawler $crawler): void
     {

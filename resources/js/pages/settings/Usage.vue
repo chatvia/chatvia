@@ -13,7 +13,8 @@ import {
     Database,
     Loader2,
     BarChart3,
-    TrendingUp
+    TrendingUp,
+    Clock
 } from 'lucide-vue-next';
 
 interface UsageData {
@@ -28,6 +29,11 @@ interface UsageData {
         };
     };
     pages: {
+        limit: number;
+        used: number;
+        remaining: number;
+    };
+    minutes: {
         limit: number;
         used: number;
         remaining: number;
@@ -192,6 +198,37 @@ onMounted(() => {
                             </CardContent>
                         </Card>
 
+                        <!-- Minutes Usage -->
+                        <Card>
+                            <CardHeader>
+                                <CardTitle class="flex items-center gap-2 text-base">
+                                    <Clock class="h-5 w-5 text-orange-500" />
+                                    Minutes
+                                </CardTitle>
+                                <CardDescription>
+                                    Audio transcription minutes used
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-2xl font-bold">{{ usageData.minutes.used.toLocaleString() }}</span>
+                                    <span class="text-sm text-muted-foreground">
+                                        of {{ usageData.minutes.limit.toLocaleString() }}
+                                    </span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                    <div
+                                        class="h-3 rounded-full transition-all duration-300"
+                                        :class="getUsageColor(getUsagePercentage(usageData.minutes.used, usageData.minutes.limit))"
+                                        :style="{ width: `${getUsagePercentage(usageData.minutes.used, usageData.minutes.limit)}%` }"
+                                    ></div>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-muted-foreground">{{ usageData.minutes.remaining.toLocaleString() }} remaining</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         <!-- Total Agents -->
                         <Card>
                             <CardHeader>
@@ -237,7 +274,7 @@ onMounted(() => {
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-4">
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                                     <div class="space-y-1">
                                         <div class="text-2xl font-bold text-blue-600">{{ getUsagePercentage(usageData.messages.sent, usageData.messages.limit) }}%</div>
                                         <div class="text-xs text-muted-foreground">Messages Used</div>
@@ -245,6 +282,10 @@ onMounted(() => {
                                     <div class="space-y-1">
                                         <div class="text-2xl font-bold text-green-600">{{ getUsagePercentage(usageData.pages.used, usageData.pages.limit) }}%</div>
                                         <div class="text-xs text-muted-foreground">Pages Used</div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="text-2xl font-bold text-orange-600">{{ getUsagePercentage(usageData.minutes.used, usageData.minutes.limit) }}%</div>
+                                        <div class="text-xs text-muted-foreground">Minutes Used</div>
                                     </div>
                                     <div class="space-y-1">
                                         <div class="text-2xl font-bold text-purple-600">{{ getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit) }}%</div>

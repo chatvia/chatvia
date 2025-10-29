@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Changelog - ChatVia</title>
+    <title>Changelog - ChatVia | Latest Updates & Features</title>
+    
+    @section('description', 'Stay updated with ChatVia\'s latest features, improvements, and bug fixes. Track all updates to our AI chatbot platform.')
+    @section('og_title', 'Changelog - ChatVia')
+    @section('og_description', 'Discover what\'s new in ChatVia. Latest features, improvements, and updates to our AI-powered chatbot platform.')
+    
     <script src="https://cdn.tailwindcss.com"></script>
     @include('partials.cover')
 </head>

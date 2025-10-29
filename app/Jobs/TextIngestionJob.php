@@ -22,7 +22,10 @@ class TextIngestionJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public AgentText $agentText) {}
+    public function __construct(public AgentText $agentText)
+    {
+        $this->onQueue('ingestion.text');
+    }
 
     public function handle(RecursiveCharacterTextSplitter $splitter): void
     {

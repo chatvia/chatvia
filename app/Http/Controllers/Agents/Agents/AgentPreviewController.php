@@ -7,7 +7,7 @@ use App\Services\Auth\AgentMemberAuthTokenService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class AgentPreviewController
+class AgentPlaygroundController
 {
     public function __invoke(Request $request, Agent $agent, AgentMemberAuthTokenService $authTokenService)
     {
@@ -22,7 +22,7 @@ class AgentPreviewController
             $authToken = $authTokenService->generateTokenFromUser($agent, $user, 60);
         }
 
-        return Inertia::render('agents/Preview', [
+        return Inertia::render('agents/Playground', [
             'agent' => $agent,
             'authToken' => $authToken,
         ]);

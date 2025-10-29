@@ -179,7 +179,7 @@ const getAgentTypeIcon = (type: string) => {
                             <CardTitle class="flex items-center gap-2 text-xl">
                                 <Bot class="h-5 w-5 flex-shrink-0" />
                                 <span class="truncate">
-                                    <Link :href="route('agents.preview', { agent: agent.id})">{{ agent.name }}</Link>
+                                    <Link :href="route('agents.playground', { agent: agent.id})">{{ agent.name }}</Link>
                                 </span>
                             </CardTitle>
                             <div :class="getAgentTypeBadgeClass(agent.type)">
@@ -208,7 +208,7 @@ const getAgentTypeIcon = (type: string) => {
 
                     <CardFooter class="flex justify-end border-t p-4">
                         <Button as-child size="sm">
-                            <Link :href="route('agents.preview', {agent: agent.id})" class="gap-1">
+                            <Link :href="route('agents.playground', {agent: agent.id})" class="gap-1">
                                 Manage
                             </Link>
                         </Button>

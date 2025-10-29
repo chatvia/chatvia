@@ -239,9 +239,9 @@ return [
                 'steps' => [
                     'title' => 'You are three steps way from transforming your business',
                     'steps' => [
-                        ['title' => 'Create', 'description' => 'Just click on the Create Agent button to get started'],
-                        ['title' => 'Train', 'description' => ''],
-                        ['title' => 'Deploy', 'description' => ''],
+                        ['title' => 'Create', 'description' => 'Just click on the Create Agent button to get started and choose between a widget and knowledge base'],
+                        ['title' => 'Train', 'description' => 'Upload documents, add website content, or connect your knowledge base to train your AI agent with your business data'],
+                        ['title' => 'Deploy', 'description' => 'Embed the chatbot widget on your website or share a direct link to start answering customer questions instantly 24/7'],
                     ],
                 ],
             ],

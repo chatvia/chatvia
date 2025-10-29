@@ -35,6 +35,7 @@ interface KnowledgeFile {
     created_at: string;
     length?: number;
     is_audio_file?: boolean;
+    is_video_file?: boolean;
     ingestion_progress?: number;
 }
 
@@ -47,6 +48,7 @@ interface UploadedFile {
     created_at: string;
     length?: number;
     is_audio_file?: boolean;
+    is_video_file?: boolean;
     encrypted?: boolean;
 }
 
@@ -61,10 +63,12 @@ interface UsageData {
     pages: {
         limit: number;
         used: number;
+        remaining: number;
     };
     minutes?: {
         limit: number;
         used: number;
+        remaining: number;
     };
 }
 
@@ -94,28 +98,51 @@ const uploadedFiles = ref<UploadedFile[]>([]);
 const usageData = ref<UsageData>({
     pages: {
         limit: 0,
-        used: 0
+        used: 0,
+        remaining: 0
     }
 });
 const isLoadingUsage = ref(false);
 
+// Description for file uploader based on file type
+const fileUploaderDescription = computed(() => {
+    if (props.fileType === 'pdf') {
+        return 'Add PDF documents to your agent\'s knowledge base.';
+    } else if (props.fileType === 'word') {
+        return 'Add Word documents to your agent\'s knowledge base.';
+    } else if (props.fileType === 'markdown') {
+        return 'Add Markdown files to your agent\'s knowledge base.';
+    } else     if (props.fileType === 'audio') {
+        return 'Upload audio files for transcription. Supported formats: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR, and 3GP. File size limit: 200 MB.';
+    } else if (props.fileType === 'video') {
+        return 'Upload video files for transcription. Supported formats: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime, and 3GPP. File size limit: 200 MB.';
+    }
+    return 'Add documents to your agent\'s knowledge base. Supported formats: PDF, Word, Markdown, Audio, and Video';
+});
+
 // File uploader configuration for Knowledge page - dynamic based on file type
 const fileUploaderConfig = computed<FileUploaderConfig>(() => {
-    let acceptedTypes = '.pdf,.doc,.docx'; // default to all
-    let description = 'Add documents to your agent\'s knowledge base. Supported formats: PDF and Word (more soon)';
+    let acceptedTypes = '.pdf,.doc,.docx,.md,.markdown,.mp3,.m4a,.wav,.ogg,.webm,.flac,.aac,.wma,.amr,.3gp,.mp4,.avi,.mov,.mkv,.flv,.wmv,.qt'; // default to all
+    let maxFileSize = undefined; // Default: no limit
 
     if (props.fileType === 'pdf') {
         acceptedTypes = '.pdf';
-        description = 'Add PDF documents to your agent\'s knowledge base.';
     } else if (props.fileType === 'word') {
         acceptedTypes = '.doc,.docx';
-        description = 'Add Word documents to your agent\'s knowledge base.';
+    } else if (props.fileType === 'markdown') {
+        acceptedTypes = '.md,.markdown';
+    } else if (props.fileType === 'audio') {
+        acceptedTypes = '.mp3,.m4a,.wav,.ogg,.webm,.flac,.aac,.wma,.amr,.3gp';
+        maxFileSize = 200; // 200 MB for audio files
+    } else if (props.fileType === 'video') {
+        acceptedTypes = '.mp4,.avi,.mov,.wmv,.flv,.webm,.mkv,.qt,.3gp';
+        maxFileSize = 200; // 200 MB for video files
     }
 
     return {
         maxFiles: maxFilesToUpload,
         acceptedTypes,
-        description,
+        maxFileSize,
         analyzeEndpoint: (file: File) => route('agents.sources.files.upload', { agent: props.agent.id }),
         onFileAnalyzed: (file: BaseUploadingFileData, data: any) => {
             // For Knowledge.vue, the upload endpoint uploads the file
@@ -125,6 +152,8 @@ const fileUploaderConfig = computed<FileUploaderConfig>(() => {
             }
             // Refresh the knowledge files list to show in "Ready to Train"
             fetchKnowledgeFiles();
+            // Refresh usage data from server after upload
+            fetchUsageData();
         },
         onFileError: (file: BaseUploadingFileData, error: string) => {
             console.error('File upload error:', error);
@@ -271,37 +300,70 @@ const isKnowledgeAgent = computed(() => {
     return props.agent.type === 'knowledge';
 });
 
-// Quota computed properties
+// Helper function to check if a file uses minutes quota (audio or video)
+const usesMinutesQuota = (file: any): boolean => {
+    if (!file) return false;
+    
+    // Check if it's marked as audio/video file
+    if (file.is_audio_file || file.is_video_file) return true;
+    
+    // Check MIME type as fallback
+    const mimeType = file.mime_type || file.stats?.mime_type || '';
+    return mimeType.startsWith('audio/') || mimeType.startsWith('video/');
+};
+
+// Quota computed properties - use server-provided remaining values
 const pagesRemaining = computed(() => {
-    return usageData.value.pages.limit - usageData.value.pages.used;
+    return usageData.value.pages.remaining;
 });
 
 const minutesRemaining = computed(() => {
-    return usageData.value.minutes?.limit ? usageData.value.minutes.limit - usageData.value.minutes.used : 0;
+    return usageData.value.minutes?.remaining ?? 0;
 });
 
 const totalUploadedPages = computed(() => {
     return uploadedFiles.value.reduce((total, file) => {
-        if (file.is_audio_file) {
-            return total + (file.length || 0); // Use length (minutes) for audio files
+        if (usesMinutesQuota(file)) {
+            return total + (file.length || 0); // Use length (minutes) for audio/video files
         }
-        return total + (file.length || 0); // Use length (pages) for non-audio files
+        return total + (file.length || 0); // Use length (pages) for other files
     }, 0) + uploadingFiles.value.reduce((total, file) => {
-        if (file.stats?.is_audio_file) {
-            return total + (file.stats?.length || 0); // Use length (minutes) for audio files
+        if (usesMinutesQuota(file.stats)) {
+            return total + (file.stats?.length || 0); // Use length (minutes) for audio/video files
         }
-        return total + (file.stats?.length || 0); // Use length (pages) for non-audio files
+        return total + (file.stats?.length || 0); // Use length (pages) for other files
     }, 0);
 });
 
+// Total minutes from files being uploaded and already uploaded (for display purposes)
 const totalUploadedMinutes = computed(() => {
     return uploadedFiles.value.reduce((total, file) => {
-        if (file.is_audio_file) {
+        if (usesMinutesQuota(file)) {
             return total + (file.length || 0);
         }
         return total;
     }, 0) + uploadingFiles.value.reduce((total, file) => {
-        if (file.stats?.is_audio_file) {
+        if (usesMinutesQuota(file.stats)) {
+            return total + (file.stats?.length || 0);
+        }
+        return total;
+    }, 0);
+});
+
+// Minutes ONLY from files currently being uploaded (not yet on server)
+const uploadingMinutesOnly = computed(() => {
+    return uploadingFiles.value.reduce((total, file) => {
+        if (usesMinutesQuota(file.stats)) {
+            return total + (file.stats?.length || 0);
+        }
+        return total;
+    }, 0);
+});
+
+// Pages ONLY from files currently being uploaded (not yet on server)
+const uploadingPagesOnly = computed(() => {
+    return uploadingFiles.value.reduce((total, file) => {
+        if (!usesMinutesQuota(file.stats)) {
             return total + (file.stats?.length || 0);
         }
         return total;
@@ -310,24 +372,42 @@ const totalUploadedMinutes = computed(() => {
 
 const totalUploadedPagesOnly = computed(() => {
     return uploadedFiles.value.reduce((total, file) => {
-        if (!file.is_audio_file) {
-            // For non-audio files, use length as pages
+        if (!usesMinutesQuota(file)) {
+            // For non-audio/video files, use length as pages
             return total + (file.length || 0);
         }
         return total;
     }, 0) + uploadingFiles.value.reduce((total, file) => {
-        if (!file.stats?.is_audio_file) {
-            // For non-audio files, use length as pages
+        if (!usesMinutesQuota(file.stats)) {
+            // For non-audio/video files, use length as pages
             return total + (file.stats?.length || 0);
         }
         return total;
     }, 0);
 });
 
+// Check if uploading these files would exceed quota
+// Only check uploadingFiles (currently being uploaded), NOT uploadedFiles (already on server)
 const wouldExceedQuota = computed(() => {
-    const pagesExceeded = totalUploadedPagesOnly.value > pagesRemaining.value;
-    const minutesExceeded = usageData.value.minutes ? totalUploadedMinutes.value > minutesRemaining.value : false;
-    return pagesExceeded || minutesExceeded;
+    // For audio and video files: check minutes quota
+    if (props.fileType === 'audio' || props.fileType === 'video') {
+        const uploadingMinutes = uploadingFiles.value.reduce((total, file) => {
+            if (usesMinutesQuota(file.stats)) {
+                return total + (file.stats?.length || 0);
+            }
+            return total;
+        }, 0);
+        return uploadingMinutes > minutesRemaining.value;
+    }
+    
+    // For other files: check pages quota
+    const uploadingPages = uploadingFiles.value.reduce((total, file) => {
+        if (!usesMinutesQuota(file.stats)) {
+            return total + (file.stats?.length || 0);
+        }
+        return total;
+    }, 0);
+    return uploadingPages > pagesRemaining.value;
 });
 
 const quotaUtilization = computed(() => {
@@ -426,13 +506,14 @@ const formatSpeed = (bytesPerSecond: number): string => {
 };
 
 // Helper function to format file length (pages or minutes)
-const formatFileLength = (file: { length?: number; is_audio_file?: boolean }): string => {
+const formatFileLength = (file: { length?: number; is_audio_file?: boolean; is_video_file?: boolean; mime_type?: string }): string => {
     if (!file.length) return '';
 
-    if (file.is_audio_file) {
+    // Use the same logic as usesMinutesQuota to determine if it's audio/video
+    if (usesMinutesQuota(file)) {
         return `${file.length} minute${file.length !== 1 ? 's' : ''}`;
     } else {
-        // For non-audio files, use length as pages
+        // For non-audio/video files, use length as pages
         return `${file.length} page${file.length !== 1 ? 's' : ''}`;
     }
 };
@@ -517,6 +598,9 @@ const clearAllFiles = async () => {
 
         // Refresh the knowledge files list
         await fetchKnowledgeFiles();
+        
+        // Refresh usage data from server after clearing files
+        await fetchUsageData();
     } catch (error: any) {
         console.error('Error clearing files:', error);
 
@@ -577,25 +661,6 @@ const processAllFiles = async () => {
     if (uploadedFiles.value.length === 0) {
         console.warn('No files to process');
         return;
-    }
-
-    // Check if processing would exceed quota
-    if (wouldExceedQuota.value) {
-        let quotaMessage = '';
-
-        if (totalUploadedPagesOnly.value > pagesRemaining.value) {
-            quotaMessage += `Processing these files (${totalUploadedPagesOnly.value} pages) would exceed your remaining page quota of ${pagesRemaining.value} pages. `;
-        }
-
-        if (usageData.value.minutes && totalUploadedMinutes.value > minutesRemaining.value) {
-            quotaMessage += `Processing these files (${totalUploadedMinutes.value} minutes) would exceed your remaining minute quota of ${minutesRemaining.value} minutes. `;
-        }
-
-        quotaMessage += 'Continue anyway? Note: Only the remaining quota will be processed.';
-
-        if (!confirm(quotaMessage)) {
-            return;
-        }
     }
 
     isProcessingFiles.value = true;
@@ -666,6 +731,9 @@ const removeKnowledgeFile = async () => {
         // Also remove from uploadedFiles if present
         uploadedFiles.value = uploadedFiles.value.filter(file => file.id !== fileToDelete.value!.id);
 
+        // Refresh usage data from server after deletion
+        await fetchUsageData();
+
     } catch (error: any) {
         console.error('Error deleting file:', error);
 
@@ -710,7 +778,8 @@ const fetchKnowledgeFiles = async (isBackgroundRefresh = false) => {
                 status: file.status,
                 created_at: file.created_at,
                 length: file.length,
-                is_audio_file: file.is_audio_file
+                is_audio_file: file.is_audio_file,
+                is_video_file: file.is_video_file
             }));
 
     } catch (error) {
@@ -818,37 +887,16 @@ const showFileSummary = async (file: KnowledgeFile) => {
             <FileUploader
                 ref="fileUploaderRef"
                 :config="fileUploaderConfig"
-                :title="props.fileType === 'pdf' ? 'Upload PDF Documents' : props.fileType === 'word' ? 'Upload Word Documents' : 'Upload New Documents'"
-                :description="fileUploaderConfig.description"
+                :title="props.fileType === 'pdf' ? 'Upload PDF Documents' : props.fileType === 'word' ? 'Upload Word Documents' : props.fileType === 'markdown' ? 'Upload Markdown Files' : props.fileType === 'audio' ? 'Upload Audio Files' : props.fileType === 'video' ? 'Upload Video Files' : 'Upload New Documents'"
+                :description="fileUploaderDescription"
                 :show-quota="!isLoadingUsage"
-                :quota-used="totalUploadedPagesOnly"
-                :quota-limit="usageData.pages.limit"
+                :quota-used="(props.fileType === 'audio' || props.fileType === 'video') ? ((usageData.minutes?.used || 0) + uploadingMinutesOnly) : (usageData.pages.used + uploadingPagesOnly)"
+                :quota-limit="(props.fileType === 'audio' || props.fileType === 'video') ? (usageData.minutes?.limit || 0) : usageData.pages.limit"
+                :quota-label="(props.fileType === 'audio' || props.fileType === 'video') ? 'minutes' : 'pages'"
                 :disabled="isProcessingFiles"
                 disabled-message="File uploads are disabled while training is in progress"
                 @files-changed="(files) => uploadingFiles = files"
             />
-
-            <!-- Important Notes and Warnings -->
-            <div class="space-y-3">
-                <!-- Quota Exceeded -->
-                <Alert v-if="!isLoadingUsage && (pagesRemaining <= 0 || (usageData.minutes && minutesRemaining <= 0))" variant="destructive">
-                    <AlertCircle class="h-4 w-4" />
-                    <AlertDescription>
-                        Quota limit reached.
-                        <Link :href="route('billing.packages')" class="underline font-medium hover:no-underline text-white">
-                            Upgrade to upload more
-                        </Link>.
-                    </AlertDescription>
-                </Alert>
-
-                <!-- Loading Usage Data -->
-                <Alert v-if="isLoadingUsage">
-                    <LoaderCircle class="h-4 w-4 animate-spin" />
-                    <AlertDescription>
-                        Loading usage information...
-                    </AlertDescription>
-                </Alert>
-            </div>
 
             <!-- Uploaded files ready for processing -->
             <div v-if="uploadedFiles.length > 0" class="mt-4">

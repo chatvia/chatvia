@@ -2,7 +2,7 @@ import AgentsIndexController from './AgentsIndexController'
 import AgentsListController from './AgentsListController'
 import AgentStoreController from './AgentStoreController'
 import AgentUpdateController from './AgentUpdateController'
-import AgentPreviewController from './AgentPreviewController'
+import AgentPlaygroundController from './AgentPlaygroundController'
 import AgentFileSummaryController from './AgentFileSummaryController'
 import AgentUpdateSettingsController from './AgentUpdateSettingsController'
 import AgentDeleteSettingsController from './AgentDeleteSettingsController'
@@ -16,7 +16,7 @@ const Agents = {
     AgentsListController: Object.assign(AgentsListController, AgentsListController),
     AgentStoreController: Object.assign(AgentStoreController, AgentStoreController),
     AgentUpdateController: Object.assign(AgentUpdateController, AgentUpdateController),
-    AgentPreviewController: Object.assign(AgentPreviewController, AgentPreviewController),
+    AgentPlaygroundController: Object.assign(AgentPlaygroundController, AgentPlaygroundController),
     AgentFileSummaryController: Object.assign(AgentFileSummaryController, AgentFileSummaryController),
     AgentUpdateSettingsController: Object.assign(AgentUpdateSettingsController, AgentUpdateSettingsController),
     AgentDeleteSettingsController: Object.assign(AgentDeleteSettingsController, AgentDeleteSettingsController),

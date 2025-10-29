@@ -17,6 +17,8 @@ interface SourceStats {
     texts: number;
     pdf: number;
     word: number;
+    markdown: number;
+    audio: number;
     [key: string]: number;
 }
 
@@ -44,6 +46,14 @@ const contentTypes = [
         statsKey: 'word'
     },
     {
+        id: 'markdown',
+        label: 'Markdown',
+        icon: 'pi-file-edit',
+        description: 'Upload and manage Markdown files',
+        route: 'agents.sources.markdown',
+        statsKey: 'markdown'
+    },
+    {
         id: 'text',
         label: 'Text',
         icon: 'pi-align-justify',
@@ -64,16 +74,16 @@ const contentTypes = [
         label: 'Audio',
         icon: 'pi-volume-up',
         description: 'Upload audio files and podcasts for transcription',
-        route: null, // Will be implemented later
-        statsKey: null
+        route: 'agents.sources.audio',
+        statsKey: 'audio'
     },
     {
         id: 'video',
         label: 'Video',
         icon: 'pi-video',
         description: 'Upload video files for transcription and analysis',
-        route: null, // Will be implemented later
-        statsKey: null
+        route: 'agents.sources.video',
+        statsKey: 'video'
     },
     {
         id: 'youtube',
@@ -100,6 +110,15 @@ const getCurrentType = () => {
     if (currentRoute.includes('/sources/word')) {
         return 'word';
     }
+    if (currentRoute.includes('/sources/markdown')) {
+        return 'markdown';
+    }
+    if (currentRoute.includes('/sources/audio')) {
+        return 'audio';
+    }
+    if (currentRoute.includes('/sources/video')) {
+        return 'video';
+    }
     return 'pdf'; // default to PDF
 };
 
@@ -111,6 +130,9 @@ const currentComponent = computed(() => {
     switch (selectedContentType.value) {
         case 'pdf':
         case 'word':
+        case 'markdown':
+        case 'audio':
+        case 'video':
             return Files;
         case 'web':
             return WebComponent;
@@ -230,7 +252,7 @@ onMounted(() => {
                     :is="currentComponent"
                     :agent="agent"
                     :file-type="selectedContentType"
-                    v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'web' || selectedContentType === 'text'"
+                    v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text'"
                 />
 
                 <!-- Placeholder for other content types -->

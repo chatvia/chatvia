@@ -1,6 +1,13 @@
 @extends('landing.layouts.app')
 
-@section('title', 'Chat with PDF - Free AI Tool')
+@section('title', 'Chat with PDF - Free AI Tool | Ask Questions About Your Documents')
+
+@section('description', 'Free AI-powered PDF chat tool. Upload any PDF document and ask questions instantly. Get intelligent answers, summaries, and insights from your PDFs using advanced AI.')
+
+@section('og_title', 'Chat with PDF - Free AI Tool | ChatVia')
+@section('og_description', 'Transform how you read PDFs. Upload documents, ask questions, and get instant AI-powered answers. Free, secure, and easy to use.')
+
+@section('keywords', 'PDF chat, AI PDF reader, PDF analysis tool, chat with documents, PDF question answering, free PDF tool, AI document analysis')
 
 @section('content')
 <div class="flex flex-col min-h-screen overflow-hidden">

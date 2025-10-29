@@ -208,6 +208,210 @@ word.head = (args: { agent: number | { id: number } } | [agent: number | { id: n
 })
 
 /**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeMarkdownController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeMarkdownController.php:11
+* @route '/agents/{agent}/sources/markdown'
+*/
+export const markdown = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: markdown.url(args, options),
+    method: 'get',
+})
+
+markdown.definition = {
+    methods: ["get","head"],
+    url: '/agents/{agent}/sources/markdown',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeMarkdownController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeMarkdownController.php:11
+* @route '/agents/{agent}/sources/markdown'
+*/
+markdown.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { agent: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { agent: args.id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            agent: args[0],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        agent: typeof args.agent === 'object'
+        ? args.agent.id
+        : args.agent,
+    }
+
+    return markdown.definition.url
+            .replace('{agent}', parsedArgs.agent.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeMarkdownController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeMarkdownController.php:11
+* @route '/agents/{agent}/sources/markdown'
+*/
+markdown.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: markdown.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeMarkdownController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeMarkdownController.php:11
+* @route '/agents/{agent}/sources/markdown'
+*/
+markdown.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: markdown.url(args, options),
+    method: 'head',
+})
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeAudioController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeAudioController.php:11
+* @route '/agents/{agent}/sources/audio'
+*/
+export const audio = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: audio.url(args, options),
+    method: 'get',
+})
+
+audio.definition = {
+    methods: ["get","head"],
+    url: '/agents/{agent}/sources/audio',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeAudioController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeAudioController.php:11
+* @route '/agents/{agent}/sources/audio'
+*/
+audio.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { agent: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { agent: args.id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            agent: args[0],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        agent: typeof args.agent === 'object'
+        ? args.agent.id
+        : args.agent,
+    }
+
+    return audio.definition.url
+            .replace('{agent}', parsedArgs.agent.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeAudioController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeAudioController.php:11
+* @route '/agents/{agent}/sources/audio'
+*/
+audio.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: audio.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeAudioController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeAudioController.php:11
+* @route '/agents/{agent}/sources/audio'
+*/
+audio.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: audio.url(args, options),
+    method: 'head',
+})
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeVideoController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeVideoController.php:11
+* @route '/agents/{agent}/sources/video'
+*/
+export const video = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: video.url(args, options),
+    method: 'get',
+})
+
+video.definition = {
+    methods: ["get","head"],
+    url: '/agents/{agent}/sources/video',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeVideoController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeVideoController.php:11
+* @route '/agents/{agent}/sources/video'
+*/
+video.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { agent: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { agent: args.id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            agent: args[0],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        agent: typeof args.agent === 'object'
+        ? args.agent.id
+        : args.agent,
+    }
+
+    return video.definition.url
+            .replace('{agent}', parsedArgs.agent.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeVideoController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeVideoController.php:11
+* @route '/agents/{agent}/sources/video'
+*/
+video.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: video.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeVideoController::__invoke
+* @see app/Http/Controllers/Agents/Sources/AgentKnowledgeVideoController.php:11
+* @route '/agents/{agent}/sources/video'
+*/
+video.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: video.url(args, options),
+    method: 'head',
+})
+
+/**
 * @see \App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController::__invoke
 * @see app/Http/Controllers/Agents/Sources/AgentKnowledgeWebController.php:12
 * @route '/agents/{agent}/sources/web'
@@ -473,6 +677,9 @@ const sources = {
     stats: Object.assign(stats, stats),
     pdf: Object.assign(pdf, pdf),
     word: Object.assign(word, word),
+    markdown: Object.assign(markdown, markdown),
+    audio: Object.assign(audio, audio),
+    video: Object.assign(video, video),
     web: Object.assign(web, web),
     text: Object.assign(text, textC5a64e),
     files: Object.assign(files, filesDccab9),

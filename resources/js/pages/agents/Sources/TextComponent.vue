@@ -117,6 +117,8 @@ const saveTextEntry = () => {
         editingEntry.value = null;
         form.reset();
         fetchTextEntries();
+        // Refresh usage data from server after save
+        fetchUsageData();
         isSubmitting.value = false;
     };
 
@@ -158,6 +160,8 @@ const deleteTextEntry = async () => {
         }));
 
         fetchTextEntries();
+        // Refresh usage data from server after deletion
+        await fetchUsageData();
     } catch (error) {
         console.error('Failed to delete text entry:', error);
     } finally {
@@ -175,6 +179,16 @@ const fetchTextEntries = async () => {
         console.error('Failed to fetch text entries:', error);
     } finally {
         isLoading.value = false;
+    }
+};
+
+// Fetch usage data from server
+const fetchUsageData = async () => {
+    try {
+        await axios.get(route('usage'));
+        // Usage data is fetched from server, not stored locally in this component
+    } catch (error) {
+        console.error('Error fetching usage data:', error);
     }
 };
 

@@ -59,7 +59,7 @@ class Agent extends Model
                 'filepath' => $path,
                 'size_in_kb' => round($file->getSize() / 1024),
                 'mime_type' => $file->getClientMimeType(),
-                'checkum' => md5_file($file->getPathname()),
+                'checksum' => md5_file($file->getPathname()),
                 'status' => $status->value,
                 'length' => $analyzer->length,
                 'metadata' => $analyzer->toArray(),
@@ -232,5 +232,15 @@ class Agent extends Model
     public function pdfFiles(): HasMany
     {
         return $this->files()->whereIn('mime_type', config('mimes.pdf'));
+    }
+
+    public function audioFiles(): HasMany
+    {
+        return $this->files()->whereIn('mime_type', config('mimes.audio'));
+    }
+
+    public function videoFiles(): HasMany
+    {
+        return $this->files()->whereIn('mime_type', config('mimes.video'));
     }
 }

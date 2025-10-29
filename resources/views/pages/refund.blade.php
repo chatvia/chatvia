@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Refund Policy - ChatVia</title>
+    <title>Refund Policy - ChatVia | 14-Day Money-Back Guarantee</title>
+    
+    @section('description', 'ChatVia offers a 14-day money-back guarantee. Learn about our refund policy, eligibility requirements, and how to request a refund.')
+    @section('og_title', 'Refund Policy - ChatVia')
+    @section('og_description', '14-day money-back guarantee on all ChatVia subscriptions. Try risk-free and get a full refund if not satisfied.')
+    
     @vite(['resources/css/landing.css'])
     @include('partials.cover')
 </head>

@@ -1,6 +1,11 @@
 @extends('landing.layouts.app')
 
-@section('title', landing('title'))
+@section('title', landing('title') . ' - AI-Powered Chatbot Platform | RAG Technology')
+
+@section('description', 'Build intelligent AI chatbots with ChatVia. Upload documents, create custom AI agents with RAG technology, and automate customer support. Start free today.')
+
+@section('og_title', landing('title') . ' - AI-Powered Chatbot Platform')
+@section('og_description', 'Transform your customer support with AI-powered chatbots. Upload documents, train agents, and provide instant 24/7 support with ChatVia.')
 
 @section('content')
     <div class="flex flex-col min-h-screen overflow-hidden">
@@ -64,7 +69,7 @@
                  x-data="{ bubbles: {{ Js::from($landing['bubbles']) }}, visible: [] }"
                  x-init="bubbles.forEach((b, i) => setTimeout(() => visible.push(i), b.delay))">
                 <div class="relative w-full flex items-center justify-center">
-                    <img src="{{ asset('images/girl.webp') }}" alt="Girl holding phone"
+                    <img src="{{ asset('images/girl.webp') }}" alt="AI chatbot conversation on mobile phone showing intelligent customer support"
                          class="w-full max-w-3xl h-auto rounded-2xl z-10"/>
                     <!-- Chat bubbles -->
                     <template x-for="(bubble, i) in bubbles" :key="i">
@@ -124,7 +129,7 @@
                                 @foreach($landing['llm_marquee']['llms'] as $llm)
                                     <div class="flex items-center justify-center mx-8 min-w-[120px]">
                                         <img src="{{ asset('images/llms/' . $llm['logo']) }}"
-                                             alt="{{ $llm['name'] }}"
+                                             alt="{{ $llm['name'] }} AI model logo"
                                              class="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
                                     </div>
                                 @endforeach
@@ -132,7 +137,7 @@
                                 @foreach($landing['llm_marquee']['llms'] as $llm)
                                     <div class="flex items-center justify-center mx-8 min-w-[120px]">
                                         <img src="{{ asset('images/llms/' . $llm['logo']) }}"
-                                             alt="{{ $llm['name'] }}"
+                                             alt="{{ $llm['name'] }} AI model logo"
                                              class="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
                                     </div>
                                 @endforeach
@@ -171,11 +176,11 @@
                                         <div class="relative" data-aos="fade-up" data-aos-anchor="[data-aos-id-blocks]">
                                             <div class="mb-5">
                                                 <img src="{{ asset('images/icons/'. $feature['icon']) }}.svg"
-                                                     alt="{{ $feature['title'] }}" class="w-15"/>
+                                                     alt="{{ $feature['title'] }} icon" class="w-15"/>
                                             </div>
-                                            <h3 class="h4 font-rubik mb-2">
+                                            <h2 class="h4 font-rubik mb-2">
                                                 {{ $feature['title'] }}
-                                            </h3>
+                                            </h2>
                                             <p class="text-lg text-slate-500">
                                                 {{ $feature['description'] }}
                                             </p>
@@ -418,7 +423,7 @@
                                                 <img
                                                     class="w-full aspect-square object-cover group-hover:scale-105 transition duration-700 ease-out"
                                                     src="{{ asset('images/features-home-3-01.png') }}" width="340"
-                                                    height="340" alt="News 01"/>
+                                                    height="340" alt="Step 1: Upload your documents to create AI agents"/>
                                             </div>
                                             <div
                                                 class="w-16 h-16 absolute bg-linear-to-b from-blue-500 to-blue-600 rounded-full -top-8 left-8">
@@ -429,12 +434,12 @@
                                                 </svg>
                                             </div>
                                         </div>
-                                        <h3 class="h4 font-rubik mb-2">
+                                        <h2 class="h4 font-rubik mb-2">
                                             <div class="text-slate-800 hover:underline hover:decoration-blue-100"
                                                  href="#0">
                                                 {{ $landing['features']['steps']['steps'][0]['title'] }}
                                             </div>
-                                        </h3>
+                                        </h2>
 
                                     </article>
 
@@ -448,7 +453,7 @@
                                                 <img
                                                     class="w-full aspect-square object-cover group-hover:scale-105 transition duration-700 ease-out"
                                                     src="./images/features-home-3-02.png" width="342" height="342"
-                                                    alt="News 02"/>
+                                                    alt="Step 2: Train your AI chatbot with your data"/>
                                             </div>
                                             <div
                                                 class="w-16 h-16 absolute bg-linear-to-b from-blue-500 to-blue-600 rounded-full -top-8 left-8">
@@ -459,12 +464,12 @@
                                                 </svg>
                                             </div>
                                         </div>
-                                        <h3 class="h4 font-rubik mb-2">
+                                        <h2 class="h4 font-rubik mb-2">
                                             <div class="text-slate-800 hover:underline hover:decoration-blue-100"
                                                  href="#0">
                                                 {{ $landing['features']['steps']['steps'][1]['title'] }}
                                             </div>
-                                        </h3>
+                                        </h2>
 
                                     </article>
 
@@ -478,7 +483,7 @@
                                                 <img
                                                     class="w-full aspect-square object-cover group-hover:scale-105 transition duration-700 ease-out"
                                                     src="{{ asset('images/features-home-3-03.png') }}" width="342"
-                                                    height="342" alt="News 03"/>
+                                                    height="342" alt="Step 3: Deploy and start answering customer questions"/>
                                             </div>
                                             <div
                                                 class="w-16 h-16 absolute bg-linear-to-b from-blue-500 to-blue-600 rounded-full -top-8 left-8">
@@ -489,12 +494,12 @@
                                                 </svg>
                                             </div>
                                         </div>
-                                        <h3 class="h4 font-rubik mb-2">
+                                        <h2 class="h4 font-rubik mb-2">
                                             <div class="text-slate-800 hover:underline hover:decoration-blue-100"
                                                  href="#0">
                                                 {{ $landing['features']['steps']['steps'][2]['title'] }}
                                             </div>
-                                        </h3>
+                                        </h2>
 
                                     </article>
 
@@ -583,9 +588,9 @@
 
                                 <!-- Image -->
                                 <div class="md:w-5/12 lg:w-1/2" data-aos="fade-left">
-                                    <img class="mx-auto md:max-w-none" src="./images/target.png" width="540"
-                                         height="540"
-                                         alt="Target"/>
+                                <img class="mx-auto md:max-w-none" src="./images/target.png" width="540"
+                                     height="540"
+                                     alt="Target audience for AI chatbots - businesses seeking customer support automation"/>
                                 </div>
 
                             </div>

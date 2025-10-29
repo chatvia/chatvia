@@ -24,7 +24,10 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public AgentWebsiteUrl $websiteUrl) {}
+    public function __construct(public AgentWebsiteUrl $websiteUrl)
+    {
+        $this->onQueue('ingestion.website');
+    }
 
     public function handle(HTMLCleaner $parser, RecursiveCharacterTextSplitter $splitter): void
     {

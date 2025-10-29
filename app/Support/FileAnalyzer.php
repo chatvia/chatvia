@@ -2,32 +2,48 @@
 
 namespace App\Support;
 
-use App\Data\PdfInfoData;
+use App\Data\FileAnalysisData;
+use App\Services\AudioDurationExtractor;
 use Illuminate\Http\UploadedFile;
+use LogicException;
 
 class FileAnalyzer
 {
-    public static function analyze(UploadedFile|string $file): PdfInfoData
+    public static function analyze(UploadedFile|string $file): FileAnalysisData
     {
+        $filePath = $file instanceof UploadedFile ? $file->getPathname() : $file;
+
         $pdfInfo = app(PdfInfo::class);
 
-        $file = $file instanceof UploadedFile ? $file->getPathname() : $file;
-
-        if (is_pdf_file($file)) {
-            $info = $pdfInfo->getInfo($file);
+        if (is_pdf_file($filePath)) {
+            return $pdfInfo->getInfo($filePath);
         }
 
-        if (is_word_file($file)) {
-            $pdf = office()->toPdf($file);
-            $info = $pdfInfo->getInfo($pdf);
+        if (is_word_file($filePath)) {
+            $pdf = office()->toPdf($filePath);
+
+            return $pdfInfo->getInfo($pdf);
         }
 
-        if (is_text_file($file)) {
-            $pdf = office()->toPdf($file);
+        if (is_text_file($filePath)) {
+            $pdf = office()->toPdf($filePath);
             $info = $pdfInfo->getInfo($pdf);
             $info->length *= 3;
+
+            return $info;
         }
 
-        return $info;
+        // Audio
+        if (is_audio_file($filePath) || is_video_file($filePath)) {
+            $durationExtractor = app(AudioDurationExtractor::class);
+            $minutes = $durationExtractor->getDurationInMinutes($filePath);
+
+            return new FileAnalysisData(
+                length: $minutes,
+                metadata: [],
+            );
+        }
+
+        throw new LogicException('Invalid file type!');
     }
 }

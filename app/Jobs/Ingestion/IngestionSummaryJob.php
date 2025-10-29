@@ -19,7 +19,7 @@ class IngestionSummaryJob implements ShouldQueue
 
     public function __construct(public ChunkableContract $source, public string $content)
     {
-        $this->onQueue('ingestion');
+        // Queue is inherited from parent job via batch or dispatch context
     }
 
     public function handle(): void

@@ -74,9 +74,16 @@ if (! function_exists('get_plan_capabilities')) {
 }
 
 if (! function_exists('temp_dir')) {
-    function temp_dir(): string
+    function temp_dir(string $append = ''): string
     {
-        return sys_get_temp_dir();
+        $path = sys_get_temp_dir().$append;
+
+        // If a subdirectory path is appended and doesn't exist, create it
+        if ($append !== '' && ! is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
+
+        return $path;
     }
 }
 
@@ -320,25 +327,24 @@ if (! function_exists('get_file_type')) {
 }
 
 if (! function_exists('is_audio_file')) {
-    function is_audio_file(string $mimeType): bool
+    function is_audio_file(UploadedFile|string $file): bool
     {
-        $audioMimeTypes = [
-            'audio/mpeg',           // .mp3
-            'audio/mp4',            // .m4a
-            'audio/wav',            // .wav
-            'audio/wave',           // .wav (alternative)
-            'audio/x-wav',          // .wav (alternative)
-            'audio/ogg',            // .ogg
-            'audio/webm',           // .webm
-            'audio/flac',           // .flac
-            'audio/aac',            // .aac
-            'audio/x-ms-wma',       // .wma
-            'audio/amr',            // .amr
-            'audio/3gpp',           // .3gp
-            'audio/x-m4a',          // .m4a (alternative)
-        ];
+        $filePath = $file instanceof UploadedFile ? $file->path() : $file;
 
-        return in_array($mimeType, $audioMimeTypes, true);
+        $mimeType = File::mimeType($filePath);
+
+        return in_array($mimeType, config('mimes.audio'), true);
+    }
+}
+
+if (! function_exists('is_video_file')) {
+    function is_video_file(UploadedFile|string $file): bool
+    {
+        $filePath = $file instanceof UploadedFile ? $file->path() : $file;
+
+        $mimeType = File::mimeType($filePath);
+
+        return in_array($mimeType, config('mimes.video'), true);
     }
 }
 

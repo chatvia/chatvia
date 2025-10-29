@@ -123,14 +123,14 @@ watch(isNavigationCollapsed, (newValue) => {
 const uiNavigationItems = computed(() => {
     const baseItems = [];
 
-    // Only show Chat for non-widget agents
+    // Only show Playground for non-widget agents
     if (props.agent.type !== 'widget') {
         baseItems.push({
-            id: 'preview',
-            label: 'Chat',
+            id: 'playground',
+            label: 'Playground',
             icon: BotIcon,
-            route: 'agents.preview',
-            tooltip: 'Preview your agent chat interface'
+            route: 'agents.playground',
+            tooltip: 'Test your agent in the playground'
         });
     }
 
@@ -292,8 +292,8 @@ const isActiveRoute = (routeName: string) => {
     let componentName;
     if (routeName === 'agents.embed') {
         componentName = 'Embed';
-    } else if (routeName === 'agents.preview') {
-        componentName = 'Preview';
+    } else if (routeName === 'agents.playground') {
+        componentName = 'Playground';
     } else if (routeName === 'agents.settings') {
         componentName = 'Persona';  // Now maps to Persona component file
     } else if (routeName === 'agents.sources') {

@@ -85,6 +85,8 @@ return [
         'nvm_include_path' => env('NVM_INCLUDE_PATH'),
         'libreoffice' => env('LIBREOFFICE_BIN_PATH', '/opt/homebrew/bin/soffice'),
         'pdfinfo' => env('PDFINFO_BIN_PATH', '/opt/homebrew/bin/pdfinfo'),
+        'ffmpeg' => env('FFMPEG_BIN_PATH', '/opt/homebrew/bin/ffmpeg'),
+        'ffprobe' => env('FFPROBE_PATH', '/opt/homebrew/bin/ffprobe'),
     ],
 
     'llamaparse' => [

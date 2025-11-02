@@ -77,7 +77,7 @@
                                 <div>
                                     <span class="font-medium transition duration-150 ease-in-out">Ahmad Mayahi</span>
                                     <span class="text-slate-300"> · </span>
-                                    <span class="text-slate-500">{{ $featured->published_at->diffForHumans() }}</span>
+                                    <span class="text-slate-500">{{ $featured?->published_at->diffForHumans() }}</span>
                                 </div>
                             </footer>
                         </div>
@@ -115,7 +115,7 @@
                                                 <a class="text-slate-800 hover:underline hover:decoration-blue-100" href="{{ route('blog.post', ['post' => $post->slug]) }}">{{ $post->title }}</a>
                                             </h3>
                                         </header>
-                                        
+
                                         <footer class="flex items-center mt-4">
                                             <div>
                                                 <span class="font-medium transition duration-150 ease-in-out">Ahmad Mayahi</span>

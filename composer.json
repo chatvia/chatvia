@@ -34,7 +34,6 @@
         "laravel/socialite": "^5.23",
         "laravel/telescope": "^5.10",
         "laravel/tinker": "^2.10.1",
-        "laravel/wayfinder": "^0.1.12",
         "league/commonmark": "^2.7",
         "league/flysystem-aws-s3-v3": "^3.0",
         "pgvector/pgvector": "^0.2.2",

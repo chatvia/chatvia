@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\ChunkableContract;
-use App\Support\Ingestion;
+use App\Services\Ingestion\Ingestion;
 use App\Traits\Chunkable;
 use Exception;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -58,7 +58,7 @@ class AgentFile extends Model implements ChunkableContract
 
     public function cancelIngestionJob(): void
     {
-        app(Ingestion::class)->cancelJob($this);
+        app(Ingestion::class)->cancel($this);
     }
 
     public function isWordFile(): bool

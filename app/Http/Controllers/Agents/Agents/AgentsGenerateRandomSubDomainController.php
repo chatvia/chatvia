@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Agents;
 
-use App\Support\Subdomain;
+use App\Services\Subdomain;
 use Illuminate\Http\Request;
 
 class AgentsGenerateRandomSubDomainController

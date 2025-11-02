@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Support\Agent;
+use App\Services\Agents\Agent;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

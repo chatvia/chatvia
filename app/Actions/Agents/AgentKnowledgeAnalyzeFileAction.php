@@ -5,8 +5,8 @@ namespace App\Actions\Agents;
 use App\Data\Agent\KnowledgeAnalyzeData;
 use App\Models\Agent;
 use App\Models\User;
-use App\Support\FileAnalyzer;
-use App\Support\Text;
+use App\Services\Agents\FileAnalyzer;
+use App\Services\Tidy\TextCleaner;
 use Illuminate\Http\UploadedFile;
 
 class AgentKnowledgeAnalyzeFileAction
@@ -14,7 +14,7 @@ class AgentKnowledgeAnalyzeFileAction
     public function execute(UploadedFile $uploadedFile, User $user, ?Agent $agent = null): KnowledgeAnalyzeData
     {
         if ($agent) {
-            $hash = md5_file(Text::clean($uploadedFile->getPathname()));
+            $hash = md5_file(TextCleaner::clean($uploadedFile->getPathname()));
 
             abort_if(
                 boolean: $agent->files()->where('checksum', $hash)->exists(),

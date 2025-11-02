@@ -9,7 +9,7 @@ use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\User;
-use App\Support\TikToken;
+use App\Services\TikToken;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;

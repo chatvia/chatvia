@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Ingestion;
 
 use App\Data\Ingestion\DocumentData;
 use App\Models\Chunk;
-use App\Support\Cohere;
+use App\Services\Infrastructure\Embeddings\Cohere;
 use Illuminate\Http\Request;
 
 class IngestionDocumentController

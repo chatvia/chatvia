@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Agents\Sources\Text;
 
 use App\Models\Agent;
 use App\Models\AgentText;
-use App\Support\Text;
+use App\Services\Tidy\TextCleaner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -21,7 +21,7 @@ class AgentKnowledgeTextStoreController
             'content' => ['required', 'min:500'],
         ]);
 
-        $content = Str::of(Text::clean($request->input('content')))->trim()->toString();
+        $content = Str::of(TextCleaner::clean($request->input('content')))->trim()->toString();
 
         $numberOfPages = ceil(str_word_count($content) / 450);
 

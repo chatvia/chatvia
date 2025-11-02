@@ -2,7 +2,7 @@
 
 namespace App\Services\Chat;
 
-use App\Support\OpenRouter;
+use App\Services\Infrastructure\LLM\OpenRouter;
 use Exception;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;

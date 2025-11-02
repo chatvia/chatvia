@@ -153,10 +153,11 @@ return [
                 ['label' => 'Changelog', 'link' => '/changelog'],
             ],
             'hero' => [
-                'top' => 'Train from PDFs, Word, Text, Video, Audio files or crawl your website',
-                'headline' => 'Create ChatGPT-like<br> AI Agents from your data',
+                'top' => 'Upload your files or link your website',
+                'headline' => 'AI Support Agents, Powered by Your Business Knowledge',
                 'subheadlines' => [
-                    'Transform your knowledge base and support chat into a single, smart experience',
+                    'Build custom AI chatbots trained on documents, websites, and internal data.',
+                    'Improve support, capture leads, and scale your team.',
                 ],
                 'button' => [
                     'label' => 'Get started for free',
@@ -270,7 +271,7 @@ return [
                 ],
                 [
                     'question' => 'What types of files can I upload?',
-                    'answer' => 'ChatVia supports PDF, Word, Text, Video, and Audio files. You can also crawl your website to add its content automatically.',
+                    'answer' => 'ChatVia supports PDF, Word, TextCleaner, Video, and Audio files. You can also crawl your website to add its content automatically.',
                 ],
                 [
                     'question' => 'How many AI agents can I create?',

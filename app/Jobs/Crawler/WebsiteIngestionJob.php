@@ -3,14 +3,14 @@
 namespace App\Jobs\Crawler;
 
 use App\Events\WebsiteCrawlerEvent;
-use App\Jobs\Ingestion\IngestionChunkJob;
-use App\Jobs\Ingestion\IngestionSummaryJob;
+use App\Jobs\Ingestion\ChunkIngestionJob;
+use App\Jobs\Ingestion\SummaryIngestionJob;
 use App\Models\AgentWebsite;
 use App\Models\AgentWebsiteUrl;
-use App\Services\HTMLCleaner;
-use App\Services\Ingestion\RecursiveCharacterTextSplitter;
 use App\Services\Ingestion\Sources\WebsiteIngestion;
-use App\Support\PromptLoader;
+use App\Services\Prompts\PromptLoader;
+use App\Services\Splitters\RecursiveCharacterTextSplitter;
+use App\Services\Tidy\HTMLCleaner;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -55,7 +55,7 @@ class WebsiteIngestionJob implements ShouldQueue
         $checksums = [];
         foreach ($urlsWithChunks as $url => $data) {
             foreach ($data['chunks'] as $chunk) {
-                $jobs[] = new IngestionChunkJob($chunk, $prompt, chunkReference: [
+                $jobs[] = new ChunkIngestionJob($chunk, $prompt, chunkReference: [
                     'referenceable_type' => AgentWebsiteUrl::class,
                     'referenceable_id' => $urlToId[$url],
                 ]);
@@ -76,7 +76,7 @@ class WebsiteIngestionJob implements ShouldQueue
         $websiteHome = Http::get($this->website->url);
         $text = $parser->getTextFromHtml($websiteHome->body());
 
-        dispatch(new IngestionSummaryJob($this->website, $text));
+        dispatch(new SummaryIngestionJob($this->website, $text));
 
         $totalChunks = $urlsWithChunks->sum(fn ($data) => count($data['chunks']));
 

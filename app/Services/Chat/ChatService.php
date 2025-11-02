@@ -6,7 +6,7 @@ use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Services\Chat\Data\StreamRequestData;
 use App\Services\Memory\ChatMemory;
-use App\Support\KnowledgeBase;
+use App\Services\Search\KnowledgeBase;
 use Illuminate\Support\Str;
 
 class ChatService

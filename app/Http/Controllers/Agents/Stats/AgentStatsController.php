@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Stats;
 
+use App\Data\Agent\Stats\StatsData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,7 +16,7 @@ class AgentStatsController
             code: 404,
         );
 
-        $analytics = $agent->stats()->all();
+        $analytics = StatsData::fromAgent($agent);
 
         return Inertia::render('agents/Stats', [
             'agent' => $agent,

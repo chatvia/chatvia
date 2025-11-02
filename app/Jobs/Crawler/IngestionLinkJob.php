@@ -3,7 +3,7 @@
 namespace App\Jobs\Crawler;
 
 use App\Data\Crawler\LinkData;
-use App\Services\Ingestion\RecursiveCharacterTextSplitter;
+use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

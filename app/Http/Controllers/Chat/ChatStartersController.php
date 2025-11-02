@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chat;
 
-use App\Support\Agent;
+use App\Services\Agents\Agent;
 use Illuminate\Http\Request;
 
 final class ChatStartersController

@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Agent;
 use App\Models\User;
-use App\Support\PromptLoader;
+use App\Services\Prompts\PromptLoader;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder

@@ -25,11 +25,11 @@ class MemberInvitationNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Invitation to join the chat agent '.$this->agent->name)
-            ->line('This is an invitation to join the chat agent '.$this->agent->name.'.')
+            ->subject('Invitation to join "'.$this->agent->name.'" agent')
+            ->line('This is an invitation to join "'.$this->agent->name.'" agent.')
             ->when(is_null($this->member->email_verified_at), function (MailMessage $message) {
                 $message
-                    ->line('You can accept or this invitation on the button below:')
+                    ->line('You can accept it by clicking the button below:')
                     ->action('Accept Invitation', route('agents.invitations', [
                         'agent' => $this->agent->id,
                         'token' => $this->member->verification_token,

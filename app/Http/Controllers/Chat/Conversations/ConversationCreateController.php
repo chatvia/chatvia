@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Chat\Conversations;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Rules\AgentLLmChatRule;
+use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Memory\ChatMemory;
 use App\Services\Memory\ChatSession;
 use App\Support\Llms;
-use App\Support\OpenAI;
 use Illuminate\Http\Request;
 
 final class ConversationCreateController

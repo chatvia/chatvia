@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Services\Ingestion;
 
-use App\Services\Ingestion\RecursiveCharacterTextSplitter;
+use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 

@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - ChatVia | Data Protection & GDPR Compliance</title>
-    
+
     @section('description', 'ChatVia Privacy Policy - Learn how we protect your data, GDPR compliance, data processing with AI providers, and your privacy rights.')
     @section('og_title', 'Privacy Policy - ChatVia')
     @section('og_description', 'Understand how ChatVia handles your data with complete transparency. GDPR compliant, secure storage, and full data control.')
-    
+
     @vite(['resources/css/landing.css'])
     @include('partials.cover')
 </head>
@@ -104,14 +104,14 @@
                 </ul>
             </section>
 
-            <!-- Third-Party AI Providers -->
+            <!-- Third-Party AI Infrastructure -->
             <section class="space-y-4">
-                <h2 class="text-2xl font-semibold text-gray-900">4. Third-Party AI Providers</h2>
+                <h2 class="text-2xl font-semibold text-gray-900">4. Third-Party AI Infrastructure</h2>
                 <p class="text-gray-700 leading-relaxed">
                     ChatVia integrates with various AI providers to deliver our services. Your data will be processed by:
                 </p>
 
-                <h3 class="text-xl font-medium text-gray-800">4.1 Data Processing Providers</h3>
+                <h3 class="text-xl font-medium text-gray-800">4.1 Data Processing Infrastructure</h3>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
                     <li><strong>OpenAI (GPT-4.1):</strong> For document processing (Privacy Policy: <a href="https://cohere.com/privacy" class="text-blue-600 hover:underline">https://openai.com/policies/row-privacy-policy/</a>)</li>
                     <li><strong>Cohere (embed-4):</strong> For document embedding and processing (Privacy Policy: <a href="https://cohere.com/privacy" class="text-blue-600 hover:underline">https://cohere.com/privacy</a>)</li>

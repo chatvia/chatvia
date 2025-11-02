@@ -88,7 +88,7 @@ const openEditForm = async (entry: TextEntry) => {
             agent: props.agent.id,
             id: entry.id
         }));
-        
+
         editingEntry.value = entry;
         form.content = response.data.content;
         showCreateForm.value = true;
@@ -222,7 +222,7 @@ const handleIngestionUpdate = async (event: any) => {
             break;
         case 'ingested':
             toast.success('Success!', {
-                description: 'Text entry has been successfully added to your knowledge base.',
+                description: 'TextCleaner entry has been successfully added to your knowledge base.',
             });
             break;
         case 'failed':
@@ -317,7 +317,7 @@ fetchTextEntries();
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <Edit3 class="h-5 w-5" />
-                    {{ editingEntry ? 'Edit Text Entry' : 'Create New Text Entry' }}
+                    {{ editingEntry ? 'Edit TextCleaner Entry' : 'Create New TextCleaner Entry' }}
                 </CardTitle>
                 <CardDescription>
                     {{ editingEntry ? 'Update your text content' : 'Add structured text content to your knowledge base' }}
@@ -366,7 +366,7 @@ fetchTextEntries();
             </CardContent>
         </Card>
 
-        <!-- Text Entries List -->
+        <!-- TextCleaner Entries List -->
         <Card v-if="!isLoading && textEntries.length > 0">
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">

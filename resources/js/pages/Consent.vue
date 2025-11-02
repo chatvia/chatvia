@@ -68,7 +68,7 @@ const submitConsent = () => {
                             When you create a training-based agent, ChatVia will send your data to different providers for processing. Here are the key points about our data processing:
                         </p>
                         <ul class="list-disc list-inside space-y-2 ml-4">
-                            <li><strong>Data Processing Providers:</strong> We use Cohere (<a href="https://cohere.com/privacy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">privacy policy</a>), Mistral for EU users, and Google/OpenAI for US users.</li>
+                            <li><strong>Data Processing Infrastructure:</strong> We use Cohere (<a href="https://cohere.com/privacy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">privacy policy</a>), Mistral for EU users, and Google/OpenAI for US users.</li>
                             <li><strong>Data Storage:</strong> Your data will be stored and encrypted locally in the EU (Germany/Finland).</li>
                             <li><strong>No Training:</strong> We don't train models on your data. Instead, we use RAG (Retrieval-Augmented Generation) and GraphRAG to find relevant information and send it to your chosen model for processing.</li>
                             <li><strong>Data Control:</strong> You can easily delete your data at any time through your account settings.</li>

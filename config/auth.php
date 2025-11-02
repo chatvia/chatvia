@@ -48,7 +48,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | User Providers
+    | User Infrastructure
     |--------------------------------------------------------------------------
     |
     | All authentication guards have a user provider, which defines how the

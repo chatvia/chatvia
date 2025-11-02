@@ -5,7 +5,7 @@ namespace App\Services\Chat;
 use App\Data\Chat\ChatInputPayload;
 use App\Models\Agent;
 use App\Services\Chat\Data\StreamRequestData;
-use App\Support\KnowledgeBase;
+use App\Services\Search\KnowledgeBase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

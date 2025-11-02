@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Agents\Sources;
 
 use App\Models\Agent;
 use App\Models\AgentFile;
-use App\Support\Ingestion;
+use App\Services\Ingestion\Ingestion;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeFilesProcessController

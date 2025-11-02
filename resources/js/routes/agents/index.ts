@@ -133,7 +133,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Agents\Stats\AgentStatsController::__invoke
-* @see app/Http/Controllers/Agents/Stats/AgentStatsController.php:11
+* @see app/Http/Controllers/Agents/Stats/AgentStatsController.php:12
 * @route '/agents/{agent}/stats'
 */
 export const stats = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -148,7 +148,7 @@ stats.definition = {
 
 /**
 * @see \App\Http\Controllers\Agents\Stats\AgentStatsController::__invoke
-* @see app/Http/Controllers/Agents/Stats/AgentStatsController.php:11
+* @see app/Http/Controllers/Agents/Stats/AgentStatsController.php:12
 * @route '/agents/{agent}/stats'
 */
 stats.url = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ stats.url = (args: { agent: number | { id: number } } | [agent: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Agents\Stats\AgentStatsController::__invoke
-* @see app/Http/Controllers/Agents/Stats/AgentStatsController.php:11
+* @see app/Http/Controllers/Agents/Stats/AgentStatsController.php:12
 * @route '/agents/{agent}/stats'
 */
 stats.get = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -191,7 +191,7 @@ stats.get = (args: { agent: number | { id: number } } | [agent: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Agents\Stats\AgentStatsController::__invoke
-* @see app/Http/Controllers/Agents/Stats/AgentStatsController.php:11
+* @see app/Http/Controllers/Agents/Stats/AgentStatsController.php:12
 * @route '/agents/{agent}/stats'
 */
 stats.head = (args: { agent: number | { id: number } } | [agent: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({

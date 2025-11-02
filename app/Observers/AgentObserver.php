@@ -6,8 +6,7 @@ use App\Enums\PermissionEnum;
 use App\Models\Agent;
 use App\Models\Llm;
 use App\Models\User;
-use App\Support\Agent as AgentHelper;
-use Illuminate\Support\Facades\DB;
+use App\Services\Agents\Agent as AgentHelper;
 use Illuminate\Support\Facades\Storage;
 
 class AgentObserver

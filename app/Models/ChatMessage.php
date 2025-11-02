@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\QueryBuilders\ChatMessageQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,5 +26,10 @@ class ChatMessage extends Model
     public function lead(): HasOne
     {
         return $this->hasOne(Lead::class, 'chat_conversation_id', 'chat_conversation_id');
+    }
+
+    public function newEloquentBuilder($query): ChatMessageQueryBuilder
+    {
+        return new ChatMessageQueryBuilder($query);
     }
 }

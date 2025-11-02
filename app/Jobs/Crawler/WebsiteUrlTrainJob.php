@@ -3,13 +3,13 @@
 namespace App\Jobs\Crawler;
 
 use App\Events\UrlIngestionEvent;
-use App\Jobs\Ingestion\IngestionChunkJob;
+use App\Jobs\Ingestion\ChunkIngestionJob;
 use App\Models\AgentWebsite;
 use App\Models\AgentWebsiteUrl;
-use App\Services\Chunker;
-use App\Services\HTMLCleaner;
-use App\Services\Ingestion\RecursiveCharacterTextSplitter;
-use App\Support\PromptLoader;
+use App\Services\Chunking\Chunker;
+use App\Services\Prompts\PromptLoader;
+use App\Services\Splitters\RecursiveCharacterTextSplitter;
+use App\Services\Tidy\HTMLCleaner;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -75,7 +75,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
         $jobs = [];
 
         foreach ($chunks as $chunk) {
-            $jobs[] = new IngestionChunkJob($chunk, $prompt, chunkReference: [
+            $jobs[] = new ChunkIngestionJob($chunk, $prompt, chunkReference: [
                 'referenceable_type' => AgentWebsiteUrl::class,
                 'referenceable_id' => $this->websiteUrl->id,
             ]);

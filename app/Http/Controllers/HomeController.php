@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\Billing;
-use App\Support\HostConfig;
+use App\Services\Billing\Billing;
+use App\Services\HostConfig;
 use Illuminate\Http\Request;
 
 class HomeController

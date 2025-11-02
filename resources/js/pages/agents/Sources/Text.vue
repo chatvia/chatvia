@@ -12,6 +12,6 @@ interface Props {
 </script>
 
 <template>
-    <!-- Use the main Sources component which will detect the route and show Text content -->
+    <!-- Use the main Sources component which will detect the route and show TextCleaner content -->
     <Sources :agent="agent" />
 </template>

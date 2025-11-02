@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Collections\AgentCollection;
 use App\Data\Chat\LlmModelData;
 use App\Enums\AgentFileStatusEnum;
-use App\Support\Agents\Stats;
-use App\Support\FileAnalyzer;
+use App\QueryBuilders\AgentQueryBuilder;
+use App\Services\Agents\FileAnalyzer;
 use App\Traits\HasSettings;
 use Exception;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -134,11 +135,6 @@ class Agent extends Model
         return $this->type === 'widget';
     }
 
-    public function stats(): Stats
-    {
-        return app(Stats::class)->setAgent($this);
-    }
-
     public function llmSettings(): array
     {
         $settings = AgentLlm::where('agent_id', $this->id)
@@ -242,5 +238,15 @@ class Agent extends Model
     public function videoFiles(): HasMany
     {
         return $this->files()->whereIn('mime_type', config('mimes.video'));
+    }
+
+    public function newEloquentBuilder($query): AgentQueryBuilder
+    {
+        return new AgentQueryBuilder($query);
+    }
+
+    public function newCollection(array $models = []): AgentCollection
+    {
+        return new AgentCollection($models);
     }
 }

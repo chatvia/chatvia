@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Billing\Subscriptions;
 
 use App\Data\StripeScheduleData;
 use App\Models\User;
-use App\Support\Billing;
+use App\Services\Billing\Billing;
 use Illuminate\Http\Request;
 use Laravel\Cashier\Cashier;
 

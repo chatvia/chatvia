@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\ChunkableContract;
-use App\Jobs\TextIngestionJob;
+use App\Jobs\Ingestion\TextIngestionJob;
 use App\Traits\Chunkable;
 use Illuminate\Database\Eloquent\Model;
 

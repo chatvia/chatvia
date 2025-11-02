@@ -2,8 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\AudioCompressor;
-use App\Support\OpenAI;
+use App\Services\Media\AudioCompressor;
 use Illuminate\Console\Command;
 
 class TestCommand extends Command

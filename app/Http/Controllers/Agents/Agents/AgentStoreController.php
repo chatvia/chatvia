@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Agents\Agents;
 
 use App\Http\Requests\Agents\CreateAgentRequest;
 use App\Models\Agent;
-use App\Support\Ingestion;
-use App\Support\PromptLoader;
-use App\Support\Subdomain;
+use App\Services\Ingestion\Ingestion;
+use App\Services\Prompts\PromptLoader;
+use App\Services\Subdomain;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -21,7 +21,7 @@ class AgentStoreController
 
             $validatedData = $request->validated();
 
-            $externalId = \App\Support\Agent::generateRandomExternalId();
+            $externalId = \App\Services\Agents\Agent::generateRandomExternalId();
 
             /** @var Agent $agent */
             $agent = Agent::create([

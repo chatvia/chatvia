@@ -301,7 +301,7 @@ const isActiveRoute = (routeName: string) => {
     } else if (routeName === 'agents.sources.web') {
         componentName = 'Sources/Web';  // Maps to Sources/Web component file
     } else if (routeName === 'agents.sources.text') {
-        componentName = 'Sources/Text';  // Maps to Sources/Text component file
+        componentName = 'Sources/TextCleaner';  // Maps to Sources/TextCleaner component file
     } else if (routeName === 'agents.sources.pdf') {
         componentName = 'Sources/Pdf';  // Maps to Sources/Pdf component file
     } else if (routeName === 'agents.sources.word') {

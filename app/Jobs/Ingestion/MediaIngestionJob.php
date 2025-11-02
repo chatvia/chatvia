@@ -4,9 +4,9 @@ namespace App\Jobs\Ingestion;
 
 use App\Data\Ingestion\ChunkIngestionData;
 use App\Models\AgentFile;
-use App\Services\AudioCompressor;
-use App\Services\Chunker;
-use App\Support\OpenAI;
+use App\Services\Chunking\Chunker;
+use App\Services\Infrastructure\LLM\OpenAI;
+use App\Services\Media\AudioCompressor;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\File\File;
 use Throwable;
 
 class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
@@ -87,12 +86,12 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $chunks = $chunker->createChunks($pages);
 
-        dispatch(new IngestionSummaryJob($this->agentFile, $transcription));
+        dispatch(new SummaryIngestionJob($this->agentFile, $transcription));
 
         $agentFileId = $this->agentFile->id;
 
         $jobs = $chunks->map(function (ChunkIngestionData $chunk) {
-            return new IngestionChunkJob($chunk);
+            return new ChunkIngestionJob($chunk);
         });
 
         $batch = Bus::batch($jobs)

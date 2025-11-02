@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service - ChatVia | AI Chatbot Platform</title>
-    
+
     @section('description', 'Read ChatVia\'s Terms of Service. Learn about our AI chatbot platform policies, user agreements, data processing terms, and service conditions.')
     @section('og_title', 'Terms of Service - ChatVia')
     @section('og_description', 'ChatVia Terms of Service - Understand your rights and responsibilities when using our AI-powered chatbot platform.')
-    
+
     @vite(['resources/css/landing.css'])
     @include('partials.cover')
 </head>
@@ -152,7 +152,7 @@
 
             <!-- Third-Party Services -->
             <section class="space-y-4">
-                <h2 class="text-2xl font-semibold text-gray-900">6. Third-Party AI Providers</h2>
+                <h2 class="text-2xl font-semibold text-gray-900">6. Third-Party AI Infrastructure</h2>
                 <p class="text-gray-700 leading-relaxed">
                     ChatVia integrates with third-party AI providers to deliver our services. When you use our Service, your content may be processed by:
                 </p>

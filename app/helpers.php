@@ -1,77 +1,11 @@
 <?php
 
-use App\Support\Agent;
-use App\Support\Cohere;
-use App\Support\HostConfig;
-use App\Support\LibreOffice;
+use App\Services\Agents\Agent;
+use App\Services\HostConfig;
+use App\Services\Infrastructure\Documents\LibreOffice;
+use App\Services\Infrastructure\Embeddings\Cohere;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
-
-if (! function_exists('user_has_capability')) {
-    /**
-     * Check if the current user has a specific capability
-     */
-    function user_has_capability(string $capability): bool
-    {
-        $user = auth()->user();
-
-        return $user ? $user->hasCapability($capability) : false;
-    }
-}
-
-if (! function_exists('user_capability')) {
-    /**
-     * Get a capability value for the current user
-     */
-    function user_capability(string $capability, $default = null)
-    {
-        $user = auth()->user();
-
-        return $user ? $user->getCapability($capability, $default) : $default;
-    }
-}
-
-if (! function_exists('user_capability_allows')) {
-    /**
-     * Check if user's capability allows a specific value
-     */
-    function user_capability_allows(string $capability, $value = null): bool
-    {
-        $user = auth()->user();
-
-        return $user ? $user->capabilityAllows($capability, $value) : false;
-    }
-}
-
-if (! function_exists('plan_has_capability')) {
-    /**
-     * Check if a specific plan has a capability (static check)
-     */
-    function plan_has_capability(string $planKey, string $capability): bool
-    {
-        return \App\Support\Billing::packageHasCapability($planKey, $capability);
-    }
-}
-
-if (! function_exists('get_plan_features')) {
-    /**
-     * Get UI features for a plan (for display purposes)
-     */
-    function get_plan_features(string $planKey, bool $isYearly = false): array
-    {
-        return \App\Support\Billing::getFeaturesForPackage($planKey, $isYearly);
-    }
-}
-
-if (! function_exists('get_plan_capabilities')) {
-    /**
-     * Get capabilities for a plan (for logic checks)
-     */
-    function get_plan_capabilities(string $planKey): array
-    {
-        return \App\Support\Billing::getCapabilitiesForPackage($planKey);
-    }
-}
 
 if (! function_exists('temp_dir')) {
     function temp_dir(string $append = ''): string
@@ -80,7 +14,9 @@ if (! function_exists('temp_dir')) {
 
         // If a subdirectory path is appended and doesn't exist, create it
         if ($append !== '' && ! is_dir($path)) {
-            mkdir($path, 0755, true);
+            if (! mkdir($path, 0755, true) && ! is_dir($path)) {
+                throw new RuntimeException(sprintf('Directory "%s" was not created', $path));
+            }
         }
 
         return $path;
@@ -173,7 +109,7 @@ if (! function_exists('current_agent')) {
 if (! function_exists('get_file_type')) {
     function get_file_type(string $mimeType): string
     {
-        // Document types (PDF, Word processing, Text, E-books, Web)
+        // Document types (PDF, Word processing, TextCleaner, E-books, Web)
         $documentTypes = [
             // PDF
             'application/pdf',
@@ -192,7 +128,7 @@ if (! function_exists('get_file_type')) {
             'application/x-abiword', // abw
             'application/x-hwp', // hwp
 
-            // Text files
+            // TextCleaner files
             'text/plain', // txt
             'application/xml', // xml
             'text/xml', // xml
@@ -207,94 +143,42 @@ if (! function_exists('get_file_type')) {
         ];
 
         // Presentation types
-        $presentationTypes = [
-            'application/vnd.ms-powerpoint', // ppt
-            'application/vnd.ms-powerpoint.presentation.macroEnabled.12', // pptm
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation', // pptx
-            'application/vnd.ms-powerpoint.template.macroEnabled.12', // pot
-            'application/vnd.openxmlformats-officedocument.presentationml.template', // potx
-            'application/vnd.oasis.opendocument.presentation', // odp
-            'application/vnd.apple.keynote', // key
-        ];
+        $presentationTypes = config('mimes.presentation');
 
         // Image types
-        $imageTypes = [
-            'image/jpeg', // jpg, jpeg
-            'image/png', // png
-            'image/gif', // gif
-            'image/bmp', // bmp
-            'image/svg+xml', // svg
-            'image/tiff', // tiff
-            'image/webp', // webp
-        ];
+        $imageTypes = config('mimes.images');
 
         // Spreadsheet types
-        $spreadsheetTypes = [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
-            'application/vnd.ms-excel', // xls
-            'application/vnd.ms-excel.sheet.macroEnabled.12', // xlsm
-            'application/vnd.ms-excel.sheet.binary.macroEnabled.12', // xlsb
-            'text/csv', // csv
-            'application/vnd.oasis.opendocument.spreadsheet', // ods
-            'application/vnd.apple.numbers', // numbers
-            'application/dbase', // dbf
-            'application/x-dbf', // dbf
-            'text/tab-separated-values', // tsv
-            'application/vnd.lotus-1-2-3', // 123
-            'application/vnd.ms-works', // wks
-            'application/x-quattro-pro', // qpw
-        ];
+        $spreadsheetTypes = config('mimes.spreadsheets');
 
         // Audio types (limited to 20MB)
-        $audioTypes = [
-            'audio/mpeg', // mp3, mpeg, mpga
-            'audio/mp3', // mp3
-            'audio/mp4', // mp4, m4a
-            'audio/wav', // wav
-            'audio/webm', // webm
-            'audio/x-wav', // wav
-            'audio/wave', // wav
-        ];
+        $audioTypes = config('mimes.audio');
 
         // Video types
-        $videoTypes = [
-            'video/mp4',
-            'video/avi',
-            'video/mov',
-            'video/wmv',
-            'video/flv',
-            'video/webm',
-            'video/mkv',
-            'video/quicktime',
-            'video/x-msvideo',
-            'video/x-ms-wmv',
-            'video/3gpp',
-            'video/x-flv',
-            'video/x-matroska',
-        ];
+        $videoTypes = config('mimes.video');
 
         // Check each category
         if (in_array($mimeType, $documentTypes)) {
             return 'document';
         }
 
-        if (in_array($mimeType, $presentationTypes)) {
+        if (in_array($mimeType, $presentationTypes, true)) {
             return 'presentation';
         }
 
-        if (in_array($mimeType, $imageTypes)) {
+        if (in_array($mimeType, $imageTypes, true)) {
             return 'image';
         }
 
-        if (in_array($mimeType, $spreadsheetTypes)) {
+        if (in_array($mimeType, $spreadsheetTypes, true)) {
             return 'spreadsheet';
         }
 
-        if (in_array($mimeType, $audioTypes)) {
+        if (in_array($mimeType, $audioTypes, true)) {
             return 'audio';
         }
 
-        if (in_array($mimeType, $videoTypes)) {
+        if (in_array($mimeType, $videoTypes, true)) {
             return 'video';
         }
 

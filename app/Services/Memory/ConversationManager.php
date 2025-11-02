@@ -3,7 +3,7 @@
 namespace App\Services\Memory;
 
 use App\Models\Member;
-use App\Support\OpenRouter;
+use App\Services\Infrastructure\LLM\OpenRouter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 

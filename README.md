@@ -55,7 +55,7 @@ ChatVia is a sophisticated RAG (Retrieval-Augmented Generation) application that
 - **Icons**: Heroicons & Lucide
 
 ### AI & Machine Learning
-- **LLM Providers**: OpenAI, Cohere, Mistral AI, Google AI, Groq
+- **LLM Infrastructure**: OpenAI, Cohere, Mistral AI, Google AI, Groq
 - **Document Parsing**: LlamaParse, Azure Document Intelligence
 - **Vector Database**: pgvector (PostgreSQL extension)
 - **Text Processing**: Advanced chunking and embedding strategies
@@ -131,7 +131,7 @@ REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=null
 REDIS_PORT=6379
 
-# AI Providers (configure as needed)
+# AI Infrastructure (configure as needed)
 OPENAI_API_KEY=your_openai_key
 COHERE_API_KEY=your_cohere_key
 GROQ_API_KEY=your_groq_key
@@ -202,7 +202,7 @@ chatvia/
 │   ├── Jobs/                 # Queue jobs
 │   ├── Models/               # Eloquent models
 │   ├── Policies/             # Authorization policies
-│   ├── Providers/            # Service providers
+│   ├── Infrastructure/            # Service providers
 │   ├── Services/             # Business logic services
 │   └── Support/              # Helper classes
 ├── database/
@@ -225,7 +225,7 @@ chatvia/
 
 ## 🔧 Configuration
 
-### AI Providers
+### AI Infrastructure
 Configure your preferred AI providers in the `.env` file:
 
 ```env

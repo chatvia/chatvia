@@ -62,7 +62,7 @@ const logoInputRef = ref<HTMLInputElement | null>(null);
 const updateAppearance = () => {
     isSubmitting.value = true;
     showSuccessMessage.value = false;
-    
+
     appearanceForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
         preserveScroll: true,
         forceFormData: true,
@@ -105,10 +105,10 @@ const handleAvatarUpload = (event: Event) => {
 };
 
 const removeAvatar = () => {
-    router.delete(route('agents.settings.delete', { 
-        agent: props.agent.id, 
-        group: 'appearance', 
-        key: 'avatar' 
+    router.delete(route('agents.settings.delete', {
+        agent: props.agent.id,
+        group: 'appearance',
+        key: 'avatar'
     }), {
         preserveScroll: true,
         onSuccess: () => {
@@ -152,10 +152,10 @@ const handleLogoUpload = (event: Event) => {
 };
 
 const removeLogo = () => {
-    router.delete(route('agents.settings.delete', { 
-        agent: props.agent.id, 
-        group: 'appearance', 
-        key: 'logo' 
+    router.delete(route('agents.settings.delete', {
+        agent: props.agent.id,
+        group: 'appearance',
+        key: 'logo'
     }), {
         preserveScroll: true,
         onSuccess: () => {
@@ -184,7 +184,7 @@ const restoreDefaults = () => {
     appearanceForm.composer_placeholder = props.default_settings.composer_placeholder;
     appearanceForm.avatar = null;
     appearanceForm.logo = null;
-    
+
     // Reset previews
     avatarPreview.value = null;
     logoPreview.value = null;
@@ -254,7 +254,7 @@ const restoreDefaults = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Color Info and Button -->
                                         <div class="flex-1">
                                             <div class="flex items-center gap-2 mb-1">
@@ -274,7 +274,7 @@ const restoreDefaults = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    
+
                                     <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
                                         {{ appearanceForm.errors.color_theme }}
                                     </p>
@@ -383,7 +383,7 @@ const restoreDefaults = () => {
                     </Card>
                 </div>
 
-                <!-- Right Column - Text Content -->
+                <!-- Right Column - TextCleaner Content -->
                 <div class="space-y-6">
                     <Card>
                         <CardHeader>
@@ -471,7 +471,7 @@ const restoreDefaults = () => {
                         Choose from 23 carefully crafted color themes. Each theme is optimized for both light and dark modes.
                     </DialogDescription>
                 </DialogHeader>
-                
+
                 <div class="grid grid-cols-8 gap-2">
                     <div
                         v-for="theme in ['black', 'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose', 'slate', 'gray', 'zinc', 'neutral', 'stone']"
@@ -533,7 +533,7 @@ const restoreDefaults = () => {
                                     const target = e.target as HTMLInputElement;
                                     const value = parseInt(target.value);
                                     const validShades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-                                    const closest = validShades.reduce((prev, curr) => 
+                                    const closest = validShades.reduce((prev, curr) =>
                                         Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
                                     );
                                     appearanceForm.color_shade = closest;
@@ -547,7 +547,7 @@ const restoreDefaults = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 <DialogFooter>
                     <Button variant="outline" @click="showColorPicker = false">
                         Cancel

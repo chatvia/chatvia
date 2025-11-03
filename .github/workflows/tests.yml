@@ -68,6 +68,15 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
+      - name: Create storage directories
+        run: |
+          mkdir -p storage/framework/cache
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p storage/framework/testing
+          mkdir -p storage/logs
+          mkdir -p bootstrap/cache
+
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
@@ -85,13 +94,7 @@ jobs:
 
       - name: Prepare Laravel Application
         run: |
-          cp .env.example .env
-          mkdir -p storage/framework/cache
-          mkdir -p storage/framework/sessions
-          mkdir -p storage/framework/views
-          mkdir -p storage/framework/testing
-          mkdir -p storage/logs
-          mkdir -p bootstrap/cache
+          cp .env.testing .env
           php artisan key:generate
 
       - name: Configure Database

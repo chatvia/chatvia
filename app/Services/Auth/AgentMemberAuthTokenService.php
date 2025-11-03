@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\Member;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class AgentMemberAuthTokenService
@@ -27,7 +28,19 @@ class AgentMemberAuthTokenService
      */
     public function generateTokenFromUser(Agent $agent, User $user, int $ttlMinutes = 60): string
     {
-        return $this->generateToken($agent, $user->memberOwner, $ttlMinutes);
+        $member = $user->memberOwner;
+
+        if (! $member) {
+            $user->memberOwner()->create([
+                'name' => $user->name,
+                'email' => $user->email,
+                'password' => Hash::make(Str::random()),
+                'is_owner' => true,
+                'email_verified_at' => now(),
+            ]);
+        }
+
+        return $this->generateToken($agent, $member, $ttlMinutes);
     }
 
     /**

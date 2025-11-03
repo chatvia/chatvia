@@ -96,9 +96,15 @@ jobs:
         run: |
           cp .env.testing .env
           php artisan key:generate
-
-      - name: Configure Database
+          
+      - name: Configure PostgreSQL Database
         run: |
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=pgsql/' .env
+          sed -i 's/DB_HOST=.*/DB_HOST=localhost/' .env
+          sed -i 's/DB_PORT=.*/DB_PORT=5432/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=testing/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=postgres/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=postgres/' .env
           php artisan config:clear
           php artisan cache:clear
 

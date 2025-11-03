@@ -1,6 +1,6 @@
 <?php
 
-namespace Feature\Website;
+namespace Tests\Feature\Website;
 
 use App\Models\Post;
 use PHPUnit\Framework\Attributes\Test;

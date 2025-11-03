@@ -86,6 +86,12 @@ jobs:
       - name: Prepare Laravel Application
         run: |
           cp .env.example .env
+          mkdir -p storage/framework/cache
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p storage/framework/testing
+          mkdir -p storage/logs
+          mkdir -p bootstrap/cache
           php artisan key:generate
 
       - name: Configure Database

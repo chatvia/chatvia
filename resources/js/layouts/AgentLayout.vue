@@ -3,7 +3,21 @@ import { computed, onMounted, watch } from 'vue';
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
+    SidebarProvider,
+    SidebarTrigger
+} from '@/components/ui/sidebar';
 import {
     Dialog,
     DialogContent,
@@ -12,12 +26,6 @@ import {
     DialogHeader,
     DialogTitle
 } from '@/components/ui/dialog';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger
-} from '@/components/ui/tooltip';
 import { toast } from 'vue-sonner';
 import { Toaster } from '@/components/ui/sonner';
 import type { Features } from '@/types';
@@ -45,16 +53,21 @@ import {
     Workflow,
     Zap,
     Code,
-    PanelLeftClose,
-    PanelLeftOpen,
     FileText,
     Settings,
     Menu,
     UserCheck,
     Edit,
+    ChevronDown,
+    File,
+    Video,
+    Music,
+    Youtube,
+    FileCode,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
     agent: {
@@ -73,49 +86,23 @@ const currentRoute = computed(() => page.component);
 // Get features from page props
 const features = page.props.features as Features;
 
-// Collapse/expand state for sections - with localStorage persistence
-const isUiSectionExpanded = ref(true);
-const isControlPanelExpanded = ref(true);
-const isNavigationCollapsed = ref(true); // Default to collapsed on mobile
+// Load sidebar state from localStorage
+const getSidebarStateFromStorage = (): boolean => {
+    const saved = localStorage.getItem('agent-sidebar-open');
+    return saved !== null ? saved === 'true' : true; // Default to open
+};
 
-// Load states from localStorage on component mount
-onMounted(() => {
-    const savedUiExpanded = localStorage.getItem('agent-layout-ui-expanded');
-    const savedControlPanelExpanded = localStorage.getItem('agent-layout-control-panel-expanded');
-    const savedNavigationCollapsed = localStorage.getItem('agent-layout-navigation-collapsed');
+const sidebarOpen = ref(getSidebarStateFromStorage());
 
-    if (savedUiExpanded !== null) {
-        isUiSectionExpanded.value = savedUiExpanded === 'true';
-    }
-    if (savedControlPanelExpanded !== null) {
-        isControlPanelExpanded.value = savedControlPanelExpanded === 'true';
-    }
-
-    // Mobile-first approach: collapsed by default, but respect desktop preference
-    if (savedNavigationCollapsed !== null) {
-        // On desktop, use saved preference. On mobile, always start collapsed
-        const isDesktop = window.innerWidth >= 1024;
-        if (isDesktop) {
-            isNavigationCollapsed.value = savedNavigationCollapsed === 'true';
-        } else {
-            isNavigationCollapsed.value = true; // Always collapsed on mobile
-        }
-    }
-
+// Watch for sidebar state changes and save to localStorage
+watch(sidebarOpen, (newValue) => {
+    localStorage.setItem('agent-sidebar-open', newValue.toString());
 });
 
-// Watch for changes and save to localStorage
-watch(isUiSectionExpanded, (newValue) => {
-    localStorage.setItem('agent-layout-ui-expanded', newValue.toString());
-});
-
-watch(isControlPanelExpanded, (newValue) => {
-    localStorage.setItem('agent-layout-control-panel-expanded', newValue.toString());
-});
-
-watch(isNavigationCollapsed, (newValue) => {
-    localStorage.setItem('agent-layout-navigation-collapsed', newValue.toString());
-});
+// Toggle sidebar function
+const toggleSidebar = () => {
+    sidebarOpen.value = !sidebarOpen.value;
+};
 
 
 // Remove breadcrumbs as we're creating a knowledge_base layout
@@ -203,7 +190,7 @@ const controlPanelNavigationItems = computed(() => {
     if (features.actions) {
         // Insert actions after workflow (or after models if workflow is disabled)
         const insertIndex = features.workflow ? 4 : 3;
-        baseItems.splice(insertIndex, 0, { id: 'actions', label: 'Actions', icon: Zap, route: 'agents.actions', tooltip: 'Set up automated actions based on user inputs' });
+        baseItems.splice(insertIndex, 0, { id: 'actions', label: 'Sentiment', icon: Zap, route: 'agents.actions', tooltip: 'Configure sentiment analysis and response rules' });
     }
 
     return baseItems;
@@ -306,10 +293,18 @@ const isActiveRoute = (routeName: string) => {
         componentName = 'Sources/Pdf';  // Maps to Sources/Pdf component file
     } else if (routeName === 'agents.sources.word') {
         componentName = 'Sources/Word';  // Maps to Sources/Word component file
+    } else if (routeName === 'agents.sources.video') {
+        componentName = 'Sources/Video';  // Maps to Sources/Video component file
+    } else if (routeName === 'agents.sources.audio') {
+        componentName = 'Sources/Audio';  // Maps to Sources/Audio component file
+    } else if (routeName === 'agents.sources.youtube') {
+        componentName = 'Sources/Youtube';  // Maps to Sources/Youtube component file
+    } else if (routeName === 'agents.sources.markdown') {
+        componentName = 'Sources/Markdown';  // Maps to Sources/Markdown component file
     } else if (routeName === 'agents.workflow') {
         componentName = 'Workflow';  // Maps to Workflow component file
     } else if (routeName === 'agents.actions') {
-        componentName = 'Actions';  // Maps to Actions component file
+        componentName = 'Sentiment';  // Maps to Sentiment component file
     } else if (routeName === 'agents.leads') {
         componentName = 'Leads';  // Maps to Leads component file
     } else if (routeName === 'agents.logs') {
@@ -322,332 +317,352 @@ const isActiveRoute = (routeName: string) => {
     return currentRoute.value === `agents/${componentName}`;
 };
 
+// Sources submenu state - auto-open if on sources page
+const sourcesSubmenuOpen = ref(
+    currentRoute.value.startsWith('agents/Sources') ||
+    isActiveRoute('agents.sources') ||
+    isActiveRoute('agents.sources.web') ||
+    isActiveRoute('agents.sources.text') ||
+    isActiveRoute('agents.sources.pdf') ||
+    isActiveRoute('agents.sources.word') ||
+    isActiveRoute('agents.sources.video') ||
+    isActiveRoute('agents.sources.audio') ||
+    isActiveRoute('agents.sources.youtube') ||
+    isActiveRoute('agents.sources.markdown')
+);
 
+// Source stats
+const sourceStats = ref<any>(null);
 
+// Fetch source stats
+const fetchSourceStats = async () => {
+    try {
+        const response = await axios.get(route('agents.sources.stats', { agent: props.agent.id }));
+        sourceStats.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch source stats:', error);
+    }
+};
+
+// Get stat count for a source type
+const getSourceCount = (statsKey: string): string => {
+    if (!sourceStats.value || !(statsKey in sourceStats.value)) {
+        return '';
+    }
+    const count = sourceStats.value[statsKey] || 0;
+    return count > 0 ? ` (${count})` : '';
+};
+
+// Fetch stats on mount
+onMounted(() => {
+    fetchSourceStats();
+});
 
 </script>
 
 <template>
     <Toaster position="bottom-center" :duration="4000" />
-    <div class="min-h-screen bg-background">
-        <Head :title="title" />
-
-        <!-- Main Navigation Bar -->
-        <nav class="bg-background border-b border-border sticky top-0 z-50">
-            <div class="px-4 lg:px-6">
-                <div class="flex items-center justify-between h-16">
-                    <!-- Left side - Logo/Brand and breadcrumbs -->
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            <!-- Logo/Brand -->
-                            <Link :href="route('dashboard')" class="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
-                                <div class="h-8 w-8 flex items-center justify-center">
-                                    <AppLogoIcon class="h-8 w-8" />
-                                </div>
-                            </Link>
-                        </div>
-                        <!-- Mobile sidebar toggle (moved to left) -->
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            @click="isNavigationCollapsed = !isNavigationCollapsed"
-                            class="lg:hidden p-2"
+    <Head :title="title" />
+    
+    <SidebarProvider v-model:open="sidebarOpen">
+        <div class="flex min-h-screen w-full bg-background">
+            <!-- Left Sidebar - Full Height -->
+            <Sidebar collapsible="icon" class="border-r">
+                <!-- Sidebar Header with Logo and Toggle -->
+                <div class="border-b border-border">
+                    <!-- Expanded State -->
+                    <div class="flex items-center justify-between h-16 px-4 group-data-[collapsible=icon]:hidden">
+                        <Link 
+                            :href="route('dashboard')" 
+                            class="flex items-center gap-2 min-w-0 overflow-hidden"
                         >
-                            <Menu class="h-4 w-4" />
-                        </Button>
+                            <div class="h-8 w-8 flex items-center justify-center flex-shrink-0">
+                                <AppLogoIcon class="h-6 w-6" />
+                            </div>
+                            <span class="font-semibold truncate">Chatvia</span>
+                        </Link>
+                        
+                        <!-- Expanded state: Show trigger button on the right -->
+                        <SidebarTrigger class="hidden md:flex flex-shrink-0" />
+                    </div>
+                    
+                    <!-- Collapsed State - Full clickable area -->
+                    <button
+                        @click="toggleSidebar"
+                        class="hidden group-data-[collapsible=icon]:flex items-center justify-center w-full h-16 hover:bg-accent transition-colors cursor-pointer"
+                        aria-label="Expand sidebar"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                            <rect width="18" height="18" x="3" y="3" rx="2"/>
+                            <path d="M9 3v18"/>
+                            <path d="m14 9 3 3-3 3"/>
+                        </svg>
+                    </button>
+                </div>
 
-                        <!-- Breadcrumbs -->
-                        <div class="hidden md:flex items-center gap-2 text-sm">
-                            <ChevronRight class="h-4 w-4 text-muted-foreground" />
-                            <Link :href="route('agents.index')" class="text-muted-foreground hover:text-foreground transition-colors">
-                                Agents
-                            </Link>
-                            <ChevronRight class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-foreground font-medium">{{ agent.name }}</span>
+                <!-- Sidebar Content -->
+                <SidebarContent class="!overflow-visible !gap-6">
+                    <!-- Interface Section -->
+                    <SidebarGroup class="py-0">
+                        <SidebarGroupLabel class="mb-2 px-2">Interface</SidebarGroupLabel>
+                        <SidebarMenu class="space-y-1">
+                            <SidebarMenuItem v-for="item in uiNavigationItems" :key="item.id">
+                                <SidebarMenuButton
+                                    as-child
+                                    :is-active="isActiveRoute(item.route)"
+                                    :tooltip="item.tooltip"
+                                    class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                >
+                                    <Link :href="route(item.route, { agent: agent.id })">
+                                        <component :is="item.icon" />
+                                        <span>{{ item.label }}</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarGroup>
+
+                    <!-- Management Section -->
+                    <SidebarGroup class="py-0">
+                        <SidebarGroupLabel class="mb-2 px-2">Management</SidebarGroupLabel>
+                        <SidebarMenu class="space-y-1">
+                            <template v-for="item in controlPanelNavigationItems" :key="item.id">
+                                <!-- Sources item with submenu -->
+                                <SidebarMenuItem v-if="item.id === 'knowledge'">
+                                    <SidebarMenuButton
+                                        @click="sourcesSubmenuOpen = !sourcesSubmenuOpen"
+                                        :tooltip="item.tooltip"
+                                        class="cursor-pointer"
+                                    >
+                                        <component :is="item.icon" />
+                                        <span>{{ item.label }}</span>
+                                        <ChevronDown 
+                                            class="ml-auto h-4 w-4 transition-transform duration-200"
+                                            :class="{ 'rotate-180': sourcesSubmenuOpen }"
+                                        />
+                                    </SidebarMenuButton>
+                                    <SidebarMenuSub v-if="sourcesSubmenuOpen" class="mt-1 space-y-0.5">
+                                        <SidebarMenuSubItem>
+                                            <SidebarMenuSubButton 
+                                                as-child
+                                                :is-active="isActiveRoute('agents.sources.web')"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route('agents.sources.web', { agent: agent.id })">
+                                                    <Globe class="h-4 w-4" />
+                                                    <span>Web{{ getSourceCount('websites') }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                        <SidebarMenuSubItem>
+                                            <SidebarMenuSubButton 
+                                                as-child
+                                                :is-active="isActiveRoute('agents.sources.youtube')"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route('agents.sources.youtube', { agent: agent.id })">
+                                                    <Youtube class="h-4 w-4" />
+                                                    <span>YouTube{{ getSourceCount('youtube') }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                        <SidebarMenuSubItem>
+                                            <SidebarMenuSubButton 
+                                                as-child
+                                                :is-active="isActiveRoute('agents.sources.text')"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route('agents.sources.text', { agent: agent.id })">
+                                                    <FileText class="h-4 w-4" />
+                                                    <span>Text{{ getSourceCount('texts') }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                        <SidebarMenuSubItem>
+                                            <SidebarMenuSubButton 
+                                                as-child
+                                                :is-active="isActiveRoute('agents.sources.markdown')"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route('agents.sources.markdown', { agent: agent.id })">
+                                                    <FileCode class="h-4 w-4" />
+                                                    <span>Markdown{{ getSourceCount('markdown') }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                        <SidebarMenuSubItem>
+                                            <SidebarMenuSubButton 
+                                                as-child
+                                                :is-active="isActiveRoute('agents.sources.pdf')"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route('agents.sources.pdf', { agent: agent.id })">
+                                                    <File class="h-4 w-4" />
+                                                    <span>PDF{{ getSourceCount('pdf') }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                        <SidebarMenuSubItem>
+                                            <SidebarMenuSubButton 
+                                                as-child
+                                                :is-active="isActiveRoute('agents.sources.word')"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route('agents.sources.word', { agent: agent.id })">
+                                                    <File class="h-4 w-4" />
+                                                    <span>Word{{ getSourceCount('word') }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                        <SidebarMenuSubItem>
+                                            <SidebarMenuSubButton 
+                                                as-child
+                                                :is-active="isActiveRoute('agents.sources.video')"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route('agents.sources.video', { agent: agent.id })">
+                                                    <Video class="h-4 w-4" />
+                                                    <span>Video{{ getSourceCount('video') }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                        <SidebarMenuSubItem>
+                                            <SidebarMenuSubButton 
+                                                as-child
+                                                :is-active="isActiveRoute('agents.sources.audio')"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route('agents.sources.audio', { agent: agent.id })">
+                                                    <Music class="h-4 w-4" />
+                                                    <span>Audio{{ getSourceCount('audio') }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                    </SidebarMenuSub>
+                                </SidebarMenuItem>
+                                <!-- Regular menu items -->
+                                <SidebarMenuItem v-else>
+                                    <SidebarMenuButton
+                                        as-child
+                                        :is-active="isActiveRoute(item.route)"
+                                        :tooltip="item.tooltip"
+                                        class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                    >
+                                        <Link :href="route(item.route, { agent: agent.id })">
+                                            <component :is="item.icon" />
+                                            <span>{{ item.label }}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            </template>
+                        </SidebarMenu>
+                    </SidebarGroup>
+                </SidebarContent>
+
+                <!-- Sidebar Footer -->
+                <SidebarFooter class="border-t">
+                    <SidebarMenu class="space-y-1">
+                        <SidebarMenuItem>
+                            <SidebarMenuButton 
+                                @click="showRenameDialog = true" 
+                                tooltip="Rename agent"
+                                class="hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
+                            >
+                                <Edit />
+                                <span>Rename Agent</span>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton 
+                                @click="showDeleteDialog = true" 
+                                tooltip="Delete agent permanently"
+                                class="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                            >
+                                <Trash2 />
+                                <span>Delete Agent</span>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarFooter>
+            </Sidebar>
+
+            <!-- Main Content Area - Full Height with Header Inside -->
+            <div class="flex flex-1 flex-col">
+                <!-- Top Navigation Bar -->
+                <header class="bg-background border-b border-border sticky top-0 z-40">
+                    <div class="px-4 lg:px-6">
+                        <div class="flex items-center justify-between h-16">
+                            <!-- Left side - Breadcrumbs -->
+                            <div class="flex items-center gap-4">
+                                <!-- Mobile sidebar toggle -->
+                                <SidebarTrigger class="md:hidden" />
+
+                                <!-- Breadcrumbs -->
+                                <div class="flex items-center gap-2 text-sm">
+                                    <ChevronRight class="h-4 w-4 text-muted-foreground hidden md:block" />
+                                    <Link :href="route('agents.index')" class="text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
+                                        Agents
+                                    </Link>
+                                    <ChevronRight class="h-4 w-4 text-muted-foreground hidden md:block" />
+                                    <span class="text-foreground font-medium">{{ agent.name }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Right side - Actions and user menu -->
+                            <div class="flex items-center gap-3">
+                                <!-- Utilities: Upgrade, Theme, User -->
+                                <div class="hidden lg:flex items-center gap-2">
+                                    <UpgradeButton />
+                                    <ThemeSwitcher />
+                                    <UserMenu />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Page Content Wrapper -->
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    <!-- Page Header -->
+                    <div class="bg-background border-b border-border px-4 lg:px-6 py-4">
+                        <div class="flex items-center justify-between">
+                            <div class="min-w-0 flex-1">
+                                <h1 class="text-lg lg:text-xl font-semibold text-foreground truncate">{{ title }}</h1>
+                                <p class="text-xs lg:text-sm text-muted-foreground mt-1 hidden sm:block">
+                                    Manage your {{ agent.name }} {{ agent.type }} agent
+                                </p>
+                            </div>
+
+                            <div class="flex gap-2 lg:gap-4 flex-shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <slot name="header-actions" />
+                                </div>
+
+                                <Badge
+                                    v-if="agent.type === 'knowledge_base'"
+                                    :variant="agent.is_public ? 'destructive' : 'secondary'"
+                                    :class="[
+                                        'text-xs',
+                                        !agent.is_public ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' : ''
+                                    ]"
+                                >
+                                    <component
+                                        :is="agent.is_public ? Eye : Lock"
+                                        class="h-3 w-3"
+                                    />
+                                </Badge>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Right side - Actions and user menu -->
-                    <div class="flex items-center gap-3">
-                        <!-- Removed View Agent buttons (desktop & mobile) per request -->
-
-                        <!-- Utilities: Upgrade, Theme, User -->
-                        <div class="hidden lg:flex items-center gap-2">
-                            <UpgradeButton />
-                            <ThemeSwitcher />
-                            <UserMenu />
+                    <!-- Page Content -->
+                    <div class="flex-1 overflow-auto bg-muted/30">
+                        <div class="p-3 sm:p-4 lg:p-6">
+                            <slot />
                         </div>
                     </div>
                 </div>
             </div>
-        </nav>
-
-        <div class="lg:flex h-[calc(100vh-4rem)] lg:overflow-hidden overflow-visible">
-            <!-- Mobile Sidebar Backdrop -->
-            <div
-                v-if="!isNavigationCollapsed"
-                @click="isNavigationCollapsed = true"
-                class="fixed inset-0 bg-black/50 z-30 lg:hidden"
-                style="top: 4rem;"
-            ></div>
-
-            <!-- Left Sidebar -->
-            <aside
-                :class="[
-                    'bg-card border-r border-border transition-all duration-300 flex flex-col z-40',
-                    // Desktop: normal sidebar behavior
-                    'lg:relative lg:flex-shrink-0 lg:h-full',
-                    isNavigationCollapsed ? 'lg:w-16' : 'lg:w-64',
-                    // Mobile: fixed overlay that doesn't affect layout
-                    'fixed lg:relative top-16 lg:top-0 bottom-0 left-0 w-64 h-[calc(100vh-4rem)] lg:h-full',
-                    // Mobile show/hide with transforms
-                    isNavigationCollapsed
-                        ? '-translate-x-full lg:translate-x-0'
-                        : 'translate-x-0',
-                ]"
-            >
-                <!-- Navigation Menu -->
-                <nav class="flex-1 overflow-y-auto py-4 pb-4">
-                    <div class="px-3 lg:px-4 space-y-6">
-                        <!-- Interface Section -->
-                        <div class="space-y-2">
-                            <div v-if="!isNavigationCollapsed" class="px-2 mb-3">
-                                <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Interface</h3>
-                            </div>
-
-                            <template v-if="!isNavigationCollapsed">
-                                <Link
-                                    v-for="item in uiNavigationItems"
-                                    :key="item.id"
-                                    :href="route(item.route, { agent: agent.id })"
-                                    :class="cn(
-                                        'flex items-center gap-3 px-3 py-3 lg:py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group touch-manipulation',
-                                        isActiveRoute(item.route)
-                                            ? 'bg-primary text-primary-foreground shadow-sm'
-                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted'
-                                    )"
-                                >
-                                    <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
-                                    <span>{{ item.label }}</span>
-                                </Link>
-                            </template>
-
-                            <!-- Collapsed Interface Icons -->
-                            <template v-else>
-                                <TooltipProvider>
-                                    <div class="space-y-1">
-                                        <Tooltip v-for="item in uiNavigationItems" :key="item.id">
-                                            <TooltipTrigger as-child>
-                                                <Link
-                                                    :href="route(item.route, { agent: agent.id })"
-                                                    :class="cn(
-                                                        'flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200',
-                                                        isActiveRoute(item.route)
-                                                            ? 'bg-primary text-primary-foreground shadow-sm'
-                                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                                    )"
-                                                >
-                                                    <component :is="item.icon" class="h-4 w-4" />
-                                                </Link>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="right">
-                                                <p>{{ item.tooltip }}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </div>
-                                </TooltipProvider>
-                            </template>
-                        </div>
-
-                        <Separator v-if="!isNavigationCollapsed" />
-
-                        <!-- Management Section -->
-                        <div class="space-y-2">
-                            <div v-if="!isNavigationCollapsed" class="px-2 mb-3">
-                                <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Management</h3>
-                            </div>
-
-                            <template v-if="!isNavigationCollapsed">
-                                <!-- Regular navigation items -->
-                                <template v-for="item in controlPanelNavigationItems" :key="item.id">
-                                    <!-- Special handling for Sources item -->
-                                    <!-- Regular navigation item -->
-                                    <Link
-                                        :href="route(item.route, { agent: agent.id })"
-                                        :class="cn(
-                                            'flex items-center gap-3 px-3 py-3 lg:py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group touch-manipulation cursor-pointer',
-                                            isActiveRoute(item.route)
-                                                ? 'bg-primary text-primary-foreground shadow-sm'
-                                                : 'text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted'
-                                        )"
-                                    >
-                                        <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
-                                        <span>{{ item.label }}</span>
-                                    </Link>
-                                </template>
-                            </template>
-
-                            <!-- Collapsed Management Icons -->
-                            <template v-else>
-                                <TooltipProvider>
-                                    <div class="space-y-1">
-                                        <Tooltip v-for="item in controlPanelNavigationItems" :key="item.id">
-                                            <TooltipTrigger as-child>
-                                                <Link
-                                                    v-if="item.id !== 'sources'"
-                                                    :href="route(item.route, { agent: agent.id })"
-                                                    :class="cn(
-                                                        'flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200 cursor-pointer',
-                                                        isActiveRoute(item.route)
-                                                            ? 'bg-primary text-primary-foreground shadow-sm'
-                                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                                    )"
-                                                >
-                                                    <component :is="item.icon" class="h-4 w-4" />
-                                                </Link>
-                                                <!-- Sources collapsed icon - just link to main knowledge page -->
-                                                <Link
-                                                    v-else
-                                                    :href="route('agents.sources', { agent: agent.id })"
-                                                    :class="cn(
-                                                        'flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200 cursor-pointer',
-                                                        isActiveRoute('agents.sources')
-                                                            ? 'bg-primary text-primary-foreground shadow-sm'
-                                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                                    )"
-                                                >
-                                                    <Database class="h-4 w-4" />
-                                                </Link>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="right">
-                                                <p>{{ item.tooltip }}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </div>
-                                </TooltipProvider>
-                            </template>
-                        </div>
-                    </div>
-                </nav>
-
-                <!-- Sidebar Footer - In normal flow at bottom -->
-                <div class="mt-auto bg-card border-t border-border">
-                    <div class="p-4">
-                        <template v-if="!isNavigationCollapsed">
-                            <button
-                                @click="showRenameDialog = true"
-                                class="flex items-center gap-3 px-3 py-3 lg:py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group text-foreground hover:bg-muted active:bg-muted w-full mb-3 touch-manipulation"
-                            >
-                                <Edit class="h-4 w-4 flex-shrink-0" />
-                                <span>Rename Agent</span>
-                            </button>
-                            <button
-                                @click="showDeleteDialog = true"
-                                class="flex items-center gap-3 px-3 py-3 lg:py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group text-destructive hover:bg-destructive/10 active:bg-destructive/20 w-full mb-3 touch-manipulation"
-                            >
-                                <Trash2 class="h-4 w-4 flex-shrink-0" />
-                                <span>Delete Agent</span>
-                            </button>
-                        </template>
-
-                        <!-- Collapsed Rename and Delete Buttons -->
-                        <template v-else>
-                            <div class="flex justify-center mb-3 space-y-2 flex-col">
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger as-child>
-                                            <button
-                                                @click="showRenameDialog = true"
-                                                class="flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200 text-foreground hover:bg-muted"
-                                            >
-                                                <Edit class="h-4 w-4" />
-                                            </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right">
-                                            <p>Rename agent</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger as-child>
-                                            <button
-                                                @click="showDeleteDialog = true"
-                                                class="flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200 text-destructive hover:bg-destructive/10"
-                                            >
-                                                <Trash2 class="h-4 w-4" />
-                                            </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right">
-                                            <p>Delete agent permanently</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                        </template>
-
-                        <!-- Collapse Button -->
-                        <Button
-                            @click="isNavigationCollapsed = !isNavigationCollapsed"
-                            variant="ghost"
-                            size="sm"
-                            :class="[
-                                'transition-all duration-200 text-muted-foreground hover:text-foreground',
-                                isNavigationCollapsed ? 'w-10 h-10 p-0' : 'w-full gap-2'
-                            ]"
-                        >
-                            <component :is="isNavigationCollapsed ? PanelLeftOpen : PanelLeftClose" class="h-4 w-4" />
-                            <span v-if="!isNavigationCollapsed">
-                                Collapse
-                            </span>
-                        </Button>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Main Content Area -->
-            <main class="flex-1 flex flex-col lg:overflow-hidden overflow-visible w-full lg:w-auto">
-                <!-- Page Header -->
-                <div class="bg-background border-b border-border px-4 lg:px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <div class="min-w-0 flex-1">
-                            <h1 class="text-lg lg:text-xl font-semibold text-foreground truncate">{{ title }}</h1>
-                            <p class="text-xs lg:text-sm text-muted-foreground mt-1 hidden sm:block">
-                                Manage your {{ agent.name }} {{ agent.type }} agent
-                            </p>
-                        </div>
-
-
-                        <div class="flex gap-2 lg:gap-4 flex-shrink-0">
-
-                            <div class="flex items-center gap-2">
-                                <slot name="header-actions" />
-                            </div>
-
-                            <Badge
-                                v-if="agent.type === 'knowledge_base'"
-                                :variant="agent.is_public ? 'destructive' : 'secondary'"
-                                :class="[
-                                    'text-xs',
-                                    !agent.is_public ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' : ''
-                                ]"
-                            >
-                                <component
-                                    :is="agent.is_public ? Eye : Lock"
-                                    class="h-3 w-3"
-                                />
-                            </Badge>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Page Content -->
-                <div class="flex-1 lg:overflow-auto overflow-visible bg-muted/30">
-                    <div class="p-3 sm:p-4 lg:p-6">
-                        <slot />
-                    </div>
-                </div>
-            </main>
         </div>
 
 
@@ -740,7 +755,7 @@ const isActiveRoute = (routeName: string) => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    </div>
+    </SidebarProvider>
 </template>
 
 <style scoped>

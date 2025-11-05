@@ -291,7 +291,8 @@ fetchTextEntries();
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="flex justify-center">
+        <div class="w-full max-w-6xl space-y-6">
         <Card>
             <CardHeader>
                 <div class="flex items-center justify-between">
@@ -482,6 +483,7 @@ fetchTextEntries();
             cancel-text="Cancel"
             @confirm="deleteTextEntry"
         />
+        </div>
     </div>
 </template>
 

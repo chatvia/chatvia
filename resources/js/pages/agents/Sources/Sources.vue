@@ -198,84 +198,35 @@ onMounted(() => {
 
 <template>
     <AgentLayout :agent="agent" title="Sources">
-        <div class="grid lg:grid-cols-12 gap-6 min-h-[calc(100vh-220px)]">
-            <!-- Content Types Sidebar -->
-            <div class="lg:col-span-3">
-                <Card>
-                    <CardHeader>
-                        <CardTitle class="text-sm font-medium flex items-center gap-2">
-                            <i class="pi pi-database h-4 w-4" />
-                            Sources
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <!-- Two column grid for content types -->
-                        <div class="grid grid-cols-2 gap-3">
-                            <button
-                                v-for="contentType in contentTypes"
-                                :key="contentType.id"
-                                @click="selectContentType(contentType.id)"
-                                :class="[
-                                    'group relative p-4 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer',
-                                    selectedContentType === contentType.id
-                                        ? 'border-primary bg-primary/5 ring-2 ring-primary'
-                                        : 'border-border bg-background'
-                                ]"
-                            >
-                                <div class="flex flex-col items-center text-center space-y-3">
-                                    <div :class="[
-                                        'flex-shrink-0 rounded-lg p-3 transition-colors',
-                                        selectedContentType === contentType.id
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
-                                    ]">
-                                        <i :class="`pi ${contentType.icon} text-2xl`" />
-                                    </div>
-                                    <h3 class="font-medium text-sm">{{ formatLabel(contentType) }}</h3>
-                                </div>
+        <div class="min-h-[calc(100vh-220px)]">
+            <!-- Dynamic Component Based on Selection -->
+            <component
+                :is="currentComponent"
+                :agent="agent"
+                :file-type="selectedContentType"
+                v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text'"
+            />
 
-                                <!-- Selected indicator -->
-                                <div
-                                    v-if="selectedContentType === contentType.id"
-                                    class="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary"
-                                ></div>
-                            </button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- Content Area -->
-            <div class="lg:col-span-9">
-                <!-- Dynamic Component Based on Selection (no extra container) -->
-                <component
-                    :is="currentComponent"
-                    :agent="agent"
-                    :file-type="selectedContentType"
-                    v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text'"
-                />
-
-                <!-- Placeholder for other content types -->
-                <Card
-                    v-else
-                    class="h-full min-h-[400px]"
-                >
-                    <CardContent class="flex items-center justify-center h-full p-8">
-                        <div class="text-center">
-                            <i
-                                :class="`pi ${contentTypes.find(t => t.id === selectedContentType)?.icon} text-6xl mx-auto mb-4 text-muted-foreground`"
-                            />
-                            <h3 class="text-lg font-medium mb-2">
-                                {{ contentTypes.find(t => t.id === selectedContentType)?.label }} Coming Soon
-                            </h3>
-                            <p class="text-muted-foreground max-w-md">
-                                {{ contentTypes.find(t => t.id === selectedContentType)?.description }}
-                                This feature is currently under development.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            <!-- Placeholder for other content types -->
+            <Card
+                v-else
+                class="h-full min-h-[400px]"
+            >
+                <CardContent class="flex items-center justify-center h-full p-8">
+                    <div class="text-center">
+                        <i
+                            :class="`pi ${contentTypes.find(t => t.id === selectedContentType)?.icon} text-6xl mx-auto mb-4 text-muted-foreground`"
+                        />
+                        <h3 class="text-lg font-medium mb-2">
+                            {{ contentTypes.find(t => t.id === selectedContentType)?.label }} Coming Soon
+                        </h3>
+                        <p class="text-muted-foreground max-w-md">
+                            {{ contentTypes.find(t => t.id === selectedContentType)?.description }}
+                            This feature is currently under development.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     </AgentLayout>
 </template>

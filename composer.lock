@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "688645baf29aa68e3369c04df851e881",
+    "content-hash": "7102a9222ac55c71ee01fb8b98621ae1",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -182,16 +182,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.359.3",
+            "version": "3.359.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "a32e4c9522f0b61c947fafa1713d3a24b397a757"
+                "reference": "a7cc29d1f021406adced498a2b6e00e25646c86b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/a32e4c9522f0b61c947fafa1713d3a24b397a757",
-                "reference": "a32e4c9522f0b61c947fafa1713d3a24b397a757",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/a7cc29d1f021406adced498a2b6e00e25646c86b",
+                "reference": "a7cc29d1f021406adced498a2b6e00e25646c86b",
                 "shasum": ""
             },
             "require": {
@@ -273,9 +273,9 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.359.3"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.359.5"
             },
-            "time": "2025-10-31T18:15:22+00:00"
+            "time": "2025-11-04T19:10:31+00:00"
         },
         {
             "name": "beste/clock",
@@ -4955,16 +4955,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v12.36.1",
+            "version": "v12.37.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "cad110d7685fbab990a6bb8184d0cfd847d7c4d8"
+                "reference": "3c3c4ad30f5b528b164a7c09aa4ad03118c4c125"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/cad110d7685fbab990a6bb8184d0cfd847d7c4d8",
-                "reference": "cad110d7685fbab990a6bb8184d0cfd847d7c4d8",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/3c3c4ad30f5b528b164a7c09aa4ad03118c4c125",
+                "reference": "3c3c4ad30f5b528b164a7c09aa4ad03118c4c125",
                 "shasum": ""
             },
             "require": {
@@ -5170,20 +5170,20 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2025-10-29T14:20:57+00:00"
+            "time": "2025-11-04T15:39:33+00:00"
         },
         {
             "name": "laravel/horizon",
-            "version": "v5.38.0",
+            "version": "v5.39.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/horizon.git",
-                "reference": "3a3145345221df6a0eaacc478c22040d1252a065"
+                "reference": "bf8f5242f48cff5870e7b30620d872077effe9da"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/horizon/zipball/3a3145345221df6a0eaacc478c22040d1252a065",
-                "reference": "3a3145345221df6a0eaacc478c22040d1252a065",
+                "url": "https://api.github.com/repos/laravel/horizon/zipball/bf8f5242f48cff5870e7b30620d872077effe9da",
+                "reference": "bf8f5242f48cff5870e7b30620d872077effe9da",
                 "shasum": ""
             },
             "require": {
@@ -5248,22 +5248,22 @@
             ],
             "support": {
                 "issues": "https://github.com/laravel/horizon/issues",
-                "source": "https://github.com/laravel/horizon/tree/v5.38.0"
+                "source": "https://github.com/laravel/horizon/tree/v5.39.0"
             },
-            "time": "2025-10-26T17:03:39+00:00"
+            "time": "2025-11-04T14:35:53+00:00"
         },
         {
             "name": "laravel/nightwatch",
-            "version": "v1.17.1",
+            "version": "v1.18.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/nightwatch.git",
-                "reference": "1b5eac920e39073bae6e2ace33805c479b0dc96f"
+                "reference": "ca2231b1eab3645c7200d2db428aa02086993401"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/nightwatch/zipball/1b5eac920e39073bae6e2ace33805c479b0dc96f",
-                "reference": "1b5eac920e39073bae6e2ace33805c479b0dc96f",
+                "url": "https://api.github.com/repos/laravel/nightwatch/zipball/ca2231b1eab3645c7200d2db428aa02086993401",
+                "reference": "ca2231b1eab3645c7200d2db428aa02086993401",
                 "shasum": ""
             },
             "require": {
@@ -5341,7 +5341,7 @@
                 "issues": "https://github.com/laravel/nightwatch/issues",
                 "source": "https://github.com/laravel/nightwatch"
             },
-            "time": "2025-10-27T23:07:05+00:00"
+            "time": "2025-11-04T05:08:13+00:00"
         },
         {
             "name": "laravel/octane",
@@ -16833,16 +16833,16 @@
         },
         {
             "name": "laravel/boost",
-            "version": "v1.6.0",
+            "version": "v1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/boost.git",
-                "reference": "29d1c7c5a816d2b55c39f50bb07bdbca6c595b09"
+                "reference": "8f04fc3dacd340b0e8f528240fae3cc0a43acf4d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/boost/zipball/29d1c7c5a816d2b55c39f50bb07bdbca6c595b09",
-                "reference": "29d1c7c5a816d2b55c39f50bb07bdbca6c595b09",
+                "url": "https://api.github.com/repos/laravel/boost/zipball/8f04fc3dacd340b0e8f528240fae3cc0a43acf4d",
+                "reference": "8f04fc3dacd340b0e8f528240fae3cc0a43acf4d",
                 "shasum": ""
             },
             "require": {
@@ -16851,7 +16851,7 @@
                 "illuminate/contracts": "^10.49.0|^11.45.3|^12.28.1",
                 "illuminate/routing": "^10.49.0|^11.45.3|^12.28.1",
                 "illuminate/support": "^10.49.0|^11.45.3|^12.28.1",
-                "laravel/mcp": "^0.2.0|^0.3.0",
+                "laravel/mcp": "^0.3.2",
                 "laravel/prompts": "0.1.25|^0.3.6",
                 "laravel/roster": "^0.2.9",
                 "php": "^8.1"
@@ -16895,7 +16895,7 @@
                 "issues": "https://github.com/laravel/boost/issues",
                 "source": "https://github.com/laravel/boost"
             },
-            "time": "2025-10-28T17:43:53+00:00"
+            "time": "2025-11-04T05:55:53+00:00"
         },
         {
             "name": "laravel/mcp",
@@ -19504,7 +19504,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.4",
+        "php": "^8.3",
         "ext-dom": "*",
         "ext-fileinfo": "*",
         "ext-intl": "*",

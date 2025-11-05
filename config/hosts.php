@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'localhost' => [
+        'alias' => 'chatvia.ai',
+    ],
+    
     'chatvia.test' => [
         'alias' => 'chatvia.ai',
     ],

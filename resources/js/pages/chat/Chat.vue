@@ -701,7 +701,7 @@ const handleScrollToBottomClick = () => {
                 </div>
 
                 <div class="flex-shrink-0 border-t bg-background/95 backdrop-blur-sm">
-                    <div class="mx-auto max-w-3xl px-4 py-4 sm:px-8">
+                    <div class="chat-container mx-auto max-w-3xl px-4 py-4 sm:px-8">
                         <!-- Show composer if user can send messages -->
                         <Composer
                             v-if="canSendMessages"
@@ -1043,7 +1043,7 @@ const handleScrollToBottomClick = () => {
 }
 
 /* ChatMessage container expansion animation */
-.mx-auto.px-4.sm\\:px-8 {
+.chat-container {
     transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

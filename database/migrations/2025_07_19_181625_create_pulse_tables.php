@@ -8,6 +8,10 @@ return new class extends PulseMigration
 {
     public function getConnection(): ?string
     {
+        if (app()->environment('testing') || app()->runningUnitTests()) {
+            return null;
+        }
+
         return config('pulse.storage.database.connection');
     }
 
@@ -20,7 +24,7 @@ return new class extends PulseMigration
             return;
         }
 
-        if (app()->runningUnitTests()) {
+        if (app()->environment('testing') || app()->runningUnitTests()) {
             return;
         }
 
@@ -94,6 +98,10 @@ return new class extends PulseMigration
      */
     public function down(): void
     {
+        if (app()->environment('testing') || app()->runningUnitTests()) {
+            return;
+        }
+
         $schema = Schema::connection($this->getConnection());
         if (! app()->isProduction()) {
             $schema->dropIfExists('pulse_values');

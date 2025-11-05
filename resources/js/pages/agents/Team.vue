@@ -266,7 +266,8 @@ const cancelDelete = () => {
 <template>
     <AgentLayout :agent="agent" title="Team Management">
         <div class="space-y-6">
-            <Card>
+            <div class="flex justify-center">
+                <Card class="w-full max-w-6xl">
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <Users class="h-5 w-5" />
@@ -469,8 +470,8 @@ const cancelDelete = () => {
                 </div>
             </CardContent>
         </Card>
-
-
+            </div>
+        </div>
 
         <!-- Invite Team Member Dialog -->
         <Dialog v-model:open="showInviteDialog">
@@ -605,6 +606,5 @@ const cancelDelete = () => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    </div>
     </AgentLayout>
 </template>

@@ -137,21 +137,21 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Actions">
-        <Head title="Actions" />
+    <AgentLayout :agent="agent" title="Sentiment">
+        <Head title="Sentiment" />
 
         <div class="space-y-6">
 
             <div class="flex justify-center">
-                <!-- Add New Action -->
+                <!-- Add New Sentiment Rule -->
                 <Card class="w-full max-w-6xl">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Plus class="h-5 w-5" />
-                        Add New Action
+                        Add New Sentiment Rule
                     </CardTitle>
                     <CardDescription>
-                        Create a rule that triggers an action when users provide specific input
+                        Create a rule that triggers a response based on sentiment analysis of user input
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-4">
@@ -199,15 +199,15 @@ const updateActionConfig = (actionId: string, field: string, value: string) => {
             </Card>
             </div>
 
-            <!-- Existing Actions -->
+            <!-- Existing Sentiment Rules -->
             <div class="flex justify-center">
                 <div class="w-full max-w-6xl space-y-4">
-                    <h2 class="text-lg font-semibold">Active Actions</h2>
+                    <h2 class="text-lg font-semibold">Active Sentiment Rules</h2>
 
                     <div v-if="actions.length === 0" class="text-center py-12">
                         <Zap class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p class="text-muted-foreground">No actions configured yet</p>
-                        <p class="text-sm text-muted-foreground">Add your first action above to get started</p>
+                        <p class="text-muted-foreground">No sentiment rules configured yet</p>
+                        <p class="text-sm text-muted-foreground">Add your first sentiment rule above to get started</p>
                     </div>
 
                     <Card v-for="action in actions" :key="action.id" class="relative">

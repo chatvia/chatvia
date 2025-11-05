@@ -41,6 +41,7 @@ use App\Http\Controllers\Agents\Sources\AgentKnowledgeUploadedFilesDeleteControl
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeVideoController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWordController;
+use App\Http\Controllers\Agents\Sources\AgentKnowledgeYoutubeController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerLinkRetrainController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinkDeleteController;
@@ -97,6 +98,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('sources/audio', AgentKnowledgeAudioController::class)->name('sources.audio');
         Route::get('sources/video', AgentKnowledgeVideoController::class)->name('sources.video');
         Route::get('sources/web', AgentKnowledgeWebController::class)->name('sources.web');
+        Route::get('sources/youtube', AgentKnowledgeYoutubeController::class)->name('sources.youtube');
 
         Route::get('sources/text', AgentKnowledgeTextController::class)->name('sources.text');
         Route::post('sources/text', AgentKnowledgeTextStoreController::class)->name('sources.text.store');

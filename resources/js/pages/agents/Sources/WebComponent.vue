@@ -1634,7 +1634,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="flex justify-center">
+        <div class="w-full max-w-6xl space-y-6">
         <!-- Smart Monitoring Info Banner -->
         <InfoBanner
             title="Smart Monitoring"
@@ -3144,5 +3145,6 @@ onUnmounted(() => {
             </div>
         </DialogContent>
     </Dialog>
+        </div>
     </div>
 </template>

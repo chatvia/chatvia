@@ -880,7 +880,8 @@ const showFileSummary = async (file: KnowledgeFile) => {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="flex justify-center">
+        <div class="w-full max-w-6xl space-y-6">
 
 
             <!-- Upload Section -->
@@ -1376,6 +1377,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
             </div>
         </DialogContent>
     </Dialog>
+        </div>
     </div>
 </template>
 

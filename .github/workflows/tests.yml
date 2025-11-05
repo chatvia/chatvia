@@ -77,7 +77,17 @@ jobs:
           mkdir -p storage/logs
           mkdir -p bootstrap/cache
 
+      - name: Copy environment file
+        run: cp .env.example .env
+
       - name: Install Composer dependencies
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
         run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
       - name: Setup Node.js

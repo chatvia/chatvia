@@ -78,16 +78,9 @@ jobs:
           mkdir -p bootstrap/cache
 
       - name: Copy environment file
-        run: cp .env.example .env
+        run: cp .env.testing .env
 
       - name: Install Composer dependencies
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_DATABASE: testing
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
         run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
       - name: Setup Node.js
@@ -112,25 +105,9 @@ jobs:
           php artisan cache:clear
 
       - name: Run Migrations
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_DATABASE: testing
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
         run: php artisan migrate --force
 
       - name: Run Tests
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_DATABASE: testing
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
         run: php artisan test --parallel
 
       - name: Run Pint (Code Style)

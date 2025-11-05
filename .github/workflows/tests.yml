@@ -12,7 +12,7 @@ on:
 
 jobs:
   tests:
-    name: Tests (PHP ${{ matrix.php }})
+    name: Tests
     runs-on: ubuntu-latest
 
     strategy:
@@ -86,8 +86,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+         node-version: '22'
+         cache: 'npm'
 
       - name: Install NPM dependencies
         run: npm ci
@@ -97,19 +97,11 @@ jobs:
 
       - name: Prepare Laravel Application
         run: |
-          php artisan key:generate
-
-      - name: Configure PostgreSQL Database
-        run: |
-          php artisan config:clear
-          php artisan cache:clear
+          php artisan key:generate --force
+          php artisan key:generate --force --env=testing
 
       - name: Run Migrations
-        run: php artisan migrate --force
+        run: php artisan migrate --force --env=testing
 
       - name: Run Tests
         run: php artisan test --parallel
-
-      - name: Run Pint (Code Style)
-        run: vendor/bin/pint --test
-

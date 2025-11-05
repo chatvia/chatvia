@@ -8,12 +8,16 @@ return new class extends Migration
 {
     public function getConnection(): ?string
     {
+        if (app()->environment('testing') || app()->runningUnitTests()) {
+            return null;
+        }
+
         return config('telescope.storage.database.connection');
     }
 
     public function up(): void
     {
-        if (app()->runningUnitTests()) {
+        if (app()->environment('testing') || app()->runningUnitTests()) {
             return;
         }
 
@@ -65,6 +69,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (app()->environment('testing') || app()->runningUnitTests()) {
+            return;
+        }
+
         $schema = Schema::connection($this->getConnection());
 
         if (! app()->isProduction()) {

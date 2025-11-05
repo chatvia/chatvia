@@ -28,17 +28,15 @@ class AgentMemberAuthTokenService
      */
     public function generateTokenFromUser(Agent $agent, User $user, int $ttlMinutes = 60): string
     {
-        $member = $user->memberOwner;
-
-        if (! $member) {
-            $user->memberOwner()->create([
+        $member = $user->memberOwner()->firstOrCreate(
+            ['is_owner' => true],
+            [
                 'name' => $user->name,
                 'email' => $user->email,
                 'password' => Hash::make(Str::random()),
-                'is_owner' => true,
                 'email_verified_at' => now(),
-            ]);
-        }
+            ]
+        );
 
         return $this->generateToken($agent, $member, $ttlMinutes);
     }

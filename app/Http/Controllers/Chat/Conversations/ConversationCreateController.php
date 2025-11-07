@@ -7,12 +7,11 @@ use App\Rules\AgentLLmChatRule;
 use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Memory\ChatMemory;
 use App\Services\Memory\ChatSession;
-use App\Support\Llms;
 use Illuminate\Http\Request;
 
 final class ConversationCreateController
 {
-    public function __invoke(Request $request, Llms $models, ChatMemory $memory, ChatSession $session)
+    public function __invoke(Request $request, ChatMemory $memory, ChatSession $session)
     {
         $request->validate([
             'model' => ['required', 'string', new AgentLLmChatRule],

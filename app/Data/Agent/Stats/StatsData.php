@@ -22,6 +22,7 @@ class StatsData extends Data
 
     public static function fromAgent(Agent $agent)
     {
+
         return StatsData::from([
             'totalMessages' => $agent->countAssistantMessages(),
             'totalMembers' => $agent->members()->count(),
@@ -77,7 +78,7 @@ class StatsData extends Data
             $model = $llms->firstWhere('external_name', $item->model_external_name);
 
             return [
-                'name' => $model->name,
+                'name' => $model->descriptive_name,
                 'icon' => $model->icon,
                 'count' => $item->usage_count,
                 'percentage' => $item->percentage,

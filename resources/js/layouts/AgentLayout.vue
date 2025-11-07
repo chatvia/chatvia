@@ -401,7 +401,7 @@ onMounted(() => {
                 </div>
 
                 <!-- Sidebar Content -->
-                <SidebarContent class="!overflow-visible !gap-6">
+                <SidebarContent class="!gap-6 overflow-y-auto">
                     <!-- Interface Section -->
                     <SidebarGroup class="py-0">
                         <SidebarGroupLabel class="mb-2 px-2">Interface</SidebarGroupLabel>

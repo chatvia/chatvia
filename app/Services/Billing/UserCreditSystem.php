@@ -98,16 +98,11 @@ class UserCreditSystem
 
     public function consumableMessages($refresh = false): int
     {
-        $key = template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]);
-
-        if ($refresh === false && Cache::has($key)) {
-            return Cache::get($key);
-        }
-
-        /** @var \App\Models\User $credit */
+        /** @var \App\Models\User $user */
         $user = User::find($this->userId);
 
-        $messages = $user->credits()
+        $messages = $user
+            ->credits()
             ->where('ends_at', '>=', now())
             ->sum('messages');
 
@@ -118,15 +113,7 @@ class UserCreditSystem
             ->where('ends_at', '>=', now())
             ->sum('amount');
 
-        $total = $addons + $messages;
-
-        Cache::put(
-            key: $key,
-            value: $total,
-            ttl: now()->addDay(),
-        );
-
-        return $total;
+        return ($addons + $messages);
     }
 
     public function refreshAvailableMessages(): void

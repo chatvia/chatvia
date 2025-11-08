@@ -387,7 +387,7 @@ onMounted(() => {
 <template>
     <Toaster position="bottom-center" :duration="4000" />
     <Head :title="title" />
-    
+
     <SidebarProvider v-model:open="sidebarOpen">
         <div class="flex min-h-screen w-full bg-background">
             <!-- Left Sidebar - Full Height -->
@@ -396,20 +396,19 @@ onMounted(() => {
                 <div class="border-b border-border">
                     <!-- Expanded State -->
                     <div class="flex items-center justify-between h-16 px-4 group-data-[collapsible=icon]:hidden">
-                        <Link 
-                            :href="route('dashboard')" 
+                        <Link
+                            :href="route('dashboard')"
                             class="flex items-center gap-2 min-w-0 overflow-hidden"
                         >
                             <div class="h-8 w-8 flex items-center justify-center flex-shrink-0">
-                                <AppLogoIcon class="h-6 w-6" />
+                                <AppLogoIcon class="h-8 w-8" />
                             </div>
-                            <span class="font-semibold truncate">Chatvia</span>
                         </Link>
-                        
+
                         <!-- Expanded state: Show trigger button on the right -->
                         <SidebarTrigger class="hidden md:flex flex-shrink-0" />
                     </div>
-                    
+
                     <!-- Collapsed State - Full clickable area -->
                     <button
                         @click="toggleSidebar"
@@ -466,15 +465,15 @@ onMounted(() => {
                                                 </SidebarMenuButton>
                                             </div>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent 
-                                            side="right" 
-                                            align="start" 
+                                        <DropdownMenuContent
+                                            side="right"
+                                            align="start"
                                             :side-offset="5"
                                             :align-offset="0"
                                             class="w-56"
                                         >
                                             <DropdownMenuItem as-child>
-                                                <Link 
+                                                <Link
                                                     :href="route('agents.sources.web', { agent: agent.id })"
                                                     class="flex items-center gap-2"
                                                 >
@@ -483,7 +482,7 @@ onMounted(() => {
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem as-child>
-                                                <Link 
+                                                <Link
                                                     :href="route('agents.sources.youtube', { agent: agent.id })"
                                                     class="flex items-center gap-2"
                                                 >
@@ -492,7 +491,7 @@ onMounted(() => {
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem as-child>
-                                                <Link 
+                                                <Link
                                                     :href="route('agents.sources.text', { agent: agent.id })"
                                                     class="flex items-center gap-2"
                                                 >
@@ -501,7 +500,7 @@ onMounted(() => {
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem as-child>
-                                                <Link 
+                                                <Link
                                                     :href="route('agents.sources.markdown', { agent: agent.id })"
                                                     class="flex items-center gap-2"
                                                 >
@@ -510,7 +509,7 @@ onMounted(() => {
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem as-child>
-                                                <Link 
+                                                <Link
                                                     :href="route('agents.sources.pdf', { agent: agent.id })"
                                                     class="flex items-center gap-2"
                                                 >
@@ -519,7 +518,7 @@ onMounted(() => {
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem as-child>
-                                                <Link 
+                                                <Link
                                                     :href="route('agents.sources.word', { agent: agent.id })"
                                                     class="flex items-center gap-2"
                                                 >
@@ -528,7 +527,7 @@ onMounted(() => {
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem as-child>
-                                                <Link 
+                                                <Link
                                                     :href="route('agents.sources.video', { agent: agent.id })"
                                                     class="flex items-center gap-2"
                                                 >
@@ -537,7 +536,7 @@ onMounted(() => {
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem as-child>
-                                                <Link 
+                                                <Link
                                                     :href="route('agents.sources.audio', { agent: agent.id })"
                                                     class="flex items-center gap-2"
                                                 >
@@ -547,7 +546,7 @@ onMounted(() => {
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                    
+
                                     <!-- Expanded state - show regular submenu -->
                                     <div class="block group-data-[collapsible=icon]:hidden">
                                         <SidebarMenuButton
@@ -557,7 +556,7 @@ onMounted(() => {
                                         >
                                             <component :is="item.icon" />
                                             <span>{{ item.label }}</span>
-                                            <ChevronDown 
+                                            <ChevronDown
                                                 class="ml-auto h-4 w-4 transition-transform duration-200"
                                                 :class="{ 'rotate-180': sourcesSubmenuOpen }"
                                             />
@@ -565,7 +564,7 @@ onMounted(() => {
                                     </div>
                                     <SidebarMenuSub v-if="sourcesSubmenuOpen" class="mt-1 space-y-0.5 group-data-[collapsible=icon]:hidden">
                                         <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton 
+                                            <SidebarMenuSubButton
                                                 as-child
                                                 :is-active="isActiveRoute('agents.sources.web')"
                                                 class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
@@ -577,7 +576,7 @@ onMounted(() => {
                                             </SidebarMenuSubButton>
                                         </SidebarMenuSubItem>
                                         <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton 
+                                            <SidebarMenuSubButton
                                                 as-child
                                                 :is-active="isActiveRoute('agents.sources.youtube')"
                                                 class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
@@ -589,7 +588,7 @@ onMounted(() => {
                                             </SidebarMenuSubButton>
                                         </SidebarMenuSubItem>
                                         <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton 
+                                            <SidebarMenuSubButton
                                                 as-child
                                                 :is-active="isActiveRoute('agents.sources.text')"
                                                 class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
@@ -601,7 +600,7 @@ onMounted(() => {
                                             </SidebarMenuSubButton>
                                         </SidebarMenuSubItem>
                                         <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton 
+                                            <SidebarMenuSubButton
                                                 as-child
                                                 :is-active="isActiveRoute('agents.sources.markdown')"
                                                 class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
@@ -613,7 +612,7 @@ onMounted(() => {
                                             </SidebarMenuSubButton>
                                         </SidebarMenuSubItem>
                                         <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton 
+                                            <SidebarMenuSubButton
                                                 as-child
                                                 :is-active="isActiveRoute('agents.sources.pdf')"
                                                 class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
@@ -625,7 +624,7 @@ onMounted(() => {
                                             </SidebarMenuSubButton>
                                         </SidebarMenuSubItem>
                                         <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton 
+                                            <SidebarMenuSubButton
                                                 as-child
                                                 :is-active="isActiveRoute('agents.sources.word')"
                                                 class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
@@ -637,7 +636,7 @@ onMounted(() => {
                                             </SidebarMenuSubButton>
                                         </SidebarMenuSubItem>
                                         <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton 
+                                            <SidebarMenuSubButton
                                                 as-child
                                                 :is-active="isActiveRoute('agents.sources.video')"
                                                 class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
@@ -649,7 +648,7 @@ onMounted(() => {
                                             </SidebarMenuSubButton>
                                         </SidebarMenuSubItem>
                                         <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton 
+                                            <SidebarMenuSubButton
                                                 as-child
                                                 :is-active="isActiveRoute('agents.sources.audio')"
                                                 class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"

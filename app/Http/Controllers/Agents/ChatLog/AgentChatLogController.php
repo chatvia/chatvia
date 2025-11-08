@@ -53,25 +53,26 @@ class AgentChatLogController
         }
 
         // Get distinct conversations for this agent ordered by most recent activity
-        $conversations = ChatConversation::query()
+        $conversationsPaginator = ChatConversation::query()
             ->whereHas('session', fn ($query) => $query->where('agent_id', $agent->id))
             ->withCount('messages')
             ->orderByDesc('updated_at')
-            ->limit(100)
-            ->get()
-            ->map(function ($conversation) {
-                return (object) [
-                    'conversation_id' => $conversation->id,
-                    'last_at' => $conversation->updated_at,
-                    'messages_count' => $conversation->messages_count,
-                    'first_message_excerpt' => null, // Will be populated below
-                    'title' => $conversation->title,
-                ];
-            });
+            ->paginate(10, pageName: 'conversations');
+
+        // Transform the paginated data
+        $conversationsPaginator->through(function ($conversation) {
+            return (object) [
+                'conversation_id' => $conversation->id,
+                'last_at' => $conversation->updated_at,
+                'messages_count' => $conversation->messages_count,
+                'first_message_excerpt' => null, // Will be populated below
+                'title' => $conversation->title,
+            ];
+        });
 
         // Fetch first (earliest) message per conversation for excerpts
-        if ($conversations->isNotEmpty()) {
-            $conversationIds = $conversations->pluck('conversation_id')->map(fn ($id) => (string) $id);
+        if ($conversationsPaginator->isNotEmpty()) {
+            $conversationIds = $conversationsPaginator->pluck('conversation_id')->map(fn ($id) => (string) $id);
 
             $firstMessagesRaw = ChatMessage::query()
                 ->whereIn('chat_conversation_id', $conversationIds)
@@ -86,17 +87,21 @@ class AgentChatLogController
                 }
             }
 
-            $conversations = $conversations->map(function ($c) use ($firstPerConversation) {
+            $conversationsPaginator->through(function ($c) use ($firstPerConversation) {
                 $c->first_message_excerpt = $firstPerConversation[$c->conversation_id] ?? null;
 
                 return $c;
             });
         }
 
-        // Gather lead presence per conversation
+        // Gather lead presence per conversation for all conversations (not just current page)
+        $allConversationIds = ChatConversation::query()
+            ->whereHas('session', fn ($query) => $query->where('agent_id', $agent->id))
+            ->pluck('id');
+
         $leadConversationIds = Lead::query()
             ->where('agent_id', $agent->id)
-            ->whereIn('chat_conversation_id', $conversations->pluck('conversation_id'))
+            ->whereIn('chat_conversation_id', $allConversationIds)
             ->pluck('chat_conversation_id');
 
         $lead = null;
@@ -110,7 +115,7 @@ class AgentChatLogController
         return Inertia::render('agents/ChatLog', [
             'agent' => $agent,
             'messages' => $messages,
-            'conversations' => $conversations,
+            'conversations' => $conversationsPaginator,
             'current_conversation_id' => $conversationId,
             'lead_conversation_ids' => $leadConversationIds,
             'lead' => $lead,

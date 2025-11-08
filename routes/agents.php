@@ -59,6 +59,7 @@ use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextUpdateController;
 use App\Http\Controllers\Agents\Starters\StarterDeleteController;
 use App\Http\Controllers\Agents\Starters\StartersShowController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
+use App\Http\Controllers\Agents\Stats\AgentChartDataController;
 use App\Http\Controllers\Agents\Stats\AgentStatsController;
 use App\Http\Controllers\Agents\Team\AgentMemberInvitationSendController;
 use App\Http\Controllers\Agents\Team\AgentMembersAccessGrantController;
@@ -82,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('agents/{agent}')->name('agents.')->group(function () {
         Route::get('stats', AgentStatsController::class)->name('stats');
+        Route::get('stats/chart-data', AgentChartDataController::class)->name('stats.chart-data');
         Route::patch('/', AgentUpdateController::class)->name('update');
         Route::get('widget/preview', WidgetPreviewController::class)->name('widget.preview');
         Route::get('playground', AgentPlaygroundController::class)->name('playground');

@@ -20,6 +20,17 @@ class AgentQueryBuilder extends Builder
             ->count('chat_messages.id');
     }
 
+    public function countConversations()
+    {
+        $agentId = $this->getModel()->id;
+
+        return DB::table('chat_sessions')
+            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
+            ->where('chat_sessions.agent_id', $agentId)
+            ->distinct()
+            ->count('chat_conversations.id');
+    }
+
     public function avgResponseTime()
     {
         $agentId = $this->getModel()->id;
@@ -46,18 +57,15 @@ class AgentQueryBuilder extends Builder
             ->selectRaw('
                 COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as positive_count,
                 COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as negative_count,
-                COUNT(*) as total_feedback,
-                CASE
-                    WHEN COUNT(*) = 0 THEN 0
-                    ELSE ROUND(
-                        (COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) * 100.0) / COUNT(*),
-                        1
-                    )
-                END as satisfaction_rate
-            ', ['positive', 'negative', 'positive'])
+                COUNT(*) as total_feedback
+            ', ['positive', 'negative'])
             ->first();
 
-        return $result->satisfaction_rate ?? 0;
+        return [
+            'positive' => $result->positive_count ?? 0,
+            'negative' => $result->negative_count ?? 0,
+            'total' => $result->total_feedback ?? 0,
+        ];
     }
 
     public function messagesByData(Carbon $startDate, Carbon $endDate)
@@ -89,6 +97,8 @@ class AgentQueryBuilder extends Builder
             ->selectRaw('
                 chat_messages.model as model_external_name,
                 COUNT(*) as usage_count,
+                COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as positive_feedback,
+                COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as negative_feedback,
                 ROUND(
                     (COUNT(*) * 100.0) / (
                         SELECT COUNT(*)
@@ -101,7 +111,7 @@ class AgentQueryBuilder extends Builder
                     ),
                     1
                 ) as percentage
-            ', [$agentId, 'assistant'])
+            ', ['positive', 'negative', $agentId, 'assistant'])
             ->groupBy('chat_messages.model')
             ->orderByDesc('usage_count');
     }

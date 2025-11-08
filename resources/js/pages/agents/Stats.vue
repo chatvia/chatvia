@@ -1,9 +1,11 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
+import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, MessageSquare, Users, Clock, ThumbsUp, BarChart, Cpu } from 'lucide-vue-next';
+import { BarChart3, MessageSquare, Users, Clock, ThumbsUp, ThumbsDown, BarChart, Cpu, MessageCircle } from 'lucide-vue-next';
 import { useTimeAgo } from '@/composables/useTimeAgo';
 
 interface Props {
@@ -16,17 +18,56 @@ const props = defineProps<Props>();
 // Use time ago composable
 const { formatTimeAgo } = useTimeAgo();
 
-// Process chart data for last 7 days
-const chartData = computed(() => {
-    if (!props.analytics?.messagesLastWeek) return [];
+// Model usage sorting
+const modelSortBy = ref<'usage' | 'feedback'>('usage');
 
-    return props.analytics.messagesLastWeek.map((item: any) => ({
-        date: item.date,
-        day: item.day,
-        dayMonth: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        fullDate: new Date(item.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-        messages: item.value || 0,
-    }));
+// Chart time period filtering
+const chartTimePeriod = ref<'7days' | '14days' | '30days'>('7days');
+const chartDataFromApi = ref<any[]>([]);
+const isLoadingChartData = ref(false);
+
+// Fetch chart data from API
+const fetchChartData = async (days: number) => {
+    isLoadingChartData.value = true;
+    try {
+        const response = await axios.get(route('agents.stats.chart-data', props.agent.id), {
+            params: { days }
+        });
+        chartDataFromApi.value = response.data.data;
+    } catch (error) {
+        console.error('Failed to fetch chart data:', error);
+        chartDataFromApi.value = [];
+    } finally {
+        isLoadingChartData.value = false;
+    }
+};
+
+// Watch for time period changes and fetch data
+watch(chartTimePeriod, (newPeriod) => {
+    const daysMap = {
+        '7days': 7,
+        '14days': 14,
+        '30days': 30
+    };
+    fetchChartData(daysMap[newPeriod]);
+}, { immediate: true });
+
+// Process chart data for display
+const chartData = computed(() => {
+    if (!chartDataFromApi.value || chartDataFromApi.value.length === 0) {
+        return [];
+    }
+    
+    return chartDataFromApi.value.map((item: any) => {
+        const date = new Date(item.date);
+        return {
+            date: item.date,
+            day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+            dayMonth: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            fullDate: date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+            messages: item.messages || 0,
+        };
+    });
 });
 
 const maxMessages = computed(() => {
@@ -34,17 +75,89 @@ const maxMessages = computed(() => {
     return Math.max(...chartData.value.map((day: any) => day.messages));
 });
 
+const chartTitle = computed(() => {
+    const periodMap = {
+        '7days': 'Last 7 Days',
+        '14days': 'Last 14 Days',
+        '30days': 'Last 30 Days'
+    };
+    return `Messages Over Time - ${periodMap[chartTimePeriod.value]}`;
+});
+
 // Use real analytics data
 const stats = computed(() => ({
     totalMessages: props.analytics?.totalMessages || 0,
+    totalConversations: props.analytics?.totalConversations || 0,
     messagesLastWeek: props.analytics?.messagesLastWeek || 0,
     uniqueUsers: props.analytics?.uniqueUsers || 0,
     newUsersLastWeek: props.analytics?.newUsersLastWeek || 0,
     avgResponseTime: props.analytics?.avgResponseTime || '0s',
-    satisfactionRate: props.analytics?.satisfactionRate || 0,
+    feedback: props.analytics?.feedback || { positive: 0, negative: 0, total: 0 },
     topKnowledge: props.analytics?.topKnowledge || [],
     modelUsage: props.analytics?.modelUsage || []
 }));
+
+// Calculate feedback sentiment
+const feedbackSentiment = computed(() => {
+    const { positive, negative, total } = stats.value.feedback;
+    
+    if (total === 0) {
+        return {
+            sentiment: 'neutral',
+            message: 'No feedback yet',
+            color: 'text-muted-foreground'
+        };
+    }
+    
+    const positiveDiff = positive - negative;
+    
+    if (positiveDiff > 0) {
+        return {
+            sentiment: 'positive',
+            message: `${positiveDiff} more positive`,
+            color: 'text-green-600 dark:text-green-500'
+        };
+    } else if (positiveDiff < 0) {
+        return {
+            sentiment: 'negative',
+            message: `${Math.abs(positiveDiff)} more negative`,
+            color: 'text-red-600 dark:text-red-500'
+        };
+    } else {
+        return {
+            sentiment: 'balanced',
+            message: 'Balanced feedback',
+            color: 'text-blue-600 dark:text-blue-500'
+        };
+    }
+});
+
+// Sorted model usage
+const sortedModelUsage = computed(() => {
+    if (!stats.value.modelUsage || stats.value.modelUsage.length === 0) {
+        return [];
+    }
+    
+    const models = [...stats.value.modelUsage];
+    
+    if (modelSortBy.value === 'usage') {
+        // Sort by usage count (descending)
+        return models.sort((a, b) => b.count - a.count);
+    } else {
+        // Sort by positive feedback (descending), then by usage count
+        return models.sort((a, b) => {
+            const aPositive = a.feedback?.positive || 0;
+            const bPositive = b.feedback?.positive || 0;
+            
+            if (aPositive !== bPositive) {
+                return bPositive - aPositive;
+            }
+            
+            // If positive feedback is the same, sort by usage count
+            return b.count - a.count;
+        });
+    }
+});
 </script>
 
 <template>
@@ -77,6 +190,17 @@ const stats = computed(() => ({
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div class="rounded-lg border bg-card p-4">
                                 <div class="flex items-center gap-2 text-muted-foreground">
+                                    <MessageCircle class="h-4 w-4" />
+                                    <span class="text-sm font-medium">Total Conversations</span>
+                                </div>
+                                <div class="mt-2 text-2xl font-bold">{{ stats.totalConversations.toLocaleString() }}</div>
+                                <div class="mt-1 text-xs text-muted-foreground">
+                                    Number of conversations with your agent
+                                </div>
+                            </div>
+
+                            <div class="rounded-lg border bg-card p-4">
+                                <div class="flex items-center gap-2 text-muted-foreground">
                                     <MessageSquare class="h-4 w-4" />
                                     <span class="text-sm font-medium">Total Messages</span>
                                 </div>
@@ -86,7 +210,7 @@ const stats = computed(() => ({
                                 </div>
                             </div>
 
-                            <div class="rounded-lg border bg-card p-4">
+                            <div v-if="agent.type !== 'widget'" class="rounded-lg border bg-card p-4">
                                 <div class="flex items-center gap-2 text-muted-foreground">
                                     <Users class="h-4 w-4" />
                                     <span class="text-sm font-medium">Members</span>
@@ -109,13 +233,24 @@ const stats = computed(() => ({
                             </div>
 
                             <div class="rounded-lg border bg-card p-4">
-                                <div class="flex items-center gap-2 text-muted-foreground">
-                                    <ThumbsUp class="h-4 w-4" />
-                                    <span class="text-sm font-medium">Thumbs up</span>
+                                <div class="flex items-center gap-2 text-muted-foreground mb-3">
+                                    <span class="text-sm font-medium">Feedback</span>
                                 </div>
-                                <div class="mt-2 text-2xl font-bold">{{ stats.satisfactionRate }}%</div>
-                                <div class="mt-1 text-xs text-muted-foreground">
-                                    Based on your members feedback
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-1">
+                                            <ThumbsUp class="h-4 w-4 text-green-600 dark:text-green-500" />
+                                            <span class="text-xl font-bold">{{ stats.feedback.positive }}</span>
+                                        </div>
+                                        <span class="text-muted-foreground">/</span>
+                                        <div class="flex items-center gap-1">
+                                            <ThumbsDown class="h-4 w-4 text-red-600 dark:text-red-500" />
+                                            <span class="text-xl font-bold">{{ stats.feedback.negative }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-xs" :class="feedbackSentiment.color">
+                                    {{ feedbackSentiment.message }}
                                 </div>
                             </div>
                         </div>
@@ -166,11 +301,51 @@ const stats = computed(() => ({
                         <!-- Usage Over Time Chart -->
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-medium">Messages Over Time - Last 7 Days</h3>
-                                <a href="#" class="text-sm text-primary hover:underline">View More</a>
+                                <h3 class="text-lg font-medium">{{ chartTitle }}</h3>
+                                <div class="flex items-center gap-1 rounded-lg border p-1">
+                                    <button
+                                        @click="chartTimePeriod = '7days'"
+                                        :class="[
+                                            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                                            chartTimePeriod === '7days'
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        ]"
+                                    >
+                                        7 Days
+                                    </button>
+                                    <button
+                                        @click="chartTimePeriod = '14days'"
+                                        :class="[
+                                            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                                            chartTimePeriod === '14days'
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        ]"
+                                    >
+                                        14 Days
+                                    </button>
+                                    <button
+                                        @click="chartTimePeriod = '30days'"
+                                        :class="[
+                                            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                                            chartTimePeriod === '30days'
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        ]"
+                                    >
+                                        30 Days
+                                    </button>
+                                </div>
                             </div>
                             <div class="h-64 w-full overflow-hidden">
-                                <div v-if="!chartData.length" class="flex h-full w-full items-center justify-center rounded-md border border-dashed border-muted-foreground/50 bg-muted/50">
+                                <div v-if="isLoadingChartData" class="flex h-full w-full items-center justify-center rounded-md border border-dashed border-muted-foreground/50 bg-muted/50">
+                                    <div class="text-center text-muted-foreground">
+                                        <BarChart class="mx-auto h-8 w-8 opacity-50 animate-pulse" />
+                                        <p class="mt-2">Loading chart data...</p>
+                                    </div>
+                                </div>
+                                <div v-else-if="!chartData.length" class="flex h-full w-full items-center justify-center rounded-md border border-dashed border-muted-foreground/50 bg-muted/50">
                                     <div class="text-center text-muted-foreground">
                                         <BarChart class="mx-auto h-8 w-8 opacity-50" />
                                         <p class="mt-2">No data available</p>
@@ -193,38 +368,79 @@ const stats = computed(() => ({
 
                         <!-- Model Usage -->
                         <div class="space-y-4">
-                            <h3 class="text-lg font-medium">Model Usage</h3>
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-medium">Model Usage</h3>
+                                <div class="flex items-center gap-1 rounded-lg border p-1">
+                                    <button
+                                        @click="modelSortBy = 'usage'"
+                                        :class="[
+                                            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                                            modelSortBy === 'usage'
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        ]"
+                                    >
+                                        By Usage
+                                    </button>
+                                    <button
+                                        @click="modelSortBy = 'feedback'"
+                                        :class="[
+                                            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                                            modelSortBy === 'feedback'
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        ]"
+                                    >
+                                        By Feedback
+                                    </button>
+                                </div>
+                            </div>
                             <div class="rounded-lg border">
                                 <div v-if="!stats.modelUsage || stats.modelUsage.length === 0"
                                      class="p-4 text-center text-muted-foreground">
                                     No model usage data available yet
                                 </div>
                                 <div v-else class="divide-y">
-                                    <div v-for="(model, index) in stats.modelUsage"
-                                         :key="index"
-                                         class="flex items-center justify-between p-4">
-                                        <div class="flex items-center gap-3 min-w-0 flex-1">
-                                            <!-- Model Icon in Circle -->
-                                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50 border">
-                                                <img
-                                                    v-if="model.icon"
-                                                    :src="`/images/llms/${model.icon}`"
-                                                    :alt="model.name"
-                                                    class="h-6 w-6 object-contain"
-                                                />
-                                                <Cpu v-else class="h-6 w-6 text-muted-foreground" />
+                                    <div v-for="model in sortedModelUsage"
+                                         :key="model.name"
+                                         class="p-4">
+                                        <div class="flex items-start justify-between gap-4">
+                                            <div class="flex items-start gap-3 min-w-0 flex-1">
+                                                <!-- Model Icon in Circle -->
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50 border flex-shrink-0">
+                                                    <img
+                                                        v-if="model.icon"
+                                                        :src="`/images/llms/${model.icon}`"
+                                                        :alt="model.name"
+                                                        class="h-6 w-6 object-contain"
+                                                    />
+                                                    <Cpu v-else class="h-6 w-6 text-muted-foreground" />
+                                                </div>
+                                                <div class="flex flex-col min-w-0 flex-1">
+                                                    <span class="font-medium truncate">{{ model.name }}</span>
+                                                    <div class="flex items-center gap-3 mt-1">
+                                                        <div v-if="model.feedback.positive > 0 || model.feedback.negative > 0" class="flex items-center gap-2 text-xs">
+                                                            <div class="flex items-center gap-1">
+                                                                <ThumbsUp class="h-3 w-3 text-green-600 dark:text-green-500" />
+                                                                <span class="text-green-600 dark:text-green-500 font-medium">{{ model.feedback.positive }}</span>
+                                                            </div>
+                                                            <span class="text-muted-foreground">/</span>
+                                                            <div class="flex items-center gap-1">
+                                                                <ThumbsDown class="h-3 w-3 text-red-600 dark:text-red-500" />
+                                                                <span class="text-red-600 dark:text-red-500 font-medium">{{ model.feedback.negative }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <span v-else class="text-xs text-muted-foreground">No feedback yet</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="flex flex-col min-w-0">
-                                                <span class="font-medium truncate">{{ model.name }}</span>
-                                                <span v-if="model.description" class="text-xs text-muted-foreground truncate">{{ model.description }}</span>
+                                            <div class="flex items-center gap-2 flex-shrink-0">
+                                                <div class="w-24 bg-muted rounded-full h-2">
+                                                    <div class="bg-primary h-2 rounded-full transition-all duration-300"
+                                                         :style="{ width: `${model.percentage}%` }"></div>
+                                                </div>
+                                                <span class="text-sm text-muted-foreground whitespace-nowrap">{{ model.percentage }}%</span>
                                             </div>
-                                        </div>
-                                        <div class="flex items-center gap-2 flex-shrink-0">
-                                            <div class="w-24 bg-muted rounded-full h-2">
-                                                <div class="bg-primary h-2 rounded-full transition-all duration-300"
-                                                     :style="{ width: `${model.percentage}%` }"></div>
-                                            </div>
-                                            <span class="text-sm text-muted-foreground whitespace-nowrap">{{ model.percentage }}%</span>
                                         </div>
                                     </div>
                                 </div>

@@ -10,9 +10,10 @@ class StatsData extends Data
 {
     public function __construct(
         public int $totalMessages,
+        public int $totalConversations,
         public int $totalMembers,
         public ?float $avgResponseTime,
-        public float $satisfactionRate,
+        public array $feedback,
         public array $messagesLastWeek,
         public array $modelUsage,
         public array $dailyMessages,
@@ -25,9 +26,10 @@ class StatsData extends Data
 
         return StatsData::from([
             'totalMessages' => $agent->countAssistantMessages(),
+            'totalConversations' => $agent->countConversations(),
             'totalMembers' => $agent->members()->count(),
             'avgResponseTime' => $agent->avgResponseTime(),
-            'satisfactionRate' => $agent->satisfactionRate(),
+            'feedback' => $agent->satisfactionRate(),
             'messagesLastWeek' => self::getMessagesLastWeek($agent),
             'modelUsage' => self::mostUsedModels($agent)->toArray(),
             'dailyMessages' => self::getDailyMessages($agent)->toArray(),
@@ -82,6 +84,10 @@ class StatsData extends Data
                 'icon' => $model->icon,
                 'count' => $item->usage_count,
                 'percentage' => $item->percentage,
+                'feedback' => [
+                    'positive' => $item->positive_feedback,
+                    'negative' => $item->negative_feedback,
+                ],
             ];
         });
     }

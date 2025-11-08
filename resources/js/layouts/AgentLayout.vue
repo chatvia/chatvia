@@ -26,6 +26,12 @@ import {
     DialogHeader,
     DialogTitle
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'vue-sonner';
 import { Toaster } from '@/components/ui/sonner';
 import type { Features } from '@/types';
@@ -64,6 +70,8 @@ import {
     Music,
     Youtube,
     FileCode,
+    Pencil,
+    AlertTriangle,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
@@ -77,6 +85,10 @@ const props = defineProps({
     title: {
         type: String,
         default: 'Agent Settings',
+    },
+    description: {
+        type: String,
+        default: '',
     }
 })
 
@@ -178,6 +190,8 @@ const controlPanelNavigationItems = computed(() => {
     if (props.agent.type !== 'widget') {
         // Insert appearance after starters (at index 4)
         baseItems.push({ id: 'appearance', label: 'Appearance', icon: Palette, route: 'agents.appearance', tooltip: 'Customize colors, themes, and branding' });
+        // Add rename after appearance
+        baseItems.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
     }
 
     // Only add workflow if the feature is enabled
@@ -194,6 +208,13 @@ const controlPanelNavigationItems = computed(() => {
     }
 
     return baseItems;
+});
+
+// Danger Zone navigation items
+const dangerZoneNavigationItems = computed(() => {
+    return [
+        { id: 'delete', label: 'Delete Agent', icon: Trash2, action: 'delete', tooltip: 'Permanently delete this agent' }
+    ];
 });
 
 // Removed Sources submenu - now handled within the component
@@ -358,6 +379,9 @@ onMounted(() => {
     fetchSourceStats();
 });
 
+// Sources dropdown state for collapsed sidebar (click-based)
+// No need for state management - DropdownMenu handles it internally
+
 </script>
 
 <template>
@@ -429,19 +453,117 @@ onMounted(() => {
                             <template v-for="item in controlPanelNavigationItems" :key="item.id">
                                 <!-- Sources item with submenu -->
                                 <SidebarMenuItem v-if="item.id === 'knowledge'">
-                                    <SidebarMenuButton
-                                        @click="sourcesSubmenuOpen = !sourcesSubmenuOpen"
-                                        :tooltip="item.tooltip"
-                                        class="cursor-pointer"
-                                    >
-                                        <component :is="item.icon" />
-                                        <span>{{ item.label }}</span>
-                                        <ChevronDown 
-                                            class="ml-auto h-4 w-4 transition-transform duration-200"
-                                            :class="{ 'rotate-180': sourcesSubmenuOpen }"
-                                        />
-                                    </SidebarMenuButton>
-                                    <SidebarMenuSub v-if="sourcesSubmenuOpen" class="mt-1 space-y-0.5">
+                                    <!-- Collapsed state - show dropdown on click -->
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger as-child>
+                                            <div class="hidden group-data-[collapsible=icon]:block">
+                                                <SidebarMenuButton
+                                                    :tooltip="item.tooltip"
+                                                    class="cursor-pointer"
+                                                >
+                                                    <component :is="item.icon" />
+                                                    <span>{{ item.label }}</span>
+                                                </SidebarMenuButton>
+                                            </div>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent 
+                                            side="right" 
+                                            align="start" 
+                                            :side-offset="5"
+                                            :align-offset="0"
+                                            class="w-56"
+                                        >
+                                            <DropdownMenuItem as-child>
+                                                <Link 
+                                                    :href="route('agents.sources.web', { agent: agent.id })"
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <Globe class="h-4 w-4" />
+                                                    <span>Web{{ getSourceCount('websites') }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem as-child>
+                                                <Link 
+                                                    :href="route('agents.sources.youtube', { agent: agent.id })"
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <Youtube class="h-4 w-4" />
+                                                    <span>YouTube{{ getSourceCount('youtube') }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem as-child>
+                                                <Link 
+                                                    :href="route('agents.sources.text', { agent: agent.id })"
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <FileText class="h-4 w-4" />
+                                                    <span>Text{{ getSourceCount('texts') }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem as-child>
+                                                <Link 
+                                                    :href="route('agents.sources.markdown', { agent: agent.id })"
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <FileCode class="h-4 w-4" />
+                                                    <span>Markdown{{ getSourceCount('markdown') }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem as-child>
+                                                <Link 
+                                                    :href="route('agents.sources.pdf', { agent: agent.id })"
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <File class="h-4 w-4" />
+                                                    <span>PDF{{ getSourceCount('pdf') }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem as-child>
+                                                <Link 
+                                                    :href="route('agents.sources.word', { agent: agent.id })"
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <File class="h-4 w-4" />
+                                                    <span>Word{{ getSourceCount('word') }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem as-child>
+                                                <Link 
+                                                    :href="route('agents.sources.video', { agent: agent.id })"
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <Video class="h-4 w-4" />
+                                                    <span>Video{{ getSourceCount('video') }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem as-child>
+                                                <Link 
+                                                    :href="route('agents.sources.audio', { agent: agent.id })"
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <Music class="h-4 w-4" />
+                                                    <span>Audio{{ getSourceCount('audio') }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    
+                                    <!-- Expanded state - show regular submenu -->
+                                    <div class="block group-data-[collapsible=icon]:hidden">
+                                        <SidebarMenuButton
+                                            @click="sourcesSubmenuOpen = !sourcesSubmenuOpen"
+                                            :tooltip="item.tooltip"
+                                            class="cursor-pointer"
+                                        >
+                                            <component :is="item.icon" />
+                                            <span>{{ item.label }}</span>
+                                            <ChevronDown 
+                                                class="ml-auto h-4 w-4 transition-transform duration-200"
+                                                :class="{ 'rotate-180': sourcesSubmenuOpen }"
+                                            />
+                                        </SidebarMenuButton>
+                                    </div>
+                                    <SidebarMenuSub v-if="sourcesSubmenuOpen" class="mt-1 space-y-0.5 group-data-[collapsible=icon]:hidden">
                                         <SidebarMenuSubItem>
                                             <SidebarMenuSubButton 
                                                 as-child
@@ -542,7 +664,19 @@ onMounted(() => {
                                 </SidebarMenuItem>
                                 <!-- Regular menu items -->
                                 <SidebarMenuItem v-else>
+                                    <!-- Action items (like rename) -->
                                     <SidebarMenuButton
+                                        v-if="item.action === 'rename'"
+                                        @click="showRenameDialog = true"
+                                        :tooltip="item.tooltip"
+                                        class="cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                                    >
+                                        <component :is="item.icon" />
+                                        <span>{{ item.label }}</span>
+                                    </SidebarMenuButton>
+                                    <!-- Route items -->
+                                    <SidebarMenuButton
+                                        v-else
                                         as-child
                                         :is-active="isActiveRoute(item.route)"
                                         :tooltip="item.tooltip"
@@ -557,33 +691,24 @@ onMounted(() => {
                             </template>
                         </SidebarMenu>
                     </SidebarGroup>
-                </SidebarContent>
 
-                <!-- Sidebar Footer -->
-                <SidebarFooter class="border-t">
-                    <SidebarMenu class="space-y-1">
-                        <SidebarMenuItem>
-                            <SidebarMenuButton 
-                                @click="showRenameDialog = true" 
-                                tooltip="Rename agent"
-                                class="hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
-                            >
-                                <Edit />
-                                <span>Rename Agent</span>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton 
-                                @click="showDeleteDialog = true" 
-                                tooltip="Delete agent permanently"
-                                class="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                            >
-                                <Trash2 />
-                                <span>Delete Agent</span>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarFooter>
+                    <!-- Danger Zone Section -->
+                    <SidebarGroup class="py-0">
+                        <SidebarGroupLabel class="mb-2 px-2 text-destructive">Danger Zone</SidebarGroupLabel>
+                        <SidebarMenu class="space-y-1">
+                            <SidebarMenuItem v-for="item in dangerZoneNavigationItems" :key="item.id">
+                                <SidebarMenuButton
+                                    @click="showDeleteDialog = true"
+                                    :tooltip="item.tooltip"
+                                    class="cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10"
+                                >
+                                    <component :is="item.icon" />
+                                    <span>{{ item.label }}</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarGroup>
+                </SidebarContent>
             </Sidebar>
 
             <!-- Main Content Area - Full Height with Header Inside -->
@@ -599,6 +724,9 @@ onMounted(() => {
 
                                 <!-- Breadcrumbs -->
                                 <div class="flex items-center gap-2 text-sm">
+                                    <Link :href="route('dashboard')" class="text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
+                                        Dashboard
+                                    </Link>
                                     <ChevronRight class="h-4 w-4 text-muted-foreground hidden md:block" />
                                     <Link :href="route('agents.index')" class="text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
                                         Agents
@@ -627,9 +755,12 @@ onMounted(() => {
                     <div class="bg-background border-b border-border px-4 lg:px-6 py-4">
                         <div class="flex items-center justify-between">
                             <div class="min-w-0 flex-1">
-                                <h1 class="text-lg lg:text-xl font-semibold text-foreground truncate">{{ title }}</h1>
-                                <p class="text-xs lg:text-sm text-muted-foreground mt-1 hidden sm:block">
-                                    Manage your {{ agent.name }} {{ agent.type }} agent
+                                <h1 class="text-lg lg:text-xl font-semibold text-foreground truncate flex items-center gap-2">
+                                    <slot name="header-icon" />
+                                    {{ title }}
+                                </h1>
+                                <p v-if="description" class="text-xs lg:text-sm text-muted-foreground mt-1 hidden sm:block">
+                                    {{ description }}
                                 </p>
                             </div>
 

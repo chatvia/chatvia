@@ -1,15 +1,13 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, LoaderCircle, Save, MessageSquare, Database, Trash2, Download } from 'lucide-vue-next';
-import HeaderActions from '@/components/HeaderActions.vue';
-import { usePage} from '@inertiajs/vue3';
+import { Clock, LoaderCircle } from 'lucide-vue-next';
+import { usePage } from '@inertiajs/vue3';
+import { toast } from 'vue-sonner';
 
 const page = usePage();
 
@@ -31,71 +29,52 @@ const form = useForm({
 
 const isSubmitting = ref(false);
 
-const updateHistorySettings = () => {
-    isSubmitting.value = true;
-
-    form.post(route('agents.settings.update', {agent: props.agent.id, group: 'message_history'}), {
-        preserveScroll: true,
-        onSuccess: () => {
-            isSubmitting.value = false;
-        },
-        onError: () => {
-            isSubmitting.value = false;
-        }
-    });
-};
-
 const retentionOptions = [
     { value: 7, label: '7 days' },
     { value: 30, label: '30 days' },
     { value: 90, label: '90 days' },
 ];
 
-// Computed properties for header actions
-const hasUnsavedChanges = computed(() => {
-    return (
-        form.retention !== settings.retention
-    );
-});
+// Watch for changes and auto-save
+watch(() => form.retention, (newValue, oldValue) => {
+    if (newValue !== oldValue && oldValue !== undefined) {
+        isSubmitting.value = true;
 
-const hasFormErrors = computed(() => {
-    return Object.keys(form.errors).length > 0;
+        form.post(route('agents.settings.update', {agent: props.agent.id, group: 'message_history'}), {
+            preserveScroll: true,
+            onSuccess: () => {
+                isSubmitting.value = false;
+                toast.success('Message retention period updated');
+            },
+            onError: () => {
+                isSubmitting.value = false;
+                toast.error('Failed to update settings');
+            }
+        });
+    }
 });
 
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Message History">
-        <template #header-actions>
-            <HeaderActions
-                :is-submitting="isSubmitting"
-                :has-unsaved-changes="hasUnsavedChanges"
-                :show-success-message="form.recentlySuccessful"
-                success-message="Settings saved successfully"
-                :show-error-message="hasFormErrors"
-                error-message="Please fix errors below"
-                save-label="Save Settings"
-                :save-icon="Save"
-                form-id="history-form"
-            />
+    <AgentLayout 
+        :agent="agent" 
+        title="Message History"
+        description="Control how your agent handles and stores conversation history"
+    >
+        <template #header-icon>
+            <Clock class="h-5 w-5" />
         </template>
-        <form id="history-form" @submit.prevent="updateHistorySettings" class="space-y-6">
-            <div class="flex justify-center">
-                <Card class="w-full max-w-6xl">
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Clock class="h-5 w-5" />
-                        Message History
-                    </CardTitle>
-                    <CardDescription>
-                        Control how your agent handles and stores conversation history
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="space-y-6">
-                    <!-- Retention Period -->
+        
+        <div class="flex justify-center">
+            <Card class="w-full max-w-6xl">
+                <CardContent class="p-6">
                     <div class="space-y-2">
-                        <Label for="retention_days">Message retention period</Label>
-                        <Select v-model="form.retention">
+                        <Label for="retention_days" class="flex items-center gap-2">
+                            Message retention period
+                            <LoaderCircle v-if="isSubmitting" class="h-4 w-4 animate-spin text-muted-foreground" />
+                        </Label>
+                        <Select v-model="form.retention" :disabled="isSubmitting">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select retention period" />
                             </SelectTrigger>
@@ -106,13 +85,11 @@ const hasFormErrors = computed(() => {
                             </SelectContent>
                         </Select>
                         <p class="text-sm text-muted-foreground">
-                            How long to keep message history before automatic deletion
+                            How long to keep message history before automatic deletion. Changes are saved automatically.
                         </p>
                     </div>
                 </CardContent>
             </Card>
-            </div>
-
-        </form>
+        </div>
     </AgentLayout>
 </template>

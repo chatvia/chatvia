@@ -1,11 +1,18 @@
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import {
     Tooltip,
     TooltipContent,
@@ -18,6 +25,7 @@ import {
     CheckCircle2,
     Loader2,
     RotateCcw,
+    Info,
 } from 'lucide-vue-next';
 
 interface AIModel {
@@ -64,6 +72,12 @@ const modelsError = ref<string | null>(null);
 const currentSettings = ref<ModelSettings | null>(null);
 const defaultSettings = ref<ModelSettings | null>(null);
 const toggleLoadingModels = ref<Set<string>>(new Set());
+const showMultiModelDialog = ref(false);
+
+// Check if agent is knowledge type
+const isKnowledgeAgent = computed(() => {
+    return props.agent.type === 'knowledge_base';
+});
 
 const fetchModels = async () => {
     try {
@@ -167,25 +181,42 @@ onMounted(() => {
     <AgentLayout 
         :agent="agent" 
         title="AI Models"
-        description="Select and configure AI models for your agent to use when generating responses"
+        :description="props.agent.type === 'widget'
+            ? 'Click on a model to select it for your widget agent. Only one model can be active at a time.'
+            : 'Click on models to enable or disable them for your agent.'"
     >
+        <template #header-icon>
+            <Brain class="h-5 w-5" />
+        </template>
+
         <TooltipProvider>
             <div class="space-y-6">
                 <div class="flex justify-center">
                     <!-- Model Selection -->
                     <Card class="w-full max-w-6xl overflow-hidden">
-                        <CardHeader>
-                            <CardTitle class="flex items-center gap-3">
-                                <Brain class="h-6 w-6 text-primary" />
-                                Choose AI Models
-                            </CardTitle>
-                            <CardDescription class="text-base">
-                                {{ props.agent.type === 'widget'
-                                    ? 'Click on a model to select it for your widget agent.'
-                                    : 'Click on models to enable or disable them for your agent.'
-                                }}
-                            </CardDescription>
-                        </CardHeader>
+                        <!-- Multi-Model Info Banner for Knowledge Agents -->
+                        <div v-if="isKnowledgeAgent" class="border-b bg-blue-50 dark:bg-blue-950/30">
+                            <div class="p-4">
+                                <div class="flex items-start gap-3">
+                                    <Info class="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                            Multiple Model Selection
+                                        </p>
+                                        <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                                            You can select multiple AI models for this knowledge agent. When chatting, a dropdown menu will appear allowing users to switch between the selected models.
+                                        </p>
+                                        <button
+                                            @click="showMultiModelDialog = true"
+                                            class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mt-2 transition-colors hover:underline cursor-pointer"
+                                        >
+                                            See an example
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <CardContent class="p-6">
                             <!-- Loading State -->
                             <div v-if="isLoadingModels" class="text-center py-12">
@@ -346,6 +377,25 @@ onMounted(() => {
                 </div>
             </div>
         </TooltipProvider>
+
+        <!-- Multi-Model Preview Dialog -->
+        <Dialog v-model:open="showMultiModelDialog">
+            <DialogContent class="max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>Multi-Model Selection Preview</DialogTitle>
+                    <DialogDescription>
+                        This is how users will be able to switch between AI models when chatting with your knowledge agent.
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="mt-4">
+                    <img 
+                        src="/images/how/multi-model.png" 
+                        alt="Multi-model selection example"
+                        class="w-full h-auto rounded-lg border"
+                    />
+                </div>
+            </DialogContent>
+        </Dialog>
     </AgentLayout>
 </template>
 

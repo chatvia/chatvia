@@ -121,21 +121,4 @@ class StatsData extends Data
             })
             ->toArray();
     }
-
-    private static function getFileTypeLabel(?string $type): string
-    {
-        if (! $type) {
-            return 'Unknown';
-        }
-
-        $typeMap = [
-            'application/pdf' => 'PDF Document',
-            'application/msword' => 'Word Document',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'Word Document',
-            'text/plain' => 'TextCleaner File',
-            'text/markdown' => 'Markdown File',
-        ];
-
-        return $typeMap[$type] ?? ucfirst(str_replace(['application/', 'text/'], '', $type));
-    }
 }

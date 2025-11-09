@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('agent_texts', function (Blueprint $table) {
-            $table->renameColumn('text', 'content');
+            rescue(fn() => $table->renameColumn('text', 'content'));
         });
     }
 

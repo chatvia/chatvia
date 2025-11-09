@@ -35,7 +35,6 @@ class AgentKnowledgeTextStoreController
         $agentText = $agent->texts()->create([
             'user_id' => $request->user()->id,
             'content' => $content,
-            'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
             'length' => $numberOfPages, // number of pages, 450 word = 1 page
             'checksum' => md5($content),
         ]);

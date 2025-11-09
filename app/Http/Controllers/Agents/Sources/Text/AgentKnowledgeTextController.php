@@ -10,7 +10,7 @@ class AgentKnowledgeTextController
 {
     public function __invoke(Request $request, Agent $agent)
     {
-        return Inertia::render('agents/Sources/TextCleaner', [
+        return Inertia::render('agents/Sources/Text', [
             'agent' => $agent,
         ]);
     }

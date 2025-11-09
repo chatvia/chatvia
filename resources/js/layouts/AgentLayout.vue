@@ -39,6 +39,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import UserMenu from '@/components/UserMenu.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import UpgradeButton from '@/components/UpgradeButton.vue';
+import AgentSourcesMenu from '@/components/AgentSourcesMenu.vue';
 
 import {
     Bot,
@@ -309,7 +310,7 @@ const isActiveRoute = (routeName: string) => {
     } else if (routeName === 'agents.sources.web') {
         componentName = 'Sources/Web';  // Maps to Sources/Web component file
     } else if (routeName === 'agents.sources.text') {
-        componentName = 'Sources/TextCleaner';  // Maps to Sources/TextCleaner component file
+        componentName = 'Sources/Text';  // Maps to Sources/Text component file
     } else if (routeName === 'agents.sources.pdf') {
         componentName = 'Sources/Pdf';  // Maps to Sources/Pdf component file
     } else if (routeName === 'agents.sources.word') {
@@ -472,78 +473,24 @@ onMounted(() => {
                                             :align-offset="0"
                                             class="w-56"
                                         >
-                                            <DropdownMenuItem as-child>
-                                                <Link
-                                                    :href="route('agents.sources.web', { agent: agent.id })"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <Globe class="h-4 w-4" />
-                                                    <span>Web{{ getSourceCount('websites') }}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem as-child>
-                                                <Link
-                                                    :href="route('agents.sources.youtube', { agent: agent.id })"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <Youtube class="h-4 w-4" />
-                                                    <span>YouTube{{ getSourceCount('youtube') }}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem as-child>
-                                                <Link
-                                                    :href="route('agents.sources.text', { agent: agent.id })"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <FileText class="h-4 w-4" />
-                                                    <span>Text{{ getSourceCount('texts') }}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem as-child>
-                                                <Link
-                                                    :href="route('agents.sources.markdown', { agent: agent.id })"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <FileCode class="h-4 w-4" />
-                                                    <span>Markdown{{ getSourceCount('markdown') }}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem as-child>
-                                                <Link
-                                                    :href="route('agents.sources.pdf', { agent: agent.id })"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <File class="h-4 w-4" />
-                                                    <span>PDF{{ getSourceCount('pdf') }}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem as-child>
-                                                <Link
-                                                    :href="route('agents.sources.word', { agent: agent.id })"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <File class="h-4 w-4" />
-                                                    <span>Word{{ getSourceCount('word') }}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem as-child>
-                                                <Link
-                                                    :href="route('agents.sources.video', { agent: agent.id })"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <Video class="h-4 w-4" />
-                                                    <span>Video{{ getSourceCount('video') }}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem as-child>
-                                                <Link
-                                                    :href="route('agents.sources.audio', { agent: agent.id })"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <Music class="h-4 w-4" />
-                                                    <span>Audio{{ getSourceCount('audio') }}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
+                                            <AgentSourcesMenu
+                                                :agent-id="agent.id"
+                                                :source-stats="sourceStats"
+                                                variant="dropdown"
+                                                :is-active-route="isActiveRoute"
+                                            >
+                                                <template #default="{ item, label }">
+                                                    <DropdownMenuItem as-child>
+                                                        <Link
+                                                            :href="route(item.route, { agent: agent.id })"
+                                                            class="flex items-center gap-2"
+                                                        >
+                                                            <component :is="item.icon" class="h-4 w-4" />
+                                                            <span>{{ label }}</span>
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                </template>
+                                            </AgentSourcesMenu>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
 
@@ -563,102 +510,27 @@ onMounted(() => {
                                         </SidebarMenuButton>
                                     </div>
                                     <SidebarMenuSub v-if="sourcesSubmenuOpen" class="mt-1 space-y-0.5 group-data-[collapsible=icon]:hidden">
-                                        <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isActiveRoute('agents.sources.web')"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                            >
-                                                <Link :href="route('agents.sources.web', { agent: agent.id })">
-                                                    <Globe class="h-4 w-4" />
-                                                    <span>Web{{ getSourceCount('websites') }}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                        <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isActiveRoute('agents.sources.youtube')"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                            >
-                                                <Link :href="route('agents.sources.youtube', { agent: agent.id })">
-                                                    <Youtube class="h-4 w-4" />
-                                                    <span>YouTube{{ getSourceCount('youtube') }}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                        <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isActiveRoute('agents.sources.text')"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                            >
-                                                <Link :href="route('agents.sources.text', { agent: agent.id })">
-                                                    <FileText class="h-4 w-4" />
-                                                    <span>Text{{ getSourceCount('texts') }}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                        <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isActiveRoute('agents.sources.markdown')"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                            >
-                                                <Link :href="route('agents.sources.markdown', { agent: agent.id })">
-                                                    <FileCode class="h-4 w-4" />
-                                                    <span>Markdown{{ getSourceCount('markdown') }}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                        <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isActiveRoute('agents.sources.pdf')"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                            >
-                                                <Link :href="route('agents.sources.pdf', { agent: agent.id })">
-                                                    <File class="h-4 w-4" />
-                                                    <span>PDF{{ getSourceCount('pdf') }}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                        <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isActiveRoute('agents.sources.word')"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                            >
-                                                <Link :href="route('agents.sources.word', { agent: agent.id })">
-                                                    <File class="h-4 w-4" />
-                                                    <span>Word{{ getSourceCount('word') }}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                        <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isActiveRoute('agents.sources.video')"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                            >
-                                                <Link :href="route('agents.sources.video', { agent: agent.id })">
-                                                    <Video class="h-4 w-4" />
-                                                    <span>Video{{ getSourceCount('video') }}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                        <SidebarMenuSubItem>
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isActiveRoute('agents.sources.audio')"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                            >
-                                                <Link :href="route('agents.sources.audio', { agent: agent.id })">
-                                                    <Music class="h-4 w-4" />
-                                                    <span>Audio{{ getSourceCount('audio') }}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
+                                        <AgentSourcesMenu
+                                            :agent-id="agent.id"
+                                            :source-stats="sourceStats"
+                                            variant="submenu"
+                                            :is-active-route="isActiveRoute"
+                                        >
+                                            <template #default="{ item, label, isActive }">
+                                                <SidebarMenuSubItem>
+                                                    <SidebarMenuSubButton
+                                                        as-child
+                                                        :is-active="isActive"
+                                                        class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                                    >
+                                                        <Link :href="route(item.route, { agent: agent.id })">
+                                                            <component :is="item.icon" class="h-4 w-4" />
+                                                            <span>{{ label }}</span>
+                                                        </Link>
+                                                    </SidebarMenuSubButton>
+                                                </SidebarMenuSubItem>
+                                            </template>
+                                        </AgentSourcesMenu>
                                     </SidebarMenuSub>
                                 </SidebarMenuItem>
                                 <!-- Regular menu items -->

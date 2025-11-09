@@ -10,7 +10,8 @@ class AgentKnowledgeTextListController
     {
         return $agent
             ->texts()
-            ->select('id', 'length', 'excerpt', 'status', 'created_at')
+            ->select('id', 'length', 'status', 'created_at')
+            ->selectRaw("CONCAT(SUBSTRING(content, 1, 200), '...') as excerpt")
             ->latest()
             ->get();
     }

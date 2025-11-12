@@ -5,6 +5,7 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import Files from './Files.vue';
 import WebComponent from './WebComponent.vue';
 import TextComponent from './TextComponent.vue';
+import YoutubeComponent from './YoutubeComponent.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import axios from 'axios';
 
@@ -90,8 +91,8 @@ const contentTypes = [
         label: 'YouTube',
         icon: 'pi-youtube',
         description: 'Import YouTube videos and extract transcripts',
-        route: null, // Will be implemented later
-        statsKey: null
+        route: 'agents.sources.youtube',
+        statsKey: 'youtube'
     },
 ];
 
@@ -103,6 +104,9 @@ const getCurrentType = () => {
     }
     if (currentRoute.includes('/sources/text')) {
         return 'text';
+    }
+    if (currentRoute.includes('/sources/youtube')) {
+        return 'youtube';
     }
     if (currentRoute.includes('/sources/pdf')) {
         return 'pdf';
@@ -138,6 +142,8 @@ const currentComponent = computed(() => {
             return WebComponent;
         case 'text':
             return TextComponent;
+        case 'youtube':
+            return YoutubeComponent;
         default:
             return Files;
     }
@@ -204,7 +210,7 @@ onMounted(() => {
                 :is="currentComponent"
                 :agent="agent"
                 :file-type="selectedContentType"
-                v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text'"
+                v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text' || selectedContentType === 'youtube'"
             />
 
             <!-- Placeholder for other content types -->

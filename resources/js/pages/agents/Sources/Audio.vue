@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import Sources from './Sources.vue';
+import AgentLayout from '@/layouts/AgentLayout.vue';
+import Files from './Files.vue';
 
 interface Props {
     agent: any;
@@ -9,6 +10,8 @@ defineProps<Props>();
 </script>
 
 <template>
-    <Sources :agent="agent" />
+    <AgentLayout :agent="agent" title="Audio">
+        <Files :agent="agent" file-type="audio" />
+    </AgentLayout>
 </template>
 

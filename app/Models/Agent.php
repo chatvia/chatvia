@@ -95,6 +95,11 @@ class Agent extends Model
         return $this->hasMany(AgentText::class);
     }
 
+    public function youtubeVideos(): HasMany
+    {
+        return $this->hasMany(AgentYoutubeVideo::class);
+    }
+
     public function starters(): HasMany
     {
         return $this->hasMany(Starter::class);

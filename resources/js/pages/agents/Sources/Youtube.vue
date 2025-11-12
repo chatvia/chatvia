@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import Sources from './Sources.vue';
+import AgentLayout from '@/layouts/AgentLayout.vue';
+import YoutubeComponent from './YoutubeComponent.vue';
 
 interface Props {
     agent: any;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 </script>
 
 <template>
-    <Sources :agent="agent" />
+    <AgentLayout :agent="agent" title="YouTube">
+        <YoutubeComponent :agent="agent" />
+    </AgentLayout>
 </template>
 

@@ -58,7 +58,7 @@ class TextIngestionJob implements ShouldQueue
         $agentTextId = $this->agentText->id;
 
         $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent TextCleaner ID: '.$this->agentText->id)
+            ->name('Ingestion Agent Text ID: '.$this->agentText->id)
             ->then(function (Batch $batch) use ($agentTextId) {
                 AgentText::find($agentTextId)?->update(['status' => 'ingested']);
                 TextIngestionEvent::dispatch(AgentText::find($agentTextId));

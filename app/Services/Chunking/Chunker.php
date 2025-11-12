@@ -68,10 +68,10 @@ readonly class Chunker
         $tokenCount = TikToken::countTokens($text);
 
         if ($tokenCount <= $this->maxTokensPerChunk) {
-            // TextCleaner fits in a single chunk
+            // Text fits in a single chunk
             $chunks->push($this->createChunk($text, $images, $startChunkIndex));
         } else {
-            // TextCleaner needs to be split
+            // Text needs to be split
             $textSplitter = new RecursiveCharacterTextSplitter(
                 chunkSize: $this->maxTokensPerChunk,
                 chunkOverlap: 0,

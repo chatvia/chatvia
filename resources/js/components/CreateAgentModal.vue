@@ -208,8 +208,6 @@ onMounted(() => {
                 </div>
             </div>
 
-            <FormErrors :errors="form.errors" class="mb-6" />
-
             <form @submit.prevent="submit">
                 <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress>
                 <div class="space-y-6" :class="{ 'opacity-50 pointer-events-none': !canCreateAnyAgent }">

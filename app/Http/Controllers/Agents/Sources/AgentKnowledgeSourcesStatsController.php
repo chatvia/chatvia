@@ -39,6 +39,17 @@ class AgentKnowledgeSourcesStatsController
                     'audio/webm',
                 ])
                 ->count(),
+            'video' => $agent->files()
+                ->where('status', 'completed')
+                ->whereIn('mime_type', [
+                    'video/mp4',
+                    'video/quicktime',
+                    'video/x-msvideo',
+                    'video/x-matroska',
+                    'video/webm',
+                ])
+                ->count(),
+            'youtube' => $agent->youtubeVideos()->where('status', 'completed')->count(),
         ];
     }
 }

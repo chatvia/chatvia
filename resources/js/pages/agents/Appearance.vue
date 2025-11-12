@@ -383,7 +383,7 @@ const restoreDefaults = () => {
                     </Card>
                 </div>
 
-                <!-- Right Column - TextCleaner Content -->
+                <!-- Right Column - Text Content -->
                 <div class="space-y-6">
                     <Card>
                         <CardHeader>

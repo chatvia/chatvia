@@ -4,7 +4,7 @@ return [
     'localhost' => [
         'alias' => 'chatvia.ai',
     ],
-    
+
     'chatvia.test' => [
         'alias' => 'chatvia.ai',
     ],
@@ -275,7 +275,7 @@ return [
                 ],
                 [
                     'question' => 'What types of files can I upload?',
-                    'answer' => 'ChatVia supports PDF, Word, TextCleaner, Video, and Audio files. You can also crawl your website to add its content automatically.',
+                    'answer' => 'ChatVia supports PDF, Word, Text, Video, and Audio files. You can also crawl your website to add its content automatically.',
                 ],
                 [
                     'question' => 'How many AI agents can I create?',

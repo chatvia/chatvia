@@ -42,6 +42,10 @@ use App\Http\Controllers\Agents\Sources\AgentKnowledgeVideoController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWordController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeYoutubeController;
+use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeListController;
+use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeStoreController;
+use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeDestroyController;
+use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeRetrainController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerLinkRetrainController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentKnowledgeCrawlerWebsiteLinkDeleteController;
@@ -101,6 +105,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('sources/video', AgentKnowledgeVideoController::class)->name('sources.video');
         Route::get('sources/web', AgentKnowledgeWebController::class)->name('sources.web');
         Route::get('sources/youtube', AgentKnowledgeYoutubeController::class)->name('sources.youtube');
+        Route::get('sources/youtube/list', AgentKnowledgeYoutubeListController::class)->name('sources.youtube.list');
+        Route::post('sources/youtube', AgentKnowledgeYoutubeStoreController::class)->name('sources.youtube.store');
+        Route::delete('sources/youtube/{youtube}', AgentKnowledgeYoutubeDestroyController::class)->name('sources.youtube.destroy');
+        Route::post('sources/youtube/{youtube}/retrain', AgentKnowledgeYoutubeRetrainController::class)->name('sources.youtube.retrain');
 
         Route::get('sources/text', AgentKnowledgeTextController::class)->name('sources.text');
         Route::post('sources/text', AgentKnowledgeTextStoreController::class)->name('sources.text.store');

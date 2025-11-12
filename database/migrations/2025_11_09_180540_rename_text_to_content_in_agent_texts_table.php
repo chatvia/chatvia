@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('agent_texts', function (Blueprint $table) {
-            rescue(fn() => $table->renameColumn('text', 'content'));
-        });
+        try {
+            Schema::table('agent_texts', function (Blueprint $table) {
+                rescue(fn() => $table->renameColumn('text', 'content'));
+            });
+        } catch (Exception $e) {}
     }
 
     /**

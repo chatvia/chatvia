@@ -4,6 +4,7 @@ namespace App\Services\Infrastructure\LLM;
 
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Intervention\Image\Laravel\Facades\Image;
 
@@ -128,12 +129,60 @@ class OpenAI
         $completedItem = collect($response)->firstWhere('status', 'completed');
 
         if (! $completedItem || ! isset($completedItem['arguments'])) {
-            throw new \Exception('No completed function call found in response');
+            throw new Exception('No completed function call found in response');
         }
 
         return is_string($completedItem['arguments'])
             ? json_decode($completedItem['arguments'], true, 512, JSON_THROW_ON_ERROR)
             : $completedItem['arguments'];
+    }
+
+    public static function summarize(string $content)
+    {
+        return app(OpenAI::class)->completion([
+            'model' => 'gpt-4o-mini',
+            'temperature' => 0.0,
+            'max_tokens' => 500,
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => '
+You are a precise, factual summarization assistant used in a RAG preprocessing pipeline. Your job is to produce two outputs:
+1. Concise Summary (Bullet Points):
+A comprehensive, fact-focused breakdown of the document. Include all important facts, concepts, definitions, steps, entities, and relationships.
+You may use as many bullet points as needed, up to the model’s token limit.
+Do not add interpretations, assumptions, or opinions.
+
+2. Condensed Summary:
+A brief, high-level summary capturing the core meaning of the document in a few sentences.
+
+General Rules:
+- Never hallucinate or add information that is not present.
+- Do not provide commentary or describe your process.
+- Maintain strict factual accuracy.
+- Output must follow the requested format.
+- Never mention that you are an AI model.
+
+',
+                ],
+                [
+                    'role' => 'user',
+                    'content' => '
+
+1. Detailed Summary (Bullet Points)
+
+Create a comprehensive bullet-point list covering all essential facts, definitions, steps, and key ideas.
+There is no limit on the number of bullet points—use as many as needed within the token limit.
+Do not add opinions or interpretations.
+
+2. Condensed Summary
+
+Write a summary that captures the main idea of the document at a high level.
+
+	<Content>'.$content.'</Content>',
+                ],
+            ],
+        ]);
     }
 
     public static function analyzeHtml(string $content): array
@@ -194,7 +243,7 @@ PROMPT;
         $completedItem = collect($response)->firstWhere('status', 'completed');
 
         if (! $completedItem || ! isset($completedItem['arguments'])) {
-            throw new \Exception('No completed function call found in response');
+            throw new Exception('No completed function call found in response');
         }
 
         return is_string($completedItem['arguments'])
@@ -207,10 +256,6 @@ PROMPT;
         return [
             'type' => 'object',
             'properties' => [
-                'summary' => [
-                    'type' => 'string',
-                    'description' => 'Comprehensive detailed summary of the document. Must include main purpose, key findings, important details, conclusions, specific data/statistics, document structure, and significant insights. Must be prefixed with "Summary: ".',
-                ],
                 'questions' => [
                     'type' => 'string',
                     'description' => 'Generate a few questions about the document.',
@@ -293,34 +338,6 @@ PROMPT;
                             ],
                             'description' => 'Primary writing style used in the document',
                         ],
-                        'formatting_elements' => [
-                            'type' => 'array',
-                            'items' => [
-                                'type' => 'string',
-                                'enum' => [
-                                    'headers',
-                                    'bullet_points',
-                                    'numbered_lists',
-                                    'tables',
-                                    'charts',
-                                    'images',
-                                    'diagrams',
-                                    'code_blocks',
-                                    'footnotes',
-                                    'citations',
-                                    'hyperlinks',
-                                    'bold_text',
-                                    'italic_text',
-                                    'highlighted_text',
-                                    'page_numbers',
-                                    'table_of_contents',
-                                    'index',
-                                    'appendices',
-                                    'other',
-                                ],
-                            ],
-                            'description' => 'Special formatting, visual elements, or structural components present in the document',
-                        ],
                         'estimated_reading_time_minutes' => [
                             'type' => 'integer',
                             'minimum' => 1,
@@ -343,7 +360,6 @@ PROMPT;
                         'complexity_level',
                         'target_audience',
                         'writing_style',
-                        'formatting_elements',
                         'estimated_reading_time_minutes',
                         'key_topics',
                         'contains_sensitive_info',
@@ -362,7 +378,6 @@ PROMPT;
                 ],
             ],
             'required' => [
-                'summary',
                 'document_type',
                 'metadata',
                 'language',

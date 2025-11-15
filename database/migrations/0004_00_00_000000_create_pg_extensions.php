@@ -9,7 +9,6 @@ return new class extends Migration
         DB::statement('CREATE EXTENSION IF NOT EXISTS pg_trgm');
         DB::statement('CREATE EXTENSION IF NOT EXISTS btree_gin');
         DB::statement('CREATE EXTENSION IF NOT EXISTS btree_gist');
-
     }
 
     public function down(): void

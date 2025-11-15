@@ -8,6 +8,8 @@ import {
     File,
     Video,
     Music,
+    FileAudio,
+    WholeWord,
 } from 'lucide-vue-next';
 
 defineProps({
@@ -61,13 +63,13 @@ const menuItems = [
         route: 'agents.sources.text',
         statsKey: 'texts',
     },
-    {
-        id: 'markdown',
-        label: 'Markdown',
-        icon: FileCode,
-        route: 'agents.sources.markdown',
-        statsKey: 'markdown',
-    },
+    // {
+    //     id: 'markdown',
+    //     label: 'Markdown',
+    //     icon: FileCode,
+    //     route: 'agents.sources.markdown',
+    //     statsKey: 'markdown',
+    // },
     {
         id: 'web',
         label: 'Web',
@@ -78,7 +80,7 @@ const menuItems = [
     {
         id: 'audio',
         label: 'Audio',
-        icon: Music,
+        icon: FileAudio,
         route: 'agents.sources.audio',
         statsKey: 'audio',
     },
@@ -89,13 +91,13 @@ const menuItems = [
         route: 'agents.sources.video',
         statsKey: 'video',
     },
-    {
-        id: 'youtube',
-        label: 'YouTube',
-        icon: Youtube,
-        route: 'agents.sources.youtube',
-        statsKey: 'youtube',
-    },
+    // {
+    //     id: 'youtube',
+    //     label: 'YouTube',
+    //     icon: Youtube,
+    //     route: 'agents.sources.youtube',
+    //     statsKey: 'youtube',
+    // },
 ];
 </script>
 

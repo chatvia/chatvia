@@ -19,7 +19,7 @@ class SummaryIngestionJob implements ShouldQueue
 
     public function __construct(public ChunkableContract $source, public string $content)
     {
-        // Queue is inherited from parent job via batch or dispatch context
+        $this->onQueue('ingestion');
     }
 
     public function handle(): void
@@ -35,7 +35,7 @@ class SummaryIngestionJob implements ShouldQueue
             'document_classification' => $response['document_type'],
         ]);
 
-        $chunk = '<Summary>'.$response['summary'].'</Summary>';
+        $chunk = OpenAI::summarize($this->content);
 
         if (isset($response['questions'])) {
             $chunk .= PHP_EOL.'<Questions>'.$response['questions'].'</Questions>';

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Agents\Sources;
 
-use App\Actions\Agents\AgentKnowledgeAnalyzeFileAction;
+use App\Actions\Agents\AgentSourceAnalyzeFileAction;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeFileUploadController
 {
-    public function __invoke(Request $request, Agent $agent, AgentKnowledgeAnalyzeFileAction $action)
+    public function __invoke(Request $request, Agent $agent, AgentSourceAnalyzeFileAction $action)
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),

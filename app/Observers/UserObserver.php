@@ -27,15 +27,6 @@ class UserObserver
                 $freeQuotaLimit,
                 now()->addMonth(),
             );
-
-        Member::create([
-            'user_id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'password' => Hash::make(Str::random(8)),
-            'email_verified_at' => now(),
-            'is_owner' => true,
-        ]);
     }
 
     public function updated(User $user): void

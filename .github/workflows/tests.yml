@@ -23,7 +23,7 @@ jobs:
 
     services:
       postgres:
-        image: tensorchord/vchord-suite:pg17-latest
+        image: tensorchord/vchord-suite:pg18-latest
         env:
           POSTGRES_DB: testing
           POSTGRES_USER: postgres

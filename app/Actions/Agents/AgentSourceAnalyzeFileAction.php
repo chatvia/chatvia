@@ -9,7 +9,7 @@ use App\Services\Agents\FileAnalyzer;
 use App\Services\Tidy\TextCleaner;
 use Illuminate\Http\UploadedFile;
 
-class AgentKnowledgeAnalyzeFileAction
+class AgentSourceAnalyzeFileAction
 {
     public function execute(UploadedFile $uploadedFile, User $user, ?Agent $agent = null): KnowledgeAnalyzeData
     {

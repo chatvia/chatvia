@@ -7,7 +7,7 @@ use App\Models\AgentWebsite;
 use App\Models\AgentWebsiteUrl;
 use Illuminate\Http\Request;
 
-class AgentKnowledgeCrawlerWebsiteLinkDeleteController
+class AgentSourceCrawlerWebsiteLinkDeleteController
 {
     public function __invoke(Request $request, Agent $agent, AgentWebsite $website, AgentWebsiteUrl $link)
     {

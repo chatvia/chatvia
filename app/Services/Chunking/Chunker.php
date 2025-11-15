@@ -3,6 +3,7 @@
 namespace App\Services\Chunking;
 
 use App\Data\Ingestion\ChunkIngestionData;
+use App\Models\Agent;
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use App\Services\TikToken;
 use Illuminate\Http\File;
@@ -106,9 +107,11 @@ readonly class Chunker
     {
         $imagePaths = [];
 
+        $userId = Agent::find($this->agentId)->user_id;
+
         foreach ($pageImages as $image) {
             $imagePaths[] = Storage::putFileAs(
-                path: 'users/'.$this->source->user_id.'/agents/'.$this->source->user_id.'/images',
+                path: 'users/'.$userId.'/agents/'.$this->agentId.'/images',
                 file: new File($image['path']),
                 name: $image['name'],
             );

@@ -12,13 +12,6 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
 {
     protected $guarded = ['id'];
 
-    protected function casts(): array
-    {
-        return [
-            'crawled_at' => 'datetime',
-        ];
-    }
-
     public function agentWebsite(): BelongsTo
     {
         return $this->belongsTo(AgentWebsite::class);
@@ -41,5 +34,12 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
             'id',               // Local key on Link
             'chunk_id'          // Local key on ChunkReference pointing to Chunk
         )->where('chunk_references.referenceable_type', AgentWebsiteUrl::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'crawled_at' => 'datetime',
+        ];
     }
 }

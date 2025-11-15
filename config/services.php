@@ -97,4 +97,10 @@ return [
     'libs' => [
         'tiktoken' => env('TIKTOKEN_PATH', '/usr/local/lib/libtiktoken.so'),
     ],
+
+    'firecrawl' => [
+        'key' => env('FIRECRAWL_API_KEY'),
+        'endpoint' => env('FIRECRAWL_API_ENDPOINT', 'https://api.firecrawl.dev/v2'),
+    ],
+
 ];

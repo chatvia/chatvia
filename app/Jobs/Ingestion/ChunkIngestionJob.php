@@ -3,7 +3,10 @@
 namespace App\Jobs\Ingestion;
 
 use App\Data\Ingestion\ChunkIngestionData;
+use App\Events\FileIngestionProgressEvent;
 use App\Events\UrlIngestionEvent;
+use App\Events\WebsiteIngestionProgressEvent;
+use App\Models\AgentFile;
 use App\Models\AgentWebsiteUrl;
 use App\Models\Chunk;
 use App\Models\ChunkReference;
@@ -30,9 +33,7 @@ class ChunkIngestionJob implements ShouldQueue
         public string $appendUserPrompt = '',
         public array $metadata = [],
         public array $chunkReference = [],
-    ) {
-        // Queue is inherited from parent job via batch
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -115,11 +116,22 @@ class ChunkIngestionJob implements ShouldQueue
 
             // Update status
             if ($ref->referenceable_type === AgentWebsiteUrl::class) {
-                $url = AgentWebsiteUrl::find($ref->referenceable_id);
-                $url->update(['status' => 'ingested', 'crawled_at' => now()]);
+                /** @var AgentWebsiteUrl $agentWebsiteUrl */
+                $agentWebsiteUrl = AgentWebsiteUrl::find($ref->referenceable_id);
+                $agentWebsiteUrl->update(['status' => 'ingested', 'crawled_at' => now()]);
 
-                UrlIngestionEvent::dispatch($url);
+                WebsiteIngestionProgressEvent::dispatch(
+                    $agentWebsiteUrl->agentWebsite
+                );
+
+                UrlIngestionEvent::dispatch($agentWebsiteUrl);
             }
+        }
+
+        if ($this->chunk->chunkable_type === AgentFile::class) {
+            FileIngestionProgressEvent::dispatch(
+                AgentFile::find($this->chunk->chunkable_id),
+            );
         }
     }
 }

@@ -57,22 +57,21 @@ watch(() => form.retention, (newValue, oldValue) => {
 </script>
 
 <template>
-    <AgentLayout 
-        :agent="agent" 
+    <AgentLayout
+        :agent="agent"
         title="Message History"
         description="Control how your agent handles and stores conversation history"
     >
         <template #header-icon>
             <Clock class="h-5 w-5" />
         </template>
-        
+
         <div class="flex justify-center">
             <Card class="w-full max-w-6xl">
                 <CardContent class="p-6">
                     <div class="space-y-2">
                         <Label for="retention_days" class="flex items-center gap-2">
                             Message retention period
-                            <LoaderCircle v-if="isSubmitting" class="h-4 w-4 animate-spin text-muted-foreground" />
                         </Label>
                         <Select v-model="form.retention" :disabled="isSubmitting">
                             <SelectTrigger>
@@ -85,7 +84,7 @@ watch(() => form.retention, (newValue, oldValue) => {
                             </SelectContent>
                         </Select>
                         <p class="text-sm text-muted-foreground">
-                            How long to keep message history before automatic deletion. Changes are saved automatically.
+                            How long to keep message history before automatic deletion.
                         </p>
                     </div>
                 </CardContent>

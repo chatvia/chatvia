@@ -9,24 +9,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('links', function (Blueprint $table) {
+        Schema::create('agent_website_urls', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(AgentWebsite::class)->constrained()->cascadeOnDelete();
-            $table->text('link');
-            $table->text('found_on_url')->nullable();
+            $table->text('url');
             $table->text('text')->nullable();
-            $table->string('hash');
-            $table->timestamps();
+            $table->string('checksum')->nullable();
+            $table->enum('status', ['pending', 'ingesting', 'ingested', 'failed'])->index()->default('pending');
+            $table->string('internal_ingestion_job_id')->unique()->nullable();
+            $table->string('internal_chunking_batch_id')->unique()->nullable();
+            $table->text('failure_reason')->nullable();
             $table->timestamp('crawled_at')->nullable();
-        });
-
-        Schema::table('agent_websites', function (Blueprint $table) {
-            $table->dropColumn('links');
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('links');
+        Schema::dropIfExists('agent_website_urls');
     }
 };

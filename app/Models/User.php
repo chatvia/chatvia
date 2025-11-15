@@ -360,7 +360,6 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this
             ->agentFiles()
             ->where('filetype', 'document')
-            ->whereIn('status', ['completed', 'processing'])
             ->sum('length');
     }
 

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Agents\Sources;
+namespace App\Http\Controllers\Agents\Sources\Video;
 
 use App\Models\Agent;
 use App\Models\AgentFile;
 use Illuminate\Http\Request;
 
-class AgentKnowledgeFileDeleteController
+class AgentSourceFileDeleteController
 {
     public function __invoke(Request $request, Agent $agent, AgentFile $file)
     {
@@ -15,7 +15,7 @@ class AgentKnowledgeFileDeleteController
             code: 404,
         );
 
-        if ($file->status === 'processing') {
+        if ($file->status === 'ingesting') {
             $file->cancelIngestionJob();
         }
 

@@ -113,7 +113,7 @@ class UserCreditSystem
             ->where('ends_at', '>=', now())
             ->sum('amount');
 
-        return ($addons + $messages);
+        return $addons + $messages;
     }
 
     public function refreshAvailableMessages(): void

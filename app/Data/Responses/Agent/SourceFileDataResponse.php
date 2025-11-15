@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Data\Agent;
+namespace App\Data\Responses\Agent;
 
 use App\Models\AgentFile;
 use DateTime;
 use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
 
-class KnowledgeFileData extends Data
+class SourceFileDataResponse extends Data
 {
     public function __construct(
         public int $id,
@@ -16,7 +16,7 @@ class KnowledgeFileData extends Data
         public string $mime_type,
         public string $status,
         public int $length,
-        public int $ingestion_progress,
+        public int $progress,
         public bool $is_audio_file,
         public bool $is_video_file,
         public DateTime $created_at
@@ -31,7 +31,7 @@ class KnowledgeFileData extends Data
             mime_type: $file->mime_type,
             status: $file->status,
             length: $file->length,
-            ingestion_progress: $file->ingestionProgress(),
+            progress: $file->ingestionProgress(),
             is_audio_file: $file->isAudioFile(),
             is_video_file: $file->isVideoFile(),
             created_at: $file->created_at,

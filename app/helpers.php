@@ -109,7 +109,7 @@ if (! function_exists('current_agent')) {
 if (! function_exists('get_file_type')) {
     function get_file_type(string $mimeType): string
     {
-        // Document types (PDF, Word processing, TextCleaner, E-books, Web)
+        // Document types (PDF, Word processing, Text, E-books, Web)
         $documentTypes = [
             // PDF
             'application/pdf',
@@ -128,7 +128,7 @@ if (! function_exists('get_file_type')) {
             'application/x-abiword', // abw
             'application/x-hwp', // hwp
 
-            // TextCleaner files
+            // TextC files
             'text/plain', // txt
             'application/xml', // xml
             'text/xml', // xml

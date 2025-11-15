@@ -135,9 +135,9 @@ const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
         case 'uploaded':
             return { variant: 'secondary' as const, text: 'Uploaded', color: 'text-blue-600' };
-        case 'completed':
+        case 'ingested':
             return { variant: 'default' as const, text: 'Completed', color: 'text-green-600' };
-        case 'processing':
+        case 'ingesting':
             return { variant: 'outline' as const, text: 'Processing', color: 'text-yellow-600' };
         case 'failed':
             return { variant: 'destructive' as const, text: 'Failed', color: 'text-red-600' };

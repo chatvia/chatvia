@@ -23,6 +23,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import InfoBanner from '@/components/ui/InfoBanner.vue';
 import { useEcho } from "@laravel/echo-vue";
+import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
 
 interface Props {
     agent: any
@@ -37,6 +38,7 @@ interface WebSource {
     error_message?: string;
     discovered_links?: DiscoveredLink[];
     urls_count?: number;
+    progress?: number;
     options?: {
         include_paths?: string;
         exclude_paths?: string;
@@ -73,6 +75,15 @@ useEcho(
     "UrlIngestionEvent",
     (e) => {
         handleUrlIngestionUpdate(e);
+    },
+)
+
+// WebSocket event listener for website ingestion progress updates
+useEcho(
+    `agents.${props.agent.id}.crawler.progress`,
+    "WebsiteIngestionProgressEvent",
+    (e) => {
+        handleWebsiteIngestionProgress(e);
     },
 )
 
@@ -503,6 +514,7 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
                 status: website.status,
                 created_at: website.created_at,
                 urls_count: website.urls_count || 0,
+                progress: website.progress ?? 0,
                 options: website.options || {},
                 // Preserve discovered_links if they exist
                 discovered_links: existingSource?.discovered_links
@@ -879,6 +891,28 @@ const handleUrlIngestionUpdate = (event: any) => {
     }
 };
 
+// Handle website ingestion progress updates
+const handleWebsiteIngestionProgress = (event: any) => {
+    const { website_id, progress } = event;
+    
+    if (!website_id || progress === undefined) {
+        console.warn('Missing website_id or progress in WebsiteIngestionProgressEvent', event);
+        return;
+    }
+
+    // Find the website and update its progress
+    const sourceIndex = webSources.value.findIndex(source => source.id === website_id);
+    
+    if (sourceIndex !== -1) {
+        // Create a new array with the updated source for reactivity
+        const updatedSources = [...webSources.value];
+        updatedSources[sourceIndex] = {
+            ...updatedSources[sourceIndex],
+            progress
+        };
+        webSources.value = updatedSources;
+    }
+};
 
 
 // Handle collapsible expansion with lazy loading of links
@@ -1285,12 +1319,7 @@ const trainSelectedWebsites = async () => {
 
     // Show results
     if (successCount > 0) {
-        toast.success(`Training started for ${successCount} website${successCount !== 1 ? 's' : ''}!`);
-
-        // Clear selection after successful training
         selectedWebsites.value = new Set();
-
-        // Refresh usage data after training starts
         await fetchUsageData();
     }
 
@@ -2285,21 +2314,6 @@ onUnmounted(() => {
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div class="flex items-center">
-                                                        <component
-                                                            :is="getStatusIcon(source.status)"
-                                                            :class="`h-4 w-4 flex-shrink-0 ${getStatusColor(source.status)} animate-spin`"
-                                                        />
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>{{ getStatusLabel(source.status) }}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
                                     </div>
                                     <div class="text-xs text-muted-foreground">
                                         <a :href="source.url" target="_blank" class="hover:underline flex items-center gap-1">
@@ -2311,6 +2325,12 @@ onUnmounted(() => {
                                                 Added {{ formatDate(source.created_at) }}
                                             </span>
                                         </div>
+                                        
+                                        <!-- Progress Bar -->
+                                        <IngestionProgressBar
+                                            v-if="source.status === 'ingesting'"
+                                            :progress="source.progress ?? 0"
+                                        />
                                     </div>
                                 </div>
                             </div>

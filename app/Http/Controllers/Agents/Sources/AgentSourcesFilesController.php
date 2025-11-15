@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Agents\Sources;
 
-use App\Data\Agent\KnowledgeFileData;
+use App\Data\Responses\Agent\SourceFileDataResponse;
 use App\Models\Agent;
 use Exception;
 use Illuminate\Http\Request;
 
-class AgentKnowledgeFilesController
+class AgentSourcesFilesController
 {
     public function __invoke(Request $request, Agent $agent)
     {
@@ -30,6 +30,6 @@ class AgentKnowledgeFilesController
             default => throw new Exception('Invalid file type'),
         };
 
-        return KnowledgeFileData::fromFiles($files);
+        return SourceFileDataResponse::fromFiles($files);
     }
 }

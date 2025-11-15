@@ -11,7 +11,7 @@ class WebhookIngestionJobController
     {
         $request->validate([
             'job_id' => ['required', 'exists:agent_files,ingestion_job_id'],
-            'status' => ['required', 'in:failed,completed'],
+            'status' => ['required', 'in:failed,ingested'],
         ]);
 
         AgentFile::where('ingestion_job_id', $request->job_id)

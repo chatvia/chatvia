@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-class AgentKnowledgeCrawlerController
+class AgentSourceCrawlerController
 {
     public function __invoke(Request $request, Agent $agent)
     {

@@ -12,7 +12,7 @@ class Ingestion
 {
     public function ingest(AgentFile $agentFile): void
     {
-        $agentFile->update(['status' => 'processing']);
+        $agentFile->update(['status' => 'ingesting']);
 
         if ($agentFile->isAudioFile() || $agentFile->isVideoFile()) {
             dispatch(new MediaIngestionJob($agentFile));

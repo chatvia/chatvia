@@ -18,11 +18,11 @@ return new class extends Migration
             $table->string('url')->index();
             $table->string('title')->nullable();
             $table->text('description')->nullable();
-            $table->integer('duration')->nullable();
-            $table->string('status')->default('pending'); // pending, processing, completed, failed
-            $table->text('error_message')->nullable();
-            $table->integer('length')->default(0); // number of pages for quota
+            $table->unsignedInteger('duration')->nullable();
             $table->string('checksum')->nullable();
+            $table->unsignedInteger('length');
+            $table->enum('status', ['pending', 'ingesting', 'ingested', 'failed'])->index()->default('pending');
+            $table->text('failure_reason')->nullable();
             $table->timestamps();
 
             $table->index(['agent_id', 'status']);
@@ -37,4 +37,3 @@ return new class extends Migration
         Schema::dropIfExists('agent_youtube_videos');
     }
 };
-

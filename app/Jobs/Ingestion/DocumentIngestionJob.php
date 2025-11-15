@@ -50,7 +50,7 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        if ($this->agentFile->status === 'completed') {
+        if ($this->agentFile->status === 'ingested') {
             return;
         }
 
@@ -119,14 +119,14 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent File ID: '.$agentFileId)
             ->then(function (Batch $batch) use ($agentFileId) {
-                AgentFile::find($agentFileId)?->update(['status' => 'completed']);
+                AgentFile::find($agentFileId)?->update(['status' => 'ingested']);
             })
             ->dispatch();
 
         // Use transaction to ensure atomic status update
         DB::transaction(function () use ($chunks, $batch) {
             $this->agentFile->update([
-                'status' => 'processing',
+                'status' => 'ingesting',
                 'internal_chunking_batch_id' => $batch->id,
                 'expected_chunks' => $chunks->count(),
             ]);

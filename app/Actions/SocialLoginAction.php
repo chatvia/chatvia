@@ -39,7 +39,7 @@ class SocialLoginAction
                 'email_verified_at' => now(),
                 $driver.'_id' => $socialUser->getId(),
                 'registered_ip' => $request->ip(),
-                'country_code' => IP2Country::getCountryByIP($request->ip()),
+                'registered_country_code' => IP2Country::getCountryByIP($request->ip()),
             ]);
         }
 

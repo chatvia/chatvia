@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->timestamp('email_verified_at')->index()->nullable();
             $table->string('password');
             $table->boolean('is_admin')->index()->default(false);
             $table->rememberToken();
@@ -27,10 +27,16 @@ return new class extends Migration
             $table->string('google_id')->index()->nullable();
             $table->string('microsoft_id')->index()->nullable();
             $table->string('facebook_id')->index()->nullable();
+            $table->string('linkedin_id')->index()->nullable();
+            $table->string('x_id')->index()->nullable();
 
             $table->ipAddress('registered_ip')->nullable();
+
             $table->string('domain')->nullable();
-            $table->char('country_code', 5)->nullable();
+            $table->char('registered_country_code', 5)->nullable();
+
+            $table->timestamp('deactivated_at')->nullable();
+            $table->string('deactivation_reason')->nullable();
 
             $table->timestamp('last_login_at')->nullable();
             $table->timestamps();

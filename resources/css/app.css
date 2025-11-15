@@ -154,7 +154,7 @@
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
   --sidebar:
     hsl(0 0% 98%);
-    
+
   /* Color Palette Variables - Light Mode */
   /* Black Shades */
   --black-50: #fafafa;
@@ -174,7 +174,7 @@
   --black-chat-bubble: #fafafa;
   --black-chat-text: #1e293b;
   --black-accent: #f5f5f5;
-  
+
   /* Red Shades */
   --red-50: #fef2f2;
   --red-100: #fee2e2;
@@ -193,7 +193,7 @@
   --red-chat-bubble: #fef2f2;
   --red-chat-text: #1e293b;
   --red-accent: #fee2e2;
-  
+
   /* Orange Shades */
   --orange-50: #fff7ed;
   --orange-100: #ffedd5;
@@ -211,7 +211,7 @@
   --orange-chat-bubble: #fff7ed;
   --orange-chat-text: #1e293b;
   --orange-accent: #fed7aa;
-  
+
   /* Amber Shades */
   --amber-50: #fffbeb;
   --amber-100: #fef3c7;
@@ -230,7 +230,7 @@
   --amber-chat-bubble: #fffbeb;
   --amber-chat-text: #1e293b;
   --amber-accent: #fef3c7;
-  
+
   /* Yellow Shades */
   --yellow-50: #fefce8;
   --yellow-100: #fef9c3;
@@ -249,7 +249,7 @@
   --yellow-chat-bubble: #fefce8;
   --yellow-chat-text: #1e293b;
   --yellow-accent: #fef9c3;
-  
+
   /* Lime Shades */
   --lime-50: #f7fee7;
   --lime-100: #ecfccb;
@@ -268,7 +268,7 @@
   --lime-chat-bubble: #f7fee7;
   --lime-chat-text: #1e293b;
   --lime-accent: #ecfccb;
-  
+
   /* Green Shades */
   --green-50: #f0fdf4;
   --green-100: #dcfce7;
@@ -287,7 +287,7 @@
   --green-chat-bubble: #f0fdf4;
   --green-chat-text: #1e293b;
   --green-accent: #dcfce7;
-  
+
   /* Emerald Shades */
   --emerald-50: #ecfdf5;
   --emerald-100: #d1fae5;
@@ -306,7 +306,7 @@
   --emerald-chat-bubble: #ecfdf5;
   --emerald-chat-text: #1e293b;
   --emerald-accent: #d1fae5;
-  
+
   /* Teal Shades */
   --teal-50: #f0fdfa;
   --teal-100: #ccfbf1;
@@ -325,7 +325,7 @@
   --teal-chat-bubble: #f0fdfa;
   --teal-chat-text: #1e293b;
   --teal-accent: #ccfbf1;
-  
+
   /* Cyan Shades */
   --cyan-50: #ecfeff;
   --cyan-100: #cffafe;
@@ -344,7 +344,7 @@
   --cyan-chat-bubble: #ecfeff;
   --cyan-chat-text: #1e293b;
   --cyan-accent: #cffafe;
-  
+
   /* Sky Shades */
   --sky-50: #f0f9ff;
   --sky-100: #e0f2fe;
@@ -363,7 +363,7 @@
   --sky-chat-bubble: #f0f9ff;
   --sky-chat-text: #1e293b;
   --sky-accent: #e0f2fe;
-  
+
   /* Blue Shades */
   --blue-50: #eff6ff;
   --blue-100: #dbeafe;
@@ -382,7 +382,7 @@
   --blue-chat-bubble: #eff6ff;
   --blue-chat-text: #1e293b;
   --blue-accent: #dbeafe;
-  
+
   /* Indigo Shades */
   --indigo-50: #eef2ff;
   --indigo-100: #e0e7ff;
@@ -401,7 +401,7 @@
   --indigo-chat-bubble: #eef2ff;
   --indigo-chat-text: #1e293b;
   --indigo-accent: #e0e7ff;
-  
+
   /* Violet Shades */
   --violet-50: #f5f3ff;
   --violet-100: #ede9fe;
@@ -420,7 +420,7 @@
   --violet-chat-bubble: #f5f3ff;
   --violet-chat-text: #1e293b;
   --violet-accent: #ede9fe;
-  
+
   /* Purple Shades */
   --purple-50: #faf5ff;
   --purple-100: #f3e8ff;
@@ -438,7 +438,7 @@
   --purple-chat-bubble: #faf5ff;
   --purple-chat-text: #1e293b;
   --purple-accent: #f3e8ff;
-  
+
   /* Fuchsia Shades */
   --fuchsia-50: #fdf4ff;
   --fuchsia-100: #fae8ff;
@@ -456,7 +456,7 @@
   --fuchsia-chat-bubble: #fdf4ff;
   --fuchsia-chat-text: #1e293b;
   --fuchsia-accent: #fae8ff;
-  
+
   /* Pink Shades */
   --pink-50: #fdf2f8;
   --pink-100: #fce7f3;
@@ -474,7 +474,7 @@
   --pink-chat-bubble: #fdf2f8;
   --pink-chat-text: #1e293b;
   --pink-accent: #fce7f3;
-  
+
   /* Rose Shades */
   --rose-50: #fff1f2;
   --rose-100: #ffe4e6;
@@ -492,7 +492,7 @@
   --rose-chat-bubble: #fff1f2;
   --rose-chat-text: #1e293b;
   --rose-accent: #ffe4e6;
-  
+
   /* Slate Shades */
   --slate-50: #f8fafc;
   --slate-100: #f1f5f9;
@@ -510,7 +510,7 @@
   --slate-chat-bubble: #f8fafc;
   --slate-chat-text: #1e293b;
   --slate-accent: #f1f5f9;
-  
+
   /* Gray Shades */
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
@@ -528,7 +528,7 @@
   --gray-chat-bubble: #f9fafb;
   --gray-chat-text: #1e293b;
   --gray-accent: #f3f4f6;
-  
+
   /* Zinc Shades */
   --zinc-50: #fafafa;
   --zinc-100: #f4f4f5;
@@ -546,7 +546,7 @@
   --zinc-chat-bubble: #fafafa;
   --zinc-chat-text: #1e293b;
   --zinc-accent: #f4f4f5;
-  
+
   /* Neutral Shades */
   --neutral-50: #fafafa;
   --neutral-100: #f5f5f5;
@@ -564,7 +564,7 @@
   --neutral-chat-bubble: #fafafa;
   --neutral-chat-text: #1e293b;
   --neutral-accent: #f5f5f5;
-  
+
   /* Stone Shades */
   --stone-50: #fafaf9;
   --stone-100: #f5f5f4;
@@ -619,7 +619,7 @@
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
   --sidebar:
     hsl(240 5.9% 10%);
-    
+
   /* Color Palette Variables - Dark Mode */
   /* Black Shades */
   --black-50: #0a0a0a;
@@ -638,7 +638,7 @@
   --black-chat-bubble: #171717;
   --black-chat-text: #f1f5f9;
   --black-accent: #262626;
-  
+
   /* Red Shades */
   --red-50: #450a0a;
   --red-100: #7f1d1d;
@@ -656,7 +656,7 @@
   --red-chat-bubble: #7f1d1d;
   --red-chat-text: #f1f5f9;
   --red-accent: #991b1b;
-  
+
   /* Orange Shades */
   --orange-50: #431407;
   --orange-100: #7c2d12;
@@ -674,7 +674,7 @@
   --orange-chat-bubble: #7c2d12;
   --orange-chat-text: #f1f5f9;
   --orange-accent: #9a3412;
-  
+
   /* Amber Shades */
   --amber-50: #451a03;
   --amber-100: #78350f;
@@ -692,7 +692,7 @@
   --amber-chat-bubble: #78350f;
   --amber-chat-text: #f1f5f9;
   --amber-accent: #92400e;
-  
+
   /* Yellow Shades */
   --yellow-50: #422006;
   --yellow-100: #713f12;
@@ -710,7 +710,7 @@
   --yellow-chat-bubble: #713f12;
   --yellow-chat-text: #f1f5f9;
   --yellow-accent: #a16207;
-  
+
   /* Lime Shades */
   --lime-50: #1a2e05;
   --lime-100: #365314;
@@ -728,7 +728,7 @@
   --lime-chat-bubble: #365314;
   --lime-chat-text: #f1f5f9;
   --lime-accent: #3f6212;
-  
+
   /* Green Shades */
   --green-50: #052e16;
   --green-100: #14532d;
@@ -746,7 +746,7 @@
   --green-chat-bubble: #14532d;
   --green-chat-text: #f1f5f9;
   --green-accent: #166534;
-  
+
   /* Emerald Shades */
   --emerald-50: #022c22;
   --emerald-100: #064e3b;
@@ -764,7 +764,7 @@
   --emerald-chat-bubble: #064e3b;
   --emerald-chat-text: #f1f5f9;
   --emerald-accent: #065f46;
-  
+
   /* Teal Shades */
   --teal-50: #042f2e;
   --teal-100: #134e4a;
@@ -782,7 +782,7 @@
   --teal-chat-bubble: #134e4a;
   --teal-chat-text: #f1f5f9;
   --teal-accent: #115e59;
-  
+
   /* Cyan Shades */
   --cyan-50: #083344;
   --cyan-100: #164e63;
@@ -800,7 +800,7 @@
   --cyan-chat-bubble: #164e63;
   --cyan-chat-text: #f1f5f9;
   --cyan-accent: #155e75;
-  
+
   /* Sky Shades */
   --sky-50: #0c4a6e;
   --sky-100: #075985;
@@ -818,7 +818,7 @@
   --sky-chat-bubble: #0c4a6e;
   --sky-chat-text: #f1f5f9;
   --sky-accent: #075985;
-  
+
   /* Blue Shades */
   --blue-50: #172554;
   --blue-100: #1e3a8a;
@@ -836,7 +836,7 @@
   --blue-chat-bubble: #1e3a8a;
   --blue-chat-text: #f1f5f9;
   --blue-accent: #1e40af;
-  
+
   /* Indigo Shades */
   --indigo-50: #1e1b4b;
   --indigo-100: #312e81;
@@ -854,7 +854,7 @@
   --indigo-chat-bubble: #312e81;
   --indigo-chat-text: #f1f5f9;
   --indigo-accent: #3730a3;
-  
+
   /* Violet Shades */
   --violet-50: #2e1065;
   --violet-100: #4c1d95;
@@ -872,7 +872,7 @@
   --violet-chat-bubble: #4c1d95;
   --violet-chat-text: #f1f5f9;
   --violet-accent: #5b21b6;
-  
+
   /* Purple Shades */
   --purple-50: #3b0764;
   --purple-100: #581c87;
@@ -890,7 +890,7 @@
   --purple-chat-bubble: #581c87;
   --purple-chat-text: #f1f5f9;
   --purple-accent: #6b21a8;
-  
+
   /* Fuchsia Shades */
   --fuchsia-50: #4a044e;
   --fuchsia-100: #701a75;
@@ -908,7 +908,7 @@
   --fuchsia-chat-bubble: #701a75;
   --fuchsia-chat-text: #f1f5f9;
   --fuchsia-accent: #86198f;
-  
+
   /* Pink Shades */
   --pink-50: #500724;
   --pink-100: #831843;
@@ -926,7 +926,7 @@
   --pink-chat-bubble: #831843;
   --pink-chat-text: #f1f5f9;
   --pink-accent: #9d174d;
-  
+
   /* Rose Shades */
   --rose-50: #4c0519;
   --rose-100: #881337;
@@ -944,7 +944,7 @@
   --rose-chat-bubble: #881337;
   --rose-chat-text: #f1f5f9;
   --rose-accent: #be123c;
-  
+
   /* Slate Shades */
   --slate-50: #020617;
   --slate-100: #0f172a;
@@ -962,7 +962,7 @@
   --slate-chat-bubble: #1e293b;
   --slate-chat-text: #f1f5f9;
   --slate-accent: #334155;
-  
+
   /* Gray Shades */
   --gray-50: #030303;
   --gray-100: #111827;
@@ -980,7 +980,7 @@
   --gray-chat-bubble: #374151;
   --gray-chat-text: #f1f5f9;
   --gray-accent: #4b5563;
-  
+
   /* Zinc Shades */
   --zinc-50: #09090b;
   --zinc-100: #18181b;
@@ -998,7 +998,7 @@
   --zinc-chat-bubble: #3f3f46;
   --zinc-chat-text: #f1f5f9;
   --zinc-accent: #52525b;
-  
+
   /* Neutral Shades */
   --neutral-50: #0a0a0a;
   --neutral-100: #171717;
@@ -1016,7 +1016,7 @@
   --neutral-chat-bubble: #404040;
   --neutral-chat-text: #f1f5f9;
   --neutral-accent: #525252;
-  
+
   /* Stone Shades */
   --stone-50: #0c0a09;
   --stone-100: #1c1917;

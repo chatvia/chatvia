@@ -6,7 +6,7 @@ use App\Models\Agent;
 use App\Models\AgentWebsite;
 use Illuminate\Http\Request;
 
-class AgentKnowledgeCrawlerWebsiteTrainController
+class AgentSourceCrawlerWebsiteTrainController
 {
     public function __invoke(Request $request, Agent $agent, AgentWebsite $website)
     {

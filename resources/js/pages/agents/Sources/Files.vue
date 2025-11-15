@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,9 +14,11 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import FileUploader from '@/components/FileUploader.vue';
 import type { UploadingFileData as BaseUploadingFileData, FileUploaderConfig } from '@/composables/useFileUploader';
+import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
 
 import { usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
+import { useEcho } from "@laravel/echo-vue";
 
 const page = usePage();
 
@@ -36,7 +38,7 @@ interface KnowledgeFile {
     length?: number;
     is_audio_file?: boolean;
     is_video_file?: boolean;
-    ingestion_progress?: number;
+    progress?: number;
 }
 
 interface UploadedFile {
@@ -87,6 +89,22 @@ interface FileSummaryData {
 const maxFilesToUpload = 20;
 
 const props = defineProps<Props>();
+
+// WebSocket event listener for file ingestion progress updates
+const channelName = `agents.${props.agent.id}.files.progress`;
+console.log(`🔌 Setting up WebSocket listener on channel: ${channelName}`);
+console.log(`📡 Agent ID: ${props.agent.id}`);
+console.log(`🔐 Attempting to subscribe to private channel...`);
+
+useEcho(
+    channelName,
+    "FileIngestionProgressEvent",
+    (e) => {
+        handleFileIngestionProgress(e);
+    },
+)
+
+console.log(`✅ WebSocket listener registered for: ${channelName}`);
 
 // Core state
 const uploadingFiles = ref<UploadingFileData[]>([]);
@@ -164,9 +182,6 @@ const isLoadingFiles = ref(false);
 const isInitialLoad = ref(true);
 const isProcessingFiles = ref(false);
 
-// Auto-refresh for processing files
-const refreshInterval = ref<number | null>(null);
-
 // Selection state - using Set for better performance
 const selectedFileIds = ref<Set<string>>(new Set());
 
@@ -192,10 +207,6 @@ const sortOrder = ref<'asc' | 'desc'>('desc');
 // Computed properties
 const processedKnowledgeFiles = computed(() => {
     return knowledgeFiles.value.filter(file => file.status !== 'uploaded');
-});
-
-const hasProcessingFiles = computed(() => {
-    return knowledgeFiles.value.some(file => file.status === 'processing');
 });
 
 const filteredAndSortedFiles = computed(() => {
@@ -752,12 +763,49 @@ const removeKnowledgeFile = async () => {
     deleteDialogOpen.value = false;
 };
 
-// Fetch knowledge files from the backend
-const fetchKnowledgeFiles = async (isBackgroundRefresh = false) => {
-    // Only show loading indicator for initial load, not background refreshes
-    if (!isBackgroundRefresh) {
-        isLoadingFiles.value = true;
+// Handle file ingestion progress updates from WebSocket
+const handleFileIngestionProgress = (event: any) => {
+    console.log('📥 FileIngestionProgressEvent received:', event);
+    
+    const { file_id, progress } = event;
+    
+    if (!file_id || progress === undefined) {
+        console.warn('⚠️ Missing file_id or progress in FileIngestionProgressEvent', event);
+        return;
     }
+
+    console.log(`📊 Updating file ${file_id} progress to ${progress}%`);
+
+    // Find the file and update its progress
+    const fileIndex = knowledgeFiles.value.findIndex(file => file.id === file_id);
+    
+    if (fileIndex !== -1) {
+        console.log(`✅ Found file at index ${fileIndex}, updating progress`);
+        
+        // Create a new array with the updated file for reactivity
+        const updatedFiles = [...knowledgeFiles.value];
+        updatedFiles[fileIndex] = {
+            ...updatedFiles[fileIndex],
+            progress: progress
+        };
+        knowledgeFiles.value = updatedFiles;
+        
+        // If progress is 100%, refresh the files to get the final status
+        if (progress >= 100) {
+            console.log('🎉 File ingestion completed, refreshing file list...');
+            setTimeout(() => {
+                fetchKnowledgeFiles();
+            }, 1000); // Small delay to ensure backend has updated
+        }
+    } else {
+        console.warn(`❌ File with id ${file_id} not found in knowledgeFiles array`);
+        console.log('Current files:', knowledgeFiles.value.map(f => ({ id: f.id, name: f.name })));
+    }
+};
+
+// Fetch knowledge files from the backend
+const fetchKnowledgeFiles = async () => {
+    isLoadingFiles.value = true;
 
     try {
         const response = await axios.get(
@@ -766,8 +814,10 @@ const fetchKnowledgeFiles = async (isBackgroundRefresh = false) => {
 
         const allFiles = response.data as KnowledgeFile[];
 
-        // Separate uploaded files from processed files
+        // Use server data directly
         knowledgeFiles.value = allFiles;
+
+        // Separate uploaded files from processed files
         uploadedFiles.value = allFiles
             .filter(file => file.status === 'uploaded')
             .map(file => ({
@@ -785,49 +835,15 @@ const fetchKnowledgeFiles = async (isBackgroundRefresh = false) => {
     } catch (error) {
         console.error('Error fetching knowledge files:', error);
     } finally {
-        if (!isBackgroundRefresh) {
-            isLoadingFiles.value = false;
-        }
+        isLoadingFiles.value = false;
         isInitialLoad.value = false;
     }
 };
-
-// Auto-refresh logic for processing files
-const startRefreshInterval = () => {
-    if (refreshInterval.value) return; // Already running
-
-    refreshInterval.value = window.setInterval(() => {
-        if (hasProcessingFiles.value) {
-            fetchKnowledgeFiles(true); // Pass true for background refresh
-        }
-    }, 3000); // Refresh every 3 seconds
-};
-
-const stopRefreshInterval = () => {
-    if (refreshInterval.value) {
-        clearInterval(refreshInterval.value);
-        refreshInterval.value = null;
-    }
-};
-
-// Watch for processing files to start/stop auto-refresh
-watch(hasProcessingFiles, (hasProcessing) => {
-    if (hasProcessing) {
-        startRefreshInterval();
-    } else {
-        stopRefreshInterval();
-    }
-});
 
 // Load files when component mounts
 onMounted(() => {
     fetchKnowledgeFiles();
     fetchUsageData(); // Fetch usage data on mount
-});
-
-// Clean up interval when component unmounts
-onUnmounted(() => {
-    stopRefreshInterval();
 });
 
 // Function to fetch usage data
@@ -846,7 +862,7 @@ const fetchUsageData = async () => {
 
 // Function to fetch and display file summary
 const showFileSummary = async (file: KnowledgeFile) => {
-    if (file.status !== 'completed') {
+    if (file.status !== 'ingested') {
         toast.error('Summary is only available for completed files.');
         return;
     }
@@ -957,7 +973,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                 </Badge>
                                                 <Badge variant="outline" class="text-xs">
                                                     <CheckCircle class="h-3 w-3 mr-1" />
-                                                    Uploaded
+                                                    Ready for Training
                                                 </Badge>
                                             </div>
                                             <div class="text-xs text-muted-foreground">
@@ -1026,7 +1042,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                         <Badge variant="outline" class="text-xs flex-shrink-0">
                                                             {{ formatFileType(file.mime_type) }}
                                                         </Badge>
-                                                        <TooltipProvider v-if="file.status === 'processing'">
+                                                        <TooltipProvider v-if="file.status === 'ingesting'">
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <div class="flex items-center">
@@ -1038,7 +1054,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
-                                                        <TooltipProvider v-else-if="file.status === 'completed'">
+                                                        <TooltipProvider v-else-if="file.status === 'ingested'">
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <div class="flex items-center">
@@ -1068,25 +1084,18 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                         <span v-if="formatFileLength(file)" class="ml-2">
                                                             • {{ formatFileLength(file) }}
                                                         </span>
-                                                        <span v-if="file.status === 'processing' && file.ingestion_progress !== undefined" class="ml-2">
-                                                            • {{ file.ingestion_progress }}% processed
-                                                        </span>
                                                         • Added {{ formatDate(file.created_at) }}
                                                     </div>
                                                     <!-- Progress bar for processing files -->
-                                                    <div v-if="file.status === 'processing' && file.ingestion_progress !== undefined" class="mt-2">
-                                                        <div class="w-full bg-muted rounded-full h-1.5">
-                                                            <div
-                                                                class="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-                                                                :style="{ width: `${file.ingestion_progress}%` }"
-                                                            ></div>
-                                                        </div>
-                                                    </div>
+                                                    <IngestionProgressBar
+                                                        v-if="file.status === 'ingesting'"
+                                                        :progress="file.progress ?? 0"
+                                                    />
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-1">
                                                 <!-- Summary button for completed files -->
-                                                <TooltipProvider v-if="file.status === 'completed'">
+                                                <TooltipProvider v-if="file.status === 'ingested'">
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button
@@ -1140,7 +1149,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                     <Badge variant="outline" class="text-xs flex-shrink-0">
                                                         {{ formatFileType(file.mime_type) }}
                                                     </Badge>
-                                                    <TooltipProvider v-if="file.status === 'processing'">
+                                                    <TooltipProvider v-if="file.status === 'ingesting'">
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <div class="flex items-center">
@@ -1152,7 +1161,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
-                                                    <TooltipProvider v-else-if="file.status === 'completed'">
+                                                    <TooltipProvider v-else-if="file.status === 'ingested'">
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <div class="flex items-center">
@@ -1182,25 +1191,18 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                     <span v-if="formatFileLength(file)" class="ml-2">
                                                         • {{ formatFileLength(file) }}
                                                     </span>
-                                                    <span v-if="file.status === 'processing' && file.ingestion_progress !== undefined" class="ml-2">
-                                                        • {{ file.ingestion_progress }}% processed
-                                                    </span>
                                                     • Added {{ formatDate(file.created_at) }}
                                                 </div>
                                                 <!-- Progress bar for processing files -->
-                                                <div v-if="file.status === 'processing' && file.ingestion_progress !== undefined" class="mt-2">
-                                                    <div class="w-full bg-muted rounded-full h-1.5">
-                                                        <div
-                                                            class="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-                                                            :style="{ width: `${file.ingestion_progress}%` }"
-                                                        ></div>
-                                                    </div>
-                                                </div>
+                                                <IngestionProgressBar
+                                                    v-if="file.status === 'ingesting'"
+                                                    :progress="file.progress ?? 0"
+                                                />
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-1">
                                             <!-- Summary button for completed files -->
-                                            <TooltipProvider v-if="file.status === 'completed'">
+                                            <TooltipProvider v-if="file.status === 'ingested'">
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <Button

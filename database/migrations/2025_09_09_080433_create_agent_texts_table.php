@@ -16,26 +16,26 @@ return new class extends Migration
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
 
             $table->string('language')->nullable();
-            $table->string('classification')->nullable();
+            $table->string('document_classification')->nullable();
 
-            $table->string('excerpt');
             $table->text('content');
 
             $table->unsignedInteger('length')->default(0)->comment('This is the number of pages not characters in the text');
 
-            $table->unsignedInteger('chunks')->nullable();
+            $table->unsignedInteger('expected_chunks')->nullable();
 
-            $table->string('md5_hash');
+            $table->string('checksum');
 
             $table->string('internal_ingestion_job_id')->unique()->nullable();
             $table->string('internal_chunking_batch_id')->unique()->nullable();
 
-            $table->enum('status', ['pending', 'ingesting', 'ingested', 'failed'])->default('pending')->index();
+            $table->enum('status', ['pending', 'ingesting', 'failed', 'ingested'])->default('pending')->index();
             $table->unsignedInteger('took_in_seconds')->default(0);
+            $table->text('failure_reason')->nullable();
 
             $table->timestamps();
 
-            $table->unique(['agent_id', 'md5_hash']);
+            $table->unique(['agent_id', 'checksum']);
         });
     }
 

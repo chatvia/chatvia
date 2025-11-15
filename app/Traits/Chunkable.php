@@ -21,7 +21,16 @@ trait Chunkable
 
     public function ingestionProgress(): int
     {
+        if ($this->status === 'ingested') {
+            return 100;
+        }
+
+        if ($this->status !== 'ingesting') {
+            return 0;
+        }
+
         $totalChunks = $this->expected_chunks ?? 0;
+
         $importedChunks = $this->chunks()->count();
 
         return round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);

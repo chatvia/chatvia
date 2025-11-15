@@ -34,6 +34,10 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        $request->user()?->memberOwner()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
         return back();
     }
 }

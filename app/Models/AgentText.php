@@ -13,7 +13,7 @@ class AgentText extends Model implements ChunkableContract
 
     protected $guarded = ['id'];
 
-    public function startTraining()
+    public function startTraining(): void
     {
         TextIngestionJob::dispatch($this);
     }
@@ -21,6 +21,7 @@ class AgentText extends Model implements ChunkableContract
     public function retrain()
     {
         $this->chunks()->delete();
+
         $this->update([
             'language' => null,
             'document_classification' => null,

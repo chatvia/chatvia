@@ -6,7 +6,7 @@ use App\Models\Agent;
 use App\Models\AgentWebsite;
 use Illuminate\Http\Request;
 
-class AgentKnowledgeCrawlerWebsiteLinksController
+class AgentSourceCrawlerWebsiteLinksController
 {
     public function __invoke(Request $request, Agent $agent, AgentWebsite $website)
     {
@@ -19,7 +19,6 @@ class AgentKnowledgeCrawlerWebsiteLinksController
             'crawled_at',
         ]);
 
-        // Apply search filter if q parameter is provided
         if ($request->filled('q')) {
             $searchTerm = $request->input('q');
             $query->where('url', 'like', '%'.$searchTerm.'%');

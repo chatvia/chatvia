@@ -25,11 +25,11 @@ return new class extends Migration
             $table->vector('embedding', 1536);
             $table->bm25vector('embedding_bm25');
             $table->jsonb('metadata')->nullable();
-            $table->string('md5_hash');
+            $table->string('checksum');
             $table->unsignedInteger('retrieval_count')->default(0);
             $table->timestamps();
 
-            $table->unique(['chunkable_type', 'chunkable_id', 'md5_hash']);
+            $table->unique(['chunkable_type', 'chunkable_id', 'checksum']);
         });
 
         DB::statement('CREATE INDEX chunks_embedding_bm25 ON chunks USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);');

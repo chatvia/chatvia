@@ -91,20 +91,13 @@ const maxFilesToUpload = 20;
 const props = defineProps<Props>();
 
 // WebSocket event listener for file ingestion progress updates
-const channelName = `agents.${props.agent.id}.files.progress`;
-console.log(`🔌 Setting up WebSocket listener on channel: ${channelName}`);
-console.log(`📡 Agent ID: ${props.agent.id}`);
-console.log(`🔐 Attempting to subscribe to private channel...`);
-
 useEcho(
-    channelName,
+    `agents.${props.agent.id}.files.progress`,
     "FileIngestionProgressEvent",
     (e) => {
         handleFileIngestionProgress(e);
     },
 )
-
-console.log(`✅ WebSocket listener registered for: ${channelName}`);
 
 // Core state
 const uploadingFiles = ref<UploadingFileData[]>([]);
@@ -765,23 +758,16 @@ const removeKnowledgeFile = async () => {
 
 // Handle file ingestion progress updates from WebSocket
 const handleFileIngestionProgress = (event: any) => {
-    console.log('📥 FileIngestionProgressEvent received:', event);
-    
     const { file_id, progress } = event;
     
     if (!file_id || progress === undefined) {
-        console.warn('⚠️ Missing file_id or progress in FileIngestionProgressEvent', event);
         return;
     }
-
-    console.log(`📊 Updating file ${file_id} progress to ${progress}%`);
 
     // Find the file and update its progress
     const fileIndex = knowledgeFiles.value.findIndex(file => file.id === file_id);
     
     if (fileIndex !== -1) {
-        console.log(`✅ Found file at index ${fileIndex}, updating progress`);
-        
         // Create a new array with the updated file for reactivity
         const updatedFiles = [...knowledgeFiles.value];
         updatedFiles[fileIndex] = {
@@ -792,14 +778,10 @@ const handleFileIngestionProgress = (event: any) => {
         
         // If progress is 100%, refresh the files to get the final status
         if (progress >= 100) {
-            console.log('🎉 File ingestion completed, refreshing file list...');
             setTimeout(() => {
                 fetchKnowledgeFiles();
             }, 1000); // Small delay to ensure backend has updated
         }
-    } else {
-        console.warn(`❌ File with id ${file_id} not found in knowledgeFiles array`);
-        console.log('Current files:', knowledgeFiles.value.map(f => ({ id: f.id, name: f.name })));
     }
 };
 

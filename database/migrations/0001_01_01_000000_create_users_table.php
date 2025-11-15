@@ -31,13 +31,13 @@ return new class extends Migration
             $table->string('x_id')->index()->nullable();
 
             $table->ipAddress('registered_ip')->nullable();
-
-            $table->string('domain')->nullable();
             $table->char('registered_country_code', 5)->nullable();
 
-            $table->timestamp('deactivated_at')->nullable();
+            $table->string('domain')->nullable();
+
             $table->string('deactivation_reason')->nullable();
 
+            $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
             $table->timestamps();
         });

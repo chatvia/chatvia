@@ -14,6 +14,6 @@
 <script
     id="chatbot-embed-script"
     src="{{ config('widget.script_url_embed') }}"
-    agent-id="407f7fdfa1cf18"
+    agent-id="{{ config('widget.chatvia_widget_id') }}"
     async>
 </script>

@@ -8,12 +8,13 @@ use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
 use Illuminate\Bus\Batchable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 
-class SummaryIngestionJob implements ShouldQueue
+class SummaryIngestionJob implements ShouldQueue, ShouldBeUnique
 {
     use Batchable, Queueable, SerializesModels;
 
@@ -25,6 +26,10 @@ class SummaryIngestionJob implements ShouldQueue
     public function handle(): void
     {
         if ($this->batch()?->cancelled()) {
+            return;
+        }
+
+        if ($this->source->summary()->exists()) {
             return;
         }
 
@@ -64,5 +69,10 @@ class SummaryIngestionJob implements ShouldQueue
             'checksum' => md5($chunk),
             'retrieval_count' => 0,
         ]);
+    }
+
+    public function uniqueId()
+    {
+        return 'ingestion:summary:files:'.$this->source->id;
     }
 }

@@ -57,10 +57,6 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
             'parser' => 'whisper',
         ];
 
-        $this->agentFile->update($updateValues);
-
-        $this->agentFile->refresh();
-
         if ($this->agentFile->parser_filepath) {
             $file = $this->agentFile->readFile();
             $transcription = $file->getContent();
@@ -85,6 +81,12 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         ];
 
         $chunks = $chunker->createChunks($pages);
+
+        $updateValues['expected_chunks'] = $chunks->count();
+
+        $this->agentFile->update($updateValues);
+
+        $this->agentFile->refresh();
 
         dispatch(new SummaryIngestionJob($this->agentFile, $transcription));
 

@@ -26,7 +26,7 @@ class WidgetVerification
         // Check if domain is in the agent's allowed sites
         $widgetSettings = $agent->settings('widget');
 
-        $allowedSites = array_merge($widgetSettings['sites'], ['localhost', 'chatvia.test']) ?? [];
+        $allowedSites = array_merge($widgetSettings['sites'], ['localhost', 'chatvia.test', 'chatvia.ai']) ?? [];
 
         return $this->isDomainAllowed($requestingDomain, $allowedSites);
     }
@@ -58,11 +58,27 @@ class WidgetVerification
             return true;
         }
 
-        // Check for wildcard subdomains (e.g., *.example.com)
+        // Check www variations
+        $domainWithoutWww = preg_replace('/^www\./', '', $domain);
+        $domainWithWww = str_starts_with($domain, 'www.') ? $domain : 'www.' . $domain;
+
         foreach ($allowedSites as $allowedSite) {
+            // Check if allowed site matches domain without www or with www
+            $allowedWithoutWww = preg_replace('/^www\./', '', $allowedSite);
+            $allowedWithWww = str_starts_with($allowedSite, 'www.') ? $allowedSite : 'www.' . $allowedSite;
+
+            if ($domainWithoutWww === $allowedWithoutWww ||
+                $domain === $allowedWithWww ||
+                $domainWithWww === $allowedSite) {
+                return true;
+            }
+
+            // Check for wildcard subdomains (e.g., *.example.com)
             if (str_starts_with($allowedSite, '*.')) {
                 $baseDomain = substr($allowedSite, 2);
-                if ($domain === $baseDomain || str_ends_with($domain, '.'.$baseDomain)) {
+                if ($domainWithoutWww === $baseDomain ||
+                    str_ends_with($domainWithoutWww, '.' . $baseDomain) ||
+                    str_ends_with($domain, '.' . $baseDomain)) {
                     return true;
                 }
             }

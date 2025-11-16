@@ -31,6 +31,7 @@
         "laravel/pulse": "^1.4",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
+        "laravel/slack-notification-channel": "^3.6",
         "laravel/socialite": "^5.23",
         "laravel/telescope": "^5.10",
         "laravel/tinker": "^2.10.1",

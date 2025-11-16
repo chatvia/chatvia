@@ -45,7 +45,7 @@
                                             </AlertDescription>
                                         </Alert>
 
-                                        <div class="space-y-2">
+                                        <div class="space-y-2 mt-5">
                                             <Label>Allowed Websites</Label>
                                             <p class="text-xs text-muted-foreground mb-2">
                                                 Enter domains that can use this widget (without https://). Press Enter to save.
@@ -121,8 +121,8 @@
 
                                     <!-- Save Button -->
                                     <div class="pt-4 border-t">
-                                        <Button 
-                                            type="submit" 
+                                        <Button
+                                            type="submit"
                                             :disabled="isSubmitting || !hasUnsavedChanges"
                                             class="w-full"
                                         >
@@ -145,9 +145,9 @@
                                                     Suggest questions to help users start conversations
                                                 </p>
                                             </div>
-                                            <Button 
-                                                type="button" 
-                                                variant="outline" 
+                                            <Button
+                                                type="button"
+                                                variant="outline"
                                                 size="sm"
                                                 @click="showAddStarterDialog = true"
                                             >
@@ -157,7 +157,7 @@
                                         </div>
 
                                         <div class="rounded-md border">
-                                            <div 
+                                            <div
                                                 v-if="starters.length === 0"
                                                 class="p-4 text-center text-muted-foreground text-sm"
                                             >
@@ -198,7 +198,7 @@
                                     <div class="space-y-2">
                                         <Label>Widget Color</Label>
                                         <p class="text-xs text-muted-foreground mb-3">Choose the primary color for your widget</p>
-                                        
+
                                         <div class="relative cursor-pointer inline-block" @click="showColorPicker = true">
                                             <div
                                                 class="h-20 w-20 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
@@ -273,22 +273,22 @@
                                                     Automatically show widget when page loads
                                                 </p>
                                             </div>
-                                            <Switch 
-                                                id="show_on_load" 
-                                                :model-value="widgetForm.show_on_load" 
-                                                @update:model-value="(value: any) => { widgetForm.show_on_load = value; saveBehaviorSettings(); }" 
+                                            <Switch
+                                                id="show_on_load"
+                                                :model-value="widgetForm.show_on_load"
+                                                @update:model-value="(value: any) => { widgetForm.show_on_load = value; saveBehaviorSettings(); }"
                                             />
                                         </div>
 
                                         <div v-if="widgetForm.show_on_load" class="ml-0 space-y-2">
                                             <Label for="show_on_load_delay">Display Delay (ms)</Label>
-                                            <Input 
-                                                id="show_on_load_delay" 
-                                                v-model.number="widgetForm.show_on_load_delay" 
-                                                type="number" 
-                                                min="0" 
-                                                step="100" 
-                                                placeholder="500" 
+                                            <Input
+                                                id="show_on_load_delay"
+                                                v-model.number="widgetForm.show_on_load_delay"
+                                                type="number"
+                                                min="0"
+                                                step="100"
+                                                placeholder="500"
                                                 @blur="saveBehaviorSettings"
                                             />
                                             <p class="text-xs text-muted-foreground">
@@ -314,7 +314,7 @@
                                                 Copy and paste this code into your website's <code class="bg-muted px-1 py-0.5 rounded text-xs">&lt;head&gt;</code> section
                                             </p>
                                         </div>
-                                        
+
                                         <div class="bg-muted rounded-lg p-4 space-y-3">
                                             <div class="flex items-center justify-end gap-2">
                                                 <Button
@@ -361,8 +361,8 @@
             <div class="flex flex-col order-2 lg:order-none">
                 <!-- Live Widget Preview -->
                 <div class="flex flex-col lg:h-full min-h-[500px] border-2 border-dashed border-border rounded-lg p-6 bg-muted/20">
-                    
-                    
+
+
                     <div class="space-y-4 flex flex-col flex-1">
                         <!-- Preview Controls -->
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -388,7 +388,7 @@
                                     Full Preview
                                 </Button>
                             </div>
-                        
+
                         </div>
 
                         <!-- Live Preview Iframe -->

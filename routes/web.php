@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\Social\MicrosoftCallbackAuthController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ChatPdfController;
 use App\Http\Controllers\ConsentController;
+use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Landing\ChangelogController;
 use App\Http\Controllers\Landing\PrivacyController;
@@ -14,6 +15,8 @@ use App\Http\Controllers\Landing\RefundController;
 use App\Http\Controllers\Landing\TermsController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RequestDemoController;
+use App\Http\Controllers\SlackAuthController;
+use App\Http\Controllers\SlackCallbackController;
 use App\Http\Controllers\UseCasesController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,13 +35,16 @@ Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
 Route::get('demo', RequestDemoController::class)->name('demo');
 Route::post('demo', RequestDemoController::class)->name('demo.submit');
 
-Route::get('docs', \App\Http\Controllers\DocsController::class)->name('docs');
+Route::get('docs', DocsController::class)->name('docs');
 
 Route::get('/auth/google', GoogleAuthController::class)->name('auth.google');
 Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->name('auth.google.callback');
 
 Route::get('/auth/microsoft', MicrosoftAuthController::class)->name('auth.microsoft');
 Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->name('auth.microsoft.callback');
+
+Route::get('/auth/slack', SlackAuthController::class)->name('auth.slack');
+Route::get('/auth/slack/callback', SlackCallbackController::class)->name('auth.slack.callback');
 
 Route::get('/use-cases/{case}', UseCasesController::class)->name('use-cases');
 

@@ -30,7 +30,7 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ config('app.name', 'ChatVia') }}</title>
 
         <!-- Preload fonts to prevent FOUC -->
         <link rel="preconnect" href="https://fonts.googleapis.com">

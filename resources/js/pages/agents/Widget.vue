@@ -25,17 +25,93 @@
             <!-- Left Column - Widget Configuration -->
             <div class="space-y-6 order-1 lg:order-none">
                 <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Globe class="h-5 w-5" />
-                        Widget Configuration
-                    </CardTitle>
-                    <CardDescription>
-                        Configure your agent as an embeddable chaWt widget for your website.
-                    </CardDescription>
-                </CardHeader>
+                
                 <CardContent>
-                    <form id="widget-settings-form" @submit.prevent="updateWidgetSettings" class="space-y-8">
+                    <form id="widget-settings-form" @submit.prevent="updateWidgetSettings" class="space-y-6">
+                        <!-- Security Section -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2">
+                                <Shield class="h-5 w-5 text-primary" />
+                                <h3 class="text-lg font-semibold">Security</h3>
+                            </div>
+                            
+                            <Alert variant="destructive">
+                                <Info class="h-4 w-4" />
+                                <AlertTitle>Important</AlertTitle>
+                                <AlertDescription>
+                                    You must specify the allowed websites below, otherwise your widget will not work. This is a security measure to prevent unauthorized usage of your widget.
+                                </AlertDescription>
+                            </Alert>
+
+                            <!-- Allowed Websites -->
+                            <div class="space-y-2">
+                                <Label>Allowed Websites</Label>
+                                <p class="text-xs text-muted-foreground">Enter domains that are allowed to use this widget (without https://)</p>
+
+                                <TagsInput v-model="widgetForm.sites" class="w-full">
+                                    <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
+                                        <TagsInputItemText />
+                                        <TagsInputItemDelete />
+                                    </TagsInputItem>
+                                    <TagsInputInput placeholder="Enter domain (e.g., example.com)" />
+                                </TagsInput>
+
+                                <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
+                                    {{ widgetForm.errors.sites }}
+                                </p>
+
+                                <p class="text-xs text-muted-foreground">
+                                    Examples: example.com, www.example.com, *.example.com (for all subdomains)
+                                </p>
+                            </div>
+                        </div>
+
+                        <Separator class="my-6" />
+
+                        <!-- Embed Code Section -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold">Embed Code</h3>
+                            
+                            <div class="bg-muted rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-sm text-muted-foreground">
+                                        Copy and paste this code into your website's <code>&lt;head&gt;</code>.
+                                    </p>
+                                    <div class="flex items-center gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="copyEmbedSnippet"
+                                            class="gap-2"
+                                        >
+                                            <Copy class="h-4 w-4" />
+                                            Copy
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="openPreview"
+                                            class="gap-2"
+                                        >
+                                            <Eye class="h-4 w-4" />
+                                            Preview
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div class="bg-background border rounded p-3">
+                                    <pre class="text-xs text-foreground overflow-x-auto"><code v-text="embedSnippet"></code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Separator class="my-6" />
+
+                        <!-- Widget Settings Section -->
+                        <div class="space-y-6">
+                            <h3 class="text-lg font-semibold">Widget Settings</h3>
+                            
                         <!-- Title, Welcome ChatMessage, and Widget Color -->
                         <div class="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-6">
                             <!-- Chat Title -->
@@ -170,63 +246,6 @@
                                 These appear as clickable bubbles to help users start conversations quickly
                             </p>
                         </div>
-
-                        <!-- Embed Code Preview -->
-                        <div class="space-y-6">
-                            <!-- Allowed Websites -->
-                            <div class="space-y-2">
-                                <Label>Allowed Websites</Label>
-                                <p class="text-xs text-muted-foreground">Enter domains that are allowed to use this widget (without https://)</p>
-
-                                <TagsInput v-model="widgetForm.sites" class="w-full">
-                                    <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
-                                        <TagsInputItemText />
-                                        <TagsInputItemDelete />
-                                    </TagsInputItem>
-                                    <TagsInputInput placeholder="Enter domain (e.g., example.com)" />
-                                </TagsInput>
-
-                                <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
-                                    {{ widgetForm.errors.sites }}
-                                </p>
-
-                                <p class="text-xs text-muted-foreground">
-                                    Leave empty to allow all websites, or specify domains to restrict widget usage
-                                </p>
-                            </div>
-
-                            <div class="bg-muted rounded-lg p-4">
-                                <div class="flex items-center justify-between mb-3">
-                                    <p class="text-sm text-muted-foreground">
-                                        Copy and paste this code into your website's <code>&lt;head&gt;</code>.
-                                    </p>
-                                    <div class="flex items-center gap-2">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="copyEmbedSnippet"
-                                            class="gap-2"
-                                        >
-                                            <Copy class="h-4 w-4" />
-                                            Copy
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="openPreview"
-                                            class="gap-2"
-                                        >
-                                            <Eye class="h-4 w-4" />
-                                            Preview
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div class="bg-background border rounded p-3">
-                                    <pre class="text-xs text-foreground overflow-x-auto"><code v-text="embedSnippet"></code></pre>
-                                </div>
-                            </div>
                         </div>
                     </form>
                 </CardContent>
@@ -418,7 +437,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
-import { Globe, Save, RotateCcw, Eye, Copy, Palette } from 'lucide-vue-next';
+import { Separator } from '@/components/ui/separator';
+import { Globe, Save, RotateCcw, Eye, Copy, Palette, Shield, Info } from 'lucide-vue-next';
 import HeaderActions from '@/components/HeaderActions.vue';
 import { toast } from 'vue-sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';

@@ -19,6 +19,7 @@ class WidgetController
             'widgetSettings' => $agent->settings('widget'),
             'appearanceSettings' => $agent->settings('appearance'),
             'embedScriptUrl' => config('widget.script_url_embed'),
+            'starters' => $agent->starters->toArray(),
         ]);
     }
 }

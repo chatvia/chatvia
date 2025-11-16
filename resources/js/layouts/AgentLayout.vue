@@ -168,30 +168,19 @@ const controlPanelNavigationItems = computed(() => {
 
     baseItems.push(
         ...[
-            { id: 'starters', label: 'Starters', icon: MessageSquare, route: 'agents.starters', tooltip: 'Create conversation starter messages' },
-
             { id: 'history', label: 'History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
             { id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads', tooltip: 'Manage leads captured by your agent' },
             { id: 'logs', label: 'Chat Log', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' },
         ]
     )
 
-    // Only add security if the agent is not a widget
-    if (props.agent.type !== 'widget') {
-        baseItems.push({ id: 'security', label: 'Security', icon: Lock, route: 'agents.security', tooltip: 'Configure access control and embedding settings' });
-    }
-
     // Only add members if the agent is not a widget
     if (props.agent.type !== 'widget') {
-        // Insert members after history (at index 5)
         baseItems.push({ id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' });
     }
 
-    // Only add appearance if the agent is not a widget
+    // Add rename for non-widget agents
     if (props.agent.type !== 'widget') {
-        // Insert appearance after starters (at index 4)
-        baseItems.push({ id: 'appearance', label: 'Appearance', icon: Palette, route: 'agents.appearance', tooltip: 'Customize colors, themes, and branding' });
-        // Add rename after appearance
         baseItems.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
     }
 
@@ -562,6 +551,11 @@ onMounted(() => {
                             </template>
                         </SidebarMenu>
                     </SidebarGroup>
+
+                    <!-- Separator before Danger Zone -->
+                    <div class="px-2 py-2">
+                        <div class="border-t border-border"></div>
+                    </div>
 
                     <!-- Danger Zone Section -->
                     <SidebarGroup class="py-0">

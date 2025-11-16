@@ -1,36 +1,23 @@
 <template>
     <AgentLayout :agent="agent" title="Widget Configuration">
-        <template #header-actions>
-            <HeaderActions
-                :is-submitting="isSubmitting"
-                :has-unsaved-changes="hasUnsavedChanges"
-                :show-success-message="showSuccessMessage"
-                success-message="Widget settings saved successfully"
-                :show-error-message="hasFormErrors"
-                error-message="Please fix errors below"
-                save-label="Save"
-                :save-icon="Save"
-                form-id="widget-settings-form"
-            />
-        </template>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Left Column - Tabbed Configuration -->
             <div class="order-1 lg:order-none">
                 <Card>
                     <CardContent class="p-0">
                         <Tabs v-model="activeTab" class="w-full">
-                            <TabsList class="w-full grid grid-cols-5 rounded-none border-b">
-                                <TabsTrigger value="security" class="gap-2">
-                                    <Shield class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Security</span>
+                            <TabsList class="w-full grid grid-cols-6 rounded-none border-b">
+                                <TabsTrigger value="text" class="gap-2">
+                                    <Type class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Text</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="general" class="gap-2">
-                                    <Globe class="h-4 w-4" />
-                                    <span class="hidden sm:inline">General</span>
+                                <TabsTrigger value="starters" class="gap-2">
+                                    <MessageSquare class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Starters</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="appearance" class="gap-2">
+                                <TabsTrigger value="colors" class="gap-2">
                                     <Palette class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Appearance</span>
+                                    <span class="hidden sm:inline">Colors</span>
                                 </TabsTrigger>
                                 <TabsTrigger value="behavior" class="gap-2">
                                     <Settings class="h-4 w-4" />
@@ -40,45 +27,51 @@
                                     <Code class="h-4 w-4" />
                                     <span class="hidden sm:inline">Embed</span>
                                 </TabsTrigger>
+                                <TabsTrigger value="security" class="gap-2">
+                                    <Shield class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Security</span>
+                                </TabsTrigger>
                             </TabsList>
 
-                            <form id="widget-settings-form" @submit.prevent="updateWidgetSettings">
+                            <form @submit.prevent="updateWidgetSettings">
                                 <!-- Security Tab -->
                                 <TabsContent value="security" class="p-6 space-y-6">
-                                    <Alert variant="destructive">
-                                        <Shield class="h-4 w-4" />
-                                        <AlertTitle>Important Security Notice</AlertTitle>
-                                        <AlertDescription>
-                                            You must specify allowed websites below, otherwise your widget will not work. This prevents unauthorized usage.
-                                        </AlertDescription>
-                                    </Alert>
+                                    <form @submit.prevent="saveSecuritySettings">
+                                        <Alert variant="destructive">
+                                            <Shield class="h-4 w-4" />
+                                            <AlertTitle>Important Security Notice</AlertTitle>
+                                            <AlertDescription>
+                                                You must specify allowed websites below, otherwise your widget will not work. This prevents unauthorized usage.
+                                            </AlertDescription>
+                                        </Alert>
 
-                                    <div class="space-y-2">
-                                        <Label>Allowed Websites</Label>
-                                        <p class="text-xs text-muted-foreground mb-2">
-                                            Enter domains that can use this widget (without https://)
-                                        </p>
+                                        <div class="space-y-2">
+                                            <Label>Allowed Websites</Label>
+                                            <p class="text-xs text-muted-foreground mb-2">
+                                                Enter domains that can use this widget (without https://). Press Enter to save.
+                                            </p>
 
-                                        <TagsInput v-model="widgetForm.sites" class="w-full">
-                                            <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
-                                                <TagsInputItemText />
-                                                <TagsInputItemDelete />
-                                            </TagsInputItem>
-                                            <TagsInputInput placeholder="example.com" />
-                                        </TagsInput>
+                                            <TagsInput v-model="widgetForm.sites" class="w-full" @update:model-value="saveSecuritySettings">
+                                                <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
+                                                    <TagsInputItemText />
+                                                    <TagsInputItemDelete />
+                                                </TagsInputItem>
+                                                <TagsInputInput placeholder="example.com" @keydown.enter.prevent="saveSecuritySettings" />
+                                            </TagsInput>
 
-                                        <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
-                                            {{ widgetForm.errors.sites }}
-                                        </p>
+                                            <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
+                                                {{ widgetForm.errors.sites }}
+                                            </p>
 
-                                        <p class="text-xs text-muted-foreground">
-                                            Examples: example.com, www.example.com, *.example.com (all subdomains)
-                                        </p>
-                                    </div>
+                                            <p class="text-xs text-muted-foreground">
+                                                Examples: example.com, www.example.com, *.example.com (all subdomains)
+                                            </p>
+                                        </div>
+                                    </form>
                                 </TabsContent>
 
-                                <!-- General Tab -->
-                                <TabsContent value="general" class="p-6 space-y-6">
+                                <!-- Text Tab -->
+                                <TabsContent value="text" class="p-6 space-y-6">
                                     <div class="space-y-2">
                                         <Label for="chat_window_title">Chat Title</Label>
                                         <Input
@@ -125,10 +118,83 @@
                                             {{ widgetForm.errors.bubbles }}
                                         </p>
                                     </div>
+
+                                    <!-- Save Button -->
+                                    <div class="pt-4 border-t">
+                                        <Button 
+                                            type="submit" 
+                                            :disabled="isSubmitting || !hasUnsavedChanges"
+                                            class="w-full"
+                                        >
+                                            <Save class="h-4 w-4 mr-2" />
+                                            {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+                                        </Button>
+                                        <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2 text-center">
+                                            Settings saved successfully
+                                        </p>
+                                    </div>
                                 </TabsContent>
 
-                                <!-- Appearance Tab -->
-                                <TabsContent value="appearance" class="p-6 space-y-6">
+                                <!-- Starters Tab -->
+                                <TabsContent value="starters" class="p-6 space-y-6">
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <h3 class="text-sm font-medium">Conversation Starters</h3>
+                                                <p class="text-xs text-muted-foreground mt-1">
+                                                    Suggest questions to help users start conversations
+                                                </p>
+                                            </div>
+                                            <Button 
+                                                type="button" 
+                                                variant="outline" 
+                                                size="sm"
+                                                @click="showAddStarterDialog = true"
+                                            >
+                                                <PlusCircle class="mr-2 h-4 w-4" />
+                                                Add Starter
+                                            </Button>
+                                        </div>
+
+                                        <div class="rounded-md border">
+                                            <div 
+                                                v-if="starters.length === 0"
+                                                class="p-4 text-center text-muted-foreground text-sm"
+                                            >
+                                                No starter messages yet
+                                            </div>
+                                            <div
+                                                v-for="starter in starters"
+                                                :key="starter.id"
+                                                class="flex items-center justify-between border-b p-3 last:border-0"
+                                            >
+                                                <div class="flex items-center gap-3">
+                                                    <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                                                    <div class="text-sm">{{ starter.text }}</div>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    @click="removeStarter(starter.id)"
+                                                >
+                                                    <Trash2 class="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <Alert>
+                                            <Info class="h-4 w-4" />
+                                            <AlertDescription>
+                                                Good starter messages are specific questions that showcase your agent's capabilities
+                                            </AlertDescription>
+                                        </Alert>
+                                    </div>
+                                </TabsContent>
+
+                                <!-- Colors Tab -->
+                                <TabsContent value="colors" class="p-6 space-y-6">
                                     <div class="space-y-2">
                                         <Label>Widget Color</Label>
                                         <p class="text-xs text-muted-foreground mb-3">Choose the primary color for your widget</p>
@@ -165,7 +231,7 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div class="space-y-2">
                                             <Label for="position">Position</Label>
-                                            <Select v-model="widgetForm.position">
+                                            <Select v-model="widgetForm.position" @update:model-value="saveBehaviorSettings">
                                                 <SelectTrigger class="w-full">
                                                     <SelectValue placeholder="Select position" />
                                                 </SelectTrigger>
@@ -181,7 +247,7 @@
 
                                         <div class="space-y-2">
                                             <Label for="window_size">Window Size</Label>
-                                            <Select v-model="widgetForm.window_size">
+                                            <Select v-model="widgetForm.window_size" @update:model-value="saveBehaviorSettings">
                                                 <SelectTrigger class="w-full">
                                                     <SelectValue placeholder="Select size" />
                                                 </SelectTrigger>
@@ -210,7 +276,7 @@
                                             <Switch 
                                                 id="show_on_load" 
                                                 :model-value="widgetForm.show_on_load" 
-                                                @update:model-value="(value: any) => widgetForm.show_on_load = value" 
+                                                @update:model-value="(value: any) => { widgetForm.show_on_load = value; saveBehaviorSettings(); }" 
                                             />
                                         </div>
 
@@ -223,6 +289,7 @@
                                                 min="0" 
                                                 step="100" 
                                                 placeholder="500" 
+                                                @blur="saveBehaviorSettings"
                                             />
                                             <p class="text-xs text-muted-foreground">
                                                 Time to wait before showing the widget
@@ -321,9 +388,7 @@
                                     Full Preview
                                 </Button>
                             </div>
-                            <div class="text-xs text-muted-foreground">
-                                Save to update preview
-                            </div>
+                        
                         </div>
 
                         <!-- Live Preview Iframe -->
@@ -437,8 +502,41 @@
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" @click="showColorPicker = false">
-                        Done
+                    <Button @click="() => { saveColorSettings(); showColorPicker = false; }">
+                        Apply & Save
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Add Starter Dialog -->
+        <Dialog v-model:open="showAddStarterDialog">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add Starter Message</DialogTitle>
+                    <DialogDescription>
+                        Create a new conversation starter for your users
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="py-4">
+                    <Label class="mb-2" for="starter-message">Message Text</Label>
+                    <Textarea
+                        id="starter-message"
+                        v-model="starterMessageForm.text"
+                        placeholder="E.g., How can I track my order?"
+                        rows="3"
+                    />
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" @click="showAddStarterDialog = false">
+                        Cancel
+                    </Button>
+                    <Button
+                        :disabled="!starterMessageForm.text.trim()"
+                        @click="addStarterMessage"
+                    >
+                        <PlusCircle class="mr-2 h-4 w-4" />
+                        Add Message
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -456,14 +554,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Globe, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code } from 'lucide-vue-next';
-import HeaderActions from '@/components/HeaderActions.vue';
+import { Type, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code, MessageSquare, PlusCircle, Trash2 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
+import axios from 'axios';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PreviewModal from '@/components/PreviewModal.vue';
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
@@ -473,6 +572,7 @@ interface Props {
     widgetSettings: any;
     appearanceSettings: any;
     embedScriptUrl: string;
+    starters: Array<{ id: number; text: string }>;
 }
 
 const props = defineProps<Props>();
@@ -498,10 +598,12 @@ const widgetForm = useForm({
 const activeTab = ref('security');
 const isSubmitting = ref(false);
 const showSuccessMessage = ref(false);
-const newSite = ref('');
 const showPreviewModal = ref(false);
 const showColorPicker = ref(false);
 const previewKey = ref(0);
+const showAddStarterDialog = ref(false);
+const starterMessageForm = ref({ text: '' });
+const starters = ref(props.starters || []);
 
 // Computed properties for header button states
 const hasUnsavedChanges = computed(() => {
@@ -534,7 +636,7 @@ const updateWidgetSettings = async () => {
     showSuccessMessage.value = false;
 
     try {
-        // Send appearance settings first
+        // Send text/appearance settings
         await new Promise((resolve, reject) => {
             appearanceForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
                 preserveScroll: true,
@@ -543,9 +645,13 @@ const updateWidgetSettings = async () => {
             });
         });
 
-        // Then send widget settings
+        // Then send widget settings (bubbles)
+        const textForm = useForm({
+            bubbles: widgetForm.bubbles,
+        });
+
         await new Promise((resolve, reject) => {
-            widgetForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'widget' }), {
+            textForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'widget' }), {
                 preserveScroll: true,
                 onSuccess: () => resolve(true),
                 onError: () => reject(new Error('Widget settings failed'))
@@ -569,32 +675,59 @@ const updateWidgetSettings = async () => {
     }
 };
 
-const addSite = () => {
-    if (newSite.value && newSite.value.trim() !== '') {
-        const domain = newSite.value.trim().toLowerCase();
+const saveSecuritySettings = () => {
+    const securityForm = useForm({
+        sites: widgetForm.sites,
+    });
 
-        // Basic domain validation
-        const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-        if (!domainRegex.test(domain)) {
-            toast.error('Please enter a valid domain (e.g., example.com)');
-            return;
+    securityForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'widget' }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Security settings updated');
+            previewKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to update security settings');
         }
-
-        // Check if domain already exists
-        if (widgetForm.sites.includes(domain)) {
-            toast.error('This domain is already in the list');
-            return;
-        }
-
-        // Add the domain
-        widgetForm.sites.push(domain);
-        newSite.value = '';
-    }
+    });
 };
 
-const removeSite = (index: number) => {
-    widgetForm.sites.splice(index, 1);
+const saveColorSettings = () => {
+    const colorForm = useForm({
+        color_theme: appearanceForm.color_theme,
+        color_shade: appearanceForm.color_shade,
+    });
+
+    colorForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Color updated successfully');
+            previewKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to update color');
+        }
+    });
+};
+
+const saveBehaviorSettings = () => {
+    const behaviorForm = useForm({
+        position: widgetForm.position,
+        show_on_load: widgetForm.show_on_load,
+        show_on_load_delay: widgetForm.show_on_load_delay,
+        window_size: widgetForm.window_size,
+    });
+
+    behaviorForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'widget' }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Behavior settings updated');
+            previewKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to update behavior settings');
+        }
+    });
 };
 
 const openPreview = () => {
@@ -642,6 +775,34 @@ const refreshPreview = () => {
 
 const openFullPreview = () => {
     showPreviewModal.value = true;
+};
+
+// Starters functionality
+const addStarterMessage = () => {
+    axios.post(route('agents.starters.store', props.agent.id), { text: starterMessageForm.value.text })
+        .then((response) => {
+            showAddStarterDialog.value = false;
+            starters.value.push({
+                id: response.data.id,
+                text: response.data.text
+            });
+            starterMessageForm.value.text = '';
+            toast.success('Starter message added');
+        })
+        .catch(() => {
+            toast.error('Failed to add starter message');
+        });
+};
+
+const removeStarter = (id: number) => {
+    axios.delete(route('agents.starters.delete', { agent: props.agent.id, id }))
+        .then(() => {
+            starters.value = starters.value.filter(starter => starter.id !== id);
+            toast.success('Starter message removed');
+        })
+        .catch(() => {
+            toast.error('Failed to remove starter message');
+        });
 };
 
 // Preview updates only when Save is clicked - removed auto-update watcher

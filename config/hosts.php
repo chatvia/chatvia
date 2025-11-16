@@ -158,7 +158,7 @@ return [
             ],
             'hero' => [
                 'top' => 'Upload your files or link your website',
-                'headline' => 'AI Support Agents, Powered by Your Business Knowledge',
+                'headline' => 'AI Agents <br/>Powered by Your Data',
                 'subheadlines' => [
                     'Build custom AI chatbots trained on documents, websites, and internal data.',
                     'Improve support, capture leads, and scale your team.',

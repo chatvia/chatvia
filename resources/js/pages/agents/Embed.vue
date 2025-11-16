@@ -398,6 +398,8 @@ const updateSetting = (key: string, value: any) => {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Setting updated successfully');
+            // Refresh the preview to show the updated settings
+            embedKey.value += 1;
         },
         onError: () => {
             toast.error('Failed to update setting');

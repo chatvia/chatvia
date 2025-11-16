@@ -13,11 +13,11 @@ class AgentKnowledgeSourcesStatsController
             'websites' => $agent->websites()->where('status', 'ingested')->count(),
             'texts' => $agent->texts()->where('status', 'ingested')->count(),
             'pdf' => $agent->files()
-                ->where('status', 'completed')
+                ->where('status', 'ingested')
                 ->where('mime_type', 'application/pdf')
                 ->count(),
             'word' => $agent->files()
-                ->where('status', 'completed')
+                ->where('status', 'ingested')
                 ->whereIn('mime_type', [
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     'application/msword',
@@ -25,11 +25,11 @@ class AgentKnowledgeSourcesStatsController
                 ])
                 ->count(),
             'markdown' => $agent->files()
-                ->where('status', 'completed')
+                ->where('status', 'ingested')
                 ->where('mime_type', 'text/markdown')
                 ->count(),
             'audio' => $agent->files()
-                ->where('status', 'completed')
+                ->where('status', 'ingested')
                 ->whereIn('mime_type', [
                     'audio/mpeg',
                     'audio/mp4',
@@ -40,7 +40,7 @@ class AgentKnowledgeSourcesStatsController
                 ])
                 ->count(),
             'video' => $agent->files()
-                ->where('status', 'completed')
+                ->where('status', 'ingested')
                 ->whereIn('mime_type', [
                     'video/mp4',
                     'video/quicktime',
@@ -49,7 +49,7 @@ class AgentKnowledgeSourcesStatsController
                     'video/webm',
                 ])
                 ->count(),
-            'youtube' => $agent->youtubeVideos()->where('status', 'completed')->count(),
+            'youtube' => $agent->youtubeVideos()->where('status', 'ingested')->count(),
         ];
     }
 }

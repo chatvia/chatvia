@@ -11,311 +11,333 @@
                 save-label="Save"
                 :save-icon="Save"
                 form-id="widget-settings-form"
-                :secondary-actions="[
-                    {
-                        id: 'restore-defaults',
-                        label: 'Restore Defaults',
-                        icon: RotateCcw,
-                        onClick: restoreDefaults
-                    }
-                ]"
             />
         </template>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Left Column - Widget Configuration -->
-            <div class="space-y-6 order-1 lg:order-none">
+            <!-- Left Column - Tabbed Configuration -->
+            <div class="order-1 lg:order-none">
                 <Card>
-                
-                <CardContent>
-                    <form id="widget-settings-form" @submit.prevent="updateWidgetSettings" class="space-y-6">
-                        <!-- Security Section -->
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-2">
-                                <Shield class="h-5 w-5 text-primary" />
-                                <h3 class="text-lg font-semibold">Security</h3>
-                            </div>
-                            
-                            <Alert variant="destructive">
-                                <Info class="h-4 w-4" />
-                                <AlertTitle>Important</AlertTitle>
-                                <AlertDescription>
-                                    You must specify the allowed websites below, otherwise your widget will not work. This is a security measure to prevent unauthorized usage of your widget.
-                                </AlertDescription>
-                            </Alert>
+                    <CardContent class="p-0">
+                        <Tabs v-model="activeTab" class="w-full">
+                            <TabsList class="w-full grid grid-cols-5 rounded-none border-b">
+                                <TabsTrigger value="security" class="gap-2">
+                                    <Shield class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Security</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="general" class="gap-2">
+                                    <Globe class="h-4 w-4" />
+                                    <span class="hidden sm:inline">General</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="appearance" class="gap-2">
+                                    <Palette class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Appearance</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="behavior" class="gap-2">
+                                    <Settings class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Behavior</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="embed" class="gap-2">
+                                    <Code class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Embed</span>
+                                </TabsTrigger>
+                            </TabsList>
 
-                            <!-- Allowed Websites -->
-                            <div class="space-y-2">
-                                <Label>Allowed Websites</Label>
-                                <p class="text-xs text-muted-foreground">Enter domains that are allowed to use this widget (without https://)</p>
+                            <form id="widget-settings-form" @submit.prevent="updateWidgetSettings">
+                                <!-- Security Tab -->
+                                <TabsContent value="security" class="p-6 space-y-6">
+                                    <Alert variant="destructive">
+                                        <Shield class="h-4 w-4" />
+                                        <AlertTitle>Important Security Notice</AlertTitle>
+                                        <AlertDescription>
+                                            You must specify allowed websites below, otherwise your widget will not work. This prevents unauthorized usage.
+                                        </AlertDescription>
+                                    </Alert>
 
-                                <TagsInput v-model="widgetForm.sites" class="w-full">
-                                    <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
-                                        <TagsInputItemText />
-                                        <TagsInputItemDelete />
-                                    </TagsInputItem>
-                                    <TagsInputInput placeholder="Enter domain (e.g., example.com)" />
-                                </TagsInput>
+                                    <div class="space-y-2">
+                                        <Label>Allowed Websites</Label>
+                                        <p class="text-xs text-muted-foreground mb-2">
+                                            Enter domains that can use this widget (without https://)
+                                        </p>
 
-                                <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
-                                    {{ widgetForm.errors.sites }}
-                                </p>
+                                        <TagsInput v-model="widgetForm.sites" class="w-full">
+                                            <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
+                                                <TagsInputItemText />
+                                                <TagsInputItemDelete />
+                                            </TagsInputItem>
+                                            <TagsInputInput placeholder="example.com" />
+                                        </TagsInput>
 
-                                <p class="text-xs text-muted-foreground">
-                                    Examples: example.com, www.example.com, *.example.com (for all subdomains)
-                                </p>
-                            </div>
-                        </div>
+                                        <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
+                                            {{ widgetForm.errors.sites }}
+                                        </p>
 
-                        <Separator class="my-6" />
-
-                        <!-- Embed Code Section -->
-                        <div class="space-y-4">
-                            <h3 class="text-lg font-semibold">Embed Code</h3>
-                            
-                            <div class="bg-muted rounded-lg p-4">
-                                <div class="flex items-center justify-between mb-3">
-                                    <p class="text-sm text-muted-foreground">
-                                        Copy and paste this code into your website's <code>&lt;head&gt;</code>.
-                                    </p>
-                                    <div class="flex items-center gap-2">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="copyEmbedSnippet"
-                                            class="gap-2"
-                                        >
-                                            <Copy class="h-4 w-4" />
-                                            Copy
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="openPreview"
-                                            class="gap-2"
-                                        >
-                                            <Eye class="h-4 w-4" />
-                                            Preview
-                                        </Button>
+                                        <p class="text-xs text-muted-foreground">
+                                            Examples: example.com, www.example.com, *.example.com (all subdomains)
+                                        </p>
                                     </div>
-                                </div>
-                                <div class="bg-background border rounded p-3">
-                                    <pre class="text-xs text-foreground overflow-x-auto"><code v-text="embedSnippet"></code></pre>
-                                </div>
-                            </div>
-                        </div>
+                                </TabsContent>
 
-                        <Separator class="my-6" />
+                                <!-- General Tab -->
+                                <TabsContent value="general" class="p-6 space-y-6">
+                                    <div class="space-y-2">
+                                        <Label for="chat_window_title">Chat Title</Label>
+                                        <Input
+                                            id="chat_window_title"
+                                            v-model="appearanceForm.chat_window_title"
+                                            placeholder="Chat with us"
+                                        />
+                                        <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
+                                            {{ appearanceForm.errors.chat_window_title }}
+                                        </p>
+                                        <p class="text-xs text-muted-foreground">
+                                            This title appears at the top of the chat window
+                                        </p>
+                                    </div>
 
-                        <!-- Widget Settings Section -->
-                        <div class="space-y-6">
-                            <h3 class="text-lg font-semibold">Widget Settings</h3>
-                            
-                        <!-- Title, Welcome ChatMessage, and Widget Color -->
-                        <div class="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-6">
-                            <!-- Chat Title -->
-                            <div class="space-y-2">
-                                <Label for="chat_window_title">Title</Label>
-                                <Input
-                                    id="chat_window_title"
-                                    v-model="appearanceForm.chat_window_title"
-                                    placeholder="Chat with us"
-                                />
-                                <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
-                                    {{ appearanceForm.errors.chat_window_title }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    This title appears at the top of the chat window
-                                </p>
-                            </div>
+                                    <div class="space-y-2">
+                                        <Label for="welcome_message">Welcome Message</Label>
+                                        <Input
+                                            id="welcome_message"
+                                            v-model="appearanceForm.welcome_message"
+                                            placeholder="Hello! How can I help you today?"
+                                        />
+                                        <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
+                                            {{ appearanceForm.errors.welcome_message }}
+                                        </p>
+                                        <p class="text-xs text-muted-foreground">
+                                            First message users see when opening the widget
+                                        </p>
+                                    </div>
 
-                            <!-- Welcome ChatMessage -->
-                            <div class="space-y-2">
-                                <Label for="welcome_message">Welcome Message</Label>
-                                <Input
-                                    id="welcome_message"
-                                    v-model="appearanceForm.welcome_message"
-                                    placeholder="Hello! How can I help you today?"
-                                />
-                                <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
-                                    {{ appearanceForm.errors.welcome_message }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    This message will be shown when users first open the widget
-                                </p>
-                            </div>
+                                    <div class="space-y-2">
+                                        <Label>Chat Bubbles</Label>
+                                        <p class="text-xs text-muted-foreground mb-2">Quick message prompts to help users start conversations</p>
 
-                            <!-- Widget Color -->
-                            <div class="space-y-2">
-                                <Label>Color</Label>
-                                <div class="flex items-center gap-3">
-                                    <!-- Selected Color Preview -->
-                                    <div class="relative cursor-pointer" @click="showColorPicker = true">
-                                        <div
-                                            class="h-10 w-10 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
-                                            :style="{
-                                                backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
-                                            }"
-                                        >
-                                            <div class="flex h-full items-center justify-center">
-                                                <div class="h-6 w-6 rounded-full bg-white/90 shadow-sm flex items-center justify-center">
-                                                    <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                                        <TagsInput v-model="widgetForm.bubbles" class="w-full">
+                                            <TagsInputItem v-for="(bubble, index) in widgetForm.bubbles" :key="index" :value="bubble">
+                                                <TagsInputItemText />
+                                                <TagsInputItemDelete />
+                                            </TagsInputItem>
+                                            <TagsInputInput placeholder="e.g., How can I help you?" />
+                                        </TagsInput>
+
+                                        <p v-if="widgetForm.errors.bubbles" class="text-sm text-destructive">
+                                            {{ widgetForm.errors.bubbles }}
+                                        </p>
+                                    </div>
+                                </TabsContent>
+
+                                <!-- Appearance Tab -->
+                                <TabsContent value="appearance" class="p-6 space-y-6">
+                                    <div class="space-y-2">
+                                        <Label>Widget Color</Label>
+                                        <p class="text-xs text-muted-foreground mb-3">Choose the primary color for your widget</p>
+                                        
+                                        <div class="relative cursor-pointer inline-block" @click="showColorPicker = true">
+                                            <div
+                                                class="h-20 w-20 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                                                :style="{
+                                                    backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
+                                                }"
+                                            >
+                                                <div class="flex h-full items-center justify-center">
+                                                    <div class="h-10 w-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
+                                                        <div class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <div class="mt-3">
+                                            <p class="text-sm font-medium capitalize">
+                                                {{ appearanceForm.color_theme }} - {{ appearanceForm.color_shade }}
+                                            </p>
+                                        </div>
+
+                                        <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
+                                            {{ appearanceForm.errors.color_theme }}
+                                        </p>
                                     </div>
-                                </div>
+                                </TabsContent>
 
-                                <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
-                                    {{ appearanceForm.errors.color_theme }}
-                                </p>
-                            </div>
-                        </div>
-                        <Alert>
-                            <AlertDescription class="font-bold">
-                                Position, Window Size and Chat Bubbles are only visible in the preview mode.
-                            </AlertDescription>
-                        </Alert>
+                                <!-- Behavior Tab -->
+                                <TabsContent value="behavior" class="p-6 space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="space-y-2">
+                                            <Label for="position">Position</Label>
+                                            <Select v-model="widgetForm.position">
+                                                <SelectTrigger class="w-full">
+                                                    <SelectValue placeholder="Select position" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="bottom-right">Bottom Right</SelectItem>
+                                                    <SelectItem value="bottom-left">Bottom Left</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <p class="text-xs text-muted-foreground">
+                                                Where the widget appears on the page
+                                            </p>
+                                        </div>
 
-                        <!-- Widget Settings -->
-                        <div class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-2">
-                                    <Label for="position">Position</Label>
-                                    <Select v-model="widgetForm.position">
-                                        <SelectTrigger class="w-full">
-                                            <SelectValue placeholder="Select position" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="bottom-right">Bottom Right</SelectItem>
-                                            <SelectItem value="bottom-left">Bottom Left</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                        <div class="space-y-2">
+                                            <Label for="window_size">Window Size</Label>
+                                            <Select v-model="widgetForm.window_size">
+                                                <SelectTrigger class="w-full">
+                                                    <SelectValue placeholder="Select size" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="small">Small</SelectItem>
+                                                    <SelectItem value="medium">Medium</SelectItem>
+                                                    <SelectItem value="large">Large</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <p class="text-xs text-muted-foreground">
+                                                Chat window dimensions
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                <div class="space-y-2">
-                                    <Label for="window_size">Window Size</Label>
-                                    <Select v-model="widgetForm.window_size">
-                                        <SelectTrigger class="w-full">
-                                            <SelectValue placeholder="Select size" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="small">Small</SelectItem>
-                                            <SelectItem value="medium">Medium</SelectItem>
-                                            <SelectItem value="large">Large</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                        </div>
+                                    <Separator />
 
-                        <!-- Behavior Settings -->
-                        <div class="space-y-4">
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-2">
-                                    <Switch id="show_on_load" :model-value="widgetForm.show_on_load" @update:model-value="(value: any) => widgetForm.show_on_load = value" />
-                                    <Label for="show_on_load">Show widget automatically when page loads</Label>
-                                </div>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between">
+                                            <div class="space-y-0.5">
+                                                <Label for="show_on_load">Auto-open Widget</Label>
+                                                <p class="text-xs text-muted-foreground">
+                                                    Automatically show widget when page loads
+                                                </p>
+                                            </div>
+                                            <Switch 
+                                                id="show_on_load" 
+                                                :model-value="widgetForm.show_on_load" 
+                                                @update:model-value="(value: any) => widgetForm.show_on_load = value" 
+                                            />
+                                        </div>
 
-                                <div v-if="widgetForm.show_on_load" class="ml-6 space-y-1">
-                                    <Label for="show_on_load_delay">Delay (milliseconds)</Label>
-                                    <Input id="show_on_load_delay" v-model.number="widgetForm.show_on_load_delay" type="number" min="0" step="100" placeholder="500" />
-                                </div>
-                            </div>
-                        </div>
+                                        <div v-if="widgetForm.show_on_load" class="ml-0 space-y-2">
+                                            <Label for="show_on_load_delay">Display Delay (ms)</Label>
+                                            <Input 
+                                                id="show_on_load_delay" 
+                                                v-model.number="widgetForm.show_on_load_delay" 
+                                                type="number" 
+                                                min="0" 
+                                                step="100" 
+                                                placeholder="500" 
+                                            />
+                                            <p class="text-xs text-muted-foreground">
+                                                Time to wait before showing the widget
+                                            </p>
+                                        </div>
+                                    </div>
 
-                        <!-- Bubbles -->
-                        <div class="space-y-2">
-                            <Label>Chat Bubbles</Label>
-                            <p class="text-xs text-muted-foreground">Add quick message bubbles that users can click to start conversations</p>
+                                    <Alert>
+                                        <Info class="h-4 w-4" />
+                                        <AlertDescription>
+                                            Position, window size, and chat bubbles are visible in preview mode
+                                        </AlertDescription>
+                                    </Alert>
+                                </TabsContent>
 
-                            <TagsInput v-model="widgetForm.bubbles" class="w-full" delimiter="Enter">
-                                <TagsInputItem v-for="(bubble, index) in widgetForm.bubbles" :key="index" :value="bubble">
-                                    <TagsInputItemText />
-                                    <TagsInputItemDelete />
-                                </TagsInputItem>
-                                <TagsInputInput placeholder="Enter a conversation starter (e.g., How can I help you?)" />
-                            </TagsInput>
+                                <!-- Embed Tab -->
+                                <TabsContent value="embed" class="p-6 space-y-6">
+                                    <div class="space-y-4">
+                                        <div>
+                                            <h3 class="text-sm font-medium mb-1">Installation Instructions</h3>
+                                            <p class="text-xs text-muted-foreground">
+                                                Copy and paste this code into your website's <code class="bg-muted px-1 py-0.5 rounded text-xs">&lt;head&gt;</code> section
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="bg-muted rounded-lg p-4 space-y-3">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    @click="copyEmbedSnippet"
+                                                    class="gap-2"
+                                                >
+                                                    <Copy class="h-4 w-4" />
+                                                    Copy Code
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    @click="openPreview"
+                                                    class="gap-2"
+                                                >
+                                                    <Eye class="h-4 w-4" />
+                                                    Full Preview
+                                                </Button>
+                                            </div>
+                                            <div class="bg-background border rounded p-3">
+                                                <pre class="text-xs text-foreground overflow-x-auto"><code v-text="embedSnippet"></code></pre>
+                                            </div>
+                                        </div>
 
-                            <p v-if="widgetForm.errors.bubbles" class="text-sm text-destructive">
-                                {{ widgetForm.errors.bubbles }}
-                            </p>
-
-                            <p class="text-xs text-muted-foreground">
-                                These appear as clickable bubbles to help users start conversations quickly
-                            </p>
-                        </div>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
-
-
+                                        <Alert>
+                                            <Info class="h-4 w-4" />
+                                            <AlertDescription>
+                                                Make sure to add allowed domains in the Security tab before deploying
+                                            </AlertDescription>
+                                        </Alert>
+                                    </div>
+                                </TabsContent>
+                            </form>
+                        </Tabs>
+                    </CardContent>
+                </Card>
             </div>
 
             <!-- Right Column - Live Preview -->
             <div class="flex flex-col order-2 lg:order-none">
                 <!-- Live Widget Preview -->
-                <Card class="flex flex-col lg:h-full min-h-[500px]">
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2">
-                            <Eye class="h-5 w-5" />
-                            Live Preview
-                        </CardTitle>
-                        <CardDescription>
-                            See how your widget will appear on websites. Preview updates when you save changes.
-                            <span class="block lg:hidden text-xs mt-1 text-orange-600">
-                                Tip: Use "Full Preview" button for better mobile viewing experience.
-                            </span>
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent class="flex flex-col h-full">
-                        <div class="space-y-4 flex flex-col flex-1">
-                            <!-- Preview Controls -->
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                <div class="flex items-center gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        @click="refreshPreview"
-                                        class="gap-2"
-                                    >
-                                        <RotateCcw class="h-4 w-4" />
-                                        <span class="hidden sm:inline">Refresh</span>
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        @click="openFullPreview"
-                                        class="gap-2"
-                                    >
-                                        <Eye class="h-4 w-4" />
-                                        <span class="hidden sm:inline">Full Preview</span>
-                                    </Button>
-                                </div>
-                                <div class="text-xs text-muted-foreground">
-                                    Click Save to update preview
-                                </div>
+                <div class="flex flex-col lg:h-full min-h-[500px] border-2 border-dashed border-border rounded-lg p-6 bg-muted/20">
+                    
+                    
+                    <div class="space-y-4 flex flex-col flex-1">
+                        <!-- Preview Controls -->
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="refreshPreview"
+                                    class="gap-2"
+                                >
+                                    <RotateCcw class="h-4 w-4" />
+                                    Refresh
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="openFullPreview"
+                                    class="gap-2"
+                                >
+                                    <Eye class="h-4 w-4" />
+                                    Full Preview
+                                </Button>
                             </div>
-
-                            <!-- Live Preview Iframe -->
-                            <div class="border rounded-lg bg-muted/30 p-4 flex-1">
-                                <iframe
-                                    :key="previewKey"
-                                    :src="previewUrl"
-                                    class="w-full border-0 rounded bg-white h-[400px] md:h-[500px] lg:h-full lg:min-h-[600px]"
-                                    title="Widget Live Preview"
-                                    sandbox="allow-scripts allow-same-origin allow-forms"
-                                />
+                            <div class="text-xs text-muted-foreground">
+                                Save to update preview
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
 
-
+                        <!-- Live Preview Iframe -->
+                        <div class="border-2 border-dashed border-border rounded-lg bg-background p-4 flex-1 w-full max-w-md mx-auto">
+                            <iframe
+                                :key="previewKey"
+                                :src="previewUrl"
+                                class="w-full border-0 rounded bg-white h-[400px] md:h-[500px] lg:h-full lg:min-h-[600px]"
+                                title="Widget Live Preview"
+                                sandbox="allow-scripts allow-same-origin allow-forms"
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -438,7 +460,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
 import { Separator } from '@/components/ui/separator';
-import { Globe, Save, RotateCcw, Eye, Copy, Palette, Shield, Info } from 'lucide-vue-next';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Globe, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code } from 'lucide-vue-next';
 import HeaderActions from '@/components/HeaderActions.vue';
 import { toast } from 'vue-sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -472,6 +495,7 @@ const widgetForm = useForm({
 });
 
 // States
+const activeTab = ref('security');
 const isSubmitting = ref(false);
 const showSuccessMessage = ref(false);
 const newSite = ref('');
@@ -544,14 +568,6 @@ const updateWidgetSettings = async () => {
         console.error('Failed to save settings:', error);
     }
 };
-
-const restoreDefaults = () => {
-    appearanceForm.reset();
-    widgetForm.reset();
-    showSuccessMessage.value = false;
-};
-
-
 
 const addSite = () => {
     if (newSite.value && newSite.value.trim() !== '') {

@@ -24,8 +24,11 @@ class EmbedController
 
         return Inertia::render('agents/Embed', [
             'agent' => $agent,
+            'settings' => $agent->settings('appearance'),
+            'default_settings' => config('model-settings.defaults.App\Models\Agent.appearance'),
             'embed_settings' => $agent->settings('embed'),
             'auth_token' => $authToken,
+            'starters' => $agent->starters->toArray(),
         ]);
     }
 }

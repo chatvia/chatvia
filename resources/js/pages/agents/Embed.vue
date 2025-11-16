@@ -1,372 +1,45 @@
-<template>
-    <AgentLayout :agent="agent" :title="agent.type === 'widget' ? 'Widget Configuration' : 'Embed Chat'">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Left Column - Embed Configuration -->
-            <div class="space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2">
-                            <Eye class="h-5 w-5" />
-                            Embed Configuration
-                        </CardTitle>
-                        <CardDescription>
-                            Configure and customize your chat embed for your website.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-
-                    <div class="space-y-8">
-                        <!-- Embed Code -->
-                        <div class="space-y-4">
-                            <div class="space-y-4">
-                                <!-- Size Options -->
-                                <div class="space-y-3">
-                                    <Label class="text-sm font-medium">Embed Configuration</Label>
-                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                                        <div class="space-y-2">
-                                            <Label for="embed_width" class="text-xs">Width</Label>
-                                            <Input
-                                                id="embed_width"
-                                                v-model="iframeOptions.width"
-                                                type="text"
-                                                placeholder="100%"
-                                                class="text-sm"
-
-                                            />
-                                        </div>
-                                        <div class="space-y-2">
-                                            <Label for="embed_height" class="text-xs">Height</Label>
-                                            <Input
-                                                id="embed_height"
-                                                v-model="iframeOptions.height"
-                                                type="text"
-                                                placeholder="600px"
-                                                class="text-sm"
-                                            />
-                                        </div>
-                                        <div class="space-y-2">
-                                            <Label for="embed_border" class="text-xs">Border</Label>
-                                            <Select v-model="iframeOptions.border">
-                                                <SelectTrigger class="w-full">
-                                                    <SelectValue placeholder="Border style" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="none">None</SelectItem>
-                                                    <SelectItem value="1px solid #e5e7eb">Light</SelectItem>
-                                                    <SelectItem value="2px solid #d1d5db">Medium</SelectItem>
-                                                    <SelectItem value="3px solid #9ca3af">Heavy</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div class="space-y-2">
-                                            <Label for="embed_title" class="text-xs">Title (for accessibility)</Label>
-                                            <Input
-                                                id="embed_title"
-                                                v-model="iframeOptions.title"
-                                                type="text"
-                                                placeholder="Chat with our AI assistant"
-                                                class="text-sm"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <!-- Quick Size Presets -->
-                                    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="setPresetSize('full')"
-                                            class="text-xs"
-                                        >
-                                            Full Width
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="setPresetSize('large')"
-                                            class="text-xs"
-                                        >
-                                            Large (800x600)
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="setPresetSize('medium')"
-                                            class="text-xs"
-                                        >
-                                            Medium (600x500)
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            @click="setPresetSize('small')"
-                                            class="text-xs"
-                                        >
-                                            Small (400x400)
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <!-- Generated Embed Code -->
-                                <div class="bg-muted rounded-lg p-4">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <p class="text-sm text-muted-foreground">
-                                            HTML Embed Code
-                                        </p>
-                                        <div class="flex items-center gap-2">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                @click="showPreviewModal = true"
-                                                class="gap-2"
-                                            >
-                                                <Eye class="h-4 w-4" />
-                                                Preview
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                @click="copyEmbedCode"
-                                                class="gap-2"
-                                            >
-                                                <Copy class="h-4 w-4" />
-                                                Copy Code
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div class="bg-background border rounded p-3">
-                                        <pre class="text-xs text-foreground overflow-x-auto whitespace-pre-wrap"><code v-text="embedCode"></code></pre>
-                                    </div>
-                                </div>
-
-                                <!-- Iframe Options -->
-                                <div class="space-y-4 pt-4 border-t">
-                                    <h4 class="text-sm font-medium text-foreground">Iframe Options</h4>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        <div class="flex items-center space-x-2">
-                                            <Switch
-                                                id="allow_fullscreen"
-                                                :model-value="iframeOptions.allowFullscreen"
-                                                @update:model-value="(value: any) => iframeOptions.allowFullscreen = value"
-                                            />
-                                            <Label for="allow_fullscreen" class="text-sm">Allow fullscreen</Label>
-                                        </div>
-
-                                        <div class="flex items-center space-x-2">
-                                            <Switch
-                                                id="loading_lazy"
-                                                :model-value="iframeOptions.loading"
-                                                @update:model-value="(value: any) => iframeOptions.loading = value"
-                                            />
-                                            <Label for="loading_lazy" class="text-sm">Lazy loading</Label>
-                                        </div>
-
-                                        <!-- Placeholder for third column to maintain grid structure -->
-                                        <div></div>
-                                    </div>
-
-                                    <!-- Embed-specific Settings -->
-                                    <div class="space-y-4 pt-4 border-t">
-                                        <h4 class="text-sm font-medium text-foreground">Chat Interface Options</h4>
-
-                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            <!-- Row 1 -->
-                                            <div class="flex items-center space-x-2">
-                                                <Switch
-                                                    id="remove_sidebar"
-                                                    :model-value="embedForm.remove_sidebar"
-                                                    @update:model-value="(value: any) => updateSetting('remove_sidebar', value)"
-                                                />
-                                                <Label for="remove_sidebar" class="text-sm">Remove sidebar</Label>
-                                            </div>
-
-                                            <div class="flex items-center space-x-2">
-                                                <Switch
-                                                    id="enable_chat_expand"
-                                                    :model-value="embedForm.enable_chat_expand"
-                                                    @update:model-value="(value: any) => updateSetting('enable_chat_expand', value)"
-                                                />
-                                                <Label for="enable_chat_expand" class="text-sm">Enable chat expand</Label>
-                                            </div>
-
-                                            <div class="flex items-center space-x-2">
-                                                <Switch
-                                                    id="enable_theme_switcher"
-                                                    :model-value="embedForm.enable_theme_switcher"
-                                                    @update:model-value="(value: any) => updateSetting('enable_theme_switcher', value)"
-                                                />
-                                                <Label for="enable_theme_switcher" class="text-sm">Enable theme switcher</Label>
-                                            </div>
-
-                                            <!-- Row 2 -->
-                                            <div class="space-y-1">
-                                                <div class="flex items-center space-x-2">
-                                                    <Switch
-                                                        id="hide_sidebar_on_page_load"
-                                                        :model-value="embedForm.hide_sidebar_on_page_load && !embedForm.remove_sidebar"
-                                                        @update:model-value="(value: any) => updateSetting('hide_sidebar_on_page_load', value)"
-                                                        :disabled="embedForm.remove_sidebar"
-                                                    />
-                                                    <Label for="hide_sidebar_on_page_load" :class="['text-sm', { 'text-muted-foreground': embedForm.remove_sidebar }]">Hide Sidebar on page loading</Label>
-                                                </div>
-                                                <p v-if="embedForm.remove_sidebar" class="text-xs text-muted-foreground ml-6">
-                                                    Disabled because sidebar is completely removed
-                                                </p>
-                                            </div>
-
-                                            <div class="space-y-2">
-                                                <Label for="default_theme" class="text-sm">Default theme</Label>
-                                                <Select
-                                                    v-model="embedForm.default_theme"
-                                                    @update:model-value="(value: any) => updateSetting('default_theme', value)"
-                                                >
-                                                    <SelectTrigger class="w-full">
-                                                        <SelectValue placeholder="Select default theme" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="auto">Auto (System)</SelectItem>
-                                                        <SelectItem value="light">Light</SelectItem>
-                                                        <SelectItem value="dark">Dark</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-
-                                            <!-- Empty cell to maintain grid structure -->
-                                            <div></div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Customization Hint -->
-                                    <Alert class="mt-6">
-                                        <Info class="h-4 w-4" />
-                                        <AlertTitle>Heads up!</AlertTitle>
-                                        <AlertDescription>
-                                            <Link :href="route('agents.appearance', { agent: agent.id })" class="font-medium text-primary hover:underline">For colors, themes, and logos visit Appearance</Link>.
-                                        </AlertDescription>
-                                    </Alert>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- Right Column - Live Preview -->
-            <div class="flex flex-col">
-                <Card class="flex flex-col h-full">
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2">
-                            <Eye class="h-5 w-5" />
-                            Live Preview
-                        </CardTitle>
-                        <CardDescription>
-                            See how your embed will appear on websites.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent class="flex flex-col h-full">
-                        <div class="space-y-4 flex flex-col flex-1">
-                            <!-- Preview Controls -->
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                <div class="flex items-center gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        @click="refreshPreview"
-                                        class="gap-2"
-                                    >
-                                        <Eye class="h-4 w-4" />
-                                        <span class="hidden sm:inline">Refresh</span>
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        @click="showPreviewModal = true"
-                                        class="gap-2"
-                                    >
-                                        <Eye class="h-4 w-4" />
-                                        <span class="hidden sm:inline">Full Preview</span>
-                                    </Button>
-                                </div>
-                                <div class="text-xs text-muted-foreground">
-                                    Preview updates automatically
-                                </div>
-                            </div>
-
-                            <!-- Live Preview Iframe -->
-                            <div class="border rounded-lg bg-muted/30 p-4 flex-1">
-                                <iframe
-                                    :key="embedKey"
-                                    :src="buildIframeUrl(props.agent.chat_embed_url)"
-                                    class="w-full border-0 rounded bg-white h-[400px] md:h-[500px] lg:h-full lg:min-h-[600px]"
-                                    title="Embed Preview"
-                                    sandbox="allow-scripts allow-same-origin allow-forms"
-                                />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-
-        <!-- Preview Modal -->
-        <PreviewModal
-            v-model="showPreviewModal"
-            preview-type="embed"
-            :preview-url="buildIframeUrl(props.agent.chat_embed_url)"
-            iframe-title="Chat Preview"
-        />
-
-    </AgentLayout>
-</template>
-
-<script setup lang="ts">
-import { computed, ref, reactive } from 'vue';
-import { router, useForm, Link } from '@inertiajs/vue3';
+<script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import { ref, computed, reactive, watch } from 'vue';
+import { useForm, router, Link } from '@inertiajs/vue3';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Palette, Upload, Trash2, Save, User, Image, Type, Code, Eye, Copy, Info, Shield, AlertTriangle, Share2, RotateCcw, MessageSquare, PlusCircle } from 'lucide-vue-next';
 import PreviewModal from '@/components/PreviewModal.vue';
-
-import { Eye, Copy, Info } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
+import axios from 'axios';
 
 interface Props {
     agent: any;
+    settings: any;
+    default_settings: any;
     embed_settings?: any;
     auth_token?: string | null;
+    starters: Array<{ id: number; text: string }>;
 }
 
 const props = defineProps<Props>();
 
-// States
-const embedKey = ref(0);
-const showPreviewModal = ref(false);
+// Active tab
+const activeTab = ref('security');
 
-// Iframe options for display
-const iframeOptions = reactive({
-    width: '100%',
-    height: '600px',
-    border: 'none',
-    allowFullscreen: true,
-    loading: true,
-    title: `Chat with ${props.agent.name}`,
+// Form for appearance settings
+const appearanceForm = useForm({
+    color_theme: props.settings.color_theme || 'black',
+    color_shade: props.settings.color_shade || 500,
+    welcome_message: props.settings.welcome_message,
+    chat_window_title: props.settings.chat_window_title,
+    chat_footer_text: props.settings.chat_footer_text,
+    composer_placeholder: props.settings.composer_placeholder,
 });
 
 // Embed settings form
@@ -378,11 +51,197 @@ const embedForm = useForm({
     enable_chat_expand: props.embed_settings?.enable_chat_expand ?? true,
 });
 
-// Update setting method
+// Security form
+const securityForm = useForm({
+    is_public: props.agent.is_public,
+});
+
+// Iframe options for display
+const iframeOptions = reactive({
+    width: '100%',
+    height: '600px',
+    border: 'none',
+    allowFullscreen: true,
+    loading: true,
+    title: `Chat with ${props.agent.name}`,
+});
+
+// Computed properties for text fields
+const hasUnsavedChanges = computed(() => {
+    return (
+        appearanceForm.welcome_message !== props.settings.welcome_message ||
+        appearanceForm.chat_window_title !== props.settings.chat_window_title ||
+        appearanceForm.chat_footer_text !== props.settings.chat_footer_text ||
+        appearanceForm.composer_placeholder !== props.settings.composer_placeholder
+    );
+});
+
+// States
+const isSubmitting = ref(false);
+const showSuccessMessage = ref(false);
+const showColorPicker = ref(false);
+const showPreviewModal = ref(false);
+const showSecurityConfirmDialog = ref(false);
+const avatarPreview = ref<string | null>(props.settings.avatar || null);
+const logoPreview = ref<string | null>(props.settings.logo || null);
+const avatarInputRef = ref<HTMLInputElement | null>(null);
+const logoInputRef = ref<HTMLInputElement | null>(null);
+const embedKey = ref(0);
+const showAddStarterDialog = ref(false);
+const starterMessageForm = ref({ text: '' });
+const starters = ref(props.starters || []);
+
+const updateAppearance = () => {
+    isSubmitting.value = true;
+    showSuccessMessage.value = false;
+
+    // Only save text fields (colors and images auto-save)
+    const textForm = useForm({
+        welcome_message: appearanceForm.welcome_message,
+        chat_window_title: appearanceForm.chat_window_title,
+        chat_footer_text: appearanceForm.chat_footer_text,
+        composer_placeholder: appearanceForm.composer_placeholder,
+    });
+
+    textForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+        preserveScroll: true,
+
+        onSuccess: () => {
+            isSubmitting.value = false;
+            showSuccessMessage.value = true;
+            embedKey.value += 1;
+            setTimeout(() => {
+                showSuccessMessage.value = false;
+            }, 3000);
+        },
+        onError: () => {
+            isSubmitting.value = false;
+        }
+    });
+};
+
+const triggerAvatarInput = () => {
+    if (avatarInputRef.value) {
+        avatarInputRef.value.click();
+    }
+};
+
+const handleAvatarUpload = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (!file) return;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        if (e.target && typeof e.target.result === 'string') {
+            avatarPreview.value = e.target.result;
+        }
+    };
+    reader.readAsDataURL(file);
+
+    // Auto-save
+    const uploadForm = useForm({
+        avatar: file,
+    });
+
+    uploadForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success('Avatar updated successfully');
+            embedKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to update avatar');
+        }
+    });
+};
+
+const removeAvatar = () => {
+    router.delete(route('agents.settings.delete', {
+        agent: props.agent.id,
+        group: 'appearance',
+        key: 'avatar'
+    }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            avatarPreview.value = null;
+            if (avatarInputRef.value) {
+                avatarInputRef.value.value = '';
+            }
+            toast.success('Avatar removed successfully');
+            embedKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to remove avatar');
+        }
+    });
+};
+
+const triggerLogoInput = () => {
+    if (logoInputRef.value) {
+        logoInputRef.value.click();
+    }
+};
+
+const handleLogoUpload = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (!file) return;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        if (e.target && typeof e.target.result === 'string') {
+            logoPreview.value = e.target.result;
+        }
+    };
+    reader.readAsDataURL(file);
+
+    // Auto-save
+    const uploadForm = useForm({
+        logo: file,
+    });
+
+    uploadForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success('Logo updated successfully');
+            embedKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to update logo');
+        }
+    });
+};
+
+const removeLogo = () => {
+    router.delete(route('agents.settings.delete', {
+        agent: props.agent.id,
+        group: 'appearance',
+        key: 'logo'
+    }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            logoPreview.value = null;
+            if (logoInputRef.value) {
+                logoInputRef.value.value = '';
+            }
+            toast.success('Logo removed successfully');
+            embedKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to remove logo');
+        }
+    });
+};
+
+// Embed methods
 const updateSetting = (key: string, value: any) => {
     (embedForm as any)[key] = value;
 
-    // If remove_sidebar is enabled, automatically disable hide_sidebar_on_page_load
     let dataToSend: any = { [key]: value };
 
     if (key === 'remove_sidebar' && value === true) {
@@ -390,7 +249,6 @@ const updateSetting = (key: string, value: any) => {
         dataToSend.hide_sidebar_on_page_load = false;
     }
 
-    // Always send POST request with the true/false value
     router.post(route('agents.settings.update', {
         agent: props.agent.id,
         group: 'embed'
@@ -398,7 +256,6 @@ const updateSetting = (key: string, value: any) => {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Setting updated successfully');
-            // Refresh the preview to show the updated settings
             embedKey.value += 1;
         },
         onError: () => {
@@ -407,35 +264,6 @@ const updateSetting = (key: string, value: any) => {
     });
 };
 
-// Computed embed code
-const embedCode = computed(() => {
-    const attributes = [
-        `src="${props.agent.chat_embed_url}"`, // Use chat_embed_url from agent with auth token
-        `width="${iframeOptions.width}"`,
-        `height="${iframeOptions.height}"`,
-        `title="${iframeOptions.title}"`,
-        `frameborder="0"`,
-    ];
-
-    // Add border style if not 'none'
-    if (iframeOptions.border !== 'none') {
-        attributes.push(`style="border: ${iframeOptions.border}"`);
-    }
-
-    // Add allowfullscreen if enabled - only when true
-    if (iframeOptions.allowFullscreen === true) {
-        attributes.push('allowfullscreen');
-    }
-
-    // Add lazy loading if enabled - only when true
-    if (iframeOptions.loading === true) {
-        attributes.push('loading="lazy"');
-    }
-
-    return `<iframe ${attributes.join(' ')}></iframe>`;
-});
-
-// Methods
 const buildIframeUrl = (baseUrl: string) => {
     if (props.auth_token) {
         const separator = baseUrl.includes('?') ? '&' : '?';
@@ -443,6 +271,30 @@ const buildIframeUrl = (baseUrl: string) => {
     }
     return baseUrl;
 };
+
+const embedCode = computed(() => {
+    const attributes = [
+        `src="${props.agent.chat_embed_url}"`,
+        `width="${iframeOptions.width}"`,
+        `height="${iframeOptions.height}"`,
+        `title="${iframeOptions.title}"`,
+        `frameborder="0"`,
+    ];
+
+    if (iframeOptions.border !== 'none') {
+        attributes.push(`style="border: ${iframeOptions.border}"`);
+    }
+
+    if (iframeOptions.allowFullscreen === true) {
+        attributes.push('allowfullscreen');
+    }
+
+    if (iframeOptions.loading === true) {
+        attributes.push('loading="lazy"');
+    }
+
+    return `<iframe ${attributes.join(' ')}></iframe>`;
+});
 
 const copyEmbedCode = async () => {
     try {
@@ -479,5 +331,759 @@ const refreshPreview = () => {
     embedKey.value += 1;
 };
 
+// Copy agent URL
+const copyAgentUrl = async () => {
+    try {
+        await navigator.clipboard.writeText(props.agent.public_url || props.agent.url);
+        toast.success('Agent URL copied to clipboard!');
+    } catch (error) {
+        console.error('Failed to copy URL:', error);
+        toast.error('Failed to copy URL. Please try again.');
+    }
+};
 
+// Security functions
+const updateSecuritySettings = () => {
+    securityForm.patch(route('agents.security.update', props.agent.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Security settings updated');
+        },
+        onError: () => {
+            toast.error('Failed to update security settings');
+            // Revert the form value on error
+            securityForm.is_public = !securityForm.is_public;
+        }
+    });
+};
+
+const confirmMakePublic = () => {
+    showSecurityConfirmDialog.value = false;
+    updateSecuritySettings();
+};
+
+const cancelMakePublic = () => {
+    showSecurityConfirmDialog.value = false;
+    // Revert the toggle
+    securityForm.is_public = false;
+};
+
+// Auto-save when security toggle changes
+watch(() => securityForm.is_public, (newValue, oldValue) => {
+    // Only process if the value actually changed and it's not the initial load
+    if (oldValue !== undefined && newValue !== oldValue) {
+        // If trying to make public, show confirmation
+        if (newValue === true) {
+            showSecurityConfirmDialog.value = true;
+        } else {
+            // If making private, just save directly
+            updateSecuritySettings();
+        }
+    }
+});
+
+// Auto-save color changes
+const saveColorSettings = () => {
+    const colorForm = useForm({
+        color_theme: appearanceForm.color_theme,
+        color_shade: appearanceForm.color_shade,
+    });
+
+    colorForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Color updated successfully');
+            embedKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to update color');
+        }
+    });
+};
+
+// Starters functionality
+const addStarterMessage = () => {
+    axios.post(route('agents.starters.store', props.agent.id), { text: starterMessageForm.value.text })
+        .then((response: any) => {
+            showAddStarterDialog.value = false;
+            starters.value.push({
+                id: response.data.id,
+                text: response.data.text
+            });
+            starterMessageForm.value.text = '';
+            toast.success('Starter message added');
+        })
+        .catch(() => {
+            toast.error('Failed to add starter message');
+        });
+};
+
+const removeStarter = (id: number) => {
+    axios.delete(route('agents.starters.delete', { agent: props.agent.id, id }))
+        .then(() => {
+            starters.value = starters.value.filter(starter => starter.id !== id);
+            toast.success('Starter message removed');
+        })
+        .catch(() => {
+            toast.error('Failed to remove starter message');
+        });
+};
 </script>
+
+<template>
+    <AgentLayout :agent="agent" title="Embed">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left Column - Tabbed Configuration -->
+            <div class="order-1 lg:order-none">
+                <Card>
+                    <CardContent class="p-0">
+                        <Tabs v-model="activeTab" class="w-full">
+                            <TabsList class="w-full grid grid-cols-7 rounded-none border-b">
+                                <TabsTrigger value="text" class="gap-2">
+                                    <Type class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Text</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="starters" class="gap-2">
+                                    <MessageSquare class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Starters</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="colors" class="gap-2">
+                                    <Palette class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Colors</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="branding" class="gap-2">
+                                    <Image class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Logo</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="embed" class="gap-2">
+                                    <Code class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Embed</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="share" class="gap-2">
+                                    <Share2 class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Share</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="security" class="gap-2">
+                                    <Shield class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Security</span>
+                                </TabsTrigger>
+                            </TabsList>
+
+                            <form @submit.prevent="updateAppearance">
+                                <!-- Security Tab -->
+                                <TabsContent value="security" class="p-6 space-y-6">
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between space-x-2">
+                                            <div class="flex-1">
+                                                <Label class="text-base" for="is_public">Make this agent public</Label>
+                                                <p class="text-sm text-muted-foreground mt-1">
+                                                    Public agents can be accessed by anyone with the link
+                                                </p>
+                                            </div>
+                                            <Switch 
+                                                id="is_public" 
+                                                v-model="securityForm.is_public"
+                                            />
+                                        </div>
+                                    </div>
+                                </TabsContent>
+
+                                <!-- Share Tab -->
+                                <TabsContent value="share" class="p-6 space-y-6">
+                                    <div class="space-y-4">
+                                        <div>
+                                            <Label class="text-base">Agent URL</Label>
+                                            <p class="text-sm text-muted-foreground mt-1 mb-3">
+                                                Share this URL to give others access to your agent
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="bg-muted rounded-lg p-4">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <code class="text-sm text-foreground break-all">
+                                                    {{ agent.public_url || agent.url }}
+                                                </code>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    @click="copyAgentUrl"
+                                                    class="gap-2 shrink-0"
+                                                >
+                                                    <Copy class="h-4 w-4" />
+                                                    Copy
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <Alert>
+                                            <Info class="h-4 w-4" />
+                                            <AlertDescription>
+                                                Anyone with this URL can access your agent. Make sure to set the appropriate security settings.
+                                            </AlertDescription>
+                                        </Alert>
+                                    </div>
+                                </TabsContent>
+
+                                <!-- Colors Tab -->
+                                <TabsContent value="colors" class="p-6 space-y-6">
+                                    <div class="space-y-2">
+                                        <Label>Color Theme</Label>
+                                        <p class="text-xs text-muted-foreground mb-3">Click the color swatch to choose your primary color</p>
+                                        
+                                        <div class="relative cursor-pointer inline-block" @click="showColorPicker = true">
+                                            <div
+                                                class="h-24 w-24 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                                                :style="{
+                                                    backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
+                                                }"
+                                            >
+                                                <div class="flex h-full items-center justify-center">
+                                                    <div class="h-12 w-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
+                                                        <div class="h-8 w-8 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
+                                            {{ appearanceForm.errors.color_theme }}
+                                        </p>
+                                    </div>
+                                </TabsContent>
+
+                                <!-- Branding Tab -->
+                                <TabsContent value="branding" class="p-6 space-y-6">
+                                    <div class="space-y-2">
+                                        <Label>Agent Avatar</Label>
+                                        <p class="text-xs text-muted-foreground mb-3">Upload an avatar for your agent (256x256px recommended)</p>
+                                        
+                                        <div class="flex items-center gap-4">
+                                            <div class="h-20 w-20 overflow-hidden rounded-full border bg-muted">
+                                                <img
+                                                    v-if="avatarPreview"
+                                                    :src="avatarPreview"
+                                                    alt="Agent avatar"
+                                                    class="h-full w-full object-cover"
+                                                />
+                                                <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
+                                                    <User class="h-10 w-10" />
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col gap-2">
+                                                <input
+                                                    ref="avatarInputRef"
+                                                    accept="image/*"
+                                                    class="hidden"
+                                                    type="file"
+                                                    @change="handleAvatarUpload"
+                                                />
+                                                <Button type="button" variant="outline" size="sm" @click="triggerAvatarInput">
+                                                    <Upload class="mr-2 h-4 w-4" />
+                                                    Upload Avatar
+                                                </Button>
+                                                <Button
+                                                    v-if="avatarPreview"
+                                                    class="text-destructive hover:text-destructive/80"
+                                                    size="sm"
+                                                    type="button"
+                                                    variant="ghost"
+                                                    @click="removeAvatar"
+                                                >
+                                                    <Trash2 class="mr-2 h-4 w-4" />
+                                                    Remove
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <Label>Logo Image</Label>
+                                        <p class="text-xs text-muted-foreground mb-3">Upload a logo for your agent (256x256px recommended)</p>
+                                        
+                                        <div class="flex items-center gap-4">
+                                            <div class="h-20 w-20 overflow-hidden rounded-full border bg-muted">
+                                                <img
+                                                    v-if="logoPreview"
+                                                    :src="logoPreview"
+                                                    alt="Logo"
+                                                    class="h-full w-full object-cover"
+                                                />
+                                                <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
+                                                    <Image class="h-10 w-10" />
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col gap-2">
+                                                <input
+                                                    ref="logoInputRef"
+                                                    accept="image/*"
+                                                    class="hidden"
+                                                    type="file"
+                                                    @change="handleLogoUpload"
+                                                />
+                                                <Button type="button" variant="outline" size="sm" @click="triggerLogoInput">
+                                                    <Upload class="mr-2 h-4 w-4" />
+                                                    Upload Logo
+                                                </Button>
+                                                <Button
+                                                    v-if="logoPreview"
+                                                    class="text-destructive hover:text-destructive/80"
+                                                    size="sm"
+                                                    type="button"
+                                                    variant="ghost"
+                                                    @click="removeLogo"
+                                                >
+                                                    <Trash2 class="mr-2 h-4 w-4" />
+                                                    Remove
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </TabsContent>
+
+                                <!-- Text Content Tab -->
+                                <TabsContent value="text" class="p-6 space-y-6">
+                                    <div class="space-y-2">
+                                        <Label for="welcome_message">Welcome Message</Label>
+                                        <Textarea
+                                            id="welcome_message"
+                                            v-model="appearanceForm.welcome_message"
+                                            placeholder="Hi there! How can I help you today?"
+                                            rows="3"
+                                        />
+                                        <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
+                                            {{ appearanceForm.errors.welcome_message }}
+                                        </p>
+                                        <p class="text-xs text-muted-foreground">
+                                            First message shown to users
+                                        </p>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <Label for="chat_window_title">Chat Window Title</Label>
+                                        <Input
+                                            id="chat_window_title"
+                                            v-model="appearanceForm.chat_window_title"
+                                            placeholder="Chat with our AI Assistant"
+                                        />
+                                        <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
+                                            {{ appearanceForm.errors.chat_window_title }}
+                                        </p>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <Label for="chat_footer_text">Chat Footer Text</Label>
+                                        <Input
+                                            id="chat_footer_text"
+                                            v-model="appearanceForm.chat_footer_text"
+                                            placeholder="Consider checking important information"
+                                        />
+                                        <p v-if="appearanceForm.errors.chat_footer_text" class="text-sm text-destructive">
+                                            {{ appearanceForm.errors.chat_footer_text }}
+                                        </p>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <Label for="composer_placeholder">Composer Placeholder</Label>
+                                        <Input
+                                            id="composer_placeholder"
+                                            v-model="appearanceForm.composer_placeholder"
+                                            placeholder="Ask anything..."
+                                        />
+                                        <p v-if="appearanceForm.errors.composer_placeholder" class="text-sm text-destructive">
+                                            {{ appearanceForm.errors.composer_placeholder }}
+                                        </p>
+                                        <p class="text-xs text-muted-foreground">
+                                            Placeholder text in the chat input field
+                                        </p>
+                                    </div>
+
+                                    <!-- Save Button -->
+                                    <div class="pt-4 border-t">
+                                        <Button 
+                                            type="submit" 
+                                            :disabled="isSubmitting || !hasUnsavedChanges"
+                                            class="w-full"
+                                        >
+                                            <Save class="h-4 w-4 mr-2" />
+                                            {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+                                        </Button>
+                                        <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2 text-center">
+                                            Settings saved successfully
+                                        </p>
+                                    </div>
+                                </TabsContent>
+
+                                <!-- Starters Tab -->
+                                <TabsContent value="starters" class="p-6 space-y-6">
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <h3 class="text-sm font-medium">Conversation Starters</h3>
+                                                <p class="text-xs text-muted-foreground mt-1">
+                                                    Suggest questions to help users start conversations
+                                                </p>
+                                            </div>
+                                            <Button 
+                                                type="button" 
+                                                variant="outline" 
+                                                size="sm"
+                                                @click="showAddStarterDialog = true"
+                                            >
+                                                <PlusCircle class="mr-2 h-4 w-4" />
+                                                Add Starter
+                                            </Button>
+                                        </div>
+
+                                        <div class="rounded-md border">
+                                            <div 
+                                                v-if="starters.length === 0"
+                                                class="p-4 text-center text-muted-foreground text-sm"
+                                            >
+                                                No starter messages yet
+                                            </div>
+                                            <div
+                                                v-for="starter in starters"
+                                                :key="starter.id"
+                                                class="flex items-center justify-between border-b p-3 last:border-0"
+                                            >
+                                                <div class="flex items-center gap-3">
+                                                    <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                                                    <div class="text-sm">{{ starter.text }}</div>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    @click="removeStarter(starter.id)"
+                                                >
+                                                    <Trash2 class="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <Alert>
+                                            <Info class="h-4 w-4" />
+                                            <AlertDescription>
+                                                Good starter messages are specific questions that showcase your agent's capabilities
+                                            </AlertDescription>
+                                        </Alert>
+                                    </div>
+                                </TabsContent>
+
+                                <!-- Embed Tab -->
+                                <TabsContent value="embed" class="p-6 space-y-6">
+                                    <div class="space-y-4">
+                                        <div class="space-y-3">
+                                            <Label class="text-sm font-medium">Embed Configuration</Label>
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div class="space-y-2">
+                                                    <Label for="embed_width" class="text-xs">Width</Label>
+                                                    <Input
+                                                        id="embed_width"
+                                                        v-model="iframeOptions.width"
+                                                        type="text"
+                                                        placeholder="100%"
+                                                        class="text-sm"
+                                                    />
+                                                </div>
+                                                <div class="space-y-2">
+                                                    <Label for="embed_height" class="text-xs">Height</Label>
+                                                    <Input
+                                                        id="embed_height"
+                                                        v-model="iframeOptions.height"
+                                                        type="text"
+                                                        placeholder="600px"
+                                                        class="text-sm"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    @click="setPresetSize('full')"
+                                                    class="text-xs"
+                                                >
+                                                    Full Width
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    @click="setPresetSize('large')"
+                                                    class="text-xs"
+                                                >
+                                                    Large
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-muted rounded-lg p-4">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <p class="text-sm text-muted-foreground">HTML Embed Code</p>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    @click="copyEmbedCode"
+                                                    class="gap-2"
+                                                >
+                                                    <Copy class="h-4 w-4" />
+                                                    Copy
+                                                </Button>
+                                            </div>
+                                            <div class="bg-background border rounded p-3">
+                                                <pre class="text-xs text-foreground overflow-x-auto whitespace-pre-wrap"><code v-text="embedCode"></code></pre>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-4 pt-4 border-t">
+                                            <h4 class="text-sm font-medium">Interface Options</h4>
+
+                                            <div class="space-y-3">
+                                                <div class="flex items-center justify-between">
+                                                    <Label for="remove_sidebar" class="text-sm">Remove sidebar</Label>
+                                                    <Switch
+                                                        id="remove_sidebar"
+                                                        :model-value="embedForm.remove_sidebar"
+                                                        @update:model-value="(value: any) => updateSetting('remove_sidebar', value)"
+                                                    />
+                                                </div>
+
+                                                <div class="flex items-center justify-between">
+                                                    <Label for="enable_chat_expand" class="text-sm">Enable chat expand</Label>
+                                                    <Switch
+                                                        id="enable_chat_expand"
+                                                        :model-value="embedForm.enable_chat_expand"
+                                                        @update:model-value="(value: any) => updateSetting('enable_chat_expand', value)"
+                                                    />
+                                                </div>
+
+                                                <div class="flex items-center justify-between">
+                                                    <Label for="enable_theme_switcher" class="text-sm">Enable theme switcher</Label>
+                                                    <Switch
+                                                        id="enable_theme_switcher"
+                                                        :model-value="embedForm.enable_theme_switcher"
+                                                        @update:model-value="(value: any) => updateSetting('enable_theme_switcher', value)"
+                                                    />
+                                                </div>
+
+                                                <div class="space-y-2">
+                                                    <Label for="default_theme" class="text-sm">Default theme</Label>
+                                                    <Select
+                                                        v-model="embedForm.default_theme"
+                                                        @update:model-value="(value: any) => updateSetting('default_theme', value)"
+                                                    >
+                                                        <SelectTrigger class="w-full">
+                                                            <SelectValue placeholder="Select default theme" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="auto">Auto (System)</SelectItem>
+                                                            <SelectItem value="light">Light</SelectItem>
+                                                            <SelectItem value="dark">Dark</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                            </form>
+                        </Tabs>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <!-- Right Column - Live Preview -->
+            <div class="flex flex-col order-2 lg:order-none">
+                <div class="flex flex-col lg:h-full min-h-[500px] border-2 border-dashed border-border rounded-lg p-6 bg-muted/20">
+                    <div class="space-y-4 flex flex-col flex-1">
+                        <div class="flex items-center justify-between">
+                            
+                            <div class="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="refreshPreview"
+                                    class="gap-2"
+                                >
+                                    <RotateCcw class="h-4 w-4" />
+                                    Refresh
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="showPreviewModal = true"
+                                    class="gap-2"
+                                >
+                                    <Eye class="h-4 w-4" />
+                                    Full Preview
+                                </Button>
+                            </div>
+                        </div>
+
+
+                        <div class="border-2 border-dashed border-border rounded-lg bg-background p-4 flex-1">
+                            <iframe
+                                :key="embedKey"
+                                :src="buildIframeUrl(agent.chat_embed_url)"
+                                class="w-full border-0 rounded bg-white h-[400px] md:h-[500px] lg:h-full lg:min-h-[600px]"
+                                title="Chat Preview"
+                                sandbox="allow-scripts allow-same-origin allow-forms"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Modal -->
+        <PreviewModal
+            v-model="showPreviewModal"
+            preview-type="embed"
+            :preview-url="buildIframeUrl(agent.chat_embed_url)"
+            iframe-title="Chat Preview"
+        />
+
+        <!-- Color Picker Dialog -->
+        <Dialog v-model:open="showColorPicker">
+            <DialogContent class="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <Palette class="h-5 w-5" />
+                        Choose Color Theme
+                    </DialogTitle>
+                    <DialogDescription>
+                        Select a color and shade for your agent's primary theme
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div class="space-y-6">
+                    <div class="grid grid-cols-8 gap-2">
+                        <div
+                            v-for="theme in ['black', 'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose', 'slate', 'gray', 'zinc', 'neutral', 'stone']"
+                            :key="theme"
+                            class="relative cursor-pointer group"
+                            @click="appearanceForm.color_theme = theme"
+                        >
+                            <div
+                                class="h-12 w-full rounded-lg border-2 transition-all duration-200 shadow-sm"
+                                :class="{
+                                    'border-primary ring-2 ring-primary/20': appearanceForm.color_theme === theme,
+                                    'border-border hover:border-primary/50 hover:shadow-md': appearanceForm.color_theme !== theme
+                                }"
+                                :style="{
+                                    backgroundColor: `var(--${theme}-${appearanceForm.color_shade})`
+                                }"
+                            >
+                                <div class="flex h-full items-center justify-center">
+                                    <div
+                                        v-if="appearanceForm.color_theme === theme"
+                                        class="h-6 w-6 rounded-full bg-white shadow-lg flex items-center justify-center"
+                                    >
+                                        <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-center text-xs font-medium capitalize" :class="{
+                                'text-primary': appearanceForm.color_theme === theme,
+                                'text-muted-foreground': appearanceForm.color_theme !== theme
+                            }">{{ theme }}</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label class="text-sm">Color Intensity</Label>
+                        <div class="px-1">
+                            <input
+                                type="range"
+                                min="50"
+                                max="950"
+                                step="50"
+                                v-model="appearanceForm.color_shade"
+                                class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                                :style="{
+                                    background: `linear-gradient(to right, var(--${appearanceForm.color_theme}-50), var(--${appearanceForm.color_theme}-950))`
+                                }"
+                            />
+                        </div>
+                        <div class="flex justify-between text-xs text-muted-foreground">
+                            <span>Light</span>
+                            <span class="font-medium">{{ appearanceForm.color_shade }}</span>
+                            <span>Dark</span>
+                        </div>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button @click="() => { saveColorSettings(); showColorPicker = false; }">
+                        Apply & Save
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Security Confirmation Dialog -->
+        <Dialog v-model:open="showSecurityConfirmDialog">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <AlertTriangle class="h-5 w-5 text-orange-500" />
+                        Make Agent Public?
+                    </DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to make this agent public? Anyone with the link will be able to access and interact with this agent.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button variant="outline" @click="cancelMakePublic">
+                        Cancel
+                    </Button>
+                    <Button @click="confirmMakePublic">
+                        Make Public
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Add Starter Dialog -->
+        <Dialog v-model:open="showAddStarterDialog">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add Starter Message</DialogTitle>
+                    <DialogDescription>
+                        Create a new conversation starter for your users
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="py-4">
+                    <Label class="mb-2" for="starter-message">Message Text</Label>
+                    <Textarea
+                        id="starter-message"
+                        v-model="starterMessageForm.text"
+                        placeholder="E.g., How can I track my order?"
+                        rows="3"
+                    />
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" @click="showAddStarterDialog = false">
+                        Cancel
+                    </Button>
+                    <Button
+                        :disabled="!starterMessageForm.text.trim()"
+                        @click="addStarterMessage"
+                    >
+                        <PlusCircle class="mr-2 h-4 w-4" />
+                        Add Message
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    </AgentLayout>
+</template>

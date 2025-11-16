@@ -13,7 +13,6 @@ use App\Http\Controllers\Agents\Agents\AgentsListController;
 use App\Http\Controllers\Agents\Agents\AgentStoreController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateSettingsController;
-use App\Http\Controllers\Agents\Appearance\AgentAppearanceController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agents\Embed\EmbedController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
@@ -26,9 +25,7 @@ use App\Http\Controllers\Agents\Models\AgentModelsShowController;
 use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
 use App\Http\Controllers\Agents\Models\AgentModelsToggleController;
 use App\Http\Controllers\Agents\Persona\AgentShowPersonaController;
-use App\Http\Controllers\Agents\Security\AgentSecurityController;
 use App\Http\Controllers\Agents\Security\AgentSecurityUpdateController;
-use App\Http\Controllers\Agents\Sources\AgentSourcesFilesController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesProcessController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFileUploadController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeMarkdownController;
@@ -39,6 +36,7 @@ use App\Http\Controllers\Agents\Sources\AgentKnowledgeUploadedFilesDeleteControl
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWordController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeYoutubeController;
+use App\Http\Controllers\Agents\Sources\AgentSourcesFilesController;
 use App\Http\Controllers\Agents\Sources\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceCrawlerController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceCrawlerLinkRetrainController;
@@ -61,7 +59,6 @@ use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeListControl
 use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeRetrainController;
 use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeStoreController;
 use App\Http\Controllers\Agents\Starters\StarterDeleteController;
-use App\Http\Controllers\Agents\Starters\StartersShowController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
 use App\Http\Controllers\Agents\Stats\AgentChartDataController;
 use App\Http\Controllers\Agents\Stats\AgentStatsController;
@@ -93,7 +90,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('playground', AgentPlaygroundController::class)->name('playground');
 
         Route::get('persona', AgentShowPersonaController::class)->name('persona');
-        Route::get('security', AgentSecurityController::class)->name('security');
 
         // Knowledge
         Route::get('sources', AgentKnowledgeSourcesController::class)->name('sources');
@@ -133,8 +129,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('sources/websites/{website}/links/bulk-delete', AgentSourceCrawlerWebsiteLinksBulkDeleteController::class)->name('sources.websites.links.bulk-delete');
         Route::post('sources/website/{website}/train', AgentSourceCrawlerWebsiteTrainController::class)->name('sources.website.train');
 
-        // Starters
-        Route::get('starters', StartersShowController::class)->name('starters');
+        // Starters API endpoints (used by Widget and Embed components)
         Route::post('starters', StartersStoreController::class)->name('starters.store');
         Route::delete('starters/{id}', StarterDeleteController::class)->name('starters.delete');
 
@@ -145,8 +140,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('leads/export', AgentLeadsExportController::class)->name('leads.export');
 
         Route::get('logs', AgentChatLogController::class)->name('logs');
-
-        Route::get('appearance', AgentAppearanceController::class)->name('appearance');
 
         Route::get('widget', WidgetController::class)->name('widget');
         Route::get('embed', EmbedController::class)->name('embed');

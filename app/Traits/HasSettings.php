@@ -32,7 +32,7 @@ trait HasSettings
             return collect($modelDefaultSettings);
         }
 
-        return $modelSettings->mapWithKeys(function ($item) {
+        $savedSettings = $modelSettings->mapWithKeys(function ($item) {
             $value = match ($item->data_type) {
                 'string' => (string) $item->value,
                 'integer' => (int) $item->value,
@@ -44,6 +44,9 @@ trait HasSettings
 
             return [$item->key => $value];
         });
+
+        // Merge defaults with saved settings, with saved settings taking precedence
+        return collect($modelDefaultSettings)->merge($savedSettings);
     }
 
     public function setSetting(string $key, mixed $value, string $group): void

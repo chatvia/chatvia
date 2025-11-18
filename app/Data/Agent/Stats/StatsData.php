@@ -16,6 +16,7 @@ class StatsData extends Data
         public array $feedback,
         public array $messagesLastWeek,
         public array $modelUsage,
+        public array $countryUsage,
         public array $dailyMessages,
         public array $topKnowledge,
         public \DateTimeImmutable $lastUpdated,
@@ -32,6 +33,7 @@ class StatsData extends Data
             'feedback' => $agent->satisfactionRate(),
             'messagesLastWeek' => self::getMessagesLastWeek($agent),
             'modelUsage' => self::mostUsedModels($agent)->toArray(),
+            'countryUsage' => self::getCountryStats($agent)->toArray(),
             'dailyMessages' => self::getDailyMessages($agent)->toArray(),
             'topKnowledge' => self::mostAccessedFiles($agent),
             'lastUpdated' => now(),
@@ -120,5 +122,19 @@ class StatsData extends Data
                 ];
             })
             ->toArray();
+    }
+
+    public static function getCountryStats(Agent $agent)
+    {
+        return $agent
+            ->conversationsByCountry()
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'country_code' => strtoupper($item->country_code),
+                    'count' => $item->conversation_count,
+                    'percentage' => $item->percentage,
+                ];
+            });
     }
 }

@@ -94,8 +94,14 @@ const stats = computed(() => ({
     avgResponseTime: props.analytics?.avgResponseTime || '0s',
     feedback: props.analytics?.feedback || { positive: 0, negative: 0, total: 0 },
     topKnowledge: props.analytics?.topKnowledge || [],
-    modelUsage: props.analytics?.modelUsage || []
+    modelUsage: props.analytics?.modelUsage || [],
+    countryUsage: props.analytics?.countryUsage || []
 }));
+
+// Get flag path for country
+const getFlagPath = (countryCode: string): string => {
+    return `/images/flags/${countryCode.toLowerCase()}.svg`;
+};
 
 // Calculate feedback sentiment
 const feedbackSentiment = computed(() => {
@@ -440,6 +446,50 @@ const sortedModelUsage = computed(() => {
                                                          :style="{ width: `${model.percentage}%` }"></div>
                                                 </div>
                                                 <span class="text-sm text-muted-foreground whitespace-nowrap">{{ model.percentage }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Countries -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-medium">Conversations by Country</h3>
+                            </div>
+                            <div class="rounded-lg border">
+                                <div v-if="!stats.countryUsage || stats.countryUsage.length === 0"
+                                     class="p-4 text-center text-muted-foreground">
+                                    No country data available yet
+                                </div>
+                                <div v-else class="divide-y">
+                                    <div v-for="country in stats.countryUsage"
+                                         :key="country.country_code"
+                                         class="p-4">
+                                        <div class="flex items-start justify-between gap-4">
+                                            <div class="flex items-start gap-3 min-w-0 flex-1">
+                                                <!-- Country Flag in Circle -->
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50 border flex-shrink-0 overflow-hidden">
+                                                    <img
+                                                        :src="getFlagPath(country.country_code)"
+                                                        :alt="country.country_code"
+                                                        class="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div class="flex flex-col min-w-0 flex-1">
+                                                    <span class="font-medium truncate">{{ country.country_code }}</span>
+                                                    <div class="flex items-center gap-2 mt-1">
+                                                        <span class="text-xs text-muted-foreground">{{ country.count }} {{ country.count === 1 ? 'conversation' : 'conversations' }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 flex-shrink-0">
+                                                <div class="w-24 bg-muted rounded-full h-2">
+                                                    <div class="bg-primary h-2 rounded-full transition-all duration-300"
+                                                         :style="{ width: `${country.percentage}%` }"></div>
+                                                </div>
+                                                <span class="text-sm text-muted-foreground whitespace-nowrap">{{ country.percentage }}%</span>
                                             </div>
                                         </div>
                                     </div>

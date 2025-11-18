@@ -29,6 +29,8 @@ final class ConversationCreateController
             'message' => $request->input('message'),
             'message_for_llm' => $query,
             'language' => $lang,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         $conversationId = $memory

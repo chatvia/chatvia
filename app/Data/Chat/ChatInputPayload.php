@@ -13,5 +13,7 @@ class ChatInputPayload extends Data
         public ?string $message_for_llm = null,
         public ?int $member_id = null,
         public ?string $language = null,
+        public ?string $ip_address = null,
+        public ?string $user_agent = null,
     ) {}
 }

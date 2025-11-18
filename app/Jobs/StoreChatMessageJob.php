@@ -9,6 +9,7 @@ use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\User;
+use App\Services\IP2Country;
 use App\Services\TikToken;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -42,11 +43,30 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         //            $sessionId = $exp[2];
         //        }
 
-        ChatSession::firstOrCreate([
+        $session = ChatSession::firstOrCreate([
             'id' => $sessionId,
             'agent_id' => $this->agent->id,
             'member_id' => $isInputMessage ? $this->payload->member_id : null,
+        ], [
+            'ip_address' => $isInputMessage ? $this->payload->ip_address : null,
+            'user_agent' => $isInputMessage ? $this->payload->user_agent : null,
         ]);
+
+        // Get country from IP address if not already set
+        if ($session->ip_address && ! $session->country) {
+            try {
+                $country = IP2Country::getCountryByIP($session->ip_address);
+                if ($country) {
+                    $session->update(['country' => $country]);
+                }
+            } catch (\Exception $e) {
+                // Log error but don't fail the job
+                logger()->error('Failed to get country from IP', [
+                    'ip' => $session->ip_address,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         ChatConversation::firstOrCreate([
             'id' => $this->conversationId,
@@ -62,6 +82,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'response_time_ms' => $this->payload?->response_time_ms ?? 0,
             'generation_id' => $this->payload?->generation_id ?? null,
             'token_count' => TikToken::countTokens($this->payload->message),
+            'confidence_score' => $this->payload?->confidence_score ?? null,
         ]);
 
         /** @var User $user */

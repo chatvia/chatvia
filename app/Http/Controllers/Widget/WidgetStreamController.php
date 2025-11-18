@@ -50,6 +50,8 @@ readonly class WidgetStreamController
                 streamLanguage: false,
                 canCollectLead: $agent->canCollectLeads(),
                 leadAlreadyCollected: $leadCollected,
+                ipAddress: $request->ip(),
+                userAgent: $request->userAgent(),
             ),
         );
     }

@@ -15,5 +15,6 @@ class ChatOutputPayload extends Data
         public ?float $response_time_ms = null,
         public array $sources = [],
         public ?string $language = null,
+        public ?float $confidence_score = null,
     ) {}
 }

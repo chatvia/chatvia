@@ -195,6 +195,7 @@ Response: 'We offer many great features including...'
 
             return [
                 'content' => $result->chunk,
+                'confidence_score' => $result->confidence_score ?? null,
                 'metadata' => [
                     'filename' => $chunkable?->filename ?? ($chunkable?->url ?? 'Unknown'),
                     'document_id' => $result->id,

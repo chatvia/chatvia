@@ -60,12 +60,12 @@ class WidgetVerification
 
         // Check www variations
         $domainWithoutWww = preg_replace('/^www\./', '', $domain);
-        $domainWithWww = str_starts_with($domain, 'www.') ? $domain : 'www.' . $domain;
+        $domainWithWww = str_starts_with($domain, 'www.') ? $domain : 'www.'.$domain;
 
         foreach ($allowedSites as $allowedSite) {
             // Check if allowed site matches domain without www or with www
             $allowedWithoutWww = preg_replace('/^www\./', '', $allowedSite);
-            $allowedWithWww = str_starts_with($allowedSite, 'www.') ? $allowedSite : 'www.' . $allowedSite;
+            $allowedWithWww = str_starts_with($allowedSite, 'www.') ? $allowedSite : 'www.'.$allowedSite;
 
             if ($domainWithoutWww === $allowedWithoutWww ||
                 $domain === $allowedWithWww ||
@@ -77,8 +77,8 @@ class WidgetVerification
             if (str_starts_with($allowedSite, '*.')) {
                 $baseDomain = substr($allowedSite, 2);
                 if ($domainWithoutWww === $baseDomain ||
-                    str_ends_with($domainWithoutWww, '.' . $baseDomain) ||
-                    str_ends_with($domain, '.' . $baseDomain)) {
+                    str_ends_with($domainWithoutWww, '.'.$baseDomain) ||
+                    str_ends_with($domain, '.'.$baseDomain)) {
                     return true;
                 }
             }

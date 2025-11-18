@@ -181,7 +181,7 @@ class MessageManager
 
     public function addFeedback(string $conversationId, string $messageId, bool $satisfied): void
     {
-        $this->updateMessage($conversationId, $messageId, ['satisfied' => $satisfied]);
+        $this->updateMessage($conversationId, $messageId, ['feedback' => $satisfied]);
     }
 
     private function saveMessage(string $conversationId, array $message): void

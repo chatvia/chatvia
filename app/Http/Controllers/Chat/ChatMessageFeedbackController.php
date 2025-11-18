@@ -16,8 +16,10 @@ class ChatMessageFeedbackController
             'feedback' => ['required', 'bool'],
         ]);
 
-        $memory->setAgent(current_agent())->setSessionId($session->firstOrCreateChatSession())->setConversationId($request->input('conversation_id'))->updateMessage($request->input('message_id'), [
-            'feedback' => $request->input('feedback'),
-        ]);
+        $memory
+            ->setAgent(current_agent())
+            ->setSessionId($session->firstOrCreateChatSession())
+            ->setConversationId($request->input('conversation_id'))
+            ->feedback($request->input('message_id'), $request->boolean('feedback'));
     }
 }

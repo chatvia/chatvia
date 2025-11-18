@@ -182,10 +182,8 @@ const controlPanelNavigationItems = computed(() => {
         baseItems.push({ id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' });
     }
 
-    // Add rename for non-widget agents
-    if (props.agent.type !== 'widget') {
-        baseItems.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
-    }
+    // Add rename for all agents
+    baseItems.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
 
     // Only add workflow if the feature is enabled
     if (features.workflow) {

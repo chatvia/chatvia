@@ -157,9 +157,12 @@ const controlPanelNavigationItems = computed(() => {
         )
     }
 
-    baseItems.push(
-        { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models', tooltip: 'Manage AI models and settings' },
-    )
+    // Only add models if the agent is not a widget
+    if (props.agent.type !== 'widget') {
+        baseItems.push(
+            { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models', tooltip: 'Manage AI models and settings' },
+        )
+    }
 
     // Always add Sources after models (or after persona if models is not available)
     baseItems.push(

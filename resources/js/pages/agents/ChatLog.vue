@@ -106,6 +106,19 @@ async function fetchConversations(page = 1) {
     if (currentConversationId.value) {
       currentConversationData.value = response.data.conversations?.data?.find((c: any) => c.conversation_id === currentConversationId.value) || currentConversationData.value;
     }
+    
+    // Update URL to preserve page number when paginating
+    if (page !== 1 || currentConversationId.value) {
+      const params: any = { agent: agent.id };
+      if (currentConversationId.value) {
+        params.conversation_id = currentConversationId.value;
+      }
+      if (page > 1) {
+        params.conversations = page;
+      }
+      const url = route('agents.logs', params);
+      window.history.pushState({}, '', url);
+    }
   } catch (error) {
     console.error('Failed to fetch conversations:', error);
   } finally {
@@ -156,12 +169,23 @@ onMounted(async () => {
   }
 });
 
-// Watch for conversation changes in URL
-watch(() => currentConversationId.value, (newId) => {
+// Watch for conversation changes
+watch(() => currentConversationId.value, (newId, oldId) => {
   if (newId) {
     fetchMessages(newId);
     // Update current conversation data
     currentConversationData.value = conversations.value?.data?.find((c: any) => c.conversation_id === newId) || null;
+    
+    // Update URL without reloading the page, preserving the conversations page
+    if (newId !== oldId) {
+      const params: any = { agent: agent.id, conversation_id: newId };
+      const currentPage = currentConversationsPage.value;
+      if (currentPage > 1) {
+        params.conversations = currentPage;
+      }
+      const url = route('agents.logs', params);
+      window.history.pushState({}, '', url);
+    }
   } else {
     messagesData.value = null;
     conversationTitle.value = null;
@@ -467,12 +491,10 @@ function exportAsPDF() {
               <!-- Conversations List -->
               <ul v-else class="space-y-1 p-2">
                 <li v-for="c in conversations?.data" :key="c.conversation_id">
-                  <Link
-                    :href="route('agents.logs', { agent: agent.id, conversation_id: c.conversation_id })"
-                    preserve-scroll
-                    class="w-full text-left px-3 py-2 rounded-md text-sm flex flex-col gap-1 transition-colors"
-                    :class="currentConversationId === c.conversation_id ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-muted'"
+                  <button
                     @click="() => { currentConversationId = c.conversation_id; currentConversationData = c; }"
+                    class="w-full text-left px-3 py-2 rounded-md text-sm flex flex-col gap-1 transition-colors cursor-pointer"
+                    :class="currentConversationId === c.conversation_id ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-muted'"
                   >
                     <div class="flex items-center justify-between">
                       <span class="truncate max-w-[160px] font-medium" :title="c.first_message_excerpt || c.conversation_id">
@@ -506,7 +528,7 @@ function exportAsPDF() {
                       <span v-if="c.country" class="opacity-50">•</span>
                       <span>{{ formatTimeAgo(c.last_at) }}</span>
                     </div>
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </CardContent>

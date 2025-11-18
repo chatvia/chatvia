@@ -142,4 +142,29 @@ class AgentQueryBuilder extends Builder
             ->where('agent_files.retrieval_count', '>', 0)
             ->orderByDesc('agent_files.retrieval_count');
     }
+
+    public function conversationsByCountry()
+    {
+        $agentId = $this->getModel()->id;
+
+        return DB::table('chat_sessions')
+            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
+            ->where('chat_sessions.agent_id', $agentId)
+            ->whereNotNull('chat_sessions.country')
+            ->selectRaw('
+                chat_sessions.country as country_code,
+                COUNT(DISTINCT chat_conversations.id) as conversation_count,
+                ROUND(
+                    (COUNT(DISTINCT chat_conversations.id) * 100.0) / (
+                        SELECT COUNT(DISTINCT cc2.id)
+                        FROM chat_conversations cc2
+                        JOIN chat_sessions cs2 ON cc2.chat_session_id = cs2.id
+                        WHERE cs2.agent_id = ?
+                    ),
+                    1
+                ) as percentage
+            ', [$agentId])
+            ->groupBy('chat_sessions.country')
+            ->orderByDesc('conversation_count');
+    }
 }

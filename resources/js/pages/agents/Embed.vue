@@ -30,7 +30,7 @@ interface Props {
 const props = defineProps<Props>();
 
 // Active tab
-const activeTab = ref('security');
+const activeTab = ref('text');
 
 // Form for appearance settings
 const appearanceForm = useForm({
@@ -704,12 +704,12 @@ const removeStarter = (id: number) => {
                                         <Button 
                                             type="submit" 
                                             :disabled="isSubmitting || !hasUnsavedChanges"
-                                            class="w-full"
+                                            size="sm"
                                         >
                                             <Save class="h-4 w-4 mr-2" />
                                             {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
                                         </Button>
-                                        <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2 text-center">
+                                        <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2">
                                             Settings saved successfully
                                         </p>
                                     </div>

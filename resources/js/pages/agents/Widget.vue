@@ -27,9 +27,9 @@
                                     <Code class="h-4 w-4" />
                                     <span class="hidden sm:inline">Embed</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="security" class="gap-2">
-                                    <Shield class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Security</span>
+                                <TabsTrigger value="security" :class="['gap-2', hasNoSitesConfigured && 'animate-pulse']">
+                                    <Shield class="h-4 w-4" :class="hasNoSitesConfigured && 'text-orange-500'" />
+                                    <span class="hidden sm:inline" :class="hasNoSitesConfigured && 'text-orange-500'">Security</span>
                                 </TabsTrigger>
                             </TabsList>
 
@@ -48,15 +48,15 @@
                                         <div class="space-y-2 mt-5">
                                             <Label>Allowed Websites</Label>
                                             <p class="text-xs text-muted-foreground mb-2">
-                                                Enter domains that can use this widget (without https://). Press Enter to save.
+                                                Enter domains that can use this widget (without https://). Press Enter to add a domain.
                                             </p>
 
-                                            <TagsInput v-model="widgetForm.sites" class="w-full" @update:model-value="saveSecuritySettings">
+                                            <TagsInput v-model="widgetForm.sites" class="w-full">
                                                 <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
                                                     <TagsInputItemText />
                                                     <TagsInputItemDelete />
                                                 </TagsInputItem>
-                                                <TagsInputInput placeholder="example.com" @keydown.enter.prevent="saveSecuritySettings" />
+                                                <TagsInputInput placeholder="example.com" />
                                             </TagsInput>
 
                                             <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
@@ -66,6 +66,18 @@
                                             <p class="text-xs text-muted-foreground">
                                                 Examples: example.com, www.example.com, *.example.com (all subdomains)
                                             </p>
+                                        </div>
+
+                                        <!-- Save Button -->
+                                        <div class="pt-4 border-t">
+                                            <Button 
+                                                type="submit"
+                                                :disabled="!hasSecurityChanges"
+                                                size="sm"
+                                            >
+                                                <Save class="h-4 w-4 mr-2" />
+                                                Save Settings
+                                            </Button>
                                         </div>
                                     </form>
                                 </TabsContent>
@@ -124,12 +136,12 @@
                                         <Button
                                             type="submit"
                                             :disabled="isSubmitting || !hasUnsavedChanges"
-                                            class="w-full"
+                                            size="sm"
                                         >
                                             <Save class="h-4 w-4 mr-2" />
                                             {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
                                         </Button>
-                                        <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2 text-center">
+                                        <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2">
                                             Settings saved successfully
                                         </p>
                                     </div>
@@ -212,12 +224,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div class="mt-3">
-                                            <p class="text-sm font-medium capitalize">
-                                                {{ appearanceForm.color_theme }} - {{ appearanceForm.color_shade }}
-                                            </p>
                                         </div>
 
                                         <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
@@ -595,7 +601,7 @@ const widgetForm = useForm({
 });
 
 // States
-const activeTab = ref('security');
+const activeTab = ref('text');
 const isSubmitting = ref(false);
 const showSuccessMessage = ref(false);
 const showPreviewModal = ref(false);
@@ -629,6 +635,14 @@ const hasUnsavedChanges = computed(() => {
 
 const hasFormErrors = computed(() => {
     return Object.keys(appearanceForm.errors).length > 0 || Object.keys(widgetForm.errors).length > 0;
+});
+
+const hasNoSitesConfigured = computed(() => {
+    return !widgetForm.sites || widgetForm.sites.length === 0;
+});
+
+const hasSecurityChanges = computed(() => {
+    return JSON.stringify(widgetForm.sites) !== JSON.stringify(props.widgetSettings.sites || []);
 });
 
 const updateWidgetSettings = async () => {

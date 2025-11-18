@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Widget\WidgetAgentVerifyController;
+use App\Http\Controllers\Widget\WidgetFeedbackController;
 use App\Http\Controllers\Widget\WidgetLeadCollectController;
 use App\Http\Controllers\Widget\WidgetLeadFormController;
 use App\Http\Controllers\Widget\WidgetSessionStoreController;
@@ -34,4 +35,6 @@ Route::prefix('widget')->group(function () {
     Route::get('/leads/form', WidgetLeadFormController::class)->name('widget.leads.form');
 
     Route::post('/leads/form', WidgetLeadCollectController::class)->name('widget.leads.collect');
+
+    Route::post('/feedback', WidgetFeedbackController::class)->name('widget.feedback');
 });

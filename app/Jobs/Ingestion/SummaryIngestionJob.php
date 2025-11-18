@@ -14,7 +14,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 
-class SummaryIngestionJob implements ShouldQueue, ShouldBeUnique
+class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable, SerializesModels;
 

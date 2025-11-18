@@ -6,7 +6,7 @@
                 <Card>
                     <CardContent class="p-0">
                         <Tabs v-model="activeTab" class="w-full">
-                            <TabsList class="w-full grid grid-cols-6 rounded-none border-b">
+                            <TabsList class="w-full grid grid-cols-7 rounded-none border-b">
                                 <TabsTrigger value="text" class="gap-2">
                                     <Type class="h-4 w-4" />
                                     <span class="hidden sm:inline">Text</span>
@@ -14,6 +14,10 @@
                                 <TabsTrigger value="starters" class="gap-2">
                                     <MessageSquare class="h-4 w-4" />
                                     <span class="hidden sm:inline">Starters</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="models" class="gap-2">
+                                    <Brain class="h-4 w-4" />
+                                    <span class="hidden sm:inline">Model</span>
                                 </TabsTrigger>
                                 <TabsTrigger value="colors" class="gap-2">
                                     <Palette class="h-4 w-4" />
@@ -202,6 +206,108 @@
                                                 Good starter messages are specific questions that showcase your agent's capabilities
                                             </AlertDescription>
                                         </Alert>
+                                    </div>
+                                </TabsContent>
+
+                                <!-- Models Tab -->
+                                <TabsContent value="models" class="p-6 space-y-6">
+                                    <div class="space-y-4">
+                                        <div>
+                                            <h3 class="text-sm font-medium">AI Model Selection</h3>
+                                            <p class="text-xs text-muted-foreground mt-1">
+                                                Select which AI model to use for your widget
+                                            </p>
+                                        </div>
+
+                                        <!-- Loading State -->
+                                        <div v-if="isLoadingModels" class="text-center py-8">
+                                            <Loader2 class="h-6 w-6 text-muted-foreground/50 mx-auto mb-2 animate-spin" />
+                                            <p class="text-sm text-muted-foreground">Loading models...</p>
+                                        </div>
+
+                                        <!-- Error State -->
+                                        <div v-else-if="modelsError" class="rounded-md border border-destructive/20 bg-destructive/10 p-4">
+                                            <p class="text-sm text-destructive">{{ modelsError }}</p>
+                                        </div>
+
+                                        <!-- Models List -->
+                                        <div v-else-if="models.length > 0" class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                                            <button
+                                                v-for="model in models"
+                                                :key="model.id"
+                                                type="button"
+                                                class="w-full flex items-center gap-3 p-3 rounded-lg border transition-all"
+                                                :class="[
+                                                    !model.user_allowed_to_use
+                                                        ? 'border-muted bg-muted/30 opacity-60 cursor-not-allowed'
+                                                        : isModelToggling(model)
+                                                            ? 'border-muted bg-muted/10 opacity-75 cursor-wait'
+                                                            : model.is_selected
+                                                                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                                                                : 'border-border hover:border-primary/50 hover:bg-accent/30 cursor-pointer'
+                                                ]"
+                                                @click="toggleModel(model)"
+                                                :disabled="!model.user_allowed_to_use || isModelToggling(model)"
+                                            >
+                                                <!-- Model Icon -->
+                                                <img
+                                                    v-if="model.icon"
+                                                    :src="`/images/llms/${model.icon}`"
+                                                    :alt="model.name"
+                                                    class="h-8 w-8 flex-shrink-0"
+                                                    :class="[!model.user_allowed_to_use ? 'opacity-50' : '']"
+                                                />
+                                                <Brain
+                                                    v-else
+                                                    class="h-8 w-8 flex-shrink-0"
+                                                    :class="[
+                                                        !model.user_allowed_to_use
+                                                            ? 'text-muted-foreground/50'
+                                                            : 'text-muted-foreground'
+                                                    ]"
+                                                />
+
+                                                <!-- Model Name -->
+                                                <div class="flex-1 text-left">
+                                                    <p class="text-sm font-medium">{{ model.name }}</p>
+                                                </div>
+
+                                                <!-- Upgrade Badge or Selection Status -->
+                                                <div class="flex-shrink-0">
+                                                    <Badge
+                                                        v-if="!model.user_allowed_to_use"
+                                                        variant="outline"
+                                                        class="text-[10px]"
+                                                    >
+                                                        Upgrade
+                                                    </Badge>
+                                                    <div
+                                                        v-else
+                                                        class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
+                                                        :class="[
+                                                            model.is_selected
+                                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                                : 'border-muted-foreground/30'
+                                                        ]"
+                                                    >
+                                                        <Loader2
+                                                            v-if="isModelToggling(model)"
+                                                            class="h-3 w-3 animate-spin"
+                                                        />
+                                                        <CheckCircle2
+                                                            v-else-if="model.is_selected"
+                                                            class="h-3 w-3"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        <!-- No Models -->
+                                        <div v-else class="text-center py-8">
+                                            <Brain class="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                                            <p class="text-sm text-muted-foreground">No models available</p>
+                                        </div>
                                     </div>
                                 </TabsContent>
 
@@ -552,7 +658,7 @@
 
 
 <script setup lang="ts">
-import { computed, ref, watch, reactive } from 'vue';
+import { computed, ref, watch, reactive, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AgentLayout from '@/layouts/AgentLayout.vue';
@@ -566,12 +672,26 @@ import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Type, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code, MessageSquare, PlusCircle, Trash2 } from 'lucide-vue-next';
+import { Type, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code, MessageSquare, PlusCircle, Trash2, Brain, Loader2, CheckCircle2 } from 'lucide-vue-next';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'vue-sonner';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PreviewModal from '@/components/PreviewModal.vue';
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+
+interface AIModel {
+    id: string;
+    name: string;
+    context_window: number;
+    icon: string;
+    description: string;
+    features?: string[];
+    location: string;
+    reasoning: boolean;
+    user_allowed_to_use: boolean;
+    is_selected: boolean;
+}
 
 interface Props {
     agent: any;
@@ -610,6 +730,12 @@ const previewKey = ref(0);
 const showAddStarterDialog = ref(false);
 const starterMessageForm = ref({ text: '' });
 const starters = ref(props.starters || []);
+
+// Models state
+const models = ref<AIModel[]>([]);
+const isLoadingModels = ref(false);
+const modelsError = ref<string | null>(null);
+const toggleLoadingModels = ref<Set<string>>(new Set());
 
 // Computed properties for header button states
 const hasUnsavedChanges = computed(() => {
@@ -818,6 +944,83 @@ const removeStarter = (id: number) => {
             toast.error('Failed to remove starter message');
         });
 };
+
+// Models functionality
+const fetchModels = async () => {
+    try {
+        isLoadingModels.value = true;
+        modelsError.value = null;
+
+        const response = await axios.get(route('agents.models.list', { agent: props.agent.id }));
+        models.value = response.data.models;
+    } catch (error) {
+        console.error('Failed to fetch models:', error);
+        modelsError.value = 'Failed to load available models. Please try again.';
+    } finally {
+        isLoadingModels.value = false;
+    }
+};
+
+const toggleModel = async (model: AIModel) => {
+    if (!model.user_allowed_to_use || toggleLoadingModels.value.has(model.id)) return;
+
+    // For widget agents, if model is already selected, don't allow deselection
+    if (model.is_selected) {
+        return;
+    }
+
+    toggleLoadingModels.value.add(model.id);
+
+    try {
+        // Deselect all other models first
+        for (const otherModel of models.value) {
+            if (otherModel.id !== model.id && otherModel.is_selected) {
+                const otherModelIndex = models.value.findIndex(m => m.id === otherModel.id);
+                if (otherModelIndex !== -1) {
+                    models.value[otherModelIndex].is_selected = false;
+                }
+
+                await axios.patch(route('agents.models.toggle', { agent: props.agent.id }), {
+                    model_id: otherModel.id,
+                    status: false
+                });
+            }
+        }
+
+        // Select the new model
+        const modelIndex = models.value.findIndex(m => m.id === model.id);
+        if (modelIndex !== -1) {
+            models.value[modelIndex].is_selected = true;
+        }
+
+        await axios.patch(route('agents.models.toggle', { agent: props.agent.id }), {
+            model_id: model.id,
+            status: true
+        });
+
+        toast.success('Model updated successfully');
+    } catch (error) {
+        console.error('Failed to toggle model:', error);
+
+        // Revert on error
+        const modelIndex = models.value.findIndex(m => m.id === model.id);
+        if (modelIndex !== -1) {
+            models.value[modelIndex].is_selected = !models.value[modelIndex].is_selected;
+        }
+
+        toast.error('Failed to update model');
+    } finally {
+        toggleLoadingModels.value.delete(model.id);
+    }
+};
+
+const isModelToggling = (model: AIModel) => {
+    return toggleLoadingModels.value.has(model.id);
+};
+
+onMounted(() => {
+    fetchModels();
+});
 
 // Preview updates only when Save is clicked - removed auto-update watcher
 </script>

@@ -14,6 +14,14 @@ class ChatMessage extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return [
+            'confidence_score' => 'float',
+            'metadata' => 'array',
+        ];
+    }
+
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(ChatConversation::class, 'chat_conversation_id');

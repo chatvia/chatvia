@@ -7,6 +7,7 @@ use App\Data\Chat\ChatOutputPayload;
 use App\Services\Chat\Data\StreamRequestData;
 use App\Services\Memory\ChatMemory;
 use App\Services\Search\KnowledgeBase;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class ChatService
@@ -33,6 +34,8 @@ class ChatService
             'updated_message_info' => [],
             'message_for_llm' => $query,
             'language' => $lang,
+            'ip_address' => $data->ipAddress,
+            'user_agent' => $data->userAgent,
         ]);
 
         $llmMessages = $this->memory->getLlmMessages();
@@ -85,6 +88,10 @@ class ChatService
             return $context;
         }
 
+        // Calculate average confidence score from sources
+        $avgConfidence = $this->calculateAverageConfidence($sources);
+        $context->setConfidenceScore($avgConfidence);
+
         $contextualMessage = $this->messageProcessor->buildContextualUserMessage(
             $context->payload,
             $sources
@@ -96,6 +103,8 @@ class ChatService
             'updated_message_info' => $context->payload->updated_message_info,
             'message_for_llm' => $contextualMessage,
             'language' => $context->payload->language,
+            'ip_address' => $context->payload->ip_address,
+            'user_agent' => $context->payload->user_agent,
         ]);
 
         $enrichedContext = new ChatContext(
@@ -108,6 +117,7 @@ class ChatService
         );
 
         $enrichedContext->setSources($sources);
+        $enrichedContext->setConfidenceScore($avgConfidence);
 
         return $enrichedContext;
     }
@@ -166,7 +176,28 @@ class ChatService
                     generation_id: $context->generationId,
                     response_time_ms: $context->getResponseTimeMs(),
                     language: $context->queryLanguage,
+                    confidence_score: $context->confidenceScore,
                 )
             );
+    }
+
+    /**
+     * Calculate average confidence score from knowledge base sources
+     */
+    private function calculateAverageConfidence(Collection $sources): ?float
+    {
+        if ($sources->isEmpty()) {
+            return null;
+        }
+
+        $confidenceScores = $sources
+            ->pluck('confidence_score')
+            ->filter(fn ($score) => $score !== null);
+
+        if ($confidenceScores->isEmpty()) {
+            return null;
+        }
+
+        return round($confidenceScores->avg(), 4);
     }
 }

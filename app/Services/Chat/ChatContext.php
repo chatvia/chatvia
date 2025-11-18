@@ -16,6 +16,8 @@ class ChatContext
 
     public Collection $sources;
 
+    public ?float $confidenceScore = null;
+
     private float $startTime;
 
     private float $endTime;
@@ -46,6 +48,11 @@ class ChatContext
     public function setSources(Collection $sources): void
     {
         $this->sources = $sources;
+    }
+
+    public function setConfidenceScore(?float $confidenceScore): void
+    {
+        $this->confidenceScore = $confidenceScore;
     }
 
     public function markEndTime(): void

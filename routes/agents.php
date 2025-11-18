@@ -14,6 +14,8 @@ use App\Http\Controllers\Agents\Agents\AgentStoreController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateSettingsController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
+use App\Http\Controllers\Agents\ChatLog\AgentChatLogConversationsController;
+use App\Http\Controllers\Agents\ChatLog\AgentChatLogMessagesController;
 use App\Http\Controllers\Agents\Embed\EmbedController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsController;
@@ -140,6 +142,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('leads/export', AgentLeadsExportController::class)->name('leads.export');
 
         Route::get('logs', AgentChatLogController::class)->name('logs');
+        Route::get('logs/conversations', AgentChatLogConversationsController::class)->name('logs.conversations');
+        Route::get('logs/messages/{conversation}', AgentChatLogMessagesController::class)->name('logs.messages');
 
         Route::get('widget', WidgetController::class)->name('widget');
         Route::get('embed', EmbedController::class)->name('embed');

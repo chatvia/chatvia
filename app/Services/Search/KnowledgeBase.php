@@ -192,10 +192,36 @@ LIMIT ?
             ->map(function ($result) {
                 $result->chunk = $this->removeXmlTags($result->chunk);
 
+                // Calculate confidence score from the distance/score
+                // Lower distance = higher confidence
+                // Normalize to 0-1 range (0.5 to 0.99)
+                if (isset($result->score)) {
+                    $result->confidence_score = $this->calculateConfidenceScore($result->score);
+                }
+
                 return $result;
             })
             ->values()
             ->toArray();
+    }
+
+    /**
+     * Calculate confidence score from search distance/score
+     * Converts distance metric to a confidence percentage (0.5 to 0.99)
+     */
+    private function calculateConfidenceScore(float $score): float
+    {
+        // For vector distance: lower is better (typically 0-2 range)
+        // For BM25: higher is better (can be negative or positive)
+
+        // Normalize to 0-1 range with sigmoid-like function
+        // This ensures scores are between 0.5 (low confidence) and 0.99 (high confidence)
+        $normalized = 1 / (1 + exp($score - 1));
+
+        // Scale to 0.5-0.99 range
+        $confidence = 0.5 + ($normalized * 0.49);
+
+        return round($confidence, 4);
     }
 
     /**

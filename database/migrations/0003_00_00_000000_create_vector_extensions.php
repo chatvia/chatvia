@@ -14,7 +14,7 @@ return new class extends Migration
 
         // Only create the tokenizer if it doesn't exist
         rescue(function () {
-            DB::statement("SELECT create_tokenizer('llmlingua2', $$ 'model' = \"llmlingua2\"  # using pre-trained model $$);");
+            //            DB::statement("SELECT create_tokenizer('llmlingua2', $$ 'model' = \"llmlingua2\"  # using pre-trained model $$);");
         }, function ($e) {
             if (! str_contains($e->getMessage(), 'Tokenizer already exists: llmlingua2')) {
                 throw $e;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Agents\Stats;
+namespace App\Http\Controllers\Agents\Analytics;
 
 use App\Models\Agent;
 use Illuminate\Http\Request;

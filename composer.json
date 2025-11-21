@@ -5,12 +5,19 @@
     "description": "The skeleton application for the Laravel framework.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "/Users/ahmad/Sites/laravel-prompt-manager"
+        }
+    ],
     "require": {
         "php": "^8.4",
         "ext-dom": "*",
         "ext-fileinfo": "*",
         "ext-intl": "*",
         "ext-libxml": "*",
+        "chatvia/laravel-prompt-manager": "dev-main",
         "aws/aws-sdk-php": "^3.351",
         "coderflex/laravel-turnstile": "^2.1",
         "crwlr/crawler": "^3.5",

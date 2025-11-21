@@ -25,7 +25,7 @@ readonly class ChatStreamController
                 ),
                 sessionId: $this->session->firstOrCreateChatSession(),
                 conversationId: $conversationId,
-                streamSources: true,
+                streamSources: false,
                 ipAddress: $request->ip(),
                 userAgent: $request->userAgent(),
             ),

@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->string('google_id')->index()->nullable();
             $table->string('microsoft_id')->index()->nullable();
-            $table->string('facebook_id')->index()->nullable();
+            $table->string('slack_id')->index()->nullable();
             $table->string('linkedin_id')->index()->nullable();
             $table->string('x_id')->index()->nullable();
 

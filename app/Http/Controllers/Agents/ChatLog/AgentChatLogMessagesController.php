@@ -20,6 +20,7 @@ class AgentChatLogMessagesController
 
         // Query messages for the conversation
         $messages = ChatMessage::query()
+            ->with('llm')
             ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
             ->where('chat_conversation_id', $conversationId)
             ->orderBy('created_at')

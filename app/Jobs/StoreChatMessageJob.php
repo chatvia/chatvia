@@ -8,6 +8,8 @@ use App\Models\Agent;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
+use App\Models\Country;
+use App\Models\Llm;
 use App\Models\User;
 use App\Services\IP2Country;
 use App\Services\TikToken;
@@ -53,11 +55,14 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         ]);
 
         // Get country from IP address if not already set
-        if ($session->ip_address && ! $session->country) {
+        if ($session->ip_address && ! $session->country_id) {
             try {
-                $country = IP2Country::getCountryByIP($session->ip_address);
-                if ($country) {
-                    $session->update(['country' => $country]);
+                $countryCode = IP2Country::getCountryByIP($session->ip_address);
+                if ($countryCode) {
+                    $country = Country::where('code', $countryCode)->first();
+                    if ($country) {
+                        $session->update(['country_id' => $country->id]);
+                    }
                 }
             } catch (\Exception $e) {
                 // Log error but don't fail the job
@@ -73,12 +78,19 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'chat_session_id' => $sessionId,
         ], ['title' => $this->title]);
 
+        // Find LLM by internal_name (model string)
+        $llmId = null;
+        if ($this->payload->model) {
+            $llm = Llm::where('internal_name', $this->payload->model)->first();
+            $llmId = $llm?->id;
+        }
+
         ChatMessage::create([
             'id' => $this->messageId,
             'chat_conversation_id' => $this->conversationId,
             'content' => $this->payload->message,
             'role' => $this->role,
-            'model' => $this->payload->model,
+            'llm_id' => $llmId,
             'response_time_ms' => $this->payload?->response_time_ms ?? 0,
             'generation_id' => $this->payload?->generation_id ?? null,
             'token_count' => TikToken::countTokens($this->payload->message),

@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\Agent;
+use App\Models\ChatTopic;
+use App\Models\Country;
+use App\Models\Llm;
 use App\Models\Member;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -18,8 +21,14 @@ return new class extends Migration
             $table->foreignIdFor(Member::class)->nullable()->constrained()->nullOnDelete();
 
             $table->ipAddress()->nullable();
+            $table->foreignIdFor(Country::class)->nullable()->constrained()->nullOnDelete();
 
             $table->text('user_agent')->nullable();
+
+            $table->string('device_type')->nullable()->index();
+            $table->string('browser')->nullable()->index();
+            $table->string('os')->nullable()->index();
+            $table->string('city')->nullable();
 
             $table->timestamps();
 
@@ -30,7 +39,11 @@ return new class extends Migration
         Schema::create('chat_conversations', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->foreignUlid('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
+
+            $table->foreignIdFor(ChatTopic::class)->nullable()->constrained()->nullOnDelete();
+
             $table->string('title')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
 
@@ -40,6 +53,7 @@ return new class extends Migration
 
         Schema::create('chat_messages', function (Blueprint $table) {
             $table->ulid('id')->primary();
+
             $table->foreignUlid('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
             $table->string('generation_id')->nullable()->index();
 
@@ -47,11 +61,18 @@ return new class extends Migration
             $table->json('metadata')->nullable();
 
             $table->enum('role', ['user', 'assistant'])->index();
-            $table->string('model', 100)->nullable()->index();
+            $table->foreignIdFor(Llm::class)->nullable()->constrained()->restrictOnDelete();
+            $table->decimal('confidence_score', 5, 4)->nullable();
+
+            $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
+            $table->text('feedback_text')->nullable();
             $table->unsignedInteger('response_time_ms')->nullable();
             $table->unsignedInteger('token_count')->nullable();
+            $table->unsignedInteger('prompt_tokens')->nullable();
+            $table->unsignedInteger('completion_tokens')->nullable();
+            $table->decimal('cost', 10, 6)->nullable()->index();
 
             $table->timestamps();
             $table->softDeletes();
@@ -59,7 +80,7 @@ return new class extends Migration
 
             $table->index(['chat_conversation_id', 'created_at']);
             $table->index(['role', 'created_at']);
-            $table->index(['model', 'created_at']);
+            $table->index(['llm_id', 'created_at']);
             $table->index(['feedback', 'created_at']);
             $table->index(['expires_at', 'deleted_at']);
             $table->index(['deleted_at', 'created_at']);

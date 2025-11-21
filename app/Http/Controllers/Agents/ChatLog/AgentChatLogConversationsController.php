@@ -21,7 +21,7 @@ class AgentChatLogConversationsController
 
         // Get distinct conversations for this agent ordered by most recent activity
         $conversationsPaginator = ChatConversation::query()
-            ->with('session')
+            ->with(['session.country'])
             ->whereHas('session', fn ($query) => $query->where('agent_id', $agent->id))
             ->withCount('messages')
             ->orderByDesc('updated_at')
@@ -35,7 +35,7 @@ class AgentChatLogConversationsController
                 'messages_count' => $conversation->messages_count,
                 'first_message_excerpt' => null, // Will be populated below
                 'title' => $conversation->title,
-                'country' => $conversation->session?->country,
+                'country' => $conversation->session?->country?->code,
                 'user_agent' => $conversation->session?->user_agent,
             ];
         });

@@ -157,9 +157,10 @@ class UserResource extends Resource
                             ->label('Most Used Model')
                             ->getStateUsing(function ($record): string {
                                 $mostUsedModel = $record->messages()
-                                    ->selectRaw('model, COUNT(*) as count')
-                                    ->whereNotNull('model')
-                                    ->groupBy('model')
+                                    ->join('llms', 'llms.id', '=', 'chat_messages.llm_id')
+                                    ->selectRaw('llms.internal_name as model, COUNT(*) as count')
+                                    ->whereNotNull('chat_messages.llm_id')
+                                    ->groupBy('llms.internal_name')
                                     ->orderByDesc('count')
                                     ->first();
 

@@ -73,6 +73,7 @@ import {
     FileCode,
     Pencil,
     AlertTriangle,
+    Sparkles,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
@@ -148,7 +149,18 @@ const uiNavigationItems = computed(() => {
 
 const controlPanelNavigationItems = computed(() => {
     const baseItems = [
-        { id: 'stats', label: 'Statistics', icon: BarChart3, route: 'agents.stats', tooltip: 'View usage statistics and analytics' },
+        { 
+            id: 'analytics', 
+            label: 'Analytics', 
+            icon: BarChart3, 
+            route: 'agents.analytics', 
+            tooltip: 'View usage analytics and insights',
+            subItems: [
+                { id: 'analytics-overview', label: 'Overview', icon: BarChart3, route: 'agents.analytics' },
+                { id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' },
+                { id: 'analytics-sources', label: 'Sources', icon: FileText, route: 'agents.analytics.sources' },
+            ]
+        },
     ];
 
     if ((page.props.permissions as any)?.persona?.view === true) {
@@ -329,6 +341,16 @@ const isActiveRoute = (routeName: string) => {
     return currentRoute.value === `agents/${componentName}`;
 };
 
+// Analytics submenu state - auto-open if on analytics/metrics/sources page
+const analyticsSubmenuOpen = ref(
+    currentRoute.value.startsWith('agents/Analytics') ||
+    currentRoute.value.startsWith('agents/Metrics') ||
+    currentRoute.value.startsWith('agents/Sources') ||
+    isActiveRoute('agents.analytics') ||
+    isActiveRoute('agents.analytics.metrics') ||
+    isActiveRoute('agents.analytics.sources')
+);
+
 // Sources submenu state - auto-open if on sources page
 const sourcesSubmenuOpen = ref(
     currentRoute.value.startsWith('agents/Sources') ||
@@ -441,8 +463,77 @@ onMounted(() => {
                         <SidebarGroupLabel class="mb-2 px-2">Management</SidebarGroupLabel>
                         <SidebarMenu class="space-y-1">
                             <template v-for="item in controlPanelNavigationItems" :key="item.id">
+                                <!-- Analytics item with submenu -->
+                                <SidebarMenuItem v-if="item.id === 'analytics'">
+                                    <!-- Collapsed state - show dropdown on click -->
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger as-child>
+                                            <div class="hidden group-data-[collapsible=icon]:block">
+                                                <SidebarMenuButton
+                                                    :tooltip="item.tooltip"
+                                                    class="cursor-pointer"
+                                                >
+                                                    <component :is="item.icon" />
+                                                    <span>{{ item.label }}</span>
+                                                </SidebarMenuButton>
+                                            </div>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            side="right"
+                                            align="start"
+                                            :side-offset="5"
+                                            :align-offset="0"
+                                            class="w-56"
+                                        >
+                                            <DropdownMenuItem 
+                                                v-for="subItem in item.subItems" 
+                                                :key="subItem.id" 
+                                                as-child
+                                            >
+                                                <Link
+                                                    :href="route(subItem.route, { agent: agent.id })"
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <component :is="subItem.icon" class="h-4 w-4" />
+                                                    <span>{{ subItem.label }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+
+                                    <!-- Expanded state - show regular submenu -->
+                                    <div class="block group-data-[collapsible=icon]:hidden">
+                                        <SidebarMenuButton
+                                            @click="analyticsSubmenuOpen = !analyticsSubmenuOpen"
+                                            :tooltip="item.tooltip"
+                                            class="cursor-pointer"
+                                        >
+                                            <component :is="item.icon" />
+                                            <span>{{ item.label }}</span>
+                                            <ChevronDown
+                                                class="ml-auto h-4 w-4 transition-transform duration-200"
+                                                :class="{ 'rotate-180': analyticsSubmenuOpen }"
+                                            />
+                                        </SidebarMenuButton>
+                                    </div>
+                                    <SidebarMenuSub v-if="analyticsSubmenuOpen" class="mt-1 space-y-0.5 group-data-[collapsible=icon]:hidden">
+                                        <SidebarMenuSubItem v-for="subItem in item.subItems" :key="subItem.id">
+                                            <SidebarMenuSubButton
+                                                as-child
+                                                :is-active="isActiveRoute(subItem.route)"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route(subItem.route, { agent: agent.id })">
+                                                    <component :is="subItem.icon" class="h-4 w-4" />
+                                                    <span>{{ subItem.label }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                    </SidebarMenuSub>
+                                </SidebarMenuItem>
+
                                 <!-- Sources item with submenu -->
-                                <SidebarMenuItem v-if="item.id === 'knowledge'">
+                                <SidebarMenuItem v-else-if="item.id === 'knowledge'">
                                     <!-- Collapsed state - show dropdown on click -->
                                     <DropdownMenu>
                                         <DropdownMenuTrigger as-child>
@@ -578,7 +669,7 @@ onMounted(() => {
             </Sidebar>
 
             <!-- Main Content Area - Full Height with Header Inside -->
-            <div class="flex flex-1 flex-col">
+            <div class="flex flex-1 flex-col min-w-0 overflow-x-hidden">
                 <!-- Top Navigation Bar -->
                 <header class="bg-background border-b border-border sticky top-0 z-40">
                     <div class="px-4 lg:px-6">
@@ -616,7 +707,7 @@ onMounted(() => {
                 </header>
 
                 <!-- Page Content Wrapper -->
-                <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 flex flex-col overflow-hidden min-w-0">
                     <!-- Page Header -->
                     <div class="bg-background border-b border-border px-4 lg:px-6 py-4">
                         <div class="flex items-center justify-between">
@@ -653,8 +744,8 @@ onMounted(() => {
                     </div>
 
                     <!-- Page Content -->
-                    <div class="flex-1 overflow-auto bg-muted/30">
-                        <div class="p-3 sm:p-4 lg:p-6">
+                    <div class="flex-1 overflow-auto bg-muted/30 min-w-0">
+                        <div class="p-3 sm:p-4 lg:p-6 min-w-0 max-w-full">
                             <slot />
                         </div>
                     </div>

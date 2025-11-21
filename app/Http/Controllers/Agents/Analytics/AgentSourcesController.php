@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Agents\Stats;
+namespace App\Http\Controllers\Agents\Analytics;
 
-use App\Data\Agent\Stats\StatsData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class AgentStatsController
+class AgentSourcesController
 {
     public function __invoke(Request $request, Agent $agent)
     {
@@ -16,11 +15,8 @@ class AgentStatsController
             code: 404,
         );
 
-        $analytics = StatsData::fromAgent($agent);
-
-        return Inertia::render('agents/Stats', [
+        return Inertia::render('agents/Sources', [
             'agent' => $agent,
-            'analytics' => $analytics,
         ]);
     }
 }

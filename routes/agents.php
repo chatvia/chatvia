@@ -13,6 +13,13 @@ use App\Http\Controllers\Agents\Agents\AgentsListController;
 use App\Http\Controllers\Agents\Agents\AgentStoreController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateSettingsController;
+use App\Http\Controllers\Agents\Analytics\AgentAnalyticsController;
+use App\Http\Controllers\Agents\Analytics\AgentAnalyticsDataController;
+use App\Http\Controllers\Agents\Analytics\AgentChartDataController;
+use App\Http\Controllers\Agents\Analytics\AgentMetricsController;
+use App\Http\Controllers\Agents\Analytics\AgentMetricsDataController;
+use App\Http\Controllers\Agents\Analytics\AgentSourcesController;
+use App\Http\Controllers\Agents\Analytics\AgentSourcesDataController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogConversationsController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogMessagesController;
@@ -62,8 +69,6 @@ use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeRetrainCont
 use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeStoreController;
 use App\Http\Controllers\Agents\Starters\StarterDeleteController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
-use App\Http\Controllers\Agents\Stats\AgentChartDataController;
-use App\Http\Controllers\Agents\Stats\AgentStatsController;
 use App\Http\Controllers\Agents\Team\AgentMemberInvitationSendController;
 use App\Http\Controllers\Agents\Team\AgentMembersAccessGrantController;
 use App\Http\Controllers\Agents\Team\AgentMembersDeleteController;
@@ -74,6 +79,7 @@ use App\Http\Controllers\Agents\Team\AgentTeamController;
 use App\Http\Controllers\Agents\Widget\WidgetController;
 use App\Http\Controllers\Agents\Widget\WidgetPreviewController;
 use App\Http\Controllers\Agents\Workflow\AgentWorkflowController;
+use App\Http\Controllers\CountriesListController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -84,9 +90,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('agents', AgentStoreController::class)->name('agents.store');
 
+    Route::get('countries/list', CountriesListController::class)->name('countries.list');
+
     Route::prefix('agents/{agent}')->name('agents.')->group(function () {
-        Route::get('stats', AgentStatsController::class)->name('stats');
-        Route::get('stats/chart-data', AgentChartDataController::class)->name('stats.chart-data');
+        Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
+        Route::get('analytics/data', AgentAnalyticsDataController::class)->name('analytics.data');
+        Route::get('analytics/chart-data', AgentChartDataController::class)->name('analytics.chart-data');
+        Route::get('analytics/metrics', AgentMetricsController::class)->name('analytics.metrics');
+        Route::get('analytics/metrics/data', AgentMetricsDataController::class)->name('metrics.data');
+        Route::get('analytics/sources', AgentSourcesController::class)->name('analytics.sources');
+        Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
         Route::patch('/', AgentUpdateController::class)->name('update');
         Route::get('widget/preview', WidgetPreviewController::class)->name('widget.preview');
         Route::get('playground', AgentPlaygroundController::class)->name('playground');

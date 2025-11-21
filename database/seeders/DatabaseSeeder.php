@@ -39,5 +39,7 @@ class DatabaseSeeder extends Seeder
             'collect_leads' => true,
         ]);
 
+        // Seed chat data (sessions, conversations, messages)
+        $this->call(ChatSeeder::class);
     }
 }

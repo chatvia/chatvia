@@ -27,6 +27,9 @@ return new class extends Migration
             $table->boolean('reasoning')->default(false);
             $table->boolean('requires_paid_plan')->index();
 
+            $table->decimal('input_price_per_1m_tokens', 10, 4)->nullable();
+            $table->decimal('output_price_per_1m_tokens', 10, 4)->nullable();
+
             $table->boolean('is_default')->default(false);
 
             $table->timestamps();
@@ -48,6 +51,8 @@ return new class extends Migration
                 'location' => $llmData['location'],
                 'requires_paid_plan' => $llmData['requires_paid_plan'],
                 'reasoning' => $llmData['reasoning'],
+                'input_price_per_1m_tokens' => $llmData['price_per_million_tokens']['input'] ?? null,
+                'output_price_per_1m_tokens' => $llmData['price_per_million_tokens']['output'] ?? null,
                 'is_default' => $llmData['default'] ?? false,
                 'created_at' => now(),
                 'updated_at' => now(),

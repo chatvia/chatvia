@@ -27,6 +27,7 @@ return new class extends Migration
             $table->jsonb('metadata')->nullable();
             $table->string('checksum');
             $table->unsignedInteger('retrieval_count')->default(0);
+            $table->timestamp('last_retrieved_at')->nullable()->index();
             $table->timestamps();
 
             $table->unique(['chunkable_type', 'chunkable_id', 'checksum']);

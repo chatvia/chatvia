@@ -4,8 +4,8 @@ namespace App\Jobs\Crawler;
 
 use App\Events\UrlIngestionEvent;
 use App\Jobs\Ingestion\ChunkIngestionJob;
-use App\Models\AgentWebsite;
 use App\Models\AgentWebsiteUrl;
+use App\Models\SourceWebsite;
 use App\Services\Chunking\Chunker;
 use App\Services\Prompts\PromptLoader;
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
@@ -24,7 +24,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public AgentWebsiteUrl $websiteUrl)
+    public function __construct(public AgentWebsiteUrl $websiteUrl, public int $agentId)
     {
         $this->onQueue('ingestion.website');
     }
@@ -43,7 +43,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        /** @var AgentWebsite $website */
+        /** @var SourceWebsite $website */
         $website = $this->websiteUrl->agentWebsite;
 
         $deletedChunks = $website->chunks()->count();
@@ -53,7 +53,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
         $chunks = $splitter->splitText($text);
         $chunks = collect($chunks)->map(fn ($item) => ['text' => $item])->toArray();
         $chunks = new Chunker(
-            agentId: $website->agent->id,
+            agentId: $this->agentId,
             chunkableType: AgentWebsiteUrl::class,
             chunkableId: $this->websiteUrl->id,
         )->createChunks($chunks);

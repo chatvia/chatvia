@@ -10,19 +10,22 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class AgentFile extends Model implements ChunkableContract
+class SourceFile extends Model implements ChunkableContract
 {
     use Chunkable, HasFactory;
 
     protected $guarded = ['id'];
 
-    public function agent(): BelongsTo
+    public function agents(): MorphToMany
     {
-        return $this->belongsTo(Agent::class);
+        return $this->morphToMany(Agent::class, 'sourceable', 'agent_sources')
+            ->using(AgentSource::class)
+            ->withTimestamps();
     }
 
     public function readFile(): File
@@ -46,9 +49,17 @@ class AgentFile extends Model implements ChunkableContract
         return new File($tempPath);
     }
 
-    public function ingest(): void
+    public function ingest(?int $agentId = null): void
     {
-        app(Ingestion::class)->ingest($this);
+        // If agentId is provided, ingest for that specific agent
+        // Otherwise, ingest for all agents this file is attached to
+        if ($agentId) {
+            app(Ingestion::class)->ingest($this, $agentId);
+        } else {
+            $this->agents->each(function ($agent) {
+                app(Ingestion::class)->ingest($this, $agent->id);
+            });
+        }
     }
 
     public function url(): Attribute
@@ -63,12 +74,7 @@ class AgentFile extends Model implements ChunkableContract
 
     public function isWordFile(): bool
     {
-        $wordMimeTypes = [
-            'application/msword',                                                                 // .doc
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',          // .docx
-        ];
-
-        return in_array($this->mime_type, $wordMimeTypes, true);
+        return in_array($this->mime_type, config('mimes.word'), true);
     }
 
     public function isPdfFile(): bool

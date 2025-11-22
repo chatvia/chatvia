@@ -10,27 +10,27 @@ class AgentKnowledgeSourcesStatsController
     public function __invoke(Request $request, Agent $agent)
     {
         return [
-            'websites' => $agent->websites()->where('status', 'ingested')->count(),
-            'texts' => $agent->texts()->where('status', 'ingested')->count(),
+            'websites' => $agent->websites()->where('source_websites.status', 'ingested')->count(),
+            'texts' => $agent->texts()->where('source_texts.status', 'ingested')->count(),
             'pdf' => $agent->files()
-                ->where('status', 'ingested')
-                ->where('mime_type', 'application/pdf')
+                ->where('source_files.status', 'ingested')
+                ->where('source_files.mime_type', 'application/pdf')
                 ->count(),
             'word' => $agent->files()
-                ->where('status', 'ingested')
-                ->whereIn('mime_type', [
+                ->where('source_files.status', 'ingested')
+                ->whereIn('source_files.mime_type', [
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     'application/msword',
                     'application/vnd.oasis.opendocument.text',
                 ])
                 ->count(),
             'markdown' => $agent->files()
-                ->where('status', 'ingested')
-                ->where('mime_type', 'text/markdown')
+                ->where('source_files.status', 'ingested')
+                ->where('source_files.mime_type', 'text/markdown')
                 ->count(),
             'audio' => $agent->files()
-                ->where('status', 'ingested')
-                ->whereIn('mime_type', [
+                ->where('source_files.status', 'ingested')
+                ->whereIn('source_files.mime_type', [
                     'audio/mpeg',
                     'audio/mp4',
                     'audio/x-m4a',
@@ -40,8 +40,8 @@ class AgentKnowledgeSourcesStatsController
                 ])
                 ->count(),
             'video' => $agent->files()
-                ->where('status', 'ingested')
-                ->whereIn('mime_type', [
+                ->where('source_files.status', 'ingested')
+                ->whereIn('source_files.mime_type', [
                     'video/mp4',
                     'video/quicktime',
                     'video/x-msvideo',
@@ -49,7 +49,7 @@ class AgentKnowledgeSourcesStatsController
                     'video/webm',
                 ])
                 ->count(),
-            'youtube' => $agent->youtubeVideos()->where('status', 'ingested')->count(),
+            'youtube' => 0, // YouTube videos feature disabled for now
         ];
     }
 }

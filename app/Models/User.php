@@ -247,16 +247,16 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(Member::class)->where('is_owner', false);
     }
 
-    public function agentFiles(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    public function agentFiles()
     {
-        return $this->hasManyThrough(
-            AgentFile::class,    // Final model we want
-            Agent::class,        // Intermediate model
-            'user_id',          // Foreign key on agents table (agents.user_id)
-            'agent_id',        // Foreign key on agent_files table (agent_files.agent_id)
-            'id',               // Local key on users table (users.id)
-            'id'          // Local key on agents table (agents.id)
-        );
+        return SourceFile::query()
+            ->join('agent_sources', function ($join) {
+                $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
+                    ->where('agent_sources.sourceable_type', '=', SourceFile::class);
+            })
+            ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
+            ->where('agents.user_id', $this->id)
+            ->select('source_files.*');
     }
 
     public function plan(): Attribute
@@ -359,7 +359,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return $this
             ->agentFiles()
-            ->where('filetype', 'document')
+            ->whereIn('filetype', ['pdf', 'word', 'markdown', 'text'])
             ->sum('length');
     }
 
@@ -375,9 +375,13 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return $this
             ->agents()
-            ->join('agent_websites', 'agents.id', '=', 'agent_websites.agent_id')
-            ->join('agent_website_urls', 'agent_websites.id', '=', 'agent_website_urls.agent_website_id')
-            ->whereNotNull('agent_website_urls.crawled_at')
+            ->join('agent_sources', function ($join) {
+                $join->on('agents.id', '=', 'agent_sources.agent_id')
+                    ->where('agent_sources.sourceable_type', '=', SourceWebsite::class);
+            })
+            ->join('source_websites', 'source_websites.id', '=', 'agent_sources.sourceable_id')
+            ->join('source_website_urls', 'source_websites.id', '=', 'source_website_urls.source_website_id')
+            ->whereNotNull('source_website_urls.crawled_at')
             ->count();
     }
 
@@ -475,5 +479,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         }
 
         return $allPermissions;
+    }
+
+    public function sourceFiles()
+    {
+        return $this->hasMany(SourceFile::class);
     }
 }

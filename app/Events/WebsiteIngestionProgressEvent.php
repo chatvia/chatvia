@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\AgentWebsite;
+use App\Models\SourceWebsite;
 use Illuminate\Broadcasting\InteractsWithBroadcasting;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -14,7 +14,7 @@ class WebsiteIngestionProgressEvent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public AgentWebsite $website) {}
+    public function __construct(public SourceWebsite $website) {}
 
     public function broadcastOn(): array
     {

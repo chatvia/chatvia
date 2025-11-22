@@ -23,10 +23,10 @@ class AgentSourcesFilesController
         $fileType = $request->input('file_type');
 
         $files = match ($fileType) {
-            'pdf' => $agent->pdfFiles()->get(),
-            'word' => $agent->wordFiles()->get(),
-            'audio' => $agent->audioFiles()->get(),
-            'video' => $agent->videoFiles()->get(),
+            'pdf' => $agent->pdfFiles()->withCount('agents')->get(),
+            'word' => $agent->wordFiles()->withCount('agents')->get(),
+            'audio' => $agent->audioFiles()->withCount('agents')->get(),
+            'video' => $agent->videoFiles()->withCount('agents')->get(),
             default => throw new Exception('Invalid file type'),
         };
 

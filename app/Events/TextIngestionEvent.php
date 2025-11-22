@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\AgentText;
+use App\Models\SourceText;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -11,7 +11,7 @@ class TextIngestionEvent implements ShouldBroadcastNow
 {
     use Dispatchable;
 
-    public function __construct(public AgentText $text) {}
+    public function __construct(public SourceText $text) {}
 
     public function broadcastOn(): array
     {

@@ -16,12 +16,6 @@ return [
         'store' => env('VECTOR_CACHE_STORE', 'redis'), // Use Redis for better performance
     ],
 
-    'search' => [
-        'default_limit' => env('VECTOR_SEARCH_DEFAULT_LIMIT', 3),
-        'max_limit' => env('VECTOR_SEARCH_MAX_LIMIT', 50),
-        'candidate_limit' => env('VECTOR_SEARCH_CANDIDATE_LIMIT', 100),
-    ],
-
     'hnsw' => [
         'm' => env('VECTOR_HNSW_M', 24), // Higher for better recall, lower for speed
         'ef_construction' => env('VECTOR_HNSW_EF_CONSTRUCTION', 400),
@@ -85,19 +79,7 @@ return [
     ],
 
     'search' => [
-        /*
-        |--------------------------------------------------------------------------
-        | Search Runtime Configuration
-        |--------------------------------------------------------------------------
-        |
-        | Runtime parameters that control search performance vs accuracy trade-offs
-        |
-        | PROBES: Number of clusters to search during query
-        | - More probes = higher accuracy but slower queries
-        | - Fewer probes = faster queries but potentially lower accuracy
-        | - Rule of thumb: probes should be 10-20% of total lists
-        |
-        */
+        'candidate_limit' => env('VECTOR_SEARCH_CANDIDATE_LIMIT', 100),
 
         // Number of probes (clusters to search) for different accuracy levels
         'probes' => [

@@ -3,7 +3,7 @@
 namespace App\Jobs\Ingestion;
 
 use App\Data\Ingestion\ChunkIngestionData;
-use App\Models\AgentFile;
+use App\Models\SourceFile;
 use App\Services\Chunking\Chunker;
 use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Media\AudioCompressor;
@@ -32,7 +32,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public $uniqueFor = 3600;
 
-    public function __construct(public AgentFile $agentFile)
+    public function __construct(public SourceFile $agentFile, public int $agentId)
     {
         // Assign to appropriate queue based on file type
         if ($agentFile->isVideoFile()) {
@@ -71,8 +71,8 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         }
 
         $chunker = new Chunker(
-            agentId: $this->agentFile->agent_id,
-            chunkableType: AgentFile::class,
+            agentId: $this->agentId,
+            chunkableType: SourceFile::class,
             chunkableId: $this->agentFile->id,
         );
 
@@ -99,14 +99,22 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent File ID: '.$agentFileId)
             ->then(function (Batch $batch) use ($agentFileId) {
-                AgentFile::find($agentFileId)?->update(['status' => 'ingested']);
+                $file = SourceFile::find($agentFileId);
+                $file?->update(['status' => 'ingested']);
+
+                // Dispatch final progress event for all agents using this file
+                if ($file) {
+                    foreach ($file->agents as $agent) {
+                        \App\Events\FileIngestionProgressEvent::dispatch($file, $agent->id);
+                    }
+                }
             })
             ->dispatch();
 
         // Use transaction to ensure atomic status update
         DB::transaction(function () use ($chunks, $batch) {
             $this->agentFile->update([
-                'status' => 'ingesting ',
+                'status' => 'ingesting',
                 'internal_chunking_batch_id' => $batch->id,
                 'expected_chunks' => $chunks->count(),
             ]);
@@ -126,7 +134,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
     public function tags(): array
     {
         return [
-            'agent_file:'.$this->agentFile->id,
+            'source_file:'.$this->agentFile->id,
             'ingestion_job',
             'media',
         ];
@@ -138,7 +146,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         $jobId = $this->job->getJobId();
 
         Log::error('IngestionJob failed', [
-            'agent_file_id' => $this->agentFile->id,
+            'source_file_id' => $this->agentFile->id,
             'job_id' => $jobId,
             'error' => $exception->getMessage(),
             'trace' => $exception->getTraceAsString(),
@@ -156,7 +164,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         $jobId = $this->job?->getJobId() ?? $this->job?->uuid() ?? 'unknown';
 
         Log::warning('IngestionJob timed out', [
-            'agent_file_id' => $this->agentFile->id,
+            'source_file_id' => $this->agentFile->id,
             'job_id' => $jobId,
         ]);
 

@@ -9,18 +9,20 @@ use App\Jobs\Crawler\WebsiteCrawlerJob;
 use App\Jobs\Crawler\WebsiteIngestionJob;
 use App\Traits\Chunkable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
-class AgentWebsite extends Model implements ChunkableContract
+class SourceWebsite extends Model implements ChunkableContract
 {
     use Chunkable;
 
     protected $guarded = ['id'];
 
-    public function agent(): BelongsTo
+    public function agents(): MorphToMany
     {
-        return $this->belongsTo(Agent::class);
+        return $this->morphToMany(Agent::class, 'sourceable', 'agent_sources')
+            ->using(AgentSource::class)
+            ->withTimestamps();
     }
 
     protected function casts(): array
@@ -30,12 +32,20 @@ class AgentWebsite extends Model implements ChunkableContract
         ];
     }
 
-    public function startTraining(): void
+    public function startTraining(?int $agentId = null): void
     {
-        WebsiteIngestionJob::dispatch($this);
+        // If agentId is provided, train for that specific agent
+        // Otherwise, train for all agents this website is attached to
+        if ($agentId) {
+            WebsiteIngestionJob::dispatch($this, $agentId);
+        } else {
+            $this->agents->each(function ($agent) {
+                WebsiteIngestionJob::dispatch($this, $agent->id);
+            });
+        }
     }
 
-    public function startCrawling(): void
+    public function startCrawling(?int $agentId = null): void
     {
         // Update status to crawling
         $this->update(['status' => 'crawling']);
@@ -51,8 +61,14 @@ class AgentWebsite extends Model implements ChunkableContract
         // Dispatch crawler event
         WebsiteCrawlerEvent::dispatch($this);
 
-        // Dispatch crawler job
-        WebsiteCrawlerJob::dispatch($this, $crawlerData);
+        // Dispatch crawler job for each agent
+        if ($agentId) {
+            WebsiteCrawlerJob::dispatch($this, $crawlerData, $agentId);
+        } else {
+            $this->agents->each(function ($agent) use ($crawlerData) {
+                WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent->id);
+            });
+        }
     }
 
     public function urls(): HasMany

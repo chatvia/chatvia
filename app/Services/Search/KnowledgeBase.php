@@ -2,8 +2,9 @@
 
 namespace App\Services\Search;
 
-use App\Models\AgentFile;
+use App\Models\Agent;
 use App\Models\Chunk;
+use App\Models\SourceFile;
 use App\Services\Infrastructure\Embeddings\Cohere;
 use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Prompts\PromptLoader;
@@ -30,27 +31,29 @@ class KnowledgeBase
         $this->vectorChordConfig = config('vector', []);
     }
 
-    public function search(int|\App\Models\Agent $agent, string $query, int $limit = 3, array $options = []): array
+    public function search(int|Agent $agent, string $query, int $limit = 3): array
     {
-        if ($agent instanceof \App\Models\Agent) {
+        if ($agent instanceof Agent) {
             $agent = $agent->id;
         }
 
-        $embedding = embed($query);
+        // Cache the embedding for 24 hours to speed up repeated queries
+        $embedding = Cache::remember('search_embedding:'.md5($query), 3600 * 24, fn () => embed($query));
         $vectorString = '['.implode(',', $embedding).']';
 
-        // Configure search parameters based on options
-        $accuracyLevel = $options['accuracy'] ?? 'default';
-        $quantize = $options['quantize'] ?? false;
+        // Configure search parameters from config
+        $accuracyLevel = config('vector.search.mode', 'default');
+        $quantize = config('vector.quantization.rabitq.enabled', false);
 
         $this->configureSearchParameters($accuracyLevel);
 
         $results = $this->hybridSearch($agent, $query, $vectorString, $limit, $quantize);
 
         if ($results) {
-            $this->updateRetrievalStats($results);
+            $this->updateRetrievalStats($results, $agent);
 
-            if (count($results) > 1) {
+            // Only rerank if we have multiple results and reranking is enabled in config
+            if (count($results) > 1 && config('vector.search.rerank', true)) {
                 $results = $this->rerank($query, $results);
             }
 
@@ -65,17 +68,39 @@ class KnowledgeBase
      */
     private function hybridSearch(int $agentId, string $query, string $vectorString, int $limit, bool $quantize = true): array
     {
+        // First, get all source IDs for this agent from agent_sources
+        $sources = DB::table('agent_sources')
+            ->where('agent_id', $agentId)
+            ->select(['sourceable_id', 'sourceable_type'])
+            ->get();
+
+        if ($sources->isEmpty()) {
+            return [];
+        }
+
+        // Build WHERE clause for chunks based on sources
+        $sourceConditions = [];
+        $sourceParams = [];
+
+        foreach ($sources as $source) {
+            $sourceConditions[] = '(c.chunkable_id = ? AND c.chunkable_type = ?)';
+            $sourceParams[] = $source->sourceable_id;
+            $sourceParams[] = $source->sourceable_type;
+        }
+
+        $sourceWhereClause = '('.implode(' OR ', $sourceConditions).')';
+
         $distanceOperator = $quantize
-            ? 'binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536) as binary_distance'
-            : 'embedding <-> ?::vector(1536) as vector_distance';
+            ? 'binary_quantize(c.embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536) as binary_distance'
+            : 'c.embedding <-> ?::vector(1536) as vector_distance';
 
         $sql = "
 WITH vectorchord_candidates AS (
-    SELECT id, chunk, embedding, chunkable_type, chunkable_id, metadata,
+    SELECT c.id, c.chunk, c.embedding, c.chunkable_type, c.chunkable_id, c.metadata,
            {$distanceOperator}
-    FROM chunks
-    WHERE agent_id = ?
-    ORDER BY ".($quantize ? 'binary_quantize(embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536)' : 'embedding <-> ?::vector(1536)').'
+    FROM chunks c
+    WHERE {$sourceWhereClause}
+    ORDER BY ".($quantize ? 'binary_quantize(c.embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536)' : 'c.embedding <-> ?::vector(1536)').'
     LIMIT ?
 ),
 vector_ranked AS (
@@ -86,11 +111,11 @@ vector_ranked AS (
     LIMIT ?
 ),
 bm25_ranked AS (
-    SELECT id, chunk, chunkable_type, chunkable_id, metadata,
-           embedding_bm25 <&> bm25_catalog.to_bm25query('chunks_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS bm25_rank,
+    SELECT c.id, c.chunk, c.chunkable_type, c.chunkable_id, c.metadata,
+           c.embedding_bm25 <&> bm25_catalog.to_bm25query('chunks_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS bm25_rank,
            'bm25' as search_type
-    FROM chunks
-    WHERE agent_id = ?
+    FROM chunks c
+    WHERE {$sourceWhereClause}
     ORDER BY bm25_rank
     LIMIT ?
 ),
@@ -105,17 +130,19 @@ ORDER BY id, score
 LIMIT ?
 ';
 
-        return DB::select($sql, [
-            $vectorString,
-            $agentId,
-            $vectorString,
-            $this->getOptimalCandidateLimit($limit),
-            $limit,
-            $query,
-            $agentId,
-            $limit,
-            $limit * 2, // Get more candidates for better hybrid results
-        ]);
+        $params = array_merge(
+            [$vectorString],
+            $sourceParams,
+            [$vectorString],
+            [$this->getOptimalCandidateLimit($limit)],
+            [$limit],
+            [$query],
+            $sourceParams,
+            [$limit],
+            [$limit * 2]
+        );
+
+        return DB::select($sql, $params);
     }
 
     private function configureSearchParameters(string $accuracyLevel): void
@@ -134,7 +161,7 @@ LIMIT ?
         }
     }
 
-    private function updateRetrievalStats(array $results): void
+    private function updateRetrievalStats(array $results, int $agentId): void
     {
         if (empty($results)) {
             return;
@@ -145,7 +172,10 @@ LIMIT ?
         // Update chunk retrieval counts
         Chunk::query()
             ->whereIn('id', $documentIds)
-            ->increment('retrieval_count');
+            ->update([
+                'last_retrieved_at' => now(),
+                'retrieval_count' => DB::raw('retrieval_count + 1'),
+            ]);
 
         // Update retrieval counts for different chunkable types
         $resultsByType = collect($results)->groupBy('chunkable_type');
@@ -153,12 +183,25 @@ LIMIT ?
         foreach ($resultsByType as $type => $typeResults) {
             $ids = collect($typeResults)->pluck('chunkable_id')->unique()->toArray();
 
-            if ($type === AgentFile::class && ! empty($ids)) {
-                AgentFile::query()
-                    ->whereIn('id', $ids)
-                    ->increment('retrieval_count');
+            if (! empty($ids)) {
+                // Update the source model's retrieval count
+                if ($type === SourceFile::class) {
+                    SourceFile::query()
+                        ->whereIn('id', $ids)
+                        ->increment('retrieval_count');
+                }
+                // Add other chunkable types here as needed
+
+                // Update agent_sources retrieval stats for this specific agent
+                DB::table('agent_sources')
+                    ->where('agent_id', $agentId)
+                    ->where('sourceable_type', $type)
+                    ->whereIn('sourceable_id', $ids)
+                    ->update([
+                        'retrieval_count' => DB::raw('retrieval_count + 1'),
+                        'last_retrieved_at' => now(),
+                    ]);
             }
-            // Add other chunkable types here as needed (e.g., AgentWebsite)
         }
     }
 
@@ -260,18 +303,18 @@ LIMIT ?
         return trim($text);
     }
 
-    public function chunks(int|\App\Models\Agent $agent, string $query, int $limit = 3, array $options = []): Collection
+    public function chunks(int|Agent $agent, string $query, int $limit = 3): Collection
     {
-        if ($agent instanceof \App\Models\Agent) {
+        if ($agent instanceof Agent) {
             $agent = $agent->id;
         }
 
-        $results = $this->search($agent, $query, $limit, $options);
+        $results = $this->search($agent, $query, $limit);
 
         return collect($results)->pluck('chunk');
     }
 
-    public function searchInKnowledgeBaseIfNeeded(\App\Models\Agent $agent, string $userMessage): string
+    public function searchInKnowledgeBaseIfNeeded(Agent $agent, string $userMessage): string
     {
         if ($agent->isStandalone()) {
             $chunks = $this->chunks($agent->id, $userMessage);

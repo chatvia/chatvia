@@ -3,16 +3,16 @@
 namespace App\Providers;
 
 use App\Models\Agent;
-use App\Models\AgentFile;
-use App\Models\AgentWebsite;
 use App\Models\ModelSetting;
 use App\Models\Post;
+use App\Models\SourceFile;
+use App\Models\SourceWebsite;
 use App\Models\User;
-use App\Observers\AgentFileObserver;
 use App\Observers\AgentObserver;
 use App\Observers\AgentWebsiteObserver;
 use App\Observers\ModelSettingObserver;
 use App\Observers\PostObserver;
+use App\Observers\SourceFileObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -63,9 +63,9 @@ class AppServiceProvider extends ServiceProvider
 
         User::observe(UserObserver::class);
         Agent::observe(AgentObserver::class);
-        AgentFile::observe(AgentFileObserver::class);
+        SourceFile::observe(SourceFileObserver::class);
         ModelSetting::observe(ModelSettingObserver::class);
-        AgentWebsite::observe(AgentWebsiteObserver::class);
+        SourceWebsite::observe(AgentWebsiteObserver::class);
         Post::observe(PostObserver::class);
 
         if (app()->isProduction()) {

@@ -6,6 +6,7 @@ use App\Data\Crawler\CrawlerData;
 use App\Events\WebsiteCrawlerEvent;
 use App\Jobs\Crawler\WebsiteCrawlerJob;
 use App\Models\Agent;
+use App\Models\SourceWebsite;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -17,11 +18,18 @@ class AgentSourceCrawlerController
     public function __invoke(Request $request, Agent $agent)
     {
         $validated = $request->validate([
-            'url' => ['required', 'url', 'unique:agent_websites,url,NULL,id,agent_id,'.$agent->id],
+            'url' => ['required', 'url'],
             'slow_crawling' => ['required', 'boolean'],
             'include_paths' => ['nullable'],
             'exclude_paths' => ['nullable'],
         ]);
+
+        // Check if this URL is already attached to this agent
+        if ($agent->websites()->where('url', $validated['url'])->exists()) {
+            throw ValidationException::withMessages([
+                'url' => 'This website has already been added to this agent.',
+            ]);
+        }
 
         // Sanitize include_paths and exclude_paths to remove full URLs and keep only paths
         if (! empty($validated['include_paths'])) {
@@ -48,17 +56,19 @@ class AgentSourceCrawlerController
             $data->url = $response->header('Location');
         }
 
-        $website = $agent->websites()->create([
+        $website = SourceWebsite::create([
             'url' => $data->url,
-            'agent_id' => $agent->id,
             'user_id' => $request->user()->id,
             'status' => 'crawling',
             'options' => $data->exclude('url')->toArray(),
         ]);
 
+        // Attach the website to this agent
+        $agent->websites()->attach($website->id);
+
         WebsiteCrawlerEvent::dispatch($website);
 
-        WebsiteCrawlerJob::dispatch($website, $data);
+        WebsiteCrawlerJob::dispatch($website, $data, $agent->id);
     }
 
     /**

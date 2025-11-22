@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\AgentWebsite;
+use App\Models\SourceWebsite;
 use App\Models\User;
 
 class AgentWebsitePolicy
@@ -18,7 +18,7 @@ class AgentWebsitePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, AgentWebsite $agentWebsite): bool
+    public function view(User $user, SourceWebsite $agentWebsite): bool
     {
         return $user->id === $agentWebsite->user_id;
     }
@@ -34,7 +34,7 @@ class AgentWebsitePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, AgentWebsite $agentWebsite): bool
+    public function update(User $user, SourceWebsite $agentWebsite): bool
     {
         return $this->view($user, $agentWebsite);
     }
@@ -42,7 +42,7 @@ class AgentWebsitePolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, AgentWebsite $agentWebsite): bool
+    public function delete(User $user, SourceWebsite $agentWebsite): bool
     {
         return $this->view($user, $agentWebsite);
     }
@@ -50,7 +50,7 @@ class AgentWebsitePolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, AgentWebsite $agentWebsite): bool
+    public function restore(User $user, SourceWebsite $agentWebsite): bool
     {
         return $this->view($user, $agentWebsite);
     }
@@ -58,7 +58,7 @@ class AgentWebsitePolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, AgentWebsite $agentWebsite): bool
+    public function forceDelete(User $user, SourceWebsite $agentWebsite): bool
     {
         return $this->view($user, $agentWebsite);
     }

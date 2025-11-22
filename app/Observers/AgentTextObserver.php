@@ -2,14 +2,14 @@
 
 namespace App\Observers;
 
-use App\Models\AgentText;
+use App\Models\SourceText;
 
 class AgentTextObserver
 {
     /**
      * Handle the AgentText "created" event.
      */
-    public function created(AgentText $agentText): void
+    public function created(SourceText $agentText): void
     {
         //
     }
@@ -17,7 +17,7 @@ class AgentTextObserver
     /**
      * Handle the AgentText "updated" event.
      */
-    public function updated(AgentText $agentText): void
+    public function updated(SourceText $agentText): void
     {
         //
     }
@@ -25,7 +25,7 @@ class AgentTextObserver
     /**
      * Handle the AgentText "deleted" event.
      */
-    public function deleted(AgentText $agentText): void
+    public function deleted(SourceText $agentText): void
     {
         $agentText->chunks()->delete();
     }
@@ -33,7 +33,7 @@ class AgentTextObserver
     /**
      * Handle the AgentText "restored" event.
      */
-    public function restored(AgentText $agentText): void
+    public function restored(SourceText $agentText): void
     {
         //
     }
@@ -41,7 +41,7 @@ class AgentTextObserver
     /**
      * Handle the AgentText "force deleted" event.
      */
-    public function forceDeleted(AgentText $agentText): void
+    public function forceDeleted(SourceText $agentText): void
     {
         $this->deleted($agentText);
     }

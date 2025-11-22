@@ -3,7 +3,7 @@
 namespace App\Jobs\Ingestion;
 
 use App\Events\TextIngestionEvent;
-use App\Models\AgentText;
+use App\Models\SourceText;
 use App\Services\Chunking\Chunker;
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use App\Services\TikToken;
@@ -20,7 +20,7 @@ class TextIngestionJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public AgentText $agentText)
+    public function __construct(public SourceText $agentText, public int $agentId)
     {
         $this->onQueue('ingestion.text');
     }
@@ -40,8 +40,8 @@ class TextIngestionJob implements ShouldQueue
         }
 
         $chunks = new Chunker(
-            agentId: $this->agentText->agent_id,
-            chunkableType: AgentText::class,
+            agentId: $this->agentId,
+            chunkableType: SourceText::class,
             chunkableId: $this->agentText->id,
         )->createChunks($texts);
 
@@ -60,8 +60,8 @@ class TextIngestionJob implements ShouldQueue
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent Text ID: '.$this->agentText->id)
             ->then(function (Batch $batch) use ($agentTextId) {
-                AgentText::find($agentTextId)?->update(['status' => 'ingested']);
-                TextIngestionEvent::dispatch(AgentText::find($agentTextId));
+                SourceText::find($agentTextId)?->update(['status' => 'ingested']);
+                TextIngestionEvent::dispatch(SourceText::find($agentTextId));
             })
             ->dispatch();
 

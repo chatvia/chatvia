@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\AgentFile;
+use App\Models\SourceFile;
 use Illuminate\Broadcasting\InteractsWithBroadcasting;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -14,12 +14,15 @@ class FileIngestionProgressEvent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public AgentFile $agentFile) {}
+    public function __construct(
+        public SourceFile $agentFile,
+        public int $agentId
+    ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentFile->agent_id.'.files.progress'),
+            new PrivateChannel('agents.'.$this->agentId.'.files.progress'),
         ];
     }
 

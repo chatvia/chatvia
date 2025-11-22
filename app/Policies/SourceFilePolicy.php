@@ -2,10 +2,10 @@
 
 namespace App\Policies;
 
-use App\Models\AgentFile;
+use App\Models\SourceFile;
 use App\Models\User;
 
-class AgentFilePolicy
+class SourceFilePolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -18,7 +18,7 @@ class AgentFilePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, AgentFile $agentFile): bool
+    public function view(User $user, SourceFile $agentFile): bool
     {
         return $user->id === $agentFile->user_id;
     }
@@ -34,7 +34,7 @@ class AgentFilePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, AgentFile $agentFile): bool
+    public function update(User $user, SourceFile $agentFile): bool
     {
         return $this->view($user, $agentFile);
     }
@@ -42,7 +42,7 @@ class AgentFilePolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, AgentFile $agentFile): bool
+    public function delete(User $user, SourceFile $agentFile): bool
     {
         return $this->view($user, $agentFile);
     }
@@ -50,7 +50,7 @@ class AgentFilePolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, AgentFile $agentFile): bool
+    public function restore(User $user, SourceFile $agentFile): bool
     {
         return $this->view($user, $agentFile);
     }
@@ -58,7 +58,7 @@ class AgentFilePolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, AgentFile $agentFile): bool
+    public function forceDelete(User $user, SourceFile $agentFile): bool
     {
         return $this->view($user, $agentFile);
     }

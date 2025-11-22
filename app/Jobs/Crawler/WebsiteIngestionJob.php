@@ -5,8 +5,8 @@ namespace App\Jobs\Crawler;
 use App\Events\WebsiteCrawlerEvent;
 use App\Jobs\Ingestion\ChunkIngestionJob;
 use App\Jobs\Ingestion\SummaryIngestionJob;
-use App\Models\AgentWebsite;
 use App\Models\AgentWebsiteUrl;
+use App\Models\SourceWebsite;
 use App\Services\Ingestion\Sources\WebsiteIngestion;
 use App\Services\Prompts\PromptLoader;
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
@@ -24,7 +24,7 @@ class WebsiteIngestionJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable;
 
-    public function __construct(public AgentWebsite $website)
+    public function __construct(public SourceWebsite $website, public int $agentId)
     {
         $this->onQueue('ingestion.website');
     }
@@ -38,7 +38,7 @@ class WebsiteIngestionJob implements ShouldQueue
         WebsiteCrawlerEvent::dispatch($this->website);
 
         /** @var WebsiteIngestion $websiteIngestion */
-        $websiteIngestion = app(WebsiteIngestion::class, ['website' => $this->website]);
+        $websiteIngestion = app(WebsiteIngestion::class, ['website' => $this->website, 'agentId' => $this->agentId]);
 
         /** @var AgentWebsiteUrl<array> $urls */
         $urls = $this->website->untrainedUrls;
@@ -68,8 +68,8 @@ class WebsiteIngestionJob implements ShouldQueue
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent WebSite ID: '.$websiteId)
             ->then(function (Batch $batch) use ($websiteId) {
-                AgentWebsite::find($websiteId)?->update(['status' => 'ingested']);
-                WebsiteCrawlerEvent::dispatch(AgentWebsite::find($websiteId));
+                SourceWebsite::find($websiteId)?->update(['status' => 'ingested']);
+                WebsiteCrawlerEvent::dispatch(SourceWebsite::find($websiteId));
             })
             ->dispatch();
 

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Agent;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -10,14 +9,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('agent_files', function (Blueprint $table) {
+        Schema::create('source_files', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
             $table->string('filename');
-            $table->enum('filetype', ['document', 'image', 'video', 'audio', 'spreadsheet', 'presentation'])->index();
+            $table->enum('filetype', ['pdf', 'word', 'image', 'video', 'audio', 'spreadsheet', 'presentation', 'text', 'markdown'])->index();
             $table->string('filepath')->unique();
             $table->decimal('size_in_kb');
             $table->string('mime_type')->index();
@@ -34,12 +32,12 @@ return new class extends Migration
             $table->enum('status', ['uploaded', 'pending', 'ingesting', 'failed', 'ingested'])->default('pending')->index();
             $table->timestamps();
 
-            $table->unique(['agent_id', 'checksum']);
+            $table->unique(['user_id', 'checksum']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('agent_files');
+        Schema::dropIfExists('source_files');
     }
 };

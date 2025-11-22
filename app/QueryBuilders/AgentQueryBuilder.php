@@ -137,11 +137,20 @@ class AgentQueryBuilder extends Builder
     {
         $agentId = $this->getModel()->id;
 
-        return DB::table('agent_files')
-            ->where('agent_files.agent_id', $agentId)
-            ->select(['agent_files.filename', 'agent_files.retrieval_count', 'agent_files.mime_type'])
-            ->where('agent_files.retrieval_count', '>', 0)
-            ->orderByDesc('agent_files.retrieval_count');
+        return DB::table('agent_sources')
+            ->join('source_files', function ($join) {
+                $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
+                    ->where('agent_sources.sourceable_type', '=', \App\Models\SourceFile::class);
+            })
+            ->where('agent_sources.agent_id', $agentId)
+            ->select([
+                'source_files.filename',
+                'source_files.retrieval_count',
+                'source_files.mime_type',
+                'agent_sources.last_retrieved_at',
+            ])
+            ->where('source_files.retrieval_count', '>', 0)
+            ->orderByDesc('source_files.retrieval_count');
     }
 
     public function conversationsByCountry()

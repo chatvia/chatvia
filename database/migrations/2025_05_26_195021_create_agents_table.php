@@ -13,10 +13,10 @@ return new class extends Migration
             $table->id();
             $table->string('external_id', 20)->unique();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->enum('type', ['knowledge_base', 'widget']);
+            $table->enum('type', ['knowledge_base', 'widget', 'search']);
             $table->string('name');
             $table->string('sub_domain')->nullable()->unique();
-            $table->string('domain')->nullable();
+            $table->string('domain')->nullable()->unique();
             $table->text('system_instructions')->nullable();
             $table->boolean('is_public')->default(false);
             $table->boolean('collect_leads')->default(true);

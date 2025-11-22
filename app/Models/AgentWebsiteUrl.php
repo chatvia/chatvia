@@ -10,18 +10,20 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class AgentWebsiteUrl extends Model implements ChunkableContract
 {
+    protected $table = 'source_website_urls';
+
     protected $guarded = ['id'];
 
     public function agentWebsite(): BelongsTo
     {
-        return $this->belongsTo(AgentWebsite::class);
+        return $this->belongsTo(SourceWebsite::class);
     }
 
-    public function train(): void
+    public function train(int $agentId): void
     {
         $this->update(['status' => 'pending']);
 
-        WebsiteUrlTrainJob::dispatch($this);
+        WebsiteUrlTrainJob::dispatch($this, $agentId);
     }
 
     public function chunks(): HasManyThrough

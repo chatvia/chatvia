@@ -3,8 +3,8 @@
 namespace App\Services\Ingestion\Sources;
 
 use App\Events\UrlIngestionEvent;
-use App\Models\AgentWebsite;
 use App\Models\AgentWebsiteUrl;
+use App\Models\SourceWebsite;
 use App\Services\Chunking\Chunker;
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use App\Services\Tidy\HTMLCleaner;
@@ -16,14 +16,14 @@ use Illuminate\Support\Facades\Http;
 
 class WebsiteIngestion
 {
-    public function __construct(private AgentWebsite $website) {}
+    public function __construct(private SourceWebsite $website, private int $agentId) {}
 
     public function getResponses()
     {
         /** @var AgentWebsiteUrl<array> $urls */
         $urls = $this->website->untrainedUrls;
 
-        $responsesCacheId = 'agent:'.$this->website->agent->id.':website:'.$this->website->id.':ingestion:responses';
+        $responsesCacheId = 'agent:'.$this->agentId.':website:'.$this->website->id.':ingestion:responses';
 
         if (Cache::has($responsesCacheId)) {
             return Cache::get($responsesCacheId);
@@ -74,8 +74,8 @@ class WebsiteIngestion
                     $chunks = $splitter->splitText($text);
                     $chunks = collect($chunks)->map(fn ($item) => ['text' => $item])->toArray();
                     $chunks = new Chunker(
-                        agentId: $this->website->agent->id,
-                        chunkableType: AgentWebsite::class,
+                        agentId: $this->agentId,
+                        chunkableType: SourceWebsite::class,
                         chunkableId: $this->website->id,
                     )->createChunks($chunks);
                 }

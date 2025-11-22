@@ -17,7 +17,7 @@ class AgentSourceAnalyzeFileAction
             $hash = md5_file(TextCleaner::clean($uploadedFile->getPathname()));
 
             abort_if(
-                boolean: $agent->files()->where('checksum', $hash)->exists(),
+                boolean: $user->sourceFiles()->where('checksum', $hash)->exists(),
                 code: 422,
                 message: 'You have already uploaded this file.'
             );

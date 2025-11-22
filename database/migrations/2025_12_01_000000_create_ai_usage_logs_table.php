@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -44,11 +44,11 @@ return new class extends Migration
             // Indexes for Analytics & Reporting
             // 1. Monthly aggregations (Year + Month)
             $table->index([DB::raw('extract(year from created_at)'), DB::raw('extract(month from created_at)')], 'ai_usage_year_month_idx');
-            
+
             // 2. Cost analysis per user/team over time
             $table->index(['user_id', 'created_at']);
             $table->index(['team_id', 'created_at']);
-            
+
             // 3. Cost analysis per feature (e.g. "How much does ingestion cost vs chat?")
             $table->index(['feature', 'created_at']);
         });
@@ -59,4 +59,3 @@ return new class extends Migration
         Schema::dropIfExists('ai_usage_logs');
     }
 };
-

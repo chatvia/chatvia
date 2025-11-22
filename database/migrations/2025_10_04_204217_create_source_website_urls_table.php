@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\AgentWebsite;
+use App\Models\SourceWebsite;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,9 +9,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('agent_website_urls', function (Blueprint $table) {
+        Schema::create('source_website_urls', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(AgentWebsite::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(SourceWebsite::class)->constrained()->cascadeOnDelete();
             $table->text('url');
             $table->text('text')->nullable();
             $table->string('checksum')->nullable();
@@ -26,6 +26,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('agent_website_urls');
+        Schema::dropIfExists('source_website_urls');
     }
 };

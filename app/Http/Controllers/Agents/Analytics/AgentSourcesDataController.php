@@ -22,6 +22,7 @@ class AgentSourcesDataController
                     'name' => $file->filename,
                     'accessed' => $file->retrieval_count,
                     'mime_type' => $file->mime_type,
+                    'last_retrieved_at' => $file->last_retrieved_at,
                 ];
             });
 

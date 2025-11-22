@@ -4,7 +4,7 @@ namespace App\Jobs\Crawler;
 
 use App\Data\Crawler\CrawlerData;
 use App\Events\WebsiteCrawlerEvent;
-use App\Models\AgentWebsite;
+use App\Models\SourceWebsite;
 use App\Services\Crawler\Crawler;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -18,7 +18,7 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public AgentWebsite $website, public CrawlerData $data)
+    public function __construct(public SourceWebsite $website, public CrawlerData $data, public int $agentId)
     {
         $this->onQueue('ingestion.website');
     }
@@ -54,7 +54,7 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'agents:'.$this->website->agent->id.':website:'.$this->website->id.':crawler';
+        return 'agents:'.$this->agentId.':website:'.$this->website->id.':crawler';
     }
 
     public function failed(?Throwable $exception): void

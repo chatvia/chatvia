@@ -14,6 +14,13 @@ class AgentKnowledgeTextDestroyController
             code: 404,
         );
 
-        $agent->texts()->where('id', $id)->delete();
+        $text = $agent->texts()->where('source_texts.id', $id)->firstOrFail();
+
+        abort_if(
+            boolean: $request->user()->cannot('delete', $text),
+            code: 403,
+        );
+
+        $text->delete();
     }
 }

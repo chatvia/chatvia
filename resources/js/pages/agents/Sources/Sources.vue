@@ -204,35 +204,37 @@ onMounted(() => {
 
 <template>
     <AgentLayout :agent="agent" title="Sources">
-        <div class="min-h-[calc(100vh-220px)]">
-            <!-- Dynamic Component Based on Selection -->
-            <component
-                :is="currentComponent"
-                :agent="agent"
-                :file-type="selectedContentType"
-                v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text' || selectedContentType === 'youtube'"
-            />
+        <div class="flex justify-center">
+            <div class="w-full max-w-6xl min-h-[calc(100vh-220px)]">
+                <!-- Dynamic Component Based on Selection -->
+                <component
+                    :is="currentComponent"
+                    :agent="agent"
+                    :file-type="selectedContentType"
+                    v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text' || selectedContentType === 'youtube'"
+                />
 
-            <!-- Placeholder for other content types -->
-            <Card
-                v-else
-                class="h-full min-h-[400px]"
-            >
-                <CardContent class="flex items-center justify-center h-full p-8">
-                    <div class="text-center">
-                        <i
-                            :class="`pi ${contentTypes.find(t => t.id === selectedContentType)?.icon} text-6xl mx-auto mb-4 text-muted-foreground`"
-                        />
-                        <h3 class="text-lg font-medium mb-2">
-                            {{ contentTypes.find(t => t.id === selectedContentType)?.label }} Coming Soon
-                        </h3>
-                        <p class="text-muted-foreground max-w-md">
-                            {{ contentTypes.find(t => t.id === selectedContentType)?.description }}
-                            This feature is currently under development.
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
+                <!-- Placeholder for other content types -->
+                <Card
+                    v-else
+                    class="h-full min-h-[400px]"
+                >
+                    <CardContent class="flex items-center justify-center h-full p-8">
+                        <div class="text-center">
+                            <i
+                                :class="`pi ${contentTypes.find(t => t.id === selectedContentType)?.icon} text-6xl mx-auto mb-4 text-muted-foreground`"
+                            />
+                            <h3 class="text-lg font-medium mb-2">
+                                {{ contentTypes.find(t => t.id === selectedContentType)?.label }} Coming Soon
+                            </h3>
+                            <p class="text-muted-foreground max-w-md">
+                                {{ contentTypes.find(t => t.id === selectedContentType)?.description }}
+                                This feature is currently under development.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     </AgentLayout>
 </template>

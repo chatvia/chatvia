@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Agents\Sources\Crawler;
 
 use App\Models\Agent;
-use App\Models\AgentWebsite;
+use App\Models\SourceWebsite;
 use Illuminate\Http\Request;
 
 class AgentSourceCrawlerWebsiteLinksBulkDeleteController
 {
-    public function __invoke(Request $request, Agent $agent, AgentWebsite $website)
+    public function __invoke(Request $request, Agent $agent, SourceWebsite $website)
     {
         abort_if(
             boolean: $request->user()->cannot('delete', $website),
@@ -17,7 +17,7 @@ class AgentSourceCrawlerWebsiteLinksBulkDeleteController
 
         $validated = $request->validate([
             'link_ids' => ['required', 'array'],
-            'link_ids.*' => ['required', 'integer', 'exists:agent_website_urls,id'],
+            'link_ids.*' => ['required', 'integer', 'exists:source_website_urls,id'],
         ]);
 
         $website

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources;
 
 use App\Models\Agent;
+use App\Models\SourceFile;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeUploadedFilesDeleteController
@@ -14,6 +15,12 @@ class AgentKnowledgeUploadedFilesDeleteController
             code: 404,
         );
 
-        $agent->files()->where('status', 'uploaded')->delete();
+        $fileIds = $agent->files()
+            ->where('source_files.status', 'uploaded')
+            ->pluck('source_files.id');
+
+        SourceFile::whereIn('id', $fileIds)
+            ->where('user_id', $request->user()->id)
+            ->delete();
     }
 }

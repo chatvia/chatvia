@@ -113,8 +113,7 @@ const formatFileSize = (sizeInKb: number) => {
 };
 
 const getFileIcon = (mimeType: string) => {
-    if (mimeType.includes('pdf')) return FileText;
-    if (mimeType.includes('word') || mimeType.includes('document')) return FileText;
+    if (mimeType.includes('pdf') || mimeType.includes('word')) return FileText;
     return File;
 };
 

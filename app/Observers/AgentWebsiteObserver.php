@@ -2,14 +2,14 @@
 
 namespace App\Observers;
 
-use App\Models\AgentWebsite;
+use App\Models\SourceWebsite;
 
 class AgentWebsiteObserver
 {
     /**
      * Handle the AgentWebsite "created" event.
      */
-    public function created(AgentWebsite $agentWebsite): void
+    public function created(SourceWebsite $agentWebsite): void
     {
         //
     }
@@ -17,7 +17,7 @@ class AgentWebsiteObserver
     /**
      * Handle the AgentWebsite "updated" event.
      */
-    public function updated(AgentWebsite $agentWebsite): void
+    public function updated(SourceWebsite $agentWebsite): void
     {
         //
     }
@@ -25,7 +25,7 @@ class AgentWebsiteObserver
     /**
      * Handle the AgentWebsite "deleted" event.
      */
-    public function deleted(AgentWebsite $agentWebsite): void
+    public function deleted(SourceWebsite $agentWebsite): void
     {
         $agentWebsite->chunks()->delete();
     }
@@ -33,7 +33,7 @@ class AgentWebsiteObserver
     /**
      * Handle the AgentWebsite "restored" event.
      */
-    public function restored(AgentWebsite $agentWebsite): void
+    public function restored(SourceWebsite $agentWebsite): void
     {
         //
     }
@@ -41,7 +41,7 @@ class AgentWebsiteObserver
     /**
      * Handle the AgentWebsite "force deleted" event.
      */
-    public function forceDeleted(AgentWebsite $agentWebsite): void
+    public function forceDeleted(SourceWebsite $agentWebsite): void
     {
         $this->deleted($agentWebsite);
     }

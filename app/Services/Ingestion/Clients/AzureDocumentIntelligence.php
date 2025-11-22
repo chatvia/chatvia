@@ -2,7 +2,7 @@
 
 namespace App\Services\Ingestion\Clients;
 
-use App\Models\AgentFile;
+use App\Models\SourceFile;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -48,9 +48,9 @@ class AzureDocumentIntelligence
         return $response->header('Operation-Location');
     }
 
-    public function getAnalysisResult(string|AgentFile $operationLocation): array
+    public function getAnalysisResult(string|SourceFile $operationLocation): array
     {
-        if ($operationLocation instanceof AgentFile) {
+        if ($operationLocation instanceof SourceFile) {
             $operationLocation = $operationLocation->azure_operation_location;
         }
 

@@ -1,0 +1,52 @@
+services:
+    minio:
+        image: 'minio/minio:latest'
+        ports:
+            - '${FORWARD_MINIO_PORT:-9001}:9000'
+            - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
+        environment:
+            MINIO_ROOT_USER: sail
+            MINIO_ROOT_PASSWORD: password
+        volumes:
+            - 'chatvia-minio:/data'
+        networks:
+            - chatvia
+        command: 'minio server /data --console-address ":8900"'
+        healthcheck:
+            test:
+                - CMD
+                - mc
+                - ready
+                - local
+            retries: 3
+            timeout: 5s
+
+
+    pgsql:
+        image: "tensorchord/vchord-suite:pg17-latest"
+        ports:
+            - '${FORWARD_PGVECTOR_PORT:-5432}:5432'
+        environment:
+            POSTGRES_DB: ${DB_DATABASE:-chatvia}
+            POSTGRES_USER: ${DB_USERNAME:-sail}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+        volumes:
+            - 'chatvia-pgvector:/var/lib/postgresql/data'
+        networks:
+            - chatvia
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "${DB_USERNAME:-sail}"]
+            retries: 3
+            timeout: 5s
+
+networks:
+    chatvia:
+        driver: bridge
+
+volumes:
+    chatvia-redis:
+        driver: local
+    chatvia-minio:
+        driver: local
+    chatvia-pgvector:
+        driver: local

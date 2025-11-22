@@ -2,7 +2,7 @@
 
 namespace App\Data\Responses\Agent;
 
-use App\Models\AgentFile;
+use App\Models\SourceFile;
 use DateTime;
 use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
@@ -19,10 +19,11 @@ class SourceFileDataResponse extends Data
         public int $progress,
         public bool $is_audio_file,
         public bool $is_video_file,
+        public int $agents_count,
         public DateTime $created_at
     ) {}
 
-    public static function fromFile(AgentFile $file): self
+    public static function fromFile(SourceFile $file): self
     {
         return new self(
             id: $file->id,
@@ -34,13 +35,14 @@ class SourceFileDataResponse extends Data
             progress: $file->ingestionProgress(),
             is_audio_file: $file->isAudioFile(),
             is_video_file: $file->isVideoFile(),
+            agents_count: $file->agents_count ?? 0,
             created_at: $file->created_at,
         );
     }
 
     public static function fromFiles(Collection $files): \Illuminate\Support\Collection
     {
-        return collect($files)->map(function (AgentFile $file) {
+        return collect($files)->map(function (SourceFile $file) {
             return self::fromFile($file);
         });
     }

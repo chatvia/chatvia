@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources\Text;
 
 use App\Models\Agent;
-use App\Models\AgentText;
+use App\Models\SourceText;
 use App\Services\Tidy\TextCleaner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -17,7 +17,7 @@ class AgentKnowledgeTextUpdateController
             code: 404,
         );
 
-        /** @var AgentText $agentText */
+        /** @var SourceText $agentText */
         $agentText = $agent->texts()->where('id', $id)->firstOrFail();
 
         $request->validate([
@@ -48,8 +48,9 @@ class AgentKnowledgeTextUpdateController
             'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
         ]);
 
-        $agentText->chunks()->delete();
+        // Delete chunks only for this agent
+        $agentText->chunks()->where('agent_id', $agent->id)->delete();
 
-        $agentText->startTraining();
+        $agentText->startTraining($agent->id);
     }
 }

@@ -6,10 +6,11 @@ use App\Data\Ingestion\ChunkIngestionData;
 use App\Events\FileIngestionProgressEvent;
 use App\Events\UrlIngestionEvent;
 use App\Events\WebsiteIngestionProgressEvent;
-use App\Models\AgentFile;
+use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
 use App\Models\Chunk;
 use App\Models\ChunkReference;
+use App\Models\SourceFile;
 use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
@@ -89,8 +90,11 @@ class ChunkIngestionJob implements ShouldQueue
 
         $costInCents = OpenAI::calculateCostInCents($systemPrompt.$userPrompt, $chunk);
 
+        $agent = Agent::find($this->chunk->agent_id);
+
         $createdChunk = Chunk::query()->create([
-            'agent_id' => $this->chunk->agent_id,
+            //            'agent_id' => $this->chunk->agent_id,
+            'user_id' => $agent->user_id,
             'chunkable_type' => $this->chunk->chunkable_type,
             'chunkable_id' => $this->chunk->chunkable_id,
             'type' => 'text',
@@ -128,9 +132,10 @@ class ChunkIngestionJob implements ShouldQueue
             }
         }
 
-        if ($this->chunk->chunkable_type === AgentFile::class) {
+        if ($this->chunk->chunkable_type === SourceFile::class) {
             FileIngestionProgressEvent::dispatch(
-                AgentFile::find($this->chunk->chunkable_id),
+                SourceFile::find($this->chunk->chunkable_id),
+                $this->chunk->agent_id
             );
         }
     }

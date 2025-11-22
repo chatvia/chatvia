@@ -2,7 +2,9 @@
 
 namespace App\Traits;
 
+use App\Models\Agent;
 use App\Models\Chunk;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +14,11 @@ trait Chunkable
     public function chunks(): MorphMany
     {
         return $this->morphMany(Chunk::class, 'chunkable');
+    }
+
+    public function agents(): BelongsToMany
+    {
+        return $this->belongsToMany(Agent::class, 'agent_chunk');
     }
 
     public function tempUrl(): string

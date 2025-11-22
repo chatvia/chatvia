@@ -53,7 +53,7 @@ interface DiscoveredLink {
     found_on_url: string;
     crawled_at?: string;
     status?: 'pending' | 'ingesting' | 'ingested' | 'failed';
-    agent_website_id?: number; // For WebSocket matching
+    source_website_id?: number; // For WebSocket matching
 }
 
 
@@ -467,7 +467,7 @@ const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuer
             found_on_url: linkObj.found_on_url || '',
             crawled_at: linkObj.crawled_at || linkObj.created_at || linkObj.updated_at || '',
             status: linkObj.status || 'ingested',
-            agent_website_id: linkObj.agent_website_id // Store for WebSocket matching
+            source_website_id: linkObj.source_website_id // Store for WebSocket matching
         }));
 
         // Update pagination state
@@ -802,7 +802,7 @@ const handleCrawlingUpdate = async (event: any) => {
 
 const handleUrlIngestionUpdate = (event: any) => {
     // The event structure from backend: { status: string, id: number, url: string, crawled_at: string }
-    // Note: agent_website_id is NOT included in the event, so we search by link ID
+    // Note: source_website_id is NOT included in the event, so we search by link ID
     const status = event.status;
     const link_id = event.id;
     const crawled_at = event.crawled_at;
@@ -1397,7 +1397,7 @@ const fetchDialogLinks = async (websiteId: number, page: number = 1, searchQuery
             found_on_url: linkObj.found_on_url || '',
             crawled_at: linkObj.crawled_at || linkObj.created_at || linkObj.updated_at || '',
             status: linkObj.status || 'ingested',
-            agent_website_id: linkObj.agent_website_id // Store for WebSocket matching
+            source_website_id: linkObj.source_website_id // Store for WebSocket matching
         }));
 
         dialogLinksPagination.value = {

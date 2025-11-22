@@ -10,6 +10,9 @@ use App\Http\Controllers\Agents\Agents\AgentRenameController;
 use App\Http\Controllers\Agents\Agents\AgentsGenerateRandomSubDomainController;
 use App\Http\Controllers\Agents\Agents\AgentsIndexController;
 use App\Http\Controllers\Agents\Agents\AgentsListController;
+use App\Http\Controllers\Agents\Agents\AgentSourcesLinkFileController;
+use App\Http\Controllers\Agents\Agents\AgentSourcesTrainedListController;
+use App\Http\Controllers\Agents\Agents\AgentSourceUnlinkFileController;
 use App\Http\Controllers\Agents\Agents\AgentStoreController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateSettingsController;
@@ -82,7 +85,7 @@ use App\Http\Controllers\Agents\Workflow\AgentWorkflowController;
 use App\Http\Controllers\CountriesListController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
     //    Route::resource('agents', AgentsIndexController::class);
 
     Route::get('agents', AgentsIndexController::class)->name('agents.index');
@@ -189,6 +192,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Rename Agent
         Route::patch('rename', AgentRenameController::class)->name('rename');
+
+        // Linking / Unlinking Source Files
+        Route::get('sources/trained-files', AgentSourcesTrainedListController::class)->name('sources.list');
+        Route::post('sources/trained-files/{fileId}/link', AgentSourcesLinkFileController::class)->name('sources.files.link');
+        Route::post('sources/trained-files/{fileId}/unlink', AgentSourceUnlinkFileController::class)->name('sources.files.unlink');
 
         // Delete Agent
         Route::delete('/', AgentDeleteController::class)->name('delete');

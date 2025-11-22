@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources\Youtube;
 
 use App\Models\Agent;
-use App\Models\AgentYoutubeVideo;
+use App\Models\SourceYoutubeVideo;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeYoutubeStoreController
@@ -35,9 +35,9 @@ class AgentKnowledgeYoutubeStoreController
             ], 422);
         }
 
-        // Check if video already exists for this agent
+        // Check if video already exists for this agent (using URL as identifier)
         $existingVideo = $agent->youtubeVideos()
-            ->where('video_id', $videoId)
+            ->where('source_youtube_videos.url', $url)
             ->first();
 
         if ($existingVideo) {
@@ -49,15 +49,18 @@ class AgentKnowledgeYoutubeStoreController
             ], 422);
         }
 
-        /** @var AgentYoutubeVideo $youtubeVideo */
-        $youtubeVideo = $agent->youtubeVideos()->create([
+        /** @var SourceYoutubeVideo $youtubeVideo */
+        $youtubeVideo = SourceYoutubeVideo::create([
             'user_id' => $request->user()->id,
             'url' => $url,
-            'video_id' => $videoId,
+            'length' => 0, // Will be updated during ingestion
             'status' => 'pending',
         ]);
 
-        $youtubeVideo->startTraining();
+        // Attach the video to this agent
+        $agent->youtubeVideos()->attach($youtubeVideo->id);
+
+        $youtubeVideo->startTraining($agent->id);
 
         return response()->json([
             'message' => 'YouTube video added successfully.',

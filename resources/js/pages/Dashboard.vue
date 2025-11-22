@@ -285,7 +285,7 @@ onMounted(() => {
                                     <div>
                                         <h4 class="font-semibold text-base">{{ agent.name }}</h4>
                                         <div class="flex items-center gap-2 mt-1">
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full" 
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full"
                                                   :class="agent.type === 'widget' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'">
                                                 <component :is="agent.type === 'widget' ? Globe : Brain" class="h-3 w-3" />
                                                 {{ agent.type === 'widget' ? 'Widget' : 'Knowledge Base' }}
@@ -304,7 +304,7 @@ onMounted(() => {
                                             <span class="text-sm font-medium">{{ agent.users }}</span>
                                         </div>
                                     </div>
-                                    <Link :href="route('agents.stats', agent.id)" class="rounded-md p-2 hover:bg-muted transition-colors">
+                                    <Link :href="route('agents.analytics', agent.id)" class="rounded-md p-2 hover:bg-muted transition-colors">
                                         <ArrowRight class="h-4 w-4" />
                                     </Link>
                                 </div>

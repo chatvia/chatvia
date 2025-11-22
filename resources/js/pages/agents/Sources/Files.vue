@@ -4,17 +4,19 @@ import axios from 'axios';
 import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play, Zap, Info, XCircle } from 'lucide-vue-next';
+import { Database, FileText, Trash2, LoaderCircle, File, AlertCircle, CheckCircle, Play, Zap, Info, XCircle, Unlink } from 'lucide-vue-next';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Link as LinkIcon } from 'lucide-vue-next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import FileUploader from '@/components/FileUploader.vue';
 import type { UploadingFileData as BaseUploadingFileData, FileUploaderConfig } from '@/composables/useFileUploader';
 import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
+import AttachFileDialog from '@/components/ui/AttachFileDialog.vue';
 
 import { usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
@@ -39,6 +41,7 @@ interface KnowledgeFile {
     is_audio_file?: boolean;
     is_video_file?: boolean;
     progress?: number;
+    agents_count?: number;
 }
 
 interface UploadedFile {
@@ -185,12 +188,17 @@ const deleteUploadingFileDialogOpen = ref(false);
 const uploadingFileToDelete = ref<UploadingFileData | null>(null);
 const bulkDeleteDialogOpen = ref(false);
 const clearAllDialogOpen = ref(false);
+const isUnlinking = ref(false);
+const isDeleting = ref(false);
 
 // Summary dialog states
 const summaryDialogOpen = ref(false);
 const summaryData = ref<FileSummaryData | null>(null);
 const isLoadingSummary = ref(false);
 const currentSummaryFile = ref<KnowledgeFile | null>(null);
+
+// Attach file dialog state
+const attachFileDialogOpen = ref(false);
 
 // Filter and sort state
 const searchQuery = ref('');
@@ -660,6 +668,11 @@ const confirmDeleteFile = (file: KnowledgeFile) => {
     deleteDialogOpen.value = true;
 };
 
+// Check if file is shared across multiple agents
+const isFileShared = (file: KnowledgeFile): boolean => {
+    return (file.agents_count ?? 0) > 1;
+};
+
 // Process all uploaded files
 const processAllFiles = async () => {
     if (uploadedFiles.value.length === 0) {
@@ -712,31 +725,103 @@ const processAllFiles = async () => {
 
 
 
-const removeKnowledgeFile = async () => {
-    if (!fileToDelete.value) return;
+const unlinkKnowledgeFile = async () => {
+    if (!fileToDelete.value || isUnlinking.value) return;
+
+    const fileToUnlink = fileToDelete.value;
+    isUnlinking.value = true;
 
     try {
-        console.log(`Deleting knowledge file: ${fileToDelete.value.name} (ID: ${fileToDelete.value.id})`);
+        console.log(`Unlinking knowledge file: ${fileToUnlink.name} (ID: ${fileToUnlink.id})`);
+
+        const unlinkUrl = route('agents.sources.files.unlink', {
+            agent: props.agent.id,
+            fileId: fileToUnlink.id
+        });
+
+        console.log(`UNLINK URL: ${unlinkUrl}`);
+
+        await axios.post(unlinkUrl, {
+            file_id: fileToUnlink.id
+        });
+
+        console.log(`Successfully unlinked: ${fileToUnlink.name}`);
+
+        // Remove file from local state
+        knowledgeFiles.value = knowledgeFiles.value.filter(file => file.id !== fileToUnlink.id);
+
+        // Also remove from uploadedFiles if present
+        uploadedFiles.value = uploadedFiles.value.filter(file => file.id !== fileToUnlink.id);
+
+        // Refresh usage data from server after unlinking
+        await fetchUsageData();
+
+        toast.success(`${fileToUnlink.name} has been unlinked from this agent.`);
+
+        // Close dialog first
+        deleteDialogOpen.value = false;
+        
+        // Reset state after a delay to allow dialog to close
+        setTimeout(() => {
+            fileToDelete.value = null;
+        }, 300);
+
+    } catch (error: any) {
+        console.error('Error unlinking file:', error);
+
+        // Log detailed error information
+        if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response data:', error.response.data);
+            console.error('Response headers:', error.response.headers);
+        }
+
+        // Show user-friendly error message
+        const errorMessage = error.response?.data?.message || error.message;
+        toast.error(`Failed to unlink ${fileToUnlink.name}: ${errorMessage}`);
+    } finally {
+        isUnlinking.value = false;
+    }
+};
+
+const removeKnowledgeFile = async () => {
+    if (!fileToDelete.value || isDeleting.value) return;
+
+    const fileToRemove = fileToDelete.value;
+    isDeleting.value = true;
+
+    try {
+        console.log(`Deleting knowledge file: ${fileToRemove.name} (ID: ${fileToRemove.id})`);
 
         const deleteUrl = route('agents.sources.files.delete', {
             agent: props.agent.id,
-            file: fileToDelete.value.id
+            file: fileToRemove.id
         });
 
         console.log(`DELETE URL: ${deleteUrl}`);
 
         const response = await axios.delete(deleteUrl);
 
-        console.log(`Successfully deleted: ${fileToDelete.value.name}`, response);
+        console.log(`Successfully deleted: ${fileToRemove.name}`, response);
 
         // Remove file from local state
-        knowledgeFiles.value = knowledgeFiles.value.filter(file => file.id !== fileToDelete.value!.id);
+        knowledgeFiles.value = knowledgeFiles.value.filter(file => file.id !== fileToRemove.id);
 
         // Also remove from uploadedFiles if present
-        uploadedFiles.value = uploadedFiles.value.filter(file => file.id !== fileToDelete.value!.id);
+        uploadedFiles.value = uploadedFiles.value.filter(file => file.id !== fileToRemove.id);
 
         // Refresh usage data from server after deletion
         await fetchUsageData();
+
+        toast.success(`${fileToRemove.name} has been deleted.`);
+
+        // Close dialog first
+        deleteDialogOpen.value = false;
+        
+        // Reset state after a delay to allow dialog to close
+        setTimeout(() => {
+            fileToDelete.value = null;
+        }, 300);
 
     } catch (error: any) {
         console.error('Error deleting file:', error);
@@ -749,11 +834,11 @@ const removeKnowledgeFile = async () => {
         }
 
         // Show user-friendly error message
-        alert(`Failed to delete ${fileToDelete.value.name}: ${error.response?.data?.message || error.message}`);
+        const errorMessage = error.response?.data?.message || error.message;
+        toast.error(`Failed to delete ${fileToRemove.name}: ${errorMessage}`);
+    } finally {
+        isDeleting.value = false;
     }
-
-    fileToDelete.value = null;
-    deleteDialogOpen.value = false;
 };
 
 // Handle file ingestion progress updates from WebSocket
@@ -770,14 +855,18 @@ const handleFileIngestionProgress = (event: any) => {
     if (fileIndex !== -1) {
         // Create a new array with the updated file for reactivity
         const updatedFiles = [...knowledgeFiles.value];
+
         updatedFiles[fileIndex] = {
             ...updatedFiles[fileIndex],
-            progress: progress
+            progress: 100,
+            status: 'ingested'
         };
         knowledgeFiles.value = updatedFiles;
-        
-        // If progress is 100%, refresh the files to get the final status
+            
+
+        // If progress is 100%, update the status to 'ingested' immediately
         if (progress >= 100) {
+            // Refresh files to get the complete updated data
             setTimeout(() => {
                 fetchKnowledgeFiles();
             }, 1000); // Small delay to ensure backend has updated
@@ -874,6 +963,14 @@ const showFileSummary = async (file: KnowledgeFile) => {
     } finally {
         isLoadingSummary.value = false;
     }
+};
+
+// Handle file attached event
+const handleFileAttached = async () => {
+    // Refresh the knowledge files list to show the newly attached file
+    await fetchKnowledgeFiles();
+    // Refresh usage data
+    await fetchUsageData();
 };
 </script>
 
@@ -994,13 +1091,26 @@ const showFileSummary = async (file: KnowledgeFile) => {
             <!-- Current Knowledge Base -->
             <Card>
                 <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Database class="h-5 w-5" />
-                        Trained Files
-                    </CardTitle>
-                    <CardDescription>
-                        Files trained and available to your agent. {{ processedKnowledgeFiles.length }} file{{ processedKnowledgeFiles.length !== 1 ? 's' : '' }} in total.
-                    </CardDescription>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <CardTitle class="flex items-center gap-2">
+                                <Database class="h-5 w-5" />
+                                Trained Files
+                            </CardTitle>
+                            <CardDescription>
+                                Files trained and available to your agent. {{ processedKnowledgeFiles.length }} file{{ processedKnowledgeFiles.length !== 1 ? 's' : '' }} in total.
+                            </CardDescription>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            @click="attachFileDialogOpen = true"
+                            :disabled="isProcessingFiles"
+                        >
+                            <LinkIcon class="h-4 w-4 mr-2" />
+                            Choose from already trained files
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div class="space-y-4">
@@ -1111,7 +1221,13 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p>Delete from knowledge base</p>
+                                                            <div class="text-xs">
+                                                                <p v-if="isFileShared(file)">
+                                                                    Remove from agent<br>
+                                                                    <span class="text-muted-foreground">(Used in {{ file.agents_count }} agents)</span>
+                                                                </p>
+                                                                <p v-else>Delete from knowledge base</p>
+                                                            </div>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
@@ -1218,7 +1334,13 @@ const showFileSummary = async (file: KnowledgeFile) => {
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        <p>Delete from knowledge base</p>
+                                                        <div class="text-xs">
+                                                            <p v-if="isFileShared(file)">
+                                                                Remove from agent<br>
+                                                                <span class="text-muted-foreground">(Used in {{ file.agents_count }} agents)</span>
+                                                            </p>
+                                                            <p v-else>Delete from knowledge base</p>
+                                                        </div>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
@@ -1231,15 +1353,53 @@ const showFileSummary = async (file: KnowledgeFile) => {
                 </CardContent>
             </Card>
 
-    <!-- Delete Confirmation Dialog for Knowledge Files -->
-    <DeleteConfirmationDialog
-        v-model:open="deleteDialogOpen"
-        :title="`Delete ${fileToDelete?.name}?`"
-        description="This will permanently remove this file from your agent's knowledge base. This action cannot be undone."
-        confirm-text="Yes, delete file"
-        cancel-text="Cancel"
-        @confirm="removeKnowledgeFile"
-    />
+    <!-- Delete/Unlink Confirmation Dialog for Knowledge Files -->
+    <Dialog v-model:open="deleteDialogOpen">
+        <DialogContent v-if="fileToDelete" class="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>{{ fileToDelete.name }}</DialogTitle>
+                <DialogDescription>
+                    <span v-if="isFileShared(fileToDelete)">
+                        This file is used in <strong>{{ fileToDelete.agents_count }} agents</strong>. 
+                        You can unlink it from this agent or permanently delete it from all agents.
+                    </span>
+                    <span v-else>
+                        This will permanently remove this file from your agent's knowledge base. This action cannot be undone.
+                    </span>
+                </DialogDescription>
+            </DialogHeader>
+            <div class="flex items-center justify-end gap-2 mt-4">
+                <Button 
+                    variant="outline" 
+                    @click="deleteDialogOpen = false"
+                    :disabled="isUnlinking || isDeleting"
+                >
+                    Cancel
+                </Button>
+                <Button 
+                    v-if="isFileShared(fileToDelete)" 
+                    variant="secondary" 
+                    @click="unlinkKnowledgeFile"
+                    :disabled="isUnlinking || isDeleting"
+                    class="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
+                >
+                    <LoaderCircle v-if="isUnlinking" class="h-4 w-4 mr-2 animate-spin" />
+                    <Unlink v-else class="h-4 w-4 mr-2" />
+                    {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
+                </Button>
+                <Button 
+                    variant="destructive" 
+                    @click="removeKnowledgeFile"
+                    :disabled="isUnlinking || isDeleting"
+                >
+                    <LoaderCircle v-if="isDeleting" class="h-4 w-4 mr-2 animate-spin" />
+                    <Trash2 v-else class="h-4 w-4 mr-2" />
+                    <span v-if="isDeleting">Deleting...</span>
+                    <span v-else>{{ isFileShared(fileToDelete) ? 'Delete permanently' : 'Delete' }}</span>
+                </Button>
+            </div>
+        </DialogContent>
+    </Dialog>
 
     <!-- Delete Confirmation Dialog for Uploading Files -->
     <DeleteConfirmationDialog
@@ -1361,6 +1521,14 @@ const showFileSummary = async (file: KnowledgeFile) => {
             </div>
         </DialogContent>
     </Dialog>
+
+    <!-- Attach File Dialog -->
+    <AttachFileDialog
+        v-model:open="attachFileDialogOpen"
+        :agent-id="agent.id"
+        :file-type="fileType"
+        @file-attached="handleFileAttached"
+    />
         </div>
     </div>
 </template>

@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -41,7 +42,7 @@ class Agent extends Model
     public function addFile(
         UploadedFile $file,
         AgentFileStatusEnum $status = AgentFileStatusEnum::UPLOADED,
-        array $options = []): AgentFile
+        array $options = []): SourceFile
     {
         $path = Storage::putFile(
             path: 'users/'.$this->user_id.'/agents/'.$this->id.'/files',
@@ -53,7 +54,7 @@ class Agent extends Model
 
             $analyzer = FileAnalyzer::analyze($file);
 
-            $agentFile = $this->files()->create(array_merge([
+            $sourceFile = SourceFile::create(array_merge([
                 'user_id' => $this->user_id,
                 'filename' => $file->getClientOriginalName(),
                 'filetype' => get_file_type($file->getMimeType()),
@@ -66,9 +67,12 @@ class Agent extends Model
                 'metadata' => $analyzer->toArray(),
             ], $options));
 
+            // Attach the file to this agent
+            $sourceFile->agents()->attach($this->id);
+
             DB::commit();
 
-            return $agentFile;
+            return $sourceFile;
         } catch (Exception $e) {
             DB::rollBack();
 
@@ -80,25 +84,32 @@ class Agent extends Model
         }
     }
 
-    public function files(): HasMany
+    public function files(): MorphToMany
     {
-        return $this->hasMany(AgentFile::class);
+        return $this->morphedByMany(SourceFile::class, 'sourceable', 'agent_sources')
+            ->using(AgentSource::class)
+            ->withTimestamps();
     }
 
-    public function websites(): HasMany
+    public function websites(): MorphToMany
     {
-        return $this->hasMany(AgentWebsite::class);
+        return $this->morphedByMany(SourceWebsite::class, 'sourceable', 'agent_sources')
+            ->using(AgentSource::class)
+            ->withTimestamps();
     }
 
-    public function texts(): HasMany
+    public function texts(): MorphToMany
     {
-        return $this->hasMany(AgentText::class);
+        return $this->morphedByMany(SourceText::class, 'sourceable', 'agent_sources')
+            ->using(AgentSource::class)
+            ->withTimestamps();
     }
 
-    public function youtubeVideos(): HasMany
-    {
-        return $this->hasMany(AgentYoutubeVideo::class);
-    }
+    // YouTube videos feature - disabled for now
+    // public function youtubeVideos(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(SourceYoutubeVideo::class, 'agent_youtube_video', 'agent_id', 'source_youtube_video_id');
+    // }
 
     public function starters(): HasMany
     {
@@ -225,22 +236,22 @@ class Agent extends Model
         return $this->collect_leads === true;
     }
 
-    public function wordFiles(): HasMany
+    public function wordFiles(): BelongsToMany
     {
         return $this->files()->whereIn('mime_type', config('mimes.word'));
     }
 
-    public function pdfFiles(): HasMany
+    public function pdfFiles(): BelongsToMany
     {
         return $this->files()->whereIn('mime_type', config('mimes.pdf'));
     }
 
-    public function audioFiles(): HasMany
+    public function audioFiles(): BelongsToMany
     {
         return $this->files()->whereIn('mime_type', config('mimes.audio'));
     }
 
-    public function videoFiles(): HasMany
+    public function videoFiles(): BelongsToMany
     {
         return $this->files()->whereIn('mime_type', config('mimes.video'));
     }

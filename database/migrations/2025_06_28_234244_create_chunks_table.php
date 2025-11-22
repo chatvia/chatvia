@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Agent;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -12,11 +12,14 @@ return new class extends Migration
     {
         Schema::create('chunks', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Agent::class)->index()->constrained()->cascadeOnDelete();
 
+            $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnDelete();
+
+            // The parent model this chunk belongs to
             $table->morphs('chunkable');
 
             $table->enum('type', ['text', 'image', 'table']);
+
             $table->unsignedInteger('chunk_index');
             $table->text('chunk');
             $table->string('chunked_using_model')->nullable();

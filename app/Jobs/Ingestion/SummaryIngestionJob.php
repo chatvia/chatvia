@@ -3,6 +3,7 @@
 namespace App\Jobs\Ingestion;
 
 use App\Contracts\ChunkableContract;
+use App\Models\Agent;
 use App\Models\Chunk;
 use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Prompts\PromptLoader;
@@ -18,10 +19,7 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable, SerializesModels;
 
-    public function __construct(public ChunkableContract $source, public string $content)
-    {
-        $this->onQueue('ingestion');
-    }
+    public function __construct(public ChunkableContract $source, public string $content) {}
 
     public function handle(): void
     {
@@ -53,8 +51,10 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             pricePerOutputMilToken: 8.0,
         );
 
+        //        $agent = Agent::find($this->source->agent_id);
+
         Chunk::query()->create([
-            'agent_id' => $this->source->agent_id,
+            'user_id' => $this->source->user_id,
             'chunkable_type' => get_class($this->source),
             'chunkable_id' => $this->source->id,
             'type' => 'text',

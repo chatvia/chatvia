@@ -109,38 +109,9 @@ if (! function_exists('current_agent')) {
 if (! function_exists('get_file_type')) {
     function get_file_type(string $mimeType): string
     {
-        // Document types (PDF, Word processing, Text, E-books, Web)
-        $documentTypes = [
-            // PDF
-            'application/pdf',
-
-            // Word processing documents
-            'application/msword', // doc
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // docx
-            'application/vnd.ms-word.document.macroEnabled.12', // docm
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.template', // dot
-            'application/vnd.ms-word.template.macroEnabled.12', // dotm
-            'application/rtf', // rtf
-            'application/vnd.oasis.opendocument.text', // odt
-            'application/vnd.apple.pages', // pages
-            'application/wordperfect', // wpd
-            'application/vnd.wordperfect', // wpd
-            'application/x-abiword', // abw
-            'application/x-hwp', // hwp
-
-            // TextC files
-            'text/plain', // txt
-            'application/xml', // xml
-            'text/xml', // xml
-            'text/markdown', // md
-
-            // E-books
-            'application/epub+zip', // epub
-
-            // Web documents
-            'text/html', // htm, html
-            'application/xhtml+xml', // html
-        ];
+        $wordFiles = config('mimes.word');
+        $pdfFiles = config('mimes.pdf');
+        $textFiles = config('mimes.text');
 
         // Presentation types
         $presentationTypes = config('mimes.presentation');
@@ -158,8 +129,16 @@ if (! function_exists('get_file_type')) {
         $videoTypes = config('mimes.video');
 
         // Check each category
-        if (in_array($mimeType, $documentTypes)) {
-            return 'document';
+        if (in_array($mimeType, $pdfFiles, true)) {
+            return 'pdf';
+        }
+
+        if (in_array($mimeType, $wordFiles, true)) {
+            return 'word';
+        }
+
+        if (in_array($mimeType, $textFiles, true)) {
+            return 'text';
         }
 
         if (in_array($mimeType, $presentationTypes, true)) {
@@ -182,31 +161,7 @@ if (! function_exists('get_file_type')) {
             return 'video';
         }
 
-        // Fallback: check by mime type prefix
-        $mimePrefix = explode('/', $mimeType)[0] ?? '';
-
-        return match ($mimePrefix) {
-            'text' => match (true) {
-                str_contains($mimeType, 'csv') => 'spreadsheet',
-                str_contains($mimeType, 'html') => 'document',
-                default => 'document'
-            },
-            'audio' => 'audio',
-            'video' => 'video',
-            'image' => 'image',
-            'application' => match (true) {
-                str_contains($mimeType, 'pdf') => 'document',
-                str_contains($mimeType, 'word') => 'document',
-                str_contains($mimeType, 'powerpoint') => 'presentation',
-                str_contains($mimeType, 'presentation') => 'presentation',
-                str_contains($mimeType, 'excel') => 'spreadsheet',
-                str_contains($mimeType, 'spreadsheet') => 'spreadsheet',
-                str_contains($mimeType, 'document') => 'document',
-                str_contains($mimeType, 'epub') => 'document',
-                default => 'unsupported'
-            },
-            default => 'unsupported'
-        };
+        throw new RuntimeException('Unsupported mime type');
     }
 }
 

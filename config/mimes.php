@@ -81,4 +81,10 @@ return [
         'application/vnd.ms-works', // wks
         'application/x-quattro-pro', // qpw
     ],
+    'text' => [
+        'text/plain', // txt
+    ],
+    'markdown' => [
+        'text/markdown', // md
+    ],
 ];

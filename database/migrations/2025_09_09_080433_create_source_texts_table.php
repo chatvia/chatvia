@@ -30,7 +30,8 @@ return new class extends Migration
             $table->enum('status', ['pending', 'ingesting', 'failed', 'ingested'])->default('pending')->index();
             $table->unsignedInteger('took_in_seconds')->default(0);
             $table->text('failure_reason')->nullable();
-
+            $table->unsignedInteger('retrieval_count')->default(0);
+            $table->timestamp('last_retrieved_at')->nullable();
             $table->timestamps();
 
             $table->unique(['user_id', 'checksum']);

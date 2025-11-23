@@ -35,7 +35,7 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $this->website->refresh();
 
-        WebsiteCrawlerEvent::dispatch($this->website);
+        WebsiteCrawlerEvent::dispatch($this->website, $this->agentId);
 
         /** @var WebsiteIngestion $websiteIngestion */
         $websiteIngestion = app(WebsiteIngestion::class, ['website' => $this->website, 'agentId' => $this->agentId]);
@@ -65,11 +65,16 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $websiteId = $this->website->id;
 
+        $agentId = $this->agentId;
+
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent WebSite ID: '.$websiteId)
-            ->then(function (Batch $batch) use ($websiteId) {
-                SourceWebsite::find($websiteId)?->update(['status' => 'ingested']);
-                WebsiteCrawlerEvent::dispatch(SourceWebsite::find($websiteId));
+            ->then(function (Batch $batch) use ($websiteId, $agentId) {
+                $website = SourceWebsite::find($websiteId);
+                $website?->update(['status' => 'ingested']);
+                if ($website) {
+                    WebsiteCrawlerEvent::dispatch($website, $agentId);
+                }
             })
             ->dispatch();
 

@@ -28,8 +28,11 @@ return new class extends Migration
             $table->string('internal_chunking_batch_id')->unique()->nullable();
             $table->string('external_parsing_job_id')->unique()->nullable();
             $table->jsonb('metadata')->index()->nullable();
-            $table->unsignedInteger('retrieval_count')->default(0);
             $table->enum('status', ['uploaded', 'pending', 'ingesting', 'failed', 'ingested'])->default('pending')->index();
+            $table->unsignedInteger('took_in_seconds')->default(0);
+            $table->text('failure_reason')->nullable();
+            $table->unsignedInteger('retrieval_count')->default(0);
+            $table->timestamp('last_retrieved_at')->nullable();
             $table->timestamps();
 
             $table->unique(['user_id', 'checksum']);

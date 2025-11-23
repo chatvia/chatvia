@@ -10,7 +10,7 @@ class AgentKnowledgeTextDestroyController
     public function __invoke(Request $request, Agent $agent, string $id)
     {
         abort_if(
-            boolean: $request->user()->cannot('delete', $agent),
+            boolean: $request->user()->cannot('view', $agent),
             code: 404,
         );
 
@@ -21,6 +21,10 @@ class AgentKnowledgeTextDestroyController
             code: 403,
         );
 
+        // Detach the text from the current agent
+        $text->agents()->detach($agent->id);
+
+        // Delete the text if it's not used in any other agents
         $text->delete();
     }
 }

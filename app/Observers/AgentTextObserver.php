@@ -27,7 +27,11 @@ class AgentTextObserver
      */
     public function deleted(SourceText $agentText): void
     {
+        // Delete all chunks associated with this text
         $agentText->chunks()->delete();
+
+        // Detach all agents (removes agent_sources pivot records)
+        $agentText->agents()->detach();
     }
 
     /**

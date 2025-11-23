@@ -15,7 +15,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Throwable;
@@ -23,6 +22,8 @@ use Throwable;
 class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public bool $deleteWhenMissingModels = true;
 
     public $tries = 3;
 
@@ -111,14 +112,10 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
             })
             ->dispatch();
 
-        // Use transaction to ensure atomic status update
-        DB::transaction(function () use ($chunks, $batch) {
-            $this->agentFile->update([
-                'status' => 'ingesting',
-                'internal_chunking_batch_id' => $batch->id,
-                'expected_chunks' => $chunks->count(),
-            ]);
-        });
+        // Update batch ID after dispatch
+        $this->agentFile->update([
+            'internal_chunking_batch_id' => $batch->id,
+        ]);
     }
 
     public function uniqueId(): string

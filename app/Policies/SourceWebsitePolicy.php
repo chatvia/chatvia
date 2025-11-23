@@ -5,7 +5,7 @@ namespace App\Policies;
 use App\Models\SourceWebsite;
 use App\Models\User;
 
-class AgentWebsitePolicy
+class SourceWebsitePolicy
 {
     /**
      * Determine whether the user can view any models.

@@ -2,15 +2,13 @@
 
 namespace App\Services\Search;
 
+use App\Jobs\UpdateRetrievalStatsJob;
 use App\Models\Agent;
-use App\Models\Chunk;
-use App\Models\SourceFile;
 use App\Services\Infrastructure\Embeddings\Cohere;
 use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Prompts\PromptLoader;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class KnowledgeBase
@@ -18,6 +16,8 @@ class KnowledgeBase
     private int $cacheTtl;
 
     private string $cachePrefix;
+
+    private string $cacheStore;
 
     private int $candidateLimit;
 
@@ -27,6 +27,7 @@ class KnowledgeBase
     {
         $this->cacheTtl = config('vector.cache.ttl', 3600);
         $this->cachePrefix = config('vector.cache.prefix', 'rag_search:');
+        $this->cacheStore = config('vector.cache.store', 'redis');
         $this->candidateLimit = config('vector.search.candidate_limit', 100);
         $this->vectorChordConfig = config('vector', []);
     }
@@ -38,22 +39,30 @@ class KnowledgeBase
         }
 
         // Cache the embedding for 24 hours to speed up repeated queries
-        $embedding = Cache::remember('search_embedding:'.md5($query), 3600 * 24, fn () => embed($query));
+        $embedding = Cache::store($this->cacheStore)->remember(
+            'search_embedding:'.md5($query),
+            3600 * 24,
+            fn () => embed($query)
+        );
         $vectorString = '['.implode(',', $embedding).']';
 
         // Configure search parameters from config
         $accuracyLevel = config('vector.search.mode', 'default');
-        $quantize = config('vector.quantization.rabitq.enabled', false);
+        $quantize = config('vector.quantization.rabitq.enabled', true);
 
-        $this->configureSearchParameters($accuracyLevel);
+        // Use ChunkQueryBuilder for the search
+        $chunkBuilder = \App\Models\Chunk::query();
+        $chunkBuilder->configureSearchAccuracy($accuracyLevel, $this->vectorChordConfig);
 
-        $results = $this->hybridSearch($agent, $query, $vectorString, $limit, $quantize);
+        $candidateLimit = $this->getOptimalCandidateLimit($limit);
+        $results = $chunkBuilder->hybridSearchForAgent($agent, $query, $vectorString, $candidateLimit, $quantize);
 
         if ($results) {
-            $this->updateRetrievalStats($results, $agent);
+            // Dispatch stats update to background job for better performance
+            UpdateRetrievalStatsJob::dispatch($results, $agent);
 
             // Only rerank if we have multiple results and reranking is enabled in config
-            if (count($results) > 1 && config('vector.search.rerank', true)) {
+            if (count($results) > 1 && config('vector.search.rerank', false)) {
                 $results = $this->rerank($query, $results);
             }
 
@@ -63,153 +72,11 @@ class KnowledgeBase
         return $results;
     }
 
-    /**
-     * Perform VectorChord optimized hybrid search
-     */
-    private function hybridSearch(int $agentId, string $query, string $vectorString, int $limit, bool $quantize = true): array
-    {
-        // First, get all source IDs for this agent from agent_sources
-        $sources = DB::table('agent_sources')
-            ->where('agent_id', $agentId)
-            ->select(['sourceable_id', 'sourceable_type'])
-            ->get();
-
-        if ($sources->isEmpty()) {
-            return [];
-        }
-
-        // Build WHERE clause for chunks based on sources
-        $sourceConditions = [];
-        $sourceParams = [];
-
-        foreach ($sources as $source) {
-            $sourceConditions[] = '(c.chunkable_id = ? AND c.chunkable_type = ?)';
-            $sourceParams[] = $source->sourceable_id;
-            $sourceParams[] = $source->sourceable_type;
-        }
-
-        $sourceWhereClause = '('.implode(' OR ', $sourceConditions).')';
-
-        $distanceOperator = $quantize
-            ? 'binary_quantize(c.embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536) as binary_distance'
-            : 'c.embedding <-> ?::vector(1536) as vector_distance';
-
-        $sql = "
-WITH vectorchord_candidates AS (
-    SELECT c.id, c.chunk, c.embedding, c.chunkable_type, c.chunkable_id, c.metadata,
-           {$distanceOperator}
-    FROM chunks c
-    WHERE {$sourceWhereClause}
-    ORDER BY ".($quantize ? 'binary_quantize(c.embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536)' : 'c.embedding <-> ?::vector(1536)').'
-    LIMIT ?
-),
-vector_ranked AS (
-    SELECT id, chunk, chunkable_type, chunkable_id, metadata, '.($quantize ? 'binary_distance' : 'vector_distance').",
-           'vector' as search_type
-    FROM vectorchord_candidates
-    ORDER BY ".($quantize ? 'binary_distance' : 'vector_distance')."
-    LIMIT ?
-),
-bm25_ranked AS (
-    SELECT c.id, c.chunk, c.chunkable_type, c.chunkable_id, c.metadata,
-           c.embedding_bm25 <&> bm25_catalog.to_bm25query('chunks_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS bm25_rank,
-           'bm25' as search_type
-    FROM chunks c
-    WHERE {$sourceWhereClause}
-    ORDER BY bm25_rank
-    LIMIT ?
-),
-combined_results AS (
-    SELECT id, chunk, chunkable_type, chunkable_id, metadata, ".($quantize ? 'binary_distance' : 'vector_distance').' as score, search_type FROM vector_ranked
-    UNION ALL
-    SELECT id, chunk, chunkable_type, chunkable_id, metadata, bm25_rank as score, search_type FROM bm25_ranked
-)
-SELECT DISTINCT ON (id) id, chunk, chunkable_type, chunkable_id, metadata, search_type, score
-FROM combined_results
-ORDER BY id, score
-LIMIT ?
-';
-
-        $params = array_merge(
-            [$vectorString],
-            $sourceParams,
-            [$vectorString],
-            [$this->getOptimalCandidateLimit($limit)],
-            [$limit],
-            [$query],
-            $sourceParams,
-            [$limit],
-            [$limit * 2]
-        );
-
-        return DB::select($sql, $params);
-    }
-
-    private function configureSearchParameters(string $accuracyLevel): void
-    {
-        $probes = $this->vectorChordConfig['search']['probes'][$accuracyLevel]
-            ?? $this->vectorChordConfig['search']['probes']['default']
-            ?? 20;
-
-        // Set VectorChord runtime parameters
-        DB::statement("SET vchordrq.probes = {$probes}");
-
-        // Configure MaxSim if enabled
-        if ($this->vectorChordConfig['search']['maxsim']['enabled'] ?? false) {
-            $maxsimRefine = $this->vectorChordConfig['search']['maxsim']['refine'] ?? 2000;
-            DB::statement("SET vchordrq.maxsim_refine = {$maxsimRefine}");
-        }
-    }
-
-    private function updateRetrievalStats(array $results, int $agentId): void
-    {
-        if (empty($results)) {
-            return;
-        }
-
-        $documentIds = collect($results)->pluck('id')->toArray();
-
-        // Update chunk retrieval counts
-        Chunk::query()
-            ->whereIn('id', $documentIds)
-            ->update([
-                'last_retrieved_at' => now(),
-                'retrieval_count' => DB::raw('retrieval_count + 1'),
-            ]);
-
-        // Update retrieval counts for different chunkable types
-        $resultsByType = collect($results)->groupBy('chunkable_type');
-
-        foreach ($resultsByType as $type => $typeResults) {
-            $ids = collect($typeResults)->pluck('chunkable_id')->unique()->toArray();
-
-            if (! empty($ids)) {
-                // Update the source model's retrieval count
-                if ($type === SourceFile::class) {
-                    SourceFile::query()
-                        ->whereIn('id', $ids)
-                        ->increment('retrieval_count');
-                }
-                // Add other chunkable types here as needed
-
-                // Update agent_sources retrieval stats for this specific agent
-                DB::table('agent_sources')
-                    ->where('agent_id', $agentId)
-                    ->where('sourceable_type', $type)
-                    ->whereIn('sourceable_id', $ids)
-                    ->update([
-                        'retrieval_count' => DB::raw('retrieval_count + 1'),
-                        'last_retrieved_at' => now(),
-                    ]);
-            }
-        }
-    }
-
     private function rerank(string $query, array $results): array
     {
         $cacheKey = $this->cachePrefix.'rerank:'.md5($query.serialize($results));
 
-        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($query, $results) {
+        return Cache::store($this->cacheStore)->remember($cacheKey, $this->cacheTtl, function () use ($query, $results) {
             try {
                 $chunks = collect($results)->pluck('chunk')->toArray();
                 $rerankedDocumentsIds = app(Cohere::class)->rerank($query, $chunks);

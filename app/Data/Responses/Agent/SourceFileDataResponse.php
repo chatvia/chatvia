@@ -12,13 +12,12 @@ class SourceFileDataResponse extends Data
     public function __construct(
         public int $id,
         public string $name,
+        public string $type,
         public int $size_in_kb,
         public string $mime_type,
         public string $status,
         public int $length,
         public int $progress,
-        public bool $is_audio_file,
-        public bool $is_video_file,
         public int $agents_count,
         public DateTime $created_at
     ) {}
@@ -28,13 +27,12 @@ class SourceFileDataResponse extends Data
         return new self(
             id: $file->id,
             name: $file->filename,
+            type: $file->filetype,
             size_in_kb: $file->size_in_kb,
             mime_type: $file->mime_type,
             status: $file->status,
             length: $file->length,
             progress: $file->ingestionProgress(),
-            is_audio_file: $file->isAudioFile(),
-            is_video_file: $file->isVideoFile(),
             agents_count: $file->agents_count ?? 0,
             created_at: $file->created_at,
         );

@@ -38,7 +38,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
         if ($checksum === $this->websiteUrl->checksum) {
             $this->websiteUrl->update(['status' => 'ingested']);
-            UrlIngestionEvent::dispatch($this->websiteUrl);
+            UrlIngestionEvent::dispatch($this->websiteUrl, $this->agentId);
 
             return;
         }
@@ -68,7 +68,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
             'expected_chunks' => ($website->expected_chunks - $deletedChunks + count($chunks)),
         ]);
 
-        UrlIngestionEvent::dispatch($this->websiteUrl);
+        UrlIngestionEvent::dispatch($this->websiteUrl, $this->agentId);
 
         $prompt = PromptLoader::load('chunking/web');
 

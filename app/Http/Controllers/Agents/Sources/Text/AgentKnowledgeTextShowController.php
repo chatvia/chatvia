@@ -8,6 +8,6 @@ class AgentKnowledgeTextShowController
 {
     public function __invoke(Agent $agent, int $id)
     {
-        return $agent->texts()->find($id);
+        return $agent->texts()->where('source_texts.id', $id)->first();
     }
 }

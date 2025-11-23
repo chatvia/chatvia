@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
-import { Globe, LoaderCircle, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, Play, Settings, ChevronDown, ChevronUp, ChevronRight, Database, NetworkIcon, BrainIcon, Link2, RefreshCw, CheckCircle2 } from 'lucide-vue-next';
+import { Globe, LoaderCircle, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, Play, Settings, ChevronDown, ChevronUp, ChevronRight, Database, NetworkIcon, BrainIcon, Link2, RefreshCw, CheckCircle2, Unlink } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -24,6 +24,7 @@ import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.v
 import InfoBanner from '@/components/ui/InfoBanner.vue';
 import { useEcho } from "@laravel/echo-vue";
 import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
+import AttachWebsiteDialog from '@/components/ui/AttachWebsiteDialog.vue';
 
 interface Props {
     agent: any
@@ -39,6 +40,7 @@ interface WebSource {
     discovered_links?: DiscoveredLink[];
     urls_count?: number;
     progress?: number;
+    agents_count?: number;
     options?: {
         include_paths?: string;
         exclude_paths?: string;
@@ -161,10 +163,15 @@ const syncFormWithSettings = () => {
 // Delete state
 const deleteDialogOpen = ref(false);
 const sourceToDelete = ref<WebSource | null>(null);
+const isUnlinking = ref(false);
+const isDeletingSource = ref(false);
 
 // Retrain dialog state
 const retrainDialogOpen = ref(false);
 const websiteToRetrain = ref<WebSource | null>(null);
+
+// Attach website dialog state
+const attachWebsiteDialogOpen = ref(false);
 const reCrawlNewLinks = ref(false);
 const showRetrainButton = ref(false); // Control visibility of retrain website button
 
@@ -397,6 +404,17 @@ const fetchUsageData = async () => {
     }
 };
 
+// Open attach website dialog
+const openAttachWebsiteDialog = () => {
+    attachWebsiteDialogOpen.value = true;
+};
+
+// Handle website attached
+const handleWebsiteAttached = () => {
+    fetchWebSources();
+    fetchUsageData();
+};
+
 // Computed properties for link limit warnings
 const linkLimitWarning = computed(() => {
     if (!usageData.value) return null;
@@ -515,6 +533,7 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
                 created_at: website.created_at,
                 urls_count: website.urls_count || 0,
                 progress: website.progress ?? 0,
+                agents_count: website.agents_count || 0,
                 options: website.options || {},
                 // Preserve discovered_links if they exist
                 discovered_links: existingSource?.discovered_links
@@ -646,8 +665,42 @@ const confirmDeleteSource = (source: WebSource) => {
     deleteDialogOpen.value = true;
 };
 
+const isWebsiteShared = (source: WebSource): boolean => {
+    return (source.agents_count ?? 0) > 1;
+};
+
+const unlinkWebsite = async () => {
+    if (!sourceToDelete.value || isUnlinking.value) return;
+
+    const websiteToUnlink = sourceToDelete.value;
+    isUnlinking.value = true;
+
+    try {
+        await axios.post(route('agents.sources.websites.unlink', {
+            agent: props.agent.id,
+            websiteId: websiteToUnlink.id
+        }));
+
+        toast.success('Website unlinked from agent successfully!');
+        
+        deleteDialogOpen.value = false;
+        sourceToDelete.value = null;
+
+        await fetchWebSources();
+        await fetchUsageData();
+    } catch (error: any) {
+        console.error('Error unlinking website:', error);
+        const errorMessage = error.response?.data?.message || error.message;
+        toast.error(`Failed to unlink website: ${errorMessage}`);
+    } finally {
+        isUnlinking.value = false;
+    }
+};
+
 const deleteWebSource = async () => {
-    if (!sourceToDelete.value) return;
+    if (!sourceToDelete.value || isDeletingSource.value) return;
+
+    isDeletingSource.value = true;
 
     try {
         await axios.delete(route('agents.sources.websites.delete', {
@@ -670,6 +723,8 @@ const deleteWebSource = async () => {
     } catch (error: any) {
         console.error('Error deleting website:', error);
         toast.error(error.response?.data?.message || 'Failed to delete website.');
+    } finally {
+        isDeletingSource.value = false;
     }
 
     sourceToDelete.value = null;
@@ -895,6 +950,8 @@ const handleUrlIngestionUpdate = (event: any) => {
 const handleWebsiteIngestionProgress = (event: any) => {
     const { website_id, progress } = event;
     
+    console.log('WebsiteIngestionProgressEvent received:', { website_id, progress });
+    
     if (!website_id || progress === undefined) {
         console.warn('Missing website_id or progress in WebsiteIngestionProgressEvent', event);
         return;
@@ -902,6 +959,8 @@ const handleWebsiteIngestionProgress = (event: any) => {
 
     // Find the website and update its progress
     const sourceIndex = webSources.value.findIndex(source => source.id === website_id);
+    
+    console.log('Found source at index:', sourceIndex, 'Current sources:', webSources.value.length);
     
     if (sourceIndex !== -1) {
         // Create a new array with the updated source for reactivity
@@ -911,6 +970,7 @@ const handleWebsiteIngestionProgress = (event: any) => {
             progress
         };
         webSources.value = updatedSources;
+        console.log('Updated source progress to:', progress);
     }
 };
 
@@ -2360,7 +2420,6 @@ onUnmounted(() => {
                                                 class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
                                                 size="sm"
                                                 variant="ghost"
-                                                :disabled="true"
                                                 @click="confirmDeleteSource(source)"
                                             >
                                                 <span class="sr-only">Remove source</span>
@@ -2368,7 +2427,7 @@ onUnmounted(() => {
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>Cannot delete while training</p>
+                                            <p>Delete website (will cancel training)</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
@@ -2382,13 +2441,21 @@ onUnmounted(() => {
         <!-- Trained Knowledge Base -->
         <Card>
             <CardHeader>
-                <CardTitle class="flex items-center gap-2">
-                    <Database class="h-5 w-5" />
-                    Trained
-                </CardTitle>
-                <CardDescription>
-                    Websites trained and available to your agent. {{ completedSources.length }} website{{ completedSources.length !== 1 ? 's' : '' }} in total.
-                </CardDescription>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <CardTitle class="flex items-center gap-2">
+                            <Database class="h-5 w-5" />
+                            Trained
+                        </CardTitle>
+                        <CardDescription>
+                            Websites trained and available to your agent. {{ completedSources.length }} website{{ completedSources.length !== 1 ? 's' : '' }} in total.
+                        </CardDescription>
+                    </div>
+                    <Button @click="openAttachWebsiteDialog" variant="outline" size="sm" class="flex items-center gap-2">
+                        <Link2 class="h-4 w-4" />
+                        Link Website
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 <div class="space-y-4">
@@ -2898,15 +2965,56 @@ onUnmounted(() => {
             </CardContent>
         </Card>
 
-    <!-- Delete Confirmation Dialog -->
-    <DeleteConfirmationDialog
-        v-model:open="deleteDialogOpen"
-        :title="`Delete ${sourceToDelete?.name || getDomainFromUrl(sourceToDelete?.url || '')}?`"
-        description="This will permanently remove this web source from your agent's knowledge base. All crawled pages will be deleted. This action cannot be undone."
-        confirm-text="Yes, delete source"
-        cancel-text="Cancel"
-        @confirm="deleteWebSource"
-    />
+    <!-- Delete/Unlink Confirmation Dialog -->
+    <Dialog v-model:open="deleteDialogOpen">
+        <DialogContent v-if="sourceToDelete" class="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>{{ sourceToDelete.name || getDomainFromUrl(sourceToDelete.url) }}</DialogTitle>
+                <DialogDescription>
+                    <span v-if="isWebsiteShared(sourceToDelete)">
+                        This website is used in <strong>{{ sourceToDelete.agents_count }} agents</strong>. 
+                        You can unlink it from this agent or permanently delete it from all agents.
+                    </span>
+                    <span v-else-if="sourceToDelete.status === 'ingesting' || sourceToDelete.status === 'crawling'">
+                        This website is currently being trained. The training process will be canceled and all data will be permanently removed from your agent's knowledge base. This action cannot be undone.
+                    </span>
+                    <span v-else>
+                        This will permanently remove this web source from your agent's knowledge base. All crawled pages will be deleted. This action cannot be undone.
+                    </span>
+                </DialogDescription>
+            </DialogHeader>
+            <div class="flex items-center justify-end gap-2 mt-4">
+                <Button 
+                    variant="outline" 
+                    @click="deleteDialogOpen = false"
+                    :disabled="isUnlinking || isDeletingSource"
+                >
+                    Cancel
+                </Button>
+                <Button 
+                    v-if="isWebsiteShared(sourceToDelete)" 
+                    variant="secondary" 
+                    @click="unlinkWebsite"
+                    :disabled="isUnlinking || isDeletingSource"
+                    class="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
+                >
+                    <LoaderCircle v-if="isUnlinking" class="h-4 w-4 mr-2 animate-spin" />
+                    <Unlink v-else class="h-4 w-4 mr-2" />
+                    {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
+                </Button>
+                <Button 
+                    variant="destructive" 
+                    @click="deleteWebSource"
+                    :disabled="isUnlinking || isDeletingSource"
+                >
+                    <LoaderCircle v-if="isDeletingSource" class="h-4 w-4 mr-2 animate-spin" />
+                    <Trash2 v-else class="h-4 w-4 mr-2" />
+                    <span v-if="isDeletingSource">Deleting...</span>
+                    <span v-else>{{ isWebsiteShared(sourceToDelete) ? 'Delete permanently' : 'Delete' }}</span>
+                </Button>
+            </div>
+        </DialogContent>
+    </Dialog>
 
     <!-- Retrain Website Dialog -->
     <Dialog v-model:open="retrainDialogOpen">
@@ -3167,4 +3275,11 @@ onUnmounted(() => {
     </Dialog>
         </div>
     </div>
+
+    <!-- Attach Website Dialog -->
+    <AttachWebsiteDialog
+        v-model:open="attachWebsiteDialogOpen"
+        :agent-id="agent.id"
+        @websiteAttached="handleWebsiteAttached"
+    />
 </template>

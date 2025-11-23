@@ -10,14 +10,14 @@ use InvalidArgumentException;
 
 class Ingestion
 {
-    public function ingest(SourceFile $agentFile, int $agentId): void
+    public function ingest(SourceFile $sourceFile, int $agentId): void
     {
-        $agentFile->update(['status' => 'ingesting']);
+        $sourceFile->update(['status' => 'ingesting']);
 
-        if ($agentFile->isAudioFile() || $agentFile->isVideoFile()) {
-            dispatch(new MediaIngestionJob($agentFile, $agentId));
-        } elseif ($agentFile->isPdfFile() || $agentFile->isWordFile()) {
-            dispatch(new DocumentIngestionJob($agentFile, $agentId));
+        if ($sourceFile->isAudioFile() || $sourceFile->isVideoFile()) {
+            dispatch(new MediaIngestionJob($sourceFile, $agentId));
+        } elseif ($sourceFile->isPdfFile() || $sourceFile->isWordFile()) {
+            dispatch(new DocumentIngestionJob($sourceFile, $agentId));
         } else {
             throw new InvalidArgumentException('Invalid agent file type');
         }

@@ -21,6 +21,8 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
+    public bool $deleteWhenMissingModels = true;
+
     public function __construct(
         public Agent $agent,
         public string $sessionId,

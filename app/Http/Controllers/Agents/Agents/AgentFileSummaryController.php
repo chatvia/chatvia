@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Agents\Agents;
 
-use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\SourceFile;
 use Illuminate\Http\Request;
 
-class AgentFileSummaryController extends Controller
+class AgentFileSummaryController
 {
     public function __invoke(Request $request, Agent $agent, SourceFile $file)
     {
@@ -16,12 +15,11 @@ class AgentFileSummaryController extends Controller
             code: 404,
         );
 
-        if (! $file->summary) {
-            return response()->json([
-                'error' => 'No summary available for this file',
-            ], 404);
-        }
+        $metadata = $file
+            ->summary()
+            ->select('metadata')
+            ->value('metadata');
 
-        return $file->summary->metadata ?? [];
+        return $metadata ?? [];
     }
 }

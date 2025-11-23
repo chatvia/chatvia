@@ -25,9 +25,11 @@ return new class extends Migration
             $table->string('chunked_using_model')->nullable();
             $table->decimal('cost_in_cents', 10, 3)->default(0);
             $table->unsignedInteger('tokens');
+
             $table->vector('embedding', 1536);
             $table->bm25vector('embedding_bm25');
             $table->jsonb('metadata')->nullable();
+
             $table->string('checksum');
             $table->unsignedInteger('retrieval_count')->default(0);
             $table->timestamp('last_retrieved_at')->nullable()->index();
@@ -37,7 +39,6 @@ return new class extends Migration
         });
 
         DB::statement('CREATE INDEX chunks_embedding_bm25 ON chunks USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);');
-
         $this->createOptimizedVectorChordIndex();
 
         // Update table statistics for optimal query planning

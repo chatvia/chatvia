@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "410234c529fb472bf5f6efe2952e5043",
+    "content-hash": "8a01445c978a98cad8130394a3cfd2c3",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -555,6 +555,74 @@
                 }
             ],
             "time": "2024-02-09T16:56:22+00:00"
+        },
+        {
+            "name": "cesargb/laravel-magiclink",
+            "version": "v2.24.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/cesargb/laravel-magiclink.git",
+                "reference": "a8198f5df4286d042f6f5a4bd92d689c65df3ff0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/cesargb/laravel-magiclink/zipball/a8198f5df4286d042f6f5a4bd92d689c65df3ff0",
+                "reference": "a8198f5df4286d042f6f5a4bd92d689c65df3ff0",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/auth": "^10.0|^11.0|^12.0",
+                "illuminate/container": "^10.0|^11.0|^12.0",
+                "illuminate/contracts": "^10.0|^11.0|^12.0",
+                "illuminate/database": "^10.0|^11.0|^12.0",
+                "laravel/serializable-closure": "^1.0|^2.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.9",
+                "orchestra/testbench": "^8.0|^9.0|^10.0",
+                "phpunit/phpunit": "^9.0|^10.5|^11.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "MagicLink\\MagicLinkServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MagicLink\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Cesar Garcia",
+                    "email": "cesargb@gmail.com",
+                    "homepage": "https://github.com/cesargb",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Create secure link for access to private data or login in Laravel without password",
+            "homepage": "https://github.com/cesargb/laravel-magiclink",
+            "keywords": [
+                "auth",
+                "download",
+                "file",
+                "laravel",
+                "link",
+                "login"
+            ],
+            "support": {
+                "issues": "https://github.com/cesargb/laravel-magiclink/issues",
+                "source": "https://github.com/cesargb/laravel-magiclink/tree/v2.24.1"
+            },
+            "time": "2025-06-20T11:43:55+00:00"
         },
         {
             "name": "chatvia/laravel-prompt-manager",

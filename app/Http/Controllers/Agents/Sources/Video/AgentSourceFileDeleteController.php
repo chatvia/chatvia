@@ -19,6 +19,7 @@ class AgentSourceFileDeleteController
             $file->cancelIngestionJob();
         }
 
+        $file->agents()->detach($agent->id);
         $file->delete();
     }
 }

@@ -58,14 +58,13 @@ class SourceWebsite extends Model implements ChunkableContract
             'exclude_paths' => $this->options['exclude_paths'] ?? null,
         ]);
 
-        // Dispatch crawler event
-        WebsiteCrawlerEvent::dispatch($this);
-
-        // Dispatch crawler job for each agent
+        // Dispatch crawler job and event for each agent
         if ($agentId) {
+            WebsiteCrawlerEvent::dispatch($this, $agentId);
             WebsiteCrawlerJob::dispatch($this, $crawlerData, $agentId);
         } else {
             $this->agents->each(function ($agent) use ($crawlerData) {
+                WebsiteCrawlerEvent::dispatch($this, $agent->id);
                 WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent->id);
             });
         }

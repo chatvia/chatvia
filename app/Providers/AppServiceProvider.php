@@ -6,13 +6,17 @@ use App\Models\Agent;
 use App\Models\ModelSetting;
 use App\Models\Post;
 use App\Models\SourceFile;
+use App\Models\SourceText;
 use App\Models\SourceWebsite;
+use App\Models\SourceYoutubeVideo;
 use App\Models\User;
 use App\Observers\AgentObserver;
+use App\Observers\AgentTextObserver;
 use App\Observers\AgentWebsiteObserver;
 use App\Observers\ModelSettingObserver;
 use App\Observers\PostObserver;
 use App\Observers\SourceFileObserver;
+use App\Observers\SourceYoutubeVideoObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -64,8 +68,10 @@ class AppServiceProvider extends ServiceProvider
         User::observe(UserObserver::class);
         Agent::observe(AgentObserver::class);
         SourceFile::observe(SourceFileObserver::class);
-        ModelSetting::observe(ModelSettingObserver::class);
+        SourceText::observe(AgentTextObserver::class);
         SourceWebsite::observe(AgentWebsiteObserver::class);
+        SourceYoutubeVideo::observe(SourceYoutubeVideoObserver::class);
+        ModelSetting::observe(ModelSettingObserver::class);
         Post::observe(PostObserver::class);
 
         if (app()->isProduction()) {

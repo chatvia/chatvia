@@ -33,13 +33,12 @@ interface Props {
 interface KnowledgeFile {
     id: number;
     name: string;
+    type: string;
     size_in_kb: number;
     mime_type: string;
     status: string;
     created_at: string;
     length?: number;
-    is_audio_file?: boolean;
-    is_video_file?: boolean;
     progress?: number;
     agents_count?: number;
 }
@@ -47,13 +46,12 @@ interface KnowledgeFile {
 interface UploadedFile {
     id: number;
     name: string;
+    type: string;
     size: number;
     mime_type: string;
     status: string;
     created_at: string;
     length?: number;
-    is_audio_file?: boolean;
-    is_video_file?: boolean;
     encrypted?: boolean;
 }
 
@@ -316,10 +314,10 @@ const isKnowledgeAgent = computed(() => {
 const usesMinutesQuota = (file: any): boolean => {
     if (!file) return false;
     
-    // Check if it's marked as audio/video file
-    if (file.is_audio_file || file.is_video_file) return true;
+    // Check type field first
+    if (file.type === 'audio' || file.type === 'video') return true;
     
-    // Check MIME type as fallback
+    // Check MIME type as fallback for uploading files
     const mimeType = file.mime_type || file.stats?.mime_type || '';
     return mimeType.startsWith('audio/') || mimeType.startsWith('video/');
 };
@@ -518,7 +516,7 @@ const formatSpeed = (bytesPerSecond: number): string => {
 };
 
 // Helper function to format file length (pages or minutes)
-const formatFileLength = (file: { length?: number; is_audio_file?: boolean; is_video_file?: boolean; mime_type?: string }): string => {
+const formatFileLength = (file: { length?: number; type?: string; mime_type?: string }): string => {
     if (!file.length) return '';
 
     // Use the same logic as usesMinutesQuota to determine if it's audio/video
@@ -569,6 +567,7 @@ const confirmDeleteUploadedFile = (file: UploadedFile) => {
     const knowledgeFile: KnowledgeFile = {
         id: file.id,
         name: file.name,
+        type: file.type,
         size_in_kb: file.size / 1024,
         mime_type: file.mime_type,
         status: file.status,
@@ -858,8 +857,8 @@ const handleFileIngestionProgress = (event: any) => {
 
         updatedFiles[fileIndex] = {
             ...updatedFiles[fileIndex],
-            progress: 100,
-            status: 'ingested'
+            progress: progress,
+            status: progress >= 100 ? 'ingested' : 'ingesting'
         };
         knowledgeFiles.value = updatedFiles;
             
@@ -894,13 +893,12 @@ const fetchKnowledgeFiles = async () => {
             .map(file => ({
                 id: file.id,
                 name: file.name,
+                type: file.type,
                 size: file.size_in_kb * 1024, // Convert to bytes for consistency
                 mime_type: file.mime_type,
                 status: file.status,
                 created_at: file.created_at,
-                length: file.length,
-                is_audio_file: file.is_audio_file,
-                is_video_file: file.is_video_file
+                length: file.length
             }));
 
     } catch (error) {

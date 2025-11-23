@@ -357,18 +357,24 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function pagesConsumed(): int
     {
+        // Get unique files (avoid counting duplicates when file is linked to multiple agents)
         return $this
             ->agentFiles()
-            ->whereIn('filetype', ['pdf', 'word', 'markdown', 'text'])
-            ->sum('length');
+            ->whereIn('source_files.filetype', ['pdf', 'word', 'markdown', 'text'])
+            ->groupBy('source_files.id', 'source_files.length')
+            ->pluck('source_files.length')
+            ->sum();
     }
 
     public function minutesConsumed(): int
     {
+        // Get unique files (avoid counting duplicates when file is linked to multiple agents)
         return $this
             ->agentFiles()
-            ->whereIn('filetype', ['audio', 'video'])
-            ->sum('length');
+            ->whereIn('source_files.filetype', ['audio', 'video'])
+            ->groupBy('source_files.id', 'source_files.length')
+            ->pluck('source_files.length')
+            ->sum();
     }
 
     public function linksConsumed(): int
@@ -382,7 +388,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             ->join('source_websites', 'source_websites.id', '=', 'agent_sources.sourceable_id')
             ->join('source_website_urls', 'source_websites.id', '=', 'source_website_urls.source_website_id')
             ->whereNotNull('source_website_urls.crawled_at')
-            ->count();
+            ->distinct('source_website_urls.id')
+            ->count('source_website_urls.id');
     }
 
     public function consumableMessages(): int

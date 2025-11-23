@@ -66,7 +66,7 @@ class AgentSourceCrawlerController
         // Attach the website to this agent
         $agent->websites()->attach($website->id);
 
-        WebsiteCrawlerEvent::dispatch($website);
+        WebsiteCrawlerEvent::dispatch($website, $agent->id);
 
         WebsiteCrawlerJob::dispatch($website, $data, $agent->id);
     }

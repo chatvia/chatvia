@@ -6,6 +6,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Skip if not using PostgreSQL
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return;
+        }
+
         DB::statement('CREATE EXTENSION IF NOT EXISTS pg_trgm');
         DB::statement('CREATE EXTENSION IF NOT EXISTS btree_gin');
         DB::statement('CREATE EXTENSION IF NOT EXISTS btree_gist');
@@ -13,6 +18,11 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Skip if not using PostgreSQL
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return;
+        }
+
         rescue(fn () => DB::statement('DROP EXTENSION IF EXISTS pg_trgm CASCADE'));
         rescue(fn () => DB::statement('DROP EXTENSION IF EXISTS btree_gin CASCADE'));
         rescue(fn () => DB::statement('DROP EXTENSION IF EXISTS btree_gist CASCADE'));

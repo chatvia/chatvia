@@ -10,8 +10,8 @@ class AgentKnowledgeYoutubeListController
     {
         return $agent
             ->youtubeVideos()
-            ->select('id', 'url', 'title', 'status', 'error_message', 'created_at')
-            ->latest()
+            ->select('source_youtube_videos.id', 'url', 'title', 'status', 'error_message', 'source_youtube_videos.created_at')
+            ->latest('source_youtube_videos.created_at')
             ->get();
     }
 }

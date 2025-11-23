@@ -49,7 +49,7 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
         $this->website->refresh();
 
-        WebsiteCrawlerEvent::dispatch($this->website);
+        WebsiteCrawlerEvent::dispatch($this->website, $this->agentId);
     }
 
     public function uniqueId(): string
@@ -65,6 +65,6 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
         report($exception);
 
-        WebsiteCrawlerEvent::dispatch($this->website);
+        WebsiteCrawlerEvent::dispatch($this->website, $this->agentId);
     }
 }

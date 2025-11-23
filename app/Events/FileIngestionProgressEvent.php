@@ -15,8 +15,8 @@ class FileIngestionProgressEvent implements ShouldBroadcastNow
     use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public SourceFile $agentFile,
-        public int $agentId
+        public SourceFile $sourceFile,
+        public int $agentId,
     ) {}
 
     public function broadcastOn(): array
@@ -29,8 +29,8 @@ class FileIngestionProgressEvent implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'file_id' => $this->agentFile->id,
-            'progress' => $this->agentFile->ingestionProgress(),
+            'file_id' => $this->sourceFile->id,
+            'progress' => $this->sourceFile->ingestionProgress(),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\QueryBuilders\ChunkQueryBuilder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,6 +15,11 @@ use Pgvector\Laravel\Vector;
 class Chunk extends Model
 {
     protected $guarded = ['id'];
+
+    public function newEloquentBuilder($query): ChunkQueryBuilder
+    {
+        return new ChunkQueryBuilder($query);
+    }
 
     public function casts(): array
     {

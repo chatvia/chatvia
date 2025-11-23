@@ -11,7 +11,6 @@ use App\Services\Tidy\HTMLCleaner;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class WebsiteIngestion
@@ -23,22 +22,12 @@ class WebsiteIngestion
         /** @var AgentWebsiteUrl<array> $urls */
         $urls = $this->website->untrainedUrls;
 
-        $responsesCacheId = 'agent:'.$this->agentId.':website:'.$this->website->id.':ingestion:responses';
-
-        if (Cache::has($responsesCacheId)) {
-            return Cache::get($responsesCacheId);
-        }
-
-        // First, we get all the responses for the given $urls
-        $responses = Http::pool(function (Pool $pool) use ($urls) {
+        // Get all the responses for the given $urls
+        return Http::pool(function (Pool $pool) use ($urls) {
             return $urls->map(function (AgentWebsiteUrl $websiteUrl) use ($pool) {
                 $pool->as($websiteUrl->url)->retry(1, 1000)->get($websiteUrl->url);
             });
         });
-
-        Cache::put($responsesCacheId, $responses, now()->addHours(12));
-
-        return $responses;
     }
 
     public function chunkUrls()
@@ -87,7 +76,7 @@ class WebsiteIngestion
                 ]);
 
                 if ($status === 'ingested') {
-                    UrlIngestionEvent::dispatch($urlModel);
+                    UrlIngestionEvent::dispatch($urlModel, $this->agentId);
                 }
 
                 return [

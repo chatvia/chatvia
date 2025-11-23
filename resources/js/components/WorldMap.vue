@@ -27,7 +27,7 @@ const maxCount = computed(() => Math.max(...props.countryData.map(c => c.count),
 // Fetch all country names
 const fetchCountryMappings = async () => {
     try {
-        const response = await axios.get('/countries/list');
+        const response = await axios.get(route('countries.list'));
         const countries: Record<string, string> = {};
         response.data.forEach((country: { code: string; name: string }) => {
             countries[country.code.toUpperCase()] = country.name;
@@ -121,7 +121,7 @@ const initMap = () => {
                 const target = e.target as SVGElement;
                 if (target.tagName === 'path' && target.getAttribute('data-code')) {
                     const code = target.getAttribute('data-code')?.toUpperCase();
-                    
+
                     if (code && tooltipElement) {
                         // Check if country has data, otherwise use 0
                         const country = countryMap[code];
@@ -129,7 +129,7 @@ const initMap = () => {
                         const chatCount = country ? country.count : 0;
                         const percentage = country ? Number(country.percentage).toFixed(1) : '0.0';
                         const flagPath = `/images/flags/${code.toLowerCase()}.svg`;
-                        
+
                         tooltipElement.innerHTML = `
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                 <img src="${flagPath}" alt="${countryName}" style="width: 20px; height: 20px; border-radius: 2px; object-fit: cover;" />
@@ -196,7 +196,7 @@ watch(() => props.countryData, () => {
     <div class="relative overflow-hidden">
         <!-- Map Container -->
         <div ref="mapContainer" style="height: 450px;" class="w-full bg-card overflow-hidden"></div>
-        
+
         <!-- Color Legend (inside map, positioned left) -->
         <div class="absolute left-4 bottom-4 bg-white dark:bg-gray-800 rounded-lg border shadow-sm p-3 z-10">
             <div class="flex flex-col gap-2 text-xs text-muted-foreground">

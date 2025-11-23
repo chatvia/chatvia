@@ -11,8 +11,9 @@ class AgentSourceWebsitesListController
     {
         $l = $agent
             ->websites()
-            ->select(['id', 'url', 'status', 'created_at', 'options', 'expected_chunks'])
+            ->select(['source_websites.id', 'url', 'status', 'source_websites.created_at', 'options', 'expected_chunks'])
             ->withCount('urls')
+            ->withCount('agents')
             ->get();
 
         return collect($l)->map(function ($website) {

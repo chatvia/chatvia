@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/InputError.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useEcho } from "@laravel/echo-vue";
 import { toast } from 'vue-sonner';
 import axios from "axios";
@@ -19,9 +21,13 @@ import {
     AlertCircle,
     CheckCircle,
     FileText,
-    Edit3
+    Edit3,
+    Link2,
+    ChevronDown,
+    Unlink
 } from 'lucide-vue-next';
-import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
+import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
+import AttachTextDialog from '@/components/ui/AttachTextDialog.vue';
 
 interface Props {
     agent: any;
@@ -35,6 +41,8 @@ interface TextEntry {
     created_at: string;
     updated_at: string;
     word_count: number;
+    progress?: number;
+    agents_count?: number;
 }
 
 const props = defineProps<Props>();
@@ -48,6 +56,15 @@ useEcho(
     },
 );
 
+// WebSocket event listener for text ingestion progress updates
+useEcho(
+    `agents.${props.agent.id}.texts.progress`,
+    "TextIngestionProgressEvent",
+    (e) => {
+        handleTextIngestionProgress(e);
+    },
+);
+
 // State
 const textEntries = ref<TextEntry[]>([]);
 const isLoading = ref(false);
@@ -58,6 +75,11 @@ const editingEntry = ref<TextEntry | null>(null);
 // Delete confirmation dialog
 const deleteDialogOpen = ref(false);
 const entryToDelete = ref<TextEntry | null>(null);
+const isUnlinking = ref(false);
+const isDeleting = ref(false);
+
+// Attach text dialog
+const attachTextDialogOpen = ref(false);
 
 // Form for creating/editing text entries
 const form = useForm({
@@ -150,23 +172,63 @@ const confirmDelete = (entry: TextEntry) => {
     deleteDialogOpen.value = true;
 };
 
+const isTextShared = (entry: TextEntry): boolean => {
+    return (entry.agents_count ?? 0) > 1;
+};
+
+const unlinkTextEntry = async () => {
+    if (!entryToDelete.value || isUnlinking.value) return;
+
+    const textToUnlink = entryToDelete.value;
+    isUnlinking.value = true;
+
+    try {
+        await axios.post(route('agents.sources.text.unlink', {
+            agent: props.agent.id,
+            id: textToUnlink.id
+        }));
+
+        toast.success('Text unlinked from agent successfully!');
+        
+        deleteDialogOpen.value = false;
+        entryToDelete.value = null;
+
+        await fetchTextEntries();
+        await fetchUsageData();
+    } catch (error: any) {
+        console.error('Error unlinking text:', error);
+        const errorMessage = error.response?.data?.message || error.message;
+        toast.error(`Failed to unlink text: ${errorMessage}`);
+    } finally {
+        isUnlinking.value = false;
+    }
+};
+
 const deleteTextEntry = async () => {
-    if (!entryToDelete.value) return;
+    if (!entryToDelete.value || isDeleting.value) return;
+
+    const textToDelete = entryToDelete.value;
+    isDeleting.value = true;
 
     try {
         await axios.delete(route('agents.sources.text.destroy', {
             agent: props.agent.id,
-            id: entryToDelete.value.id
+            id: textToDelete.id
         }));
 
-        fetchTextEntries();
-        // Refresh usage data from server after deletion
-        await fetchUsageData();
-    } catch (error) {
-        console.error('Failed to delete text entry:', error);
-    } finally {
+        toast.success('Text deleted successfully!');
+        
         deleteDialogOpen.value = false;
         entryToDelete.value = null;
+
+        await fetchTextEntries();
+        await fetchUsageData();
+    } catch (error: any) {
+        console.error('Failed to delete text entry:', error);
+        const errorMessage = error.response?.data?.message || error.message;
+        toast.error(`Failed to delete text: ${errorMessage}`);
+    } finally {
+        isDeleting.value = false;
     }
 };
 
@@ -190,6 +252,14 @@ const fetchUsageData = async () => {
     } catch (error) {
         console.error('Error fetching usage data:', error);
     }
+};
+
+const openAttachTextDialog = () => {
+    attachTextDialogOpen.value = true;
+};
+
+const handleTextAttached = () => {
+    fetchTextEntries();
 };
 
 const handleIngestionUpdate = async (event: any) => {
@@ -230,6 +300,38 @@ const handleIngestionUpdate = async (event: any) => {
                 description: 'There was an error processing your text entry.',
             });
             break;
+    }
+};
+
+// Handle text ingestion progress updates from WebSocket
+const handleTextIngestionProgress = (event: any) => {
+    const { text_id, progress } = event;
+    
+    if (!text_id || progress === undefined) {
+        return;
+    }
+
+    // Find the text entry and update its progress
+    const entryIndex = textEntries.value.findIndex(entry => entry.id === text_id);
+    
+    if (entryIndex !== -1) {
+        // Create a new array with the updated entry for reactivity
+        const updatedEntries = [...textEntries.value];
+
+        updatedEntries[entryIndex] = {
+            ...updatedEntries[entryIndex],
+            progress: progress,
+            status: progress >= 100 ? 'ingested' : 'ingesting'
+        };
+        textEntries.value = updatedEntries;
+
+        // If progress is 100%, update the status to 'ingested' immediately
+        if (progress >= 100) {
+            // Refresh entries to get the complete updated data
+            setTimeout(() => {
+                fetchTextEntries();
+            }, 1000); // Small delay to ensure backend has updated
+        }
     }
 };
 
@@ -305,10 +407,27 @@ fetchTextEntries();
                             Add custom text content directly to your agent's knowledge base. Perfect for FAQs, policies, and structured information.
                         </CardDescription>
                     </div>
-                    <Button @click="openCreateForm" class="flex items-center gap-2">
-                        <Plus class="h-4 w-4" />
-                        Add Text
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button class="flex items-center gap-2">
+                                <Plus class="h-4 w-4" />
+                                Add Text
+                                <ChevronDown class="h-4 w-4 ml-1" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" class="w-64">
+                            <DropdownMenuGroup>
+                                <DropdownMenuItem @click="openCreateForm" class="cursor-pointer">
+                                    <Plus class="mr-2 h-4 w-4" />
+                                    Create New Text
+                                </DropdownMenuItem>
+                                <DropdownMenuItem @click="openAttachTextDialog" class="cursor-pointer">
+                                    <Link2 class="mr-2 h-4 w-4" />
+                                    Already Trained Texts
+                                </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </CardHeader>
         </Card>
@@ -409,6 +528,11 @@ fetchTextEntries();
                             <div class="flex items-center gap-4 text-xs text-muted-foreground">
                                 <span>{{ formatDate(entry.created_at) }}</span>
                             </div>
+                            <!-- Progress bar for processing text entries -->
+                            <IngestionProgressBar
+                                v-if="entry.status === 'ingesting'"
+                                :progress="entry.progress ?? 0"
+                            />
                         </div>
                         <div class="flex items-center gap-2 ml-4">
                             <TooltipProvider v-if="entry.status !== 'pending' && entry.status !== 'ingesting'">
@@ -441,7 +565,13 @@ fetchTextEntries();
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p>Delete entry</p>
+                                        <div class="text-xs">
+                                            <p v-if="isTextShared(entry)">
+                                                Remove from agent<br>
+                                                <span class="text-muted-foreground">(Used in {{ entry.agents_count }} agents)</span>
+                                            </p>
+                                            <p v-else>Delete from knowledge base</p>
+                                        </div>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -474,14 +604,59 @@ fetchTextEntries();
             </CardContent>
         </Card>
 
-        <!-- Delete Confirmation Dialog -->
-        <DeleteConfirmationDialog
-            v-model:open="deleteDialogOpen"
-            title="Delete text entry?"
-            description="This will permanently remove this text entry from your agent's knowledge base. This action cannot be undone."
-            confirm-text="Yes, delete entry"
-            cancel-text="Cancel"
-            @confirm="deleteTextEntry"
+        <!-- Delete/Unlink Confirmation Dialog -->
+        <Dialog v-model:open="deleteDialogOpen">
+            <DialogContent v-if="entryToDelete" class="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{{ entryToDelete.excerpt.substring(0, 100) }}...</DialogTitle>
+                    <DialogDescription>
+                        <span v-if="isTextShared(entryToDelete)">
+                            This text is used in <strong>{{ entryToDelete.agents_count }} agents</strong>. 
+                            You can unlink it from this agent or permanently delete it from all agents.
+                        </span>
+                        <span v-else>
+                            This will permanently remove this text entry from your agent's knowledge base. This action cannot be undone.
+                        </span>
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="flex items-center justify-end gap-2 mt-4">
+                    <Button 
+                        variant="outline" 
+                        @click="deleteDialogOpen = false"
+                        :disabled="isUnlinking || isDeleting"
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        v-if="isTextShared(entryToDelete)" 
+                        variant="secondary" 
+                        @click="unlinkTextEntry"
+                        :disabled="isUnlinking || isDeleting"
+                        class="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
+                    >
+                        <LoaderCircle v-if="isUnlinking" class="h-4 w-4 mr-2 animate-spin" />
+                        <Unlink v-else class="h-4 w-4 mr-2" />
+                        {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
+                    </Button>
+                    <Button 
+                        variant="destructive" 
+                        @click="deleteTextEntry"
+                        :disabled="isUnlinking || isDeleting"
+                    >
+                        <LoaderCircle v-if="isDeleting" class="h-4 w-4 mr-2 animate-spin" />
+                        <Trash2 v-else class="h-4 w-4 mr-2" />
+                        <span v-if="isDeleting">Deleting...</span>
+                        <span v-else>{{ isTextShared(entryToDelete) ? 'Delete permanently' : 'Delete' }}</span>
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Attach Text Dialog -->
+        <AttachTextDialog
+            v-model:open="attachTextDialogOpen"
+            :agent-id="agent.id"
+            @textAttached="handleTextAttached"
         />
         </div>
     </div>

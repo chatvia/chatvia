@@ -20,6 +20,8 @@ class TextIngestionJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public bool $deleteWhenMissingModels = true;
+
     public function __construct(public SourceText $agentText, public int $agentId)
     {
         $this->onQueue('ingestion.text');

@@ -5,8 +5,8 @@ namespace App\Traits;
 use App\Models\Agent;
 use App\Models\Chunk;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\Storage;
 
 trait Chunkable
@@ -43,12 +43,11 @@ trait Chunkable
         return round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
     }
 
-    public function summary(): HasOne
+    public function summary(): MorphOne
     {
-        return $this->hasOne(Chunk::class, 'chunkable_id')
-            ->where('chunkable_type', static::class)
-            ->where('chunk_index', 0)
-            ->latestOfMany();
+        return $this
+            ->morphOne(Chunk::class, 'chunkable')
+            ->where('chunk_index', 0);
     }
 
     public function images()

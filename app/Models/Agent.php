@@ -86,7 +86,8 @@ class Agent extends Model
 
     public function files(): MorphToMany
     {
-        return $this->morphedByMany(SourceFile::class, 'sourceable', 'agent_sources')
+        return $this
+            ->morphedByMany(SourceFile::class, 'sourceable', 'agent_sources')
             ->using(AgentSource::class)
             ->withTimestamps();
     }
@@ -105,11 +106,12 @@ class Agent extends Model
             ->withTimestamps();
     }
 
-    // YouTube videos feature - disabled for now
-    // public function youtubeVideos(): BelongsToMany
-    // {
-    //     return $this->belongsToMany(SourceYoutubeVideo::class, 'agent_youtube_video', 'agent_id', 'source_youtube_video_id');
-    // }
+    public function youtubeVideos(): MorphToMany
+    {
+        return $this->morphedByMany(SourceYoutubeVideo::class, 'sourceable', 'agent_sources')
+            ->using(AgentSource::class)
+            ->withTimestamps();
+    }
 
     public function starters(): HasMany
     {

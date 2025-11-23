@@ -56,14 +56,21 @@ use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceCrawlerWebsiteLinkDel
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceCrawlerWebsiteLinksBulkDeleteController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceCrawlerWebsiteLinksController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceCrawlerWebsiteTrainController;
+use App\Http\Controllers\Agents\Sources\Crawler\AgentSourcesLinkWebsiteController;
+use App\Http\Controllers\Agents\Sources\Crawler\AgentSourcesTrainedWebsitesListController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceWebsiteDeleteController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceWebsitesListController;
+use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceWebsiteUnlinkController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextListController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController;
+use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextUnlinkController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextUpdateController;
+use App\Http\Controllers\Agents\Sources\Text\AgentSourcesLinkTextController;
+use App\Http\Controllers\Agents\Sources\Text\AgentSourcesTrainedTextsListController;
+use App\Http\Controllers\Agents\Sources\Text\AgentSourceUnlinkTextController;
 use App\Http\Controllers\Agents\Sources\Video\AgentSourceFileDeleteController;
 use App\Http\Controllers\Agents\Sources\Video\AgentSourceVideoController;
 use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeDestroyController;
@@ -129,6 +136,7 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::get('sources/text/list', AgentKnowledgeTextListController::class)->name('sources.text.index');
         Route::get('sources/text/{id}', AgentKnowledgeTextShowController::class)->name('sources.text.show');
         Route::patch('sources/text/{id}', AgentKnowledgeTextUpdateController::class)->name('sources.text.update');
+        Route::post('sources/text/{id}/unlink', AgentKnowledgeTextUnlinkController::class)->name('sources.text.unlink');
 
         Route::get('sources/files', AgentSourcesFilesController::class)->name('sources.files');
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
@@ -197,6 +205,16 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::get('sources/trained-files', AgentSourcesTrainedListController::class)->name('sources.list');
         Route::post('sources/trained-files/{fileId}/link', AgentSourcesLinkFileController::class)->name('sources.files.link');
         Route::post('sources/trained-files/{fileId}/unlink', AgentSourceUnlinkFileController::class)->name('sources.files.unlink');
+
+        // Text Sources
+        Route::get('sources/trained-texts', AgentSourcesTrainedTextsListController::class)->name('sources.texts.list');
+        Route::post('sources/trained-texts/{textId}/link', AgentSourcesLinkTextController::class)->name('sources.texts.link');
+        Route::post('sources/trained-texts/{textId}/unlink', AgentSourceUnlinkTextController::class)->name('sources.texts.unlink');
+
+        // Website Sources
+        Route::get('sources/trained-websites', AgentSourcesTrainedWebsitesListController::class)->name('sources.trained-websites.list');
+        Route::post('sources/trained-websites/{websiteId}/link', AgentSourcesLinkWebsiteController::class)->name('sources.trained-websites.link');
+        Route::post('sources/websites/{websiteId}/unlink', AgentSourceWebsiteUnlinkController::class)->name('sources.websites.unlink');
 
         // Delete Agent
         Route::delete('/', AgentDeleteController::class)->name('delete');

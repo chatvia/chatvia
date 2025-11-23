@@ -18,7 +18,7 @@ class AgentKnowledgeTextUpdateController
         );
 
         /** @var SourceText $agentText */
-        $agentText = $agent->texts()->where('id', $id)->firstOrFail();
+        $agentText = $agent->texts()->where('source_texts.id', $id)->firstOrFail();
 
         $request->validate([
             'content' => ['required', 'min:500'],

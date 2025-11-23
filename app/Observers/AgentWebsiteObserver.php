@@ -27,7 +27,11 @@ class AgentWebsiteObserver
      */
     public function deleted(SourceWebsite $agentWebsite): void
     {
+        // Delete all chunks associated with this website
         $agentWebsite->chunks()->delete();
+
+        // Detach all agents (removes agent_sources pivot records)
+        $agentWebsite->agents()->detach();
     }
 
     /**

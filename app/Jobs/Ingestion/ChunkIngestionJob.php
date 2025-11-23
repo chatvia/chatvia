@@ -4,6 +4,7 @@ namespace App\Jobs\Ingestion;
 
 use App\Data\Ingestion\ChunkIngestionData;
 use App\Events\FileIngestionProgressEvent;
+use App\Events\TextIngestionProgressEvent;
 use App\Events\UrlIngestionEvent;
 use App\Events\WebsiteIngestionProgressEvent;
 use App\Models\Agent;
@@ -11,6 +12,7 @@ use App\Models\AgentWebsiteUrl;
 use App\Models\Chunk;
 use App\Models\ChunkReference;
 use App\Models\SourceFile;
+use App\Models\SourceText;
 use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
@@ -25,7 +27,9 @@ class ChunkIngestionJob implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    public int $tries = 3;
+    public bool $deleteWhenMissingModels = true;
+
+    public int $tries = 1;
 
     public int $backoff = 10;
 
@@ -93,7 +97,6 @@ class ChunkIngestionJob implements ShouldQueue
         $agent = Agent::find($this->chunk->agent_id);
 
         $createdChunk = Chunk::query()->create([
-            //            'agent_id' => $this->chunk->agent_id,
             'user_id' => $agent->user_id,
             'chunkable_type' => $this->chunk->chunkable_type,
             'chunkable_id' => $this->chunk->chunkable_id,
@@ -122,19 +125,30 @@ class ChunkIngestionJob implements ShouldQueue
             if ($ref->referenceable_type === AgentWebsiteUrl::class) {
                 /** @var AgentWebsiteUrl $agentWebsiteUrl */
                 $agentWebsiteUrl = AgentWebsiteUrl::find($ref->referenceable_id);
-                $agentWebsiteUrl->update(['status' => 'ingested', 'crawled_at' => now()]);
 
-                WebsiteIngestionProgressEvent::dispatch(
-                    $agentWebsiteUrl->agentWebsite
-                );
+                if ($agentWebsiteUrl && $agentWebsiteUrl->agentWebsite) {
+                    $agentWebsiteUrl->update(['status' => 'ingested', 'crawled_at' => now()]);
 
-                UrlIngestionEvent::dispatch($agentWebsiteUrl);
+                    WebsiteIngestionProgressEvent::dispatch(
+                        $agentWebsiteUrl->agentWebsite,
+                        $this->chunk->agent_id
+                    );
+
+                    UrlIngestionEvent::dispatch($agentWebsiteUrl, $this->chunk->agent_id);
+                }
             }
         }
 
         if ($this->chunk->chunkable_type === SourceFile::class) {
             FileIngestionProgressEvent::dispatch(
                 SourceFile::find($this->chunk->chunkable_id),
+                $this->chunk->agent_id
+            );
+        }
+
+        if ($this->chunk->chunkable_type === SourceText::class) {
+            TextIngestionProgressEvent::dispatch(
+                SourceText::find($this->chunk->chunkable_id),
                 $this->chunk->agent_id
             );
         }

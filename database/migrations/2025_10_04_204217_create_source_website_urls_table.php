@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('internal_ingestion_job_id')->unique()->nullable();
             $table->string('internal_chunking_batch_id')->unique()->nullable();
             $table->text('failure_reason')->nullable();
+            $table->unsignedInteger('retrieval_count')->default(0);
             $table->timestamp('crawled_at')->nullable();
             $table->timestamps();
         });

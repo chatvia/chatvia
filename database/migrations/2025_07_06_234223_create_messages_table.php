@@ -67,7 +67,7 @@ return new class extends Migration
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
-            $table->text('feedback_text')->nullable();
+
             $table->unsignedInteger('response_time_ms')->nullable();
             $table->unsignedInteger('token_count')->nullable();
             $table->unsignedInteger('prompt_tokens')->nullable();

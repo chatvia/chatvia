@@ -106,4 +106,8 @@ return [
         'endpoint' => env('FIRECRAWL_API_ENDPOINT', 'https://api.firecrawl.dev/v2'),
     ],
 
+    'voyageai' => [
+        'api_key' => env('VOYAGEAI_API_KEY'),
+        'api_endpoint' => env('VOYAGEAI_API_ENDPOINT', 'https://api.voyageai.com/v1'),
+    ],
 ];

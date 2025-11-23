@@ -19,6 +19,8 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable, SerializesModels;
 
+    public bool $deleteWhenMissingModels = true;
+
     public function __construct(public ChunkableContract $source, public string $content) {}
 
     public function handle(): void
@@ -31,7 +33,20 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $response = OpenAI::analyzeContent($this->content);
+        // Skip if content is too short or empty
+        $contentLength = str_word_count($this->content);
+        if ($contentLength < 50) {
+            return;
+        }
+
+        try {
+            $response = OpenAI::analyzeContent($this->content);
+        } catch (\Exception $e) {
+            // If analysis fails, skip summary generation
+            report($e);
+
+            return;
+        }
 
         $this->source->update([
             'language' => $response['language'],

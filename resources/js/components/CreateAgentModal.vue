@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import type { BreadcrumbItem } from '@/types';
 import { useForm, router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertCircle, Bot, MessageSquare, Globe, LoaderCircle, AlertTriangle } from 'lucide-vue-next';
+import { AlertCircle, Bot, MessageSquare, Globe, LoaderCircle, AlertTriangle, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -25,7 +25,48 @@ const emit = defineEmits<{
 enum AgentType {
     WIDGET = 'widget',
     CHATGPT_STYLE = 'knowledge_base',
+    SEARCH = 'search',
 }
+
+interface AgentTypeOption {
+    value: AgentType;
+    label: string;
+    description: string;
+    icon: typeof Globe;
+    iconColor: string;
+    bgColor: string;
+    borderColor: string;
+}
+
+const agentTypeOptions: AgentTypeOption[] = [
+    {
+        value: AgentType.WIDGET,
+        label: 'Widget',
+        description: 'Embeddable chat widget for your website, perfect for customer support',
+        icon: Globe,
+        iconColor: 'text-blue-600 dark:text-blue-400',
+        bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+        borderColor: 'border-blue-500',
+    },
+    {
+        value: AgentType.CHATGPT_STYLE,
+        label: 'Knowledge Base',
+        description: 'ChatGPT-style conversational AI for your team and knowledge management',
+        icon: MessageSquare,
+        iconColor: 'text-emerald-600 dark:text-emerald-400',
+        bgColor: 'bg-emerald-50 dark:bg-emerald-950/20',
+        borderColor: 'border-emerald-500',
+    },
+    {
+        value: AgentType.SEARCH,
+        label: 'Search',
+        description: 'Search engine for your knowledge base that can be embedded on your website',
+        icon: Search,
+        iconColor: 'text-purple-600 dark:text-purple-400',
+        bgColor: 'bg-purple-50 dark:bg-purple-950/20',
+        borderColor: 'border-purple-500',
+    },
+];
 
 interface UsageData {
     subscription: {
@@ -85,9 +126,11 @@ const currentAgentQuota = computed(() => {
 const namePlaceholder = computed(() => {
     switch (form.type) {
         case AgentType.WIDGET:
-            return 'E.g., Customer Support Agent';
+            return 'E.g., Customer Support Widget';
         case AgentType.CHATGPT_STYLE:
-            return 'E.g., Company Knowledge Assistant';
+            return 'E.g., Company Knowledge Base';
+        case AgentType.SEARCH:
+            return 'E.g., Documentation Search';
         default:
             return 'Enter agent name';
     }
@@ -228,95 +271,62 @@ onMounted(() => {
                     <!-- Agent Type -->
                     <div class="space-y-3">
                         <Label required>Choose Agent Type</Label>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Website Widget Agent -->
-                            <button
-                                type="button"
-                                :disabled="!canCreateAnyAgent"
-                                @click="form.type = AgentType.WIDGET"
+
+                        <div class="space-y-3">
+                            <div
+                                v-for="option in agentTypeOptions"
+                                :key="option.value"
                                 :class="[
-                                    'relative p-6 rounded-lg border-2 transition-all duration-200 text-center group',
-                                    form.type === AgentType.WIDGET
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25 dark:border-gray-700 dark:hover:border-blue-600',
-                                    !canCreateAnyAgent ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                    'relative flex items-start gap-4 p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:shadow-md',
+                                    form.type === option.value
+                                        ? `${option.borderColor} ${option.bgColor}`
+                                        : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600',
+                                    !canCreateAnyAgent && 'opacity-50 cursor-not-allowed'
                                 ]"
+                                @click="!canCreateAnyAgent ? null : form.type = option.value"
                             >
-                                <div class="flex flex-col items-center space-y-3">
-                                    <div :class="[
-                                        'p-4 rounded-full',
-                                        form.type === AgentType.WIDGET
-                                            ? 'bg-blue-100 dark:bg-blue-900/30'
-                                            : 'bg-gray-100 group-hover:bg-blue-100 dark:bg-gray-800 dark:group-hover:bg-blue-900/30'
-                                    ]">
-                                        <Globe :class="[
-                                            'h-8 w-8',
-                                            form.type === AgentType.WIDGET
-                                                ? 'text-blue-600 dark:text-blue-400'
-                                                : 'text-gray-600 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400'
-                                        ]" />
-                                    </div>
-                                    <div>
-                                        <h3 class="font-semibold text-lg mb-1">Widget</h3>
-                                        <p class="text-sm text-muted-foreground">
-                                            Embed as a widget on your website, perfect for 24/7 support
-                                        </p>
-                                    </div>
+                                <div :class="[
+                                    'p-3 rounded-lg shrink-0',
+                                    form.type === option.value
+                                        ? option.bgColor
+                                        : 'bg-gray-100 dark:bg-gray-800'
+                                ]">
+                                    <component
+                                        :is="option.icon"
+                                        :class="[
+                                            'h-6 w-6',
+                                            form.type === option.value
+                                                ? option.iconColor
+                                                : 'text-gray-600 dark:text-gray-400'
+                                        ]"
+                                    />
                                 </div>
-                                <div v-if="form.type === AgentType.WIDGET" class="absolute top-3 right-3">
-                                    <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-semibold text-base">
+                                        {{ option.label }}
+                                    </h3>
+                                    <p class="text-sm text-muted-foreground mt-1">
+                                        {{ option.description }}
+                                    </p>
+                                </div>
+
+                                <!-- Checkmark for selected state -->
+                                <div v-if="form.type === option.value" class="shrink-0">
+                                    <div :class="[
+                                        'w-6 h-6 rounded-full flex items-center justify-center',
+                                        option.value === AgentType.WIDGET && 'bg-blue-500',
+                                        option.value === AgentType.CHATGPT_STYLE && 'bg-emerald-500',
+                                        option.value === AgentType.SEARCH && 'bg-purple-500'
+                                    ]">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                         </svg>
                                     </div>
                                 </div>
-                            </button>
-
-                            <!-- ChatGPT-style Agent -->
-                            <button
-                                type="button"
-                                :disabled="!canCreateAnyAgent"
-                                @click="form.type = AgentType.CHATGPT_STYLE"
-                                :class="[
-                                    'relative p-6 rounded-lg border-2 transition-all duration-200 text-center group',
-                                    form.type === AgentType.CHATGPT_STYLE
-                                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20'
-                                        : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-25 dark:border-gray-700 dark:hover:border-emerald-600',
-                                    !canCreateAnyAgent ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                                ]"
-                            >
-                                <div class="flex flex-col items-center space-y-3">
-                                    <div :class="[
-                                        'p-4 rounded-full',
-                                        form.type === AgentType.CHATGPT_STYLE
-                                            ? 'bg-emerald-100 dark:bg-emerald-900/30'
-                                            : 'bg-gray-100 group-hover:bg-emerald-100 dark:bg-gray-800 dark:group-hover:bg-emerald-900/30'
-                                    ]">
-                                        <MessageSquare :class="[
-                                            'h-8 w-8',
-                                            form.type === AgentType.CHATGPT_STYLE
-                                                ? 'text-emerald-600 dark:text-emerald-400'
-                                                : 'text-gray-600 group-hover:text-emerald-600 dark:text-gray-400 dark:group-hover:text-emerald-400'
-                                        ]" />
-                                    </div>
-                                    <div>
-                                        <h3 class="font-semibold text-lg mb-1">Knowledge Base</h3>
-                                        <p class="text-sm text-muted-foreground">
-                                            Perfect for teams and internal use, can either be private or public
-                                        </p>
-                                    </div>
-                                </div>
-                                <div v-if="form.type === AgentType.CHATGPT_STYLE" class="absolute top-3 right-3">
-                                    <div class="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
-                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </button>
-
-
+                            </div>
                         </div>
+
                         <p v-if="form.errors.type" class="text-destructive text-sm">{{ form.errors.type }}</p>
                     </div>
                 </div>
@@ -336,3 +346,4 @@ onMounted(() => {
         </DialogContent>
     </Dialog>
 </template>
+

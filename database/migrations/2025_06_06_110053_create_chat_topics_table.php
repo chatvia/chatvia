@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('chat_topics', function (Blueprint $table) {
             $table->id();
-            $table->string('topic');
+            $table->string('topic')->unique();
             $table->string('description');
             $table->timestamps();
         });

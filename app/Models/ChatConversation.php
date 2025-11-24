@@ -24,4 +24,9 @@ class ChatConversation extends Model
     {
         return $this->hasMany(ChatMessage::class, 'chat_conversation_id');
     }
+
+    public function topic(): BelongsTo
+    {
+        return $this->belongsTo(ChatTopic::class, 'chat_topic_id');
+    }
 }

@@ -6,86 +6,91 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 describe('Member Login', function () {
-    it('allows member to access agent with valid credentials', function () {
-        $user = User::factory()->create();
-        $agent = Agent::factory()->create(['user_id' => $user->id]);
-
-        $member = Member::factory()->create([
-            'agent_id' => $agent->id,
-            'email' => 'member@example.com',
-            'password' => Hash::make('password'),
-            'is_active' => true,
+    beforeEach(function () {
+        // Create a test agent with a unique subdomain that will be available for all tests
+        $this->user = User::factory()->create();
+        $this->agent = Agent::factory()->create([
+            'user_id' => $this->user->id,
         ]);
-
-        // Assuming there's a member login route (adjust if different)
-        $response = $this->post(route('member.login'), [
-            'email' => 'member@example.com',
-            'password' => 'password',
-            'agent_id' => $agent->id,
-        ]);
-
-        $response->assertSuccessful();
+        $this->testUrl = 'http://'.$this->agent->sub_domain.'.localhost';
     });
 
-    it('rejects inactive member login', function () {
-        $user = User::factory()->create();
-        $agent = Agent::factory()->create(['user_id' => $user->id]);
-
+    it('allows member to access agent with valid credentials', function () {
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
+            'user_id' => $this->user->id,
             'email' => 'member@example.com',
             'password' => Hash::make('password'),
-            'is_active' => false,
+            'email_verified_at' => now(),
         ]);
 
-        $response = $this->post(route('member.login'), [
+        $member->agents()->attach($this->agent->id);
+
+        expect($member->fresh()->hasAccessToAgent($this->agent))->toBeTrue();
+
+        // Member login uses the chat.login route with agent's subdomain
+        $response = $this->post($this->testUrl.'/chat/login', [
             'email' => 'member@example.com',
             'password' => 'password',
-            'agent_id' => $agent->id,
         ]);
 
-        $response->assertStatus(403);
+        $response->assertRedirect();
+
+        $this->assertAuthenticatedAs($member, 'member');
+    });
+
+    it('rejects member login without agent association', function () {
+        $member = Member::factory()->create([
+            'user_id' => $this->user->id,
+            'email' => 'member@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        // Don't attach member to agent
+
+        $response = $this->post($this->testUrl.'/chat/login', [
+            'email' => 'member@example.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors('email');
     });
 
     it('rejects member login with wrong password', function () {
-        $user = User::factory()->create();
-        $agent = Agent::factory()->create(['user_id' => $user->id]);
-
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
+            'user_id' => $this->user->id,
             'email' => 'member@example.com',
             'password' => Hash::make('correct-password'),
-            'is_active' => true,
+            'email_verified_at' => now(),
         ]);
 
-        $response = $this->post(route('member.login'), [
+        // Attach member to agent
+        $member->agents()->attach($this->agent->id);
+
+        $response = $this->post($this->testUrl.'/chat/login', [
             'email' => 'member@example.com',
             'password' => 'wrong-password',
-            'agent_id' => $agent->id,
         ]);
 
-        $response->assertStatus(401);
+        $response->assertSessionHasErrors('email');
     });
 
     it('rejects member accessing wrong agent', function () {
-        $user = User::factory()->create();
-        $agent1 = Agent::factory()->create(['user_id' => $user->id]);
-        $agent2 = Agent::factory()->create(['user_id' => $user->id]);
+        $agent2 = Agent::factory()->create([
+            'user_id' => $this->user->id,
+            'sub_domain' => 'test2',
+        ]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent1->id,
+            'user_id' => $this->user->id,
             'email' => 'member@example.com',
             'password' => Hash::make('password'),
-            'is_active' => true,
         ]);
 
-        $response = $this->post(route('member.login'), [
-            'email' => 'member@example.com',
-            'password' => 'password',
-            'agent_id' => $agent2->id, // Wrong agent
-        ]);
+        // Attach member only to agent1 (the main test agent)
+        $member->agents()->attach($this->agent->id);
 
-        $response->assertStatus(403);
+        // Verify member cannot access agent2
+        expect($member->hasAccessToAgent($agent2))->toBeFalse();
     });
 });
 
@@ -95,12 +100,13 @@ describe('Member Password Management', function () {
         $agent = Agent::factory()->create(['user_id' => $user->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
+            'user_id' => $user->id,
             'email' => 'member@example.com',
             'password' => null, // No password set
-            'is_active' => true,
-            'invitation_token' => 'valid-token',
+            'verification_token' => 'valid-token',
         ]);
+
+        $member->agents()->attach($agent->id);
 
         $response = $this->post(route('member.password.set'), [
             'token' => 'valid-token',
@@ -118,12 +124,13 @@ describe('Member Password Management', function () {
         $agent = Agent::factory()->create(['user_id' => $user->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
+            'user_id' => $user->id,
             'email' => 'member@example.com',
             'password' => null,
-            'is_active' => true,
-            'invitation_token' => 'valid-token',
+            'verification_token' => 'valid-token',
         ]);
+
+        $member->agents()->attach($agent->id);
 
         $response = $this->post(route('member.password.set'), [
             'token' => 'invalid-token',
@@ -141,11 +148,12 @@ describe('Member Password Management', function () {
         $agent = Agent::factory()->create(['user_id' => $user->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
+            'user_id' => $user->id,
             'email' => 'member@example.com',
             'password' => Hash::make('old-password'),
-            'is_active' => true,
         ]);
+
+        $member->agents()->attach($agent->id);
 
         // Assuming member authentication
         $response = $this->actingAs($member, 'member')->post(route('member.password.change'), [
@@ -165,11 +173,13 @@ describe('Member Password Management', function () {
         $agent = Agent::factory()->create(['user_id' => $user->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
+            'user_id' => $user->id,
             'email' => 'member@example.com',
             'password' => Hash::make('correct-password'),
-            'is_active' => true,
+            'email_verified_at' => now(),
         ]);
+
+        $member->agents()->attach($agent->id);
 
         $response = $this->actingAs($member, 'member')->post(route('member.password.change'), [
             'current_password' => 'wrong-password',
@@ -187,11 +197,12 @@ describe('Member Password Management', function () {
         $agent = Agent::factory()->create(['user_id' => $user->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
+            'user_id' => $user->id,
             'email' => 'member@example.com',
             'password' => Hash::make('old-password'),
-            'is_active' => true,
         ]);
+
+        $member->agents()->attach($agent->id);
 
         $response = $this->actingAs($member, 'member')->post(route('member.password.change'), [
             'current_password' => 'old-password',
@@ -209,9 +220,10 @@ describe('Member Authorization', function () {
         $agent = Agent::factory()->create(['user_id' => $user->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
-            'is_active' => true,
+            'user_id' => $user->id,
         ]);
+
+        $member->agents()->attach($agent->id);
 
         expect($member->hasAccessToAgent($agent))->toBeTrue();
     });
@@ -222,24 +234,12 @@ describe('Member Authorization', function () {
         $agent2 = Agent::factory()->create(['user_id' => $user->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent1->id,
-            'is_active' => true,
+            'user_id' => $user->id,
         ]);
+
+        $member->agents()->attach($agent1->id);
 
         expect($member->hasAccessToAgent($agent2))->toBeFalse();
-    });
-
-    it('denies inactive member access to agent', function () {
-        $user = User::factory()->create();
-        $agent = Agent::factory()->create(['user_id' => $user->id]);
-
-        $member = Member::factory()->create([
-            'agent_id' => $agent->id,
-            'is_active' => false,
-        ]);
-
-        // Check if member is active
-        expect($member->is_active)->toBeFalse();
     });
 
     it('allows owner to revoke member access', function () {
@@ -247,9 +247,10 @@ describe('Member Authorization', function () {
         $agent = Agent::factory()->create(['user_id' => $user->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
-            'is_active' => true,
+            'user_id' => $user->id,
         ]);
+
+        $member->agents()->attach($agent->id);
 
         $response = $this->actingAs($user)->delete(route('agents.team.member.delete', $agent), [
             'member_id' => $member->id,
@@ -266,9 +267,10 @@ describe('Member Authorization', function () {
         $agent = Agent::factory()->create(['user_id' => $owner->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
-            'is_active' => true,
+            'user_id' => $owner->id,
         ]);
+
+        $member->agents()->attach($agent->id);
 
         $response = $this->actingAs($otherUser)->delete(route('agents.team.member.delete', $agent), [
             'member_id' => $member->id,
@@ -300,11 +302,13 @@ describe('Member Invitation', function () {
         $agent = Agent::factory()->create(['user_id' => $user->id]);
 
         $member = Member::factory()->create([
-            'agent_id' => $agent->id,
+            'user_id' => $user->id,
             'email' => 'member@example.com',
             'password' => null,
-            'invitation_token' => 'valid-token',
+            'verification_token' => 'valid-token',
         ]);
+
+        $member->agents()->attach($agent->id);
 
         $response = $this->get(route('agents.members.invitation.create', [
             'agent' => $agent,

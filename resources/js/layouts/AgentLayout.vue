@@ -156,7 +156,7 @@ const controlPanelNavigationItems = computed(() => {
             route: 'agents.analytics', 
             tooltip: 'View usage analytics and insights',
             subItems: [
-                { id: 'analytics-overview', label: 'Overview', icon: BarChart3, route: 'agents.analytics' },
+                { id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' },
                 { id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' },
                 { id: 'analytics-sources', label: 'Sources', icon: FileText, route: 'agents.analytics.sources' },
             ]

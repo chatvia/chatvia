@@ -10,6 +10,7 @@ import {
     Music,
     FileAudio,
     WholeWord,
+    HelpCircle,
 } from 'lucide-vue-next';
 
 defineProps({
@@ -62,6 +63,13 @@ const menuItems = [
         icon: FileText,
         route: 'agents.sources.text',
         statsKey: 'texts',
+    },
+    {
+        id: 'qa',
+        label: 'Q&A',
+        icon: HelpCircle,
+        route: 'agents.sources.qa',
+        statsKey: 'qa',
     },
     // {
     //     id: 'markdown',

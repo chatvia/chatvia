@@ -5,9 +5,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import compression from 'vite-plugin-compression';
+import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 
 export default defineConfig({
     plugins: [
+        wayfinder(),
         laravel({
             input: ['resources/js/app.ts', 'resources/css/landing.css'],
             ssr: 'resources/js/ssr.ts',

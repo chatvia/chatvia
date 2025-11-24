@@ -1,76 +1,52 @@
 <?php
 
-namespace Tests\Unit\Services\Splitters;
-
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
-use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
 
-class RecursiveCharacterTextSplitterTest extends TestCase
-{
-    private string $fileContent;
+beforeEach(function () {
+    $testFilePath = base_path('tests/files/animal-farm-ch1.txt');
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+    $this->fileContent = file_get_contents($testFilePath);
+});
 
-        $this->testFilePath = base_path('tests/files/animal-farm-ch1.txt');
+test('split text creates appropriate chunks', function () {
+    $splitter = new RecursiveCharacterTextSplitter(chunkSize: 700, chunkOverlap: 0);
+    $chunks = $splitter->splitText($this->fileContent);
 
-        $this->fileContent = file_get_contents($this->testFilePath);
-    }
+    $originalText = str_replace(["\n"], [''], trim(str_replace(' ', '', trim($this->fileContent))));
+    $chunksAsText = str_replace(["\n"], [''], trim(str_replace(' ', '', implode('', $chunks))));
 
-    #[Test]
-    public function split_text_creates_appropriate_chunks(): void
-    {
-        $splitter = new RecursiveCharacterTextSplitter(chunkSize: 700, chunkOverlap: 0);
-        $chunks = $splitter->splitText($this->fileContent);
+    expect($chunksAsText)->toBe($originalText);
+});
 
-        $originalText = str_replace(["\n"], [''], trim(str_replace(' ', '', trim($this->fileContent))));
-        $chunksAsText = str_replace(["\n"], [''], trim(str_replace(' ', '', implode('', $chunks))));
+test('chunks are from different sizes', function () {
+    $splitter = new RecursiveCharacterTextSplitter(chunkSize: 700, chunkOverlap: 0);
+    $chunks = $splitter->splitText($this->fileContent);
 
-        $this->assertSame($originalText, $chunksAsText);
-    }
+    expect($chunks)->toHaveCount(65);
+});
 
-    #[Test]
-    public function chunks_are_from_different_sizes(): void
-    {
-        $splitter = new RecursiveCharacterTextSplitter(chunkSize: 700, chunkOverlap: 0);
-        $chunks = $splitter->splitText($this->fileContent);
+test('split preserves all content', function () {
+    $splitter = new RecursiveCharacterTextSplitter(chunkSize: 500, chunkOverlap: 0);
+    $chunks = $splitter->splitText($this->fileContent);
 
-        $this->assertCount(65, $chunks);
-    }
+    // Reconstruct text from chunks
+    $reconstructed = implode(' ', $chunks);
 
-    #[Test]
-    public function split_preserves_all_content(): void
-    {
-        $splitter = new RecursiveCharacterTextSplitter(chunkSize: 500, chunkOverlap: 0);
-        $chunks = $splitter->splitText($this->fileContent);
+    // Normalize both texts for comparison (remove extra whitespace)
+    $originalNormalized = preg_replace('/\s+/', ' ', trim($this->fileContent));
+    $reconstructedNormalized = preg_replace('/\s+/', ' ', trim($reconstructed));
 
-        // Reconstruct text from chunks
-        $reconstructed = implode(' ', $chunks);
+    // Check that we haven't lost significant content
+    $originalWords = str_word_count($originalNormalized);
+    $reconstructedWords = str_word_count($reconstructedNormalized);
 
-        // Normalize both texts for comparison (remove extra whitespace)
-        $originalNormalized = preg_replace('/\s+/', ' ', trim($this->fileContent));
-        $reconstructedNormalized = preg_replace('/\s+/', ' ', trim($reconstructed));
+    // Allow for minor differences due to normalization
+    expect($reconstructedWords)->toBe($originalWords, 'Significant content was lost during chunking');
+});
 
-        // Check that we haven't lost significant content
-        $originalWords = str_word_count($originalNormalized);
-        $reconstructedWords = str_word_count($reconstructedNormalized);
+test('split with overlap preserves content', function () {
+    $splitter = new RecursiveCharacterTextSplitter(chunkSize: 400, chunkOverlap: 50);
+    $chunks = $splitter->splitText($this->fileContent);
 
-        // Allow for minor differences due to normalization
-        $this->assertEquals(
-            $originalWords,
-            $reconstructedWords,
-            'Significant content was lost during chunking'
-        );
-    }
-
-    #[Test]
-    public function split_with_overlap_preserves_content(): void
-    {
-        $splitter = new RecursiveCharacterTextSplitter(chunkSize: 400, chunkOverlap: 50);
-        $chunks = $splitter->splitText($this->fileContent);
-
-        $this->assertGreaterThan(1, count($chunks));
-    }
-}
+    expect(count($chunks))->toBeGreaterThan(1);
+});

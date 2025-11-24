@@ -10,7 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { LoaderCircle, Search, MessageSquare, RefreshCcw, X, RotateCcw, ThumbsUp, ThumbsDown, SlidersHorizontal, Download } from 'lucide-vue-next';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LoaderCircle, Search, MessageSquare, RefreshCcw, X, RotateCcw, ThumbsUp, ThumbsDown, Download, Filter, UserCheck } from 'lucide-vue-next';
 import LeadDetailsSheet from '@/components/LeadDetailsSheet.vue';
 import MessageCard from '@/components/chat/MessageCard.vue';
 import { useTimeAgo } from '@/composables/useTimeAgo';
@@ -34,6 +36,14 @@ interface ConversationSummary {
   first_message_excerpt?: string;
   country?: string | null;
   user_agent?: string | null;
+  topic?: string | null;
+  topic_id?: number | null;
+}
+
+interface Topic {
+  id: number;
+  topic: string;
+  description: string;
 }
 
 interface AIModel {
@@ -66,6 +76,12 @@ const hasLeadForCurrentConversation = computed(() => !!lead.value);
 const isLoadingConversations = ref(false);
 const isLoadingMessages = ref(false);
 
+// Filters
+const topics = ref<Topic[]>([]);
+const selectedTopic = ref<string>('all');
+const selectedSentiment = ref<string>('all');
+const showFiltersPopover = ref(false);
+
 // Use time ago composable
 const { formatTimeAgo } = useTimeAgo();
 
@@ -96,8 +112,16 @@ const currentConversationsPage = computed(() => conversations.value?.current_pag
 async function fetchConversations(page = 1) {
   isLoadingConversations.value = true;
   try {
+    const params: any = { page };
+    if (selectedTopic.value && selectedTopic.value !== 'all') {
+      params.topic = selectedTopic.value;
+    }
+    if (selectedSentiment.value && selectedSentiment.value !== 'all') {
+      params.sentiment = selectedSentiment.value;
+    }
+    
     const response = await axios.get(route('agents.logs.conversations', { agent: agent.id }), {
-      params: { page }
+      params
     });
     conversations.value = response.data.conversations;
     leadConversationIds.value = response.data.lead_conversation_ids;
@@ -151,9 +175,14 @@ async function fetchMessages(conversationId: string, page = 1) {
 // Fetch models and initial data on mount
 onMounted(async () => {
   try {
-    // Fetch models
-    const modelsResponse = await axios.get(route('agents.models.list', { agent: agent.id }));
+    // Fetch models, topics, and conversations in parallel
+    const [modelsResponse, topicsResponse] = await Promise.all([
+      axios.get(route('agents.models.list', { agent: agent.id })),
+      axios.get(route('agents.logs.topics', { agent: agent.id }))
+    ]);
+    
     models.value = modelsResponse.data.models || [];
+    topics.value = topicsResponse.data.topics || [];
     
     // Fetch conversations
     await fetchConversations();
@@ -192,6 +221,11 @@ watch(() => currentConversationId.value, (newId, oldId) => {
     lead.value = null;
     currentConversationData.value = null;
   }
+});
+
+// Watch for filter changes and automatically apply them
+watch([selectedTopic, selectedSentiment], () => {
+  fetchConversations(1);
 });
 
 function openLeadPanel() {
@@ -429,6 +463,55 @@ function exportAsPDF() {
   // TODO: Backend implementation
   console.log('Exporting conversations as PDF');
 }
+
+// Filter functions
+function clearAllFilters() {
+  selectedTopic.value = 'all';
+  selectedSentiment.value = 'all';
+  showFiltersPopover.value = false;
+  fetchConversations(1);
+}
+
+function clearTopicFilter() {
+  selectedTopic.value = 'all';
+  fetchConversations(1);
+}
+
+function clearSentimentFilter() {
+  selectedSentiment.value = 'all';
+  fetchConversations(1);
+}
+
+// Check if any filters are active
+const hasActiveFilters = computed(() => {
+  return selectedTopic.value !== 'all' || selectedSentiment.value !== 'all';
+});
+
+// Get sentiment display name
+function getSentimentDisplayName(sentiment: string): string {
+  const names: Record<string, string> = {
+    'positive': 'Positive',
+    'neutral': 'Neutral',
+    'negative': 'Negative'
+  };
+  return names[sentiment] || sentiment;
+}
+
+// Get sentiment color
+function getSentimentBadgeColor(sentiment: string): string {
+  const colors: Record<string, string> = {
+    'positive': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    'neutral': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
+    'negative': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+  };
+  return colors[sentiment] || 'bg-gray-100 text-gray-800';
+}
+
+// Get topic name by id
+function getTopicName(topicId: number): string {
+  const topic = topics.value.find(t => t.id === topicId);
+  return topic?.topic || '';
+}
 </script>
 
 <template>
@@ -442,9 +525,73 @@ function exportAsPDF() {
                   <h2 class="text-base font-semibold">Chat logs</h2>
                   <div class="flex items-center gap-1">
                     <!-- Filters Button -->
-                    <Button variant="ghost" size="icon" class="h-8 w-8">
-                      <SlidersHorizontal class="h-4 w-4" />
-                    </Button>
+                    <Popover v-model:open="showFiltersPopover">
+                      <PopoverTrigger as-child>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          class="h-8 w-8 relative"
+                          :class="{ 'text-primary': hasActiveFilters }"
+                        >
+                          <Filter class="h-4 w-4" />
+                          <span v-if="hasActiveFilters" class="absolute -top-0.5 -right-0.5 h-2 w-2 bg-primary rounded-full"></span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent class="w-80" align="start">
+                        <div class="space-y-4">
+                          <div class="space-y-2">
+                            <h4 class="font-medium leading-none">Filters</h4>
+                            <p class="text-sm text-muted-foreground">
+                              Filter conversations by topic and sentiment
+                            </p>
+                          </div>
+                          
+                          <!-- Topic Filter -->
+                          <div class="space-y-2">
+                            <Label for="topic-filter" class="text-sm font-medium">Topic</Label>
+                            <Select v-model="selectedTopic">
+                              <SelectTrigger id="topic-filter">
+                                <SelectValue placeholder="All topics" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All topics</SelectItem>
+                                <SelectItem 
+                                  v-for="topic in topics" 
+                                  :key="topic.id" 
+                                  :value="String(topic.id)"
+                                >
+                                  {{ topic.topic }}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <!-- Sentiment Filter -->
+                          <div class="space-y-2">
+                            <Label for="sentiment-filter" class="text-sm font-medium">Sentiment</Label>
+                            <Select v-model="selectedSentiment">
+                              <SelectTrigger id="sentiment-filter">
+                                <SelectValue placeholder="All sentiments" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All sentiments</SelectItem>
+                                <SelectItem value="positive">Positive</SelectItem>
+                                <SelectItem value="neutral">Neutral</SelectItem>
+                                <SelectItem value="negative">Negative</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <!-- Actions -->
+                          <div class="flex gap-2 pt-2">
+                            <Button size="sm" variant="outline" class="w-full" @click="clearAllFilters" :disabled="!hasActiveFilters">
+                              <X class="h-3 w-3 mr-1" />
+                              Clear Filters
+                            </Button>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     
                     <!-- Refresh Conversations Button -->
                     <Button 
@@ -478,6 +625,31 @@ function exportAsPDF() {
                     </DropdownMenu>
                   </div>
                 </div>
+                
+                <!-- Active Filters Display -->
+                <div v-if="hasActiveFilters" class="mb-3 flex flex-wrap gap-1.5">
+                  <Badge 
+                    v-if="selectedTopic" 
+                    variant="secondary" 
+                    class="text-xs px-2 py-1 flex items-center gap-1"
+                  >
+                    {{ getTopicName(Number(selectedTopic)) }}
+                    <button @click="clearTopicFilter" class="ml-1 hover:text-foreground">
+                      <X class="h-3 w-3" />
+                    </button>
+                  </Badge>
+                  <Badge 
+                    v-if="selectedSentiment" 
+                    :class="getSentimentBadgeColor(selectedSentiment)"
+                    class="text-xs px-2 py-1 flex items-center gap-1"
+                  >
+                    {{ getSentimentDisplayName(selectedSentiment) }}
+                    <button @click="clearSentimentFilter" class="ml-1 hover:opacity-70">
+                      <X class="h-3 w-3" />
+                    </button>
+                  </Badge>
+                </div>
+                
                 <div class="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{{ totalConversations }} conversations</span>
                 </div>
@@ -502,16 +674,37 @@ function exportAsPDF() {
                       </span>
                       <div class="flex items-center gap-1.5">
                         <!-- Messages Count Badge -->
-                        <div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted/50 text-[10px] font-medium">
+                        <div 
+                          class="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium"
+                          :class="currentConversationId === c.conversation_id 
+                            ? 'bg-primary-foreground/20 text-primary-foreground' 
+                            : 'bg-muted/50'"
+                        >
                           <MessageSquare class="h-3 w-3" />
                           <span>{{ c.messages_count }}</span>
                         </div>
                         
                         <!-- Lead Badge -->
-                        <Badge v-if="leadConversationIds.includes(c.conversation_id)" variant="secondary" class="text-[10px] px-1.5 py-0 font-normal">
+                        <Badge 
+                          v-if="leadConversationIds.includes(c.conversation_id)" 
+                          variant="secondary" 
+                          class="text-[10px] px-1.5 py-0 font-normal"
+                          :class="currentConversationId === c.conversation_id ? 'bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30' : ''"
+                        >
                           Lead
                         </Badge>
                       </div>
+                    </div>
+                    
+                    <!-- Topic Badge (if available) -->
+                    <div v-if="c.topic" class="flex items-center">
+                      <Badge 
+                        :variant="currentConversationId === c.conversation_id ? 'secondary' : 'outline'" 
+                        class="text-[9px] px-1.5 py-0 font-normal"
+                        :class="currentConversationId === c.conversation_id ? 'bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30' : ''"
+                      >
+                        {{ c.topic }}
+                      </Badge>
                     </div>
                     
                     <!-- Country & Time Info -->
@@ -612,7 +805,7 @@ function exportAsPDF() {
                       :disabled="!hasLeadForCurrentConversation" 
                       @click="openLeadPanel"
                     >
-                      <UserIcon class="h-4 w-4 mr-1" /> View Lead
+                      <UserCheck class="h-4 w-4 mr-1" /> View Lead
                     </Button>
                   </div>
                 </div>

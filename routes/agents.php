@@ -26,6 +26,7 @@ use App\Http\Controllers\Agents\Analytics\AgentSourcesDataController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogConversationsController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogMessagesController;
+use App\Http\Controllers\Agents\ChatLog\AgentChatLogTopicsController;
 use App\Http\Controllers\Agents\Embed\EmbedController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsController;
@@ -61,6 +62,13 @@ use App\Http\Controllers\Agents\Sources\Crawler\AgentSourcesTrainedWebsitesListC
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceWebsiteDeleteController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceWebsitesListController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceWebsiteUnlinkController;
+use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaController;
+use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaDestroyController;
+use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaListController;
+use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaShowController;
+use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaStoreController;
+use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaUnlinkController;
+use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaUpdateController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController;
 use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextListController;
@@ -138,6 +146,14 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::patch('sources/text/{id}', AgentKnowledgeTextUpdateController::class)->name('sources.text.update');
         Route::post('sources/text/{id}/unlink', AgentKnowledgeTextUnlinkController::class)->name('sources.text.unlink');
 
+        Route::get('sources/qa', AgentKnowledgeQaController::class)->name('sources.qa');
+        Route::post('sources/qa', AgentKnowledgeQaStoreController::class)->name('sources.qa.store');
+        Route::get('sources/qa/list', AgentKnowledgeQaListController::class)->name('sources.qa.index');
+        Route::get('sources/qa/{id}', AgentKnowledgeQaShowController::class)->name('sources.qa.show');
+        Route::patch('sources/qa/{id}', AgentKnowledgeQaUpdateController::class)->name('sources.qa.update');
+        Route::delete('sources/qa/{id}', AgentKnowledgeQaDestroyController::class)->name('sources.qa.destroy');
+        Route::post('sources/qa/{id}/unlink', AgentKnowledgeQaUnlinkController::class)->name('sources.qa.unlink');
+
         Route::get('sources/files', AgentSourcesFilesController::class)->name('sources.files');
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
         Route::delete('sources/text/{id}', AgentKnowledgeTextDestroyController::class)->name('sources.text.destroy');
@@ -168,6 +184,7 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::get('logs', AgentChatLogController::class)->name('logs');
         Route::get('logs/conversations', AgentChatLogConversationsController::class)->name('logs.conversations');
         Route::get('logs/messages/{conversation}', AgentChatLogMessagesController::class)->name('logs.messages');
+        Route::get('logs/topics', AgentChatLogTopicsController::class)->name('logs.topics');
 
         Route::get('widget', WidgetController::class)->name('widget');
         Route::get('embed', EmbedController::class)->name('embed');

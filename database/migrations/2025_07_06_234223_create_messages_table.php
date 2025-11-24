@@ -68,6 +68,8 @@ return new class extends Migration
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 
+            $table->boolean('is_direct_response')->nullable()->index();
+
             $table->unsignedInteger('response_time_ms')->nullable();
             $table->unsignedInteger('token_count')->nullable();
             $table->unsignedInteger('prompt_tokens')->nullable();

@@ -37,135 +37,7 @@
                         <a href="index.html" aria-label="Cruip">
                             <img src="./images/logo.png" width="32" height="32" alt="Docs" />
                         </a>
-                        <!-- Search -->
-                        <div class="grow ml-4 md:ml-8" x-data="handleSearch">
-                            <button
-                                class="w-full sm:w-[380px] text-[15px] bg-white text-slate-400 inline-flex items-center justify-between leading-5 pl-3 pr-2 py-[7px] rounded-sm border border-slate-200 hover:border-slate-300 shadow-xs whitespace-nowrap dark:text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-600"
-                                @click.prevent="openSearch"
-                                @keydown.slash.window="openSearch"
-                                aria-controls="search-modal"
-                            >
-                                <div class="flex items-center justify-center">
-                                    <svg class="w-4 h-4 fill-slate-500 mr-3 shrink-0 dark:fill-slate-400" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="m14.707 13.293-1.414 1.414-2.4-2.4 1.414-1.414 2.4 2.4ZM6.8 12.6A5.8 5.8 0 1 1 6.8 1a5.8 5.8 0 0 1 0 11.6Zm0-2a3.8 3.8 0 1 0 0-7.6 3.8 3.8 0 0 0 0 7.6Z" />
-                                    </svg>
-                                    <span>Search<span class="hidden sm:inline"> for anything</span>…</span>
-                                </div>
-                                <div class="flex items-center justify-center h-5 w-5 font-medium text-slate-500 rounded-sm border border-slate-200 shadow-xs ml-3 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600">/</div>
-                            </button>
-                            <!-- Search modal -->
-                            <div>
-                                <!-- Modal backdrop -->
-                                <div
-                                    class="fixed inset-0 bg-slate-900/20 z-50 transition-opacity"
-                                    x-show="searchOpen"
-                                    x-transition:enter="transition ease-out duration-200"
-                                    x-transition:enter-start="opacity-0"
-                                    x-transition:enter-end="opacity-100"
-                                    x-transition:leave="transition ease-out duration-100"
-                                    x-transition:leave-start="opacity-100"
-                                    x-transition:leave-end="opacity-0"
-                                    aria-hidden="true"
-                                    x-cloak
-                                ></div>
-                                <!-- Modal dialog -->
-                                <div
-                                    id="search-modal"
-                                    class="fixed inset-0 z-50 overflow-hidden flex items-start top-20 md:top-28 mb-4 justify-center px-4 sm:px-6"
-                                    role="dialog"
-                                    aria-modal="true"
-                                    x-show="searchOpen"
-                                    x-transition:enter="transition ease-in-out duration-200"
-                                    x-transition:enter-start="opacity-0 translate-y-4"
-                                    x-transition:enter-end="opacity-100 translate-y-0"
-                                    x-transition:leave="transition ease-in-out duration-200"
-                                    x-transition:leave-start="opacity-100 translate-y-0"
-                                    x-transition:leave-end="opacity-0 translate-y-4"
-                                    x-cloak
-                                >
-                                    <div
-                                        class="bg-white overflow-auto max-w-2xl w-full max-h-full rounded-sm shadow-lg dark:bg-slate-800"
-                                        @click.outside="closeSearch"
-                                        @keydown.escape.window="closeSearch"
-                                    >
-                                        <!-- Search form -->
-                                        <form class="border-b border-slate-200 dark:border-slate-700">
-                                            <div class="flex items-center">
-                                                <label for="modal-search">
-                                                    <span class="sr-only">Search</span>
-                                                    <svg class="w-4 h-4 fill-slate-500 shrink-0 ml-4 dark:fill-slate-400" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="m14.707 13.293-1.414 1.414-2.4-2.4 1.414-1.414 2.4 2.4ZM6.8 12.6A5.8 5.8 0 1 1 6.8 1a5.8 5.8 0 0 1 0 11.6Zm0-2a3.8 3.8 0 1 0 0-7.6 3.8 3.8 0 0 0 0 7.6Z" />
-                                                    </svg>
-                                                </label>
-                                                <input id="modal-search" class="text-sm w-full bg-white border-0 focus:ring-transparent placeholder-slate-400 appearance-none py-3 pl-2 pr-4 dark:bg-slate-800 dark:placeholder:text-slate-500" type="search" placeholder="Search for anything…" x-ref="searchInput" />
-                                            </div>
-                                        </form>
-                                        <div class="py-4 px-2 space-y-4">
-                                            <!-- Popular -->
-                                            <div>
-                                                <div class="text-sm font-medium text-slate-500 px-2 mb-2 dark:text-slate-400">Popular</div>
-                                                <ul>
-                                                    <li>
-                                                        <a class="flex items-center px-2 py-1 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 focus-within:bg-slate-100 dark:focus-within:bg-slate-700 outline-hidden" href="#0">
-                                                            <svg class="w-3 h-3 fill-slate-400 shrink-0 mr-3 dark:fill-slate-500" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M11.953 4.29a.5.5 0 0 0-.454-.292H6.14L6.984.62A.5.5 0 0 0 6.12.173l-6 7a.5.5 0 0 0 .379.825h5.359l-.844 3.38a.5.5 0 0 0 .864.445l6-7a.5.5 0 0 0 .075-.534Z" />
-                                                            </svg>
-                                                            <span>Alternative Schemas</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="flex items-center px-2 py-1 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 focus-within:bg-slate-100 dark:focus-within:bg-slate-700 outline-hidden" href="#0">
-                                                            <svg class="w-3 h-3 fill-slate-400 shrink-0 mr-3 dark:fill-slate-500" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M11.953 4.29a.5.5 0 0 0-.454-.292H6.14L6.984.62A.5.5 0 0 0 6.12.173l-6 7a.5.5 0 0 0 .379.825h5.359l-.844 3.38a.5.5 0 0 0 .864.445l6-7a.5.5 0 0 0 .075-.534Z" />
-                                                            </svg>
-                                                            <span>Query string parameters</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="flex items-center px-2 py-1 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 focus-within:bg-slate-100 dark:focus-within:bg-slate-700 outline-hidden" href="#0">
-                                                            <svg class="w-3 h-3 fill-slate-400 shrink-0 mr-3 dark:fill-slate-500" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M11.953 4.29a.5.5 0 0 0-.454-.292H6.14L6.984.62A.5.5 0 0 0 6.12.173l-6 7a.5.5 0 0 0 .379.825h5.359l-.844 3.38a.5.5 0 0 0 .864.445l6-7a.5.5 0 0 0 .075-.534Z" />
-                                                            </svg>
-                                                            <span>Integrations</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="flex items-center px-2 py-1 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 focus-within:bg-slate-100 dark:focus-within:bg-slate-700 outline-hidden" href="#0">
-                                                            <svg class="w-3 h-3 fill-slate-400 shrink-0 mr-3 dark:fill-slate-500" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M11.953 4.29a.5.5 0 0 0-.454-.292H6.14L6.984.62A.5.5 0 0 0 6.12.173l-6 7a.5.5 0 0 0 .379.825h5.359l-.844 3.38a.5.5 0 0 0 .864.445l6-7a.5.5 0 0 0 .075-.534Z" />
-                                                            </svg>
-                                                            <span>Organize Contacts with Tags</span>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <!-- Actions -->
-                                            <div>
-                                                <div class="text-sm font-medium text-slate-500 px-2 mb-2">Actions</div>
-                                                <ul>
-                                                    <li>
-                                                        <a class="flex items-center px-2 py-1 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 focus-within:bg-slate-100 dark:focus-within:bg-slate-700 outline-hidden" href="#0">
-                                                            <svg class="w-3 h-3 fill-blue-600 shrink-0 mr-3" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M11.854.146a.5.5 0 0 0-.525-.116l-11 4a.5.5 0 0 0-.015.934l4.8 1.921 1.921 4.8A.5.5 0 0 0 7.5 12h.008a.5.5 0 0 0 .462-.329l4-11a.5.5 0 0 0-.116-.525Z" />
-                                                            </svg>
-                                                            <span class="font-medium">Contact support</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="flex items-center px-2 py-1 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 focus-within:bg-slate-100 dark:focus-within:bg-slate-700 outline-hidden" href="#0">
-                                                            <svg class="w-3 h-3 fill-purple-500 shrink-0 mr-3" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M6 0C2.691 0 0 2.362 0 5.267c0 2.905 2.691 5.266 6 5.266a6.8 6.8 0 0 0 1.036-.079l2.725 1.485a.5.5 0 0 0 .739-.439V8.711A4.893 4.893 0 0 0 12 5.267C12 2.362 9.309 0 6 0Z" />
-                                                            </svg>
-                                                            <span class="font-medium">Submit feedback</span>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
                         <script>
                             document.addEventListener('alpine:init', () => {
                                 Alpine.data('handleSearch', () => ({
@@ -192,9 +64,7 @@
 
                     <!-- Right side elements links -->
                     <ul class="flex grow justify-end flex-wrap items-center">
-                        <li class="ml-4">
-                            <a class="btn-sm inline-flex items-center text-slate-100 bg-blue-600 hover:bg-blue-700 shadow-xs" href="#0">Support</a>
-                        </li>
+
                         <!-- Lights switch -->
                         <li>
                             <div class="flex flex-col justify-center ml-3">
@@ -390,23 +260,6 @@
                         <div class="pt-24 md:pt-28 pb-8 md:pl-6 lg:pl-12">
 
                             <!-- Page header -->
-                            <div class="h-16 flex items-center mb-6">
-                                <svg width="64" height="54" viewBox="0 0 64 54" xmlns="http://www.w3.org/2000/svg">
-                                    <path class="fill-blue-400" d="M43.832 7.206a1.32 1.32 0 0 0-.47-.492L32.694.195a1.333 1.333 0 0 0-1.39 0L20.64 6.714c-.198.12-.36.29-.471.492L32 14.436l11.832-7.23Z" />
-                                    <path class="fill-white dark:fill-slate-800" d="M20.168 7.206c-.11.197-.168.42-.168.645V19.69c0 .464.242.895.639 1.137l10.666 6.519c.21.128.45.195.695.196V14.437L20.168 7.206Z" />
-                                    <path class="fill-blue-600" d="M43.832 7.206c.11.197.168.42.168.645V19.69c0 .464-.242.895-.639 1.137l-10.666 6.519c-.21.128-.45.195-.695.196V14.437l11.832-7.231Z" />
-                                    <path class="fill-blue-400" d="M63.832 19.451a1.32 1.32 0 0 0-.47-.492l-10.667-6.518a1.333 1.333 0 0 0-1.39 0L40.64 18.959c-.198.12-.36.29-.471.492L52 26.683l11.832-7.232Z" />
-                                    <path class="fill-white dark:fill-slate-800" d="M40.168 19.451c-.11.198-.168.42-.168.647v11.837c0 .465.242.896.639 1.138l10.666 6.518c.21.128.45.196.695.196V26.683l-11.832-7.232Z" />
-                                    <path class="fill-blue-600" d="M63.832 19.451c.11.198.168.42.168.647v11.837c0 .465-.242.896-.639 1.138L52.695 39.59c-.21.128-.45.196-.695.196V26.683l11.832-7.232Z" />
-                                    <path class="fill-blue-400" d="M23.832 19.451a1.32 1.32 0 0 0-.47-.492l-10.667-6.518a1.333 1.333 0 0 0-1.39 0L.64 18.959c-.198.12-.36.29-.471.492L12 26.683l11.832-7.232Z" />
-                                    <path class="fill-white dark:fill-slate-800" d="M.168 19.451c-.11.198-.168.42-.168.647v11.837c0 .465.242.896.639 1.138l10.666 6.518c.21.128.45.196.695.196V26.683L.168 19.451Z" />
-                                    <path class="fill-blue-600" d="M23.832 19.451c.11.198.168.42.168.647v11.837c0 .465-.242.896-.639 1.138L12.695 39.59c-.21.128-.45.196-.695.196V26.683l11.832-7.232Z" />
-                                    <path class="fill-blue-400" d="M43.832 32.769a1.32 1.32 0 0 0-.47-.492l-10.667-6.52a1.333 1.333 0 0 0-1.39 0l-10.666 6.52c-.198.12-.36.29-.471.492L32 39.999l11.832-7.23Z" />
-                                    <path class="fill-white dark:fill-slate-800" d="M20.168 32.769c-.11.197-.168.42-.168.645V45.25c0 .465.242.896.639 1.138l10.666 6.518c.21.128.45.196.695.196V40l-11.832-7.23Z" />
-                                    <path class="fill-blue-600" d="M43.832 32.769c.11.197.168.42.168.645V45.25c0 .465-.242.896-.639 1.138l-10.666 6.518c-.21.128-.45.196-.695.196V40l11.832-7.23Z" />
-                                </svg>
-                                <span class="font-nycd text-xl text-blue-600 ml-4">Documentation</span>
-                            </div>
 
                             <article class="flex xl:space-x-12">
 

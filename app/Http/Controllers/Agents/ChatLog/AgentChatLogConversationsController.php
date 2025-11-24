@@ -18,14 +18,23 @@ class AgentChatLogConversationsController
         );
 
         $page = $request->query('page', 1);
+        $topicFilter = $request->query('topic');
+        $sentimentFilter = $request->query('sentiment');
 
         // Get distinct conversations for this agent ordered by most recent activity
         $conversationsPaginator = ChatConversation::query()
-            ->with(['session.country'])
+            ->with(['session.country', 'topic'])
             ->whereHas('session', fn ($query) => $query->where('agent_id', $agent->id))
+            ->when($topicFilter, fn ($query) => $query->where('chat_topic_id', $topicFilter))
+            ->when($sentimentFilter, function ($query) use ($sentimentFilter) {
+                $query->whereHas('messages', fn ($q) => $q->where('sentiment', $sentimentFilter));
+            })
             ->withCount('messages')
             ->orderByDesc('updated_at')
             ->paginate(10, pageName: 'conversations', page: $page);
+
+        // Store conversation IDs before transformation
+        $conversationIds = $conversationsPaginator->pluck('id');
 
         // Transform the paginated data
         $conversationsPaginator->through(function ($conversation) {
@@ -37,13 +46,13 @@ class AgentChatLogConversationsController
                 'title' => $conversation->title,
                 'country' => $conversation->session?->country?->code,
                 'user_agent' => $conversation->session?->user_agent,
+                'topic' => $conversation->topic?->topic,
+                'topic_id' => $conversation->chat_topic_id,
             ];
         });
 
         // Fetch first (earliest) message per conversation for excerpts
         if ($conversationsPaginator->isNotEmpty()) {
-            $conversationIds = $conversationsPaginator->pluck('conversation_id')->map(fn ($id) => (string) $id);
-
             $firstMessagesRaw = ChatMessage::query()
                 ->whereIn('chat_conversation_id', $conversationIds)
                 ->orderBy('created_at')

@@ -11,11 +11,12 @@
 |
 */
 
+use Tests\RefreshTestDatabases;
+
 pest()
     ->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Feature')
-    ->in('Feature/Auth');
+    ->use(RefreshTestDatabases::class)
+    ->in('Feature', 'Unit');
 
 /*
 |--------------------------------------------------------------------------

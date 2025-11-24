@@ -6,6 +6,7 @@ import Files from './Files.vue';
 import WebComponent from './WebComponent.vue';
 import TextComponent from './TextComponent.vue';
 import YoutubeComponent from './YoutubeComponent.vue';
+import QaComponent from './QaComponent.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import axios from 'axios';
 
@@ -94,6 +95,14 @@ const contentTypes = [
         route: 'agents.sources.youtube',
         statsKey: 'youtube'
     },
+    {
+        id: 'qa',
+        label: 'Q&A',
+        icon: 'pi-question-circle',
+        description: 'Craft responses for key questions',
+        route: 'agents.sources.qa',
+        statsKey: 'qa'
+    },
 ];
 
 const getCurrentType = () => {
@@ -123,6 +132,9 @@ const getCurrentType = () => {
     if (currentRoute.includes('/sources/video')) {
         return 'video';
     }
+    if (currentRoute.includes('/sources/qa')) {
+        return 'qa';
+    }
     return 'pdf'; // default to PDF
 };
 
@@ -144,6 +156,8 @@ const currentComponent = computed(() => {
             return TextComponent;
         case 'youtube':
             return YoutubeComponent;
+        case 'qa':
+            return QaComponent;
         default:
             return Files;
     }
@@ -211,7 +225,7 @@ onMounted(() => {
                     :is="currentComponent"
                     :agent="agent"
                     :file-type="selectedContentType"
-                    v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text' || selectedContentType === 'youtube'"
+                    v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text' || selectedContentType === 'youtube' || selectedContentType === 'qa'"
                 />
 
                 <!-- Placeholder for other content types -->

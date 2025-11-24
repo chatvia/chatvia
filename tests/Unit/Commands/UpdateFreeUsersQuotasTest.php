@@ -1,90 +1,73 @@
 <?php
 
-namespace Tests\Unit\Commands;
-
 use App\Console\Commands\UpdateFreeUsersQuotas;
 use App\Models\Credit;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use Tests\TestCase;
 
-class UpdateFreeUsersQuotasTest extends TestCase
-{
-    use RefreshDatabase;
+beforeEach(function () {
+    Event::fake();
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('updates credit for user with expiring credit', function () {
+    $quotaLimit = config('billing.packages.free.quota_limits.monthly');
 
-        Event::fake();
-    }
+    $user = User::factory()->create();
 
-    public function test_updates_credit_for_user_with_expiring_credit(): void
-    {
-        $quotaLimit = config('billing.packages.free.quota_limits.monthly');
+    // Create an expiring credit (expires within a day)
+    $expiringCredit = Credit::factory()->create([
+        'user_id' => $user->id,
+        'messages' => 30,
+        'started_at' => now()->subDays(29),
+        'ends_at' => now()->addHours(12), // Expires within a day
+    ]);
 
-        $user = User::factory()->create();
+    $this->artisan(UpdateFreeUsersQuotas::class);
 
-        // Create an expiring credit (expires within a day)
-        $expiringCredit = Credit::factory()->create([
-            'user_id' => $user->id,
-            'messages' => 30,
-            'started_at' => now()->subDays(29),
-            'ends_at' => now()->addHours(12), // Expires within a day
-        ]);
+    $user->refresh();
 
-        $this->artisan(UpdateFreeUsersQuotas::class);
+    $latestCredit = $user->credit;
 
-        $user->refresh();
+    expect($latestCredit)->not->toBeNull()
+        ->and($latestCredit->id)->not->toBe($expiringCredit->id)
+        ->and($latestCredit->messages)->toBe($quotaLimit['messages_limit'])
+        ->and($latestCredit->ends_at->greaterThan(now()->addDays(29)))->toBeTrue()
+        ->and($latestCredit->ends_at->lessThanOrEqualTo(now()->addMonth()))->toBeTrue();
+});
 
-        $latestCredit = $user->credit;
+test('updates credit for user without credit', function () {
+    $quotaLimit = config('billing.packages.free.quota_limits.monthly');
 
-        $this->assertNotNull($latestCredit);
-        $this->assertNotEquals($expiringCredit->id, $latestCredit->id);
-        $this->assertEquals($quotaLimit['messages_limit'], $latestCredit->messages);
-        $this->assertTrue($latestCredit->ends_at->greaterThan(now()->addDays(29)));
-        $this->assertTrue($latestCredit->ends_at->lessThanOrEqualTo(now()->addMonth()));
-    }
+    $user = User::factory()->create();
 
-    public function test_updates_credit_for_user_without_credit(): void
-    {
-        $quotaLimit = config('billing.packages.free.quota_limits.monthly');
+    $this->artisan(UpdateFreeUsersQuotas::class);
 
-        $user = User::factory()->create();
+    $user->refresh();
+    $latestCredit = $user->credit;
 
-        $this->artisan(UpdateFreeUsersQuotas::class);
+    expect($latestCredit)->not->toBeNull()
+        ->and($latestCredit->messages)->toBe($quotaLimit['messages_limit'])
+        ->and($latestCredit->ends_at->greaterThan(now()->addDays(29)))->toBeTrue()
+        ->and($latestCredit->ends_at->lessThanOrEqualTo(now()->addMonth()))->toBeTrue();
+});
 
-        $user->refresh();
-        $latestCredit = $user->credit;
+test('does not update credit for user with valid credit', function () {
+    Event::fake();
 
-        $this->assertNotNull($latestCredit);
+    $user = User::factory()->create();
 
-        $this->assertEquals($quotaLimit['messages_limit'], $latestCredit->messages);
+    $validCredit = Credit::factory()->create([
+        'user_id' => $user->id,
+        'messages' => 70,
+        'started_at' => now()->subDays(10),
+        'ends_at' => now()->addDays(20),
+    ]);
 
-        $this->assertTrue($latestCredit->ends_at->greaterThan(now()->addDays(29)));
-        $this->assertTrue($latestCredit->ends_at->lessThanOrEqualTo(now()->addMonth()));
-    }
+    $this->artisan(UpdateFreeUsersQuotas::class);
 
-    public function test_does_not_update_credit_for_user_with_valid_credit(): void
-    {
-        Event::fake();
+    $user->refresh();
+    $latestCredit = $user->credit;
 
-        $user = User::factory()->create();
-
-        $validCredit = Credit::factory()->create([
-            'user_id' => $user->id,
-            'messages' => 70,
-            'started_at' => now()->subDays(10),
-            'ends_at' => now()->addDays(20),
-        ]);
-
-        $this->artisan(UpdateFreeUsersQuotas::class);
-
-        $user->refresh();
-        $latestCredit = $user->credit;
-
-        $this->assertEquals($validCredit->id, $latestCredit->id);
-        $this->assertEquals(70, $latestCredit->messages);
-    }
-}
+    expect($latestCredit->id)->toBe($validCredit->id)
+        ->and($latestCredit->messages)->toBe(70);
+});

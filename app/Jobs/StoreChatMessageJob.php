@@ -11,8 +11,10 @@ use App\Models\ChatSession;
 use App\Models\Country;
 use App\Models\Llm;
 use App\Models\User;
+use App\Services\Infrastructure\SentimentAnalysis;
 use App\Services\IP2Country;
 use App\Services\TikToken;
+use App\Services\TopicAnalysis;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -35,17 +37,11 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $this->onQueue('messages');
     }
 
-    public function handle(): void
+    public function handle(SentimentAnalysis $sentimentAnalysis, TopicAnalysis $topicAnalysis): void
     {
         $isInputMessage = $this->payload instanceof ChatInputPayload;
 
         $sessionId = $this->sessionId;
-        //        $exp = explode(':', $sessionId);
-        //        $type = $exp[1] ?? null;
-        //
-        //        if (count($exp) === 3) {
-        //            $sessionId = $exp[2];
-        //        }
 
         $session = ChatSession::firstOrCreate([
             'id' => $sessionId,
@@ -58,24 +54,17 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         // Get country from IP address if not already set
         if ($session->ip_address && ! $session->country_id) {
-            try {
-                $countryCode = IP2Country::getCountryByIP($session->ip_address);
-                if ($countryCode) {
-                    $country = Country::where('code', $countryCode)->first();
-                    if ($country) {
-                        $session->update(['country_id' => $country->id]);
-                    }
+            $countryCode = IP2Country::getCountryByIP($session->ip_address);
+            if ($countryCode) {
+                $country = Country::where('code', $countryCode)->first();
+                if ($country) {
+                    $session->update(['country_id' => $country->id]);
                 }
-            } catch (\Exception $e) {
-                // Log error but don't fail the job
-                logger()->error('Failed to get country from IP', [
-                    'ip' => $session->ip_address,
-                    'error' => $e->getMessage(),
-                ]);
             }
         }
 
-        ChatConversation::firstOrCreate([
+        /** @var ChatConversation $conversation */
+        $conversation = ChatConversation::firstOrCreate([
             'id' => $this->conversationId,
             'chat_session_id' => $sessionId,
         ], ['title' => $this->title]);
@@ -97,6 +86,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'generation_id' => $this->payload?->generation_id ?? null,
             'token_count' => TikToken::countTokens($this->payload->message),
             'confidence_score' => $this->payload?->confidence_score ?? null,
+            'sentiment' => $this->payload instanceof ChatInputPayload ? $sentimentAnalysis->analyze($this->payload->message)->value : null,
         ]);
 
         /** @var User $user */
@@ -104,6 +94,19 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         if ($isInputMessage) {
             $user->creditSystem()->incrementMessagesUsage($this->agent->user_id);
+        }
+
+        // Topic analysis
+        $conversation->refresh();
+
+        if (! $conversation->chat_topic_id && $conversation->messages()->count() >= 4) {
+            $topic = $topicAnalysis->analyze(
+                $conversation
+                    ->messages()
+                    ->select('content')
+                    ->implode('content', "\n")
+            );
+            $conversation->update(['chat_topic_id' => $topic->id]);
         }
     }
 

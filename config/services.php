@@ -110,4 +110,10 @@ return [
         'api_key' => env('VOYAGEAI_API_KEY'),
         'api_endpoint' => env('VOYAGEAI_API_ENDPOINT', 'https://api.voyageai.com/v1'),
     ],
+
+    'comprehend' => [
+        'key' => env('AWS_COMPREHEND_ACCESS_KEY_ID'),
+        'secret' => env('AWS_COMPREHEND_SECRET_ACCESS_KEY'),
+        'region' => env('AWS_COMPREHEND_REGION', 'eu-central-1'),
+    ],
 ];

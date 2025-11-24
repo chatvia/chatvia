@@ -21,7 +21,6 @@ describe('User Login', function () {
     it('allows user to login with valid credentials', function () {
         $user = User::factory()->create([
             'email' => 'test@example.com',
-            'password' => Hash::make('password'),
         ]);
 
         $response = $this->post(route('login'), [

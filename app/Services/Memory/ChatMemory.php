@@ -194,7 +194,7 @@ class ChatMemory implements ChatMemoryInterface
 
         $conversation = $this->getConversationById($this->conversationId);
 
-        StoreChatMessageJob::dispatchSync(
+        StoreChatMessageJob::dispatch(
             $this->agent,
             $this->sessionId,
             $role,

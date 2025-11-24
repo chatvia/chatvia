@@ -1,45 +1,52 @@
 <template>
     <AgentLayout :agent="agent" title="Widget Configuration">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Left Column - Tabbed Configuration -->
-            <div class="order-1 lg:order-none">
-                <Card>
-                    <CardContent class="p-0">
-                        <Tabs v-model="activeTab" class="w-full">
-                            <TabsList class="w-full grid grid-cols-7 rounded-none border-b">
-                                <TabsTrigger value="text" class="gap-2">
-                                    <Type class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Text</span>
+        <Tabs v-model="activeTab" class="w-full overflow-hidden">
+            <div class="flex flex-col xl:grid xl:grid-cols-12 xl:items-start gap-6">
+                <!-- Left Column - Navigation Menu -->
+                <div class="xl:col-span-2 order-1 xl:order-none">
+                    <Card class="xl:sticky xl:top-6 overflow-hidden">
+                        <CardContent class="p-2 xl:p-2.5 overflow-hidden">
+                            <TabsList class="flex flex-row xl:flex-col w-full h-auto gap-1 xl:gap-0.5 bg-transparent overflow-x-auto xl:overflow-x-visible scrollbar-hide">
+                                <TabsTrigger value="text" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
+                                    <Type class="h-4 w-4 flex-shrink-0" />
+                                    <span class="hidden xl:inline text-sm font-medium">Text</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="starters" class="gap-2">
-                                    <MessageSquare class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Starters</span>
+                                <TabsTrigger value="starters" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
+                                    <MessageSquare class="h-4 w-4 flex-shrink-0" />
+                                    <span class="hidden xl:inline text-sm font-medium">Starters</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="models" class="gap-2">
-                                    <Brain class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Model</span>
+                                <TabsTrigger value="models" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
+                                    <Brain class="h-4 w-4 flex-shrink-0" />
+                                    <span class="hidden xl:inline text-sm font-medium">Model</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="colors" class="gap-2">
-                                    <Palette class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Colors</span>
+                                <TabsTrigger value="colors" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
+                                    <Palette class="h-4 w-4 flex-shrink-0" />
+                                    <span class="hidden xl:inline text-sm font-medium">Colors</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="behavior" class="gap-2">
-                                    <Settings class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Behavior</span>
+                                <TabsTrigger value="behavior" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
+                                    <Settings class="h-4 w-4 flex-shrink-0" />
+                                    <span class="hidden xl:inline text-sm font-medium">Behavior</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="embed" class="gap-2">
-                                    <Code class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Embed</span>
+                                <TabsTrigger value="embed" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
+                                    <Code class="h-4 w-4 flex-shrink-0" />
+                                    <span class="hidden xl:inline text-sm font-medium">Embed</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="security" :class="['gap-2', hasNoSitesConfigured && 'animate-pulse']">
-                                    <Shield class="h-4 w-4" :class="hasNoSitesConfigured && 'text-orange-500'" />
-                                    <span class="hidden sm:inline" :class="hasNoSitesConfigured && 'text-orange-500'">Security</span>
+                                <TabsTrigger value="security" :class="['flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md', hasNoSitesConfigured && 'animate-pulse']">
+                                    <Shield class="h-4 w-4 flex-shrink-0" :class="hasNoSitesConfigured && 'text-orange-500'" />
+                                    <span class="hidden xl:inline text-sm font-medium" :class="hasNoSitesConfigured && 'text-orange-500'">Security</span>
                                 </TabsTrigger>
                             </TabsList>
+                        </CardContent>
+                    </Card>
+                </div>
 
+                <!-- Middle Column - Configuration Content -->
+                <div class="xl:col-span-6 order-2 xl:order-none">
+                    <Card>
+                        <CardContent class="p-0">
                             <form @submit.prevent="updateWidgetSettings">
-                                <!-- Security Tab -->
-                                <TabsContent value="security" class="p-6 space-y-6">
+                                    <!-- Security Tab -->
+                                    <TabsContent value="security" class="p-6 space-y-6 mt-0">
                                     <form @submit.prevent="saveSecuritySettings">
                                         <Alert variant="destructive">
                                             <Shield class="h-4 w-4" />
@@ -86,8 +93,8 @@
                                     </form>
                                 </TabsContent>
 
-                                <!-- Text Tab -->
-                                <TabsContent value="text" class="p-6 space-y-6">
+                                    <!-- Text Tab -->
+                                    <TabsContent value="text" class="p-6 space-y-6 mt-0">
                                     <div class="space-y-2">
                                         <Label for="chat_window_title">Chat Title</Label>
                                         <Input
@@ -151,8 +158,8 @@
                                     </div>
                                 </TabsContent>
 
-                                <!-- Starters Tab -->
-                                <TabsContent value="starters" class="p-6 space-y-6">
+                                    <!-- Starters Tab -->
+                                    <TabsContent value="starters" class="p-6 space-y-6 mt-0">
                                     <div class="space-y-4">
                                         <div class="flex justify-between items-center">
                                             <div>
@@ -209,8 +216,8 @@
                                     </div>
                                 </TabsContent>
 
-                                <!-- Models Tab -->
-                                <TabsContent value="models" class="p-6 space-y-6">
+                                    <!-- Models Tab -->
+                                    <TabsContent value="models" class="p-6 space-y-6 mt-0">
                                     <div class="space-y-4">
                                         <div>
                                             <h3 class="text-sm font-medium">AI Model Selection</h3>
@@ -311,8 +318,8 @@
                                     </div>
                                 </TabsContent>
 
-                                <!-- Colors Tab -->
-                                <TabsContent value="colors" class="p-6 space-y-6">
+                                    <!-- Colors Tab -->
+                                    <TabsContent value="colors" class="p-6 space-y-6 mt-0">
                                     <div class="space-y-2">
                                         <Label>Widget Color</Label>
                                         <p class="text-xs text-muted-foreground mb-3">Choose the primary color for your widget</p>
@@ -338,8 +345,8 @@
                                     </div>
                                 </TabsContent>
 
-                                <!-- Behavior Tab -->
-                                <TabsContent value="behavior" class="p-6 space-y-6">
+                                    <!-- Behavior Tab -->
+                                    <TabsContent value="behavior" class="p-6 space-y-6 mt-0">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div class="space-y-2">
                                             <Label for="position">Position</Label>
@@ -417,8 +424,8 @@
                                     </Alert>
                                 </TabsContent>
 
-                                <!-- Embed Tab -->
-                                <TabsContent value="embed" class="p-6 space-y-6">
+                                    <!-- Embed Tab -->
+                                    <TabsContent value="embed" class="p-6 space-y-6 mt-0">
                                     <div class="space-y-4">
                                         <div>
                                             <h3 class="text-sm font-medium mb-1">Installation Instructions</h3>
@@ -462,61 +469,63 @@
                                             </AlertDescription>
                                         </Alert>
                                     </div>
-                                </TabsContent>
-                            </form>
-                        </Tabs>
-                    </CardContent>
-                </Card>
-            </div>
+                                    </TabsContent>
+                                </form>
+                        </CardContent>
+                    </Card>
+                </div>
 
-            <!-- Right Column - Live Preview -->
-            <div class="flex flex-col order-2 lg:order-none">
-                <!-- Live Widget Preview -->
-                <div class="flex flex-col lg:h-full min-h-[500px] border-2 border-dashed border-border rounded-lg p-6 bg-muted/20">
+                <!-- Right Column - Live Preview -->
+                <div class="xl:col-span-4 order-last xl:order-none">
+                    <div class="xl:sticky xl:top-6">
+                        <Card>
+                            <CardContent class="p-4">
+                                <div class="space-y-4 flex flex-col">
 
+                                    <!-- Preview Controls -->
+                                    <div class="flex items-center justify-between gap-2 pb-3 border-b">
+                                        <h3 class="text-sm font-medium">Live Preview</h3>
+                                        <div class="flex items-center gap-1">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                @click="refreshPreview"
+                                                title="Refresh preview"
+                                                class="h-8 w-8 p-0"
+                                            >
+                                                <RotateCcw class="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                @click="openFullPreview"
+                                                title="Full preview"
+                                                class="h-8 w-8 p-0"
+                                            >
+                                                <Eye class="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
 
-                    <div class="space-y-4 flex flex-col flex-1">
-                        <!-- Preview Controls -->
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    @click="refreshPreview"
-                                    class="gap-2"
-                                >
-                                    <RotateCcw class="h-4 w-4" />
-                                    Refresh
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    @click="openFullPreview"
-                                    class="gap-2"
-                                >
-                                    <Eye class="h-4 w-4" />
-                                    Full Preview
-                                </Button>
-                            </div>
-
-                        </div>
-
-                        <!-- Live Preview Iframe -->
-                        <div class="border-2 border-dashed border-border rounded-lg bg-background p-4 flex-1 w-full max-w-md mx-auto">
-                            <iframe
-                                :key="previewKey"
-                                :src="previewUrl"
-                                class="w-full border-0 rounded bg-white h-[400px] md:h-[500px] lg:h-full lg:min-h-[600px]"
-                                title="Widget Live Preview"
-                                sandbox="allow-scripts allow-same-origin allow-forms"
-                            />
-                        </div>
+                                    <!-- Live Preview Iframe -->
+                                    <div class="border border-border rounded-lg bg-muted/20 p-3">
+                                        <iframe
+                                            :key="previewKey"
+                                            :src="previewUrl"
+                                            class="w-full border-0 rounded bg-white h-[500px] md:h-[700px] xl:h-[550px]"
+                                            title="Widget Live Preview"
+                                            sandbox="allow-scripts allow-same-origin allow-forms"
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>
-        </div>
+        </Tabs>
 
         <!-- Widget Preview Modal -->
         <PreviewModal
@@ -1024,3 +1033,15 @@ onMounted(() => {
 
 // Preview updates only when Save is clicked - removed auto-update watcher
 </script>
+
+<style scoped>
+/* Hide scrollbar for mobile tabs while keeping scroll functionality */
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+}
+</style>

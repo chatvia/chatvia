@@ -34,3 +34,5 @@ frankenphp-worker.php
 /resources/js/wayfinder
 /resources/js/actions
 /resources/js/routes
+
+.tinker/

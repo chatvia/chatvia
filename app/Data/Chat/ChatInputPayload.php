@@ -15,5 +15,8 @@ class ChatInputPayload extends Data
         public ?string $language = null,
         public ?string $ip_address = null,
         public ?string $user_agent = null,
+        public ?string $referrer_url = null,
+        public ?string $page_url = null,
+        public ?string $locale = null,
     ) {}
 }

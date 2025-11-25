@@ -13,6 +13,10 @@ class Lead extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'contacted_at' => 'datetime',
+    ];
+
     // Relationships
     public function agent(): BelongsTo
     {
@@ -27,5 +31,10 @@ class Lead extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class, 'chat_conversation_id', 'chat_conversation_id');
+    }
+
+    public function assignedTo(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'assigned_to');
     }
 }

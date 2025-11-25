@@ -36,6 +36,9 @@ class ChatService
             'language' => $lang,
             'ip_address' => $data->ipAddress,
             'user_agent' => $data->userAgent,
+            'referrer_url' => $data->referrerUrl,
+            'page_url' => $data->pageUrl,
+            'locale' => $data->locale,
         ]);
 
         $llmMessages = $this->memory->getLlmMessages();
@@ -105,6 +108,9 @@ class ChatService
             'language' => $context->payload->language,
             'ip_address' => $context->payload->ip_address,
             'user_agent' => $context->payload->user_agent,
+            'referrer_url' => $context->payload->referrer_url,
+            'page_url' => $context->payload->page_url,
+            'locale' => $context->payload->locale,
         ]);
 
         $enrichedContext = new ChatContext(

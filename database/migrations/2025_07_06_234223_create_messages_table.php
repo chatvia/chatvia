@@ -30,10 +30,17 @@ return new class extends Migration
             $table->string('os')->nullable()->index();
             $table->string('city')->nullable();
 
+            // Tracking columns
+            $table->string('referrer_url', 500)->nullable();
+            $table->string('page_url', 500)->nullable();
+            $table->string('locale', 10)->nullable();
+
             $table->timestamps();
 
             $table->index(['agent_id', 'created_at']);
             $table->index(['member_id', 'created_at']);
+            $table->index(['country_id', 'city']);
+            $table->index('created_at');
         });
 
         Schema::create('chat_conversations', function (Blueprint $table) {

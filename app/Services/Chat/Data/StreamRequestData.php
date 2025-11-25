@@ -22,5 +22,8 @@ class StreamRequestData extends Data
         public bool $persistMessages = true,
         public ?string $ipAddress = null,
         public ?string $userAgent = null,
+        public ?string $referrerUrl = null,
+        public ?string $pageUrl = null,
+        public ?string $locale = null,
     ) {}
 }

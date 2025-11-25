@@ -4,8 +4,8 @@ import { ref, computed, onMounted } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-    Sparkles, Zap, Cpu, LoaderCircle, ThumbsUp, MessageSquare, 
+import {
+    Sparkles, Zap, Cpu, LoaderCircle, ThumbsUp, MessageSquare,
     Timer, Activity, TrendingUp, TrendingDown, Target, Clock,
     Coins, BarChart3, Award
 } from 'lucide-vue-next';
@@ -67,7 +67,7 @@ const formatDuration = (seconds: number | null): string => {
 const fetchMetrics = async () => {
     loading.value = true;
     error.value = null;
-    
+
     try {
         const response = await axios.get(route('agents.metrics.data', props.agent.id));
         metrics.value = response.data;
@@ -204,7 +204,7 @@ onMounted(() => {
                             <p class="text-3xl font-bold">{{ formatDuration(metrics.avgFirstResponseTime) }}</p>
                             <p class="text-xs text-muted-foreground">Time to send first message</p>
                         </div>
-                        
+
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
                                 <p class="text-sm text-muted-foreground">Avg Response Time</p>
@@ -212,7 +212,7 @@ onMounted(() => {
                             <p class="text-3xl font-bold">{{ metrics.avgResponseTime }}s</p>
                             <p class="text-xs text-muted-foreground">Average per message</p>
                         </div>
-                        
+
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
                                 <p class="text-sm text-muted-foreground">Avg Session Duration</p>
@@ -285,7 +285,7 @@ onMounted(() => {
                             <p class="text-3xl font-bold">{{ metrics.totalTokens.toLocaleString() }}</p>
                             <p class="text-xs text-muted-foreground">Across all conversations</p>
                         </div>
-                        
+
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
                                 <p class="text-sm text-muted-foreground">Avg Tokens per Message</p>
@@ -294,7 +294,7 @@ onMounted(() => {
                             <p class="text-3xl font-bold">{{ Math.round(metrics.avgTokensPerMessage).toLocaleString() }}</p>
                             <p class="text-xs text-muted-foreground">Token efficiency rating</p>
                         </div>
-                        
+
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
                                 <p class="text-sm text-muted-foreground">Total Messages</p>

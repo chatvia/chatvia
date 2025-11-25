@@ -31,6 +31,9 @@ final class ConversationCreateController
             'language' => $lang,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
+            'referrer_url' => $request->header('referer') ?: $request->server('HTTP_REFERER'),
+            'page_url' => $request->url(),
+            'locale' => $request->header('accept-language') ? substr($request->header('accept-language'), 0, 5) : null,
         ]);
 
         $conversationId = $memory

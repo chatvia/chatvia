@@ -116,4 +116,9 @@ return [
         'secret' => env('AWS_COMPREHEND_SECRET_ACCESS_KEY'),
         'region' => env('AWS_COMPREHEND_REGION', 'eu-central-1'),
     ],
+
+    'ipapi' => [
+        'key' => env('IPAPI_API_KEY'),
+        'endpoint' => env('IPAPI_API_ENDPOINT', 'http://api.ipapi.com/api'),
+    ],
 ];

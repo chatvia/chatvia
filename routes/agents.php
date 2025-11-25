@@ -21,6 +21,8 @@ use App\Http\Controllers\Agents\Analytics\AgentAnalyticsDataController;
 use App\Http\Controllers\Agents\Analytics\AgentChartDataController;
 use App\Http\Controllers\Agents\Analytics\AgentMetricsController;
 use App\Http\Controllers\Agents\Analytics\AgentMetricsDataController;
+use App\Http\Controllers\Agents\Analytics\AgentSentimentController;
+use App\Http\Controllers\Agents\Analytics\AgentSentimentDataController;
 use App\Http\Controllers\Agents\Analytics\AgentSourcesController;
 use App\Http\Controllers\Agents\Analytics\AgentSourcesDataController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
@@ -116,6 +118,8 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::get('analytics/chart-data', AgentChartDataController::class)->name('analytics.chart-data');
         Route::get('analytics/metrics', AgentMetricsController::class)->name('analytics.metrics');
         Route::get('analytics/metrics/data', AgentMetricsDataController::class)->name('metrics.data');
+        Route::get('analytics/sentiment', AgentSentimentController::class)->name('analytics.sentiment');
+        Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->name('sentiment.data');
         Route::get('analytics/sources', AgentSourcesController::class)->name('analytics.sources');
         Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
         Route::patch('/', AgentUpdateController::class)->name('update');

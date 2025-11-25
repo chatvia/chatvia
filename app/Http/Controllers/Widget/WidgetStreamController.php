@@ -52,6 +52,9 @@ readonly class WidgetStreamController
                 leadAlreadyCollected: $leadCollected,
                 ipAddress: $request->ip(),
                 userAgent: $request->userAgent(),
+                referrerUrl: $referer,
+                pageUrl: $request->input('page_url'),
+                locale: $request->input('locale') ?: $request->header('accept-language'),
             ),
         );
     }

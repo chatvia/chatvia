@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Widget;
 
 use App\Services\Memory\ChatSession;
+use App\Services\UserAgentParser;
 use App\Services\Widget\WidgetVerification;
 use Illuminate\Http\Request;
 
@@ -13,12 +14,14 @@ class WidgetSessionStoreController
         $agentId = $request->header('x-agent-id');
 
         if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
-            return response()->json(['error' => 'Could not verify the agent'], 403);
+            return response()->json(data: ['error' => 'Could not verify the agent'], status: 403);
         }
 
         $sessionId = $session->firstOrCreateChatSession();
 
         $agent = current_agent_from_widget();
+
+        $userAgentData = UserAgentParser::parse($request->userAgent());
 
         $agent
             ->chatSessions()
@@ -26,6 +29,9 @@ class WidgetSessionStoreController
                 'id' => $sessionId,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
+                'device_type' => $userAgentData['device_type'] ?? null,
+                'browser' => $userAgentData['browser'] ?? null,
+                'os' => $userAgentData['os'] ?? null,
             ]);
 
         return [

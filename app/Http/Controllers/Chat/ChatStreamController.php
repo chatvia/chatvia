@@ -28,6 +28,9 @@ readonly class ChatStreamController
                 streamSources: false,
                 ipAddress: $request->ip(),
                 userAgent: $request->userAgent(),
+                referrerUrl: $request->header('referer') ?: $request->server('HTTP_REFERER'),
+                pageUrl: $request->url(),
+                locale: $request->header('accept-language') ? substr($request->header('accept-language'), 0, 5) : null,
             ),
         );
     }

@@ -1,348 +1,474 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Plus,
-    Trash2,
-    Save,
-    Zap,
-    ArrowRight
+import { ref, computed, watch, onMounted } from 'vue';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Line, Pie } from 'vue-chartjs';
+import { 
+    Chart as ChartJS, 
+    CategoryScale, 
+    LinearScale, 
+    PointElement, 
+    LineElement,
+    ArcElement,
+    Title, 
+    Tooltip as ChartTooltip, 
+    Legend,
+    Filler,
+    type ChartOptions
+} from 'chart.js';
+import { 
+    SmilePlus, LoaderCircle, Info
 } from 'lucide-vue-next';
+import axios from 'axios';
 
-const props = defineProps({
-    agent: {
-        type: Object,
-        required: true,
-    },
-    actionTypes: {
-        type: Object,
-        required: true,
-    }
-});
+// Register Chart.js components
+ChartJS.register(
+    CategoryScale, 
+    LinearScale, 
+    PointElement, 
+    LineElement, 
+    ArcElement,
+    Title, 
+    ChartTooltip, 
+    Legend,
+    Filler
+);
 
-interface ActionRule {
-    id: string;
-    input: string;
-    actionType: string;
-    config: Record<string, any>;
+interface Props {
+    agent: any
 }
 
-const actions = ref<ActionRule[]>([]);
-const newActionInput = ref('');
-const newActionType = ref('');
+const props = defineProps<Props>();
 
-// Add new action rule
-const addAction = () => {
-    if (!newActionInput.value.trim() || !newActionType.value) {
-        return;
-    }
+const loading = ref(true);
+const sentimentData = ref<any>(null);
+const error = ref<string | null>(null);
+const activeView = ref<'graph' | 'pie'>('graph');
 
-    const newAction: ActionRule = {
-        id: Date.now().toString(),
-        input: newActionInput.value.trim(),
-        actionType: newActionType.value,
-        config: getDefaultConfig(newActionType.value)
-    };
+const fetchSentimentData = async () => {
+    loading.value = true;
+    error.value = null;
 
-    actions.value.push(newAction);
-
-    // Reset form
-    newActionInput.value = '';
-    newActionType.value = '';
-};
-
-// Remove action rule
-const removeAction = (actionId: string) => {
-    actions.value = actions.value.filter(action => action.id !== actionId);
-};
-
-// Get default configuration for action type
-const getDefaultConfig = (actionType: string): Record<string, any> => {
-    const defaults: Record<string, Record<string, any>> = {
-        'send_slack_message': {
-            channel: '#general',
-            message: 'User input: {input}'
-        },
-        'send_email': {
-            to: '',
-            subject: 'New user input',
-            body: 'User said: {input}'
-        },
-        'webhook': {
-            url: '',
-            method: 'POST',
-            payload: '{"input": "{input}"}'
-        },
-        'create_ticket': {
-            title: 'User Request',
-            description: 'User input: {input}',
-            priority: 'medium'
-        },
-        'log_event': {
-            event_name: 'user_input',
-            data: '{"input": "{input}"}'
-        },
-        'save_to_database': {
-            table: 'user_inputs',
-            fields: '{"input": "{input}", "timestamp": "{timestamp}"}'
-        }
-    };
-
-    return defaults[actionType] || {};
-};
-
-// Get action type label
-const getActionTypeLabel = (actionType: string) => {
-    return props.actionTypes[actionType] || actionType;
-};
-
-// Save actions
-const saveActions = async () => {
     try {
-        await router.post(route('agents.actions.save', { agent: props.agent.id }), {
-            actions: actions.value
-        });
-        console.log('Actions saved successfully');
-    } catch (error) {
-        console.error('Failed to save actions:', error);
+        const response = await axios.get(route('agents.sentiment.data', props.agent.id));
+        sentimentData.value = response.data;
+    } catch (err: any) {
+        error.value = err.response?.data?.message || 'Failed to load sentiment data';
+        console.error('Error fetching sentiment data:', err);
+    } finally {
+        loading.value = false;
     }
 };
 
-// Update action config
-const updateActionConfig = (actionId: string, field: string, value: string) => {
-    const action = actions.value.find(a => a.id === actionId);
-    if (action) {
-        action.config[field] = value;
+// Format date for display (e.g., "Dec 3")
+const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+// Line chart data
+const lineChartData = computed(() => {
+    if (!sentimentData.value) return null;
+
+    return {
+        labels: sentimentData.value.sentimentByDate.map((d: any) => formatDate(d.date)),
+        datasets: [
+            {
+                label: 'Positive',
+                data: sentimentData.value.sentimentByDate.map((d: any) => d.positive),
+                borderColor: 'rgb(96, 165, 250)',
+                backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: 'rgb(96, 165, 250)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            },
+            {
+                label: 'Neutral',
+                data: sentimentData.value.sentimentByDate.map((d: any) => d.neutral),
+                borderColor: 'rgb(71, 85, 105)',
+                backgroundColor: 'rgba(71, 85, 105, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: 'rgb(71, 85, 105)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            },
+            {
+                label: 'Negative',
+                data: sentimentData.value.sentimentByDate.map((d: any) => d.negative),
+                borderColor: 'rgb(248, 113, 113)',
+                backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: 'rgb(248, 113, 113)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            },
+            {
+                label: 'Unspecified',
+                data: sentimentData.value.sentimentByDate.map((d: any) => d.unspecified),
+                borderColor: 'rgb(203, 213, 225)',
+                backgroundColor: 'rgba(203, 213, 225, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: 'rgb(203, 213, 225)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            },
+        ]
+    };
+});
+
+const lineChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+        mode: 'index',
+        intersect: false,
+    },
+    plugins: {
+        legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                    size: 12,
+                }
+            }
+        },
+        tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: {
+                size: 14,
+            },
+            bodyFont: {
+                size: 13,
+            },
+            displayColors: true,
+            callbacks: {
+                label: function(context) {
+                    return `${context.dataset.label}: ${context.parsed.y}`;
+                }
+            }
+        }
+    },
+    scales: {
+        x: {
+            grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.05)',
+            },
+            ticks: {
+                font: {
+                    size: 11,
+                }
+            }
+        },
+        y: {
+            beginAtZero: true,
+            grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.05)',
+            },
+            ticks: {
+                font: {
+                    size: 11,
+                },
+                precision: 0,
+            }
+        }
     }
 };
+
+// Pie chart data
+const pieChartData = computed(() => {
+    if (!sentimentData.value) return null;
+
+    const totals = sentimentData.value.totalSentiments;
+
+    return {
+        labels: ['Neutral', 'Positive', 'Negative', 'Unspecified'],
+        datasets: [{
+            data: [totals.neutral, totals.positive, totals.negative, totals.unspecified],
+            backgroundColor: [
+                'rgb(71, 85, 105)',
+                'rgb(96, 165, 250)',
+                'rgb(248, 113, 113)',
+                'rgb(203, 213, 225)',
+            ],
+            borderColor: '#fff',
+            borderWidth: 2,
+        }]
+    };
+});
+
+const pieChartOptions: ChartOptions<'pie'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                    size: 12,
+                }
+            }
+        },
+        tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: {
+                size: 14,
+            },
+            bodyFont: {
+                size: 13,
+            },
+            callbacks: {
+                label: function(context) {
+                    const label = context.label || '';
+                    const value = context.parsed || 0;
+                    const total = sentimentData.value?.totalSentiments?.total || 0;
+                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    return `${label}: ${value} (${percentage}%)`;
+                }
+            }
+        }
+    }
+};
+
+// Summary stats
+const summaryStats = computed(() => {
+    if (!sentimentData.value) return null;
+
+    const totals = sentimentData.value.totalSentiments;
+    const total = totals.total;
+
+    return {
+        positive: {
+            count: totals.positive,
+            percentage: total > 0 ? ((totals.positive / total) * 100).toFixed(1) : '0',
+        },
+        neutral: {
+            count: totals.neutral,
+            percentage: total > 0 ? ((totals.neutral / total) * 100).toFixed(1) : '0',
+        },
+        negative: {
+            count: totals.negative,
+            percentage: total > 0 ? ((totals.negative / total) * 100).toFixed(1) : '0',
+        },
+        unspecified: {
+            count: totals.unspecified,
+            percentage: total > 0 ? ((totals.unspecified / total) * 100).toFixed(1) : '0',
+        },
+        total: total,
+    };
+});
+
+onMounted(() => {
+    fetchSentimentData();
+});
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Sentiment">
-        <Head title="Sentiment" />
+    <AgentLayout :agent="agent" title="Sentiment Analysis" description="Analyze user sentiment patterns and trends">
+        <template #header-icon>
+            <SmilePlus class="h-5 w-5" />
+        </template>
 
-        <div class="space-y-6">
+        <!-- Delayed Data Notice -->
+        <div class="mb-6 flex justify-end">
+            <p class="text-sm text-muted-foreground">
+                Analytics data for today might be delayed
+            </p>
+        </div>
 
-            <div class="flex justify-center">
-                <!-- Add New Sentiment Rule -->
-                <Card class="w-full max-w-6xl">
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Plus class="h-5 w-5" />
-                        Add New Sentiment Rule
-                    </CardTitle>
-                    <CardDescription>
-                        Create a rule that triggers a response based on sentiment analysis of user input
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div class="md:col-span-3 space-y-2">
-                            <Label for="input">When user input contains</Label>
-                            <Input
-                                id="input"
-                                v-model="newActionInput"
-                                placeholder="e.g., 'contact sales', 'urgent help', 'need assistance'"
-                                class="w-full text-lg py-3"
-                            />
-                        </div>
+        <!-- Loading State -->
+        <div v-if="loading" class="flex items-center justify-center py-12">
+            <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
 
-                        <div class="space-y-2">
-                            <Label for="action-type">Do this</Label>
-                            <Select v-model="newActionType">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select an action" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem
-                                        v-for="(label, value) in actionTypes"
-                                        :key="value"
-                                        :value="value"
-                                    >
-                                        {{ label }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div class="flex items-end">
-                            <Button
-                                @click="addAction"
-                                :disabled="!newActionInput.trim() || !newActionType"
-                                class="w-full"
-                            >
-                                <Plus class="h-4 w-4 mr-2" />
-                                Add Action
-                            </Button>
-                        </div>
+        <!-- Error State -->
+        <div v-else-if="error" class="flex items-center justify-center py-12">
+            <Card class="max-w-md">
+                <CardContent class="pt-6">
+                    <div class="text-center space-y-2">
+                        <p class="text-destructive font-medium">{{ error }}</p>
+                        <button
+                            @click="fetchSentimentData"
+                            class="text-sm text-muted-foreground hover:text-foreground underline"
+                        >
+                            Try again
+                        </button>
                     </div>
                 </CardContent>
             </Card>
-            </div>
+        </div>
 
-            <!-- Existing Sentiment Rules -->
-            <div class="flex justify-center">
-                <div class="w-full max-w-6xl space-y-4">
-                    <h2 class="text-lg font-semibold">Active Sentiment Rules</h2>
-
-                    <div v-if="actions.length === 0" class="text-center py-12">
-                        <Zap class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p class="text-muted-foreground">No sentiment rules configured yet</p>
-                        <p class="text-sm text-muted-foreground">Add your first sentiment rule above to get started</p>
-                    </div>
-
-                    <Card v-for="action in actions" :key="action.id" class="relative">
-                    <CardHeader class="pb-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="flex items-center gap-2 text-sm">
-                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-md font-medium">
-                                        "{{ action.input }}"
-                                    </span>
-                                    <ArrowRight class="h-4 w-4 text-muted-foreground" />
-                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-md font-medium">
-                                        {{ getActionTypeLabel(action.actionType) }}
-                                    </span>
-                                </div>
+        <!-- Content -->
+        <div v-else-if="sentimentData" class="space-y-6">
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card>
+                    <CardContent class="!p-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-muted-foreground">Positive</p>
+                                <Badge class="bg-blue-100 text-blue-700 hover:bg-blue-100">
+                                    {{ summaryStats?.positive.percentage }}%
+                                </Badge>
                             </div>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                @click="removeAction(action.id)"
-                                class="text-destructive hover:text-destructive"
-                            >
-                                <Trash2 class="h-4 w-4" />
-                            </Button>
+                            <p class="text-2xl font-bold">{{ summaryStats?.positive.count }}</p>
                         </div>
-                    </CardHeader>
+                    </CardContent>
+                </Card>
 
-                    <CardContent class="pt-0">
-                        <div class="space-y-3">
-                            <!-- Slack ChatMessage Config -->
-                            <div v-if="action.actionType === 'send_slack_message'" class="space-y-3">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <Label class="text-xs">Channel</Label>
-                                        <Input
-                                            :value="action.config.channel"
-                                            @input="updateActionConfig(action.id, 'channel', $event.target.value)"
-                                            placeholder="#general"
-                                            class="text-sm"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <Label class="text-xs">Message Template</Label>
-                                    <Textarea
-                                        :value="action.config.message"
-                                        @input="updateActionConfig(action.id, 'message', $event.target.value)"
-                                        placeholder="User input: {input}"
-                                        class="text-sm min-h-[60px]"
-                                    />
-                                </div>
+                <Card>
+                    <CardContent class="!p-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-muted-foreground">Neutral</p>
+                                <Badge variant="secondary">
+                                    {{ summaryStats?.neutral.percentage }}%
+                                </Badge>
                             </div>
+                            <p class="text-2xl font-bold">{{ summaryStats?.neutral.count }}</p>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                            <!-- Email Config -->
-                            <div v-else-if="action.actionType === 'send_email'" class="space-y-3">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <Label class="text-xs">To Email</Label>
-                                        <Input
-                                            :value="action.config.to"
-                                            @input="updateActionConfig(action.id, 'to', $event.target.value)"
-                                            placeholder="admin@example.com"
-                                            class="text-sm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label class="text-xs">Subject</Label>
-                                        <Input
-                                            :value="action.config.subject"
-                                            @input="updateActionConfig(action.id, 'subject', $event.target.value)"
-                                            placeholder="New user input"
-                                            class="text-sm"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <Label class="text-xs">Email Body</Label>
-                                    <Textarea
-                                        :value="action.config.body"
-                                        @input="updateActionConfig(action.id, 'body', $event.target.value)"
-                                        placeholder="User said: {input}"
-                                        class="text-sm min-h-[60px]"
-                                    />
-                                </div>
+                <Card>
+                    <CardContent class="!p-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-muted-foreground">Negative</p>
+                                <Badge class="bg-red-100 text-red-700 hover:bg-red-100">
+                                    {{ summaryStats?.negative.percentage }}%
+                                </Badge>
                             </div>
+                            <p class="text-2xl font-bold">{{ summaryStats?.negative.count }}</p>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                            <!-- Webhook Config -->
-                            <div v-else-if="action.actionType === 'webhook'" class="space-y-3">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <Label class="text-xs">URL</Label>
-                                        <Input
-                                            :value="action.config.url"
-                                            @input="updateActionConfig(action.id, 'url', $event.target.value)"
-                                            placeholder="https://api.example.com/webhook"
-                                            class="text-sm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label class="text-xs">Method</Label>
-                                        <Select
-                                            :value="action.config.method"
-                                            @update:modelValue="updateActionConfig(action.id, 'method', $event)"
-                                        >
-                                            <SelectTrigger class="text-sm">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="POST">POST</SelectItem>
-                                                <SelectItem value="PUT">PUT</SelectItem>
-                                                <SelectItem value="PATCH">PATCH</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <Label class="text-xs">Payload (JSON)</Label>
-                                    <Textarea
-                                        :value="action.config.payload"
-                                        @input="updateActionConfig(action.id, 'payload', $event.target.value)"
-                                        placeholder='{"input": "{input}"}'
-                                        class="text-sm min-h-[60px] font-mono"
-                                    />
-                                </div>
+                <Card>
+                    <CardContent class="!p-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-muted-foreground">Unspecified</p>
+                                <Badge variant="outline">
+                                    {{ summaryStats?.unspecified.percentage }}%
+                                </Badge>
                             </div>
-
-                            <!-- Generic config for other types -->
-                            <div v-else class="text-sm text-muted-foreground">
-                                <p>{{ getActionTypeLabel(action.actionType) }} configuration coming soon...</p>
-                            </div>
+                            <p class="text-2xl font-bold">{{ summaryStats?.unspecified.count }}</p>
                         </div>
                     </CardContent>
                 </Card>
             </div>
-            </div>
+
+            <!-- Sentiment Chart -->
+            <Card>
+                <CardHeader>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <CardTitle>Sentiment</CardTitle>
+                            <Info class="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <Tabs v-model="activeView" class="w-auto">
+                            <TabsList>
+                                <TabsTrigger value="graph" @click="activeView = 'graph'">
+                                    Graph
+                                </TabsTrigger>
+                                <TabsTrigger value="pie" @click="activeView = 'pie'">
+                                    Pie Chart
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <!-- Line Chart -->
+                    <div v-if="activeView === 'graph'" class="h-96">
+                        <Line
+                            v-if="lineChartData"
+                            :data="lineChartData"
+                            :options="lineChartOptions"
+                        />
+                    </div>
+
+                    <!-- Pie Chart -->
+                    <div v-else class="h-96 flex items-center justify-center">
+                        <div class="w-full max-w-md">
+                            <Pie
+                                v-if="pieChartData"
+                                :data="pieChartData"
+                                :options="pieChartOptions"
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <!-- Additional Info -->
+            <Card>
+                <CardHeader>
+                    <CardTitle>About Sentiment Analysis</CardTitle>
+                    <CardDescription>
+                        Understanding sentiment metrics for your agent
+                    </CardDescription>
+                </CardHeader>
+                <CardContent class="space-y-3">
+                    <div class="flex items-start gap-3">
+                        <div class="h-3 w-3 rounded-full bg-blue-500 mt-1 flex-shrink-0"></div>
+                        <div>
+                            <p class="font-medium">Positive</p>
+                            <p class="text-sm text-muted-foreground">
+                                Messages expressing satisfaction, happiness, or positive feedback
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="h-3 w-3 rounded-full bg-slate-600 mt-1 flex-shrink-0"></div>
+                        <div>
+                            <p class="font-medium">Neutral</p>
+                            <p class="text-sm text-muted-foreground">
+                                Messages with no strong emotional tone, typically informational
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="h-3 w-3 rounded-full bg-red-500 mt-1 flex-shrink-0"></div>
+                        <div>
+                            <p class="font-medium">Negative</p>
+                            <p class="text-sm text-muted-foreground">
+                                Messages expressing dissatisfaction, frustration, or negative feedback
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="h-3 w-3 rounded-full bg-slate-300 mt-1 flex-shrink-0"></div>
+                        <div>
+                            <p class="font-medium">Unspecified</p>
+                            <p class="text-sm text-muted-foreground">
+                                Messages that haven't been analyzed for sentiment yet
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     </AgentLayout>
 </template>

@@ -15,6 +15,7 @@ use App\Services\Infrastructure\SentimentAnalysis;
 use App\Services\IP2Country;
 use App\Services\TikToken;
 use App\Services\TopicAnalysis;
+use App\Services\UserAgentParser;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -43,6 +44,12 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         $sessionId = $this->sessionId;
 
+        // Parse user agent to extract device, browser, and OS information
+        $userAgentData = [];
+        if ($isInputMessage && $this->payload->user_agent) {
+            $userAgentData = UserAgentParser::parse($this->payload->user_agent);
+        }
+
         $session = ChatSession::firstOrCreate([
             'id' => $sessionId,
             'agent_id' => $this->agent->id,
@@ -50,7 +57,22 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         ], [
             'ip_address' => $isInputMessage ? $this->payload->ip_address : null,
             'user_agent' => $isInputMessage ? $this->payload->user_agent : null,
+            'device_type' => $userAgentData['device_type'] ?? null,
+            'browser' => $userAgentData['browser'] ?? null,
+            'os' => $userAgentData['os'] ?? null,
+            'referrer_url' => $isInputMessage ? $this->payload->referrer_url ?? null : null,
+            'page_url' => $isInputMessage ? $this->payload->page_url ?? null : null,
+            'locale' => $isInputMessage ? $this->payload->locale ?? null : null,
         ]);
+
+        // Update device info if not already set
+        if ($isInputMessage && $this->payload->user_agent && (! $session->device_type || ! $session->browser || ! $session->os)) {
+            $session->update([
+                'device_type' => $session->device_type ?? $userAgentData['device_type'] ?? null,
+                'browser' => $session->browser ?? $userAgentData['browser'] ?? null,
+                'os' => $session->os ?? $userAgentData['os'] ?? null,
+            ]);
+        }
 
         // Get country from IP address if not already set
         if ($session->ip_address && ! $session->country_id) {
@@ -76,6 +98,10 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             $llmId = $llm?->id;
         }
 
+        $sentiment = $this->payload instanceof ChatInputPayload ?
+            $sentimentAnalysis->analyze($this->payload->message)->value :
+            null;
+
         ChatMessage::create([
             'id' => $this->messageId,
             'chat_conversation_id' => $this->conversationId,
@@ -86,7 +112,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'generation_id' => $this->payload?->generation_id ?? null,
             'token_count' => TikToken::countTokens($this->payload->message),
             'confidence_score' => $this->payload?->confidence_score ?? null,
-            'sentiment' => $this->payload instanceof ChatInputPayload ? $sentimentAnalysis->analyze($this->payload->message)->value : null,
+            'sentiment' => $sentiment,
         ]);
 
         /** @var User $user */

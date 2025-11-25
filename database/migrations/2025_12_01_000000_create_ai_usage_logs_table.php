@@ -51,6 +51,9 @@ return new class extends Migration
 
             // 3. Cost analysis per feature (e.g. "How much does ingestion cost vs chat?")
             $table->index(['feature', 'created_at']);
+
+            // 4. Cost analysis per agent over time
+            $table->index(['agent_id', 'created_at', 'total_cost'], 'ai_usage_agent_date_cost_idx');
         });
     }
 

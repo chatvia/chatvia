@@ -74,6 +74,7 @@ import {
     Pencil,
     AlertTriangle,
     Sparkles,
+    SmilePlus,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
@@ -158,6 +159,7 @@ const controlPanelNavigationItems = computed(() => {
             subItems: [
                 { id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' },
                 { id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' },
+                { id: 'analytics-sentiment', label: 'Sentiment', icon: SmilePlus, route: 'agents.analytics.sentiment' },
                 { id: 'analytics-sources', label: 'Sources', icon: FileText, route: 'agents.analytics.sources' },
             ]
         },

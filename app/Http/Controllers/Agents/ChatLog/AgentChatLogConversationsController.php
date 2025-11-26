@@ -46,6 +46,13 @@ class AgentChatLogConversationsController
                 'title' => $conversation->title,
                 'country' => $conversation->session?->country?->code,
                 'user_agent' => $conversation->session?->user_agent,
+                'device_type' => $conversation->session?->device_type,
+                'browser' => $conversation->session?->browser,
+                'os' => $conversation->session?->os,
+                'city' => $conversation->session?->city,
+                'referrer_url' => $conversation->session?->referrer_url,
+                'page_url' => $conversation->session?->page_url,
+                'locale' => $conversation->session?->locale,
                 'topic' => $conversation->topic?->topic,
                 'topic_id' => $conversation->chat_topic_id,
             ];

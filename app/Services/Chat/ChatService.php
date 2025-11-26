@@ -31,6 +31,7 @@ class ChatService
         $payload = ChatInputPayload::from([
             'model' => $data->message->model->external_name,
             'message' => $data->message->message,
+            'sent_at' => now(),
             'updated_message_info' => [],
             'message_for_llm' => $query,
             'language' => $lang,
@@ -103,6 +104,7 @@ class ChatService
         $enrichedPayload = ChatInputPayload::from([
             'model' => $context->payload->model,
             'message' => $context->payload->message,
+            'sent_at' => $context->payload->sent_at,
             'updated_message_info' => $context->payload->updated_message_info,
             'message_for_llm' => $contextualMessage,
             'language' => $context->payload->language,
@@ -179,6 +181,7 @@ class ChatService
                     role: 'assistant',
                     message: $message,
                     model: $context->requestData->message->model->external_name,
+                    sent_at: now(),
                     generation_id: $context->generationId,
                     response_time_ms: $context->getResponseTimeMs(),
                     language: $context->queryLanguage,

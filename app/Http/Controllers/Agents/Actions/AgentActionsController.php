@@ -2,19 +2,13 @@
 
 namespace App\Http\Controllers\Agents\Actions;
 
-use App\Features\Actions as ActionsFeature;
 use App\Models\Agent;
 use Inertia\Inertia;
-use Laravel\Pennant\Feature;
 
 class AgentActionsController
 {
     public function __invoke(Agent $agent)
     {
-        if (! Feature::active(ActionsFeature::class)) {
-            return back()->with('error', 'Actions feature is not enabled');
-        }
-
         // Available action types
         $actionTypes = [
             'send_slack_message' => 'Send Slack ChatMessage',

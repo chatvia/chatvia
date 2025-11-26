@@ -61,6 +61,7 @@ class WidgetLeadCollectController
                         role: 'assistant',
                         message: 'We have received your contact information. We will get back to you shortly. Thank you!',
                         model: $llm->internal_name,
+                        sent_at: now(),
                     )
                 );
         }

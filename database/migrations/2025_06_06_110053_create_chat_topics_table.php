@@ -15,6 +15,17 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('agent_topics', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('agent_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('chat_topic_id')->constrained('chat_topics')->cascadeOnDelete();
+            $table->boolean('is_frozen')->default(false);
+            $table->timestamps();
+
+            $table->unique(['agent_id', 'chat_topic_id']);
+            $table->index(['agent_id', 'created_at']);
+        });
+
         DB::table('chat_topics')->insert([
             [
                 'topic' => 'General Questions',

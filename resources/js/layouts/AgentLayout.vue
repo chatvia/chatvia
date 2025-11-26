@@ -160,6 +160,7 @@ const controlPanelNavigationItems = computed(() => {
                 { id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' },
                 { id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' },
                 { id: 'analytics-sentiment', label: 'Sentiment', icon: SmilePlus, route: 'agents.analytics.sentiment' },
+                { id: 'analytics-topics', label: 'Topics', icon: MessageSquare, route: 'agents.analytics.topics' },
                 { id: 'analytics-sources', label: 'Sources', icon: FileText, route: 'agents.analytics.sources' },
             ]
         },
@@ -198,19 +199,6 @@ const controlPanelNavigationItems = computed(() => {
 
     // Add rename for all agents
     baseItems.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
-
-    // Only add workflow if the feature is enabled
-    if (features.workflow) {
-        // Insert workflow after models (at index 3)
-        baseItems.splice(3, 0, { id: 'workflow', label: 'Workflow', icon: Workflow, route: 'agents.workflow', tooltip: 'Create and manage agent workflows' });
-    }
-
-    // Only add actions if the feature is enabled
-    if (features.actions) {
-        // Insert actions after workflow (or after models if workflow is disabled)
-        const insertIndex = features.workflow ? 4 : 3;
-        baseItems.splice(insertIndex, 0, { id: 'actions', label: 'Sentiment', icon: Zap, route: 'agents.actions', tooltip: 'Configure sentiment analysis and response rules' });
-    }
 
     return baseItems;
 });
@@ -343,13 +331,17 @@ const isActiveRoute = (routeName: string) => {
     return currentRoute.value === `agents/${componentName}`;
 };
 
-// Analytics submenu state - auto-open if on analytics/metrics/sources page
+// Analytics submenu state - auto-open if on any analytics page
 const analyticsSubmenuOpen = ref(
     currentRoute.value.startsWith('agents/Analytics') ||
     currentRoute.value.startsWith('agents/Metrics') ||
+    currentRoute.value.startsWith('agents/Sentiment') ||
+    currentRoute.value.startsWith('agents/Topics') ||
     currentRoute.value.startsWith('agents/Sources') ||
     isActiveRoute('agents.analytics') ||
     isActiveRoute('agents.analytics.metrics') ||
+    isActiveRoute('agents.analytics.sentiment') ||
+    isActiveRoute('agents.analytics.topics') ||
     isActiveRoute('agents.analytics.sources')
 );
 

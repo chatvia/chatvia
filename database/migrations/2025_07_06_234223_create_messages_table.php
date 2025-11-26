@@ -31,9 +31,9 @@ return new class extends Migration
             $table->string('city')->nullable();
 
             // Tracking columns
-            $table->string('referrer_url', 500)->nullable();
-            $table->string('page_url', 500)->nullable();
-            $table->string('locale', 10)->nullable();
+            $table->text('referrer_url')->nullable();
+            $table->text('page_url')->nullable();
+            $table->string('locale', 50)->nullable();
 
             $table->timestamps();
 

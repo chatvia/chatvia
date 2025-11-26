@@ -50,6 +50,12 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             $userAgentData = UserAgentParser::parse($this->payload->user_agent);
         }
 
+        // Parse locale to extract primary language (e.g., "en-US" from "en-US,en;q=0.5")
+        $locale = null;
+        if ($isInputMessage && $this->payload->locale) {
+            $locale = explode(',', $this->payload->locale)[0];
+        }
+
         $session = ChatSession::firstOrCreate([
             'id' => $sessionId,
             'agent_id' => $this->agent->id,
@@ -62,7 +68,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'os' => $userAgentData['os'] ?? null,
             'referrer_url' => $isInputMessage ? $this->payload->referrer_url ?? null : null,
             'page_url' => $isInputMessage ? $this->payload->page_url ?? null : null,
-            'locale' => $isInputMessage ? $this->payload->locale ?? null : null,
+            'locale' => $locale,
         ]);
 
         // Update device info if not already set
@@ -102,7 +108,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             $sentimentAnalysis->analyze($this->payload->message)->value :
             null;
 
-        ChatMessage::create([
+        $messageData = [
             'id' => $this->messageId,
             'chat_conversation_id' => $this->conversationId,
             'content' => $this->payload->message,
@@ -113,7 +119,15 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'token_count' => TikToken::countTokens($this->payload->message),
             'confidence_score' => $this->payload?->confidence_score ?? null,
             'sentiment' => $sentiment,
-        ]);
+        ];
+
+        // Use the sent_at timestamp if provided to ensure correct message ordering
+        if ($this->payload->sent_at) {
+            $messageData['created_at'] = $this->payload->sent_at;
+            $messageData['updated_at'] = $this->payload->sent_at;
+        }
+
+        ChatMessage::create($messageData);
 
         /** @var User $user */
         $user = $this->agent->user;

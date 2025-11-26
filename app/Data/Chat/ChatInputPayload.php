@@ -2,6 +2,7 @@
 
 namespace App\Data\Chat;
 
+use Carbon\Carbon;
 use Spatie\LaravelData\Data;
 
 class ChatInputPayload extends Data
@@ -9,6 +10,7 @@ class ChatInputPayload extends Data
     public function __construct(
         public string $model,
         public string $message,
+        public Carbon $sent_at,
         public array $updated_message_info = [], // TODO: find a better name
         public ?string $message_for_llm = null,
         public ?int $member_id = null,

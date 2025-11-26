@@ -14,7 +14,10 @@ class SentimentAnalysis
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'You are sentiment analysis expert. Analyze the sentiment of the given text and respond with one of the following labels: Positive, Negative, Neutral.',
+                    'content' => '
+                    You are sentiment analysis expert.
+                    Analyze the sentiment of the given text and respond with one of the following labels: Positive, Negative, Neutral.
+                ',
                 ],
                 [
                     'role' => 'user',
@@ -23,10 +26,16 @@ class SentimentAnalysis
             ],
         ]);
 
-        return match ($response) {
-            str_contains($response, 'Positive') => SentimentEnum::POSITIVE,
-            str_contains($response, 'Negative') => SentimentEnum::NEGATIVE,
-            default => SentimentEnum::NEUTRAL,
-        };
+        $response = strtolower($response);
+
+        if (str_contains($response, 'positive')) {
+            return SentimentEnum::POSITIVE;
+        }
+
+        if (str_contains($response, 'negative')) {
+            return SentimentEnum::NEGATIVE;
+        }
+
+        return SentimentEnum::NEUTRAL;
     }
 }

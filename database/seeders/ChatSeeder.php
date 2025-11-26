@@ -19,12 +19,6 @@ class ChatSeeder extends Seeder
         // Get existing agents or create one if none exist
         $agents = Agent::all();
 
-        if ($agents->isEmpty()) {
-            $this->command->warn('No agents found. Please run DatabaseSeeder first to create agents.');
-
-            return;
-        }
-
         // Ensure we have LLMs in the database
         $llmCount = \App\Models\Llm::count();
         if ($llmCount === 0) {

@@ -258,6 +258,11 @@ class Agent extends Model
         return $this->files()->whereIn('mime_type', config('mimes.video'));
     }
 
+    public function topics(): BelongsToMany
+    {
+        return $this->belongsToMany(ChatTopic::class, 'agent_topics');
+    }
+
     public function newEloquentBuilder($query): AgentQueryBuilder
     {
         return new AgentQueryBuilder($query);

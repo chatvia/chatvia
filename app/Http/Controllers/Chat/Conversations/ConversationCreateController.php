@@ -27,6 +27,7 @@ final class ConversationCreateController
         $payload = ChatInputPayload::from([
             'model' => $request->input('model'),
             'message' => $request->input('message'),
+            'sent_at' => now(),
             'message_for_llm' => $query,
             'language' => $lang,
             'ip_address' => $request->ip(),

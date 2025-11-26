@@ -36,6 +36,13 @@ interface ConversationSummary {
   first_message_excerpt?: string;
   country?: string | null;
   user_agent?: string | null;
+  device_type?: string | null;
+  browser?: string | null;
+  os?: string | null;
+  city?: string | null;
+  referrer_url?: string | null;
+  page_url?: string | null;
+  locale?: string | null;
   topic?: string | null;
   topic_id?: number | null;
 }
@@ -512,6 +519,26 @@ function getTopicName(topicId: number): string {
   const topic = topics.value.find(t => t.id === topicId);
   return topic?.topic || '';
 }
+
+// Get hostname from URL with error handling
+function getHostnameFromUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url; // Return raw URL if parsing fails
+  }
+}
+
+// Get pathname from URL with error handling
+function getPathnameFromUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return url; // Return raw URL if parsing fails
+  }
+}
 </script>
 
 <template>
@@ -778,7 +805,7 @@ function getTopicName(topicId: number): string {
 
                 <!-- Action Bar -->
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                  <div class="flex items-center gap-3 text-xs text-muted-foreground">
+                  <div class="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     <div>
                       <span v-if="currentConversationId && search">
                         Showing {{ filteredCount }} of {{ totalMessages }} messages
@@ -788,11 +815,68 @@ function getTopicName(topicId: number): string {
                       </span>
                     </div>
                     
-                    <!-- Browser Info -->
-                    <div v-if="currentConversationData?.user_agent" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
-                      <span class="text-[10px] font-medium">Browser:</span>
-                      <span class="text-[10px]">{{ getBrowserName(currentConversationData.user_agent) }}</span>
-                    </div>
+                    <!-- Session Info Badges -->
+                    <template v-if="currentConversationData">
+                      <!-- Country -->
+                      <div v-if="currentConversationData.country" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
+                        <img 
+                          :src="getFlagPath(currentConversationData.country)!" 
+                          :alt="currentConversationData.country"
+                          class="w-3 h-3 rounded-sm object-cover"
+                        />
+                        <span class="text-[10px]">{{ currentConversationData.country.toUpperCase() }}</span>
+                      </div>
+                      
+                      <!-- Device Type -->
+                      <div v-if="currentConversationData.device_type" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
+                        <span class="text-[10px] font-medium">Device:</span>
+                        <span class="text-[10px]">{{ currentConversationData.device_type }}</span>
+                      </div>
+                      
+                      <!-- Browser -->
+                      <div v-if="currentConversationData.browser" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
+                        <span class="text-[10px] font-medium">Browser:</span>
+                        <span class="text-[10px]">{{ currentConversationData.browser }}</span>
+                      </div>
+                      
+                      <!-- OS -->
+                      <div v-if="currentConversationData.os" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
+                        <span class="text-[10px] font-medium">OS:</span>
+                        <span class="text-[10px]">{{ currentConversationData.os }}</span>
+                      </div>
+                      
+                      <!-- City -->
+                      <div v-if="currentConversationData.city" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
+                        <span class="text-[10px] font-medium">City:</span>
+                        <span class="text-[10px]">{{ currentConversationData.city }}</span>
+                      </div>
+                      
+                      <!-- Locale -->
+                      <div v-if="currentConversationData.locale" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
+                        <span class="text-[10px] font-medium">Locale:</span>
+                        <span class="text-[10px]">{{ currentConversationData.locale }}</span>
+                      </div>
+                      
+                      <!-- Referrer URL (Tooltip) -->
+                      <div v-if="currentConversationData.referrer_url" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded group relative cursor-help">
+                        <span class="text-[10px] font-medium">From:</span>
+                        <span class="text-[10px] truncate max-w-[100px]">{{ getHostnameFromUrl(currentConversationData.referrer_url) }}</span>
+                        <!-- Tooltip -->
+                        <div class="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg max-w-xs break-all">
+                          {{ currentConversationData.referrer_url }}
+                        </div>
+                      </div>
+                      
+                      <!-- Page URL (Tooltip) -->
+                      <div v-if="currentConversationData.page_url" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded group relative cursor-help">
+                        <span class="text-[10px] font-medium">Page:</span>
+                        <span class="text-[10px] truncate max-w-[100px]">{{ getPathnameFromUrl(currentConversationData.page_url) }}</span>
+                        <!-- Tooltip -->
+                        <div class="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg max-w-xs break-all">
+                          {{ currentConversationData.page_url }}
+                        </div>
+                      </div>
+                    </template>
                   </div>
                   <div class="flex gap-2">
                     <Button variant="outline" size="sm" @click="refresh" :disabled="isRefreshing">

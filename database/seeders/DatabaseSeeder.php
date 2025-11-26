@@ -41,5 +41,7 @@ class DatabaseSeeder extends Seeder
 
         // Seed chat data (sessions, conversations, messages)
         $this->call(ChatSeeder::class);
+
+        $this->call(TopicsSeeder::class);
     }
 }

@@ -72,6 +72,7 @@ return new class extends Migration
             $table->decimal('confidence_score', 5, 4)->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
+            $table->enum('emotion', ['happy', 'neutral', 'frustrated', 'confused', 'angry', 'sad', 'anxious', 'excited', 'satisfied'])->nullable();
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 

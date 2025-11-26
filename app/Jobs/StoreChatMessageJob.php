@@ -11,7 +11,7 @@ use App\Models\ChatSession;
 use App\Models\Country;
 use App\Models\Llm;
 use App\Models\User;
-use App\Services\Infrastructure\SentimentAnalysis;
+use App\Services\Infrastructure\EmotionAnalysis;
 use App\Services\IP2Country;
 use App\Services\TikToken;
 use App\Services\TopicAnalysis;
@@ -38,7 +38,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $this->onQueue('messages');
     }
 
-    public function handle(SentimentAnalysis $sentimentAnalysis, TopicAnalysis $topicAnalysis): void
+    public function handle(EmotionAnalysis $emotionAnalysis, TopicAnalysis $topicAnalysis): void
     {
         $isInputMessage = $this->payload instanceof ChatInputPayload;
 
@@ -104,9 +104,14 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             $llmId = $llm?->id;
         }
 
-        $sentiment = $this->payload instanceof ChatInputPayload ?
-            $sentimentAnalysis->analyze($this->payload->message)->value :
-            null;
+        $sentiment = null;
+        $emotion = null;
+
+        if ($this->payload instanceof ChatInputPayload) {
+            $analysis = $emotionAnalysis->analyze($this->payload->message);
+            $sentiment = $analysis['sentiment']->value;
+            $emotion = $analysis['emotion']->value;
+        }
 
         $messageData = [
             'id' => $this->messageId,
@@ -119,6 +124,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'token_count' => TikToken::countTokens($this->payload->message),
             'confidence_score' => $this->payload?->confidence_score ?? null,
             'sentiment' => $sentiment,
+            'emotion' => $emotion,
         ];
 
         // Use the sent_at timestamp if provided to ensure correct message ordering

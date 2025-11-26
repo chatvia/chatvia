@@ -19,6 +19,8 @@ use App\Http\Controllers\Agents\Agents\AgentUpdateSettingsController;
 use App\Http\Controllers\Agents\Analytics\AgentAnalyticsController;
 use App\Http\Controllers\Agents\Analytics\AgentAnalyticsDataController;
 use App\Http\Controllers\Agents\Analytics\AgentChartDataController;
+use App\Http\Controllers\Agents\Analytics\AgentEmotionController;
+use App\Http\Controllers\Agents\Analytics\AgentEmotionDataController;
 use App\Http\Controllers\Agents\Analytics\AgentMetricsController;
 use App\Http\Controllers\Agents\Analytics\AgentMetricsDataController;
 use App\Http\Controllers\Agents\Analytics\AgentSentimentController;
@@ -128,6 +130,8 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::get('analytics/metrics/data', AgentMetricsDataController::class)->name('metrics.data');
         Route::get('analytics/sentiment', AgentSentimentController::class)->name('analytics.sentiment');
         Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->name('sentiment.data');
+        Route::get('analytics/emotion', AgentEmotionController::class)->name('analytics.emotion');
+        Route::get('analytics/emotion/data', AgentEmotionDataController::class)->name('emotion.data');
         Route::get('analytics/topics', AgentTopicsController::class)->name('analytics.topics');
         Route::get('analytics/topics/data', AgentTopicsDataController::class)->name('topics.data');
         Route::get('analytics/sources', AgentSourcesController::class)->name('analytics.sources');

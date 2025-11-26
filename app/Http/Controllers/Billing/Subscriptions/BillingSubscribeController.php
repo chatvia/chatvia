@@ -63,13 +63,8 @@ class BillingSubscribeController
             return false;
         }
 
-        if ($fromPackage === 'free') {
-            return true;
-        }
-
         // Define package hierarchy based on your billing config
         $packageHierarchy = [
-            'free' => 0,
             'starter' => 1,
             'standard' => 2,
             'pro' => 3,

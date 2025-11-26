@@ -13,7 +13,7 @@ class BillingSubscriptionChangeController
     public function __invoke(Request $request, Billing $billing)
     {
         $request->validate([
-            'package' => ['required', 'string', 'in:free,starter,standard,pro'],
+            'package' => ['required', 'string', 'in:starter,standard,pro'],
             'is_yearly' => ['required', 'boolean'],
         ]);
 
@@ -24,10 +24,6 @@ class BillingSubscriptionChangeController
 
         if (! $user->subscribed()) {
             return to_route('billing.index');
-        }
-
-        if ($requestedPackage === 'free') {
-            return to_route('billing.index')->with('error', 'You cannot downgrade to the free plan. Please cancel your subscription from the billing page if you want to stop your subscription at the end of your billing cycle.');
         }
 
         $toPackage = $billing->getPackageByName(

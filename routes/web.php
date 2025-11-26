@@ -17,6 +17,8 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\RequestDemoController;
 use App\Http\Controllers\SlackAuthController;
 use App\Http\Controllers\SlackCallbackController;
+use App\Http\Controllers\TrialCheckoutController;
+use App\Http\Controllers\TrialSuccessController;
 use App\Http\Controllers\UseCasesController;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +51,10 @@ Route::get('/auth/slack/callback', SlackCallbackController::class)->name('auth.s
 Route::get('/use-cases/{case}', UseCasesController::class)->name('use-cases');
 
 Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-tools.chat-with-pdf');
+
+// Trial routes (guest accessible)
+Route::post('trial/checkout', TrialCheckoutController::class)->name('trial.checkout');
+Route::get('trial/success', TrialSuccessController::class)->name('trial.success');
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

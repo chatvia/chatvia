@@ -86,7 +86,7 @@
         <div class="text-center mt-16 pt-8 border-t border-gray-200">
             <p class="text-gray-500">
 
-                <a href="{{ route('register') }}" class="text-blue-600 hover:text-blue-800 font-medium">Signup now</a>
+                <a href="{{ route('home') }}#pricing" class="text-blue-600 hover:text-blue-800 font-medium">Start free trial</a>
 
             </p>
         </div>

@@ -8,22 +8,26 @@ class UserObserver
 {
     public function created(User $user): void
     {
-        $freeQuotaLimit = config('billing.packages.free.quota_limits.monthly');
-        $fixed = config('billing.packages.free.quota_limits.fixed');
+        // Use the default package (starter) for new users
+        $defaultPackage = config('billing.default_package', 'starter');
+        $quotaLimit = config("billing.packages.{$defaultPackage}.quota_limits.monthly");
+        $fixed = config("billing.packages.{$defaultPackage}.quota_limits.fixed");
 
-        $user->quota()->create([
-            'agents_limit' => $fixed['agents_limit'],
-            'pages_limit' => $fixed['pages_limit'],
-            'minutes_limit' => $fixed['minutes_limit'],
-            'members_limit' => $fixed['members_limit'],
-            'links_limit' => $fixed['links_limit'],
-        ]);
+        // Only create quotas if they don't already exist (avoid duplication from webhook)
+        if (! $user->quota()->exists()) {
+            $user->quota()->create([
+                'agents_limit' => $fixed['agents_limit'],
+                'pages_limit' => $fixed['pages_limit'],
+                'minutes_limit' => $fixed['minutes_limit'],
+                'members_limit' => $fixed['members_limit'],
+                'links_limit' => $fixed['links_limit'],
+            ]);
 
-        $user
-            ->addCredit(
-                $freeQuotaLimit,
+            $user->addCredit(
+                $quotaLimit,
                 now()->addMonth(),
             );
+        }
     }
 
     public function updated(User $user): void

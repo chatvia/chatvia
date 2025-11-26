@@ -191,3 +191,4 @@ describe('User Registration', function () {
         expect(Hash::check('PlainTextPassword', $user->password))->toBeTrue();
     });
 });
+

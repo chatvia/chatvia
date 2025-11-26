@@ -26,9 +26,13 @@ class UpdateFreeUsersQuotas extends Command
      */
     public function handle(): void
     {
-        $quotaLimit = config('billing.packages.free.quota_limits.monthly');
+        // Since free plan is removed, this command now handles trial users
+        // Only refresh credits for users who have an active subscription or trial
 
-        $freeUsers = User::query()
+        $defaultPackage = config('billing.default_package', 'starter');
+        $quotaLimit = config("billing.packages.{$defaultPackage}.quota_limits.monthly");
+
+        $users = User::query()
             ->whereHas('credit', function ($query) {
                 $query->where('ends_at', '<=', now()->addDay());
             })
@@ -36,8 +40,11 @@ class UpdateFreeUsersQuotas extends Command
             ->get();
 
         /** @var User $user */
-        foreach ($freeUsers as $user) {
-            $user->creditSystem()->addCredit($quotaLimit, now()->addMonth());
+        foreach ($users as $user) {
+            // Only refresh credits if user has active subscription or is on trial
+            if ($user->subscribed('default') || $user->onTrial()) {
+                $user->creditSystem()->addCredit($quotaLimit, now()->addMonth());
+            }
         }
     }
 }

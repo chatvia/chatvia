@@ -14,11 +14,13 @@ use App\Http\Controllers\Chat\ChatEmbedHomeController;
 use App\Http\Controllers\Chat\ChatHomeController;
 use App\Http\Controllers\Chat\ChatMessageDeleteController;
 use App\Http\Controllers\Chat\ChatMessageFeedbackController;
+use App\Http\Controllers\Chat\ChatMessageRegenerateController;
 use App\Http\Controllers\Chat\ChatMessagesUsage;
 use App\Http\Controllers\Chat\ChatModelsListController;
 use App\Http\Controllers\Chat\ChatSourcesController;
 use App\Http\Controllers\Chat\ChatStartersController;
 use App\Http\Controllers\Chat\ChatStreamController;
+use App\Http\Controllers\Chat\ChatTranscriptionController;
 use App\Http\Controllers\Chat\Conversations\ConversationCreateController;
 use App\Http\Controllers\Chat\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Chat\Conversations\ConversationMessagesController;
@@ -62,6 +64,7 @@ Route::prefix('/chat')
         Route::get('starters', ChatStartersController::class)->name('chat.starters');
         Route::patch('/messages/feedback', ChatMessageFeedbackController::class)->name('chat.messages.feedback');
         Route::delete('/messages', ChatMessageDeleteController::class)->name('chat.messages.delete');
+        Route::post('/messages/regenerate', ChatMessageRegenerateController::class)->name('chat.messages.regenerate');
 
         Route::get('/conversations/{conversationId}/export', ChatExportController::class)->name('conversations.export');
         Route::get('/conversations/{conversationId}/sources', ChatSourcesController::class)->name('chat.sources');
@@ -72,4 +75,6 @@ Route::prefix('/chat')
         Route::patch('/profile', ChatProfileUpdateController::class)->name('chat.profile.update');
 
         Route::get('/usage', ChatMessagesUsage::class)->name('chat.usage');
+
+        Route::post('/transcribe', ChatTranscriptionController::class)->name('chat.transcribe');
     });

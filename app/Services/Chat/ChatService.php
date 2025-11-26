@@ -31,7 +31,7 @@ class ChatService
         $payload = ChatInputPayload::from([
             'model' => $data->message->model->external_name,
             'message' => $data->message->message,
-            'sent_at' => now(),
+            'sent_at' => $data->message->createdAt ? \Carbon\Carbon::parse($data->message->createdAt) : now(),
             'updated_message_info' => [],
             'message_for_llm' => $query,
             'language' => $lang,

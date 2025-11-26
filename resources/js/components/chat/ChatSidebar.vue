@@ -450,114 +450,105 @@ const switchToSelectedAgent = () => {
 
     <div
         :class="[isMobileDevice ? 'sm:max-w-none' : 'relative', isSidebarOpen ? 'translate-x-0' : '-translate-x-full']"
-        class="bg-background fixed top-0 left-0 z-40 h-screen w-72 border-r shadow-sm transition-transform duration-300 ease-out"
+        class="bg-sidebar fixed top-0 left-0 z-40 h-screen w-64 border-r border-sidebar-border transition-transform duration-300 ease-out"
     >
-        <div class="flex h-full flex-col">
+        <div class="flex h-full flex-col px-3 py-3">
             <!-- Header -->
-            <div class="ml-4 flex h-16 items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <Link :href="route('chat.home')">
-                        <img v-if="props.appearance.logo"
-                             :src="props.appearance.logo"
-                             :alt="props.appearance.chat_window_title || 'ChatVia'"
-                             class="h-15 object-cover text-red"
-                        />
-                        <AppLogoIcon v-else class="h-10" />
-                    </Link>
-                </div>
+            <div class="flex items-center justify-between mb-2">
+                <Link :href="route('chat.home')" class="p-2 hover:bg-accent rounded-lg transition-colors">
+                    <img v-if="props.appearance?.logo"
+                         :src="props.appearance.logo"
+                         :alt="props.appearance?.chat_window_title || 'ChatVia'"
+                         class="h-8 object-contain"
+                    />
+                    <AppLogoIcon v-else class="h-8 w-8" />
+                </Link>
                 <!-- Close button for mobile only -->
                 <button
                     v-if="showMobileClose"
                     aria-label="Close sidebar"
-                    class="mr-4 relative z-50 p-2 rounded-md"
+                    class="p-2 hover:bg-accent rounded-lg transition-colors"
                     @click="toggleSidebar"
                 >
-                    <X class="h-6 w-6 fill-current" />
+                    <X class="h-5 w-5" />
                 </button>
             </div>
-            <!-- New Chat Button -->
-            <div class="p-4">
-                <Button class="w-full justify-start gap-2" variant="default" @click="newConversation">
-                    <PlusCircle class="h-4 w-4" />
-                    <span>New Chat</span>
-                </Button>
-            </div>
 
-            <ScrollArea class="flex-1 overflow-y-auto">
-                <div class="px-2 py-2">
-                    <div class="mb-2 px-2">
-                        <h3 class="text-muted-foreground text-xs font-medium">Recent Conversations</h3>
-                    </div>
+            <!-- Menu Items -->
+            <nav class="space-y-1 mb-4">
+                <button
+                    @click="newConversation"
+                    class="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors cursor-pointer"
+                >
+                    <Edit class="h-5 w-5" />
+                    <span>New chat</span>
+                </button>
+            </nav>
 
+            <!-- Chats Section -->
+            <div class="flex-1 overflow-hidden flex flex-col">
+                <div class="px-3 py-2">
+                    <span class="text-xs text-muted-foreground font-medium">Your chats</span>
+                </div>
+
+                <ScrollArea class="flex-1">
                     <!-- Loading indicator -->
-                    <div v-if="isLoadingConversations" class="py-4 text-center">
-                        <div class="inline-flex items-center gap-2">
-                            <svg
-                                class="text-muted-foreground h-4 w-4 animate-spin"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path
-                                    class="opacity-75"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    fill="currentColor"
-                                ></path>
-                            </svg>
-                            <span class="text-muted-foreground text-xs">Loading conversations...</span>
-                        </div>
+                    <div v-if="isLoadingConversations" class="py-8 flex justify-center">
+                        <div class="h-5 w-5 border-2 border-muted-foreground/20 border-t-muted-foreground rounded-full animate-spin"></div>
                     </div>
 
                     <!-- No conversations message -->
-                    <div v-else-if="conversations.length === 0" class="py-4 text-center">
-                        <div class="text-muted-foreground text-xs">No conversations yet</div>
+                    <div v-else-if="conversations.length === 0" class="py-8 px-3 text-center">
+                        <p class="text-muted-foreground/60 text-sm">No conversations yet</p>
                     </div>
 
-                    <TransitionGroup v-else class="space-y-1" name="conversation-list" tag="ul">
-                        <li v-for="chat in conversations" :key="chat.id" class="group">
+                    <!-- Conversations list -->
+                    <div v-else class="space-y-0.5 px-1">
+                        <div v-for="chat in conversations" :key="chat.id" class="group relative">
                             <div v-if="editingId !== chat.id">
-                                <Link
-                                    :class="[
-                                        'flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors',
-                                        route().current('chat.show', { conversationId: chat.id })
-                                            ? 'bg-accent text-accent-foreground font-medium'
-                                            : 'hover:bg-accent/50 text-foreground/80 hover:text-foreground',
-                                    ]"
-                                    :href="route('chat.show', { conversationId: chat.id, model: defaultModel?.id })"
-                                >
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <span class="min-w-0 flex-grow truncate overflow-hidden">
-                                                    {{ chat.title }}
-                                                </span>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="right">
-                                                {{ chat.title }}
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-
+                                <TooltipProvider>
+                                    <Tooltip :disabled="chat.title.length < 30">
+                                        <TooltipTrigger asChild>
+                                            <Link
+:class="[
+                                                     'flex w-full items-center px-3 py-2.5 text-sm rounded-lg transition-colors',
+                                                     route().current('chat.show', { conversationId: chat.id })
+                                                         ? 'bg-gray-200 dark:bg-gray-700 text-foreground'
+                                                         : 'text-foreground/80 hover:bg-gray-100 dark:hover:bg-gray-800',
+                                                 ]"
+                                                :href="route('chat.show', { conversationId: chat.id, model: defaultModel?.id })"
+                                            >
+                                                <span class="truncate flex-1">{{ chat.title }}</span>
+                                            </Link>
+                                        </TooltipTrigger>
+                                        <TooltipContent v-if="chat.title.length >= 30" side="right" :sideOffset="10">
+                                            {{ chat.title }}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                
+                                <!-- Hover actions -->
+                                <div class="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 bg-accent/80 rounded-md px-0.5">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button
                                                 aria-label="More options"
-                                                class="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+                                                class="h-7 w-7"
                                                 size="icon"
                                                 variant="ghost"
+                                                @click.prevent.stop
                                             >
-                                                <MoreVertical class="h-3.5 w-3.5" />
+                                                <MoreVertical class="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" class="w-48">
+                                        <DropdownMenuContent align="end" class="w-40">
                                             <DropdownMenuItem @click="editConversation(chat.id)">
                                                 <Edit class="mr-2 h-4 w-4" />
                                                 <span>Rename</span>
                                             </DropdownMenuItem>
                                             <DropdownMenuSub>
                                                 <DropdownMenuSubTrigger>
-                                                    <Download class="mr-4 h-4 w-4" />
+                                                    <Download class="mr-2 h-4 w-4" />
                                                     <span>Export</span>
                                                 </DropdownMenuSubTrigger>
                                                 <DropdownMenuSubContent>
@@ -582,51 +573,48 @@ const switchToSelectedAgent = () => {
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                </Link>
+                                </div>
                             </div>
 
                             <!-- Editing mode -->
-                            <div v-else class="bg-accent flex w-full items-center justify-between rounded-md px-3 py-2">
+                            <div v-else class="flex w-full items-center gap-2 rounded-lg bg-accent px-2 py-1.5">
                                 <Input
                                     :id="`edit-conversation-${chat.id}`"
                                     v-model="editingTitle"
-                                    class="h-7 flex-1"
-                                    size="sm"
+                                    class="h-8 flex-1 text-sm"
                                     @blur="saveEditedConversation"
                                     @keydown="handleKeyDown"
                                 />
-                                <div class="ml-2 flex space-x-1">
-                                    <Button
-                                        class="hover:bg-background/20 h-7 w-7 text-green-500 hover:text-green-600"
-                                        size="icon"
-                                        variant="ghost"
-                                        @click="saveEditedConversation"
-                                    >
-                                        <Check class="h-3.5 w-3.5" />
-                                    </Button>
-                                    <Button
-                                        class="text-destructive hover:text-destructive hover:bg-background/20 h-7 w-7"
-                                        size="icon"
-                                        variant="ghost"
-                                        @click="cancelEditing"
-                                    >
-                                        <X class="h-3.5 w-3.5" />
-                                    </Button>
-                                </div>
+                                <Button
+                                    class="h-7 w-7 text-green-600 hover:bg-green-500/10"
+                                    size="icon"
+                                    variant="ghost"
+                                    @click="saveEditedConversation"
+                                >
+                                    <Check class="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    class="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                    size="icon"
+                                    variant="ghost"
+                                    @click="cancelEditing"
+                                >
+                                    <X class="h-4 w-4" />
+                                </Button>
                             </div>
-                        </li>
-                    </TransitionGroup>
-                </div>
-            </ScrollArea>
+                        </div>
+                    </div>
+                </ScrollArea>
+            </div>
 
             <!-- Sidebar footer -->
-            <div class="space-y-4 border-t p-4">
+            <div class="mt-auto pt-2 space-y-2">
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button class="text-destructive border-destructive/20 hover:bg-destructive/10 w-full justify-start gap-2" variant="outline">
-                            <Trash2 class="h-4 w-4" />
-                            <span>Clear All Chats</span>
-                        </Button>
+                        <button class="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-destructive hover:bg-accent rounded-lg transition-colors cursor-pointer">
+                            <Trash2 class="h-5 w-5" />
+                            <span>Clear all chats</span>
+                        </button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader>
@@ -648,41 +636,33 @@ const switchToSelectedAgent = () => {
                 </AlertDialog>
 
                 <template v-if="(page.props.auth as any)?.member">
-                    <Separator/>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <Avatar class="h-8 w-8">
-                                <AvatarImage :src="(page.props.auth as any)?.member?.avatar || ''"/>
-                                <AvatarFallback>{{ (page.props.auth as any)?.member?.name?.charAt(0) || 'U' }}</AvatarFallback>
-                            </Avatar>
-                            <div class="max-w-[140px] truncate text-sm font-medium">
-                                {{ (page.props.auth as any)?.member?.name || 'User' }}
-                            </div>
-                        </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button class="h-8 w-8" size="icon" variant="ghost">
-                                    <Settings class="h-4 w-4"/>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem @click="openProfileDialog">
-                                    <User class="mr-2 h-4 w-4"/>
-                                    <span>Profile</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem @click="openAgentsDialog">
-                                    <Bot class="mr-2 h-4 w-4"/>
-                                    <span>My Agents</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator/>
-
-                                <DropdownMenuItem @click="handleLogout">
-                                    <LogOut class="mr-2 h-4 w-4"/>
-                                    <span>Log out</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button class="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors">
+                                <Avatar class="h-7 w-7">
+                                    <AvatarImage :src="(page.props.auth as any)?.member?.avatar || ''"/>
+                                    <AvatarFallback class="text-xs">{{ (page.props.auth as any)?.member?.name?.charAt(0) || 'U' }}</AvatarFallback>
+                                </Avatar>
+                                <span class="flex-1 truncate text-left">{{ (page.props.auth as any)?.member?.name || 'User' }}</span>
+                                <MoreVertical class="h-4 w-4 text-muted-foreground" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" side="top" class="w-56">
+                            <DropdownMenuItem @click="openProfileDialog">
+                                <User class="mr-2 h-4 w-4"/>
+                                <span>Profile</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem @click="openAgentsDialog">
+                                <Bot class="mr-2 h-4 w-4"/>
+                                <span>My Agents</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator/>
+                            <DropdownMenuItem @click="handleLogout">
+                                <LogOut class="mr-2 h-4 w-4"/>
+                                <span>Log out</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </template>
             </div>
         </div>
@@ -892,31 +872,26 @@ const switchToSelectedAgent = () => {
 </template>
 
 <style scoped>
-/* Enter and leave animations */
-.conversation-list-enter-active,
-.conversation-list-leave-active {
-    transition: all 0.3s ease;
+/* Smooth scrollbar */
+:deep(.scroll-area-viewport) {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
 }
 
-/* Starting and ending states for entering elements */
-.conversation-list-enter-from {
-    opacity: 0;
-    transform: translateX(-20px);
+:deep(.scroll-area-viewport::-webkit-scrollbar) {
+    width: 4px;
 }
 
-/* Starting and ending states for leaving elements */
-.conversation-list-leave-to {
-    opacity: 0;
-    transform: translateX(-20px);
+:deep(.scroll-area-viewport::-webkit-scrollbar-track) {
+    background: transparent;
 }
 
-/* Fix for space-y with transitions */
-.conversation-list-move {
-    transition: transform 0.3s ease;
+:deep(.scroll-area-viewport::-webkit-scrollbar-thumb) {
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 4px;
 }
 
-/* Ensure items don't collapse during transition */
-.conversation-list-leave-active {
-    position: absolute;
+:deep(.scroll-area-viewport::-webkit-scrollbar-thumb:hover) {
+    background: hsl(var(--muted-foreground) / 0.3);
 }
 </style>

@@ -2,7 +2,6 @@
 import { ref, nextTick } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Card } from '@/components/ui/card'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,13 +13,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Copy, Check, Edit3, X, Send, Trash2 } from 'lucide-vue-next'
+import { Copy, Check, Edit3, Trash2 } from 'lucide-vue-next'
 import { usePage } from '@inertiajs/vue3'
 import axios from 'axios'
 import type { Message } from '@/types/chat'
 
 const props = defineProps<{
   message: Message
+  assistantMessageId?: string | number
   conversationId?: string
   isRTL?: boolean
 }>()
@@ -28,6 +28,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   messageUpdated: [id: string | number, content: string]
   messageDeleted: [id: string | number]
+  messageEdited: [userMessageId: string | number, assistantMessageId: string | number, newContent: string]
 }>()
 
 const page = usePage()
@@ -56,9 +57,15 @@ function cancelEditing() {
 }
 
 function saveEditedMessage() {
-  if (!editedContent.value.trim() || !props.message.id) return
+  if (!editedContent.value.trim() || props.message.id === undefined) return
 
-  emit('messageUpdated', props.message.id, editedContent.value.trim())
+  // If assistant message ID exists, emit messageEdited for regeneration flow
+  if (props.assistantMessageId !== undefined) {
+    emit('messageEdited', props.message.id, props.assistantMessageId, editedContent.value.trim())
+  } else {
+    // Fallback to old behavior
+    emit('messageUpdated', props.message.id, editedContent.value.trim())
+  }
   isEditing.value = false
 }
 
@@ -103,54 +110,55 @@ async function deleteMessage() {
 </script>
 
 <template>
-  <div class="flex justify-end items-start gap-3 group w-full animate-in fade-in-50 duration-500">
+  <div class="flex justify-end items-start gap-3 group w-full">
     <div class="flex flex-col items-end flex-1 min-w-0">
-      <Card class="px-5 py-3 bg-muted/80 dark:bg-muted/60 text-foreground border-0 rounded-3xl max-w-[70%]">
-        <div v-if="isEditing" class="min-w-[300px]">
+      <!-- Edit mode - full width card -->
+      <div v-if="isEditing" class="w-full max-w-2xl">
+        <div class="bg-muted rounded-2xl p-4">
           <Textarea
             :id="`edit-user-${message.id}`"
             v-model="editedContent"
-            class="min-h-[80px] bg-background text-foreground border-border focus:ring-2 focus:ring-primary/20 rounded-lg"
+            class="w-full min-h-[60px] bg-transparent !border-0 !shadow-none !ring-0 resize-none text-foreground text-[15px] leading-relaxed focus:!ring-0 focus:!outline-none focus:!border-0 focus-visible:!ring-0 focus-visible:!outline-none p-0"
+            :rows="3"
             @keydown="handleEditKeyDown"
           />
-          <div class="flex justify-end gap-2 mt-3">
+          <div class="flex justify-end gap-2 mt-4">
             <Button
-              size="sm"
-              variant="ghost"
+              variant="outline"
               @click="cancelEditing"
+              class="rounded-full px-5 h-9 text-sm font-medium"
             >
-              <X class="w-4 h-4 mr-1" />
               Cancel
             </Button>
             <Button
-              size="sm"
               @click="saveEditedMessage"
+              class="rounded-full px-5 h-9 text-sm font-medium bg-foreground text-background hover:bg-foreground/90"
             >
-              <Send class="w-4 h-4 mr-1" />
               Send
             </Button>
           </div>
         </div>
-        <div v-else>
-          <p class="text-[15px] leading-relaxed whitespace-pre-wrap break-words" :data-rtl="isRTL">{{ message.content }}</p>
-        </div>
-      </Card>
+      </div>
 
-      <div class="flex items-center gap-0.5 mt-1.5 pr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <!-- Normal display mode -->
+      <div v-else class="px-4 py-3 bg-primary text-primary-foreground rounded-2xl rounded-br-md max-w-[75%] shadow-sm">
+        <p class="text-[15px] leading-relaxed whitespace-pre-wrap break-words" :data-rtl="isRTL">{{ message.content }}</p>
+      </div>
+
+      <div v-if="!isEditing" class="flex items-center gap-0.5 mt-1 pr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
         <Button
           size="icon"
           variant="ghost"
-          class="h-7 w-7 hover:bg-muted"
+          class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80"
           @click="copyToClipboard"
         >
           <Check v-if="isCopied" class="h-3.5 w-3.5 text-green-500" />
           <Copy v-else class="h-3.5 w-3.5" />
         </Button>
         <Button
-          v-if="!isEditing"
           size="icon"
           variant="ghost"
-          class="h-7 w-7 hover:bg-muted"
+          class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80"
           @click="startEditing"
         >
           <Edit3 class="h-3.5 w-3.5" />
@@ -158,24 +166,23 @@ async function deleteMessage() {
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
-              v-if="!isEditing"
               size="icon"
               variant="ghost"
-              class="h-7 w-7 hover:bg-muted hover:text-red-600"
+              class="h-7 w-7 text-muted-foreground hover:text-red-600 hover:bg-red-500/10"
             >
               <Trash2 class="h-3.5 w-3.5" />
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
+          <AlertDialogContent class="rounded-2xl">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this message?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. The message and any subsequent response will be permanently deleted.
+                This will also delete the AI response.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction @click="deleteMessage" class="bg-red-600 hover:bg-red-700">
+              <AlertDialogCancel class="rounded-lg">Cancel</AlertDialogCancel>
+              <AlertDialogAction @click="deleteMessage" class="bg-red-600 hover:bg-red-700 rounded-lg">
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

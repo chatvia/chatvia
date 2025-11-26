@@ -191,7 +191,7 @@ onMounted(async () => {
             <Button
                 variant="ghost"
                 size="sm"
-                class="gap-2 text-muted-foreground hover:text-foreground"
+                class="h-9 gap-1.5 px-3 rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all"
                 :disabled="isLoading"
             >
                 <img
@@ -200,8 +200,8 @@ onMounted(async () => {
                     :alt="selectedModel.name"
                     class="h-4 w-4"
                 />
-                <span class="text-sm font-medium">{{ selectedModel?.name || (isLoading ? 'Loading...' : 'Select model') }}</span>
-                <ChevronDown class="h-3 w-3" />
+                <span class="text-xs font-medium max-w-[100px] truncate">{{ selectedModel?.name || (isLoading ? 'Loading...' : 'Select') }}</span>
+                <ChevronDown class="h-3 w-3 shrink-0" />
             </Button>
         </DropdownMenuTrigger>
         

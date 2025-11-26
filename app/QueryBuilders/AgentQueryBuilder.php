@@ -101,7 +101,7 @@ class AgentQueryBuilder extends Builder
                 COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as positive_feedback,
                 COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as negative_feedback,
                 ROUND(
-                    (COUNT(*) * 100.0) / (
+                    (COUNT(*) * 100.0) / NULLIF((
                         SELECT COUNT(*)
                         FROM chat_messages cm2
                         JOIN chat_conversations cc2 ON cm2.chat_conversation_id = cc2.id
@@ -109,7 +109,7 @@ class AgentQueryBuilder extends Builder
                         WHERE cs2.agent_id = ?
                         AND cm2.role = ?
                         AND cm2.llm_id IS NOT NULL
-                    ),
+                    ), 0),
                     1
                 ) as percentage
             ', ['positive', 'negative', $agentId, 'assistant'])
@@ -167,12 +167,12 @@ class AgentQueryBuilder extends Builder
                 countries.name as country_name,
                 COUNT(DISTINCT chat_conversations.id) as conversation_count,
                 ROUND(
-                    (COUNT(DISTINCT chat_conversations.id) * 100.0) / (
+                    (COUNT(DISTINCT chat_conversations.id) * 100.0) / NULLIF((
                         SELECT COUNT(DISTINCT cc2.id)
                         FROM chat_conversations cc2
                         JOIN chat_sessions cs2 ON cc2.chat_session_id = cs2.id
                         WHERE cs2.agent_id = ?
-                    ),
+                    ), 0),
                     1
                 ) as percentage
             ', [$agentId])
@@ -188,7 +188,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
-            ->selectRaw('ROUND(COUNT(chat_messages.id)::numeric / COUNT(DISTINCT chat_conversations.id), 1) as avg_messages')
+            ->selectRaw('ROUND(COUNT(chat_messages.id)::numeric / NULLIF(COUNT(DISTINCT chat_conversations.id), 0), 1) as avg_messages')
             ->value('avg_messages') ?? 0;
     }
 

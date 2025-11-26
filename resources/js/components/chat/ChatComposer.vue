@@ -1,0 +1,249 @@
+<script setup lang="ts">
+import { ref, nextTick, watch, onMounted, computed } from 'vue';
+import ModelSelector from "@/components/chat/ModelSelector.vue";
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Square, ArrowUp, Mic, Loader2 } from 'lucide-vue-next';
+import { useVoiceRecorder } from '@/composables/useVoiceRecorder';
+import type { AIModel } from '@/types/chat';
+
+interface Props {
+    isThinking?: boolean,
+    text?: string,
+    models?: AIModel[],
+    defaultModel?: AIModel | null,
+    isLoadingModels?: boolean,
+    placeholder?: string,
+}
+
+const props = defineProps<Props>();
+
+const selectedModel = ref<AIModel | null>(props.defaultModel || null);
+const userInput = ref(props.text || '');
+const messageInput = ref<HTMLTextAreaElement>();
+const isFocused = ref(false);
+
+// Voice recording
+const { 
+    isRecording, 
+    isTranscribing, 
+    isSupported: isVoiceSupported, 
+    startRecording, 
+    stopRecording,
+    cancelRecording 
+} = useVoiceRecorder();
+
+// Only show model selector if we have multiple models (hide while loading)
+const showModelSelector = computed(() => {
+    // Hide while loading
+    if (props.isLoadingModels) return false;
+    // Show only if we have more than 1 model
+    return props.models && props.models.length > 1;
+});
+
+// Auto-select single model when only one is available
+watch(() => props.models, (models) => {
+    if (models && models.length === 1) {
+        selectedModel.value = models[0];
+        emit('modelSelected', models[0]);
+    }
+}, { immediate: true });
+
+watch(() => props.text, (newText) => {
+    if (newText !== undefined && newText !== userInput.value) {
+        userInput.value = newText;
+        nextTick(() => {
+            if (messageInput.value) {
+                adjustTextareaHeight();
+            }
+        });
+    }
+}, { immediate: true });
+
+watch(() => props.defaultModel, (newDefaultModel) => {
+    if (newDefaultModel && newDefaultModel !== selectedModel.value) {
+        selectedModel.value = newDefaultModel;
+        emit('modelSelected', newDefaultModel);
+    }
+}, { immediate: true });
+
+const emit = defineEmits<{
+    messageAdded: [content: string, model: AIModel]
+    stopStreaming: []
+    modelSelected: [model: AIModel]
+}>();
+
+const handleEnterKey = (event: KeyboardEvent) => {
+    if (!event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    } else {
+        adjustTextareaHeight(event);
+    }
+};
+
+const adjustTextareaHeight = (event?: Event) => {
+    const textarea = event?.target as HTMLTextAreaElement || messageInput.value;
+    if (!textarea || !textarea.style) return;
+
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(160, textarea.scrollHeight) + 'px';
+};
+
+watch(userInput, () => {
+    nextTick(() => {
+        adjustTextareaHeight();
+    });
+});
+
+const stopStreaming = () => {
+    emit('stopStreaming');
+}
+
+const handleModelChange = (model: AIModel) => {
+    emit('modelSelected', model);
+    selectedModel.value = model;
+
+    nextTick(() => {
+        if (messageInput.value && typeof messageInput.value.focus === 'function') {
+            messageInput.value.focus();
+        }
+    });
+}
+
+const sendMessage = () => {
+    if (!userInput.value.trim() || !selectedModel.value) return;
+
+    emit('messageAdded', userInput.value, selectedModel.value);
+    userInput.value = '';
+
+    if (messageInput.value && messageInput.value.style) {
+        messageInput.value.style.height = 'auto';
+    }
+}
+
+const handleFocus = () => {
+    isFocused.value = true;
+};
+
+const handleBlur = () => {
+    isFocused.value = false;
+};
+
+onMounted(() => {
+    nextTick(() => {
+        if (messageInput.value && typeof messageInput.value.focus === 'function') {
+            messageInput.value.focus();
+        }
+    });
+});
+
+const canSend = () => userInput.value.trim() !== '' && selectedModel.value;
+
+// Voice recording handlers
+const toggleRecording = async () => {
+    if (isRecording.value) {
+        const transcript = await stopRecording();
+        if (transcript) {
+            // Append transcript to existing input
+            userInput.value = userInput.value 
+                ? `${userInput.value} ${transcript}` 
+                : transcript;
+            
+            nextTick(() => {
+                adjustTextareaHeight();
+                messageInput.value?.focus();
+            });
+        }
+    } else {
+        await startRecording();
+    }
+};
+</script>
+
+<template>
+    <div class="w-full">
+        <div
+            class="relative rounded-3xl border bg-card transition-all duration-200"
+            :class="[
+                isFocused ? 'border-primary/40 shadow-lg ring-1 ring-primary/10' : 'border-gray-300 dark:border-gray-600 shadow-sm hover:border-gray-400 dark:hover:border-gray-500',
+                isThinking ? 'border-primary/40' : ''
+            ]"
+        >
+            <div class="flex items-center">
+                <!-- Left side: textarea -->
+                <div class="flex-1 min-w-0">
+                    <Textarea
+                        ref="messageInput"
+                        v-model="userInput"
+                        @keydown.enter="handleEnterKey"
+                        @input="adjustTextareaHeight"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                        :placeholder="placeholder || 'Message...'"
+                        class="w-full resize-none !border-0 !shadow-none !bg-transparent dark:!bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-0 focus-visible:!border-0 min-h-[28px] max-h-[160px] px-4 py-4"
+                        :disabled="isThinking"
+                        rows="1"
+                    />
+                </div>
+
+                <!-- Right side: Model selector, Mic and Send/Stop buttons -->
+                <div class="flex items-center gap-1.5 p-3">
+                    <!-- Model selector (hide only if exactly one model) -->
+                    <ModelSelector
+                        v-if="showModelSelector"
+                        @modelChanged="handleModelChange"
+                        :models="models"
+                        :defaultModel="defaultModel"
+                        :isLoadingModels="isLoadingModels"
+                    />
+
+                    <!-- Voice recording button -->
+                    <Button
+                        v-if="isVoiceSupported && !isThinking"
+                        @click="toggleRecording"
+                        :disabled="isTranscribing"
+                        size="icon"
+                        variant="ghost"
+                        class="h-10 w-10 rounded-full shrink-0 transition-all duration-200"
+                        :class="[
+                            isRecording 
+                                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+                                : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                        ]"
+                        :title="isRecording ? 'Stop recording' : 'Start voice input'"
+                    >
+                        <Loader2 v-if="isTranscribing" class="h-5 w-5 animate-spin" />
+                        <Mic v-else class="h-5 w-5" />
+                    </Button>
+
+                    <Button
+                        v-if="isThinking"
+                        @click="stopStreaming"
+                        size="icon"
+                        variant="destructive"
+                        class="h-10 w-10 rounded-full shrink-0"
+                    >
+                        <Square class="h-5 w-5" />
+                    </Button>
+
+                    <Button
+                        v-else
+                        @click="sendMessage"
+                        :disabled="!canSend()"
+                        size="icon"
+                        class="h-10 w-10 rounded-full shrink-0 transition-all duration-200"
+                        :class="[
+                            canSend() 
+                                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md' 
+                                : 'bg-muted text-muted-foreground'
+                        ]"
+                    >
+                        <ArrowUp class="h-5 w-5" :class="{ 'stroke-[2.5px]': canSend() }" />
+                    </Button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+

@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted, computed } from 'vue'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +29,7 @@ import {
   Download,
   FileText,
   MessageSquare,
-  Bot,
-  Sparkles
+  RefreshCw
 } from 'lucide-vue-next'
 import { usePage } from '@inertiajs/vue3'
 import axios from 'axios'
@@ -48,7 +45,9 @@ import type { Message, AIModel } from '@/types/chat'
 
 const props = defineProps<{
   message: Message
+  userMessageId?: string | number
   isThinking?: boolean
+  isStreaming?: boolean
   hideFeedback?: boolean
   models?: AIModel[]
   defaultModel?: AIModel | null
@@ -61,7 +60,31 @@ const props = defineProps<{
 const emit = defineEmits<{
   messageDeleted: [id: string | number]
   feedbackProvided: [id: string | number, type: 'thumbs-up' | 'thumbs-down']
+  regenerate: [userMessageId: string | number, assistantMessageId: string | number, model: AIModel]
 }>()
+
+// Computed for checking if we have multiple models
+const hasMultipleModels = computed(() => {
+  return props.models && props.models.length > 1
+})
+
+const isRegenerating = ref(false)
+
+// Regenerate with a specific model
+async function regenerateWithModel(model: AIModel) {
+  if (props.message.id === undefined || props.userMessageId === undefined || !props.conversationId) return
+  
+  isRegenerating.value = true
+  emit('regenerate', props.userMessageId, props.message.id, model)
+}
+
+// Regenerate with default/current model
+function regenerate() {
+  const model = props.models?.[0] || props.defaultModel
+  if (model) {
+    regenerateWithModel(model)
+  }
+}
 
 const page = usePage()
 const modelUsed = computed(() => {
@@ -237,58 +260,52 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex items-start gap-3 group w-full">
-    <Avatar class="h-8 w-8 flex-shrink-0">
-      <AvatarImage v-if="avatar" :src="avatar" alt="Agent avatar" />
-      <AvatarFallback class="bg-gradient-to-br from-violet-500 to-purple-600">
-        <Bot class="h-4 w-4 text-white" />
-      </AvatarFallback>
-    </Avatar>
-
+  <div class="flex items-start w-full">
     <div class="flex-1 min-w-0 max-w-full">
-      <div class="prose prose-sm dark:prose-invert max-w-none w-full chat-assistant-bubble rounded-lg p-5" :data-rtl="isRTL">
+      <div class="prose prose-sm dark:prose-invert max-w-none w-full" :data-rtl="isRTL">
         <div v-if="message.content"
              id="chat-ai-responses"
              ref="messageContentRef"
-             class="transition-opacity duration-200"
+             class="streaming-content"
+             :class="{ 'is-streaming': isStreaming }"
              v-html="formatMessage(message.content)">
         </div>
-        <div v-else class="flex items-center gap-2 py-2 transition-all duration-500 ease-in-out">
+        <div v-else class="flex items-center gap-2 py-1">
           <WaitingIndicator />
         </div>
       </div>
 
       <div v-if="message.content && !hideFeedback"
-           class="mt-3 flex items-center justify-between flex-wrap gap-2">
-        <div class="flex items-center gap-1">
+           class="mt-2 flex items-center justify-between flex-wrap gap-2">
+        <div class="flex items-center gap-0.5">
           <Button
             size="icon"
             variant="ghost"
-            class="h-8 w-8"
+            class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80"
             @click="copyToClipboard"
           >
-            <Check v-if="isCopied" class="h-4 w-4 text-green-500" />
-            <Copy v-else class="h-4 w-4" />
+            <Check v-if="isCopied" class="h-3.5 w-3.5 text-green-500" />
+            <Copy v-else class="h-3.5 w-3.5" />
           </Button>
 
           <Button
             size="icon"
             variant="ghost"
-            class="h-8 w-8"
-            :class="{ 'text-green-600 bg-green-50 dark:bg-green-950': feedback === 'thumbs-up' }"
+            class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80"
+            :class="{ '!text-green-600 !bg-green-500/10': feedback === 'thumbs-up' }"
             @click="provideFeedback('thumbs-up')"
           >
-            <ThumbsUp class="h-4 w-4" />
+            <ThumbsUp class="h-3.5 w-3.5" />
           </Button>
 
           <Button
             size="icon"
             variant="ghost"
-            class="h-8 w-8"
-            :class="{ 'text-red-600 bg-red-50 dark:bg-red-950': feedback === 'thumbs-down' }"
+            class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80"
+            :class="{ '!text-red-600 !bg-red-500/10': feedback === 'thumbs-down' }"
             @click="provideFeedback('thumbs-down')"
           >
-            <ThumbsDown class="h-4 w-4" />
+            <ThumbsDown class="h-3.5 w-3.5" />
           </Button>
 
           <AlertDialog>
@@ -296,21 +313,21 @@ onMounted(() => {
               <Button
                 size="icon"
                 variant="ghost"
-                class="h-8 w-8 hover:text-red-600"
+                class="h-7 w-7 text-muted-foreground hover:text-red-600 hover:bg-red-500/10"
               >
-                <Trash2 class="h-4 w-4" />
+                <Trash2 class="h-3.5 w-3.5" />
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent class="rounded-2xl">
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete this message?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. The message will be permanently deleted.
+                  This will also delete your original message.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction @click="deleteMessage" class="bg-red-600 hover:bg-red-700">
+                <AlertDialogCancel class="rounded-lg">Cancel</AlertDialogCancel>
+                <AlertDialogAction @click="deleteMessage" class="bg-red-600 hover:bg-red-700 rounded-lg">
                   Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -322,28 +339,69 @@ onMounted(() => {
               <Button
                 size="icon"
                 variant="ghost"
-                class="h-8 w-8"
+                class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80"
               >
-                <Download class="h-4 w-4" />
+                <Download class="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuLabel>Export as</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem @click="exportAs('pdf')">
-                <FileText class="mr-2 h-4 w-4 text-red-500" />
+            <DropdownMenuContent align="start" class="min-w-[140px]">
+              <DropdownMenuItem @click="exportAs('pdf')" class="text-sm">
+                <FileText class="mr-2 h-3.5 w-3.5 text-red-500" />
                 PDF
               </DropdownMenuItem>
-              <DropdownMenuItem @click="exportAs('markdown')">
-                <MessageSquare class="mr-2 h-4 w-4 text-blue-500" />
+              <DropdownMenuItem @click="exportAs('markdown')" class="text-sm">
+                <MessageSquare class="mr-2 h-3.5 w-3.5 text-blue-500" />
                 Markdown
               </DropdownMenuItem>
-              <DropdownMenuItem @click="exportAs('text')">
-                <FileText class="mr-2 h-4 w-4 text-gray-500" />
+              <DropdownMenuItem @click="exportAs('text')" class="text-sm">
+                <FileText class="mr-2 h-3.5 w-3.5 text-gray-500" />
                 Text
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <!-- Regenerate button -->
+          <DropdownMenu v-if="hasMultipleModels && userMessageId !== undefined">
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                :disabled="isRegenerating"
+              >
+                <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRegenerating }" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" class="min-w-[180px]">
+              <DropdownMenuLabel class="text-xs text-muted-foreground">Regenerate with</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                v-for="model in models" 
+                :key="model.id" 
+                @click="regenerateWithModel(model)"
+                class="text-sm"
+              >
+                <img
+                  v-if="model.icon"
+                  :src="`/images/llms/${model.icon}`"
+                  :alt="model.name"
+                  class="mr-2 h-4 w-4"
+                />
+                {{ model.name }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            v-else-if="userMessageId !== undefined"
+            size="icon"
+            variant="ghost"
+            class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80"
+            :disabled="isRegenerating"
+            @click="regenerate"
+            title="Regenerate response"
+          >
+            <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRegenerating }" />
+          </Button>
         </div>
 
         <div class="flex items-center gap-2">
@@ -352,14 +410,14 @@ onMounted(() => {
             :sources="sources"
           />
 
-          <Badge v-if="modelUsed" variant="secondary" class="flex items-center gap-1">
+          <div v-if="modelUsed" class="flex items-center gap-1.5 text-muted-foreground">
             <img
               :src="`/images/llms/${modelUsed.icon}`"
               :alt="modelUsed.name"
-              class="h-3 w-3"
+              class="h-3 w-3 opacity-60"
             />
-            <span class="text-xs">{{ modelUsed.name }}</span>
-          </Badge>
+            <span class="text-[11px]">{{ modelUsed.name }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -639,5 +697,20 @@ onMounted(() => {
 :deep(.prose[data-rtl="true"] code) {
   direction: ltr;
   text-align: left;
+}
+
+/* Streaming animation - blinking cursor */
+.streaming-content.is-streaming::after {
+  content: '▋';
+  display: inline;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  color: hsl(var(--foreground));
+  opacity: 0.7;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0; }
 }
 </style>

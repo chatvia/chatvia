@@ -10,5 +10,6 @@ class StreamRequestMessageData extends Data
     public function __construct(
         public Llm $model,
         public string $message,
+        public ?string $createdAt = null,
     ) {}
 }

@@ -1,6 +1,6 @@
 <script setup>
 import ChatLayout from '@/components/chat/ChatLayout.vue';
-import Composer from '@/components/chat/Composer.vue';
+import ChatComposer from '@/components/chat/ChatComposer.vue';
 import UserChatBubble from '@/components/chat/UserChatBubble.vue';
 import AssistantChatBubble from '@/components/chat/AssistantChatBubble.vue';
 import { useSSE } from '@/composables/useSSE';
@@ -128,8 +128,26 @@ const fetchModels = async () => {
         models.value = response.data.models;
 
         const urlModelId = getQueryParam('model');
-        const urlModel = urlModelId ? models.value.find((m) => m.id === urlModelId) : null;
-        defaultModel.value = urlModel || response.data.default;
+        
+        // Validate model from URL - use first valid model if invalid
+        if (urlModelId) {
+            const urlModel = models.value.find((m) => m.id === urlModelId);
+            if (!urlModel) {
+                // Invalid model in URL, redirect with first available model
+                const firstModel = models.value[0] || response.data.default;
+                router.visit(
+                    route('chat.show', {
+                        conversationId: props.conversation_id,
+                        model: firstModel?.id,
+                    }),
+                    { replace: true }
+                );
+                return;
+            }
+            defaultModel.value = urlModel;
+        } else {
+            defaultModel.value = response.data.default;
+        }
     } catch (error) {
         console.error('Failed to fetch models:', error);
     } finally {
@@ -393,7 +411,7 @@ function scrollWhileStreaming() {
     }
 }
 
-function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConversation = false) {
+function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConversation = false, saveUserMessageImmediately = false, createdAt = null) {
     const newMessage = {
         role: 'assistant',
         content: '',
@@ -408,6 +426,8 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
             model: modelId,
             message: message,
             updated_message_info: updatedMessageInfo,
+            save_user_message_immediately: saveUserMessageImmediately,
+            created_at: createdAt,
         }),
         {
             onMessage: (content, messageId) => {
@@ -601,6 +621,218 @@ const feedbackProvided = (messageId, type) => {
     console.log('Feedback:', messageId, type);
 };
 
+// Handle message edited - similar to regenerate but with new content
+const handleMessageEdited = async (userMessageId, assistantMessageId, newContent) => {
+    // Use the current selected model
+    const model = selectedModel.value || defaultModel.value;
+    if (!model) {
+        console.error('No model selected');
+        return;
+    }
+
+    try {
+        // Call the regenerate endpoint to delete both messages and get original created_at
+        const response = await axios.post(route('chat.messages.regenerate'), {
+            conversation_id: props.conversation_id,
+            user_message_id: userMessageId,
+            assistant_message_id: assistantMessageId,
+        });
+
+        if (response.data.success) {
+            const createdAt = response.data.created_at;
+            
+            // Find the indices of both messages
+            const userIndex = messages.value.findIndex(m => m.id === userMessageId);
+            const assistantIndex = messages.value.findIndex(m => m.id === assistantMessageId);
+            
+            if (userIndex === -1 || assistantIndex === -1) {
+                console.error('Could not find messages to edit');
+                return;
+            }
+            
+            // Clear sources for the assistant message
+            messageSources.value.delete(assistantIndex);
+            
+            // Replace user message in-place with NEW content
+            messages.value[userIndex] = {
+                role: 'user',
+                content: newContent,
+                id: 0,
+            };
+            
+            // Replace assistant message in-place with empty content
+            messages.value[assistantIndex] = {
+                role: 'assistant',
+                content: '',
+                model: model.id,
+                id: 0,
+            };
+            
+            // Set streaming index to the assistant message position
+            streamingForMessageIndex.value = assistantIndex;
+            
+            // Disable auto-scroll to bottom - we want to stay at the edited message
+            userHasScrolledUp.value = true;
+            isAutoScrollEnabled.value = false;
+            
+            // Start streaming at the same position
+            await nextTick(() => {
+                // Scroll to the message being edited
+                const messageElement = document.getElementById(`message-${userIndex}`);
+                if (messageElement) {
+                    messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                
+                // Start stream with the NEW content
+                const stream = startStream(
+                    route('chat.stream', { conversationId: props.conversation_id }),
+                    JSON.stringify({
+                        model: model.id,
+                        message: newContent,
+                        updated_message_info: {},
+                        save_user_message_immediately: true,
+                        created_at: createdAt,
+                    }),
+                    {
+                        onMessage: (content, messageId) => {
+                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
+                            messages.value[messageIndex].content += content;
+                            
+                            if (messageId && messages.value[messageIndex]) {
+                                messages.value[messageIndex].id = messageId;
+                            }
+                            
+                            scrollWhileStreaming();
+                        },
+                        onSources: (sources) => {
+                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
+                            messageSources.value.set(messageIndex, sources);
+                        },
+                        onLanguage: (language) => {
+                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
+                            if (messages.value[messageIndex]) {
+                                messages.value[messageIndex].language = language;
+                            }
+                        },
+                        onDone: () => {
+                            streamingForMessageIndex.value = null;
+                        },
+                        onError: (error) => {
+                            console.error('Edit streaming error:', error);
+                        },
+                    },
+                );
+                stream();
+            });
+        }
+    } catch (error) {
+        console.error('Failed to edit message:', error);
+    }
+};
+
+// Handle regenerate request
+const handleRegenerate = async (userMessageId, assistantMessageId, model) => {
+    try {
+        // Call the regenerate endpoint to delete both messages and get user message content
+        const response = await axios.post(route('chat.messages.regenerate'), {
+            conversation_id: props.conversation_id,
+            user_message_id: userMessageId,
+            assistant_message_id: assistantMessageId,
+        });
+
+        if (response.data.success) {
+            const userMessageContent = response.data.user_message_content;
+            const createdAt = response.data.created_at;
+            
+            // Find the indices of both messages
+            const userIndex = messages.value.findIndex(m => m.id === userMessageId);
+            const assistantIndex = messages.value.findIndex(m => m.id === assistantMessageId);
+            
+            if (userIndex === -1 || assistantIndex === -1) {
+                console.error('Could not find messages to regenerate');
+                return;
+            }
+            
+            // Clear sources for the assistant message
+            messageSources.value.delete(assistantIndex);
+            
+            // Replace user message in-place (keep same index)
+            messages.value[userIndex] = {
+                role: 'user',
+                content: userMessageContent,
+                id: 0,
+            };
+            
+            // Replace assistant message in-place with empty content (keep same index)
+            messages.value[assistantIndex] = {
+                role: 'assistant',
+                content: '',
+                model: model.id,
+                id: 0,
+            };
+            
+            // Set streaming index to the assistant message position
+            streamingForMessageIndex.value = assistantIndex;
+            
+            // Disable auto-scroll to bottom - we want to stay at the regenerated message
+            userHasScrolledUp.value = true;
+            isAutoScrollEnabled.value = false;
+            
+            // Start streaming at the same position with saveUserMessageImmediately=true and original created_at
+            await nextTick(() => {
+                // Scroll to the message being regenerated
+                const messageElement = document.getElementById(`message-${userIndex}`);
+                if (messageElement) {
+                    messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                // Start stream without pushing new assistant message (already replaced in-place)
+                const stream = startStream(
+                    route('chat.stream', { conversationId: props.conversation_id }),
+                    JSON.stringify({
+                        model: model.id,
+                        message: userMessageContent,
+                        updated_message_info: {},
+                        save_user_message_immediately: true,
+                        created_at: createdAt,
+                    }),
+                    {
+                        onMessage: (content, messageId) => {
+                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
+                            messages.value[messageIndex].content += content;
+                            
+                            if (messageId && messages.value[messageIndex]) {
+                                messages.value[messageIndex].id = messageId;
+                            }
+                            
+                            scrollWhileStreaming();
+                        },
+                        onSources: (sources) => {
+                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
+                            messageSources.value.set(messageIndex, sources);
+                        },
+                        onLanguage: (language) => {
+                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
+                            if (messages.value[messageIndex]) {
+                                messages.value[messageIndex].language = language;
+                            }
+                        },
+                        onDone: () => {
+                            streamingForMessageIndex.value = null;
+                            // Don't auto-scroll after regeneration - user is viewing specific message
+                        },
+                        onError: (error) => {
+                            console.error('Regenerate streaming error:', error);
+                        },
+                    },
+                );
+                stream();
+            });
+        }
+    } catch (error) {
+        console.error('Failed to regenerate message:', error);
+    }
+};
+
 // Function to handle scroll to bottom button click
 const handleScrollToBottomClick = () => {
     scrollToBottom(true); // Use smooth scrolling for button clicks
@@ -613,7 +845,7 @@ const handleScrollToBottomClick = () => {
 <template>
     <ChatLayout :appearance="props.appearance" :removeSidebar="props.removeSidebar" :hideSidebarOnPageLoad="props.hideSidebarOnPageLoad" :enableThemeSwitcher="props.enableThemeSwitcher" :defaultTheme="props.defaultTheme" :enableChatExpand="props.enableChatExpand" :newChatRoute="props.newChatRoute">
         <template #content>
-            <div class="flex h-full flex-col overflow-hidden">
+            <div class="flex h-full flex-col overflow-hidden relative">
                 <div
                     id="messages-container"
                     ref="messagesContainer"
@@ -622,16 +854,15 @@ const handleScrollToBottomClick = () => {
                         { 'flex flex-col justify-between': messages.length === 0 }
                     ]"
                 >
-                    <!-- Loading popup -->
+                    <!-- Loading state -->
                     <div v-if="loadingMessages" class="flex items-center justify-center h-full">
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 max-w-sm mx-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">Loading messages...</h3>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Please wait while we fetch your conversation</p>
+                        <div class="flex flex-col items-center gap-3">
+                            <div class="flex gap-1">
+                                <div class="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:-0.3s]"></div>
+                                <div class="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:-0.15s]"></div>
+                                <div class="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce"></div>
                                 </div>
-                            </div>
+                            <p class="text-xs text-muted-foreground">Loading conversation</p>
                         </div>
                     </div>
 
@@ -659,24 +890,29 @@ const handleScrollToBottomClick = () => {
                                 <UserChatBubble
                                     v-if="message.role === 'user'"
                                     :message="message"
+                                    :assistantMessageId="index < messages.length - 1 && messages[index + 1]?.role === 'assistant' ? messages[index + 1].id : undefined"
                                     :conversationId="conversation_id"
                                     :isRTL="isMessageRTL(message)"
                                     @messageUpdated="messageUpdated"
                                     @messageDeleted="messageDeleted"
+                                    @messageEdited="handleMessageEdited"
                                 />
                                 <AssistantChatBubble
                                     v-else
                                     :message="message"
+                                    :userMessageId="index > 0 && messages[index - 1]?.role === 'user' ? messages[index - 1].id : undefined"
                                     :models="models"
                                     :defaultModel="defaultModel"
                                     :sources="messageSources.get(index) || []"
                                     :conversationId="conversation_id"
-                                    :hideFeedback="index === messages.length - 1 && isStreaming"
-                                    :isThinking="index === messages.length - 1 && isStreaming && !message.content"
+                                    :hideFeedback="isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex)"
+                                    :isThinking="isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex) && !message.content"
+                                    :isStreaming="isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex)"
                                     :avatar="props.appearance?.avatar"
                                     :isRTL="isMessageRTL(message)"
                                     @messageDeleted="messageDeleted"
                                     @feedbackProvided="feedbackProvided"
+                                    @regenerate="handleRegenerate"
                                 />
                             </div>
                         </div>
@@ -687,23 +923,30 @@ const handleScrollToBottomClick = () => {
                 </div>
 
                 <!-- Auto-scroll paused indicator -->
-                <div v-if="isStreaming && userHasScrolledUp" class="absolute bottom-24 left-1/2 transform -translate-x-1/2 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border shadow-sm text-xs text-muted-foreground">
-                    Auto-scroll paused
+                <Transition name="fade">
+                    <div v-if="isStreaming && userHasScrolledUp" class="absolute bottom-28 left-1/2 -translate-x-1/2 bg-foreground/90 text-background px-3 py-1.5 rounded-full text-[11px] font-medium shadow-lg">
+                        Scroll paused
+                </div>
+                </Transition>
+
+                <!-- Scroll to bottom button -->
+                <div class="absolute bottom-32 left-0 right-0 flex justify-center z-10 pointer-events-none">
+                    <Transition name="scale-fade">
+                        <button
+                            v-if="showScrollToBottom && messages.length > 0"
+                            class="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-foreground/90 text-background shadow-lg hover:bg-foreground transition-colors cursor-pointer"
+                            @click="handleScrollToBottomClick"
+                        >
+                            <ChevronDown class="h-4 w-4" />
+                        </button>
+                    </Transition>
                 </div>
 
-                <div v-if="showScrollToBottom && messages.length > 0" class="relative flex justify-center -mt-20 mb-4 pointer-events-none">
-                    <button
-                        class="pointer-events-auto flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-card border border-border shadow-md"
-                        @click="handleScrollToBottomClick"
-                    >
-                        <ChevronDown class="h-5 w-5" />
-                    </button>
-                </div>
-
-                <div class="flex-shrink-0 border-t bg-background/95 backdrop-blur-sm">
-                    <div class="chat-container mx-auto max-w-3xl px-4 py-4 sm:px-8">
+                <!-- Sticky composer area -->
+                <div class="shrink-0 bg-background pt-4 pb-6 px-4 sm:px-6">
+                    <div class="mx-auto transition-all duration-300" :class="[isChatExpanded ? 'max-w-5xl' : 'max-w-3xl']">
                         <!-- Show composer if user can send messages -->
-                        <Composer
+                        <ChatComposer
                             v-if="canSendMessages"
                             :isThinking="isStreaming"
                             :models="models"
@@ -716,7 +959,7 @@ const handleScrollToBottomClick = () => {
                         />
 
                         <!-- Show limit message if user cannot send messages -->
-                        <div v-else class="flex items-center justify-center p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                        <div v-else class="flex items-center justify-center p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl">
                             <div class="text-center">
                                 <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
                                     You've reached your message limit
@@ -727,8 +970,8 @@ const handleScrollToBottomClick = () => {
                             </div>
                         </div>
 
-                        <div v-if="props.appearance?.chat_footer_text" class="text-center mt-2">
-                            <p class="text-xs text-muted-foreground">{{ props.appearance.chat_footer_text }}</p>
+                        <div v-if="props.appearance?.chat_footer_text" class="text-center mt-3">
+                            <p class="text-[11px] text-muted-foreground/60">{{ props.appearance.chat_footer_text }}</p>
                         </div>
                     </div>
                 </div>
@@ -1112,6 +1355,26 @@ body,
 :focus-visible {
     outline: 2px solid hsl(var(--primary));
     outline-offset: 2px;
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.scale-fade-enter-active,
+.scale-fade-leave-active {
+    transition: all 0.2s ease;
+}
+.scale-fade-enter-from,
+.scale-fade-leave-to {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
 }
 
 /* Fade transitions removed */

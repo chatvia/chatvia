@@ -474,13 +474,12 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                 </div>
 
                 <!-- Packages Grid -->
-                <div class="flex justify-center">
-                    <div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 max-w-7xl">
-                        <div
-                            v-for="(pkg, packageKey) in packages"
-                            :key="pkg.id"
-                            class="group relative w-full"
-                        >
+                <div class="flex flex-wrap justify-center gap-8">
+                    <div
+                        v-for="(pkg, packageKey) in packages"
+                        :key="pkg.id"
+                        class="group relative w-full max-w-xs"
+                    >
                             <!-- Popular Badge -->
                             <div
                                 v-if="pkg.is_popular"
@@ -610,7 +609,6 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                 </CardContent>
                             </Card>
                         </div>
-                    </div>
                 </div>
 
                 <!-- Add-ons Section -->

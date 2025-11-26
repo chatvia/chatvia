@@ -27,6 +27,9 @@ interface Message {
   session_id?: string;
   conversation_id?: string;
   feedback?: 'positive' | 'negative' | null;
+  sentiment?: string | null;
+  emotion?: string | null;
+  emotion_confidence?: number | null;
 }
 
 interface ConversationSummary {
@@ -87,6 +90,7 @@ const isLoadingMessages = ref(false);
 const topics = ref<Topic[]>([]);
 const selectedTopic = ref<string>('all');
 const selectedSentiment = ref<string>('all');
+const selectedEmotion = ref<string>('all');
 const showFiltersPopover = ref(false);
 
 // Use time ago composable
@@ -125,6 +129,9 @@ async function fetchConversations(page = 1) {
     }
     if (selectedSentiment.value && selectedSentiment.value !== 'all') {
       params.sentiment = selectedSentiment.value;
+    }
+    if (selectedEmotion.value && selectedEmotion.value !== 'all') {
+      params.emotion = selectedEmotion.value;
     }
     
     const response = await axios.get(route('agents.logs.conversations', { agent: agent.id }), {
@@ -231,7 +238,7 @@ watch(() => currentConversationId.value, (newId, oldId) => {
 });
 
 // Watch for filter changes and automatically apply them
-watch([selectedTopic, selectedSentiment], () => {
+watch([selectedTopic, selectedSentiment, selectedEmotion], () => {
   fetchConversations(1);
 });
 
@@ -475,6 +482,7 @@ function exportAsPDF() {
 function clearAllFilters() {
   selectedTopic.value = 'all';
   selectedSentiment.value = 'all';
+  selectedEmotion.value = 'all';
   showFiltersPopover.value = false;
   fetchConversations(1);
 }
@@ -489,9 +497,14 @@ function clearSentimentFilter() {
   fetchConversations(1);
 }
 
+function clearEmotionFilter() {
+  selectedEmotion.value = 'all';
+  fetchConversations(1);
+}
+
 // Check if any filters are active
 const hasActiveFilters = computed(() => {
-  return selectedTopic.value !== 'all' || selectedSentiment.value !== 'all';
+  return selectedTopic.value !== 'all' || selectedSentiment.value !== 'all' || selectedEmotion.value !== 'all';
 });
 
 // Get sentiment display name
@@ -512,6 +525,22 @@ function getSentimentBadgeColor(sentiment: string): string {
     'negative': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
   };
   return colors[sentiment] || 'bg-gray-100 text-gray-800';
+}
+
+// Get emotion display name
+function getEmotionDisplayName(emotion: string): string {
+  const names: Record<string, string> = {
+    'happy': 'Happy',
+    'excited': 'Excited',
+    'satisfied': 'Satisfied',
+    'neutral': 'Neutral',
+    'confused': 'Confused',
+    'frustrated': 'Frustrated',
+    'sad': 'Sad',
+    'anxious': 'Anxious',
+    'angry': 'Angry'
+  };
+  return names[emotion] || emotion;
 }
 
 // Get topic name by id
@@ -539,6 +568,38 @@ function getPathnameFromUrl(url: string | null | undefined): string {
     return url; // Return raw URL if parsing fails
   }
 }
+
+// Get emotion emoji
+function getEmotionEmoji(emotion: string): string {
+  const emojis: Record<string, string> = {
+    'happy': '😊',
+    'excited': '😃',
+    'satisfied': '😌',
+    'neutral': '😐',
+    'confused': '😕',
+    'frustrated': '😤',
+    'sad': '😢',
+    'anxious': '😰',
+    'angry': '😠'
+  };
+  return emojis[emotion] || '😐';
+}
+
+// Get emotion color
+function getEmotionBadgeColor(emotion: string): string {
+  const colors: Record<string, string> = {
+    'happy': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    'excited': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+    'satisfied': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    'neutral': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
+    'confused': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    'frustrated': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+    'sad': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
+    'anxious': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+    'angry': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+  };
+  return colors[emotion] || 'bg-gray-100 text-gray-800';
+}
 </script>
 
 <template>
@@ -565,49 +626,71 @@ function getPathnameFromUrl(url: string | null | undefined): string {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent class="w-80" align="start">
-                        <div class="space-y-4">
-                          <div class="space-y-2">
-                            <h4 class="font-medium leading-none">Filters</h4>
-                            <p class="text-sm text-muted-foreground">
-                              Filter conversations by topic and sentiment
-                            </p>
-                          </div>
-                          
-                          <!-- Topic Filter -->
-                          <div class="space-y-2">
-                            <Label for="topic-filter" class="text-sm font-medium">Topic</Label>
-                            <Select v-model="selectedTopic">
-                              <SelectTrigger id="topic-filter">
-                                <SelectValue placeholder="All topics" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all">All topics</SelectItem>
-                                <SelectItem 
-                                  v-for="topic in topics" 
-                                  :key="topic.id" 
-                                  :value="String(topic.id)"
-                                >
-                                  {{ topic.topic }}
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <!-- Sentiment Filter -->
-                          <div class="space-y-2">
-                            <Label for="sentiment-filter" class="text-sm font-medium">Sentiment</Label>
-                            <Select v-model="selectedSentiment">
-                              <SelectTrigger id="sentiment-filter">
-                                <SelectValue placeholder="All sentiments" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all">All sentiments</SelectItem>
-                                <SelectItem value="positive">Positive</SelectItem>
-                                <SelectItem value="neutral">Neutral</SelectItem>
-                                <SelectItem value="negative">Negative</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          <div class="space-y-4">
+                            <div class="space-y-2">
+                              <h4 class="font-medium leading-none">Filters</h4>
+                              <p class="text-sm text-muted-foreground">
+                                Filter conversations by topic, sentiment, and emotion
+                              </p>
+                            </div>
+                            
+                            <!-- Topic Filter -->
+                            <div class="space-y-2">
+                              <Label for="topic-filter" class="text-sm font-medium">Topic</Label>
+                              <Select v-model="selectedTopic">
+                                <SelectTrigger id="topic-filter">
+                                  <SelectValue placeholder="All topics" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All topics</SelectItem>
+                                  <SelectItem 
+                                    v-for="topic in topics" 
+                                    :key="topic.id" 
+                                    :value="String(topic.id)"
+                                  >
+                                    {{ topic.topic }}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <!-- Sentiment Filter -->
+                            <div class="space-y-2">
+                              <Label for="sentiment-filter" class="text-sm font-medium">Sentiment</Label>
+                              <Select v-model="selectedSentiment">
+                                <SelectTrigger id="sentiment-filter">
+                                  <SelectValue placeholder="All sentiments" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All sentiments</SelectItem>
+                                  <SelectItem value="positive">Positive</SelectItem>
+                                  <SelectItem value="neutral">Neutral</SelectItem>
+                                  <SelectItem value="negative">Negative</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <!-- Emotion Filter -->
+                            <div class="space-y-2">
+                              <Label for="emotion-filter" class="text-sm font-medium">Emotion</Label>
+                              <Select v-model="selectedEmotion">
+                                <SelectTrigger id="emotion-filter">
+                                  <SelectValue placeholder="All emotions" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All emotions</SelectItem>
+                                  <SelectItem value="happy">😊 Happy</SelectItem>
+                                  <SelectItem value="excited">😃 Excited</SelectItem>
+                                  <SelectItem value="satisfied">😌 Satisfied</SelectItem>
+                                  <SelectItem value="neutral">😐 Neutral</SelectItem>
+                                  <SelectItem value="confused">😕 Confused</SelectItem>
+                                  <SelectItem value="frustrated">😤 Frustrated</SelectItem>
+                                  <SelectItem value="sad">😢 Sad</SelectItem>
+                                  <SelectItem value="anxious">😰 Anxious</SelectItem>
+                                  <SelectItem value="angry">😠 Angry</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           
                           <!-- Actions -->
                           <div class="flex gap-2 pt-2">
@@ -656,7 +739,7 @@ function getPathnameFromUrl(url: string | null | undefined): string {
                 <!-- Active Filters Display -->
                 <div v-if="hasActiveFilters" class="mb-3 flex flex-wrap gap-1.5">
                   <Badge 
-                    v-if="selectedTopic" 
+                    v-if="selectedTopic !== 'all'" 
                     variant="secondary" 
                     class="text-xs px-2 py-1 flex items-center gap-1"
                   >
@@ -666,12 +749,22 @@ function getPathnameFromUrl(url: string | null | undefined): string {
                     </button>
                   </Badge>
                   <Badge 
-                    v-if="selectedSentiment" 
+                    v-if="selectedSentiment !== 'all'" 
                     :class="getSentimentBadgeColor(selectedSentiment)"
                     class="text-xs px-2 py-1 flex items-center gap-1"
                   >
                     {{ getSentimentDisplayName(selectedSentiment) }}
                     <button @click="clearSentimentFilter" class="ml-1 hover:opacity-70">
+                      <X class="h-3 w-3" />
+                    </button>
+                  </Badge>
+                  <Badge 
+                    v-if="selectedEmotion !== 'all'" 
+                    :class="getEmotionBadgeColor(selectedEmotion)"
+                    class="text-xs px-2 py-1 flex items-center gap-1"
+                  >
+                    {{ getEmotionEmoji(selectedEmotion) }} {{ getEmotionDisplayName(selectedEmotion) }}
+                    <button @click="clearEmotionFilter" class="ml-1 hover:opacity-70">
                       <X class="h-3 w-3" />
                     </button>
                   </Badge>
@@ -943,6 +1036,29 @@ function getPathnameFromUrl(url: string | null | undefined): string {
 
                             <!-- Meta Information -->
                             <div class="flex items-center gap-2 text-xs text-muted-foreground px-2 flex-wrap">
+                              <!-- Emotion (for user messages) -->
+                              <Badge 
+                                v-if="m.role === 'user' && m.emotion"
+                                variant="secondary"
+                                class="text-[10px] px-1.5 py-0 font-normal"
+                                :class="getEmotionBadgeColor(m.emotion)"
+                              >
+                                {{ getEmotionEmoji(m.emotion) }} {{ m.emotion.charAt(0).toUpperCase() + m.emotion.slice(1) }}
+                              </Badge>
+
+                              <!-- Sentiment (for user messages) -->
+                              <Badge 
+                                v-if="m.role === 'user' && m.sentiment"
+                                variant="outline"
+                                class="text-[10px] px-1.5 py-0 font-normal"
+                                :class="getSentimentBadgeColor(m.sentiment)"
+                              >
+                                {{ m.sentiment.charAt(0).toUpperCase() + m.sentiment.slice(1) }}
+                              </Badge>
+
+                              <!-- Divider -->
+                              <div v-if="m.role === 'user' && (m.emotion || m.sentiment)" class="h-3 w-px bg-border"></div>
+
                               <!-- Confidence Score (for assistant messages) -->
                               <div 
                                 v-if="m.role === 'assistant'"

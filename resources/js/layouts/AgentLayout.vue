@@ -75,6 +75,7 @@ import {
     AlertTriangle,
     Sparkles,
     SmilePlus,
+    Heart,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
@@ -160,6 +161,7 @@ const controlPanelNavigationItems = computed(() => {
                 { id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' },
                 { id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' },
                 { id: 'analytics-sentiment', label: 'Sentiment', icon: SmilePlus, route: 'agents.analytics.sentiment' },
+                { id: 'analytics-emotion', label: 'Emotion', icon: Heart, route: 'agents.analytics.emotion' },
                 { id: 'analytics-topics', label: 'Topics', icon: MessageSquare, route: 'agents.analytics.topics' },
                 { id: 'analytics-sources', label: 'Sources', icon: FileText, route: 'agents.analytics.sources' },
             ]
@@ -336,11 +338,13 @@ const analyticsSubmenuOpen = ref(
     currentRoute.value.startsWith('agents/Analytics') ||
     currentRoute.value.startsWith('agents/Metrics') ||
     currentRoute.value.startsWith('agents/Sentiment') ||
+    currentRoute.value.startsWith('agents/Emotion') ||
     currentRoute.value.startsWith('agents/Topics') ||
     currentRoute.value.startsWith('agents/Sources') ||
     isActiveRoute('agents.analytics') ||
     isActiveRoute('agents.analytics.metrics') ||
     isActiveRoute('agents.analytics.sentiment') ||
+    isActiveRoute('agents.analytics.emotion') ||
     isActiveRoute('agents.analytics.topics') ||
     isActiveRoute('agents.analytics.sources')
 );

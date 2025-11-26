@@ -20,6 +20,7 @@ class AgentChatLogConversationsController
         $page = $request->query('page', 1);
         $topicFilter = $request->query('topic');
         $sentimentFilter = $request->query('sentiment');
+        $emotionFilter = $request->query('emotion');
 
         // Get distinct conversations for this agent ordered by most recent activity
         $conversationsPaginator = ChatConversation::query()
@@ -28,6 +29,9 @@ class AgentChatLogConversationsController
             ->when($topicFilter, fn ($query) => $query->where('chat_topic_id', $topicFilter))
             ->when($sentimentFilter, function ($query) use ($sentimentFilter) {
                 $query->whereHas('messages', fn ($q) => $q->where('sentiment', $sentimentFilter));
+            })
+            ->when($emotionFilter, function ($query) use ($emotionFilter) {
+                $query->whereHas('messages', fn ($q) => $q->where('emotion', $emotionFilter));
             })
             ->withCount('messages')
             ->orderByDesc('updated_at')

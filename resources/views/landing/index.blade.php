@@ -48,7 +48,7 @@
                                     class="max-w-xs mx-auto sm:max-w-none sm:flex sm:justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                                     <div>
                                         <a class="btn text-white bg-blue-600 hover:bg-blue-700 w-full group"
-                                           href="{{ route($landing['hero']['button']['route']) }}">
+                                           href="#pricing">
                                             {{ $landing['hero']['button']['label'] }}
                                         </a>
                                     </div>
@@ -885,7 +885,7 @@
                                 </p>
                                 <div>
                                     <a class="btn text-white bg-blue-600 hover:bg-blue-700 group"
-                                       href="{{ route($landing['cta']['button']['route']) }}">
+                                       href="#pricing">
                                         {{ $landing['cta']['button']['label'] }} <span
                                             class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
                                     </a>

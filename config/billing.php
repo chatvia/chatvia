@@ -38,16 +38,18 @@ return [
         */
         'starter' => [
             'name' => 'Starter',
-            'description' => 'Ideal for individuals and small projects',
+            'description' => '',
             'features' => [
                 'monthly' => [
                     'Access to all models',
+                    'Widgets & Knowledge Bases',
                     '1,000 messages/month',
                     '500 pages',
                     '1,000 links',
+                    '300 minutes (Audio/Video)',
                     '3 AI agents',
                     '2 Members',
-                    'Advanced PDF',
+                    'Simple PDF (No image processing)',
                     'Custom subdomain',
                 ],
                 'yearly' => [
@@ -55,9 +57,10 @@ return [
                     '13,000 messages upfront',
                     '500 pages',
                     '1,000 links',
+                    '300 minutes (Audio/Video)',
                     '3 AI agents',
                     '2 Members',
-                    'Advanced PDF',
+                    'Simple PDF (No image processing)',
                     'Custom subdomain',
                 ],
             ],
@@ -109,21 +112,27 @@ return [
         */
         'standard' => [
             'name' => 'Standard',
-            'description' => 'Perfect for growing businesses and teams',
+            'description' => '',
             'features' => [
                 'monthly' => [
                     '5,000 messages/month',
                     '1,000 pages',
                     '3,000 links',
+                    '1,200 minutes (Audio/Video)',
                     '5 AI agents',
                     '5 Members',
+                    'Sentiment analysis',
+                    'Advanced PDF (with image understanding)',
                 ],
                 'yearly' => [
                     '60,000 messages upfront',
                     '1,000 pages',
                     '3,000 links',
+                    '1,200 minutes (Audio/Video)',
                     '5 AI agents',
                     '5 Members',
+                    'Sentiment analysis',
+                    'Advanced PDF (with image understanding)',
                 ],
             ],
 
@@ -174,14 +183,18 @@ return [
         */
         'pro' => [
             'name' => 'Pro',
-            'description' => 'Enterprise-grade solution for large organizations',
+            'description' => '',
             'features' => [
                 'monthly' => [
+                    'Search Bar',
                     '25,000 messages/month',
                     '5,000 pages',
                     '10,000 links',
+                    '6,000 minutes (Audio/Video)',
                     '20 AI agents',
                     '100 Members',
+                    'Topic analysis',
+                    'Emotion analysis',
                     'Free custom integrations',
                     'Priority support',
                 ],

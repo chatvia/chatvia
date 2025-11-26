@@ -242,7 +242,7 @@ return [
                     ],
                 ],
                 'steps' => [
-                    'title' => 'You are three steps way from transforming your business',
+                    'title' => 'No coding platform, deploy your agent instantly',
                     'steps' => [
                         ['title' => 'Create', 'description' => 'Just click on the Create Agent button to get started and choose between a widget and knowledge base'],
                         ['title' => 'Train', 'description' => 'Upload documents, add website content, or connect your knowledge base to train your AI agent with your business data'],

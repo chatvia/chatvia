@@ -114,9 +114,10 @@ const handleBlur = () => {
 <template>
     <div class="relative">
         <div
-            class="rounded-3xl border transition-all duration-200 bg-background shadow-sm"
+            class="rounded-2xl border transition-all duration-200"
             :class="[
-                isComposing ? 'border-border shadow-md' : 'border-border/60',
+                isComposing ? 'border-primary shadow-md' : 'border-border shadow-sm hover:shadow-md',
+                'bg-card'
             ]"
         >
             <div class="relative">
@@ -127,15 +128,15 @@ const handleBlur = () => {
                     @input="adjustTextareaHeight"
                     @focus="handleFocus"
                     @blur="handleBlur"
-                    :placeholder="placeholder || 'Message...'"
-                    class="min-h-[52px] max-h-[200px] resize-none rounded-3xl border-0 bg-transparent px-4 py-3.5 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-0 pr-12"
+                    :placeholder="placeholder || 'Ask anything...'"
+                    class="min-h-[60px] max-h-[200px] resize-none rounded-2xl border-0 bg-transparent px-4 py-4 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 pr-12 sm:px-6 sm:py-5"
                     :disabled="isThinking"
                     autofocus
                 />
             </div>
 
-            <div class="flex items-center justify-between px-3 pb-2.5">
-                <div class="flex items-center gap-1.5">
+            <div class="flex items-center justify-between border-t border-border/50 px-3 py-2 sm:px-4">
+                <div class="flex items-center gap-2">
                     <ModelSelector
                         @modelChanged="handleModelChange"
                         :models="models"
@@ -144,15 +145,15 @@ const handleBlur = () => {
                     />
                 </div>
 
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-2">
                     <Button
                         v-if="isThinking"
                         @click="stopStreaming"
                         size="icon"
                         variant="ghost"
-                        class="h-8 w-8 rounded-lg hover:bg-muted transition-colors"
+                        class="h-9 w-9 rounded-full hover:bg-destructive/10"
                     >
-                        <Square class="h-3.5 w-3.5 fill-current" />
+                        <Square class="h-4 w-4"" />
                     </Button>
 
                     <Button
@@ -161,12 +162,13 @@ const handleBlur = () => {
                         :disabled="userInput.trim() === '' || !selectedModel"
                         size="icon"
                         variant="ghost"
-                        class="h-8 w-8 rounded-lg transition-colors disabled:opacity-30"
+                        class="h-9 w-9 rounded-full transition-all"
                         :class="{
-                            'hover:bg-muted': userInput.trim() !== '' && selectedModel
+                            'opacity-50': userInput.trim() === '' || !selectedModel,
+                            'scale-110 shadow-lg': userInput.trim() !== '' && selectedModel
                         }"
                     >
-                        <Send class="h-3.5 w-3.5" />
+                        <Send class="h-4 w-4" />
                     </Button>
                 </div>
             </div>

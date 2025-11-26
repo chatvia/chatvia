@@ -5,6 +5,7 @@
 @section('description', 'Build intelligent AI chatbots with ChatVia. Upload documents, create custom AI agents with RAG technology, and automate customer support. Start free today.')
 
 @section('og_title', landing('title') . ' - AI-Powered Chatbot Platform')
+
 @section('og_description', 'Transform your customer support with AI-powered chatbots. Upload documents, train agents, and provide instant 24/7 support with ChatVia.')
 
 @section('content')
@@ -20,11 +21,11 @@
 
                 <!-- Dark background -->
                 <div
-                    class="absolute inset-0 bg-slate-900 pointer-events-none -z-10 [clip-path:polygon(0_0,_5760px_0,_5760px_calc(100%_-_352px),_0_100%)]"
+                    class="absolute inset-0 bg-slate-900 pointer-events-none -z-10 [clip-path:polygon(0_0,_5760px_0,_5760px_calc(100%_-_200px),_0_100%)]"
                     aria-hidden="true"></div>
 
                 <div class="flex justify-center max-w-6xl mx-auto px-4 sm:px-6">
-                    <div class="pt-32 pb-20 md:pt-40 md:pb-44">
+                    <div class="pt-32 pb-8 md:pt-40 md:pb-16">
 
                         <!-- Hero content -->
                         <div
@@ -37,6 +38,8 @@
                                 <h1 class="mx-auto md:max-w-4xl text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-extrabold font-rubik text-slate-100 mb-4 leading-tight md:leading-tight text-center">
                                     {!! $landing['hero']['headline'] !!}
                                 </h1>
+
+                                @include('landing.partials.watch-video')
 
                                 @foreach ($landing['hero']['subheadlines'] as $subheadline)
                                     <p class="text-base sm:text-lg md:text-xl text-slate-400 mb-6">
@@ -64,41 +67,89 @@
                 </div>
             </section>
 
+            <!-- Three Core Features Section -->
+            <section class="relative py-5 bg-white">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6">
 
-            <div class="relative flex flex-col items-center justify-center mt-3"
-                 x-data="{ bubbles: {{ Js::from($landing['bubbles']) }}, visible: [] }"
-                 x-init="bubbles.forEach((b, i) => setTimeout(() => visible.push(i), b.delay))">
-                <div class="relative w-full flex items-center justify-center">
-                    <img src="{{ asset('images/girl.webp') }}" alt="AI chatbot conversation on mobile phone showing intelligent customer support"
-                         class="w-full max-w-3xl h-auto rounded-2xl z-10"/>
-                    <!-- Chat bubbles -->
-                    <template x-for="(bubble, i) in bubbles" :key="i">
-                        <div x-show="visible.includes(i)" x-transition
-                             :class="{
-                            'absolute': true,
-                            // Mobile positioning (closer to image, smaller)
-                            'left-2 top-4 md:left-100 md:top-16': bubble.pos === 'top-left',
-                            'right-2 top-12 md:right-100 md:top-16': bubble.pos === 'top-right',
-                            'left-2 bottom-12 md:left-100 md:bottom-16': bubble.pos === 'bottom-left',
-                            'right-2 bottom-4 md:right-100 md:bottom-16': bubble.pos === 'bottom-right',
-                        }"
-                             class="z-20">
-                            <div :class="bubble.from === 'bot' ? 'bg-blue-600 text-white' : 'bg-white text-slate-800'"
-                                 class="rounded-xl px-2 py-1.5 md:px-3 md:py-2 text-xs md:text-base max-w-32 md:max-w-72 shadow-lg"
-                                 x-text="bubble.text">
-                            </div>
+                    <!-- Section header -->
+                    <div class="max-w-4xl mx-auto text-center mb-12 md:mb-16">
+                        <h2 class="h2 font-rubik text-slate-800 mb-4">
+                            The complete platform for AI agents
+                        </h2>
+                        <p class="text-lg text-slate-500 max-w-2xl mx-auto">
+                            ChatVia is designed for building AI agents that solve your customers' hardest problems while
+                            improving business outcomes.
+                        </p>
+                    </div>
+
+                    <!-- Three Cards -->
+                    <div class="grid md:grid-cols-3 gap-6 lg:gap-8">
+
+                        <!-- Card 1: Chat Widget -->
+                        <div class="bg-slate-100 rounded-lg p-6 lg:p-8" data-aos="fade-up">
+                            <h3 class="text-xl font-bold text-slate-800 mb-2">Chat Widget</h3>
+                            <p class="text-slate-500 mb-4">
+                                Embed a powerful AI chat widget on your website. Customize the look and feel to match
+                                your brand and engage visitors 24/7.
+                            </p>
+                            <button type="button"
+                               @click="$dispatch('open-video-modal', { src: 'https://player.vimeo.com/video/1140879890?badge=0&autopause=0&autoplay=1&player_id=0&app_id=58479' })"
+                               class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm cursor-pointer">
+                                See how it works in action
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+
                         </div>
-                    </template>
+
+                        <!-- Card 2: Knowledge Bases -->
+                        <div class="bg-slate-100 rounded-lg p-6 lg:p-8" data-aos="fade-up" data-aos-delay="100">
+                            <h3 class="text-xl font-bold text-slate-800 mb-2">Knowledge Bases</h3>
+                            <p class="text-slate-500 mb-4">
+                                Build custom knowledge bases like ChatGPT. Upload documents, websites, and files to
+                                train your AI on your specific content.
+                            </p>
+                            <a href="#"
+                               class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm">
+                                See how it works in action
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+
+                        <!-- Card 3: Search -->
+                        <div class="bg-slate-100 rounded-lg p-6 lg:p-8" data-aos="fade-up" data-aos-delay="200">
+                            <h3 class="text-xl font-bold text-slate-800 mb-2">Search</h3>
+                            <p class="text-slate-500 mb-4">
+                                Ditch your traditional search with LLM-based searching. Embed it on your website and let
+                                users find exactly what they need instantly.
+                            </p>
+                            <a href="#"
+                               class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm">
+                                See how it works in action
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+
+                    </div>
                 </div>
-            </div>
+            </section>
 
             @if (isset($landing['llm_marquee']) && $landing['llm_marquee']['enabled'] && count($landing['llm_marquee']['llms']) > 0)
                 <!-- LLM Marquee Section -->
-                <section class="relative py-12 md:py-20 bg-slate-50">
+                <section class="relative py-8 md:py-12 bg-white">
                     <style>
                         .marquee-animation {
                             animation: marquee 12s linear infinite;
                         }
+
                         @media (min-width: 768px) {
                             .marquee-animation {
                                 animation: marquee 20s linear infinite;
@@ -106,23 +157,16 @@
                         }
                     </style>
                     <div class="max-w-6xl mx-auto px-4 sm:px-6">
-                        <!-- Section header -->
-                        <div class="max-w-3xl mx-auto text-center mb-12">
-                            <h2 class="h3 font-rubik text-slate-800 mb-4">
-                                {{ $landing['llm_marquee']['title'] }}
-                            </h2>
-                            <p class="text-lg text-slate-600">
-                                {{ $landing['llm_marquee']['subtitle'] }}
-                            </p>
-                        </div>
-
+                        <div class="border-t border-slate-200 mb-8"></div>
+                        <p class="text-center text-sm text-slate-500 mb-6 font-medium uppercase tracking-wide">Powered
+                            by leading AI models</p>
                         <!-- Marquee Container -->
                         <div class="relative overflow-hidden">
                             <!-- Gradient overlays for smooth fade effect -->
                             <div
-                                class="absolute left-0 top-0 w-20 h-full bg-gradient-to-r from-slate-50 to-transparent z-10"></div>
+                                class="absolute left-0 top-0 w-20 h-full bg-gradient-to-r from-white to-transparent z-10"></div>
                             <div
-                                class="absolute right-0 top-0 w-20 h-full bg-gradient-to-l from-slate-50 to-transparent z-10"></div>
+                                class="absolute right-0 top-0 w-20 h-full bg-gradient-to-l from-white to-transparent z-10"></div>
 
                             <!-- Marquee content -->
                             <div class="flex whitespace-nowrap marquee-animation">
@@ -130,7 +174,7 @@
                                     <div class="flex items-center justify-center mx-8 min-w-[120px]">
                                         <img src="{{ asset('images/llms/' . $llm['logo']) }}"
                                              alt="{{ $llm['name'] }} AI model logo"
-                                             class="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
+                                             class="h-12 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
                                     </div>
                                 @endforeach
                                 <!-- Duplicate for seamless loop -->
@@ -138,7 +182,7 @@
                                     <div class="flex items-center justify-center mx-8 min-w-[120px]">
                                         <img src="{{ asset('images/llms/' . $llm['logo']) }}"
                                              alt="{{ $llm['name'] }} AI model logo"
-                                             class="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
+                                             class="h-12 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
                                     </div>
                                 @endforeach
                             </div>
@@ -146,6 +190,8 @@
                     </div>
                 </section>
             @endif
+
+            @include('partials.comparasion')
 
             <!-- Features Section Wrapper -->
             <div id="features">
@@ -423,7 +469,8 @@
                                                 <img
                                                     class="w-full aspect-square object-cover group-hover:scale-105 transition duration-700 ease-out"
                                                     src="{{ asset('images/features-home-3-01.png') }}" width="340"
-                                                    height="340" alt="Step 1: Upload your documents to create AI agents"/>
+                                                    height="340"
+                                                    alt="Step 1: Upload your documents to create AI agents"/>
                                             </div>
                                             <div
                                                 class="w-16 h-16 absolute bg-linear-to-b from-blue-500 to-blue-600 rounded-full -top-8 left-8">
@@ -493,7 +540,8 @@
                                                 <img
                                                     class="w-full aspect-square object-cover group-hover:scale-105 transition duration-700 ease-out"
                                                     src="{{ asset('images/features-home-3-03.png') }}" width="342"
-                                                    height="342" alt="Step 3: Deploy and start answering customer questions"/>
+                                                    height="342"
+                                                    alt="Step 3: Deploy and start answering customer questions"/>
                                             </div>
                                             <div
                                                 class="w-16 h-16 absolute bg-linear-to-b from-blue-500 to-blue-600 rounded-full -top-8 left-8">
@@ -603,9 +651,9 @@
 
                                 <!-- Image -->
                                 <div class="md:w-5/12 lg:w-1/2" data-aos="fade-left">
-                                <img class="mx-auto md:max-w-none" src="./images/target.png" width="540"
-                                     height="540"
-                                     alt="Target audience for AI chatbots - businesses seeking customer support automation"/>
+                                    <img class="mx-auto md:max-w-none" src="./images/target.png" width="540"
+                                         height="540"
+                                         alt="Target audience for AI chatbots - businesses seeking customer support automation"/>
                                 </div>
 
                             </div>
@@ -614,7 +662,6 @@
                     </div>
                 </section>
             @endif
-
 
             <!-- Pricing -->
             @if ($pricing && isset($packages))
@@ -671,6 +718,8 @@
                                                     </div>
                                                 </div>
                                             @endif
+
+
                                             <div class="mb-4 pb-4 border-b border-slate-200">
                                                 <div
                                                     class="text-lg font-semibold text-slate-800 mb-1">{{ $package['name'] }}</div>
@@ -689,6 +738,22 @@
                                                 </div>
                                                 <div class="text-slate-500">{{ $package['description'] }}</div>
                                             </div>
+
+                                                <div class="p-3 rounded-sm bg-slate-50">
+                                                    <form method="POST" action="{{ route('trial.checkout') }}"
+                                                          class="w-full trial-form">
+                                                        @csrf
+                                                        <input type="hidden" name="package" value="{{ $packageKey }}">
+                                                        <input type="hidden" name="yearly" class="yearly-input" value="0">
+                                                        <button type="submit"
+                                                                class="btn-sm text-white bg-blue-600 hover:bg-blue-700 w-full group cursor-pointer"
+                                                                onclick="this.form.querySelector('.yearly-input').value = document.getElementById('toggle').checked ? '1' : '0'">
+                                                            Start 7-Day Free Trial <span
+                                                                class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
+                                                        </button>
+                                                    </form>
+                                                </div>
+
                                             <div class="font-medium mb-3">
 
                                                 @if($numericIndex === 0)
@@ -700,7 +765,7 @@
                                                     All features of {{ $previousPackage['name'] }} plus:
                                                 @endif
                                             </div>
-                                            <div class="grow mb-6">
+                                            <div class="grow">
                                                 <!-- Monthly Features -->
                                                 <ul class="text-slate-500 space-y-3 absolute" x-show="!annual">
                                                     @foreach($package['features_monthly'] as $feature)
@@ -749,17 +814,7 @@
                                                     @endfor
                                                 </ul>
                                             </div>
-                                            <div class="p-3 rounded-sm bg-slate-50">
-                                                <form method="POST" action="{{ route('trial.checkout') }}" class="w-full trial-form">
-                                                    @csrf
-                                                    <input type="hidden" name="package" value="{{ $packageKey }}">
-                                                    <input type="hidden" name="yearly" class="yearly-input" value="0">
-                                                    <button type="submit" class="btn-sm text-white bg-blue-600 hover:bg-blue-700 w-full group cursor-pointer" onclick="this.form.querySelector('.yearly-input').value = document.getElementById('toggle').checked ? '1' : '0'">
-                                                        Start 7-Day Free Trial <span
-                                                            class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
-                                                    </button>
-                                                </form>
-                                            </div>
+
                                         </div>
                                     @endforeach
 
@@ -903,4 +958,6 @@
         @include('landing.partials.footer')
 
     </div>
+
+    @include('landing.partials.video-modal')
 @endsection

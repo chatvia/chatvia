@@ -189,11 +189,13 @@ const handleToggleIncognito = (value: boolean) => {
 
     <div class="flex h-screen">
         <!-- Mobile overlay -->
+        <Transition name="fade">
         <div
             v-if="!removeSidebar && isMobileDevice && isSidebarOpen"
-            class="fixed inset-0 z-30 bg-black/50 transition-opacity duration-300"
+                class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
             @click="isSidebarOpen = false"
         ></div>
+        </Transition>
 
         <!-- Sidebar -->
         <div
@@ -202,7 +204,6 @@ const handleToggleIncognito = (value: boolean) => {
             :class="{ '-translate-x-full': !isSidebarOpen }"
             v-on-click-outside="closeSidebarOnMobile"
         >
-
             <Sidebar
                 :appearance="appearance"
                 v-model:open="isSidebarOpen"
@@ -210,7 +211,7 @@ const handleToggleIncognito = (value: boolean) => {
                 :defaultModel="selectedModel || undefined"
                 :isLoadingModels="isLoadingModels"
                 :newChatRoute="newChatRoute"
-                class="h-full w-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
+                class="h-full w-full bg-sidebar"
             />
         </div>
 
@@ -221,7 +222,7 @@ const handleToggleIncognito = (value: boolean) => {
             <Header
                 :token-count="0"
                 :selected-model="selectedModel || { id: '', name: 'Loading...', context: 0, description: '' }"
-                class="w-full border-b bg-white dark:bg-gray-900 flex-shrink-0"
+                class="w-full flex-shrink-0"
                 @deleteConversation="deleteConversation"
                 @toggleIncognito="handleToggleIncognito"
                 @toggleSidebar="toggleSidebar"

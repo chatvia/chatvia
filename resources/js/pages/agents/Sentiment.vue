@@ -5,33 +5,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Line, Pie } from 'vue-chartjs';
-import { 
-    Chart as ChartJS, 
-    CategoryScale, 
-    LinearScale, 
-    PointElement, 
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
     LineElement,
     ArcElement,
-    Title, 
-    Tooltip as ChartTooltip, 
+    Title,
+    Tooltip as ChartTooltip,
     Legend,
     Filler,
     type ChartOptions
 } from 'chart.js';
-import { 
+import {
     SmilePlus, LoaderCircle, Info
 } from 'lucide-vue-next';
 import axios from 'axios';
 
 // Register Chart.js components
 ChartJS.register(
-    CategoryScale, 
-    LinearScale, 
-    PointElement, 
-    LineElement, 
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
     ArcElement,
-    Title, 
-    ChartTooltip, 
+    Title,
+    ChartTooltip,
     Legend,
     Filler
 );
@@ -422,53 +422,6 @@ onMounted(() => {
                 </CardContent>
             </Card>
 
-            <!-- Additional Info -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>About Sentiment Analysis</CardTitle>
-                    <CardDescription>
-                        Understanding sentiment metrics for your agent
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="space-y-3">
-                    <div class="flex items-start gap-3">
-                        <div class="h-3 w-3 rounded-full bg-blue-500 mt-1 flex-shrink-0"></div>
-                        <div>
-                            <p class="font-medium">Positive</p>
-                            <p class="text-sm text-muted-foreground">
-                                Messages expressing satisfaction, happiness, or positive feedback
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <div class="h-3 w-3 rounded-full bg-slate-600 mt-1 flex-shrink-0"></div>
-                        <div>
-                            <p class="font-medium">Neutral</p>
-                            <p class="text-sm text-muted-foreground">
-                                Messages with no strong emotional tone, typically informational
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <div class="h-3 w-3 rounded-full bg-red-500 mt-1 flex-shrink-0"></div>
-                        <div>
-                            <p class="font-medium">Negative</p>
-                            <p class="text-sm text-muted-foreground">
-                                Messages expressing dissatisfaction, frustration, or negative feedback
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <div class="h-3 w-3 rounded-full bg-slate-300 mt-1 flex-shrink-0"></div>
-                        <div>
-                            <p class="font-medium">Unspecified</p>
-                            <p class="text-sm text-muted-foreground">
-                                Messages that haven't been analyzed for sentiment yet
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     </AgentLayout>
 </template>

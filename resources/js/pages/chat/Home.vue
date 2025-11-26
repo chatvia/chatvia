@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import axios from "axios";
 import {Head, router} from '@inertiajs/vue3';
 import ChatLayout from "@/components/chat/ChatLayout.vue";
-import Composer from "@/components/chat/Composer.vue";
+import ChatComposer from "@/components/chat/ChatComposer.vue";
 import { useColorTheme } from '@/composables/useColorTheme';
 import AppLogoIcon from "@/components/AppLogoIcon.vue";
 
@@ -56,10 +56,52 @@ const selectedStarter = ref('');
 
 const starters = ref([]);
 
+// Models
+const models = ref([]);
+const defaultModel = ref(null);
+const isLoadingModels = ref(true);
+
 // Usage checking
 const USAGE_CHECK_INTERVAL = 60000; // 1 minute
 const canSendMessages = ref(true);
 const usageCheckInterval = ref(null);
+
+const getQueryParam = (param) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+};
+
+// Fetch models
+const fetchModels = async () => {
+    try {
+        isLoadingModels.value = true;
+        const response = await axios.get(route('chat.models.index'));
+        models.value = response.data.models;
+        
+        const urlModelId = getQueryParam('model');
+        
+        // Validate model from URL - use first valid model if invalid
+        if (urlModelId) {
+            const urlModel = models.value.find((m) => m.id === urlModelId);
+            if (!urlModel) {
+                // Invalid model in URL, redirect with first available model
+                const firstModel = models.value[0] || response.data.default;
+                router.visit(
+                    route(props.newChatRoute, { model: firstModel?.id }),
+                    { replace: true }
+                );
+                return;
+            }
+            defaultModel.value = urlModel;
+        } else {
+            defaultModel.value = response.data.default;
+        }
+    } catch (error) {
+        console.error('Failed to fetch models:', error);
+    } finally {
+        isLoadingModels.value = false;
+    }
+};
 
 const { applyColorTheme } = useColorTheme();
 
@@ -92,12 +134,15 @@ const stopUsageChecking = () => {
     }
 };
 
-onMounted(() => {
+onMounted(async () => {
     // Start usage checking
     startUsageChecking();
 
     // Apply color theme
     applyColorTheme(props.appearance);
+
+    // Fetch models
+    await fetchModels();
 
     // Fetch starters
     axios.get(route('chat.starters')).then(response => {
@@ -130,55 +175,50 @@ function handleStarterClick(starter) {
   <ChatLayout :appearance="props.appearance" :removeSidebar="props.removeSidebar" :hideSidebarOnPageLoad="props.hideSidebarOnPageLoad" :enableThemeSwitcher="props.enableThemeSwitcher" :defaultTheme="props.defaultTheme" :enableChatExpand="props.enableChatExpand" :newChatRoute="props.newChatRoute">
       <Head title="ChatVia" />
             <template #content>
-          <div class="flex h-screen items-center justify-center px-4">
-              <div class="w-full max-w-4xl mx-auto">
+          <div class="flex h-full items-center justify-center px-4 py-8">
+              <div class="w-full max-w-3xl mx-auto">
                   <!-- Logo -->
-                  <div class="flex justify-center mb-6">
-                      <div class="h-20 w-20 overflow-hidden">
+                  <div class="flex justify-center mb-4">
+                      <div class="h-14 w-14 overflow-hidden">
                           <img v-if="props.appearance.logo"
                               :src="props.appearance.logo"
                               alt="Logo"
-                              class="h-full w-full object-cover text-red"
+                              class="h-full w-full object-contain"
                           />
-                          <AppLogoIcon v-else class="h-10" />
+                          <AppLogoIcon v-else class="h-full w-full" />
                       </div>
                   </div>
 
-                  <!-- Dynamic welcome message -->
-                  <h1 class="mb-8 text-center text-4xl font-medium text-gray-800 dark:text-white">
-                      {{ props.appearance?.welcome_message }}
+                  <!-- Welcome message -->
+                  <h1 class="mb-10 text-center text-2xl sm:text-3xl font-semibold text-foreground">
+                      {{ props.appearance?.welcome_message || 'How can I help you today?' }}
                   </h1>
 
                   <!-- Conversation Starters -->
-                  <div class="mb-8 px-2 sm:px-4">
-                      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8 justify-items-center max-w-5xl mx-auto">
+                  <div v-if="starters.length > 0" class="mb-8">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
                           <button
                               v-for="starter in starters"
                               :key="starter.id"
                               @click="handleStarterClick(starter)"
-                              class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-800/50 dark:via-slate-700/30 dark:to-slate-800/50 p-4 text-left border border-slate-200/60 dark:border-slate-600/30 hover:border-slate-300/80 dark:hover:border-slate-500/50 transition-all duration-300 ease-out hover:shadow-xl hover:shadow-slate-200/25 dark:hover:shadow-slate-900/25 hover:-translate-y-1 active:translate-y-0 active:scale-[0.99] backdrop-blur-sm w-full"
+                              class="group text-left px-4 py-3 rounded-xl border border-border/60 bg-card hover:bg-muted/50 hover:border-border transition-all duration-150 cursor-pointer"
                           >
-                              <div class="relative z-10">
-                                  <p class="text-sm font-medium text-slate-700 dark:text-slate-200 leading-relaxed tracking-wide">
+                              <p class="text-sm text-foreground/80 group-hover:text-foreground leading-relaxed line-clamp-2">
                                       {{ starter.text }}
                                   </p>
-                              </div>
-
-                              <!-- Modern gradient overlay -->
-                              <div class="absolute inset-0 bg-gradient-to-br from-blue-50/60 via-transparent to-purple-50/40 dark:from-blue-500/5 dark:via-transparent dark:to-purple-500/5 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out"></div>
-
-                              <!-- Subtle shine effect -->
-                              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out"></div>
                           </button>
                       </div>
                   </div>
 
-                  <div class="mx-auto w-full px-2 sm:px-4">
+                  <div class="mx-auto w-full max-w-2xl">
                       <!-- Show composer if user can send messages -->
-                      <Composer
+                      <ChatComposer
                           v-if="canSendMessages"
                           :text="selectedStarter"
                           :placeholder="appearance.composer_placeholder"
+                          :models="models"
+                          :defaultModel="defaultModel"
+                          :isLoadingModels="isLoadingModels"
                           @modelSelected="updateSelectedModel"
                           @messageAdded="createNewConversation"
                       />
@@ -195,9 +235,9 @@ function handleStarterClick(starter) {
                           </div>
                       </div>
 
-                      <!-- Dynamic footer text -->
+                      <!-- Footer text -->
                       <div v-if="props.appearance?.chat_footer_text" class="text-center mt-4">
-                          <p class="text-xs text-muted-foreground">
+                          <p class="text-[11px] text-muted-foreground/60">
                               {{ props.appearance.chat_footer_text }}
                           </p>
                       </div>

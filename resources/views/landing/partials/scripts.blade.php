@@ -9,6 +9,68 @@
         easing: 'ease-out-cubic',
     });
 
+    // Handle smooth scrolling with AOS refresh
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle anchor link clicks
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href === '#' || href === '#0') return;
+                
+                const target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    
+                    // Calculate offset for fixed header if needed
+                    const headerOffset = 80;
+                    const elementPosition = target.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    // Smooth scroll
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+
+                    // Refresh AOS after scroll completes to trigger animations
+                    // Use multiple timeouts to ensure AOS detects elements properly
+                    setTimeout(() => {
+                        AOS.refresh();
+                    }, 600);
+                    
+                    setTimeout(() => {
+                        AOS.refresh();
+                    }, 1000);
+                }
+            });
+        });
+
+        // Also handle direct hash navigation on page load
+        if (window.location.hash) {
+            setTimeout(() => {
+                const target = document.querySelector(window.location.hash);
+                if (target) {
+                    const headerOffset = 80;
+                    const elementPosition = target.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                    
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                    
+                    setTimeout(() => {
+                        AOS.refresh();
+                    }, 600);
+                    
+                    setTimeout(() => {
+                        AOS.refresh();
+                    }, 1000);
+                }
+            }, 100);
+        }
+    });
+
 </script>
 
 <script

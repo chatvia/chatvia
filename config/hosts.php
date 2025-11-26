@@ -165,7 +165,7 @@ return [
                 ],
                 'button' => [
                     'label' => 'Start 7-Day Free Trial',
-                    'route' => 'register',
+                    'route' => '#pricing',
                 ],
                 'text_below_button' => '',
             ],

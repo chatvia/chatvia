@@ -41,7 +41,7 @@
                         @else
                             <li class="ml-2">
                                 <a class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out"
-                                   href="{{ route('register') }}">Register</a>
+                                   href="{{ route('home') }}#pricing">Start Free Trial</a>
                             </li>
                             <li class="ml-2">
                                 <a class="bg-white hover:bg-gray-50 text-slate-800 font-medium px-4 py-2 rounded-lg border border-slate-200 flex items-center transition duration-150 ease-in-out"
@@ -107,7 +107,7 @@
                                    href="{{ route('login') }}">Sign in</a>
                             </li>
                             <li>
-                                <a class="flex font-medium text-blue-600 py-2 group" href="{{ route('register') }}">Register
+                                <a class="flex font-medium text-blue-600 py-2 group" href="{{ route('home') }}#pricing">Start Free Trial
                                     <span
                                         class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">→</span></a>
                             </li>

@@ -107,8 +107,8 @@
 
                                     <div class="mt-8">
                                             <a class="btn text-zinc-100 bg-linear-to-r from-zinc-700 to-zinc-900 hover:from-zinc-900 hover:to-zinc-900 w-full shadow-sm"
-                                               href="{{ route('register') }}">
-                                                Get Started
+                                               href="#pricing">
+                                                Start Free Trial
                                             </a>
                                     </div>
                                 </div>

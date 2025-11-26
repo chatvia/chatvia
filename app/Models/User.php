@@ -93,7 +93,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         $package = $this->getCurrentPackage();
 
-        return config('billing.packages.'.strtolower($package['name']), config('billing.packages.free'));
+        $defaultPackage = config('billing.default_package', 'starter');
+
+        return config('billing.packages.'.strtolower($package['name']), config('billing.packages.'.$defaultPackage));
     }
 
     public function hasActiveSubscription(): bool
@@ -266,7 +268,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function isPaid(): Attribute
     {
-        return Attribute::get(fn () => $this->getCurrentPackage()['id'] !== 'free');
+        // All users are now paid (on trial or subscribed)
+        return Attribute::get(fn () => $this->subscribed('default') || $this->onTrial());
     }
 
     public function credits(): HasMany

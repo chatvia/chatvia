@@ -29,97 +29,6 @@ return [
     'packages' => [
         /*
         |----------------------------------------------------------------------
-        | Free Plan
-        |----------------------------------------------------------------------
-        |
-        | Entry-level plan for users to try the platform. No payment required.
-        | Limited features and capabilities to encourage upgrades.
-        |
-        */
-        'free' => [
-            'name' => 'Free',
-            'description' => 'Perfect for trying out our AI agents',
-
-            /*
-            | UI FEATURES: What users see on pricing pages and marketing materials.
-            | Separate features for monthly vs yearly to show different benefits.
-            */
-            'features' => [
-                'monthly' => [
-                    'Access to fast models',
-                    '100 messages/month',
-                    '50 pages',
-                    '50 links',
-                    '1 AI agent',
-                    '1 Member',
-                    'Basic PDF',
-                    'Random subdomain',
-                ],
-                'yearly' => [
-                    'Access to fast models',
-                    '100 messages/month',
-                    '50 pages',
-                    '50 links',
-                    '1 AI agent',
-                    '1 Member',
-                    'Basic PDF',
-                    'Random subdomain',
-                ],
-            ],
-
-            /*
-            | CAPABILITIES: Backend feature flags that your code should check.
-            | Use these in your application logic with user_has_capability('key').
-            |
-            | Boolean values: true/false for simple on/off features
-            | String values: Support levels like 'email', 'priority', 'dedicated'
-            | Numeric values: Limits like storage_gb, max_agents, etc.
-            | Array values: Lists of allowed items like models, file types
-            */
-            'capabilities' => [
-                'custom_sub_domain' => false,
-                'custom_domains' => false,
-                'advanced_pdf' => false,
-                'ocr' => false,
-                'audio' => false,
-                'video' => false,
-                'api_access' => false,
-                'custom_integrations' => false,
-                'team_collaboration' => true,
-                'priority_support' => false,
-            ],
-            'stripe_monthly_price_id' => null,
-            'stripe_yearly_price_id' => null,
-            'monthly_price' => 0,
-            'yearly_price' => 0,
-            'is_popular' => false,
-
-            /*
-            | QUOTA LIMITS: Usage tracking limits for this billing plan.
-            | These are enforced by the QuotaService and reset each billing period.
-            | Separate limits for monthly vs yearly subscriptions to provide
-            | better value for annual commitments.
-            */
-            'quota_limits' => [
-                'monthly' => [
-                    'messages_limit' => 100,
-                ],
-                'yearly' => [
-                    'messages_limit' => 100,
-                ],
-                'fixed' => [
-                    'agents_limit' => 1,
-                    'pages_limit' => 50,
-                    'minutes_limit' => 30,
-                    'links_limit' => 50,
-                    'custom_domains_limit' => 0,
-                    'members_limit' => 1,
-                ],
-            ],
-        ],
-
-        /*
-        |----------------------------------------------------------------------
         | Starter Plan
         |----------------------------------------------------------------------
         |
@@ -455,7 +364,7 @@ return [
     | The default package that new users will be assigned to.
     |
     */
-    'default_package' => 'free',
+    'default_package' => 'starter',
 
     /*
     |--------------------------------------------------------------------------
@@ -466,7 +375,7 @@ return [
     |
     */
     'trial' => [
-        'days' => 0,
+        'days' => 7,
     ],
 
     /*
@@ -548,7 +457,6 @@ return [
     |
     */
     'package_icons' => [
-        'free' => 'gift',
         'starter' => 'zap',
         'standard' => 'star',
         'pro' => 'crown',

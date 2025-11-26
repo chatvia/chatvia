@@ -157,17 +157,17 @@ return [
                 ['label' => 'Changelog', 'link' => '/changelog'],
             ],
             'hero' => [
-                'top' => 'Upload your files or link your website',
+                'top' => 'Build custom AI chatbots trained on documents, websites, and internal data.',
                 'headline' => 'AI Agents <br/>Powered by Your Data',
                 'subheadlines' => [
-                    'Build custom AI chatbots trained on documents, websites, and internal data.',
-                    'Improve support, capture leads, and scale your team.',
+                    '',
+                    '',
                 ],
                 'button' => [
-                    'label' => 'Get started for free',
+                    'label' => 'Start 7-Day Free Trial',
                     'route' => 'register',
                 ],
-                'text_below_button' => 'No credit card required',
+                'text_below_button' => '',
             ],
             'bubbles' => [
                 ['text' => 'Hi! How can I help you today?', 'from' => 'bot', 'pos' => 'top-left', 'delay' => 0],

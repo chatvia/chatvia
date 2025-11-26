@@ -290,6 +290,36 @@ const cancelScheduledPlanChange = () => {
                     </div>
                 </div>
 
+                <!-- Trial Information Banner for Trial Users -->
+                <div v-if="on_trial && !subscribed" class="mb-8">
+                    <Card class="overflow-hidden border-emerald-200 dark:border-emerald-800 relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/30 dark:via-teal-950/30 dark:to-cyan-950/30">
+                        <div class="absolute inset-0 bg-gradient-to-r from-emerald-400/10 via-teal-400/10 to-cyan-400/10 dark:from-emerald-400/5 dark:via-teal-400/5 dark:to-cyan-400/5 opacity-70"></div>
+                        <CardContent class="p-6 relative z-10">
+                            <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-emerald-400 dark:to-teal-500 flex items-center justify-center shadow-sm flex-shrink-0">
+                                        <Zap class="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">🎉 You're on a Free Trial!</h3>
+                                        <p class="text-sm text-emerald-600/70 dark:text-emerald-300/70 mt-1">
+                                            Your {{ current_package.name }} trial ends on <span class="font-semibold">{{ trial_ends_at }}</span>
+                                        </p>
+                                        <p class="text-sm text-emerald-600/70 dark:text-emerald-300/70 mt-1">
+                                            Your paid subscription will start automatically on {{ trial_ends_at }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <Badge variant="outline" class="border-emerald-500 text-emerald-700 dark:text-emerald-300 w-fit">
+                                        Trial Active
+                                    </Badge>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
                 <!-- Simple Subscription Encouragement for Non-Subscribed Users -->
                 <div v-if="!subscribed && !on_trial" class="mb-8">
                     <Card class="overflow-hidden border-indigo-200 dark:border-indigo-800 relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30">
@@ -483,7 +513,7 @@ const cancelScheduledPlanChange = () => {
 
                     <!-- Usage & Limits -->
                     <div class="space-y-6">
-                        <Card v-show="subscribed">
+                        <Card v-show="subscribed || on_trial">
                             <CardHeader>
                                 <CardTitle class="text-lg">Management</CardTitle>
 

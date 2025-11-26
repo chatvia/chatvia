@@ -103,21 +103,20 @@ async function deleteMessage() {
 </script>
 
 <template>
-  <div class="flex justify-end items-start gap-3 group w-full">
+  <div class="flex justify-end items-start gap-3 group w-full animate-in fade-in-50 duration-500">
     <div class="flex flex-col items-end flex-1 min-w-0">
-      <Card class="p-4 bg-primary text-primary-foreground border-0 rounded-2xl rounded-tr-sm max-w-[70%]">
+      <Card class="px-5 py-3 bg-muted/80 dark:bg-muted/60 text-foreground border-0 rounded-3xl max-w-[70%]">
         <div v-if="isEditing" class="min-w-[300px]">
           <Textarea
             :id="`edit-user-${message.id}`"
             v-model="editedContent"
-            class="min-h-[80px] bg-primary-foreground/10 text-primary-foreground border-0 focus:ring-2 focus:ring-primary-foreground/20"
+            class="min-h-[80px] bg-background text-foreground border-border focus:ring-2 focus:ring-primary/20 rounded-lg"
             @keydown="handleEditKeyDown"
           />
           <div class="flex justify-end gap-2 mt-3">
             <Button
               size="sm"
               variant="ghost"
-              class="text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10"
               @click="cancelEditing"
             >
               <X class="w-4 h-4 mr-1" />
@@ -125,7 +124,6 @@ async function deleteMessage() {
             </Button>
             <Button
               size="sm"
-              variant="secondary"
               @click="saveEditedMessage"
             >
               <Send class="w-4 h-4 mr-1" />
@@ -134,28 +132,28 @@ async function deleteMessage() {
           </div>
         </div>
         <div v-else>
-          <p class="text-sm whitespace-pre-wrap break-words" :data-rtl="isRTL">{{ message.content }}</p>
+          <p class="text-[15px] leading-relaxed whitespace-pre-wrap break-words" :data-rtl="isRTL">{{ message.content }}</p>
         </div>
       </Card>
 
-      <div class="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div class="flex items-center gap-0.5 mt-1.5 pr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <Button
           size="icon"
           variant="ghost"
-          class="h-8 w-8"
+          class="h-7 w-7 hover:bg-muted"
           @click="copyToClipboard"
         >
-          <Check v-if="isCopied" class="h-4 w-4 text-green-500" />
-          <Copy v-else class="h-4 w-4" />
+          <Check v-if="isCopied" class="h-3.5 w-3.5 text-green-500" />
+          <Copy v-else class="h-3.5 w-3.5" />
         </Button>
         <Button
           v-if="!isEditing"
           size="icon"
           variant="ghost"
-          class="h-8 w-8"
+          class="h-7 w-7 hover:bg-muted"
           @click="startEditing"
         >
-          <Edit3 class="h-4 w-4" />
+          <Edit3 class="h-3.5 w-3.5" />
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -163,9 +161,9 @@ async function deleteMessage() {
               v-if="!isEditing"
               size="icon"
               variant="ghost"
-              class="h-8 w-8 hover:text-red-600"
+              class="h-7 w-7 hover:bg-muted hover:text-red-600"
             >
-              <Trash2 class="h-4 w-4" />
+              <Trash2 class="h-3.5 w-3.5" />
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>

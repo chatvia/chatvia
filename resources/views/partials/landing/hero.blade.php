@@ -27,9 +27,9 @@
 
                     <!-- Get Started Button -->
                     <div class="flex justify-center mb-8">
-                        <a href="{{ route('register') }}"
+                        <a href="#pricing"
                            class="btn text-zinc-100 bg-linear-to-r from-zinc-700 to-zinc-900 hover:from-zinc-900 hover:to-zinc-900 shadow-sm px-8 py-4 text-lg">
-                            Get Started for Free
+                            Start Free Trial
                         </a>
                     </div>
 

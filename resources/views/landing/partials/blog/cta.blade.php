@@ -12,11 +12,11 @@
             <div class="text-center lg:text-left lg:max-w-xl">
                 <h3 class="h3 font-playfair-display text-slate-100 mb-8 text-4xl">Creates custom GPTs in minutes - powered by <span class="text-emerald-500">your data</span>.</h3>
                 <div class="mb-3">
-                    <a class="btn text-white bg-blue-600 hover:bg-blue-700 group" href="{{ route('register') }}">
-                        Start for free <span class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
+                    <a class="btn text-white bg-blue-600 hover:bg-blue-700 group" href="{{ route('home') }}#pricing">
+                        Start free trial <span class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
                     </a>
                 </div>
-                <div class="text-sm italic text-slate-500">No credit card required. Cancel anytime!</div>
+                <div class="text-sm italic text-slate-500">7-day free trial. No credit card required!</div>
             </div>
 
         </div>

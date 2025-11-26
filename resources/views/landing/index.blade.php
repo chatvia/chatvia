@@ -750,19 +750,15 @@
                                                 </ul>
                                             </div>
                                             <div class="p-3 rounded-sm bg-slate-50">
-                                                @if($package['id'] === 'free')
-                                                    <a class="btn-sm text-white bg-blue-600 hover:bg-blue-700 w-full group"
-                                                       href="{{ route('register') }}">
-                                                        Get Started Free <span
+                                                <form method="POST" action="{{ route('trial.checkout') }}" class="w-full trial-form">
+                                                    @csrf
+                                                    <input type="hidden" name="package" value="{{ $packageKey }}">
+                                                    <input type="hidden" name="yearly" class="yearly-input" value="0">
+                                                    <button type="submit" class="btn-sm text-white bg-blue-600 hover:bg-blue-700 w-full group cursor-pointer" onclick="this.form.querySelector('.yearly-input').value = document.getElementById('toggle').checked ? '1' : '0'">
+                                                        Start 7-Day Free Trial <span
                                                             class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
-                                                    </a>
-                                                @else
-                                                    <a class="btn-sm text-white bg-blue-600 hover:bg-blue-700 w-full group"
-                                                       href="{{ route('register') }}">
-                                                        Get started for free <span
-                                                            class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
-                                                    </a>
-                                                @endif
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
                                     @endforeach

@@ -12,16 +12,22 @@ use Laravel\Socialite\Facades\Socialite;
 
 class SocialLoginAction
 {
-    public function execute(string $driver, Request $request): void
+    public function execute(string $driver)
     {
         /** @var \Laravel\Socialite\Contracts\User $socialUser */
         $socialUser = Socialite::driver($driver)->stateless()->user();
+
+        $driverId =  $driver.'_id';
 
         $user = User::where($driver.'_id', $socialUser->getId())
             ->orWhere('email', $socialUser->getEmail())
             ->first();
 
-        if ($user?->email && ! $user?->google_id) {
+        if (!$user) {
+            return redirect(route('login'))->with(['error' => 'No account found!']);
+        }
+
+        if ($user->email && ! $user->$driverId) {
 
             $data = [
                 $driver.'_id' => $socialUser->id,
@@ -30,19 +36,8 @@ class SocialLoginAction
             $user->update($data);
         }
 
-        if (! $user) {
-            /** @var User $user */
-            $user = User::create([
-                'name' => $socialUser->getName(),
-                'email' => $socialUser->getEmail(),
-                'password' => Hash::make(Str::random()),
-                'email_verified_at' => now(),
-                $driver.'_id' => $socialUser->getId(),
-                'registered_ip' => $request->ip(),
-                'registered_country_code' => IP2Country::getCountryByIP($request->ip()),
-            ]);
-        }
-
         Auth::login($user);
+
+        return redirect(route('dashboard'));
     }
 }

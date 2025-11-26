@@ -32,6 +32,10 @@ export interface SharedData extends PageProps {
     sidebarOpen: boolean;
     tenant: string;
     features: Features;
+    subscribed: boolean;
+    onTrial: boolean;
+    trialEndsAt?: string | null;
+    subscriptionStartsAt?: string | null;
 }
 
 export interface User {

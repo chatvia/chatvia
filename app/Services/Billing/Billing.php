@@ -32,10 +32,8 @@ class Billing
 
     public function getFreePackage()
     {
-        return collect($this->getAvailablePackages())
-            ->whereNull('stripe_monthly_price_id')
-            ->whereNull('stripe_yearly_price_id')
-            ->first();
+        // Since free package is removed, return starter as default
+        return $this->getPackage(config('billing.default_package', 'starter'));
     }
 
     public function getPackageByName(string $name)

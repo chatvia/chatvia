@@ -186,13 +186,13 @@ const loginWithSlack = () => {
             <div class="text-center pt-4">
                 <p class="text-base text-muted-foreground">
                     Don't have an account?
-                    <TextLink
-                        :href="route('register')"
+                    <a
+                        href="/#pricing"
                         :tabindex="8"
                         class="font-semibold text-primary hover:text-primary/80 ml-1"
                     >
-                        Create account
-                    </TextLink>
+                        Start free trial
+                    </a>
                 </p>
             </div>
         </div>

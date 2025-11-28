@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agents\Agents;
 
 use App\Http\Requests\Agents\CreateAgentRequest;
 use App\Models\Agent;
+use App\Models\User;
 use App\Services\Ingestion\Ingestion;
 use App\Services\Prompts\PromptLoader;
 use App\Services\Subdomain;
@@ -14,6 +15,7 @@ class AgentStoreController
 {
     public function __invoke(CreateAgentRequest $request, Ingestion $ingestion, Subdomain $subdomain)
     {
+        /** @var User $user */
         $user = $request->user();
 
         try {

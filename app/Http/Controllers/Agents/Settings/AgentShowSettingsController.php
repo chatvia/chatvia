@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Settings;
 
+use App\Data\Resources\Agent\AgentResourceData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,6 +16,6 @@ class AgentShowSettingsController
             code: 404,
         );
 
-        return Inertia::render('agents/Persona', ['agent' => $agent]);
+        return Inertia::render('agents/Persona', ['agent' => AgentResourceData::fromModel($agent)]);
     }
 }

@@ -84,7 +84,7 @@ import { BotIcon, ExternalLink, Copy, MoreHorizontal } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: any;
+    agent: App.Data.Resources.Agent.AgentResourceData;
     authToken?: string | null;
 }
 

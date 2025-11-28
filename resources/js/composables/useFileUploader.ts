@@ -2,13 +2,16 @@ import { ref, computed, onUnmounted } from 'vue';
 import axios from 'axios';
 import { toast } from 'vue-sonner';
 
+export type FileAnalyzedData = App.Data.Agent.KnowledgeAnalyzeResourceData;
+
 export interface FileStats {
     pages?: number;
     length?: number;
     is_audio_file?: boolean;
     is_video_file?: boolean;
     mime_type: string;
-    encrypted: boolean;
+    filetype?: string;
+    encrypted?: boolean;
 }
 
 export interface UploadingFileData {
@@ -24,7 +27,7 @@ export interface UploadingFileData {
     phase?: 'uploading' | 'processing' | 'complete';
     processingInterval?: number;
     isAnalyzed?: boolean;
-    analyzedData?: any;
+    analyzedData?: FileAnalyzedData;
 }
 
 export interface FileUploaderConfig {
@@ -32,7 +35,7 @@ export interface FileUploaderConfig {
     analyzeEndpoint: (file: File) => string;
     acceptedTypes: string;
     maxFileSize?: number; // in MB
-    onFileAnalyzed?: (file: UploadingFileData, data: any) => void;
+    onFileAnalyzed?: (file: UploadingFileData, data: FileAnalyzedData) => void;
     onFileError?: (file: UploadingFileData, error: string) => void;
 }
 

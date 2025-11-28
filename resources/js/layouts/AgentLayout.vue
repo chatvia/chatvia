@@ -151,11 +151,11 @@ const uiNavigationItems = computed(() => {
 
 const controlPanelNavigationItems = computed(() => {
     const baseItems = [
-        { 
-            id: 'analytics', 
-            label: 'Analytics', 
-            icon: BarChart3, 
-            route: 'agents.analytics', 
+        {
+            id: 'analytics',
+            label: 'Analytics',
+            icon: BarChart3,
+            route: 'agents.analytics',
             tooltip: 'View usage analytics and insights',
             subItems: [
                 { id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' },
@@ -168,11 +168,9 @@ const controlPanelNavigationItems = computed(() => {
         },
     ];
 
-    if ((page.props.permissions as any)?.persona?.view === true) {
-        baseItems.push(
-            { id: 'persona', label: 'Persona', icon: Bot, route: 'agents.persona', tooltip: 'Configure agent personality and behavior' },
-        )
-    }
+    // baseItems.push(
+    //     { id: 'persona', label: 'Persona', icon: Bot, route: 'agents.persona', tooltip: 'Configure agent personality and behavior' },
+    // )
 
     // Only add models if the agent is not a widget
     if (props.agent.type !== 'widget') {
@@ -285,10 +283,11 @@ const canDelete = computed(() => {
 const isActiveRoute = (routeName: string) => {
     const routeParts = routeName.split('.'); // Extract parts like ['agents', 'knowledge', 'web']
 
-    // Special handling for knowledge base routes - if checking for agents.knowledge,
-    // also match any sub-routes like agents.knowledge.web or agents.knowledge.text
+    // Special handling for knowledge base routes - if checking for agents.sources,
+    // match sub-routes like agents/Sources/Web, agents/Sources/Text (with trailing slash)
+    // but NOT the analytics sources page which is just 'agents/Sources'
     if (routeName === 'agents.sources') {
-        return currentRoute.value.startsWith('agents/Sources');
+        return currentRoute.value.startsWith('agents/Sources/');
     }
 
     // Handle special cases for component naming
@@ -334,13 +333,14 @@ const isActiveRoute = (routeName: string) => {
 };
 
 // Analytics submenu state - auto-open if on any analytics page
+// Note: 'agents/Sources' (exact match) is the analytics sources page
 const analyticsSubmenuOpen = ref(
     currentRoute.value.startsWith('agents/Analytics') ||
     currentRoute.value.startsWith('agents/Metrics') ||
     currentRoute.value.startsWith('agents/Sentiment') ||
     currentRoute.value.startsWith('agents/Emotion') ||
     currentRoute.value.startsWith('agents/Topics') ||
-    currentRoute.value.startsWith('agents/Sources') ||
+    currentRoute.value === 'agents/Sources' ||
     isActiveRoute('agents.analytics') ||
     isActiveRoute('agents.analytics.metrics') ||
     isActiveRoute('agents.analytics.sentiment') ||
@@ -349,9 +349,10 @@ const analyticsSubmenuOpen = ref(
     isActiveRoute('agents.analytics.sources')
 );
 
-// Sources submenu state - auto-open if on sources page
+// Sources submenu state - auto-open if on knowledge sources page
+// Note: 'agents/Sources/' prefix (with slash) matches knowledge pages like Sources/Web
 const sourcesSubmenuOpen = ref(
-    currentRoute.value.startsWith('agents/Sources') ||
+    currentRoute.value.startsWith('agents/Sources/') ||
     isActiveRoute('agents.sources') ||
     isActiveRoute('agents.sources.web') ||
     isActiveRoute('agents.sources.text') ||
@@ -483,9 +484,9 @@ onMounted(() => {
                                             :align-offset="0"
                                             class="w-56"
                                         >
-                                            <DropdownMenuItem 
-                                                v-for="subItem in item.subItems" 
-                                                :key="subItem.id" 
+                                            <DropdownMenuItem
+                                                v-for="subItem in item.subItems"
+                                                :key="subItem.id"
                                                 as-child
                                             >
                                                 <Link

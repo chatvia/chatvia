@@ -6,7 +6,7 @@ import { FileText, LoaderCircle } from 'lucide-vue-next';
 import axios from 'axios';
 
 interface Props {
-    agent: any
+    agent: App.Data.Resources.Agent.AgentResourceData
 }
 
 const props = defineProps<Props>();

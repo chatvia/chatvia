@@ -18,38 +18,7 @@ import {
     Link2
 } from 'lucide-vue-next';
 
-interface UsageData {
-    subscription: {
-        plan: string;
-    };
-    agents: {
-        total: {
-            limit: number;
-            created: number;
-            remaining: number;
-        };
-    };
-    pages: {
-        limit: number;
-        used: number;
-        remaining: number;
-    };
-    minutes: {
-        limit: number;
-        used: number;
-        remaining: number;
-    };
-    links: {
-        limit: number;
-        used: number;
-        remaining: number;
-    };
-    messages: {
-        sent: number;
-        limit: number;
-        remaining: number;
-    };
-}
+type UsageData = App.Data.Resources.My.Usage.UsageResourceData;
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -155,7 +124,7 @@ onMounted(() => {
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-2xl font-bold">{{ usageData.messages.sent.toLocaleString() }}</span>
+                                    <span class="text-2xl font-bold">{{ usageData.messages.used.toLocaleString() }}</span>
                                     <span class="text-sm text-muted-foreground">
                                         of {{ usageData.messages.limit.toLocaleString() }}
                                     </span>
@@ -163,8 +132,8 @@ onMounted(() => {
                                 <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
-                                        :class="getUsageColor(getUsagePercentage(usageData.messages.sent, usageData.messages.limit))"
-                                        :style="{ width: `${getUsagePercentage(usageData.messages.sent, usageData.messages.limit)}%` }"
+                                        :class="getUsageColor(getUsagePercentage(usageData.messages.used, usageData.messages.limit))"
+                                        :style="{ width: `${getUsagePercentage(usageData.messages.used, usageData.messages.limit)}%` }"
                                     ></div>
                                 </div>
                                 <div class="flex items-center justify-between text-sm">
@@ -279,20 +248,20 @@ onMounted(() => {
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-2xl font-bold">{{ usageData.agents.total.created }}</span>
+                                    <span class="text-2xl font-bold">{{ usageData.agents.used }}</span>
                                     <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.agents.total.limit }}
+                                        of {{ usageData.agents.limit }}
                                     </span>
                                 </div>
                                 <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
-                                        :class="getUsageColor(getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit))"
-                                        :style="{ width: `${getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit)}%` }"
+                                        :class="getUsageColor(getUsagePercentage(usageData.agents.used, usageData.agents.limit))"
+                                        :style="{ width: `${getUsagePercentage(usageData.agents.used, usageData.agents.limit)}%` }"
                                     ></div>
                                 </div>
                                 <div class="flex items-center justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ usageData.agents.total.remaining }} remaining</span>
+                                    <span class="text-muted-foreground">{{ usageData.agents.remaining }} remaining</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -313,7 +282,7 @@ onMounted(() => {
                             <div class="space-y-4">
                                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
                                     <div class="space-y-1">
-                                        <div class="text-2xl font-bold text-blue-600">{{ getUsagePercentage(usageData.messages.sent, usageData.messages.limit) }}%</div>
+                                        <div class="text-2xl font-bold text-blue-600">{{ getUsagePercentage(usageData.messages.used, usageData.messages.limit) }}%</div>
                                         <div class="text-xs text-muted-foreground">Messages Used</div>
                                     </div>
                                     <div class="space-y-1">
@@ -329,7 +298,7 @@ onMounted(() => {
                                         <div class="text-xs text-muted-foreground">Links Used</div>
                                     </div>
                                     <div class="space-y-1">
-                                        <div class="text-2xl font-bold text-indigo-600">{{ getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit) }}%</div>
+                                        <div class="text-2xl font-bold text-indigo-600">{{ getUsagePercentage(usageData.agents.used, usageData.agents.limit) }}%</div>
                                         <div class="text-xs text-muted-foreground">Total Agents</div>
                                     </div>
                                 </div>

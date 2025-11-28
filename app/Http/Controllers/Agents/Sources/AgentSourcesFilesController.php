@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Sources;
 
-use App\Data\Responses\Agent\SourceFileDataResponse;
+use App\Data\Resources\Agent\SourceFileDataResource;
 use App\Models\Agent;
 use Exception;
 use Illuminate\Http\Request;
@@ -30,6 +30,6 @@ class AgentSourcesFilesController
             default => throw new Exception('Invalid file type'),
         };
 
-        return SourceFileDataResponse::fromFiles($files);
+        return SourceFileDataResource::fromFiles($files);
     }
 }

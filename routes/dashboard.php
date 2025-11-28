@@ -29,7 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/members', MembersControllerShow::class)->name('members.show');
     Route::get('dashboard/members/list', MembersListController::class)->name('members.list');
 
-    Route::get('dashboard/usage', UsageController::class)->name('usage');
+    Route::get('my/usage', UsageController::class)->name('usage');
 
     Route::get('dashboard/support', SupportController::class)->name('support');
     Route::get('dashboard/tickets', TicketsController::class)->name('tickets');

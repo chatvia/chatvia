@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Analytics;
 
-use App\Data\Agent\Stats\StatsData;
+use App\Data\Resources\Agent\Stats\StatsResourceData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 
@@ -23,8 +23,6 @@ class AgentAnalyticsDataController
         $startDate = $request->input('start_date') ? now()->parse($request->input('start_date'))->startOfDay() : now()->subDays(6)->startOfDay();
         $endDate = $request->input('end_date') ? now()->parse($request->input('end_date'))->endOfDay() : now()->endOfDay();
 
-        $analytics = StatsData::fromAgent($agent, $startDate, $endDate);
-
-        return response()->json($analytics);
+        return StatsResourceData::fromAgent($agent, $startDate, $endDate);
     }
 }

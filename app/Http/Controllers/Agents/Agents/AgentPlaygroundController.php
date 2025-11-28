@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Agents;
 
+use App\Data\Resources\Agent\AgentResourceData;
 use App\Models\Agent;
 use App\Services\Auth\AgentMemberAuthTokenService;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class AgentPlaygroundController
         }
 
         return Inertia::render('agents/Playground', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
             'authToken' => $authToken,
         ]);
     }

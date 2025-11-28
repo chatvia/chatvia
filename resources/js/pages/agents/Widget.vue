@@ -703,7 +703,7 @@ interface AIModel {
 }
 
 interface Props {
-    agent: any;
+    agent: App.Data.Resources.Agent.AgentResourceData;
     widgetSettings: any;
     appearanceSettings: any;
     embedScriptUrl: string;

@@ -41,13 +41,13 @@ ChartJS.register(
 );
 
 interface Props {
-    agent: any
+    agent: App.Data.Resources.Agent.AgentResourceData
 }
 
 const props = defineProps<Props>();
 
 const loading = ref(true);
-const topicsData = ref<any>(null);
+const topicsData = ref<App.Data.Agent.Topics.TopicsResourceData | null>(null);
 const error = ref<string | null>(null);
 const activeView = ref<'graph' | 'pie'>('graph');
 
@@ -104,15 +104,12 @@ const formatDate = (dateStr: string): string => {
 const lineChartData = computed(() => {
     if (!topicsData.value) return null;
 
-    const datasets = [];
-    let colorIndex = 0;
-
-    for (const [topicName, data] of Object.entries(topicsData.value.topicsByDate)) {
-        const color = colors[colorIndex % colors.length];
+    const datasets = topicsData.value.topics_by_date.map((topic, index) => {
+        const color = colors[index % colors.length];
         
-        datasets.push({
-            label: topicName,
-            data: (data as any[]).map((d: any) => d.count),
+        return {
+            label: topic.topic_name,
+            data: topic.counts.map(d => d.count),
             borderColor: color,
             backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
             fill: true,
@@ -121,13 +118,11 @@ const lineChartData = computed(() => {
             pointBackgroundColor: color,
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
-        });
+        };
+    });
 
-        colorIndex++;
-    }
-
-    const dates = Object.values(topicsData.value.topicsByDate)[0] as any[];
-    const labels = dates ? dates.map((d: any) => formatDate(d.date)) : [];
+    const firstTopic = topicsData.value.topics_by_date[0];
+    const labels = firstTopic ? firstTopic.counts.map(d => formatDate(d.date)) : [];
 
     return {
         labels,
@@ -205,12 +200,12 @@ const lineChartOptions: ChartOptions<'line'> = {
 const pieChartData = computed(() => {
     if (!topicsData.value) return null;
 
-    const totals = topicsData.value.totalTopics;
+    const totals = topicsData.value.total_topics;
 
     return {
-        labels: totals.map((t: any) => t.name),
+        labels: totals.map(t => t.name),
         datasets: [{
-            data: totals.map((t: any) => t.count),
+            data: totals.map(t => t.count),
             backgroundColor: colors,
             borderColor: '#fff',
             borderWidth: 2,
@@ -248,7 +243,7 @@ const pieChartOptions: ChartOptions<'pie'> = {
                 label: function(context) {
                     const label = context.label || '';
                     const value = context.parsed || 0;
-                    const total = topicsData.value.totalTopics.reduce((sum: number, t: any) => sum + t.count, 0);
+                    const total = topicsData.value?.total_topics.reduce((sum, t) => sum + t.count, 0) ?? 0;
                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                     return `${label}: ${value} (${percentage}%)`;
                 }
@@ -483,17 +478,17 @@ onMounted(() => {
                             <div class="flex flex-col h-96 space-y-4">
                                 <!-- Total Topics -->
                                 <div>
-                                    <div class="text-3xl font-bold">{{ topicsData.totalCount }}</div>
+                                    <div class="text-3xl font-bold">{{ topicsData.total_count }}</div>
                                     <div class="text-sm text-muted-foreground">Total topics</div>
                                 </div>
 
                                 <!-- Topics List -->
-                                <div v-if="topicsData.totalTopics.length === 0" class="flex-1 flex items-center justify-center text-muted-foreground">
+                                <div v-if="topicsData.total_topics.length === 0" class="flex-1 flex items-center justify-center text-muted-foreground">
                                     <p>No topics data available</p>
                                 </div>
                                 <div v-else class="flex-1 overflow-y-auto space-y-3">
                                     <div
-                                        v-for="(topic, index) in topicsData.totalTopics"
+                                        v-for="(topic, index) in topicsData.total_topics"
                                         :key="topic.id"
                                         class="flex items-center justify-between"
                                     >

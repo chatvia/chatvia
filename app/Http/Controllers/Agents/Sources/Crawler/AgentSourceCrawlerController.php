@@ -17,6 +17,11 @@ class AgentSourceCrawlerController
 {
     public function __invoke(Request $request, Agent $agent)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $validated = $request->validate([
             'url' => ['required', 'url'],
             'slow_crawling' => ['required', 'boolean'],

@@ -22,9 +22,7 @@ class AgentMembersListController
             code: 404,
         );
 
-        $members = $user->members()->with('agents')->get();
-
-        return $members->map(function ($member) {
+        return $user->members()->with('agents')->get()->map(function ($member) {
             return [
                 'id' => $member->id,
                 'name' => $member->name,
@@ -32,10 +30,6 @@ class AgentMembersListController
                 'email_verified_at' => $member->email_verified_at,
                 'agents' => $member->agents->pluck('url', 'id')->toArray(),
             ];
-        });
-
-        return $agent->members()->get()->collect()->map(function ($member) {
-            return $member->only(['id', 'name', 'email', 'email_verified_at']);
         });
     }
 }

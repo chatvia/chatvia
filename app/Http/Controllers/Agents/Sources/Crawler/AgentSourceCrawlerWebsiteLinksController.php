@@ -10,6 +10,11 @@ class AgentSourceCrawlerWebsiteLinksController
 {
     public function __invoke(Request $request, Agent $agent, SourceWebsite $website)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $query = $website->urls()->select([
             'id',
             'source_website_id',

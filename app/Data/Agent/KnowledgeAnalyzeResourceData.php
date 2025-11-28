@@ -3,8 +3,10 @@
 namespace App\Data\Agent;
 
 use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
-class KnowledgeAnalyzeData extends Data
+#[TypeScript]
+class KnowledgeAnalyzeResourceData extends Data
 {
     public function __construct(
         public int $length,

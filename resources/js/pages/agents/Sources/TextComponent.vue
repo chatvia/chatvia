@@ -30,7 +30,7 @@ import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
 import AttachTextDialog from '@/components/ui/AttachTextDialog.vue';
 
 interface Props {
-    agent: any;
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 interface TextEntry {

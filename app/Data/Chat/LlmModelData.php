@@ -4,7 +4,9 @@ namespace App\Data\Chat;
 
 use App\Models\Llm;
 use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+#[TypeScript]
 class LlmModelData extends Data
 {
     public function __construct(

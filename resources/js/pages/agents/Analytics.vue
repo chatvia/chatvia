@@ -38,14 +38,14 @@ const isCountryDialogOpen = ref(false);
 const isDayOfWeekDialogOpen = ref(false);
 
 interface Props {
-    agent: any
+    agent: App.Data.Resources.Agent.AgentResourceData
 }
 
 const props = defineProps<Props>();
 
 const loading = ref(true);
 const isRefreshing = ref(false);
-const analytics = ref<any>(null);
+const analytics = ref<App.Data.Agent.Stats.StatsData | null>(null);
 const error = ref<string | null>(null);
 
 const { formatTimeAgo } = useTimeAgo();
@@ -62,7 +62,7 @@ const activeChartTab = ref('daily');
 
 // Check if date picker should be disabled (no data available)
 const isDatePickerDisabled = computed(() => {
-    return !analytics.value?.firstDataDate;
+    return !analytics.value?.first_data_date;
 });
 
 // Helper to get default date range based on available data
@@ -122,7 +122,7 @@ const fetchAnalytics = async () => {
         
         // On initial load, set the date range based on available data
         if (isInitialLoad.value) {
-            dateRange.value = getDefaultDateRange(response.data.firstDataDate);
+            dateRange.value = getDefaultDateRange(response.data.first_data_date);
             isInitialLoad.value = false;
         }
     } catch (err: any) {
@@ -165,44 +165,25 @@ const getFlagPath = (countryCode: string): string => {
     return `/images/flags/${countryCode.toLowerCase()}.svg`;
 };
 
-// Computed stats
-const stats = computed(() => ({
-    totalMessages: analytics.value?.totalMessages || 0,
-    totalConversations: analytics.value?.totalConversations || 0,
-    totalUserMessages: analytics.value?.totalUserMessages || 0,
-    uniqueSessions: analytics.value?.uniqueSessions || 0,
-    avgResponseTime: analytics.value?.avgResponseTime || 0,
-    avgFirstResponseTime: analytics.value?.avgFirstResponseTime || null,
-    avgMessagesPerConversation: analytics.value?.avgMessagesPerConversation || 0,
-    avgConversationDuration: analytics.value?.avgConversationDuration || null,
-    avgTokensPerMessage: analytics.value?.avgTokensPerMessage || 0,
-    totalTokensUsed: analytics.value?.totalTokensUsed || 0,
-    peakActivityHour: analytics.value?.peakActivityHour,
-    conversationsWithFeedback: analytics.value?.conversationsWithFeedback || 0,
-    feedback: analytics.value?.feedback || { positive: 0, negative: 0, total: 0 },
-    countryUsage: analytics.value?.countryUsage || [],
-    conversationsTrend: analytics.value?.conversationsTrend || [],
-    activityByHour: analytics.value?.activityByHour || [],
-    activityByDayOfWeek: analytics.value?.activityByDayOfWeek || [],
-}));
+// Helper to get peak activity hour formatted
+const getPeakActivity = () => {
+    const hour = analytics.value?.peak_activity_hour;
+    return hour != null ? formatHour(hour) : 'N/A';
+};
 
-// Peak activity
-const peakActivity = computed(() => {
-    if (stats.value.peakActivityHour === null) return 'N/A';
-    return formatHour(stats.value.peakActivityHour);
-});
-
-// Busiest day
-const busiestDay = computed(() => {
-    if (!stats.value.activityByDayOfWeek.length) return 'N/A';
-    const busiest = [...stats.value.activityByDayOfWeek].sort((a, b) => b.count - a.count)[0];
+// Helper to get busiest day
+const getBusiestDay = () => {
+    const days = analytics.value?.activity_by_day_of_week || [];
+    if (!days.length) return 'N/A';
+    const busiest = [...days].sort((a, b) => b.count - a.count)[0];
     return busiest?.day || 'N/A';
-});
+};
 
 // Chart data for conversations trend - Dynamic based on date range
 const conversationChartData = computed(() => {
+    const trend = analytics.value?.conversations_trend || [];
     const trendData = new Map(
-        stats.value.conversationsTrend.map((item: any) => [item.date, item.conversations || 0])
+        trend.map(item => [item.date, item.conversations || 0])
     );
     
     const start = new Date(dateRange.value.start);
@@ -227,22 +208,23 @@ const conversationChartData = computed(() => {
 
 const maxConversations = computed(() => {
     if (!conversationChartData.value.length) return 10;
-    return Math.max(...conversationChartData.value.map((day: any) => day.conversations), 10);
+    return Math.max(...conversationChartData.value.map(day => day.conversations), 10);
 });
 
-// Activity by hour chart
+// Activity by hour chart - max value for scaling
 const maxHourlyActivity = computed(() => {
-    if (!stats.value.activityByHour.length) return 10;
-    return Math.max(...stats.value.activityByHour.map((h: any) => h.count), 10);
+    const hours = analytics.value?.activity_by_hour || [];
+    if (!hours.length) return 10;
+    return Math.max(...hours.map(h => h.count), 10);
 });
 
 // Chart.js data and options
 const chartData = computed(() => ({
-    labels: conversationChartData.value.map((d: any) => d.dayMonth),
+    labels: conversationChartData.value.map(d => d.dayMonth),
     datasets: [
         {
             label: 'Conversations',
-            data: conversationChartData.value.map((d: any) => d.conversations),
+            data: conversationChartData.value.map(d => d.conversations),
             borderColor: 'rgb(99, 102, 241)',
             backgroundColor: 'rgba(99, 102, 241, 0.1)',
             fill: true,
@@ -343,20 +325,21 @@ const chartOptions: ChartOptions<'line'> = {
 };
 
 // Hourly activity chart data
-const hourlyChartData = computed(() => ({
-    labels: stats.value.activityByHour.map((h: any) => formatHour(h.hour)),
-    datasets: [
-        {
+const hourlyChartData = computed(() => {
+    const hours = analytics.value?.activity_by_hour || [];
+    return {
+        labels: hours.map(h => formatHour(h.hour)),
+        datasets: [{
             label: 'Conversations',
-            data: stats.value.activityByHour.map((h: any) => h.count),
+            data: hours.map(h => h.count),
             backgroundColor: 'rgba(99, 102, 241, 0.8)',
             borderColor: 'rgb(99, 102, 241)',
             borderWidth: 1,
             borderRadius: 4,
-            barThickness: 'flex',
-        }
-    ]
-}));
+            barThickness: 'flex' as const,
+        }]
+    };
+});
 
 const hourlyChartOptions: ChartOptions<'bar'> = {
     responsive: true,
@@ -416,19 +399,20 @@ const hourlyChartOptions: ChartOptions<'bar'> = {
 };
 
 // Day of week chart data
-const dayOfWeekChartData = computed(() => ({
-    labels: stats.value.activityByDayOfWeek.map((d: any) => d.day),
-    datasets: [
-        {
+const dayOfWeekChartData = computed(() => {
+    const days = analytics.value?.activity_by_day_of_week || [];
+    return {
+        labels: days.map(d => d.day),
+        datasets: [{
             label: 'Conversations',
-            data: stats.value.activityByDayOfWeek.map((d: any) => d.count),
+            data: days.map(d => d.count),
             backgroundColor: 'rgba(99, 102, 241, 0.8)',
             borderColor: 'rgb(99, 102, 241)',
             borderWidth: 1,
             borderRadius: 4,
-        }
-    ]
-}));
+        }]
+    };
+});
 
 const dayOfWeekChartOptions: ChartOptions<'bar'> = {
     indexAxis: 'y',
@@ -518,7 +502,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                 <div class="flex items-center gap-3">
                     <DateRangePicker 
                         v-model="dateRange" 
-                        :first-data-date="analytics.firstDataDate" 
+                        :first-data-date="analytics?.first_data_date" 
                         :disabled="isDatePickerDisabled"
                     />
                     <!-- Refreshing Indicator -->
@@ -542,7 +526,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                         <MessageCircle class="h-4 w-4 text-muted-foreground" />
                         <p class="text-sm font-medium text-muted-foreground">Total conversations</p>
                     </div>
-                    <p class="text-xl font-bold mt-1">{{ stats.totalConversations.toLocaleString() }}</p>
+                    <p class="text-xl font-bold mt-1">{{ (analytics?.total_conversations ?? 0).toLocaleString() }}</p>
                 </CardContent>
             </Card>
 
@@ -553,7 +537,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                         <MessageSquare class="h-4 w-4 text-muted-foreground" />
                         <p class="text-sm font-medium text-muted-foreground">Total messages</p>
                     </div>
-                    <p class="text-xl font-bold mt-1">{{ stats.totalMessages.toLocaleString() }}</p>
+                    <p class="text-xl font-bold mt-1">{{ (analytics?.total_messages ?? 0).toLocaleString() }}</p>
                 </CardContent>
             </Card>
 
@@ -564,7 +548,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                         <ThumbsUp class="h-4 w-4 text-muted-foreground" />
                         <p class="text-sm font-medium text-muted-foreground">Thumbs up messages</p>
                     </div>
-                    <p class="text-xl font-bold mt-1">{{ stats.feedback.positive }}</p>
+                    <p class="text-xl font-bold mt-1">{{ analytics?.feedback?.positive ?? 0 }}</p>
                 </CardContent>
             </Card>
 
@@ -575,7 +559,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                         <ThumbsDown class="h-4 w-4 text-muted-foreground" />
                         <p class="text-sm font-medium text-muted-foreground">Thumbs down messages</p>
                     </div>
-                    <p class="text-xl font-bold mt-1">{{ stats.feedback.negative }}</p>
+                    <p class="text-xl font-bold mt-1">{{ analytics?.feedback?.negative ?? 0 }}</p>
                 </CardContent>
             </Card>
         </div>
@@ -614,8 +598,8 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                             <!-- Peak Info and Day of Week Button -->
                             <div class="flex items-center justify-between text-sm px-2">
                                 <div class="flex items-center gap-4">
-                                    <span class="text-muted-foreground">Peak hour: <span class="font-medium text-foreground">{{ peakActivity }}</span></span>
-                                    <span class="text-muted-foreground">Busiest day: <span class="font-medium text-foreground">{{ busiestDay }}</span></span>
+                                    <span class="text-muted-foreground">Peak hour: <span class="font-medium text-foreground">{{ getPeakActivity() }}</span></span>
+                                    <span class="text-muted-foreground">Busiest day: <span class="font-medium text-foreground">{{ getBusiestDay() }}</span></span>
                                 </div>
                                 <Dialog v-model:open="isDayOfWeekDialogOpen">
                                     <DialogTrigger as-child>
@@ -654,7 +638,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                         <Globe2 class="h-5 w-5" />
                         Chats by Country
                     </CardTitle>
-                    <Dialog v-model:open="isCountryDialogOpen" v-if="stats.countryUsage.length">
+                    <Dialog v-model:open="isCountryDialogOpen" v-if="analytics?.country_usage?.length">
                         <DialogTrigger as-child>
                             <Button variant="outline" size="sm">
                                 View All
@@ -681,7 +665,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                                         </div>
                                     </div>
                                     
-                                    <div v-for="country in stats.countryUsage" :key="country.country_code" class="flex items-center justify-between gap-4 py-2">
+                                    <div v-for="country in analytics?.country_usage" :key="country.country_code" class="flex items-center justify-between gap-4 py-2">
                                         <div class="flex items-center gap-3 flex-1 min-w-0">
                                             <img 
                                                 :src="getFlagPath(country.country_code)" 
@@ -706,11 +690,11 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                 </div>
             </CardHeader>
             <CardContent class="overflow-hidden">
-                <div v-if="!stats.countryUsage.length" class="text-center py-8 text-muted-foreground">
+                <div v-if="!analytics?.country_usage?.length" class="text-center py-8 text-muted-foreground">
                     No geographic data available
                 </div>
                 <div v-else class="overflow-hidden">
-                    <WorldMap :country-data="stats.countryUsage" />
+                    <WorldMap :country-data="analytics?.country_usage ?? []" />
                 </div>
             </CardContent>
         </Card>

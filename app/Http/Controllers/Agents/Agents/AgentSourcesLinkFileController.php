@@ -10,6 +10,11 @@ class AgentSourcesLinkFileController
 {
     public function __invoke(Request $request, Agent $agent, int $fileId)
     {
+        abort_if(
+            boolean: $request->user()->cannot('update', $agent),
+            code: 403,
+        );
+
         $request->validate([
             'file_id' => ['required', 'exists:source_files,id'],
         ]);

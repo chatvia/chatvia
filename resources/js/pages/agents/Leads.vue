@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { router, Link, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import AgentLayout from '@/layouts/AgentLayout.vue';
@@ -39,43 +39,35 @@ import {
 import { toast } from 'vue-sonner';
 import LeadDetailsSheet from '@/components/LeadDetailsSheet.vue';
 
-interface Lead {
-    id: number;
-    name: string | null;
-    email: string | null;
-    phone?: string | null;
-    job_title?: string | null;
-    company?: string | null;
-    location?: string | null;
-    message?: string | null;
-    referrer_url?: string | null;
-    page_url?: string | null;
-    locale?: string | null;
-    country?: string | null;
-    ip_address?: string | null;
-    user_agent?: string | null;
-    status?: string;
-    status_label?: string;
-    custom_fields?: Record<string, any>;
-    created_at: string;
-    contacted_at?: string | null;
-    qualified_at?: string | null;
-    converted_at?: string | null;
-    conversation_id: string;
-    conversation?: {
-        id: string;
-    };
-}
-
 interface Props {
-    agent: any;
-    leads: Lead[];
+    agent: App.Data.Resources.Agent.AgentResourceData;
     settings?: {
         fields?: any;
     } | null;
 }
 
 const props = defineProps<Props>();
+
+// Leads data loaded via Axios
+const leads = ref<App.Data.Resources.Agent.LeadResourceData[]>([]);
+const isLoadingLeads = ref(true);
+
+const fetchLeads = async () => {
+    isLoadingLeads.value = true;
+    try {
+        const response = await axios.get(route('agents.leads.data', { agent: props.agent.id }));
+        leads.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch leads:', error);
+        toast.error('Failed to load leads');
+    } finally {
+        isLoadingLeads.value = false;
+    }
+};
+
+onMounted(() => {
+    fetchLeads();
+});
 
 // Get dynamic lead fields from settings or use static defaults
 const getLeadFieldsFromSettings = (): Record<LeadFieldKey, LeadFieldConfig> => {
@@ -166,10 +158,10 @@ watch(() => settingsForm.collect_leads, (newValue) => {
 
 // Computed properties
 const filteredLeads = computed(() => {
-    if (!searchQuery.value.trim()) return props.leads;
+    if (!searchQuery.value.trim()) return leads.value;
 
     const query = searchQuery.value.toLowerCase();
-    return props.leads.filter(lead =>
+    return leads.value.filter(lead =>
         (lead.name?.toLowerCase().includes(query)) ||
         (lead.email?.toLowerCase().includes(query))
     );
@@ -226,17 +218,15 @@ const viewLead = (lead: Lead) => {
 };
 
 const saveSettings = () => {
-    settingsForm.patch(route('agents.leads.settings', { agent: (props as any).agent.id }), {
+    settingsForm.patch(route('agents.leads.settings', { agent: props.agent.id }), {
         preserveScroll: true,
         onSuccess: () => {
             showSettingsDialog.value = false;
             toast.success('Lead settings saved');
-            // Clear any errors on successful save
             settingsForm.clearErrors();
         },
         onError: (errors) => {
             console.error('Form errors:', errors);
-            // Errors will be displayed inline via FormErrors component and individual field errors
         },
     });
 };
@@ -278,27 +268,30 @@ const openDeleteDialog = () => {
     showDeleteDialog.value = true;
 };
 
-const deleteSelectedLeads = () => {
+const deleteSelectedLeads = async () => {
     if (!hasSelectedLeads.value) return;
 
     isDeleting.value = true;
 
-    router.delete(route('agents.leads.delete', { agent: props.agent.id }), {
-        data: {
-            lead_ids: selectedLeads.value
-        },
-        preserveScroll: true,
-        onSuccess: () => {
-            isDeleting.value = false;
-            showDeleteDialog.value = false;
-            clearSelection();
-            toast.success('Leads deleted successfully');
-        },
-        onError: (errors) => {
-            isDeleting.value = false;
-            toast.error('Failed to delete leads. Please try again.');
-        }
-    });
+    try {
+        await axios.delete(route('agents.leads.delete', { agent: props.agent.id }), {
+            data: {
+                lead_ids: selectedLeads.value
+            }
+        });
+        
+        showDeleteDialog.value = false;
+        clearSelection();
+        toast.success('Leads deleted successfully');
+        
+        // Refresh leads data
+        await fetchLeads();
+    } catch (error) {
+        console.error('Delete error:', error);
+        toast.error('Failed to delete leads. Please try again.');
+    } finally {
+        isDeleting.value = false;
+    }
 };
 
 const exportSelectedLeads = async () => {
@@ -400,9 +393,9 @@ const cancelDelete = () => {
                         </div>
 
                         <!-- Results Counter -->
-                        <div v-if="props.leads.length > 0" class="flex justify-between items-center text-sm text-muted-foreground">
+                        <div v-if="leads.length > 0" class="flex justify-between items-center text-sm text-muted-foreground">
                             <span>
-                                Showing {{ filteredLeads.length }} of {{ props.leads.length }} leads
+                                Showing {{ filteredLeads.length }} of {{ leads.length }} leads
                                 <span v-if="searchQuery.trim()">
                                     (filtered)
                                 </span>
@@ -430,19 +423,24 @@ const cancelDelete = () => {
                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                    <TableRow v-if="filteredLeads.length === 0">
+                    <TableRow v-if="isLoadingLeads">
+                        <TableCell colspan="6" class="text-center py-8">
+                            <LoaderCircle class="h-8 w-8 mx-auto animate-spin text-muted-foreground" />
+                        </TableCell>
+                    </TableRow>
+                    <TableRow v-else-if="filteredLeads.length === 0">
                         <TableCell colspan="6" class="text-center py-8 text-muted-foreground">
-                                            <div v-if="props.leads.length === 0">
-                                                <Users class="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                                                <p>No leads captured yet.</p>
-                                                <p class="text-sm">Leads will appear here when visitors interact with your agent.</p>
-                                            </div>
-                                            <div v-else>
-                                                <p>No leads found matching your search.</p>
-                                                <p class="text-sm">Try adjusting your search terms.</p>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
+                            <div v-if="leads.length === 0">
+                                <Users class="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                                <p>No leads captured yet.</p>
+                                <p class="text-sm">Leads will appear here when visitors interact with your agent.</p>
+                            </div>
+                            <div v-else>
+                                <p>No leads found matching your search.</p>
+                                <p class="text-sm">Try adjusting your search terms.</p>
+                            </div>
+                        </TableCell>
+                    </TableRow>
                     <TableRow
                         v-for="lead in filteredLeads"
                         :key="lead.id"

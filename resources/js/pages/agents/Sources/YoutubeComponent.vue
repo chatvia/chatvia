@@ -16,7 +16,7 @@ import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.v
 import { useEcho } from "@laravel/echo-vue";
 
 interface Props {
-    agent: any
+    agent: App.Data.Resources.Agent.AgentResourceData
 }
 
 interface YoutubeVideo {

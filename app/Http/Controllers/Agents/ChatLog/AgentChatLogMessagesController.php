@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\ChatLog;
 
+use App\Data\Resources\Agent\ChatLog\ChatLogMessagesResourceData;
 use App\Models\Agent;
 use App\Models\ChatMessage;
 use App\Models\Lead;
@@ -16,33 +17,17 @@ class AgentChatLogMessagesController
             code: 404,
         );
 
-        $page = $request->query('page', 1);
-
-        // Query messages for the conversation
         $messages = ChatMessage::query()
             ->with('llm')
-            ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
-            ->where('chat_conversation_id', $conversationId)
+            ->forAgentConversation($agent->id, $conversationId)
             ->orderBy('created_at')
-            ->paginate(50, page: $page);
-
-        $firstMessageText = null;
-        if ($messages->isNotEmpty()) {
-            $firstMessage = $messages->first();
-            if ($firstMessage) {
-                $firstMessageText = str($firstMessage->content)->stripTags()->limit(80)->value();
-            }
-        }
+            ->paginate(50, page: $request->integer('page', 1));
 
         $lead = Lead::query()
             ->where('agent_id', $agent->id)
             ->where('chat_conversation_id', $conversationId)
             ->first();
 
-        return response()->json([
-            'messages' => $messages,
-            'conversation_title' => $firstMessageText,
-            'lead' => $lead,
-        ]);
+        return ChatLogMessagesResourceData::fromPaginator($messages, $lead);
     }
 }

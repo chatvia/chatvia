@@ -36,7 +36,6 @@
         "laravel/socialite": "^5.23",
         "laravel/telescope": "^5.10",
         "laravel/tinker": "^2.10.1",
-        "laravel/wayfinder": "^0.1.12",
         "league/commonmark": "^2.7",
         "league/flysystem-aws-s3-v3": "^3.0",
         "pgvector/pgvector": "^0.2.2",
@@ -51,6 +50,7 @@
         "spatie/laravel-markdown": "^2.7",
         "spatie/laravel-pdf": "^1.6",
         "spatie/laravel-ray": "^1.40",
+        "spatie/laravel-typescript-transformer": "^2.5",
         "symfony/browser-kit": "^7.3",
         "symfony/dom-crawler": "^7.3",
         "tightenco/ziggy": "^2.5",
@@ -58,6 +58,7 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3.0",
         "laravel/boost": "^1.0",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.18",

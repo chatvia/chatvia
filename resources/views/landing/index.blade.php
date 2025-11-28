@@ -86,14 +86,14 @@
                     <div class="grid md:grid-cols-3 gap-6 lg:gap-8">
 
                         <!-- Card 1: Chat Widget -->
-                        <div class="bg-slate-100 rounded-lg p-6 lg:p-8" data-aos="fade-up">
+                        <div class="bg-slate-100 rounded-lg p-6 lg:p-8" data-aos="fade-up" x-data>
                             <h3 class="text-xl font-bold text-slate-800 mb-2">Chat Widget</h3>
                             <p class="text-slate-500 mb-4">
                                 Embed a powerful AI chat widget on your website. Customize the look and feel to match
                                 your brand and engage visitors 24/7.
                             </p>
                             <button type="button"
-                               @click="$dispatch('open-video-modal', { src: 'https://player.vimeo.com/video/1140879890?badge=0&autopause=0&autoplay=1&player_id=0&app_id=58479' })"
+                                    onclick="window.chatbot('open')"
                                class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm cursor-pointer">
                                 See how it works in action
                                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +123,7 @@
 
                         <!-- Card 3: Search -->
                         <div class="bg-slate-100 rounded-lg p-6 lg:p-8" data-aos="fade-up" data-aos-delay="200">
-                            <h3 class="text-xl font-bold text-slate-800 mb-2">Search</h3>
+                            <h3 class="text-xl font-bold text-slate-800 mb-2">LLM-based Search Engine</h3>
                             <p class="text-slate-500 mb-4">
                                 Ditch your traditional search with LLM-based searching. Embed it on your website and let
                                 users find exactly what they need instantly.

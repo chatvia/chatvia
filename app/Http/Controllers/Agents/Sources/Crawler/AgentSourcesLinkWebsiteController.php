@@ -10,6 +10,11 @@ class AgentSourcesLinkWebsiteController
 {
     public function __invoke(Request $request, Agent $agent, int $websiteId)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $request->validate([
             'website_id' => ['required', 'exists:source_websites,id'],
         ]);

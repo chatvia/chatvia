@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Data\Responses\Agent;
+namespace App\Data\Resources\Agent;
 
 use App\Models\SourceFile;
-use DateTime;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
-class SourceFileDataResponse extends Data
+#[TypeScript]
+class SourceFileDataResource extends Data
 {
     public function __construct(
         public int $id,
@@ -19,7 +21,7 @@ class SourceFileDataResponse extends Data
         public int $length,
         public int $progress,
         public int $agents_count,
-        public DateTime $created_at
+        public CarbonInterface $created_at,
     ) {}
 
     public static function fromFile(SourceFile $file): self

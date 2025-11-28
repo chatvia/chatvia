@@ -10,6 +10,11 @@ class AgentKnowledgeQaStoreController
     public function __invoke(Request $request, Agent $agent)
     {
         abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
+        abort_if(
             boolean: $request->user()->cannot('update', $agent),
             code: 404,
         );

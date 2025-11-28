@@ -8,6 +8,11 @@ class AgentKnowledgeTextListController
 {
     public function __invoke(Agent $agent)
     {
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
         $texts = $agent
             ->texts()
             ->select('source_texts.id', 'length', 'status', 'source_texts.created_at', 'source_texts.updated_at', 'expected_chunks', 'content')

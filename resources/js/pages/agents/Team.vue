@@ -20,7 +20,7 @@ import { Users, PlusCircle, Trash2, LoaderCircle, Shield, ShieldOff, ExternalLin
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: any;
+    agent: App.Data.Resources.Agent.AgentResourceData;
     team_collaboration?: boolean;
     members_limit?: number;
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\ChatLog;
 
+use App\Data\Resources\Agent\ChatLog\ChatLogTopicsResourceData;
 use App\Models\Agent;
 use App\Models\ChatTopic;
 use Illuminate\Http\Request;
@@ -19,8 +20,6 @@ class AgentChatLogTopicsController
             ->orderBy('topic')
             ->get(['id', 'topic', 'description']);
 
-        return response()->json([
-            'topics' => $topics,
-        ]);
+        return ChatLogTopicsResourceData::fromCollection($topics);
     }
 }

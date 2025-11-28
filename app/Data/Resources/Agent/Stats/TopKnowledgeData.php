@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Data\Resources\Agent\Stats;
+
+use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
+#[TypeScript]
+class TopKnowledgeData extends Data
+{
+    public function __construct(
+        public string $name,
+        public string $type,
+        public int $accessed,
+    ) {}
+}

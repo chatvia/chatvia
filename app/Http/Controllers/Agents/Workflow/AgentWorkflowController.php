@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Workflow;
 
+use App\Data\Resources\Agent\AgentResourceData;
 use App\Features\Workflow as WorkflowFeature;
 use App\Models\Agent;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ class AgentWorkflowController
         }
 
         return Inertia::render('agents/Workflow', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
         ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\History;
 
+use App\Data\Resources\Agent\AgentResourceData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ class AgentHistoryController
         );
 
         return Inertia::render('agents/History', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
             'settings' => $agent->settings('message_history'),
         ]);
     }

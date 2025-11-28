@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Agents\Models;
 
 use App\Data\Chat\LlmModelData;
+use App\Data\Resources\Agent\AgentLlmDefaultSettingsData;
+use App\Data\Resources\Agent\AgentLlmSettingsData;
+use App\Data\Resources\Agent\AgentModelsResourceData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 
-final class AgentModelsListController
+class AgentModelsListController
 {
-    public function __invoke(Agent $agent, Request $request)
+    public function __invoke(Agent $agent, Request $request): AgentModelsResourceData
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),
@@ -23,16 +26,10 @@ final class AgentModelsListController
             return $llm;
         });
 
-        return [
-            'models' => $models->toArray(),
-            'settings' => $agent->llmSettings(),
-            'default_settings' => [
-                'temperature' => 1.0,
-                'top_k' => 0,
-                'top_p' => 1.0,
-                'presence_penalty' => 0.0,
-                'frequency_penalty' => 0.0,
-            ],
-        ];
+        return new AgentModelsResourceData(
+            models: LlmModelData::collection($models),
+            settings: AgentLlmSettingsData::fromArray($agent->llmSettings()),
+            default_settings: AgentLlmDefaultSettingsData::defaults(),
+        );
     }
 }

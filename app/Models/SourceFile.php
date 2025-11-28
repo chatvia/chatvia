@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\ChunkableContract;
+use App\QueryBuilders\SourceFileQueryBuilder;
 use App\Services\Ingestion\Ingestion;
 use App\Traits\Chunkable;
 use Exception;
@@ -20,6 +21,11 @@ class SourceFile extends Model implements ChunkableContract
     use Chunkable, HasFactory;
 
     protected $guarded = ['id'];
+
+    public function newEloquentBuilder($query): SourceFileQueryBuilder
+    {
+        return new SourceFileQueryBuilder($query);
+    }
 
     public function agents(): MorphToMany
     {

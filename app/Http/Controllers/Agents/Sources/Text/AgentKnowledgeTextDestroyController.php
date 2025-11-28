@@ -10,7 +10,7 @@ class AgentKnowledgeTextDestroyController
     public function __invoke(Request $request, Agent $agent, string $id)
     {
         abort_if(
-            boolean: $request->user()->cannot('view', $agent),
+            boolean: $request->user()->cannot('delete', $agent),
             code: 404,
         );
 

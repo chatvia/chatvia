@@ -14,7 +14,7 @@ import {
     AlertCircle,
     CheckCircle
 } from 'lucide-vue-next';
-import { useFileUploader, type FileUploaderConfig, type UploadingFileData } from '@/composables/useFileUploader';
+import { useFileUploader, type FileUploaderConfig, type UploadingFileData, type FileAnalyzedData } from '@/composables/useFileUploader';
 
 interface Props {
     title?: string;
@@ -41,7 +41,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
     filesChanged: [files: UploadingFileData[]];
-    fileAnalyzed: [file: UploadingFileData, data: any];
+    fileAnalyzed: [file: UploadingFileData, data: FileAnalyzedData];
     fileError: [file: UploadingFileData, error: string];
 }>();
 
@@ -50,7 +50,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 // Configure the uploader
 const uploaderConfig: FileUploaderConfig = {
     ...props.config,
-    onFileAnalyzed: (file: UploadingFileData, data: any) => {
+    onFileAnalyzed: (file: UploadingFileData, data: FileAnalyzedData) => {
         emit('fileAnalyzed', file, data);
         emit('filesChanged', uploadingFiles.value);
         props.config.onFileAnalyzed?.(file, data);

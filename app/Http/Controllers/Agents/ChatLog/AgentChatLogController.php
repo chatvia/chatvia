@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\ChatLog;
 
+use App\Data\Resources\Agent\AgentResourceData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,7 +19,7 @@ class AgentChatLogController
         $conversationId = $request->query('conversation_id');
 
         return Inertia::render('agents/ChatLog', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
             'current_conversation_id' => $conversationId,
         ]);
     }

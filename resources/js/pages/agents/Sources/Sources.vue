@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import axios from 'axios';
 
 interface Props {
-    agent: any;
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 interface SourceStats {

@@ -2,7 +2,7 @@
 
 namespace App\Actions\Agents;
 
-use App\Data\Agent\KnowledgeAnalyzeData;
+use App\Data\Agent\KnowledgeAnalyzeResourceData;
 use App\Models\Agent;
 use App\Models\User;
 use App\Services\Agents\FileAnalyzer;
@@ -11,7 +11,7 @@ use Illuminate\Http\UploadedFile;
 
 class AgentSourceAnalyzeFileAction
 {
-    public function execute(UploadedFile $uploadedFile, User $user, ?Agent $agent = null): KnowledgeAnalyzeData
+    public function execute(UploadedFile $uploadedFile, User $user, ?Agent $agent = null): KnowledgeAnalyzeResourceData
     {
         if ($agent) {
             $hash = md5_file(TextCleaner::clean($uploadedFile->getPathname()));
@@ -31,7 +31,7 @@ class AgentSourceAnalyzeFileAction
             message: 'File upload limit exceeded. This document requires '.$info->length.' pages.'
         );
 
-        return KnowledgeAnalyzeData::from([
+        return KnowledgeAnalyzeResourceData::from([
             'length' => $info->length,
             'mime_type' => $uploadedFile->getMimeType(),
             'filetype' => get_file_type($uploadedFile->getMimeType()),

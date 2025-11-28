@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Models;
 
+use App\Data\Resources\Agent\AgentResourceData;
 use App\Enums\PermissionEnum;
 use App\Models\Agent;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class AgentModelsShowController
         );
 
         return Inertia::render('agents/Models', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
         ]);
     }
 }

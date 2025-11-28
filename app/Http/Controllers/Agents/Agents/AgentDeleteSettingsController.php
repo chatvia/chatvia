@@ -27,6 +27,5 @@ class AgentDeleteSettingsController
         if ($key) {
             $agent->settingsDelete($group, $key);
         }
-
     }
 }

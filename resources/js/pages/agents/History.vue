@@ -12,7 +12,7 @@ import { toast } from 'vue-sonner';
 const page = usePage();
 
 interface Props {
-    agent: any
+    agent: App.Data.Resources.Agent.AgentResourceData
 }
 
 interface Settings {

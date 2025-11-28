@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Agents\Actions\AgentActionsController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteSettingsController;
 use App\Http\Controllers\Agents\Agents\AgentFileSummaryController;
@@ -36,6 +35,7 @@ use App\Http\Controllers\Agents\ChatLog\AgentChatLogTopicsController;
 use App\Http\Controllers\Agents\Embed\EmbedController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsController;
+use App\Http\Controllers\Agents\Leads\AgentLeadsDataController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsDeleteController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsExportController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsUpdateSettingsController;
@@ -203,6 +203,7 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
 
         Route::get('history', AgentHistoryController::class)->name('history');
         Route::get('leads', AgentLeadsController::class)->name('leads');
+        Route::get('leads/data', AgentLeadsDataController::class)->name('leads.data');
         Route::delete('leads', AgentLeadsDeleteController::class)->name('leads.delete');
         Route::patch('leads/settings', AgentLeadsUpdateSettingsController::class)->name('leads.settings');
         Route::post('leads/export', AgentLeadsExportController::class)->name('leads.export');
@@ -237,9 +238,6 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
 
         // Workflow
         Route::get('workflow', AgentWorkflowController::class)->name('workflow');
-
-        // Actions
-        Route::get('actions', AgentActionsController::class)->name('actions');
 
         // Rename Agent
         Route::patch('rename', AgentRenameController::class)->name('rename');

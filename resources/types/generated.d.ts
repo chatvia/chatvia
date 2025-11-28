@@ -1,0 +1,290 @@
+declare namespace App.Data.Agent {
+export type KnowledgeAnalyzeResourceData = {
+length: number;
+mime_type: string;
+filetype: string;
+is_audio_file: boolean;
+is_video_file: boolean;
+};
+}
+declare namespace App.Data.Agent.Topics {
+export type TopicCountByDateData = {
+date: string;
+count: number;
+};
+export type TopicSummaryData = {
+id: number;
+name: string;
+count: number;
+};
+export type TopicTrendData = {
+topic_name: string;
+counts: any;
+};
+export type TopicsResourceData = {
+topics_by_date: any;
+total_topics: any;
+total_count: number;
+};
+}
+declare namespace App.Data.Chat {
+export type LlmModelData = {
+id: string;
+internal_id: string;
+name: string;
+description: string;
+icon: string;
+context_window: number;
+features: Array<any>;
+location: string;
+reasoning: boolean;
+user_allowed_to_use: boolean;
+is_selected: boolean;
+};
+}
+declare namespace App.Data.Resources.Agent {
+export type AgentLlmDefaultSettingsData = {
+temperature: number;
+top_k: number;
+top_p: number;
+presence_penalty: number;
+frequency_penalty: number;
+};
+export type AgentLlmSettingsData = {
+temperature: number;
+top_k: number;
+top_p: number;
+presence_penalty: number;
+frequency_penalty: number;
+};
+export type AgentModelsResourceData = {
+models: { [key: number]: App.Data.Chat.LlmModelData };
+settings: App.Data.Resources.Agent.AgentLlmSettingsData;
+default_settings: App.Data.Resources.Agent.AgentLlmDefaultSettingsData;
+};
+export type AgentResourceData = {
+id: number;
+external_id: string;
+type: string;
+name: string;
+sub_domain: string | null;
+domain: string | null;
+system_instructions: string | null;
+is_public: boolean;
+collect_leads: boolean;
+url: string;
+permanent_url: string;
+chat_url: string;
+chat_embed_url: string;
+created_at: string;
+updated_at: string;
+total_messages: number | null;
+unique_users: number | null;
+total_members: number | null;
+};
+export type AgentSourcesStatsData = {
+websites: number;
+texts: number;
+pdf: number;
+word: number;
+markdown: number;
+audio: number;
+video: number;
+youtube: number;
+};
+export type LeadResourceData = {
+id: number;
+name: string | null;
+email: string | null;
+phone: string | null;
+job_title: string | null;
+company: string | null;
+location: string | null;
+message: string | null;
+referrer_url: string | null;
+page_url: string | null;
+locale: string | null;
+ip_address: string | null;
+user_agent: string | null;
+created_at: string;
+conversation_id: string | null;
+};
+export type SourceFileDataResource = {
+id: number;
+name: string;
+type: string;
+size_in_kb: number;
+mime_type: string;
+status: string;
+length: number;
+progress: number;
+agents_count: number;
+created_at: string;
+};
+}
+declare namespace App.Data.Resources.Agent.ChatLog {
+export type ChatLogConversationData = {
+conversation_id: string;
+last_at: string;
+messages_count: number;
+first_message_excerpt: string | null;
+title: string | null;
+country: string | null;
+user_agent: string | null;
+device_type: string | null;
+browser: string | null;
+os: string | null;
+city: string | null;
+referrer_url: string | null;
+page_url: string | null;
+locale: string | null;
+topic: string | null;
+topic_id: string | null;
+};
+export type ChatLogConversationsResourceData = {
+conversations: any;
+lead_conversation_ids: Array<any>;
+};
+export type ChatLogLeadData = {
+id: number;
+name: string | null;
+email: string | null;
+phone: string | null;
+job_title: string | null;
+company: string | null;
+location: string | null;
+message: string | null;
+referrer_url: string | null;
+page_url: string | null;
+locale: string | null;
+created_at: string;
+};
+export type ChatLogMessageData = {
+id: string;
+chat_conversation_id: string;
+content: string;
+role: string;
+sentiment: string | null;
+emotion: string | null;
+emotion_confidence: number | null;
+feedback: string | null;
+is_direct_response: boolean | null;
+response_time_ms: number | null;
+token_count: number | null;
+prompt_tokens: number | null;
+completion_tokens: number | null;
+llm_name: string | null;
+llm_icon: string | null;
+created_at: string;
+};
+export type ChatLogMessagesResourceData = {
+messages: any;
+conversation_title: string | null;
+lead: App.Data.Resources.Agent.ChatLog.ChatLogLeadData | null;
+};
+export type ChatLogTopicData = {
+id: number;
+topic: string;
+description: string | null;
+};
+export type ChatLogTopicsResourceData = {
+topics: any;
+};
+}
+declare namespace App.Data.Resources.Agent.Stats {
+export type ConversationTrendData = {
+date: string;
+conversations: number;
+};
+export type CountryUsageData = {
+country_code: string;
+country_name: string;
+count: number;
+percentage: number;
+};
+export type DailyMessagesData = {
+date: string;
+messages: number;
+};
+export type DayOfWeekActivityData = {
+day: string;
+day_number: number;
+count: number;
+};
+export type FeedbackData = {
+positive: number;
+negative: number;
+total: number;
+};
+export type HourlyActivityData = {
+hour: number;
+count: number;
+};
+export type MessageByDayData = {
+day: string;
+date: string;
+value: number;
+};
+export type ModelFeedbackData = {
+positive: number;
+negative: number;
+};
+export type ModelUsageData = {
+name: string;
+icon: string;
+count: number;
+percentage: number;
+feedback: App.Data.Resources.Agent.Stats.ModelFeedbackData;
+};
+export type StatsResourceData = {
+total_messages: number;
+total_conversations: number;
+total_members: number;
+total_user_messages: number;
+unique_sessions: number;
+avg_response_time: number | null;
+avg_first_response_time: number | null;
+avg_messages_per_conversation: number | null;
+avg_conversation_duration: number | null;
+avg_tokens_per_message: number | null;
+total_tokens_used: number | null;
+peak_activity_hour: number | null;
+conversations_with_feedback: number;
+feedback: App.Data.Resources.Agent.Stats.FeedbackData;
+messages_last_week: Array<App.Data.Resources.Agent.Stats.MessageByDayData>;
+model_usage: Array<App.Data.Resources.Agent.Stats.ModelUsageData>;
+country_usage: Array<App.Data.Resources.Agent.Stats.CountryUsageData>;
+daily_messages: Array<App.Data.Resources.Agent.Stats.DailyMessagesData>;
+conversations_trend: Array<App.Data.Resources.Agent.Stats.ConversationTrendData>;
+activity_by_hour: Array<App.Data.Resources.Agent.Stats.HourlyActivityData>;
+activity_by_day_of_week: Array<App.Data.Resources.Agent.Stats.DayOfWeekActivityData>;
+top_knowledge: Array<App.Data.Resources.Agent.Stats.TopKnowledgeData>;
+first_data_date: string | null;
+last_updated: string;
+};
+export type TopKnowledgeData = {
+name: string;
+type: string;
+accessed: number;
+};
+}
+declare namespace App.Data.Resources.My.Usage {
+export type UsageResourceData = {
+subscription: App.Data.Resources.My.Usage.UsageSubscriptionData;
+agents: App.Data.Resources.My.Usage.UsageStatsData;
+pages: App.Data.Resources.My.Usage.UsageStatsData;
+minutes: App.Data.Resources.My.Usage.UsageStatsData;
+links: App.Data.Resources.My.Usage.UsageStatsData;
+messages: App.Data.Resources.My.Usage.UsageStatsData;
+};
+export type UsageStatsData = {
+limit: number;
+used: number;
+remaining: number;
+};
+export type UsageSubscriptionData = {
+plan: string;
+started_at: any;
+ends_at: any;
+};
+}

@@ -26,18 +26,7 @@ import axios from 'axios';
 
 const page = usePage();
 
-// Define agent type
-interface Agent {
-    id: number;
-    name: string;
-    type: string;
-    sub_domain: string;
-    is_public: boolean;
-    created_at: string;
-    total_messages?: number;
-    unique_users?: number;
-    total_members?: number;
-}
+type Agent = App.Data.Resources.Agent.AgentResourceData;
 
 // Fetch agents from the server
 const agents = ref<Agent[]>([]);

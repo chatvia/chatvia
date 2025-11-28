@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Agents\Models;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 
-final class AgentModelsStoreSettings
+class AgentModelsStoreSettings
 {
     public function __invoke(Agent $agent, Request $request)
     {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Widget;
 
+use App\Data\Resources\Agent\AgentResourceData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,7 +16,7 @@ class WidgetController
         }
 
         return Inertia::render('agents/Widget', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
             'widgetSettings' => $agent->settings('widget'),
             'appearanceSettings' => $agent->settings('appearance'),
             'embedScriptUrl' => config('widget.script_url_embed'),

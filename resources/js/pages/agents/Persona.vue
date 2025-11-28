@@ -12,7 +12,7 @@ import axios from 'axios';
 import HeaderActions from '@/components/HeaderActions.vue';
 
 interface Props {
-    agent: any
+    agent: App.Data.Resources.Agent.AgentResourceData
 }
 
 const props = defineProps<Props>();

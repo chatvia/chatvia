@@ -27,7 +27,7 @@ import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
 import AttachWebsiteDialog from '@/components/ui/AttachWebsiteDialog.vue';
 
 interface Props {
-    agent: any
+    agent: App.Data.Resources.Agent.AgentResourceData
 }
 
 interface WebSource {

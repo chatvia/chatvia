@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Analytics;
 
+use App\Data\Resources\Agent\AgentResourceData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ class AgentAnalyticsController
         );
 
         return Inertia::render('agents/Analytics', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
         ]);
     }
 }

@@ -19,7 +19,7 @@ import { toast } from 'vue-sonner';
 import axios from 'axios';
 
 interface Props {
-    agent: any;
+    agent: App.Data.Resources.Agent.AgentResourceData;
     settings: any;
     default_settings: any;
     embed_settings?: any;

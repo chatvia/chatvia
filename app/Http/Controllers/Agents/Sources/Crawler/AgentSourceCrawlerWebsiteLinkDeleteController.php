@@ -19,9 +19,5 @@ class AgentSourceCrawlerWebsiteLinkDeleteController
         $link->chunks()->delete();
 
         $link->delete();
-
-        return response()->json([
-            'message' => 'Link deleted successfully.',
-        ]);
     }
 }

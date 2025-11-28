@@ -10,6 +10,11 @@ class AgentSourcesTrainedListController
 {
     public function __invoke(Request $request, Agent $agent)
     {
+        abort_if(
+            boolean: $request->user()->cannot('update', $agent),
+            code: 403,
+        );
+
         $request->validate([
             'type' => ['required', 'in:pdf,word,audio,video'],
         ]);

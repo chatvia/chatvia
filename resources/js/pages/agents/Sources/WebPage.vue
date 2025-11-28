@@ -5,7 +5,7 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import Sources from './Sources.vue';
 
 interface Props {
-    agent: any;
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 const props = defineProps<Props>();

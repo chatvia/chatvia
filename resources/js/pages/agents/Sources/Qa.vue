@@ -3,7 +3,7 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import QaComponent from './QaComponent.vue';
 
 interface Props {
-    agent: any;
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 defineProps<Props>();

@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Link as LinkIcon } from 'lucide-vue-next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import FileUploader from '@/components/FileUploader.vue';
-import type { UploadingFileData as BaseUploadingFileData, FileUploaderConfig } from '@/composables/useFileUploader';
+import type { UploadingFileData as BaseUploadingFileData, FileUploaderConfig, FileAnalyzedData } from '@/composables/useFileUploader';
 import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
 import AttachFileDialog from '@/components/ui/AttachFileDialog.vue';
 
@@ -25,23 +25,12 @@ import { useEcho } from "@laravel/echo-vue";
 const page = usePage();
 
 interface Props {
-    agent: any
+    agent: App.Data.Resources.Agent.AgentResourceData
     fileType?: string // 'pdf', 'word', or undefined for all files
     // Removed quota and usage props - will fetch from API
 }
 
-interface KnowledgeFile {
-    id: number;
-    name: string;
-    type: string;
-    size_in_kb: number;
-    mime_type: string;
-    status: string;
-    created_at: string;
-    length?: number;
-    progress?: number;
-    agents_count?: number;
-}
+type KnowledgeFile = App.Data.Responses.Agent.SourceFileDataResponse;
 
 interface UploadedFile {
     id: number;
@@ -61,19 +50,11 @@ interface UploadingFileData extends BaseUploadingFileData {
     uploadedFile?: UploadedFile;
 }
 
-// Usage data interface
-interface UsageData {
-    pages: {
-        limit: number;
-        used: number;
-        remaining: number;
-    };
-    minutes?: {
-        limit: number;
-        used: number;
-        remaining: number;
-    };
-}
+// Usage data interface - subset of the full usage resource with optional minutes
+type UsageData = {
+    pages: App.Data.Resources.My.Usage.UsageStatsData;
+    minutes?: App.Data.Resources.My.Usage.UsageStatsData;
+};
 
 // File summary data interface
 interface FileSummaryData {
@@ -156,7 +137,7 @@ const fileUploaderConfig = computed<FileUploaderConfig>(() => {
         acceptedTypes,
         maxFileSize,
         analyzeEndpoint: (file: File) => route('agents.sources.files.upload', { agent: props.agent.id }),
-        onFileAnalyzed: (file: BaseUploadingFileData, data: any) => {
+        onFileAnalyzed: (file: BaseUploadingFileData, data: FileAnalyzedData) => {
             // For Knowledge.vue, the upload endpoint uploads the file
             // Remove the file from FileUploader since it's now uploaded and will show in "Ready to Train"
             if (fileUploaderRef.value) {
@@ -571,7 +552,10 @@ const confirmDeleteUploadedFile = (file: UploadedFile) => {
         size_in_kb: file.size / 1024,
         mime_type: file.mime_type,
         status: file.status,
-        created_at: file.created_at
+        created_at: file.created_at,
+        length: file.length ?? 0,
+        progress: 0,
+        agents_count: 0,
     };
     fileToDelete.value = knowledgeFile;
     deleteDialogOpen.value = true;
@@ -970,6 +954,11 @@ const handleFileAttached = async () => {
     // Refresh usage data
     await fetchUsageData();
 };
+
+// Expose methods for parent components
+defineExpose({
+    refreshFiles: fetchKnowledgeFiles,
+});
 </script>
 
 <template>

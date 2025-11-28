@@ -68,32 +68,7 @@ const agentTypeOptions: AgentTypeOption[] = [
     },
 ];
 
-interface UsageData {
-    subscription: {
-        plan: string;
-    };
-    agents: {
-        total: {
-            limit: number;
-            created: number;
-            remaining: number;
-        };
-    };
-    pages: {
-        limit: number;
-        used: number;
-        remaining: number;
-    };
-    messages: {
-        limit: number;
-        sent: number;
-        remaining: number;
-    };
-    cycle: {
-        started_at: string;
-        ends_at: string;
-    };
-}
+type UsageData = App.Data.Resources.My.Usage.UsageResourceData;
 
 const form = useForm({
     name: '',
@@ -107,19 +82,19 @@ const usageData = ref<UsageData | null>(null);
 // Compute whether user can create any agents
 const canCreateAgent = computed(() => {
     if (!usageData.value) return false;
-    return usageData.value.agents.total.remaining > 0;
+    return usageData.value.agents.remaining > 0;
 });
 
 // Check if user cannot create any agents at all (same as above now)
 const canCreateAnyAgent = computed(() => {
     if (!usageData.value) return false;
-    return usageData.value.agents.total.remaining > 0;
+    return usageData.value.agents.remaining > 0;
 });
 
 // Get current agent quota info
 const currentAgentQuota = computed(() => {
     if (!usageData.value) return null;
-    return usageData.value.agents.total;
+    return usageData.value.agents;
 });
 
 // Dynamic placeholder based on agent type

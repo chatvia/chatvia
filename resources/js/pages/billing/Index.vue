@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, onMounted } from 'vue';
-import { Head, useForm, Link, usePage } from '@inertiajs/vue3';
+import { Head, useForm, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,82 +13,23 @@ import ConfirmationDialog from '@/components/chat/ConfirmationDialog.vue';
 import type { BreadcrumbItem } from '@/types';
 import {
     CreditCard,
+    CreditCardIcon,
     Package,
     Calendar,
     AlertTriangle,
     CheckCircle,
     Clock,
     Star,
-    Settings,
     Zap,
     Trash2,
     Receipt,
-    CreditCardIcon,
     Loader2,
     MessageSquare,
     FileText,
     Bot,
-    Database
+    Link2,
+    Timer
 } from 'lucide-vue-next';
-
-interface CurrentPackage {
-    id: string;
-    name: string;
-    description: string;
-    features: {
-        monthly: string[];
-        yearly: string[];
-    };
-    monthly_price: string;
-    monthly_price_formatted: string;
-    yearly_price_formatted: string;
-    yearly_price: string;
-    subscribed_to_yearly: boolean;
-    limits: Record<string, any>;
-    is_yearly: boolean;
-};
-
-interface UsageData {
-    subscription: {
-        plan: string;
-    };
-    agents: {
-        total: {
-            limit: number;
-            created: number;
-            remaining: number;
-        };
-    };
-    pages: {
-        limit: number;
-        used: number;
-        remaining: number;
-    };
-    messages: {
-        sent: number;
-        limit: number;
-        remaining: number;
-    };
-}
-
-interface PendingPlanChange {
-    from_package?: string;
-    to_package?: string;
-    is_yearly?: boolean;
-    effective_date?: number;
-    scheduled_at?: string;
-    has_pending_update?: boolean;
-}
-
-const props = defineProps<{
-    current_package: CurrentPackage;
-    on_trial: boolean;
-    trial_ends_at: string;
-    subscription: any;
-    subscribed: boolean;
-    subscription_canceled: boolean;
-    pending_plan_change?: PendingPlanChange | null;
-}>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -105,8 +46,12 @@ const resumeForm = useForm({});
 
 const cancelScheduleForm = useForm({});
 
+// Billing data
+const billingData = ref<App.Data.Resources.Billing.BillingResourceData | null>(null);
+const isLoadingBilling = ref(true);
+
 // Usage data
-const usageData = ref<UsageData | null>(null);
+const usageData = ref<App.Data.Resources.My.Usage.UsageResourceData | null>(null);
 const isLoadingUsage = ref(true);
 
 // ChatMessage credits dialog state
@@ -122,6 +67,26 @@ const totalPrice = computed(() => {
 const isValidQuantity = computed(() => {
     return creditsQuantity.value >= 1;
 });
+
+const fetchBillingData = async () => {
+    try {
+        isLoadingBilling.value = true;
+        const response = await fetch(route('billing.data'), {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+
+        if (response.ok) {
+            billingData.value = await response.json();
+        }
+    } catch (error) {
+        console.error('Failed to fetch billing data:', error);
+    } finally {
+        isLoadingBilling.value = false;
+    }
+};
 
 const fetchUsageData = async () => {
     try {
@@ -156,6 +121,7 @@ const getUsageColor = (percentage: number) => {
 };
 
 onMounted(() => {
+    fetchBillingData();
     fetchUsageData();
 });
 
@@ -236,16 +202,16 @@ const getStatusLabel = (status: string) => {
     }
 };
 
-// Determine if the current package is yearly. Fallback to legacy flag if needed
+// Determine if the current package is yearly
 const isYearly = computed<boolean>(() => {
-    const pkg: any = props.current_package || {};
-    return typeof pkg.is_yearly === 'boolean' ? pkg.is_yearly : !!pkg.subscribed_to_yearly;
+    return billingData.value?.current_package?.is_yearly ?? false;
 });
 
 const currentFeatures = computed(() => {
+    if (!billingData.value?.current_package?.features) return [];
     return isYearly.value
-        ? props.current_package.features.yearly
-        : props.current_package.features.monthly;
+        ? billingData.value.current_package.features.yearly
+        : billingData.value.current_package.features.monthly;
 });
 
 const cancelSubscription = (immediately = false) => {
@@ -290,8 +256,14 @@ const cancelScheduledPlanChange = () => {
                     </div>
                 </div>
 
+                <!-- Loading State -->
+                <div v-if="isLoadingBilling" class="flex items-center justify-center py-16">
+                    <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+
+                <template v-else-if="billingData">
                 <!-- Trial Information Banner for Trial Users -->
-                <div v-if="on_trial && !subscribed" class="mb-8">
+                <div v-if="billingData.on_trial && !billingData.subscribed" class="mb-8">
                     <Card class="overflow-hidden border-emerald-200 dark:border-emerald-800 relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/30 dark:via-teal-950/30 dark:to-cyan-950/30">
                         <div class="absolute inset-0 bg-gradient-to-r from-emerald-400/10 via-teal-400/10 to-cyan-400/10 dark:from-emerald-400/5 dark:via-teal-400/5 dark:to-cyan-400/5 opacity-70"></div>
                         <CardContent class="p-6 relative z-10">
@@ -303,10 +275,10 @@ const cancelScheduledPlanChange = () => {
                                     <div>
                                         <h3 class="font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">🎉 You're on a Free Trial!</h3>
                                         <p class="text-sm text-emerald-600/70 dark:text-emerald-300/70 mt-1">
-                                            Your {{ current_package.name }} trial ends on <span class="font-semibold">{{ trial_ends_at }}</span>
+                                            Your {{ billingData.current_package.name }} trial ends on <span class="font-semibold">{{ billingData.trial_ends_at }}</span>
                                         </p>
                                         <p class="text-sm text-emerald-600/70 dark:text-emerald-300/70 mt-1">
-                                            Your paid subscription will start automatically on {{ trial_ends_at }}
+                                            Your paid subscription will start automatically on {{ billingData.trial_ends_at }}
                                         </p>
                                     </div>
                                 </div>
@@ -321,7 +293,7 @@ const cancelScheduledPlanChange = () => {
                 </div>
 
                 <!-- Simple Subscription Encouragement for Non-Subscribed Users -->
-                <div v-if="!subscribed && !on_trial" class="mb-8">
+                <div v-if="!billingData.subscribed && !billingData.on_trial" class="mb-8">
                     <Card class="overflow-hidden border-indigo-200 dark:border-indigo-800 relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30">
                         <div class="absolute inset-0 bg-gradient-to-r from-indigo-400/10 via-purple-400/10 to-pink-400/10 dark:from-indigo-400/5 dark:via-purple-400/5 dark:to-pink-400/5 opacity-70"></div>
                         <div class="absolute -inset-[100%] animate-[spin_8s_linear_infinite] bg-gradient-to-r from-transparent via-indigo-400/20 to-transparent dark:via-indigo-400/10"></div>
@@ -362,7 +334,7 @@ const cancelScheduledPlanChange = () => {
                             </CardHeader>
                             <CardContent class="space-y-6">
                                 <!-- Pending Plan Change Notice -->
-                                <div v-if="pending_plan_change" class="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <div v-if="billingData.pending_plan_change" class="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                                     <div class="flex items-start gap-3">
                                         <Calendar class="h-5 w-5 text-blue-500 mt-0.5" />
                                         <div>
@@ -370,14 +342,14 @@ const cancelScheduledPlanChange = () => {
                                                 Plan Change Scheduled
                                             </h4>
                                             <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                                                <template v-if="pending_plan_change.from_package && pending_plan_change.to_package">
-                                                    Your plan will change from <span class="font-medium">{{ pending_plan_change.from_package }}</span> to
-                                                    <span class="font-medium">{{ pending_plan_change.to_package }}</span>
-                                                    {{ pending_plan_change.is_yearly ? ' (Yearly)' : ' (Monthly)' }}
-                                                    on {{ formatDate(pending_plan_change.effective_date) }}.
+                                                <template v-if="billingData.pending_plan_change.from_package && billingData.pending_plan_change.to_package">
+                                                    Your plan will change from <span class="font-medium">{{ billingData.pending_plan_change.from_package }}</span> to
+                                                    <span class="font-medium">{{ billingData.pending_plan_change.to_package }}</span>
+                                                    {{ billingData.pending_plan_change.is_yearly ? ' (Yearly)' : ' (Monthly)' }}
+                                                    on {{ formatDate(billingData.pending_plan_change.effective_date) }}.
                                                 </template>
                                                 <template v-else>
-                                                    You have a plan change scheduled for {{ formatDate(pending_plan_change.effective_date) }}.
+                                                    You have a plan change scheduled for {{ formatDate(billingData.pending_plan_change.effective_date) }}.
                                                 </template>
                                             </p>
                                                                         <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">
@@ -414,13 +386,13 @@ const cancelScheduledPlanChange = () => {
                                             <Star class="h-6 w-6 text-primary" />
                                         </div>
                                         <div>
-                                            <h3 class="text-xl font-semibold">{{ current_package.name }}</h3>
-                                            <p class="text-muted-foreground">{{ current_package.description }}</p>
+                                            <h3 class="text-xl font-semibold">{{ billingData.current_package.name }}</h3>
+                                            <p class="text-muted-foreground">{{ billingData.current_package.description }}</p>
                                         </div>
                                     </div>
                                     <div class="text-right">
                                         <div class="text-2xl font-bold">
-                                            {{ isYearly ? current_package.yearly_price_formatted : current_package.monthly_price_formatted }}
+                                            {{ isYearly ? billingData.current_package.yearly_price_formatted : billingData.current_package.monthly_price_formatted }}
 
                                             <span class="text-sm font-normal text-muted-foreground">
                                                 /{{ isYearly ? 'Year' : 'Month' }}</span>
@@ -429,46 +401,46 @@ const cancelScheduledPlanChange = () => {
                                 </div>
 
                                 <!-- Subscription Status -->
-                                <div v-if="subscribed || on_trial" class="space-y-4">
+                                <div v-if="billingData.subscribed || billingData.on_trial" class="space-y-4">
                                     <Separator />
 
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-3">
-                                            <CheckCircle v-if="subscribed" class="h-5 w-5 text-green-500" />
+                                            <CheckCircle v-if="billingData.subscribed" class="h-5 w-5 text-green-500" />
                                             <AlertTriangle v-else class="h-5 w-5 text-orange-500" />
                                             <span class="font-medium">Status</span>
                                         </div>
-                                        <Badge :variant="getStatusBadgeVariant(subscription?.stripe_status || 'trialing')">
-                                            {{ getStatusLabel(subscription?.stripe_status) }}
+                                        <Badge :variant="getStatusBadgeVariant(billingData.subscription?.stripe_status || 'trialing')">
+                                            {{ getStatusLabel(billingData.subscription?.stripe_status || 'trialing') }}
                                         </Badge>
                                     </div>
 
                                     <!-- Trial Information -->
-                                    <div v-if="on_trial && trial_ends_at" class="flex items-center justify-between">
+                                    <div v-if="billingData.on_trial && billingData.trial_ends_at" class="flex items-center justify-between">
                                         <div class="flex items-center gap-3">
                                             <Clock class="h-5 w-5 text-blue-500" />
                                             <span class="font-medium">Trial Ends</span>
                                         </div>
                                         <span class="text-sm">
-                                            {{ trial_ends_at }}
+                                            {{ billingData.trial_ends_at }}
                                         </span>
                                     </div>
 
                                     <!-- Billing Period -->
-                                    <div v-if="subscription && !on_trial" class="flex items-center justify-between">
+                                    <div v-if="billingData.subscription && !billingData.on_trial" class="flex items-center justify-between">
                                         <div class="flex items-center gap-3">
                                             <Calendar class="h-5 w-5 text-blue-500" />
                                             <span class="font-medium">
-                                                {{ subscription_canceled ? 'Access Ends' : 'Next Billing' }}
+                                                {{ billingData.subscription_canceled ? 'Access Ends' : 'Next Billing' }}
                                             </span>
                                         </div>
                                         <span class="text-sm">
-                                            {{ formatDate(subscription.current_period_end) }}
+                                            {{ formatDate(billingData.subscription.current_period_end) }}
                                         </span>
                                     </div>
 
                                     <!-- Cancellation Notice -->
-                                    <div v-if="subscription_canceled && subscription" class="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                                    <div v-if="billingData.subscription_canceled && billingData.subscription" class="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
                                         <div class="flex items-start gap-3">
                                             <AlertTriangle class="h-5 w-5 text-orange-500 mt-0.5" />
                                             <div>
@@ -476,7 +448,7 @@ const cancelScheduledPlanChange = () => {
                                                     Subscription Cancelled
                                                 </p>
                                                 <p class="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                                                    Your subscription will end on {{ formatDate(subscription.ends_at) }}.
+                                                    Your subscription will end on {{ formatDate(billingData.subscription.ends_at) }}.
                                                     You can resume your subscription at any time before this date.
                                                 </p>
                                                 <Button
@@ -513,7 +485,7 @@ const cancelScheduledPlanChange = () => {
 
                     <!-- Usage & Limits -->
                     <div class="space-y-6">
-                        <Card v-show="subscribed || on_trial">
+                        <Card v-show="billingData.subscribed || billingData.on_trial">
                             <CardHeader>
                                 <CardTitle class="text-lg">Management</CardTitle>
 
@@ -542,7 +514,7 @@ const cancelScheduledPlanChange = () => {
                                 </div>
 
 
-                                <template v-if="subscription && !subscription_canceled">
+                                <template v-if="billingData.subscription && !billingData.subscription_canceled">
                                     <Button class="w-full gap-2 justify-start" as-child>
                                         <Link :href="route('billing.packages')">
                                             <Package class="h-4 w-4" />
@@ -551,7 +523,7 @@ const cancelScheduledPlanChange = () => {
                                     </Button>
 
                                     <ConfirmationDialog
-                                        v-if="!subscription_canceled"
+                                        v-if="!billingData.subscription_canceled"
                                         title="Cancel Subscription"
                                         description="Are you sure you want to cancel your subscription? You will continue to have access until the end of your billing period."
                                         confirm-text="Yes, Cancel"
@@ -652,71 +624,117 @@ const cancelScheduledPlanChange = () => {
 
                                 <div v-else-if="usageData" class="space-y-4">
                                     <!-- Messages Usage -->
-                                    <div class="space-y-2">
+                                    <div v-if="usageData.messages" class="space-y-2">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-2">
                                                 <MessageSquare class="h-4 w-4 text-blue-500" />
                                                 <span class="text-sm font-medium">Messages</span>
                                             </div>
                                             <span class="text-sm text-muted-foreground">
-                                                {{ usageData.messages.sent.toLocaleString() }} / {{ usageData.messages.limit.toLocaleString() }}
+                                                {{ (usageData.messages.used ?? 0).toLocaleString() }} / {{ (usageData.messages.limit ?? 0).toLocaleString() }}
                                             </span>
                                         </div>
                                         <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                                             <div
                                                 class="h-2 rounded-full transition-all duration-300"
-                                                :class="getUsageColor(getUsagePercentage(usageData.messages.sent, usageData.messages.limit))"
-                                                :style="{ width: `${getUsagePercentage(usageData.messages.sent, usageData.messages.limit)}%` }"
+                                                :class="getUsageColor(getUsagePercentage(usageData.messages.used ?? 0, usageData.messages.limit ?? 1))"
+                                                :style="{ width: `${getUsagePercentage(usageData.messages.used ?? 0, usageData.messages.limit ?? 1)}%` }"
                                             ></div>
                                         </div>
                                         <div class="text-xs text-muted-foreground">
-                                            {{ usageData.messages.remaining.toLocaleString() }} remaining
+                                            {{ (usageData.messages.remaining ?? 0).toLocaleString() }} remaining
                                         </div>
                                     </div>
 
                                     <!-- Pages Usage -->
-                                    <div class="space-y-2">
+                                    <div v-if="usageData.pages" class="space-y-2">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-2">
                                                 <FileText class="h-4 w-4 text-green-500" />
                                                 <span class="text-sm font-medium">Pages</span>
                                             </div>
                                             <span class="text-sm text-muted-foreground">
-                                                {{ usageData.pages.used.toLocaleString() }} / {{ usageData.pages.limit.toLocaleString() }}
+                                                {{ (usageData.pages.used ?? 0).toLocaleString() }} / {{ (usageData.pages.limit ?? 0).toLocaleString() }}
                                             </span>
                                         </div>
                                         <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                                             <div
                                                 class="h-2 rounded-full transition-all duration-300"
-                                                :class="getUsageColor(getUsagePercentage(usageData.pages.used, usageData.pages.limit))"
-                                                :style="{ width: `${getUsagePercentage(usageData.pages.used, usageData.pages.limit)}%` }"
+                                                :class="getUsageColor(getUsagePercentage(usageData.pages.used ?? 0, usageData.pages.limit ?? 1))"
+                                                :style="{ width: `${getUsagePercentage(usageData.pages.used ?? 0, usageData.pages.limit ?? 1)}%` }"
                                             ></div>
                                         </div>
                                         <div class="text-xs text-muted-foreground">
-                                            {{ usageData.pages.remaining.toLocaleString() }} remaining
+                                            {{ (usageData.pages.remaining ?? 0).toLocaleString() }} remaining
                                         </div>
                                     </div>
 
-                                    <!-- Total Agents -->
-                                    <div class="space-y-2">
+                                    <!-- Agents Usage -->
+                                    <div v-if="usageData.agents" class="space-y-2">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-2">
-                                                <Bot class="h-4 w-4 text-blue-500" />
-                                                <span class="text-sm font-medium">Total Agents</span>
+                                                <Bot class="h-4 w-4 text-purple-500" />
+                                                <span class="text-sm font-medium">Agents</span>
                                             </div>
                                             <span class="text-sm text-muted-foreground">
-                                                {{ usageData.agents.total.created }} / {{ usageData.agents.total.limit }}
+                                                {{ usageData.agents.used ?? 0 }} / {{ usageData.agents.limit ?? 0 }}
                                             </span>
                                         </div>
                                         <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                                             <div
                                                 class="h-2 rounded-full transition-all duration-300"
-                                                :class="getUsageColor(getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit))"
-                                                :style="{ width: `${getUsagePercentage(usageData.agents.total.created, usageData.agents.total.limit)}%` }"
+                                                :class="getUsageColor(getUsagePercentage(usageData.agents.used ?? 0, usageData.agents.limit ?? 1))"
+                                                :style="{ width: `${getUsagePercentage(usageData.agents.used ?? 0, usageData.agents.limit ?? 1)}%` }"
                                             ></div>
                                         </div>
                                         <div class="text-xs text-muted-foreground">
-                                            {{ usageData.agents.total.remaining }} remaining
+                                            {{ usageData.agents.remaining ?? 0 }} remaining
+                                        </div>
+                                    </div>
+
+                                    <!-- Links Usage -->
+                                    <div v-if="usageData.links" class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <Link2 class="h-4 w-4 text-orange-500" />
+                                                <span class="text-sm font-medium">Links</span>
+                                            </div>
+                                            <span class="text-sm text-muted-foreground">
+                                                {{ (usageData.links.used ?? 0).toLocaleString() }} / {{ (usageData.links.limit ?? 0).toLocaleString() }}
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                            <div
+                                                class="h-2 rounded-full transition-all duration-300"
+                                                :class="getUsageColor(getUsagePercentage(usageData.links.used ?? 0, usageData.links.limit ?? 1))"
+                                                :style="{ width: `${getUsagePercentage(usageData.links.used ?? 0, usageData.links.limit ?? 1)}%` }"
+                                            ></div>
+                                        </div>
+                                        <div class="text-xs text-muted-foreground">
+                                            {{ (usageData.links.remaining ?? 0).toLocaleString() }} remaining
+                                        </div>
+                                    </div>
+
+                                    <!-- Minutes Usage -->
+                                    <div v-if="usageData.minutes" class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <Timer class="h-4 w-4 text-cyan-500" />
+                                                <span class="text-sm font-medium">Minutes</span>
+                                            </div>
+                                            <span class="text-sm text-muted-foreground">
+                                                {{ (usageData.minutes.used ?? 0).toLocaleString() }} / {{ (usageData.minutes.limit ?? 0).toLocaleString() }}
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                            <div
+                                                class="h-2 rounded-full transition-all duration-300"
+                                                :class="getUsageColor(getUsagePercentage(usageData.minutes.used ?? 0, usageData.minutes.limit ?? 1))"
+                                                :style="{ width: `${getUsagePercentage(usageData.minutes.used ?? 0, usageData.minutes.limit ?? 1)}%` }"
+                                            ></div>
+                                        </div>
+                                        <div class="text-xs text-muted-foreground">
+                                            {{ (usageData.minutes.remaining ?? 0).toLocaleString() }} remaining
                                         </div>
                                     </div>
                                 </div>
@@ -728,6 +746,7 @@ const cancelScheduledPlanChange = () => {
                         </Card>
                     </div>
                 </div>
+                </template>
             </div>
         </div>
     </AppLayout>

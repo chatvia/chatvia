@@ -4,7 +4,6 @@ namespace App\Listeners;
 
 use App\Models\Member;
 use App\Models\User;
-use App\Models\UserQuota;
 use App\Notifications\TrialWelcomeNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -18,7 +17,7 @@ class StripeEventListener
         $data = $event->payload['data']['object'];
 
         if ($event->payload['type'] === 'invoice.payment_succeeded' && isset($data['subscription_details']['metadata'])) {
-            $this->handleSubscription($data);
+            $this->handleInvoicePaymentSucceeded($data);
 
             return;
         }
@@ -39,43 +38,23 @@ class StripeEventListener
         }
     }
 
-    private function handleSubscription(array $data): void
+    /**
+     * Handle invoice.payment_succeeded event (subscription renewals).
+     * For first invoice of trial registrations, user may not exist yet - that's handled by handleTrialRegistration.
+     */
+    private function handleInvoicePaymentSucceeded(array $data): void
     {
         $user = User::query()->where('stripe_id', $data['customer'])->first();
 
+        if (! $user) {
+            return;
+        }
+
         $metadata = $data['subscription_details']['metadata'];
+        $isYearly = ($metadata['is_yearly'] ?? 'false') === 'true';
+        $package = $metadata['to_package'] ?? $metadata['package'] ?? 'starter';
 
-        // Stripe metadata only supports string values. This is a limitation of Stripe's API.
-        $isYearly = $metadata['is_yearly'] === 'true';
-        $toPackage = $metadata['to_package'];
-        $fromPackage = $metadata['from_package'];
-
-        $cycle = $isYearly ? 'yearly' : 'monthly';
-
-        $quotaLimit = config('billing.packages.'.$toPackage.'.quota_limits.'.$cycle);
-        $fixedLimit = config('billing.packages.'.$toPackage.'.quota_limits.fixed');
-
-        $endsAt = $isYearly ? now()->addYear() : now()->addMonth();
-
-        /** @var UserQuota $quota */
-        $quota = $user->quota;
-
-        $user->quota()->updateOrCreate(
-            [],
-            [
-                'agents_limit' => ($quota->agents_limit ?? 0) + $fixedLimit['agents_limit'],
-                'pages_limit' => ($quota->pages_limit ?? 0) + $fixedLimit['pages_limit'],
-                'minutes_limit' => ($quota->minutes_limit ?? 0) + $fixedLimit['minutes_limit'],
-                'custom_domains_limit' => ($quota->custom_domains_limit ?? 0) + $fixedLimit['custom_domains_limit'],
-                'members_limit' => ($quota->members_limit ?? 0) + $fixedLimit['members_limit'],
-                'links_limit' => ($quota->links_limit ?? 0) + $fixedLimit['links_limit'],
-            ]
-        );
-
-        $user->addCredit(
-            $quotaLimit,
-            $endsAt
-        );
+        $this->grantSubscription($user, $package, $isYearly);
 
         // Clean up the metadata if this was a scheduled change
         if (isset($metadata['pending_change']) && $metadata['pending_change'] === 'true') {
@@ -97,12 +76,11 @@ class StripeEventListener
 
     private function handleTrialRegistration(array $data): void
     {
-        // Check if user already exists
+        // Check if user already exists by stripe_id
         $existingUser = User::query()->where('stripe_id', $data['customer'])->first();
 
         if ($existingUser) {
-            // Set up quotas for existing user
-            $this->setupTrialQuotas($existingUser, $data['metadata']);
+            $this->grantSubscriptionFromMetadata($existingUser, $data['metadata']);
 
             return;
         }
@@ -118,13 +96,8 @@ class StripeEventListener
             $existingUserByEmail = User::query()->where('email', $email)->first();
 
             if ($existingUserByEmail) {
-                // Update existing user with Stripe customer ID
-                $existingUserByEmail->update([
-                    'stripe_id' => $data['customer'],
-                ]);
-
-                // Set up quotas based on the package
-                $this->setupTrialQuotas($existingUserByEmail, $data['metadata']);
+                $existingUserByEmail->update(['stripe_id' => $data['customer']]);
+                $this->grantSubscriptionFromMetadata($existingUserByEmail, $data['metadata']);
 
                 return;
             }
@@ -148,7 +121,7 @@ class StripeEventListener
                 'password' => Hash::make($password),
                 'stripe_id' => $data['customer'],
                 'domain' => parse_url(config('app.url'), PHP_URL_HOST),
-                'registered_ip' => $userIp, // Use the IP captured at checkout
+                'registered_ip' => $userIp,
                 'registered_country_code' => $countryCode,
                 'email_verified_at' => now(),
             ]);
@@ -163,58 +136,60 @@ class StripeEventListener
                 'is_owner' => true,
             ]);
 
-            // Set up quotas based on the package
-            $this->setupTrialQuotas($user, $data['metadata']);
-
-            // Store the user ID in session metadata for auto-login after checkout
-            // This will be handled by the TrialSuccessController
+            // Grant subscription quotas
+            $this->grantSubscriptionFromMetadata($user, $data['metadata']);
 
             // Send welcome email with login instructions and temporary password
             $package = $data['metadata']['package'] ?? 'starter';
             $user->notify(new TrialWelcomeNotification($password, $package));
 
         } catch (\Exception $e) {
-            \Log::error('Failed to create user from trial registration', [
-                'error' => $e->getMessage(),
-                'customer_id' => $data['customer'] ?? null,
-            ]);
+            report($e);
         }
     }
 
-    private function setupTrialQuotas(User $user, array $metadata): void
+    /**
+     * Helper to extract package and billing cycle from metadata and grant subscription.
+     */
+    private function grantSubscriptionFromMetadata(User $user, array $metadata): void
     {
         $package = $metadata['package'] ?? 'starter';
         $isYearly = ($metadata['is_yearly'] ?? 'false') === 'true';
 
+        $this->grantSubscription($user, $package, $isYearly);
+    }
+
+    /**
+     * Grant subscription quotas and credits to a user.
+     * Used for both new subscriptions (trials) and renewals.
+     */
+    private function grantSubscription(User $user, string $package, bool $isYearly): void
+    {
         $cycle = $isYearly ? 'yearly' : 'monthly';
 
         $quotaLimit = config('billing.packages.'.$package.'.quota_limits.'.$cycle);
         $fixedLimit = config('billing.packages.'.$package.'.quota_limits.fixed');
 
         if (! $quotaLimit || ! $fixedLimit) {
+            \Log::warning('Invalid package configuration', ['package' => $package, 'cycle' => $cycle]);
+
             return;
         }
 
         $endsAt = $isYearly ? now()->addYear() : now()->addMonth();
 
-        // Create or update quota
-        $user->quota()->updateOrCreate(
-            [],
-            [
-                'agents_limit' => $fixedLimit['agents_limit'],
-                'pages_limit' => $fixedLimit['pages_limit'],
-                'minutes_limit' => $fixedLimit['minutes_limit'],
-                'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
-                'members_limit' => $fixedLimit['members_limit'],
-                'links_limit' => $fixedLimit['links_limit'],
-            ]
-        );
+        // Set quota limits (fixed per package, not cumulative)
+        $user->quota()->updateOrCreate([], [
+            'agents_limit' => $fixedLimit['agents_limit'],
+            'pages_limit' => $fixedLimit['pages_limit'],
+            'minutes_limit' => $fixedLimit['minutes_limit'],
+            'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
+            'members_limit' => $fixedLimit['members_limit'],
+            'links_limit' => $fixedLimit['links_limit'],
+        ]);
 
-        // Add message credits
-        $user->addCredit(
-            $quotaLimit,
-            $endsAt
-        );
+        // Add message credits for the billing period
+        $user->addCredit($quotaLimit, $endsAt);
     }
 
     private function handleAddOns(array $data): void

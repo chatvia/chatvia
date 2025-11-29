@@ -27,7 +27,7 @@ class AgentModelsListController
         });
 
         return new AgentModelsResourceData(
-            models: LlmModelData::collection($models),
+            models: $models->all(),
             settings: AgentLlmSettingsData::fromArray($agent->llmSettings()),
             default_settings: AgentLlmDefaultSettingsData::defaults(),
         );

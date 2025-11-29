@@ -36,6 +36,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['chunkable_type', 'chunkable_id', 'checksum']);
+
+            
         });
 
         DB::statement('CREATE INDEX chunks_embedding_bm25 ON chunks USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);');

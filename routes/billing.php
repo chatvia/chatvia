@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Billing\BillingController;
+use App\Http\Controllers\Billing\BillingDataController;
 use App\Http\Controllers\Billing\BillingPaymentMethodAddController;
 use App\Http\Controllers\Billing\BillingUpdateInformationController;
 use App\Http\Controllers\Billing\Checkout\CheckoutExtraMessagesController;
@@ -32,6 +33,9 @@ Route::middleware(['auth', 'verified'])->prefix('billing')->name('billing.')->gr
 
     // Main billing dashboard
     Route::get('/', BillingController::class)->name('index');
+
+    // Billing data API endpoint
+    Route::get('/data', BillingDataController::class)->name('data');
 
     // Package selection
     Route::get('/plans', PlansController::class)->name('packages');

@@ -268,6 +268,81 @@ type: string;
 accessed: number;
 };
 }
+declare namespace App.Data.Resources.Billing {
+export type BillingCurrentPackageData = {
+id: string;
+name: string;
+description: string;
+features: App.Data.Resources.Billing.BillingPackageFeaturesData;
+monthly_price: number;
+monthly_price_formatted: string;
+yearly_price: number;
+yearly_price_formatted: string;
+is_yearly: boolean;
+is_popular: boolean;
+limits: App.Data.Resources.Billing.BillingQuotaLimitsData;
+capabilities: App.Data.Resources.Billing.BillingPackageCapabilitiesData;
+};
+export type BillingPackageCapabilitiesData = {
+custom_sub_domain: boolean;
+custom_domains: boolean;
+advanced_pdf: boolean;
+ocr: boolean;
+audio: boolean;
+video: boolean;
+api_access: boolean;
+custom_integrations: boolean;
+team_collaboration: boolean;
+priority_support: boolean;
+};
+export type BillingPackageFeaturesData = {
+monthly: { [key: number]: string } | Array<any>;
+yearly: { [key: number]: string } | Array<any>;
+};
+export type BillingPendingChangeData = {
+from_package: string | null;
+to_package: string | null;
+is_yearly: boolean | null;
+effective_date: number | null;
+scheduled_at: string | null;
+has_pending_update: boolean;
+};
+export type BillingQuotaFixedData = {
+agents_limit: number;
+pages_limit: number;
+minutes_limit: number;
+links_limit: number;
+custom_domains_limit: number;
+members_limit: number;
+};
+export type BillingQuotaLimitsData = {
+monthly: App.Data.Resources.Billing.BillingQuotaPeriodData;
+yearly: App.Data.Resources.Billing.BillingQuotaPeriodData;
+fixed: App.Data.Resources.Billing.BillingQuotaFixedData;
+};
+export type BillingQuotaPeriodData = {
+messages_limit: number;
+};
+export type BillingResourceData = {
+current_package: App.Data.Resources.Billing.BillingCurrentPackageData;
+on_trial: boolean;
+trial_ends_at: string | null;
+subscription: App.Data.Resources.Billing.BillingSubscriptionData | null;
+subscribed: boolean;
+subscription_canceled: boolean;
+pending_plan_change: App.Data.Resources.Billing.BillingPendingChangeData | null;
+};
+export type BillingSubscriptionData = {
+id: number;
+stripe_id: string;
+stripe_status: string;
+stripe_price: string | null;
+trial_ends_at: number | null;
+ends_at: number | null;
+current_period_end: number;
+current_period_start: number;
+};
+}
 declare namespace App.Data.Resources.My.Usage {
 export type UsageResourceData = {
 subscription: App.Data.Resources.My.Usage.UsageSubscriptionData;

@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import type { BreadcrumbItem } from '@/types';
 import { useForm, router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertCircle, Bot, MessageSquare, Globe, LoaderCircle, AlertTriangle, Search } from 'lucide-vue-next';
+import { AlertCircle, Bot, MessageSquare, Globe, LoaderCircle, AlertTriangle } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -25,7 +25,6 @@ const emit = defineEmits<{
 enum AgentType {
     WIDGET = 'widget',
     CHATGPT_STYLE = 'knowledge_base',
-    SEARCH = 'search',
 }
 
 interface AgentTypeOption {
@@ -56,15 +55,6 @@ const agentTypeOptions: AgentTypeOption[] = [
         iconColor: 'text-emerald-600 dark:text-emerald-400',
         bgColor: 'bg-emerald-50 dark:bg-emerald-950/20',
         borderColor: 'border-emerald-500',
-    },
-    {
-        value: AgentType.SEARCH,
-        label: 'Search',
-        description: 'Search engine for your knowledge base that can be embedded on your website',
-        icon: Search,
-        iconColor: 'text-purple-600 dark:text-purple-400',
-        bgColor: 'bg-purple-50 dark:bg-purple-950/20',
-        borderColor: 'border-purple-500',
     },
 ];
 
@@ -104,8 +94,6 @@ const namePlaceholder = computed(() => {
             return 'E.g., Customer Support Widget';
         case AgentType.CHATGPT_STYLE:
             return 'E.g., Company Knowledge Base';
-        case AgentType.SEARCH:
-            return 'E.g., Documentation Search';
         default:
             return 'Enter agent name';
     }
@@ -291,8 +279,7 @@ onMounted(() => {
                                     <div :class="[
                                         'w-6 h-6 rounded-full flex items-center justify-center',
                                         option.value === AgentType.WIDGET && 'bg-blue-500',
-                                        option.value === AgentType.CHATGPT_STYLE && 'bg-emerald-500',
-                                        option.value === AgentType.SEARCH && 'bg-purple-500'
+                                        option.value === AgentType.CHATGPT_STYLE && 'bg-emerald-500'
                                     ]">
                                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>

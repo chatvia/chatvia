@@ -3,6 +3,7 @@
 use App\Http\Controllers\Billing\BillingController;
 use App\Http\Controllers\Billing\BillingDataController;
 use App\Http\Controllers\Billing\BillingPaymentMethodAddController;
+use App\Http\Controllers\Billing\BillingPaymentSuccessController;
 use App\Http\Controllers\Billing\BillingUpdateInformationController;
 use App\Http\Controllers\Billing\Checkout\CheckoutExtraMessagesController;
 use App\Http\Controllers\Billing\InvoicesController;
@@ -33,6 +34,9 @@ Route::middleware(['auth', 'verified'])->prefix('billing')->name('billing.')->gr
 
     // Main billing dashboard
     Route::get('/', BillingController::class)->name('index');
+
+    // Payment success page (shown after Stripe checkout)
+    Route::get('/success', BillingPaymentSuccessController::class)->name('success');
 
     // Billing data API endpoint
     Route::get('/data', BillingDataController::class)->name('data');

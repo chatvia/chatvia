@@ -14,6 +14,7 @@ use App\Http\Controllers\Landing\PrivacyController;
 use App\Http\Controllers\Landing\RefundController;
 use App\Http\Controllers\Landing\TermsController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PricingController;
 use App\Http\Controllers\RequestDemoController;
 use App\Http\Controllers\SlackAuthController;
 use App\Http\Controllers\SlackCallbackController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\UseCasesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::get('/pricing', PricingController::class)->name('pricing');
 
 // Consent routes
 Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show');

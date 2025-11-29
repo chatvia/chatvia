@@ -5,7 +5,7 @@
 @section('description', 'Request a personalized demo of ChatVia. See how our AI-powered chatbot platform can transform your customer support and automate responses.')
 
 @section('og_title', 'Request a Demo - ChatVia')
-@section('og_description', 'Schedule a personalized demonstration of ChatVia\'s AI chatbot platform. Learn how to automate customer support with AI agents.')
+@section('og_description', 'Schedule a personalized demonstration of ChatVia\'s AI chatbot platform. Learn how to automate customer support with AI chatbots.')
 
 @section('content')
     <main class="flex">

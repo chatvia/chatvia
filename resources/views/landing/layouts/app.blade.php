@@ -12,12 +12,13 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&display=fallback" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Sans+Arabic:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     @include('partials.cover')
 
     @vite(['resources/css/landing.css'])
+
+    @stack('preload')
 
     <style>
         @keyframes marquee {
@@ -26,7 +27,7 @@
         }
     </style>
 </head>
-<body class="font-inter antialiased bg-white text-slate-800 tracking-tight">
+<body class="font-inter antialiased bg-white text-slate-800 tracking-normal">
 
 @yield('content')
 

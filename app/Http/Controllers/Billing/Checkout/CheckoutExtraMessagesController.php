@@ -17,7 +17,7 @@ class CheckoutExtraMessagesController
         ];
 
         $session = [
-            'success_url' => route('billing.index'),
+            'success_url' => route('billing.success'),
             'cancel_url' => route('billing.index'),
             'metadata' => [
                 'id' => 'extra_message_credits',

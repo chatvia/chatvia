@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Agents;
 
-use App\Data\Api\Agent\AgentSourcesListData;
+use App\Data\Resources\Agent\AgentSourcesListData;
 use App\Models\Agent;
 use Illuminate\Http\Request;
 

@@ -147,21 +147,20 @@ return [
         ],
         'landing' => [
             'title' => 'Chatvia.ai',
-            'keywords' => ['Chatvia.ai', 'AI Chatbot', 'Custom GPT', 'ChatGPT Alternative', 'AI Agents', 'Document AI', 'Knowledge Base AI'],
-            'description' => 'Create custom ChatGPT-like AI agents from your data.',
+            'keywords' => ['Chatvia.ai', 'AI Chatbot', 'Custom GPT', 'ChatGPT Alternative', 'AI Chatbots', 'Document AI', 'Knowledge Base AI'],
+            'description' => 'Create custom ChatGPT-like AI chatbots from your data.',
             'navigation' => [
                 ['label' => 'Home', 'link' => '/'],
                 ['label' => 'Features', 'link' => '/#features'],
-                ['label' => 'Pricing', 'link' => '/#pricing'],
+                ['label' => 'Pricing', 'link' => '/pricing'],
                 ['label' => 'Blog', 'link' => '/blog'],
                 ['label' => 'Changelog', 'link' => '/changelog'],
             ],
             'hero' => [
-                'top' => 'Build custom AI chatbots trained on documents, websites, and internal data.',
-                'headline' => 'AI Agents <br/>Powered by Your Data',
+                'top' => '',
+                'headline' => 'Turn Your Website Into a High-Converting AI Chatbot',
                 'subheadlines' => [
-                    '',
-                    '',
+                    'ChatVia instantly helps your customers using AI-generated responses. Get 24/7 support and ultra-high satisfaction rates.',
                 ],
                 'button' => [
                     'label' => 'Start 7-Day Free Trial',
@@ -206,29 +205,64 @@ return [
                     'subheadline' => '',
                     'tabs' => [
                         [
-                            'img' => 'images/chatvia/001-create-agent.png',
-                            'title' => 'Knowledge base and support widgets, all in one',
-                            'description' => 'Build intelligent chatbots with our intuitive agent creation tool. Upload your knowledge base, configure responses, and launch your AI assistant in minutes.',
+                            'img' => 'images/chatvia/dashboard.png',
+                            'tab_name' => 'Dashboard',
+                            'title' => 'Comprehensive Dashboard',
+                            'description' => 'Monitor performance, manage multiple chatbots, and access detailed analytics from a single dashboard. Get real-time insights into your chatbot interactions.',
                         ],
                         [
-                            'img' => 'images/chatvia/002-control-panel.png',
-                            'title' => 'Comprehensive Control Panel',
-                            'description' => 'Monitor performance, manage multiple agents, and access detailed analytics from a single dashboard. Get real-time insights into your chatbot interactions.',
+                            'img' => 'images/chatvia/website-training.png',
+                            'tab_name' => 'Training',
+                            'title' => 'Train from Your Website',
+                            'description' => 'Automatically crawl and learn from your website content. Your chatbot stays up-to-date with your latest pages, products, and documentation.',
                         ],
                         [
-                            'img' => 'images/chatvia/003-leads.png',
+                            'img' => 'images/chatvia/leads.png',
+                            'tab_name' => 'Leads',
                             'title' => 'Lead Management System',
                             'description' => 'Capture, track, and nurture leads automatically. Our intelligent system identifies potential customers and helps you convert conversations into sales.',
                         ],
                         [
-                            'img' => 'images/chatvia/004-customization.png',
-                            'title' => 'Fully Customizable Experience',
-                            'description' => 'Personalize your chatbot appearance, behavior, and responses to match your brand. Choose from themes, customize colors, and create unique user experiences.',
+                            'img' => 'images/chatvia/emotion-analysis.png',
+                            'tab_name' => 'Emotions',
+                            'title' => 'Emotion Analysis',
+                            'description' => 'Understand how your visitors feel during conversations. Track emotions in real-time and improve responses to increase customer satisfaction.',
                         ],
                         [
-                            'img' => 'images/chatvia/005-chat-logs.png',
-                            'title' => 'Detailed Chat Analytics',
-                            'description' => 'Access comprehensive chat logs and conversation history. Analyze user interactions, identify common questions, and continuously improve your chatbot performance.',
+                            'img' => 'images/chatvia/sentiment-analysis.png',
+                            'tab_name' => 'Sentiment',
+                            'title' => 'Sentiment Analysis',
+                            'description' => 'Analyze the overall sentiment of conversations. Identify trends, spot issues early, and measure customer satisfaction over time.',
+                        ],
+                        [
+                            'img' => 'images/chatvia/chat-log.png',
+                            'tab_name' => 'Chat Logs',
+                            'title' => 'Detailed Chat Logs',
+                            'description' => 'Access comprehensive chat logs and conversation history. Analyze user interactions, identify common questions, and continuously improve your chatbot.',
+                        ],
+                        [
+                            'img' => 'images/chatvia/stats.png',
+                            'tab_name' => 'Analytics',
+                            'title' => 'Advanced Analytics',
+                            'description' => 'Deep dive into your chatbot performance with detailed statistics. Track conversations, response times, user satisfaction, and more.',
+                        ],
+                        [
+                            'img' => 'images/chatvia/models.png',
+                            'tab_name' => 'Models',
+                            'title' => 'Multiple AI Models',
+                            'description' => 'Choose from various AI models including GPT-4, Claude, and more. Select the best model for your use case and budget.',
+                        ],
+                        [
+                            'img' => 'images/chatvia/settings.png',
+                            'tab_name' => 'Settings',
+                            'title' => 'Fully Customizable',
+                            'description' => 'Personalize your chatbot appearance, behavior, and responses to match your brand. Choose from themes, customize colors, and create unique experiences.',
+                        ],
+                        [
+                            'img' => 'images/chatvia/qa.png',
+                            'tab_name' => 'Q&A',
+                            'title' => 'Q&A Management',
+                            'description' => 'Create and manage custom Q&A pairs to ensure your chatbot gives accurate answers to frequently asked questions.',
                         ],
                     ],
                 ],
@@ -242,20 +276,20 @@ return [
                     ],
                 ],
                 'steps' => [
-                    'title' => 'No coding platform, deploy your agent instantly',
+                    'title' => 'No coding platform, deploy instantly',
                     'steps' => [
                         ['title' => 'Create', 'description' => 'Just click on the Create Agent button to get started and choose between a widget and knowledge base'],
-                        ['title' => 'Train', 'description' => 'Upload documents, add website content, or connect your knowledge base to train your AI agent with your business data'],
+                        ['title' => 'Train', 'description' => 'Upload documents, add website content, or connect your knowledge base to train your AI chatbot with your business data'],
                         ['title' => 'Deploy', 'description' => 'Embed the chatbot widget on your website or share a direct link to start answering customer questions instantly 24/7'],
                     ],
                 ],
             ],
 
             'cta' => [
-                'headline' => 'Say goodbye to scattered files and endless <span class="text-emerald-500">searching</span>.',
-                'description' => 'Create custom GPTs in minutes — powered by your data.',
+                'headline' => 'Stop losing customers to <span class="text-emerald-500">unanswered questions</span>.',
+                'description' => 'Deploy an AI chatbot that knows your business inside out — in minutes, not weeks.',
                 'button' => [
-                    'label' => 'Get started for free',
+                    'label' => 'Start your free trial',
                     'route' => 'register',
                 ],
             ],
@@ -267,18 +301,18 @@ return [
             'faqs' => [
                 [
                     'question' => 'What is ChatVIA?',
-                    'answer' => 'ChatVIA is an AI platform that lets you create custom AI agents trained on your own data. Upload your documents to create AI chatbots that understand your business knowledge and can answer questions about your content.',
+                    'answer' => 'ChatVIA is an AI platform that lets you create custom AI chatbots trained on your own data. Upload your documents to create AI chatbots that understand your business knowledge and can answer questions about your content.',
                 ],
                 [
                     'question' => 'How does ChatVIA work?',
-                    'answer' => 'Upload your documents (PDFs, Word docs, spreadsheets, etc.) and ChatVIA processes them using advanced AI. The system creates AI agents that can answer questions about your content, provide insights, and help users find information quickly.',
+                    'answer' => 'Upload your documents (PDFs, Word docs, spreadsheets, etc.) and ChatVIA processes them using advanced AI. The system creates AI chatbots that can answer questions about your content, provide insights, and help users find information quickly.',
                 ],
                 [
                     'question' => 'What types of files can I upload?',
                     'answer' => 'ChatVia supports PDF, Word, Text, Video, and Audio files. You can also crawl your website to add its content automatically.',
                 ],
                 [
-                    'question' => 'How many AI agents can I create?',
+                    'question' => 'How many AI chatbots can I create?',
                     'answer' => 'It depends on your plan. Please refer to the pricing section.',
                 ],
                 [
@@ -290,7 +324,7 @@ return [
                     'answer' => 'ChatVIA is GDPR compliant, hosted in the EU, and uses enterprise-grade security. Your documents and conversations remain private and encrypted. Please read our privacy policy for more information.',
                 ],
                 [
-                    'question' => 'Can I customize the AI agent\'s appearance?',
+                    'question' => 'Can I customize the AI chatbot\'s appearance?',
                     'answer' => 'Yes! You can customize your agent\'s name, personality, and you can also add custom branding, logos, and even use your own domain for a white-label experience.',
                 ],
                 [

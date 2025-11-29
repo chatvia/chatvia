@@ -52,7 +52,7 @@ class BillingSubscribeController
             ->allowPromotionCodes()
             ->alwaysInvoice()
             ->checkout([
-                'success_url' => route('billing.index'),
+                'success_url' => route('billing.success'),
                 'cancel_url' => route('billing.index'),
             ]);
     }

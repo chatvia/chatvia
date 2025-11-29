@@ -1,15 +1,15 @@
 <!-- Site header -->
-<header class="absolute w-full z-30 dark">
+<header class="fixed w-full z-50 bg-white border-b border-slate-200">
     <div class="max-w-6xl mx-auto px-5 sm:px-6">
-        <div class="flex items-center justify-between h-16 md:h-20">
+        <div class="flex items-center justify-between h-16 md:h-18">
 
             <!-- Site branding -->
             <div class="shrink-0 mr-4">
                 <!-- Logo -->
-                <a class="block text-blue-600 transition duration-150 ease-in-out" href="{{ route('home') }}"
+                <a class="flex items-center gap-2 transition duration-150 ease-in-out" href="{{ route('home') }}"
                    aria-label="{{ config('app.name') }}">
-                    <img src="{{ asset('images/logo.png') }}" class="w-12" alt="{{ config('app.name') }} - AI Chatbot Platform Logo"/>
-
+                    <img src="{{ asset('images/logo.png') }}" class="w-10 h-10" alt="{{ config('app.name') }} Logo"/>
+                    <span class="font-semibold text-lg text-slate-800 hidden sm:block">{{ config('app.name') }}</span>
                 </a>
             </div>
 
@@ -17,38 +17,37 @@
             <nav class="hidden md:flex md:grow">
 
                 <!-- Desktop menu links -->
-                <ul class="flex grow justify-start flex-wrap items-center">
+                <ul class="flex grow justify-center flex-wrap items-center gap-1">
                     @foreach(landing()['navigation'] as $navItem)
-                        <a class="font-medium text-slate-800 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-600 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out"
-                           href="{{ $navItem['link'] }}">{{ $navItem['label'] }}</a>
+                        <li>
+                            <a class="text-sm font-medium text-slate-700 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
+                               href="{{ $navItem['link'] }}">{{ $navItem['label'] }}</a>
+                        </li>
                     @endforeach
                 </ul>
 
                 <!-- Desktop sign in links -->
-                <ul class="flex grow justify-end flex-wrap items-center">
+                <ul class="flex grow justify-end flex-wrap items-center gap-3">
                     @auth
                         <li>
-                            <a class="font-medium text-slate-800 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-600 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out"
+                            <a class="text-sm font-medium text-slate-700 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
                                href="{{ route('dashboard') }}">Dashboard</a>
                         </li>
                     @else
                         @if (host_config('user')['demo'] === true)
                             <li>
-                                <a class="font-medium text-blue-600 dark:text-slate-300 dark:hover:text-white px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out group"
-                                   href="{{ route('demo') }}">Request Demo <span
-                                        class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span></a>
-                            </li>
-                        @else
-                            <li class="ml-2">
-                                <a class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out"
-                                   href="{{ route('home') }}#pricing">Start Free Trial</a>
-                            </li>
-                            <li class="ml-2">
-                                <a class="bg-white hover:bg-gray-50 text-slate-800 font-medium px-4 py-2 rounded-lg border border-slate-200 flex items-center transition duration-150 ease-in-out"
-                                   href="{{ route('login') }}">Login</a>
+                                <a class="text-sm font-medium text-slate-700 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
+                                   href="{{ route('demo') }}">Request Demo</a>
                             </li>
                         @endif
-
+                        <li>
+                            <a class="text-sm font-medium text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 px-5 py-2 rounded-full flex items-center transition duration-150 ease-in-out"
+                               href="{{ route('login') }}">Log in</a>
+                        </li>
+                        <li>
+                            <a class="text-sm font-semibold text-white bg-red-500 hover:bg-red-600 px-5 py-2 rounded-full flex items-center transition duration-150 ease-in-out"
+                               href="{{ route('home') }}#pricing">Sign up free</a>
+                        </li>
                     @endif
                 </ul>
 
@@ -59,10 +58,10 @@
 
                 <!-- Hamburger button -->
                 <button
-                    class="group inline-flex w-8 h-8 text-slate-300 hover:text-white text-center items-center justify-center transition"
+                    class="group inline-flex w-10 h-10 text-slate-700 hover:text-slate-900 text-center items-center justify-center transition"
                     aria-controls="mobile-nav" :aria-expanded="expanded" @click.stop="expanded = !expanded">
                     <span class="sr-only">Menu</span>
-                    <svg class="w-4 h-4 fill-current pointer-events-none" viewBox="0 0 16 16"
+                    <svg class="w-5 h-5 fill-current pointer-events-none" viewBox="0 0 16 16"
                          xmlns="http://www.w3.org/2000/svg">
                         <rect
                             class="origin-center transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.1)] -translate-y-[5px] group-aria-expanded:rotate-[315deg] group-aria-expanded:translate-y-0"
@@ -79,7 +78,7 @@
                 <!-- Mobile navigation -->
                 <nav
                     id="mobile-nav"
-                    class="absolute top-full h-screen pb-16 z-20 left-0 w-full overflow-scroll no-scrollbar bg-white"
+                    class="absolute top-full left-0 w-full bg-white border-b border-slate-200"
                     @click.away="expanded = false"
                     @keydown.escape.window="expanded = false"
                     x-show="expanded"
@@ -91,34 +90,30 @@
                     x-transition:leave-end="opacity-0"
                     x-cloak
                 >
-                    <ul class="px-5 py-2">
+                    <ul class="px-5 py-4 space-y-1">
                         @foreach(landing()['navigation'] as $navItem)
                             <li>
-                                <a class="flex font-medium text-slate-800 hover:text-blue-600 py-2" href="{{ $navItem['link'] }}">{{ $navItem['label'] }}</a>
+                                <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition" href="{{ $navItem['link'] }}">{{ $navItem['label'] }}</a>
                             </li>
                         @endforeach
-                        @auth
-                            <li>
-                                <a class="flex font-medium text-slate-800 hover:text-blue-600 py-2" href="{{ route('dashboard') }}">Dashboard</a>
-                            </li>
-                        @else
-                            <li>
-                                <a class="flex font-medium w-full text-slate-800 hover:text-blue-600 py-2"
-                                   href="{{ route('login') }}">Sign in</a>
-                            </li>
-                            <li>
-                                <a class="flex font-medium text-blue-600 py-2 group" href="{{ route('home') }}#pricing">Start Free Trial
-                                    <span
-                                        class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">→</span></a>
-                            </li>
+                        <li class="pt-3 border-t border-slate-200 mt-3">
+                            @auth
+                                <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition" href="{{ route('dashboard') }}">Dashboard</a>
+                            @else
+                                <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
+                                   href="{{ route('login') }}">Log in</a>
+                            @endauth
+                        </li>
+                        @guest
                             @if (host_config('user')['demo'] === true)
                                 <li>
-                                    <a class="flex font-medium text-blue-600 py-2 group" href="{{ route('demo') }}">Request Demo
-                                        <span
-                                            class="tracking-normal text-blue-600 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">→</span></a>
+                                    <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition" href="{{ route('demo') }}">Request Demo</a>
                                 </li>
                             @endif
-                        @endauth
+                            <li class="pt-2">
+                                <a class="flex font-semibold text-white bg-red-500 hover:bg-red-600 py-3 px-4 rounded-full justify-center transition" href="{{ route('home') }}#pricing">Sign up free</a>
+                            </li>
+                        @endguest
                     </ul>
                 </nav>
 

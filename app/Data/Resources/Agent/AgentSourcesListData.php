@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Data\Api\Agent;
+namespace App\Data\Resources\Agent;
 
 use Spatie\LaravelData\Data;
 

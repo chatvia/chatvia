@@ -6,7 +6,7 @@
         <div class="max-w-3xl mx-auto text-center pb-12 md:pb-16">
             <p class="text-blue-400 font-semibold mb-3 uppercase tracking-wide text-sm">One platform. Zero
                 compromises.</p>
-            <h2 class="h2 font-rubik text-slate-100 mb-4">
+            <h2 class="h2 font-display text-slate-100 mb-4">
                 Replace 3 tools with 1
             </h2>
             <p class="text-xl text-slate-400">

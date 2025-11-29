@@ -36,7 +36,7 @@
                             <p class="text-xl text-slate-400">
                                 Free AI-Powered Tool
                             </p>
-                            <h1 class="mx-auto md:max-w-3xl text-5xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold font-rubik text-slate-100 mb-4 leading-tight text-center">
+                            <h1 class="mx-auto md:max-w-3xl text-5xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold font-display text-slate-100 mb-4 leading-tight text-center">
                                 Chat with Your PDF Documents
                             </h1>
 

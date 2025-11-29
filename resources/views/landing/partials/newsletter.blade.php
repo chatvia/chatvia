@@ -3,7 +3,7 @@
         <div class="pb-12 md:pb-20 border-b border-slate-200">
 
             <!-- CTA box -->
-            <div class="max-w-3xl mx-auto bg-slate-900 rounded-xs p-8">
+            <div class="max-w-3xl mx-auto bg-slate-900 rounded-xs p-8" data-aos="fade-up">
 
                 <div class="flex flex-col justify-between items-center">
 
@@ -17,7 +17,7 @@
                             </svg>
                         </div>
                         <h3 class="h4 font-playfair-display text-slate-100 mb-2">Sign up for ChatVia.ai</h3>
-                        <p class="text-slate-400 mb-6">Get the latest news about AI agents.</p>
+                        <p class="text-slate-400 mb-6">Get the latest news about AI chatbots.</p>
 
                         <!-- CTA form -->
                         <form class="w-full">

@@ -2,11 +2,20 @@
 
 @section('title', landing('title') . ' - AI-Powered Chatbot Platform | RAG Technology')
 
-@section('description', 'Build intelligent AI chatbots with ChatVia. Upload documents, create custom AI agents with RAG technology, and automate customer support. Start free today.')
+@section('description', 'Build intelligent AI chatbots with ChatVia. Upload documents, create custom AI chatbots with RAG technology, and automate customer support. Start free today.')
 
 @section('og_title', landing('title') . ' - AI-Powered Chatbot Platform')
 
 @section('og_description', 'Transform your customer support with AI-powered chatbots. Upload documents, train agents, and provide instant 24/7 support with ChatVia.')
+
+@push('preload')
+    {{-- Preload first 3 feature images for better performance --}}
+    @if(isset($landing['features']['slide']['tabs']))
+        @foreach(array_slice($landing['features']['slide']['tabs'], 0, 3) as $tab)
+            <link rel="preload" as="image" href="{{ asset($tab['img']) }}">
+        @endforeach
+    @endif
+@endpush
 
 @section('content')
     <div class="flex flex-col min-h-screen overflow-hidden">
@@ -17,49 +26,80 @@
         <main class="grow">
 
             <!-- Hero -->
-            <section class="relative">
-
-                <!-- Dark background -->
-                <div
-                    class="absolute inset-0 bg-slate-900 pointer-events-none -z-10 [clip-path:polygon(0_0,_5760px_0,_5760px_calc(100%_-_200px),_0_100%)]"
-                    aria-hidden="true"></div>
-
-                <div class="flex justify-center max-w-6xl mx-auto px-4 sm:px-6">
-                    <div class="pt-32 pb-8 md:pt-40 md:pb-16">
+            <section class="relative bg-white">
+                <div class="max-w-5xl mx-auto px-4 sm:px-6">
+                    <div class="pt-28 pb-12 md:pt-36 md:pb-20">
 
                         <!-- Hero content -->
-                        <div
-                            class="max-w-xl mx-auto md:max-w-none flex flex-col items-center justify-center text-center md:space-y-16 space-y-16">
-
-                            <div class="text-center" data-aos="fade-right">
-                                <p class="text-base sm:text-lg md:text-xl text-slate-400">
-                                    {!! $landing['hero']['top']  !!}
-                                </p>
-                                <h1 class="mx-auto md:max-w-4xl text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-extrabold font-rubik text-slate-100 mb-4 leading-tight md:leading-tight text-center">
-                                    {!! $landing['hero']['headline'] !!}
-                                </h1>
-
-                                @include('landing.partials.watch-video')
-
-                                @foreach ($landing['hero']['subheadlines'] as $subheadline)
-                                    <p class="text-base sm:text-lg md:text-xl text-slate-400 mb-6">
-                                        {{ $subheadline }}
-                                    </p>
-                                @endforeach
-
-                                <div
-                                    class="max-w-xs mx-auto sm:max-w-none sm:flex sm:justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                                    <div>
-                                        <a class="btn text-white bg-blue-600 hover:bg-blue-700 w-full group"
-                                           href="#pricing">
-                                            {{ $landing['hero']['button']['label'] }}
-                                        </a>
-                                    </div>
-
+                        <div class="text-center" data-aos="fade-up">
+                            <!-- Trust badges -->
+                            <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
+                                <!-- GDPR -->
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-full text-sm text-slate-600">
+                                    <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                                    </svg>
+                                    <span class="font-medium">GDPR</span>
                                 </div>
-                                <p class="text-sm text-slate-500 mt-4">
-                                    {{ $landing['hero']['text_below_button'] }}
-                                </p>
+                                <!-- Hosted in EU -->
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-full text-sm text-slate-600">
+                                    <img src="{{ asset('images/eu-flag.svg') }}" alt="EU Flag" class="w-4 h-4 object-contain" />
+                                    <span class="font-medium">Hosted in EU</span>
+                                </div>
+                                <!-- Made in Denmark -->
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-full text-sm text-slate-600">
+                                    <img src="{{ asset('images/dk-flag.svg') }}" alt="Denmark Flag" class="w-4 h-4 object-contain" />
+                                    <span class="font-medium">Made in Denmark</span>
+                                </div>
+                            </div>
+
+                            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display text-slate-900 mb-6 leading-[1.1] tracking-tight">
+                                Turn your website into<br class="hidden sm:block" />
+                                a <span class="relative inline-block">
+                                    <span class="relative z-10">high-converting</span>
+                                    <span class="absolute bottom-1 left-0 right-0 h-3 md:h-4 bg-gradient-to-r from-blue-200 to-purple-200 -z-0 -skew-x-3"></span>
+                                </span> AI chatbot
+                            </h1>
+
+                            <p class="text-lg md:text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+                                ChatVia instantly helps your customers using AI-generated responses. Get 24/7 support and ultra-high satisfaction rates.
+                            </p>
+
+                            <!-- CTA Button -->
+                            <div class="mb-12">
+                                <a
+                                    href="#pricing"
+                                    class="inline-block px-10 py-4 text-lg font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors duration-200"
+                                >
+                                    {{ $landing['hero']['button']['label'] ?? 'Start free trial' }}
+                                </a>
+                            </div>
+
+                            <!-- Hero Image -->
+                            <div class="relative max-w-5xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+                                <!-- Browser-style window -->
+                                <div class="relative rounded-xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-100">
+                                    <!-- Window header with traffic lights -->
+                                    <div class="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
+                                        <div class="flex items-center gap-1.5">
+                                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                                            <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                                            <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Image with fade out effect -->
+                                    <div class="relative">
+                                        <img
+                                            src="{{ asset('images/agent-stats.png') }}"
+                                            alt="ChatVia AI Chatbot Dashboard - Analytics and conversation management"
+                                            class="w-full h-auto"
+                                        />
+                                        <!-- Fade out gradient overlay -->
+                                        <div class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
+                                    </div>
+                                </div>
+                                <!-- Decorative gradient blur -->
+                                <div class="absolute -inset-4 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-3xl -z-10 opacity-40"></div>
                             </div>
                         </div>
 
@@ -67,73 +107,49 @@
                 </div>
             </section>
 
-            <!-- Three Core Features Section -->
-            <section class="relative py-5 bg-white">
-                <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <!-- Core Features Section -->
+            <section class="relative py-16 md:py-20 bg-white">
+                <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
                     <!-- Section header -->
-                    <div class="max-w-4xl mx-auto text-center mb-12 md:mb-16">
-                        <h2 class="h2 font-rubik text-slate-800 mb-4">
-                            The complete platform for AI agents
+                    <div class="text-center mb-12 md:mb-16" data-aos="fade-up">
+                        <h2 class="h2 font-display text-slate-900 mb-4">
+                            The complete platform for AI chatbots
                         </h2>
                         <p class="text-lg text-slate-500 max-w-2xl mx-auto">
-                            ChatVia is designed for building AI agents that solve your customers' hardest problems while
-                            improving business outcomes.
+                            ChatVia is designed for building AI chatbots that solve your customers' hardest problems while improving business outcomes.
                         </p>
                     </div>
 
-                    <!-- Three Cards -->
-                    <div class="grid md:grid-cols-3 gap-6 lg:gap-8">
+                    <!-- Two Cards -->
+                    <div class="grid md:grid-cols-2 gap-6">
 
                         <!-- Card 1: Chat Widget -->
-                        <div class="bg-slate-100 rounded-lg p-6 lg:p-8" data-aos="fade-up" x-data>
-                            <h3 class="text-xl font-bold text-slate-800 mb-2">Chat Widget</h3>
-                            <p class="text-slate-500 mb-4">
-                                Embed a powerful AI chat widget on your website. Customize the look and feel to match
-                                your brand and engage visitors 24/7.
+                        <div class="bg-slate-50 rounded-xl p-6 lg:p-8" data-aos="fade-up">
+                            <h3 class="text-xl font-semibold text-slate-900 mb-3">Chat Widget</h3>
+                            <p class="text-slate-600 mb-5">
+                                Embed a powerful AI chat widget on your website. Customize the look and feel to match your brand and engage visitors 24/7.
                             </p>
-                            <button type="button"
-                                    onclick="window.chatbot('open')"
-                               class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm cursor-pointer">
+                            <button type="button" onclick="window.chatbot('open')"
+                               class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm">
                                 See how it works in action
                                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M9 5l7 7-7 7"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </button>
-
                         </div>
 
                         <!-- Card 2: Knowledge Bases -->
-                        <div class="bg-slate-100 rounded-lg p-6 lg:p-8" data-aos="fade-up" data-aos-delay="100">
-                            <h3 class="text-xl font-bold text-slate-800 mb-2">Knowledge Bases</h3>
-                            <p class="text-slate-500 mb-4">
-                                Build custom knowledge bases like ChatGPT. Upload documents, websites, and files to
-                                train your AI on your specific content.
+                        <div class="bg-slate-50 rounded-xl p-6 lg:p-8" data-aos="fade-up" data-aos-delay="100">
+                            <h3 class="text-xl font-semibold text-slate-900 mb-3">Knowledge Bases</h3>
+                            <p class="text-slate-600 mb-5">
+                                Build custom knowledge bases like ChatGPT. Upload documents, websites, and files to train your AI on your specific content.
                             </p>
-                            <a href="#"
+                            <a href="#pricing"
                                class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm">
                                 See how it works in action
                                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M9 5l7 7-7 7"/>
-                                </svg>
-                            </a>
-                        </div>
-
-                        <!-- Card 3: Search -->
-                        <div class="bg-slate-100 rounded-lg p-6 lg:p-8" data-aos="fade-up" data-aos-delay="200">
-                            <h3 class="text-xl font-bold text-slate-800 mb-2">LLM-based Search Engine</h3>
-                            <p class="text-slate-500 mb-4">
-                                Ditch your traditional search with LLM-based searching. Embed it on your website and let
-                                users find exactly what they need instantly.
-                            </p>
-                            <a href="#"
-                               class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm">
-                                See how it works in action
-                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M9 5l7 7-7 7"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </a>
                         </div>
@@ -142,56 +158,48 @@
                 </div>
             </section>
 
-            @if (isset($landing['llm_marquee']) && $landing['llm_marquee']['enabled'] && count($landing['llm_marquee']['llms']) > 0)
-                <!-- LLM Marquee Section -->
-                <section class="relative py-8 md:py-12 bg-white">
-                    <style>
-                        .marquee-animation {
-                            animation: marquee 12s linear infinite;
-                        }
-
-                        @media (min-width: 768px) {
-                            .marquee-animation {
-                                animation: marquee 20s linear infinite;
-                            }
-                        }
-                    </style>
-                    <div class="max-w-6xl mx-auto px-4 sm:px-6">
-                        <div class="border-t border-slate-200 mb-8"></div>
-                        <p class="text-center text-sm text-slate-500 mb-6 font-medium uppercase tracking-wide">Powered
-                            by leading AI models</p>
-                        <!-- Marquee Container -->
-                        <div class="relative overflow-hidden">
-                            <!-- Gradient overlays for smooth fade effect -->
-                            <div
-                                class="absolute left-0 top-0 w-20 h-full bg-gradient-to-r from-white to-transparent z-10"></div>
-                            <div
-                                class="absolute right-0 top-0 w-20 h-full bg-gradient-to-l from-white to-transparent z-10"></div>
-
-                            <!-- Marquee content -->
-                            <div class="flex whitespace-nowrap marquee-animation">
-                                @foreach($landing['llm_marquee']['llms'] as $llm)
-                                    <div class="flex items-center justify-center mx-8 min-w-[120px]">
-                                        <img src="{{ asset('images/llms/' . $llm['logo']) }}"
-                                             alt="{{ $llm['name'] }} AI model logo"
-                                             class="h-12 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
-                                    </div>
-                                @endforeach
-                                <!-- Duplicate for seamless loop -->
-                                @foreach($landing['llm_marquee']['llms'] as $llm)
-                                    <div class="flex items-center justify-center mx-8 min-w-[120px]">
-                                        <img src="{{ asset('images/llms/' . $llm['logo']) }}"
-                                             alt="{{ $llm['name'] }} AI model logo"
-                                             class="h-12 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity duration-300 filter grayscale hover:grayscale-0"/>
-                                    </div>
-                                @endforeach
-                            </div>
+            <!-- Features Bar -->
+            <section class="bg-slate-900 py-4" data-aos="fade-up">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                    <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 md:gap-x-12">
+                        <!-- Feature 1 -->
+                        <div class="flex items-center gap-2 text-slate-300 text-sm">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/>
+                            </svg>
+                            <span>AI-powered support</span>
+                        </div>
+                        <!-- Feature 2 -->
+                        <div class="flex items-center gap-2 text-slate-300 text-sm">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Instant chatbot setup</span>
+                        </div>
+                        <!-- Feature 3 -->
+                        <div class="flex items-center gap-2 text-slate-300 text-sm">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/>
+                            </svg>
+                            <span>Website widget</span>
+                        </div>
+                        <!-- Feature 4 -->
+                        <div class="flex items-center gap-2 text-slate-300 text-sm">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/>
+                            </svg>
+                            <span>AI-generated replies</span>
+                        </div>
+                        <!-- Feature 5 -->
+                        <div class="flex items-center gap-2 text-slate-300 text-sm">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/>
+                            </svg>
+                            <span>Advanced AI training</span>
                         </div>
                     </div>
-                </section>
-            @endif
-
-            @include('partials.comparasion')
+                </div>
+            </section>
 
             <!-- Features Section Wrapper -->
             <div id="features">
@@ -224,7 +232,7 @@
                                                 <img src="{{ asset('images/icons/'. $feature['icon']) }}.svg"
                                                      alt="{{ $feature['title'] }} icon" class="w-15"/>
                                             </div>
-                                            <h2 class="h4 font-rubik mb-2">
+                                            <h2 class="h4 font-display mb-2">
                                                 {{ $feature['title'] }}
                                             </h2>
                                             <p class="text-lg text-slate-500">
@@ -250,9 +258,9 @@
 
                                 @if(!empty($landing['features']['slide']['title']) || !empty($landing['features']['slide']['subheadline']))
                                     <!-- Section header -->
-                                    <div class="max-w-4xl mx-auto text-center pb-16">
+                                    <div class="max-w-4xl mx-auto text-center pb-16" data-aos="fade-up">\
                                         @if(!empty($landing['features']['slide']['title']))
-                                            <h2 class="h2 font-rubik text-slate-800 mb-4">
+                                            <h2 class="h2 font-display text-slate-800 mb-4">
                                                 {{ $landing['features']['slide']['title'] }}
                                             </h2>
                                         @endif
@@ -265,7 +273,7 @@
                                 @endif
 
                                 <!-- Section content -->
-                                <div class="max-w-6xl mx-auto"
+                                <div class="max-w-6xl mx-auto" data-aos="fade-up" data-aos-delay="100"
                                      x-data="{
                              tab: '1',
                              autoSlide: true,
@@ -298,20 +306,40 @@
                                     <!-- Single column layout -->
                                     <div class="text-center">
 
+                                        <!-- Tab menu at top -->
+                                        <div class="flex justify-center mb-12">
+                                            <div class="inline-flex bg-slate-200/80 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
+                                                @foreach ($landing['features']['slide']['tabs'] as $index => $tab)
+                                                    <button
+                                                        class="px-5 py-2.5 text-sm font-medium rounded-full transition-all duration-300 focus:outline-none"
+                                                        :class="tab === '{{ $index + 1 }}'
+                                                            ? 'bg-white text-slate-900 shadow-md'
+                                                            : 'text-slate-500 hover:text-slate-700'"
+                                                        @click="selectTab('{{ $index + 1 }}')"
+                                                    >
+                                                        {{ $tab['tab_name'] ?? explode(' ', $tab['title'])[0] }}
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+
                                         <!-- Tab content - titles, descriptions and images combined -->
                                         @foreach ($landing['features']['slide']['tabs'] as $index => $tab)
-                                            <div x-show="tab === '{{ $index + 1 }}'">
+                                            <div x-show="tab === '{{ $index + 1 }}'"
+                                                 x-transition:enter="transition ease-out duration-300"
+                                                 x-transition:enter-start="opacity-0 transform translate-y-4"
+                                                 x-transition:enter-end="opacity-100 transform translate-y-0">
                                                 <!-- Title and description for each tab -->
-                                                <div class="mb-12">
-                                                    <h3 class="text-3xl md:text-4xl lg:text-5xl font-rubik text-slate-800 mb-6">
+                                                <div class="mb-10">
+                                                    <h3 class="text-3xl md:text-4xl lg:text-5xl font-display text-slate-800 mb-6">
                                                         {{ $tab['title'] }}
                                                     </h3>
-                                                    <p class="text-lg md:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto mb-8">
+                                                    <p class="text-lg md:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
                                                         {{ $tab['description'] ?? 'Discover how this powerful feature can transform your workflow and enhance your productivity with our innovative solution.' }}
                                                     </p>
                                                     @if(isset($tab['features']) && is_array($tab['features']))
                                                         <div
-                                                            class="flex flex-wrap justify-center gap-6 max-w-2xl mx-auto">
+                                                            class="flex flex-wrap justify-center gap-6 max-w-2xl mx-auto mt-6">
                                                             @foreach($tab['features'] as $feature)
                                                                 <div class="flex items-center space-x-2 text-slate-600">
                                                                     <svg class="w-5 h-5 text-blue-600 flex-shrink-0"
@@ -328,27 +356,38 @@
                                                 </div>
 
                                                 <!-- Image for each tab -->
-                                                <div class="relative mb-8">
-                                                    <div class="relative max-w-5xl mx-auto">
-                                                        <img class="w-full h-auto border-2 border-slate-200"
-                                                             src="{{ asset($tab['img']) }}"
-                                                             alt="{{ $tab['title'] }}"
-                                                             loading="lazy"/>
+                                                <div class="relative">
+                                                    <div class="relative max-w-5xl mx-auto overflow-hidden rounded-xl border border-slate-200 shadow-lg">
+                                                        <div class="aspect-[16/10] bg-slate-100">
+                                                            <img class="w-full h-full object-cover object-top"
+                                                                 src="{{ asset($tab['img']) }}"
+                                                                 alt="{{ $tab['title'] }}"
+                                                                 loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                                                 @if($index === 0) fetchpriority="high" @endif
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         @endforeach
 
-                                        <!-- Dot navigation -->
-                                        <div class="flex space-x-3 justify-center">
-                                            @foreach ($landing['features']['slide']['tabs'] as $index => $tab)
-                                                <button
-                                                    class="w-3 h-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                                    :class="tab === '{{ $index + 1 }}' ? 'bg-blue-600 scale-125' : 'bg-slate-300 hover:bg-slate-400'"
-                                                    @click="selectTab('{{ $index + 1 }}')"
-                                                    aria-label="Switch to tab {{ $index + 1 }}"
-                                                ></button>
-                                            @endforeach
+                                        <!-- Play/Pause button below -->
+                                        <div class="flex justify-center mt-8">
+                                            <button
+                                                @click="autoSlide = !autoSlide"
+                                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-full border border-slate-200 shadow-sm transition-all focus:outline-none"
+                                                :aria-label="autoSlide ? 'Pause slideshow' : 'Play slideshow'"
+                                            >
+                                                <!-- Pause icon -->
+                                                <svg x-show="autoSlide" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                                                </svg>
+                                                <!-- Play icon -->
+                                                <svg x-show="!autoSlide" x-cloak class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M8 5v14l11-7z"/>
+                                                </svg>
+                                                <span x-text="autoSlide ? 'Pause' : 'Play'"></span>
+                                            </button>
                                         </div>
                                     </div>
 
@@ -359,6 +398,10 @@
                     </section>
                 @endif
 
+{{--                @include('landing.partials.product-types')--}}
+
+                @include('landing.partials.emotion-detection')
+
                 @if (count($landing['features']['slide2']['slides']) !== 0)
                     <section>
                         <div class="max-w-6xl mx-auto px-4 sm:px-6">
@@ -366,7 +409,7 @@
 
                                 <!-- Section header -->
                                 <div class="max-w-3xl mx-auto text-center pb-12 md:pb-20">
-                                    <h2 class="h2 font-rubik text-slate-800">{{ $landing['features']['slide2']['title'] }}</h2>
+                                    <h2 class="h2 font-display text-slate-800">{{ $landing['features']['slide2']['title'] }}</h2>
                                 </div>
 
                                 <!-- Section content -->
@@ -439,133 +482,62 @@
                 @endif
 
                 @if (isset($landing['features']['steps']['steps']) && count($landing['features']['steps']['steps']) !== 0)
-                    <section class="relative">
-                        <!-- Dark background -->
-                        <div
-                            class="absolute inset-0 bg-slate-900 pointer-events-none -z-10 [clip-path:polygon(0_0,_5760px_0,_5760px_calc(100%_-_352px),_0_100%)] h-96 md:h-auto md:mb-64"
-                            aria-hidden="true"></div>
+                    <section class="relative py-16 md:py-24 bg-slate-900">
+                        <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
-                        <div class="relative max-w-6xl mx-auto px-4 sm:px-6">
-                            <div class="py-12 md:py-20">
+                            <!-- Section header -->
+                            <div class="text-center mb-12 md:mb-16" data-aos="fade-up">
+                                <h2 class="h2 font-display text-white mb-4">
+                                    {{ $landing['features']['steps']['title'] }}
+                                </h2>
+                            </div>
 
-                                <!-- Section header -->
-                                <div class="max-w-3xl mx-auto text-center pb-12 md:pb-20">
-                                    <h2 class="h2 font-rubik text-slate-100">
-                                        {{ $landing['features']['steps']['title'] }}
-                                    </h2>
+                            <!-- Steps -->
+                            <div class="grid md:grid-cols-3 gap-8 md:gap-12">
+
+                                <!-- Step 1 -->
+                                <div class="text-center" data-aos="fade-up">
+                                    <div class="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-5">
+                                        <span class="text-2xl font-bold text-white">1</span>
+                                    </div>
+                                    <h3 class="text-xl font-semibold text-white mb-3">
+                                        {{ $landing['features']['steps']['steps'][0]['title'] }}
+                                    </h3>
+                                    @if(isset($landing['features']['steps']['steps'][0]['description']))
+                                        <p class="text-slate-400">
+                                            {{ $landing['features']['steps']['steps'][0]['description'] }}
+                                        </p>
+                                    @endif
                                 </div>
 
-                                <!-- Section content -->
-                                <div
-                                    class="max-w-sm mx-auto md:max-w-none grid gap-12 md:grid-cols-3 md:gap-x-10 md:gap-y-10 items-start">
+                                <!-- Step 2 -->
+                                <div class="text-center" data-aos="fade-up" data-aos-delay="100">
+                                    <div class="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-5">
+                                        <span class="text-2xl font-bold text-white">2</span>
+                                    </div>
+                                    <h3 class="text-xl font-semibold text-white mb-3">
+                                        {{ $landing['features']['steps']['steps'][1]['title'] }}
+                                    </h3>
+                                    @if(isset($landing['features']['steps']['steps'][1]['description']))
+                                        <p class="text-slate-400">
+                                            {{ $landing['features']['steps']['steps'][1]['description'] }}
+                                        </p>
+                                    @endif
+                                </div>
 
-                                    <!-- 1st article -->
-                                    <article data-aos="fade-up">
-                                        <div class="relative block group mt-8 mb-4" href="#0">
-                                            <div
-                                                class="absolute inset-0 pointer-events-none border-2 border-slate-500 opacity-20 translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition duration-300 ease-out -z-10"
-                                                aria-hidden="true"></div>
-                                            <div class="overflow-hidden">
-                                                <img
-                                                    class="w-full aspect-square object-cover group-hover:scale-105 transition duration-700 ease-out"
-                                                    src="{{ asset('images/features-home-3-01.png') }}" width="340"
-                                                    height="340"
-                                                    alt="Step 1: Upload your documents to create AI agents"/>
-                                            </div>
-                                            <div
-                                                class="w-16 h-16 absolute bg-linear-to-b from-blue-500 to-blue-600 rounded-full -top-8 left-8">
-                                                <svg class="w-16 h-16 fill-current" viewBox="0 0 64 64"
-                                                     xmlns="http://www.w3.org/2000/svg">
-                                                    <path class="text-white"
-                                                          d="m30.152 39.848.672-.408C32.24 33.632 33.92 32 35.96 26.768a10.714 10.714 0 0 0-.432-2.28c-.288-.096-.888-.336-1.44-.336-1.776.48-3.48 1.632-5.208 2.088-1.272.336-.576 2.352.36 3.312.672-.384 1.872-1.008 2.28-.96-1.248 2.112-3 6.12-3 7.704 0 .528-.48.816-.48 1.104 0 .288.12.6.144.936.384-.24.48-.12.48.264.264.192.672.504 1.032.816.144-.744.384-1.56.888-1.464l-.6 1.704c.072.072.12.144.168.192Z"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <h2 class="h4 font-rubik mb-2">
-                                            <div class="text-slate-800 hover:underline hover:decoration-blue-100"
-                                                 href="#0">
-                                                {{ $landing['features']['steps']['steps'][0]['title'] }}
-                                            </div>
-                                        </h2>
-                                        @if(isset($landing['features']['steps']['steps'][0]['description']))
-                                            <p class="text-slate-500 text-lg">
-                                                {{ $landing['features']['steps']['steps'][0]['description'] }}
-                                            </p>
-                                        @endif
-
-                                    </article>
-
-                                    <!-- 2nd article -->
-                                    <article data-aos="fade-up" data-aos-delay="100">
-                                        <div class="relative block group mt-8 mb-4" href="#0">
-                                            <div
-                                                class="absolute inset-0 pointer-events-none border-2 border-slate-500 opacity-20 translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition duration-300 ease-out -z-10"
-                                                aria-hidden="true"></div>
-                                            <div class="overflow-hidden">
-                                                <img
-                                                    class="w-full aspect-square object-cover group-hover:scale-105 transition duration-700 ease-out"
-                                                    src="./images/features-home-3-02.png" width="342" height="342"
-                                                    alt="Step 2: Train your AI chatbot with your data"/>
-                                            </div>
-                                            <div
-                                                class="w-16 h-16 absolute bg-linear-to-b from-blue-500 to-blue-600 rounded-full -top-8 left-8">
-                                                <svg class="w-16 h-16 fill-current" viewBox="0 0 64 64"
-                                                     xmlns="http://www.w3.org/2000/svg">
-                                                    <path class="text-white"
-                                                          d="M25.508 39.044c.312 0 .672-.024 1.008-.048-.096-.432.384-.528.816-.096 1.488-.216 3.12-.624 4.416-.888l.6-.624c1.104 0 .456.624 1.44.432.168-1.008.552-.456 1.92-1.176l.072.168c-.264.192-.72.408-1.152.576v.216c1.584-.528 1.848-1.32 2.928-1.464 1.224-.168 2.184-.048 2.52-.792l-1.728-.096-.168-.24h1.008l-.096-.216c-1.032 0-1.44-.168-2.4-.576-2.016.192-5.328.912-7.632.768 1.296-1.512 3.72-2.592 5.712-3.648.024.36-.384.6-.744.816l.072.216 1.344-.744c.048-.72.552-1.344 1.272-1.44.6-.744.864-1.776.864-2.76 0-1.08-1.2-2.208-3.024-2.208l.096-.264c-1.968.192-5.4.36-6.792 1.176-.504.288-.456.696-.792.984.48.36.024.528.504 1.2.624.888.648 1.488 1.152 1.2 1.056-.576 2.4-1.176 3.384-1.176.48 0 .864.168 1.104.504 0 1.488-6.744 3.792-9.288 7.632.48.096.312.48.072.84.504.768.84 1.728 1.512 1.728Zm7.344-5.976.912-.48-.048-.264-.912.6.048.144Zm7.08 3.216-.096-.216-1.128.216c.144.168.72.048 1.224 0Z"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <h2 class="h4 font-rubik mb-2">
-                                            <div class="text-slate-800 hover:underline hover:decoration-blue-100"
-                                                 href="#0">
-                                                {{ $landing['features']['steps']['steps'][1]['title'] }}
-                                            </div>
-                                        </h2>
-                                        @if(isset($landing['features']['steps']['steps'][1]['description']))
-                                            <p class="text-slate-500 text-lg">
-                                                {{ $landing['features']['steps']['steps'][1]['description'] }}
-                                            </p>
-                                        @endif
-
-                                    </article>
-
-                                    <!-- 3rd article -->
-                                    <article data-aos="fade-up" data-aos-delay="200">
-                                        <div class="relative block group mt-8 mb-4">
-                                            <div
-                                                class="absolute inset-0 pointer-events-none border-2 border-slate-500 opacity-20 translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition duration-300 ease-out -z-10"
-                                                aria-hidden="true"></div>
-                                            <div class="overflow-hidden">
-                                                <img
-                                                    class="w-full aspect-square object-cover group-hover:scale-105 transition duration-700 ease-out"
-                                                    src="{{ asset('images/features-home-3-03.png') }}" width="342"
-                                                    height="342"
-                                                    alt="Step 3: Deploy and start answering customer questions"/>
-                                            </div>
-                                            <div
-                                                class="w-16 h-16 absolute bg-linear-to-b from-blue-500 to-blue-600 rounded-full -top-8 left-8">
-                                                <svg class="w-16 h-16 fill-current" viewBox="0 0 64 64"
-                                                     xmlns="http://www.w3.org/2000/svg">
-                                                    <path class="text-white"
-                                                          d="M25.53 40.038c1.607-.216 3.071-.576 4.655-1.08.048-.36.288-.6.552-.624l.12.408a37.15 37.15 0 0 0 2.352-.912l.12.264c1.416-.72 2.64-1.2 3.984-2.376l.312.144c1.392-1.248 1.632-2.904 1.632-4.728-.624-.912-1.416-1.656-2.784-2.112.36-.72.768-1.752.984-2.784-.12-.648-.408-1.224-.864-1.776-.84-.072-2.088-.24-3.264-.24l-.192-.216a18.485 18.485 0 0 0-1.152-.048c-1.776 0-4.056 1.032-4.056 1.944 0 .624.048 1.248.192 1.824l.268-.172c.578-.368 1.127-.671 1.46-.38l-1.656.792c.048.144.12.336.192.48 1.296-.672 3.96-1.608 5.64-1.608-.456.984-2.376 2.496-3.672 2.832l-.24 1.056c.456 1.248.864 1.032 2.16 1.68l.12-.288c1.8.216 3.336 0 3.96.72-.312 1.464-3.984 2.712-5.4 3.12-.504.144-.84.144-.936-.096-1.416.744-3.36.696-5.064.696-.24.768-.336 1.608.048 2.544l.72-.312c.144.288-.432.696-.456.96-.024.24.12.312.264.288Zm7.703-2.352-.144-.264.744-.312.072.216-.672.36Zm-4.344 1.248-.048-.264c.216-.048.384-.096.552-.12a.588.588 0 0 1 .48.12l-.984.264Z"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <h2 class="h4 font-rubik mb-2">
-                                            <div class="text-slate-800 hover:underline hover:decoration-blue-100"
-                                                 href="#0">
-                                                {{ $landing['features']['steps']['steps'][2]['title'] }}
-                                            </div>
-                                        </h2>
-                                        @if(isset($landing['features']['steps']['steps'][2]['description']))
-                                            <p class="text-slate-500 text-lg">
-                                                {{ $landing['features']['steps']['steps'][2]['description'] }}
-                                            </p>
-                                        @endif
-
-                                    </article>
-
+                                <!-- Step 3 -->
+                                <div class="text-center" data-aos="fade-up" data-aos-delay="200">
+                                    <div class="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-5">
+                                        <span class="text-2xl font-bold text-white">3</span>
+                                    </div>
+                                    <h3 class="text-xl font-semibold text-white mb-3">
+                                        {{ $landing['features']['steps']['steps'][2]['title'] }}
+                                    </h3>
+                                    @if(isset($landing['features']['steps']['steps'][2]['description']))
+                                        <p class="text-slate-400">
+                                            {{ $landing['features']['steps']['steps'][2]['description'] }}
+                                        </p>
+                                    @endif
                                 </div>
 
                             </div>
@@ -583,7 +555,7 @@
 
                             <!-- Section header -->
                             <div class="max-w-2xl mx-auto text-center pb-12 md:pb-20">
-                                <h2 class="h2 font-rubik text-slate-800 mb-3">
+                                <h2 class="h2 font-display text-slate-800 mb-3">
                                     Why you should have a chatbot for your business?
                                 </h2>
                                 <p class="text-xl text-slate-500">
@@ -606,7 +578,7 @@
                                                     <path
                                                         d="M15.722 4.008C14.408 1.214 10.954-.635 7.318.203 5.6.596 4.072 1.561 2.919 2.757A10.57 10.57 0 0 0 .484 6.93C.03 8.458-.173 10.035.18 11.764c.191.862.518 1.683 1.146 2.479a4.876 4.876 0 0 0 2.256 1.522c1.635.469 3.156.192 4.41-.439 1.242-.615 2.298-1.769 2.494-3.094.094-.656-.537-.657-.69-.18-.781 2.126-3.715 2.534-5.265 1.579-1.568-.922-1.185-3.068-.294-4.801.89-1.729 2.454-3.02 3.92-3.338.376-.098.714-.121 1.026-.098.324.018.658.074.98.188.65.2 1.23.591 1.618 1 .27.3.575.386 1.002.461.436.061.95.117 1.499.045.535-.073 1.06-.287 1.41-.807.345-.504.462-1.348.03-2.273"/>
                                                 </svg>
-                                                <div class="h2 font-rubik text-slate-800">56M+</div>
+                                                <div class="h2 font-display text-slate-800">56M+</div>
                                             </div>
                                             <div class="text-slate-500 text-lg">
                                                 As of 2025, Bank of America’s “Erica” chatbot handles 56 million
@@ -620,7 +592,7 @@
                                                     <path
                                                         d="M15.722 4.008C14.408 1.214 10.954-.635 7.318.203 5.6.596 4.072 1.561 2.919 2.757A10.57 10.57 0 0 0 .484 6.93C.03 8.458-.173 10.035.18 11.764c.191.862.518 1.683 1.146 2.479a4.876 4.876 0 0 0 2.256 1.522c1.635.469 3.156.192 4.41-.439 1.242-.615 2.298-1.769 2.494-3.094.094-.656-.537-.657-.69-.18-.781 2.126-3.715 2.534-5.265 1.579-1.568-.922-1.185-3.068-.294-4.801.89-1.729 2.454-3.02 3.92-3.338.376-.098.714-.121 1.026-.098.324.018.658.074.98.188.65.2 1.23.591 1.618 1 .27.3.575.386 1.002.461.436.061.95.117 1.499.045.535-.073 1.06-.287 1.41-.807.345-.504.462-1.348.03-2.273"/>
                                                 </svg>
-                                                <div class="h2 font-rubik text-slate-800">80%</div>
+                                                <div class="h2 font-display text-slate-800">80%</div>
                                             </div>
                                             <div class="text-slate-500 text-lg">
                                                 AI now handles up to 80% of customer support inquiries autonomously at
@@ -634,7 +606,7 @@
                                                     <path
                                                         d="M15.722 4.008C14.408 1.214 10.954-.635 7.318.203 5.6.596 4.072 1.561 2.919 2.757A10.57 10.57 0 0 0 .484 6.93C.03 8.458-.173 10.035.18 11.764c.191.862.518 1.683 1.146 2.479a4.876 4.876 0 0 0 2.256 1.522c1.635.469 3.156.192 4.41-.439 1.242-.615 2.298-1.769 2.494-3.094.094-.656-.537-.657-.69-.18-.781 2.126-3.715 2.534-5.265 1.579-1.568-.922-1.185-3.068-.294-4.801.89-1.729 2.454-3.02 3.92-3.338.376-.098.714-.121 1.026-.098.324.018.658.074.98.188.65.2 1.23.591 1.618 1 .27.3.575.386 1.002.461.436.061.95.117 1.499.045.535-.073 1.06-.287 1.41-.807.345-.504.462-1.348.03-2.273"/>
                                                 </svg>
-                                                <div class="h2 font-rubik text-slate-800">62%</div>
+                                                <div class="h2 font-display text-slate-800">62%</div>
                                             </div>
                                             <div class="text-slate-500 text-lg">
                                                 62% of consumers would rather use a chatbot than wait for a human
@@ -663,169 +635,7 @@
                 </section>
             @endif
 
-            <!-- Pricing -->
-            @if ($pricing && isset($packages))
-                <section class="relative" id="pricing">
-
-                    <!-- Dark background -->
-                    <div class="absolute inset-0 bg-slate-900 pointer-events-none -z-10 h-1/3 lg:h-2/3"
-                         aria-hidden="true"></div>
-
-                    <div class="relative max-w-7xl mx-auto px-4 sm:px-6">
-                        <div class="py-12 md:py-20">
-
-                            <!-- Section header -->
-                            <div class="max-w-3xl mx-auto text-center pb-12">
-                                <h2 class="h2 font-rubik text-slate-100">
-                                    AI Agents don't need to cost a fortune
-                                </h2>
-                            </div>
-
-                            <!-- Pricing tables -->
-                            <div x-data="{ annual: true }">
-
-                                <!-- Pricing toggle -->
-                                <div class="flex justify-center items-center space-x-4 sm:space-x-7 mb-16">
-                                    <div class="text-sm text-slate-500 font-medium text-right min-w-[8rem]">Pay
-                                        Monthly
-                                    </div>
-                                    <div class="form-switch shrink-0">
-                                        <input type="checkbox" id="toggle" class="sr-only" x-model="annual"/>
-                                        <label class="bg-slate-700" for="toggle">
-                                            <span aria-hidden="true"></span>
-                                            <span class="sr-only">Pay annually</span>
-                                        </label>
-                                    </div>
-                                    <div class="text-sm text-slate-500 font-medium min-w-[8rem]">Pay Yearly <span
-                                            class="text-emerald-500">(-{{ $billingConfig['ui']['yearly_savings_percentage'] ?? 50 }}%)</span>
-                                    </div>
-                                </div>
-
-                                <div
-                                    class="max-w-sm mx-auto grid gap-8 lg:grid-cols-{{ min(count($packages), 4) }} lg:gap-6 items-start lg:max-w-none pt-4">
-
-                                    @foreach($packages as $packageKey => $package)
-                                        @php $numericIndex = $loop->index; @endphp
-
-                                        <div class="relative flex flex-col h-full px-6 py-5 bg-white shadow-lg"
-                                             data-aos="fade-up"
-                                             @if($numericIndex > 0) data-aos-delay="{{ (int)$numericIndex * 100 }}" @endif>
-                                            @if($package['is_popular'])
-                                                <div class="absolute top-0 right-0 mr-6 -mt-4">
-                                                    <div
-                                                        class="inline-flex text-sm font-semibold py-1 px-3 text-emerald-700 bg-emerald-200 rounded-full">
-                                                        {{ $billingConfig['ui']['popular_badge_text'] ?? 'Most Popular' }}
-                                                    </div>
-                                                </div>
-                                            @endif
-
-
-                                            <div class="mb-4 pb-4 border-b border-slate-200">
-                                                <div
-                                                    class="text-lg font-semibold text-slate-800 mb-1">{{ $package['name'] }}</div>
-                                                <div class="inline-flex items-baseline mb-3">
-                                                    <span
-                                                        class="h3 font-medium text-slate-500">{{ $billingConfig['currencySymbol'] ?? '$' }}</span>
-                                                    <span
-                                                        x-text="annual ? '{{ number_format($package['yearly_price'] / 12 / 100, 0) }}' : '{{ number_format($package['monthly_price'] / 100, 0) }}'"
-                                                        class="h2 leading-7 font-rubik text-slate-800"></span>
-                                                    <span class="font-medium text-slate-400">/mo</span>
-                                                </div>
-                                                <div class="text-xs -mt-2 mb-2 h-5">
-                                        <span x-show="annual" class="text-slate-400">
-                                            Billed yearly at {{ $billingConfig['currencySymbol'] ?? '$' }}{{ number_format($package['yearly_price'] / 100, 0) }}
-                                        </span>
-                                                </div>
-                                                <div class="text-slate-500">{{ $package['description'] }}</div>
-                                            </div>
-
-                                                <div class="p-3 rounded-sm bg-slate-50">
-                                                    <form method="POST" action="{{ route('trial.checkout') }}"
-                                                          class="w-full trial-form">
-                                                        @csrf
-                                                        <input type="hidden" name="package" value="{{ $packageKey }}">
-                                                        <input type="hidden" name="yearly" class="yearly-input" value="0">
-                                                        <button type="submit"
-                                                                class="btn-sm text-white bg-blue-600 hover:bg-blue-700 w-full group cursor-pointer"
-                                                                onclick="this.form.querySelector('.yearly-input').value = document.getElementById('toggle').checked ? '1' : '0'">
-                                                            Start 7-Day Free Trial <span
-                                                                class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
-                                                        </button>
-                                                    </form>
-                                                </div>
-
-                                            <div class="font-medium mb-3">
-
-                                                @if($numericIndex === 0)
-                                                    Features include:
-                                                @else
-                                                    @php
-                                                        $previousPackage = $packages->values()[$numericIndex - 1];
-                                                    @endphp
-                                                    All features of {{ $previousPackage['name'] }} plus:
-                                                @endif
-                                            </div>
-                                            <div class="grow">
-                                                <!-- Monthly Features -->
-                                                <ul class="text-slate-500 space-y-3 absolute" x-show="!annual">
-                                                    @foreach($package['features_monthly'] as $feature)
-                                                        <li class="flex items-center">
-                                                            <svg
-                                                                class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0"
-                                                                viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                                <path
-                                                                    d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z"/>
-                                                            </svg>
-                                                            <span>{{ $feature }}</span>
-                                                        </li>
-                                                    @endforeach
-                                                </ul>
-
-                                                <!-- Yearly Features -->
-                                                <ul class="text-slate-500 space-y-3 absolute" x-show="annual">
-                                                    @foreach($package['features_yearly'] as $feature)
-                                                        <li class="flex items-center">
-                                                            <svg
-                                                                class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0"
-                                                                viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                                <path
-                                                                    d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z"/>
-                                                            </svg>
-                                                            <span>{{ $feature }}</span>
-                                                        </li>
-                                                    @endforeach
-                                                </ul>
-
-                                                <!-- Invisible spacer to maintain height based on the longest feature list -->
-                                                <ul class="text-slate-500 space-y-3 invisible">
-                                                    @php
-                                                        $maxFeatures = max(count($package['features_monthly']), count($package['features_yearly']));
-                                                    @endphp
-                                                    @for($i = 0; $i < $maxFeatures; $i++)
-                                                        <li class="flex items-center">
-                                                            <svg
-                                                                class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0"
-                                                                viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                                <path
-                                                                    d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z"/>
-                                                            </svg>
-                                                            <span>Placeholder feature</span>
-                                                        </li>
-                                                    @endfor
-                                                </ul>
-                                            </div>
-
-                                        </div>
-                                    @endforeach
-
-                                </div>
-
-                            </div>
-
-                        </div>
-                    </div>
-                </section>
-            @endif
+            @include('landing.partials.pricing')
 
             <!-- FAQs -->
             @if (isset($landing['faqs']) && count($landing['faqs']) > 0)
@@ -834,8 +644,8 @@
                         <div class="py-12 md:py-20 border-t border-slate-200">
 
                             <!-- Section header -->
-                            <div class="max-w-3xl mx-auto text-center pb-12 md:pb-20">
-                                <h2 class="h2 font-rubik text-slate-800 mb-4">
+                            <div class="max-w-3xl mx-auto text-center pb-12 md:pb-20" data-aos="fade-up">
+                                <h2 class="h2 font-display text-slate-800 mb-4">
                                     Frequently Asked Questions
                                 </h2>
                                 <p class="text-xl text-slate-500">
@@ -922,7 +732,7 @@
                 <div class="relative max-w-6xl mx-auto px-4 sm:px-6">
                     <div class="py-12 md:py-20">
 
-                        <div class="relative max-w-3xl mx-auto text-center">
+                        <div class="relative max-w-3xl mx-auto text-center" data-aos="fade-up">
 
                             <div class="absolute right-0 -mt-4 -mr-1 fill-slate-300 hidden lg:block" aria-hidden="true">
                                 <svg class="fill-slate-300" width="56" height="43">
@@ -932,7 +742,7 @@
                             </div>
 
                             <div class="relative">
-                                <h2 class="h2 font-rubik text-slate-800 mb-4">
+                                <h2 class="h2 font-display text-slate-800 mb-4">
                                     {!! $landing['cta']['headline'] !!}
                                 </h2>
                                 <p class="text-xl text-slate-500 mb-8">

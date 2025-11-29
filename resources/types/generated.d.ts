@@ -264,7 +264,7 @@ last_updated: string;
 };
 export type TopKnowledgeData = {
 name: string;
-type: string;
+type: string | null;
 accessed: number;
 };
 }

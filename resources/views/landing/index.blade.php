@@ -54,8 +54,7 @@
                             </div>
 
                             <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display text-slate-900 mb-6 leading-[1.1] tracking-tight">
-                                Turn your website into<br class="hidden sm:block" />
-                                a <span class="relative inline-block">
+                                Turn your website into <span class="relative inline-block">
                                     <span class="relative z-10">high-converting</span>
                                     <span class="absolute bottom-1 left-0 right-0 h-3 md:h-4 bg-gradient-to-r from-blue-200 to-purple-200 -z-0 -skew-x-3"></span>
                                 </span> AI chatbot

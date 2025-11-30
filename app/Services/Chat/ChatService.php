@@ -7,15 +7,16 @@ use App\Data\Chat\ChatOutputPayload;
 use App\Services\Chat\Data\StreamRequestData;
 use App\Services\Memory\ChatMemory;
 use App\Services\Search\KnowledgeBase;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
-class ChatService
+readonly class ChatService
 {
     public function __construct(
-        private readonly ChatMemory $memory,
-        private readonly KnowledgeBase $knowledgeBase,
-        private readonly MessageProcessor $messageProcessor
+        private ChatMemory $memory,
+        private KnowledgeBase $knowledgeBase,
+        private MessageProcessor $messageProcessor
     ) {}
 
     public function initializeChatContext(StreamRequestData $data): ChatContext
@@ -31,7 +32,7 @@ class ChatService
         $payload = ChatInputPayload::from([
             'model' => $data->message->model->external_name,
             'message' => $data->message->message,
-            'sent_at' => $data->message->createdAt ? \Carbon\Carbon::parse($data->message->createdAt) : now(),
+            'sent_at' => $data->message->createdAt ? Carbon::parse($data->message->createdAt) : now(),
             'updated_message_info' => [],
             'message_for_llm' => $query,
             'language' => $lang,
@@ -76,9 +77,25 @@ class ChatService
 
     /**
      * Update context with knowledge base sources and contextual message.
+     * First checks for high-confidence Q&A match before searching chunks.
      */
     public function enrichContextWithKnowledge(ChatContext $context, array $lastMessages = []): ChatContext
     {
+        // First, check for high-confidence Q&A match using ORIGINAL message (not rewritten)
+        $qaMatch = $this->messageProcessor->searchQA(
+            $context->requestData->agent->id,
+            $context->payload->message  // Use original message for Q&A matching
+        );
+
+        if ($qaMatch) {
+            // Q&A match found - skip chunk search
+            $context->setQAMatch($qaMatch);
+            $context->setConfidenceScore($qaMatch->confidence_score);
+
+            return $context;
+        }
+
+        // No Q&A match - search knowledge base chunks
         $sources = $this->messageProcessor->searchKnowledgeBase(
             $context->requestData->agent,
             $context->payload,
@@ -186,6 +203,8 @@ class ChatService
                     response_time_ms: $context->getResponseTimeMs(),
                     language: $context->queryLanguage,
                     confidence_score: $context->confidenceScore,
+                    is_direct_response: $context->hasQAMatch(),
+                    agent_question_answer_id: $context->qaMatch?->id,
                 )
             );
     }

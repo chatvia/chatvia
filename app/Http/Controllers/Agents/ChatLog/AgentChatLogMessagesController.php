@@ -21,6 +21,7 @@ class AgentChatLogMessagesController
             ->with('llm')
             ->forAgentConversation($agent->id, $conversationId)
             ->orderBy('created_at')
+            ->orderByRaw("CASE WHEN role = 'user' THEN 0 ELSE 1 END")
             ->paginate(50, page: $request->integer('page', 1));
 
         $lead = Lead::query()

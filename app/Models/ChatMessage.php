@@ -43,6 +43,14 @@ class ChatMessage extends Model
         return $this->hasOne(Lead::class, 'chat_conversation_id', 'chat_conversation_id');
     }
 
+    /**
+     * Q&A entry linked to this message (when the response has been revised).
+     */
+    public function questionAnswer(): BelongsTo
+    {
+        return $this->belongsTo(AgentQuestionAnswer::class, 'agent_question_answer_id');
+    }
+
     public function newEloquentBuilder($query): ChatMessageQueryBuilder
     {
         return new ChatMessageQueryBuilder($query);

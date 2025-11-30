@@ -31,6 +31,7 @@ use App\Http\Controllers\Agents\Analytics\AgentTopicsDataController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogConversationsController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogMessagesController;
+use App\Http\Controllers\Agents\ChatLog\AgentChatLogReviseAnswerController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogTopicsController;
 use App\Http\Controllers\Agents\Embed\EmbedController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
@@ -212,6 +213,7 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::get('logs/conversations', AgentChatLogConversationsController::class)->name('logs.conversations');
         Route::get('logs/messages/{conversation}', AgentChatLogMessagesController::class)->name('logs.messages');
         Route::get('logs/topics', AgentChatLogTopicsController::class)->name('logs.topics');
+        Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->name('logs.revise-answer');
 
         Route::get('widget', WidgetController::class)->name('widget');
         Route::get('embed', EmbedController::class)->name('embed');

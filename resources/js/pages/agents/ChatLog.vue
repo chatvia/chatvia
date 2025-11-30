@@ -30,6 +30,8 @@ interface Message {
   sentiment?: string | null;
   emotion?: string | null;
   emotion_confidence?: number | null;
+  agent_question_answer_id?: number | null;
+  is_direct_response?: boolean | null;
 }
 
 interface ConversationSummary {
@@ -411,24 +413,41 @@ function openReviseDialog(message: Message) {
   showReviseDialog.value = true;
 }
 
-// Update answer (placeholder for backend implementation)
-function updateAnswer() {
-  // TODO: Backend implementation
-  console.log('Updating answer:', {
-    messageId: currentReviseMessageId.value,
-    userMessage: reviseUserMessage.value,
-    botResponse: reviseBotResponse.value,
-    expectedResponse: reviseExpectedResponse.value
-  });
+// Update answer - saves as Q&A entry
+const isUpdatingAnswer = ref(false);
+async function updateAnswer() {
+  if (!reviseExpectedResponse.value.trim() || !reviseUserMessage.value.trim() || !currentReviseMessageId.value) return;
   
-  // Close dialog
-  showReviseDialog.value = false;
-  
-  // Reset form
-  reviseUserMessage.value = '';
-  reviseBotResponse.value = '';
-  reviseExpectedResponse.value = '';
-  currentReviseMessageId.value = null;
+  isUpdatingAnswer.value = true;
+  try {
+    const response = await axios.post(route('agents.logs.revise-answer', { agent: agent.id }), {
+      message_id: currentReviseMessageId.value,
+      user_message: reviseUserMessage.value,
+      expected_response: reviseExpectedResponse.value
+    });
+    
+    // Update the message in the local state to show revision indicator
+    if (messagesData.value?.data) {
+      const originalIndex = messagesData.value.data.findIndex((m: Message) => m.id === currentReviseMessageId.value);
+      if (originalIndex !== -1) {
+        messagesData.value.data[originalIndex].agent_question_answer_id = response.data.qa_id;
+      }
+    }
+    
+    // Close dialog
+    showReviseDialog.value = false;
+    
+    // Reset form
+    reviseUserMessage.value = '';
+    reviseBotResponse.value = '';
+    reviseExpectedResponse.value = '';
+    currentReviseMessageId.value = null;
+  } catch (error: any) {
+    console.error('Failed to save Q&A:', error);
+    alert(error.response?.data?.message || 'Failed to save Q&A entry');
+  } finally {
+    isUpdatingAnswer.value = false;
+  }
 }
 
 // Cancel revise
@@ -603,14 +622,14 @@ function getEmotionBadgeColor(emotion: string): string {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="title">
-      <div class="flex gap-6 h-[calc(100vh-180px)]">
-          <!-- Conversations Sidebar - Fixed -->
-          <Card class="w-[280px] flex-shrink-0 flex flex-col h-full">
-            <CardContent class="p-0 flex-1 overflow-y-auto min-h-0">
-              <div class="px-4 pb-3 pt-4 flex-shrink-0 border-b sticky top-0 bg-card z-10">
+    <AgentLayout :agent="agent" :title="title" hide-header no-padding full-height>
+      <div class="flex gap-0 h-full">
+          <!-- Conversations Sidebar -->
+          <div class="w-[300px] flex-shrink-0 flex flex-col h-full bg-muted/30 border-r">
+            <div class="p-0 flex-1 overflow-y-auto min-h-0">
+              <div class="px-4 pb-3 pt-4 flex-shrink-0 border-b border-border/50 sticky top-0 bg-muted/30 backdrop-blur-sm z-10">
                 <div class="flex items-center justify-between mb-3">
-                  <h2 class="text-base font-semibold">Chat logs</h2>
+                  <h2 class="text-sm font-semibold tracking-tight">Conversations</h2>
                   <div class="flex items-center gap-1">
                     <!-- Filters Button -->
                     <Popover v-model:open="showFiltersPopover">
@@ -781,54 +800,39 @@ function getEmotionBadgeColor(emotion: string): string {
               </div>
               
               <!-- Conversations List -->
-              <ul v-else class="space-y-1 p-2">
+              <ul v-else class="p-2 space-y-0.5">
                 <li v-for="c in conversations?.data" :key="c.conversation_id">
                   <button
                     @click="() => { currentConversationId = c.conversation_id; currentConversationData = c; }"
-                    class="w-full text-left px-3 py-2 rounded-md text-sm flex flex-col gap-1 transition-colors cursor-pointer"
-                    :class="currentConversationId === c.conversation_id ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-muted'"
+                    class="w-full text-left px-3 py-2.5 rounded-lg text-sm flex flex-col gap-1.5 transition-all duration-200 cursor-pointer group"
+                    :class="currentConversationId === c.conversation_id 
+                      ? 'bg-primary text-primary-foreground shadow-md' 
+                      : 'hover:bg-background/80'"
                   >
-                    <div class="flex items-center justify-between">
-                      <span class="truncate max-w-[160px] font-medium" :title="c.first_message_excerpt || c.conversation_id">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="truncate flex-1 font-medium text-[13px]" :title="c.first_message_excerpt || c.conversation_id">
                         {{ c.first_message_excerpt || c.conversation_id.slice(0,8) }}
                       </span>
-                      <div class="flex items-center gap-1.5">
-                        <!-- Messages Count Badge -->
-                        <div 
-                          class="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium"
-                          :class="currentConversationId === c.conversation_id 
-                            ? 'bg-primary-foreground/20 text-primary-foreground' 
-                            : 'bg-muted/50'"
+                      <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <!-- Messages Count -->
+                        <span 
+                          class="text-[10px] tabular-nums"
+                          :class="currentConversationId === c.conversation_id ? 'opacity-80' : 'opacity-50'"
                         >
-                          <MessageSquare class="h-3 w-3" />
-                          <span>{{ c.messages_count }}</span>
-                        </div>
+                          {{ c.messages_count }}
+                        </span>
                         
-                        <!-- Lead Badge -->
-                        <Badge 
+                        <!-- Lead Indicator -->
+                        <span 
                           v-if="leadConversationIds.includes(c.conversation_id)" 
-                          variant="secondary" 
-                          class="text-[10px] px-1.5 py-0 font-normal"
-                          :class="currentConversationId === c.conversation_id ? 'bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30' : ''"
-                        >
-                          Lead
-                        </Badge>
+                          class="w-1.5 h-1.5 rounded-full bg-green-500"
+                          :class="currentConversationId === c.conversation_id ? 'bg-primary-foreground' : ''"
+                        />
                       </div>
                     </div>
                     
-                    <!-- Topic Badge (if available) -->
-                    <div v-if="c.topic" class="flex items-center">
-                      <Badge 
-                        :variant="currentConversationId === c.conversation_id ? 'secondary' : 'outline'" 
-                        class="text-[9px] px-1.5 py-0 font-normal"
-                        :class="currentConversationId === c.conversation_id ? 'bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30' : ''"
-                      >
-                        {{ c.topic }}
-                      </Badge>
-                    </div>
-                    
-                    <!-- Country & Time Info -->
-                    <div class="flex items-center gap-2 text-[10px] opacity-80">
+                    <!-- Meta Row -->
+                    <div class="flex items-center gap-2 text-[11px]" :class="currentConversationId === c.conversation_id ? 'opacity-70' : 'opacity-50'">
                       <!-- Flag -->
                       <img 
                         v-if="c.country && getFlagPath(c.country)" 
@@ -838,32 +842,37 @@ function getEmotionBadgeColor(emotion: string): string {
                         :title="c.country.toUpperCase()"
                       />
                       
-                      <span v-if="c.country" class="opacity-50">•</span>
+                      <!-- Topic -->
+                      <span v-if="c.topic" class="truncate max-w-[100px]">{{ c.topic }}</span>
+                      <span v-if="c.topic" class="opacity-50">•</span>
+                      
                       <span>{{ formatTimeAgo(c.last_at) }}</span>
                     </div>
                   </button>
                 </li>
               </ul>
-            </CardContent>
+            </div>
 
-            <!-- Pagination Controls - Outside scrollable area -->
-            <div v-if="conversations && conversations.last_page > 1" class="border-t p-3 flex-shrink-0">
+            <!-- Pagination Controls -->
+            <div v-if="conversations && conversations.last_page > 1" class="border-t border-border/50 p-3 flex-shrink-0 bg-muted/30">
               <div class="flex justify-between items-center gap-2">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
+                  class="h-7 text-xs"
                   :disabled="!conversations?.prev_page_url || isLoadingConversations"
                   @click="fetchConversations(conversations.current_page - 1)"
                 >
                   <LoaderCircle v-if="isLoadingConversations" class="h-3 w-3 mr-1 animate-spin" />
                   Prev
                 </Button>
-                <div class="text-xs text-muted-foreground">
-                  Page {{ conversations?.current_page }} / {{ conversations?.last_page }}
-                </div>
+                <span class="text-[10px] text-muted-foreground tabular-nums">
+                  {{ conversations?.current_page }} / {{ conversations?.last_page }}
+                </span>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
+                  class="h-7 text-xs"
                   :disabled="!conversations?.next_page_url || isLoadingConversations"
                   @click="fetchConversations(conversations.current_page + 1)"
                 >
@@ -872,309 +881,280 @@ function getEmotionBadgeColor(emotion: string): string {
                 </Button>
               </div>
             </div>
-          </Card>
+          </div>
 
-          <!-- Messages Column - Sticky -->
-          <div class="flex-1 flex flex-col overflow-hidden">
-            <Card class="flex flex-col h-full overflow-hidden">
-              <CardHeader class="pb-3 flex-shrink-0 space-y-3">
+          <!-- Messages Column -->
+          <div class="flex-1 flex flex-col overflow-hidden bg-background">
+            <!-- Header -->
+            <div class="px-5 py-4 flex-shrink-0 border-b space-y-3">
+              <!-- Top Row: Search + Actions -->
+              <div class="flex items-center gap-3">
                 <!-- Search Bar -->
-                <div class="relative">
-                  <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <div class="relative flex-1 max-w-md">
+                  <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
                     v-model="search" 
-                    placeholder="Search messages in this conversation..." 
-                    class="pl-8 h-9 pr-8" 
+                    placeholder="Search messages..." 
+                    class="pl-9 h-9 pr-9 bg-muted/50 border-0 focus-visible:ring-1" 
                     :disabled="!currentConversationId"
                   />
                   <button
                     v-if="search"
                     @click="clearSearch"
-                    class="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <X class="h-4 w-4" />
                   </button>
                 </div>
-
-                <!-- Action Bar -->
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                  <div class="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                    <div>
-                      <span v-if="currentConversationId && search">
-                        Showing {{ filteredCount }} of {{ totalMessages }} messages
-                      </span>
-                      <span v-else-if="currentConversationId">
-                        {{ totalMessages }} messages
-                      </span>
-                    </div>
-                    
-                    <!-- Session Info Badges -->
-                    <template v-if="currentConversationData">
-                      <!-- Country -->
-                      <div v-if="currentConversationData.country" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
-                        <img 
-                          :src="getFlagPath(currentConversationData.country)!" 
-                          :alt="currentConversationData.country"
-                          class="w-3 h-3 rounded-sm object-cover"
-                        />
-                        <span class="text-[10px]">{{ currentConversationData.country.toUpperCase() }}</span>
-                      </div>
-                      
-                      <!-- Device Type -->
-                      <div v-if="currentConversationData.device_type" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
-                        <span class="text-[10px] font-medium">Device:</span>
-                        <span class="text-[10px]">{{ currentConversationData.device_type }}</span>
-                      </div>
-                      
-                      <!-- Browser -->
-                      <div v-if="currentConversationData.browser" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
-                        <span class="text-[10px] font-medium">Browser:</span>
-                        <span class="text-[10px]">{{ currentConversationData.browser }}</span>
-                      </div>
-                      
-                      <!-- OS -->
-                      <div v-if="currentConversationData.os" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
-                        <span class="text-[10px] font-medium">OS:</span>
-                        <span class="text-[10px]">{{ currentConversationData.os }}</span>
-                      </div>
-                      
-                      <!-- City -->
-                      <div v-if="currentConversationData.city" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
-                        <span class="text-[10px] font-medium">City:</span>
-                        <span class="text-[10px]">{{ currentConversationData.city }}</span>
-                      </div>
-                      
-                      <!-- Locale -->
-                      <div v-if="currentConversationData.locale" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded">
-                        <span class="text-[10px] font-medium">Locale:</span>
-                        <span class="text-[10px]">{{ currentConversationData.locale }}</span>
-                      </div>
-                      
-                      <!-- Referrer URL (Tooltip) -->
-                      <div v-if="currentConversationData.referrer_url" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded group relative cursor-help">
-                        <span class="text-[10px] font-medium">From:</span>
-                        <span class="text-[10px] truncate max-w-[100px]">{{ getHostnameFromUrl(currentConversationData.referrer_url) }}</span>
-                        <!-- Tooltip -->
-                        <div class="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg max-w-xs break-all">
-                          {{ currentConversationData.referrer_url }}
-                        </div>
-                      </div>
-                      
-                      <!-- Page URL (Tooltip) -->
-                      <div v-if="currentConversationData.page_url" class="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded group relative cursor-help">
-                        <span class="text-[10px] font-medium">Page:</span>
-                        <span class="text-[10px] truncate max-w-[100px]">{{ getPathnameFromUrl(currentConversationData.page_url) }}</span>
-                        <!-- Tooltip -->
-                        <div class="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg max-w-xs break-all">
-                          {{ currentConversationData.page_url }}
-                        </div>
-                      </div>
-                    </template>
-                  </div>
-                  <div class="flex gap-2">
-                    <Button variant="outline" size="sm" @click="refresh" :disabled="isRefreshing">
-                      <LoaderCircle v-if="isRefreshing" class="h-4 w-4 mr-1 animate-spin" />
-                      <RefreshCcw v-else class="h-4 w-4 mr-1" /> Refresh
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      :variant="hasLeadForCurrentConversation ? 'default' : 'outline'" 
-                      :disabled="!hasLeadForCurrentConversation" 
-                      @click="openLeadPanel"
-                    >
-                      <UserCheck class="h-4 w-4 mr-1" /> View Lead
-                    </Button>
-                  </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" class="h-9 w-9" @click="refresh" :disabled="isRefreshing">
+                    <RefreshCcw class="h-4 w-4" :class="{ 'animate-spin': isRefreshing }" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    class="h-9"
+                    :variant="hasLeadForCurrentConversation ? 'default' : 'outline'" 
+                    :disabled="!hasLeadForCurrentConversation" 
+                    @click="openLeadPanel"
+                  >
+                    <UserCheck class="h-4 w-4 mr-1.5" /> Lead
+                  </Button>
                 </div>
-              </CardHeader>
+              </div>
 
-              <CardContent class="p-0 flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-                  <div class="px-6 pb-6 pt-2 h-full">
-                    <!-- Loading State for Messages -->
-                    <div v-if="isLoadingMessages" class="flex items-center justify-center py-12">
-                      <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                    
-                    <div v-else-if="!currentConversationId" class="text-center py-12 text-sm text-muted-foreground">
-                      <MessageSquare class="h-12 w-12 mx-auto mb-3 opacity-20" />
-                      <p>Select a conversation to view its messages.</p>
-                    </div>
-                    <div v-else-if="messages.length === 0 && !search" class="text-center py-12 text-sm text-muted-foreground">
-                      <MessageSquare class="h-12 w-12 mx-auto mb-3 opacity-20" />
-                      <p>No messages found for this conversation.</p>
-                    </div>
-                    <div v-else-if="messages.length === 0 && search" class="text-center py-12 text-sm text-muted-foreground">
-                      <Search class="h-12 w-12 mx-auto mb-3 opacity-20" />
-                      <p>No messages match your search.</p>
-                      <Button variant="link" size="sm" @click="clearSearch" class="mt-2">
-                        Clear search
-                      </Button>
-                    </div>
-                    <div v-else class="space-y-6">
-                      <div v-for="m in messages" :key="m.id">
-                        <!-- Message Container -->
+              <!-- Session Info Row -->
+              <div v-if="currentConversationData" class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs text-muted-foreground mr-1">{{ totalMessages }} messages</span>
+                <span class="text-muted-foreground/30">|</span>
+                
+                <!-- Country -->
+                <div v-if="currentConversationData.country" class="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <img 
+                    :src="getFlagPath(currentConversationData.country)!" 
+                    :alt="currentConversationData.country"
+                    class="w-3.5 h-3.5 rounded-sm object-cover"
+                  />
+                  <span>{{ currentConversationData.country.toUpperCase() }}</span>
+                </div>
+                
+                <template v-if="currentConversationData.browser || currentConversationData.os">
+                  <span class="text-muted-foreground/30">•</span>
+                  <span class="text-[11px] text-muted-foreground">
+                    {{ [currentConversationData.browser, currentConversationData.os].filter(Boolean).join(' / ') }}
+                  </span>
+                </template>
+                
+                <template v-if="currentConversationData.device_type">
+                  <span class="text-muted-foreground/30">•</span>
+                  <span class="text-[11px] text-muted-foreground capitalize">{{ currentConversationData.device_type }}</span>
+                </template>
+                
+                <!-- Page URL -->
+                <template v-if="currentConversationData.page_url">
+                  <span class="text-muted-foreground/30">•</span>
+                  <span class="text-[11px] text-muted-foreground truncate max-w-[200px] group relative cursor-help">
+                    {{ getPathnameFromUrl(currentConversationData.page_url) }}
+                    <span class="absolute bottom-full left-0 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg">
+                      {{ currentConversationData.page_url }}
+                    </span>
+                  </span>
+                </template>
+              </div>
+            </div>
+
+            <!-- Messages Content -->
+            <div class="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+              <div class="px-6 py-4 h-full">
+                <!-- Loading State -->
+                <div v-if="isLoadingMessages" class="flex items-center justify-center h-full">
+                  <LoaderCircle class="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+                
+                <!-- Empty States -->
+                <div v-else-if="!currentConversationId" class="flex flex-col items-center justify-center h-full text-muted-foreground">
+                  <MessageSquare class="h-10 w-10 mb-3 opacity-30" />
+                  <p class="text-sm">Select a conversation</p>
+                </div>
+                <div v-else-if="messages.length === 0 && !search" class="flex flex-col items-center justify-center h-full text-muted-foreground">
+                  <MessageSquare class="h-10 w-10 mb-3 opacity-30" />
+                  <p class="text-sm">No messages yet</p>
+                </div>
+                <div v-else-if="messages.length === 0 && search" class="flex flex-col items-center justify-center h-full text-muted-foreground">
+                  <Search class="h-10 w-10 mb-3 opacity-30" />
+                  <p class="text-sm">No results found</p>
+                  <Button variant="link" size="sm" @click="clearSearch" class="mt-1 h-auto p-0">
+                    Clear search
+                  </Button>
+                </div>
+                
+                <!-- Messages List -->
+                <div v-else class="space-y-4">
+                  <div v-for="m in messages" :key="m.id">
+                    <div 
+                      class="flex"
+                      :class="m.role === 'user' ? 'justify-end' : 'justify-start'"
+                    >
+                      <div 
+                        class="flex flex-col gap-1.5 max-w-[70%]"
+                        :class="m.role === 'user' ? 'items-end' : 'items-start'"
+                      >
+                        <!-- Message Bubble -->
                         <div 
-                          class="flex gap-3"
-                          :class="m.role === 'user' ? 'justify-end' : 'justify-start'"
+                          class="rounded-2xl px-4 py-2.5"
+                          :class="m.role === 'user' 
+                            ? 'bg-primary text-primary-foreground rounded-br-md' 
+                            : 'bg-muted/60 rounded-bl-md'"
                         >
-                          <!-- Message Bubble -->
+                          <div v-if="search" v-html="highlightText(m.content, search)" class="prose prose-sm dark:prose-invert max-w-none"></div>
+                          <div v-else-if="m.role === 'user'" class="text-sm whitespace-pre-wrap break-words">{{ m.content }}</div>
+                          <MessageCard v-else :message="m" :hide-feedback="true" />
+                        </div>
+
+                        <!-- Meta Information -->
+                        <div class="flex items-center gap-1.5 text-[11px] text-muted-foreground px-1 flex-wrap">
+                          <!-- Emotion (for user messages) -->
                           <div 
-                            class="flex flex-col gap-2 max-w-[75%]"
-                            :class="m.role === 'user' ? 'items-end' : 'items-start'"
+                            v-if="m.role === 'user' && m.emotion"
+                            class="group relative cursor-help"
                           >
-                            <!-- Content Bubble -->
-                            <div 
-                              class="rounded-2xl px-5 py-3 shadow-sm"
-                              :class="m.role === 'user' 
-                                ? 'bg-primary text-primary-foreground' 
-                                : 'bg-muted/50 border border-border'"
-                            >
-                              <div v-if="search" v-html="highlightText(m.content, search)" class="prose prose-sm dark:prose-invert max-w-none"></div>
-                              <div v-else-if="m.role === 'user'" class="text-sm whitespace-pre-wrap break-words">{{ m.content }}</div>
-                              <MessageCard v-else :message="m" :hide-feedback="true" />
-                            </div>
-
-                            <!-- Meta Information -->
-                            <div class="flex items-center gap-2 text-xs text-muted-foreground px-2 flex-wrap">
-                              <!-- Emotion (for user messages) -->
-                              <Badge 
-                                v-if="m.role === 'user' && m.emotion"
-                                variant="secondary"
-                                class="text-[10px] px-1.5 py-0 font-normal"
-                                :class="getEmotionBadgeColor(m.emotion)"
-                              >
-                                {{ getEmotionEmoji(m.emotion) }} {{ m.emotion.charAt(0).toUpperCase() + m.emotion.slice(1) }}
-                              </Badge>
-
-                              <!-- Sentiment (for user messages) -->
-                              <Badge 
-                                v-if="m.role === 'user' && m.sentiment"
-                                variant="outline"
-                                class="text-[10px] px-1.5 py-0 font-normal"
-                                :class="getSentimentBadgeColor(m.sentiment)"
-                              >
-                                {{ m.sentiment.charAt(0).toUpperCase() + m.sentiment.slice(1) }}
-                              </Badge>
-
-                              <!-- Divider -->
-                              <div v-if="m.role === 'user' && (m.emotion || m.sentiment)" class="h-3 w-px bg-border"></div>
-
-                              <!-- Confidence Score (for assistant messages) -->
-                              <div 
-                                v-if="m.role === 'assistant'"
-                                class="flex items-center gap-1 font-medium group relative"
-                                :class="getConfidenceColor(getConfidenceScore(m))"
-                              >
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                </svg>
-                                <span>{{ formatConfidenceScore(getConfidenceScore(m)) }}</span>
-                                <!-- Tooltip -->
-                                <div class="absolute bottom-full left-0 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg">
-                                  Confidence Score: {{ (getConfidenceScore(m) * 100).toFixed(0) }}%
-                                </div>
-                              </div>
-
-                              <!-- Divider -->
-                              <div v-if="m.role === 'assistant'" class="h-3 w-px bg-border"></div>
-
-                              <!-- Human Readable Date -->
-                              <span class="group relative cursor-help">
-                                {{ formatTimeAgo(m.created_at) }}
-                                <!-- Tooltip -->
-                                <div 
-                                  class="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg"
-                                  :class="m.role === 'user' ? 'right-0' : 'left-0'"
-                                >
-                                  {{ formatFullDateTime(m.created_at) }}
-                                </div>
-                              </span>
-
-                              <!-- Divider -->
-                              <div v-if="m.role === 'assistant' && m.model" class="h-3 w-px bg-border"></div>
-
-                              <!-- Model Icon (for assistant messages only) -->
-                              <div 
-                                v-if="m.role === 'assistant' && m.model"
-                                class="group relative cursor-help"
-                              >
-                                <img 
-                                  :src="getModelIcon(m.model)" 
-                                  :alt="getModelName(m.model)"
-                                  class="w-4 h-4 rounded"
-                                />
-                                <!-- Tooltip -->
-                                <div class="absolute bottom-full left-0 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg">
-                                  {{ getModelName(m.model) }}
-                                </div>
-                              </div>
-
-                              <!-- Divider -->
-                              <div v-if="m.role === 'assistant' && m.feedback" class="h-3 w-px bg-border"></div>
-
-                              <!-- Feedback Display (for assistant messages) -->
-                              <div 
-                                v-if="m.role === 'assistant' && m.feedback"
-                                class="flex items-center gap-1 font-medium group relative"
-                                :class="getFeedbackInfo(m.feedback)?.color"
-                              >
-                                <ThumbsUp v-if="m.feedback === 'positive'" class="w-3 h-3" />
-                                <ThumbsDown v-else class="w-3 h-3" />
-                                <!-- Tooltip -->
-                                <div class="absolute bottom-full left-0 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg">
-                                  {{ getFeedbackInfo(m.feedback)?.label }}
-                                </div>
-                              </div>
-
-                              <!-- Divider -->
-                              <div v-if="m.role === 'assistant'" class="h-3 w-px bg-border"></div>
-
-                              <!-- Revise Answer Button (for assistant messages) -->
-                              <Button
-                                v-if="m.role === 'assistant'"
-                                variant="ghost"
-                                size="sm"
-                                class="h-6 px-2 text-xs hover:bg-muted -ml-1"
-                                @click="openReviseDialog(m)"
-                              >
-                                <RotateCcw class="w-3 h-3 mr-1" />
-                                Revise answer
-                              </Button>
-                            </div>
+                            <span>{{ getEmotionEmoji(m.emotion) }}</span>
+                            <span class="absolute bottom-full right-0 mb-1.5 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg whitespace-nowrap">
+                              Emotion: {{ getEmotionDisplayName(m.emotion) }}
+                            </span>
                           </div>
+
+                          <!-- Sentiment (for user messages) -->
+                          <span 
+                            v-if="m.role === 'user' && m.sentiment"
+                            class="capitalize"
+                            :class="{
+                              'text-green-600 dark:text-green-400': m.sentiment === 'positive',
+                              'text-red-600 dark:text-red-400': m.sentiment === 'negative',
+                              'text-muted-foreground': m.sentiment === 'neutral'
+                            }"
+                          >
+                            {{ m.sentiment }}
+                          </span>
+
+                          <span v-if="m.role === 'user' && (m.emotion || m.sentiment)" class="text-muted-foreground/30">•</span>
+
+                          <!-- Confidence (for assistant) -->
+                          <template v-if="m.role === 'assistant'">
+                            <span 
+                              class="group relative cursor-help tabular-nums"
+                              :class="getConfidenceColor(getConfidenceScore(m))"
+                            >
+                              {{ formatConfidenceScore(getConfidenceScore(m)) }}
+                              <span class="absolute bottom-full left-0 mb-1.5 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg whitespace-nowrap">
+                                Confidence: {{ (getConfidenceScore(m) * 100).toFixed(0) }}%
+                              </span>
+                            </span>
+                            <span class="text-muted-foreground/30">•</span>
+                          </template>
+
+                          <!-- Time -->
+                          <span class="group relative cursor-help">
+                            {{ formatTimeAgo(m.created_at) }}
+                            <span 
+                              class="absolute bottom-full mb-1.5 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg whitespace-nowrap"
+                              :class="m.role === 'user' ? 'right-0' : 'left-0'"
+                            >
+                              {{ formatFullDateTime(m.created_at) }}
+                            </span>
+                          </span>
+
+                          <!-- Model (for assistant) -->
+                          <template v-if="m.role === 'assistant' && m.model">
+                            <span class="text-muted-foreground/30">•</span>
+                            <div class="group relative cursor-help">
+                              <img 
+                                :src="getModelIcon(m.model)" 
+                                :alt="getModelName(m.model)"
+                                class="w-3.5 h-3.5 rounded"
+                              />
+                              <span class="absolute bottom-full left-0 mb-1.5 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg whitespace-nowrap">
+                                {{ getModelName(m.model) }}
+                              </span>
+                            </div>
+                          </template>
+
+                          <!-- Feedback (for assistant) -->
+                          <template v-if="m.role === 'assistant' && m.feedback">
+                            <span class="text-muted-foreground/30">•</span>
+                            <div 
+                              class="group relative cursor-help"
+                              :class="getFeedbackInfo(m.feedback)?.color"
+                            >
+                              <ThumbsUp v-if="m.feedback === 'positive'" class="w-3 h-3" />
+                              <ThumbsDown v-else class="w-3 h-3" />
+                              <span class="absolute bottom-full left-0 mb-1.5 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg whitespace-nowrap">
+                                {{ getFeedbackInfo(m.feedback)?.label }}
+                              </span>
+                            </div>
+                          </template>
+
+                          <!-- Q&A Status (for assistant) -->
+                          <template v-if="m.role === 'assistant'">
+                            <span class="text-muted-foreground/30">•</span>
+                            <span 
+                              v-if="m.is_direct_response"
+                              class="text-green-600 dark:text-green-400"
+                            >
+                              ✓ Q&A
+                            </span>
+                            <span 
+                              v-else-if="m.agent_question_answer_id"
+                              class="text-green-600 dark:text-green-400"
+                            >
+                              ✓ Revised
+                            </span>
+                            <button
+                              v-else
+                              class="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
+                              @click="openReviseDialog(m)"
+                            >
+                              <RotateCcw class="w-2.5 h-2.5" />
+                              <span>Revise</span>
+                            </button>
+                          </template>
                         </div>
                       </div>
                     </div>
                   </div>
-
-                <!-- Pagination -->
-                <div v-if="currentConversationId && messagesData?.last_page > 1" class="border-t p-4 flex-shrink-0">
-                  <div class="flex justify-between items-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      :disabled="!messagesData?.prev_page_url || isLoadingMessages"
-                      @click="currentConversationId && fetchMessages(currentConversationId, messagesData.current_page - 1)"
-                    >
-                      <LoaderCircle v-if="isLoadingMessages" class="h-3 w-3 mr-1 animate-spin" />
-                      Prev
-                    </Button>
-                    <div class="text-xs text-muted-foreground">
-                      Page {{ messagesData?.current_page }} / {{ messagesData?.last_page }}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      :disabled="!messagesData?.next_page_url || isLoadingMessages"
-                      @click="currentConversationId && fetchMessages(currentConversationId, messagesData.current_page + 1)"
-                    >
-                      <LoaderCircle v-if="isLoadingMessages" class="h-3 w-3 mr-1 animate-spin" />
-                      Next
-                    </Button>
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+
+            <!-- Pagination -->
+            <div v-if="currentConversationId && messagesData?.last_page > 1" class="border-t p-3 flex-shrink-0">
+              <div class="flex justify-between items-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="h-8 text-xs"
+                  :disabled="!messagesData?.prev_page_url || isLoadingMessages"
+                  @click="currentConversationId && fetchMessages(currentConversationId, messagesData.current_page - 1)"
+                >
+                  <LoaderCircle v-if="isLoadingMessages" class="h-3 w-3 mr-1 animate-spin" />
+                  Prev
+                </Button>
+                <span class="text-[11px] text-muted-foreground tabular-nums">
+                  {{ messagesData?.current_page }} / {{ messagesData?.last_page }}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="h-8 text-xs"
+                  :disabled="!messagesData?.next_page_url || isLoadingMessages"
+                  @click="currentConversationId && fetchMessages(currentConversationId, messagesData.current_page + 1)"
+                >
+                  <LoaderCircle v-if="isLoadingMessages" class="h-3 w-3 mr-1 animate-spin" />
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1229,14 +1209,16 @@ function getEmotionBadgeColor(emotion: string): string {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" @click="cancelRevise">
+            <Button variant="outline" @click="cancelRevise" :disabled="isUpdatingAnswer">
               Cancel
             </Button>
-            <Button @click="updateAnswer" :disabled="!reviseExpectedResponse.trim()">
-              Update Answer
+            <Button @click="updateAnswer" :disabled="!reviseExpectedResponse.trim() || isUpdatingAnswer">
+              <LoaderCircle v-if="isUpdatingAnswer" class="h-4 w-4 mr-2 animate-spin" />
+              {{ isUpdatingAnswer ? 'Saving...' : 'Save as Q&A' }}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </AgentLayout>
   </template>
+

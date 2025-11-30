@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agents\Agents;
 
 use App\Http\Requests\Agents\CreateAgentRequest;
 use App\Models\Agent;
+use App\Models\ChatTopic;
 use App\Models\User;
 use App\Services\Ingestion\Ingestion;
 use App\Services\Prompts\PromptLoader;
@@ -41,6 +42,10 @@ class AgentStoreController
                 value: true,
                 group: 'leads',
             );
+
+            // Attach all existing topics to the new agent
+            $topicIds = ChatTopic::pluck('id');
+            $agent->topics()->attach($topicIds);
 
             DB::commit();
 

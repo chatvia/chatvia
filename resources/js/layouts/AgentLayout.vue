@@ -56,7 +56,6 @@ import {
     Lock,
     Eye,
     BotIcon,
-    Brain,
     Workflow,
     Zap,
     Code,
@@ -185,14 +184,6 @@ const controlPanelNavigationItems = computed(() => {
     //     { id: 'persona', label: 'Persona', icon: Bot, route: 'agents.persona', tooltip: 'Configure agent personality and behavior' },
     // )
 
-    // Only add models if the agent is not a widget
-    if (props.agent.type !== 'widget') {
-        baseItems.push(
-            { id: 'models', label: 'AI Models', icon: Brain, route: 'agents.models', tooltip: 'Manage AI models and settings' },
-        )
-    }
-
-    // Always add Sources after models (or after persona if models is not available)
     baseItems.push(
         { id: 'knowledge', label: 'Sources', icon: Database, route: 'agents.sources', tooltip: 'Manage agent knowledge and training data' },
     );

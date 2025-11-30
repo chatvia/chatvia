@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Palette, Upload, Trash2, Save, User, Image, Type, Code, Eye, Copy, Info, Shield, AlertTriangle, Share2, RotateCcw, MessageSquare, PlusCircle, Brain } from 'lucide-vue-next';
+import { Palette, Upload, Trash2, Save, User, Image, Type, Code, Eye, Copy, Info, Shield, AlertTriangle, Share2, RotateCcw, MessageSquare, PlusCircle, Brain, Bot } from 'lucide-vue-next';
 import PreviewModal from '@/components/PreviewModal.vue';
 import AgentModelSelector from '@/components/agents/AgentModelSelector.vue';
+import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
 import { toast } from 'vue-sonner';
 import axios from 'axios';
 
@@ -31,8 +32,9 @@ const props = defineProps<Props>();
 // Menu items for navigation
 const menuItems = [
     { value: 'text', label: 'Text', icon: Type },
+    { value: 'persona', label: 'Persona', icon: Bot },
     { value: 'starters', label: 'Starters', icon: MessageSquare },
-    { value: 'models', label: 'Model', icon: Brain },
+    { value: 'models', label: 'Models', icon: Brain },
     { value: 'colors', label: 'Colors', icon: Palette },
     { value: 'branding', label: 'Branding', icon: Image },
     { value: 'embed', label: 'Embed', icon: Code },
@@ -513,6 +515,15 @@ const removeStarter = (id: number) => {
                                 </p>
                             </div>
                         </form>
+                    </div>
+
+                    <!-- Persona Panel -->
+                    <div v-if="activeTab === 'persona'" class="p-6">
+                        <AgentPersonaEditor
+                            :agent-id="agent.id"
+                            :initial-instructions="agent.system_instructions"
+                            @saved="refreshPreview"
+                        />
                     </div>
 
                     <!-- Starters Panel -->

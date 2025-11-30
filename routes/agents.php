@@ -41,7 +41,6 @@ use App\Http\Controllers\Agents\Leads\AgentLeadsDeleteController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsExportController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsUpdateSettingsController;
 use App\Http\Controllers\Agents\Models\AgentModelsListController;
-use App\Http\Controllers\Agents\Models\AgentModelsShowController;
 use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
 use App\Http\Controllers\Agents\Models\AgentModelsToggleController;
 use App\Http\Controllers\Agents\Persona\AgentShowPersonaController;
@@ -225,9 +224,8 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::post('settings/{group}', AgentUpdateSettingsController::class)->name('settings.update');
         Route::delete('settings/{group}', AgentDeleteSettingsController::class)->name('settings.delete');
 
-        // Models
+        // Models API
         Route::get('/models/list', AgentModelsListController::class)->name('models.list');
-        Route::get('/models', AgentModelsShowController::class)->name('models');
         Route::patch('/models/settings', AgentModelsStoreSettings::class)->name('models.settings.update');
         Route::patch('/models/toggle', AgentModelsToggleController::class)->name('models.toggle');
 
@@ -243,6 +241,9 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
 
         // Rename Agent
         Route::patch('rename', AgentRenameController::class)->name('rename');
+
+        // Update Agent
+        Route::patch('update', AgentUpdateController::class)->name('update');
 
         // Linking / Unlinking Source Files
         Route::get('sources/trained-files', AgentSourcesTrainedListController::class)->name('sources.list');

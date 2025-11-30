@@ -26,6 +26,7 @@ class ChatLogMessageData extends Data
         public ?string $llm_name,
         public ?string $llm_icon,
         public string $created_at,
+        public ?int $agent_question_answer_id,
     ) {}
 
     public static function fromMessage(ChatMessage $message): self
@@ -47,6 +48,7 @@ class ChatLogMessageData extends Data
             llm_name: $message->llm?->descriptive_name,
             llm_icon: $message->llm?->icon,
             created_at: $message->created_at->toISOString(),
+            agent_question_answer_id: $message->agent_question_answer_id,
         );
     }
 }

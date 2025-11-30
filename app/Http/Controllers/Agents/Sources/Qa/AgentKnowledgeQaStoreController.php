@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources\Qa;
 
 use App\Models\Agent;
+use App\Models\AgentQuestionAnswer;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeQaStoreController
@@ -26,11 +27,19 @@ class AgentKnowledgeQaStoreController
             'answer' => ['required', 'string', 'min:10'],
         ]);
 
-        // TODO: Implement Q&A storage logic
-        // This will be implemented by the backend team
+        // Extract question texts and store as comma-separated text
+        $questionsText = collect($validated['questions'])
+            ->pluck('question')
+            ->filter()
+            ->implode(', ');
 
-        return response()->json([
-            'message' => 'Q&A entry created successfully',
+        AgentQuestionAnswer::create([
+            'agent_id' => $agent->id,
+            'title' => $validated['title'],
+            'questions' => $questionsText,
+            'answer' => $validated['answer'],
         ]);
+
+        return back();
     }
 }

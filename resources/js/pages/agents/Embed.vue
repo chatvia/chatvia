@@ -2,19 +2,18 @@
 import AgentLayout from '@/layouts/AgentLayout.vue';
 
 import { ref, computed, reactive, watch } from 'vue';
-import { useForm, router, Link } from '@inertiajs/vue3';
-import { Card, CardContent } from '@/components/ui/card';
+import { useForm, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Palette, Upload, Trash2, Save, User, Image, Type, Code, Eye, Copy, Info, Shield, AlertTriangle, Share2, RotateCcw, MessageSquare, PlusCircle } from 'lucide-vue-next';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Palette, Upload, Trash2, Save, User, Image, Type, Code, Eye, Copy, Info, Shield, AlertTriangle, Share2, RotateCcw, MessageSquare, PlusCircle, Brain } from 'lucide-vue-next';
 import PreviewModal from '@/components/PreviewModal.vue';
+import AgentModelSelector from '@/components/agents/AgentModelSelector.vue';
 import { toast } from 'vue-sonner';
 import axios from 'axios';
 
@@ -28,6 +27,18 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Menu items for navigation
+const menuItems = [
+    { value: 'text', label: 'Text', icon: Type },
+    { value: 'starters', label: 'Starters', icon: MessageSquare },
+    { value: 'models', label: 'Model', icon: Brain },
+    { value: 'colors', label: 'Colors', icon: Palette },
+    { value: 'branding', label: 'Branding', icon: Image },
+    { value: 'embed', label: 'Embed', icon: Code },
+    { value: 'share', label: 'Share', icon: Share2 },
+    { value: 'security', label: 'Security', icon: Shield },
+];
 
 // Active tab
 const activeTab = ref('text');
@@ -95,7 +106,6 @@ const updateAppearance = () => {
     isSubmitting.value = true;
     showSuccessMessage.value = false;
 
-    // Only save text fields (colors and images auto-save)
     const textForm = useForm({
         welcome_message: appearanceForm.welcome_message,
         chat_window_title: appearanceForm.chat_window_title,
@@ -105,7 +115,6 @@ const updateAppearance = () => {
 
     textForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
         preserveScroll: true,
-
         onSuccess: () => {
             isSubmitting.value = false;
             showSuccessMessage.value = true;
@@ -131,7 +140,6 @@ const handleAvatarUpload = (event: Event) => {
     const file = target.files?.[0];
     if (!file) return;
 
-    // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
         if (e.target && typeof e.target.result === 'string') {
@@ -140,10 +148,7 @@ const handleAvatarUpload = (event: Event) => {
     };
     reader.readAsDataURL(file);
 
-    // Auto-save
-    const uploadForm = useForm({
-        avatar: file,
-    });
+    const uploadForm = useForm({ avatar: file });
 
     uploadForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
         preserveScroll: true,
@@ -190,7 +195,6 @@ const handleLogoUpload = (event: Event) => {
     const file = target.files?.[0];
     if (!file) return;
 
-    // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
         if (e.target && typeof e.target.result === 'string') {
@@ -199,10 +203,7 @@ const handleLogoUpload = (event: Event) => {
     };
     reader.readAsDataURL(file);
 
-    // Auto-save
-    const uploadForm = useForm({
-        logo: file,
-    });
+    const uploadForm = useForm({ logo: file });
 
     uploadForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
         preserveScroll: true,
@@ -238,7 +239,6 @@ const removeLogo = () => {
     });
 };
 
-// Embed methods
 const updateSetting = (key: string, value: any) => {
     (embedForm as any)[key] = value;
 
@@ -331,7 +331,6 @@ const refreshPreview = () => {
     embedKey.value += 1;
 };
 
-// Copy agent URL
 const copyAgentUrl = async () => {
     try {
         await navigator.clipboard.writeText(props.agent.public_url || props.agent.url);
@@ -342,7 +341,6 @@ const copyAgentUrl = async () => {
     }
 };
 
-// Security functions
 const updateSecuritySettings = () => {
     securityForm.patch(route('agents.security.update', props.agent.id), {
         preserveScroll: true,
@@ -351,7 +349,6 @@ const updateSecuritySettings = () => {
         },
         onError: () => {
             toast.error('Failed to update security settings');
-            // Revert the form value on error
             securityForm.is_public = !securityForm.is_public;
         }
     });
@@ -364,25 +361,19 @@ const confirmMakePublic = () => {
 
 const cancelMakePublic = () => {
     showSecurityConfirmDialog.value = false;
-    // Revert the toggle
     securityForm.is_public = false;
 };
 
-// Auto-save when security toggle changes
 watch(() => securityForm.is_public, (newValue, oldValue) => {
-    // Only process if the value actually changed and it's not the initial load
     if (oldValue !== undefined && newValue !== oldValue) {
-        // If trying to make public, show confirmation
         if (newValue === true) {
             showSecurityConfirmDialog.value = true;
         } else {
-            // If making private, just save directly
             updateSecuritySettings();
         }
     }
 });
 
-// Auto-save color changes
 const saveColorSettings = () => {
     const colorForm = useForm({
         color_theme: appearanceForm.color_theme,
@@ -401,7 +392,6 @@ const saveColorSettings = () => {
     });
 };
 
-// Starters functionality
 const addStarterMessage = () => {
     axios.post(route('agents.starters.store', props.agent.id), { text: starterMessageForm.value.text })
         .then((response: any) => {
@@ -412,6 +402,7 @@ const addStarterMessage = () => {
             });
             starterMessageForm.value.text = '';
             toast.success('Starter message added');
+            embedKey.value += 1;
         })
         .catch(() => {
             toast.error('Failed to add starter message');
@@ -423,522 +414,415 @@ const removeStarter = (id: number) => {
         .then(() => {
             starters.value = starters.value.filter(starter => starter.id !== id);
             toast.success('Starter message removed');
+            embedKey.value += 1;
         })
         .catch(() => {
             toast.error('Failed to remove starter message');
         });
 };
+
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Embed">
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Left Column - Tabbed Configuration -->
-            <div class="order-1 lg:order-none">
-                <Card>
-                    <CardContent class="p-0">
-                        <Tabs v-model="activeTab" class="w-full">
-                            <TabsList class="w-full grid grid-cols-7 rounded-none border-b">
-                                <TabsTrigger value="text" class="gap-2">
-                                    <Type class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Text</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="starters" class="gap-2">
-                                    <MessageSquare class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Starters</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="colors" class="gap-2">
-                                    <Palette class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Colors</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="branding" class="gap-2">
-                                    <Image class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Logo</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="embed" class="gap-2">
-                                    <Code class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Embed</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="share" class="gap-2">
-                                    <Share2 class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Share</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="security" class="gap-2">
-                                    <Shield class="h-4 w-4" />
-                                    <span class="hidden sm:inline">Security</span>
-                                </TabsTrigger>
-                            </TabsList>
-
-                            <form @submit.prevent="updateAppearance">
-                                <!-- Security Tab -->
-                                <TabsContent value="security" class="p-6 space-y-6">
-                                    <div class="space-y-4">
-                                        <div class="flex items-center justify-between space-x-2">
-                                            <div class="flex-1">
-                                                <Label class="text-base" for="is_public">Make this agent public</Label>
-                                                <p class="text-sm text-muted-foreground mt-1">
-                                                    Public agents can be accessed by anyone with the link
-                                                </p>
-                                            </div>
-                                            <Switch 
-                                                id="is_public" 
-                                                v-model="securityForm.is_public"
-                                            />
-                                        </div>
-                                    </div>
-                                </TabsContent>
-
-                                <!-- Share Tab -->
-                                <TabsContent value="share" class="p-6 space-y-6">
-                                    <div class="space-y-4">
-                                        <div>
-                                            <Label class="text-base">Agent URL</Label>
-                                            <p class="text-sm text-muted-foreground mt-1 mb-3">
-                                                Share this URL to give others access to your agent
-                                            </p>
-                                        </div>
-                                        
-                                        <div class="bg-muted rounded-lg p-4">
-                                            <div class="flex items-center justify-between gap-3">
-                                                <code class="text-sm text-foreground break-all">
-                                                    {{ agent.public_url || agent.url }}
-                                                </code>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    @click="copyAgentUrl"
-                                                    class="gap-2 shrink-0"
-                                                >
-                                                    <Copy class="h-4 w-4" />
-                                                    Copy
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        <Alert>
-                                            <Info class="h-4 w-4" />
-                                            <AlertDescription>
-                                                Anyone with this URL can access your agent. Make sure to set the appropriate security settings.
-                                            </AlertDescription>
-                                        </Alert>
-                                    </div>
-                                </TabsContent>
-
-                                <!-- Colors Tab -->
-                                <TabsContent value="colors" class="p-6 space-y-6">
-                                    <div class="space-y-2">
-                                        <Label>Color Theme</Label>
-                                        <p class="text-xs text-muted-foreground mb-3">Click the color swatch to choose your primary color</p>
-                                        
-                                        <div class="relative cursor-pointer inline-block" @click="showColorPicker = true">
-                                            <div
-                                                class="h-24 w-24 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
-                                                :style="{
-                                                    backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
-                                                }"
-                                            >
-                                                <div class="flex h-full items-center justify-center">
-                                                    <div class="h-12 w-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
-                                                        <div class="h-8 w-8 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
-                                            {{ appearanceForm.errors.color_theme }}
-                                        </p>
-                                    </div>
-                                </TabsContent>
-
-                                <!-- Branding Tab -->
-                                <TabsContent value="branding" class="p-6 space-y-6">
-                                    <div class="space-y-2">
-                                        <Label>Agent Avatar</Label>
-                                        <p class="text-xs text-muted-foreground mb-3">Upload an avatar for your agent (256x256px recommended)</p>
-                                        
-                                        <div class="flex items-center gap-4">
-                                            <div class="h-20 w-20 overflow-hidden rounded-full border bg-muted">
-                                                <img
-                                                    v-if="avatarPreview"
-                                                    :src="avatarPreview"
-                                                    alt="Agent avatar"
-                                                    class="h-full w-full object-cover"
-                                                />
-                                                <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
-                                                    <User class="h-10 w-10" />
-                                                </div>
-                                            </div>
-                                            <div class="flex flex-col gap-2">
-                                                <input
-                                                    ref="avatarInputRef"
-                                                    accept="image/*"
-                                                    class="hidden"
-                                                    type="file"
-                                                    @change="handleAvatarUpload"
-                                                />
-                                                <Button type="button" variant="outline" size="sm" @click="triggerAvatarInput">
-                                                    <Upload class="mr-2 h-4 w-4" />
-                                                    Upload Avatar
-                                                </Button>
-                                                <Button
-                                                    v-if="avatarPreview"
-                                                    class="text-destructive hover:text-destructive/80"
-                                                    size="sm"
-                                                    type="button"
-                                                    variant="ghost"
-                                                    @click="removeAvatar"
-                                                >
-                                                    <Trash2 class="mr-2 h-4 w-4" />
-                                                    Remove
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <Label>Logo Image</Label>
-                                        <p class="text-xs text-muted-foreground mb-3">Upload a logo for your agent (256x256px recommended)</p>
-                                        
-                                        <div class="flex items-center gap-4">
-                                            <div class="h-20 w-20 overflow-hidden rounded-full border bg-muted">
-                                                <img
-                                                    v-if="logoPreview"
-                                                    :src="logoPreview"
-                                                    alt="Logo"
-                                                    class="h-full w-full object-cover"
-                                                />
-                                                <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
-                                                    <Image class="h-10 w-10" />
-                                                </div>
-                                            </div>
-                                            <div class="flex flex-col gap-2">
-                                                <input
-                                                    ref="logoInputRef"
-                                                    accept="image/*"
-                                                    class="hidden"
-                                                    type="file"
-                                                    @change="handleLogoUpload"
-                                                />
-                                                <Button type="button" variant="outline" size="sm" @click="triggerLogoInput">
-                                                    <Upload class="mr-2 h-4 w-4" />
-                                                    Upload Logo
-                                                </Button>
-                                                <Button
-                                                    v-if="logoPreview"
-                                                    class="text-destructive hover:text-destructive/80"
-                                                    size="sm"
-                                                    type="button"
-                                                    variant="ghost"
-                                                    @click="removeLogo"
-                                                >
-                                                    <Trash2 class="mr-2 h-4 w-4" />
-                                                    Remove
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </TabsContent>
-
-                                <!-- Text Content Tab -->
-                                <TabsContent value="text" class="p-6 space-y-6">
-                                    <div class="space-y-2">
-                                        <Label for="welcome_message">Welcome Message</Label>
-                                        <Textarea
-                                            id="welcome_message"
-                                            v-model="appearanceForm.welcome_message"
-                                            placeholder="Hi there! How can I help you today?"
-                                            rows="3"
-                                        />
-                                        <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
-                                            {{ appearanceForm.errors.welcome_message }}
-                                        </p>
-                                        <p class="text-xs text-muted-foreground">
-                                            First message shown to users
-                                        </p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <Label for="chat_window_title">Chat Window Title</Label>
-                                        <Input
-                                            id="chat_window_title"
-                                            v-model="appearanceForm.chat_window_title"
-                                            placeholder="Chat with our AI Assistant"
-                                        />
-                                        <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
-                                            {{ appearanceForm.errors.chat_window_title }}
-                                        </p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <Label for="chat_footer_text">Chat Footer Text</Label>
-                                        <Input
-                                            id="chat_footer_text"
-                                            v-model="appearanceForm.chat_footer_text"
-                                            placeholder="Consider checking important information"
-                                        />
-                                        <p v-if="appearanceForm.errors.chat_footer_text" class="text-sm text-destructive">
-                                            {{ appearanceForm.errors.chat_footer_text }}
-                                        </p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <Label for="composer_placeholder">Composer Placeholder</Label>
-                                        <Input
-                                            id="composer_placeholder"
-                                            v-model="appearanceForm.composer_placeholder"
-                                            placeholder="Ask anything..."
-                                        />
-                                        <p v-if="appearanceForm.errors.composer_placeholder" class="text-sm text-destructive">
-                                            {{ appearanceForm.errors.composer_placeholder }}
-                                        </p>
-                                        <p class="text-xs text-muted-foreground">
-                                            Placeholder text in the chat input field
-                                        </p>
-                                    </div>
-
-                                    <!-- Save Button -->
-                                    <div class="pt-4 border-t">
-                                        <Button 
-                                            type="submit" 
-                                            :disabled="isSubmitting || !hasUnsavedChanges"
-                                            size="sm"
-                                        >
-                                            <Save class="h-4 w-4 mr-2" />
-                                            {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
-                                        </Button>
-                                        <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2">
-                                            Settings saved successfully
-                                        </p>
-                                    </div>
-                                </TabsContent>
-
-                                <!-- Starters Tab -->
-                                <TabsContent value="starters" class="p-6 space-y-6">
-                                    <div class="space-y-4">
-                                        <div class="flex justify-between items-center">
-                                            <div>
-                                                <h3 class="text-sm font-medium">Conversation Starters</h3>
-                                                <p class="text-xs text-muted-foreground mt-1">
-                                                    Suggest questions to help users start conversations
-                                                </p>
-                                            </div>
-                                            <Button 
-                                                type="button" 
-                                                variant="outline" 
-                                                size="sm"
-                                                @click="showAddStarterDialog = true"
-                                            >
-                                                <PlusCircle class="mr-2 h-4 w-4" />
-                                                Add Starter
-                                            </Button>
-                                        </div>
-
-                                        <div class="rounded-md border">
-                                            <div 
-                                                v-if="starters.length === 0"
-                                                class="p-4 text-center text-muted-foreground text-sm"
-                                            >
-                                                No starter messages yet
-                                            </div>
-                                            <div
-                                                v-for="starter in starters"
-                                                :key="starter.id"
-                                                class="flex items-center justify-between border-b p-3 last:border-0"
-                                            >
-                                                <div class="flex items-center gap-3">
-                                                    <MessageSquare class="h-4 w-4 text-muted-foreground" />
-                                                    <div class="text-sm">{{ starter.text }}</div>
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    @click="removeStarter(starter.id)"
-                                                >
-                                                    <Trash2 class="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        <Alert>
-                                            <Info class="h-4 w-4" />
-                                            <AlertDescription>
-                                                Good starter messages are specific questions that showcase your agent's capabilities
-                                            </AlertDescription>
-                                        </Alert>
-                                    </div>
-                                </TabsContent>
-
-                                <!-- Embed Tab -->
-                                <TabsContent value="embed" class="p-6 space-y-6">
-                                    <div class="space-y-4">
-                                        <div class="space-y-3">
-                                            <Label class="text-sm font-medium">Embed Configuration</Label>
-                                            <div class="grid grid-cols-2 gap-4">
-                                                <div class="space-y-2">
-                                                    <Label for="embed_width" class="text-xs">Width</Label>
-                                                    <Input
-                                                        id="embed_width"
-                                                        v-model="iframeOptions.width"
-                                                        type="text"
-                                                        placeholder="100%"
-                                                        class="text-sm"
-                                                    />
-                                                </div>
-                                                <div class="space-y-2">
-                                                    <Label for="embed_height" class="text-xs">Height</Label>
-                                                    <Input
-                                                        id="embed_height"
-                                                        v-model="iframeOptions.height"
-                                                        type="text"
-                                                        placeholder="600px"
-                                                        class="text-sm"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div class="grid grid-cols-2 gap-2">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    @click="setPresetSize('full')"
-                                                    class="text-xs"
-                                                >
-                                                    Full Width
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    @click="setPresetSize('large')"
-                                                    class="text-xs"
-                                                >
-                                                    Large
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        <div class="bg-muted rounded-lg p-4">
-                                            <div class="flex items-center justify-between mb-3">
-                                                <p class="text-sm text-muted-foreground">HTML Embed Code</p>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    @click="copyEmbedCode"
-                                                    class="gap-2"
-                                                >
-                                                    <Copy class="h-4 w-4" />
-                                                    Copy
-                                                </Button>
-                                            </div>
-                                            <div class="bg-background border rounded p-3">
-                                                <pre class="text-xs text-foreground overflow-x-auto whitespace-pre-wrap"><code v-text="embedCode"></code></pre>
-                                            </div>
-                                        </div>
-
-                                        <div class="space-y-4 pt-4 border-t">
-                                            <h4 class="text-sm font-medium">Interface Options</h4>
-
-                                            <div class="space-y-3">
-                                                <div class="flex items-center justify-between">
-                                                    <Label for="remove_sidebar" class="text-sm">Remove sidebar</Label>
-                                                    <Switch
-                                                        id="remove_sidebar"
-                                                        :model-value="embedForm.remove_sidebar"
-                                                        @update:model-value="(value: any) => updateSetting('remove_sidebar', value)"
-                                                    />
-                                                </div>
-
-                                                <div class="flex items-center justify-between">
-                                                    <Label for="enable_chat_expand" class="text-sm">Enable chat expand</Label>
-                                                    <Switch
-                                                        id="enable_chat_expand"
-                                                        :model-value="embedForm.enable_chat_expand"
-                                                        @update:model-value="(value: any) => updateSetting('enable_chat_expand', value)"
-                                                    />
-                                                </div>
-
-                                                <div class="flex items-center justify-between">
-                                                    <Label for="enable_theme_switcher" class="text-sm">Enable theme switcher</Label>
-                                                    <Switch
-                                                        id="enable_theme_switcher"
-                                                        :model-value="embedForm.enable_theme_switcher"
-                                                        @update:model-value="(value: any) => updateSetting('enable_theme_switcher', value)"
-                                                    />
-                                                </div>
-
-                                                <div class="space-y-2">
-                                                    <Label for="default_theme" class="text-sm">Default theme</Label>
-                                                    <Select
-                                                        v-model="embedForm.default_theme"
-                                                        @update:model-value="(value: any) => updateSetting('default_theme', value)"
-                                                    >
-                                                        <SelectTrigger class="w-full">
-                                                            <SelectValue placeholder="Select default theme" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="auto">Auto (System)</SelectItem>
-                                                            <SelectItem value="light">Light</SelectItem>
-                                                            <SelectItem value="dark">Dark</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </TabsContent>
-                            </form>
-                        </Tabs>
-                    </CardContent>
-                </Card>
+    <AgentLayout :agent="agent" title="Embed" hide-header no-padding full-height>
+        <div class="flex h-full">
+            <!-- Left Column - Navigation Menu -->
+            <div class="w-[180px] flex-shrink-0 flex flex-col h-full bg-muted/30 border-r">
+                <nav class="flex flex-col gap-0.5 p-2">
+                    <button
+                        v-for="item in menuItems"
+                        :key="item.value"
+                        @click="activeTab = item.value"
+                        class="w-full h-9 flex items-center gap-2.5 px-3 text-sm rounded-md transition-colors cursor-pointer"
+                        :class="[
+                            activeTab === item.value
+                                ? 'bg-background shadow-sm text-foreground font-medium'
+                                : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'
+                        ]"
+                    >
+                        <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
+                        <span>{{ item.label }}</span>
+                    </button>
+                </nav>
             </div>
 
-            <!-- Right Column - Live Preview -->
-            <div class="flex flex-col order-2 lg:order-none">
-                <div class="flex flex-col lg:h-full min-h-[500px] border-2 border-dashed border-border rounded-lg p-6 bg-muted/20">
-                    <div class="space-y-4 flex flex-col flex-1">
-                        <div class="flex items-center justify-between">
-                            
-                            <div class="flex items-center gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    @click="refreshPreview"
-                                    class="gap-2"
-                                >
-                                    <RotateCcw class="h-4 w-4" />
-                                    Refresh
+            <!-- Middle Column - Configuration Content -->
+            <div class="flex-1 flex flex-col h-full overflow-hidden border-r">
+                <div class="flex-1 overflow-y-auto">
+                    <!-- Text Panel -->
+                    <div v-if="activeTab === 'text'" class="p-6 space-y-6">
+                        <form @submit.prevent="updateAppearance" class="space-y-6">
+                            <div class="space-y-2">
+                                <Label for="welcome_message">Welcome Message</Label>
+                                <Textarea
+                                    id="welcome_message"
+                                    v-model="appearanceForm.welcome_message"
+                                    placeholder="Hi there! How can I help you today?"
+                                    rows="3"
+                                />
+                                <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
+                                    {{ appearanceForm.errors.welcome_message }}
+                                </p>
+                                <p class="text-xs text-muted-foreground">First message shown to users</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="chat_window_title">Chat Window Title</Label>
+                                <Input
+                                    id="chat_window_title"
+                                    v-model="appearanceForm.chat_window_title"
+                                    placeholder="Chat with our AI Assistant"
+                                />
+                                <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
+                                    {{ appearanceForm.errors.chat_window_title }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="chat_footer_text">Chat Footer Text</Label>
+                                <Input
+                                    id="chat_footer_text"
+                                    v-model="appearanceForm.chat_footer_text"
+                                    placeholder="Consider checking important information"
+                                />
+                                <p v-if="appearanceForm.errors.chat_footer_text" class="text-sm text-destructive">
+                                    {{ appearanceForm.errors.chat_footer_text }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="composer_placeholder">Composer Placeholder</Label>
+                                <Input
+                                    id="composer_placeholder"
+                                    v-model="appearanceForm.composer_placeholder"
+                                    placeholder="Ask anything..."
+                                />
+                                <p v-if="appearanceForm.errors.composer_placeholder" class="text-sm text-destructive">
+                                    {{ appearanceForm.errors.composer_placeholder }}
+                                </p>
+                                <p class="text-xs text-muted-foreground">Placeholder text in the chat input field</p>
+                            </div>
+
+                            <div class="pt-4 border-t">
+                                <Button type="submit" :disabled="isSubmitting || !hasUnsavedChanges" size="sm">
+                                    <Save class="h-4 w-4 mr-2" />
+                                    {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
                                 </Button>
+                                <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2">
+                                    Settings saved successfully
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Starters Panel -->
+                    <div v-if="activeTab === 'starters'" class="p-6 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-sm font-medium">Conversation Starters</h3>
+                                <p class="text-xs text-muted-foreground mt-1">
+                                    Suggest questions to help users start conversations
+                                </p>
+                            </div>
+                            <Button type="button" variant="outline" size="sm" @click="showAddStarterDialog = true">
+                                <PlusCircle class="mr-2 h-4 w-4" />
+                                Add Starter
+                            </Button>
+                        </div>
+
+                        <div class="rounded-md border">
+                            <div v-if="starters.length === 0" class="p-4 text-center text-muted-foreground text-sm">
+                                No starter messages yet
+                            </div>
+                            <div
+                                v-for="starter in starters"
+                                :key="starter.id"
+                                class="flex items-center justify-between border-b p-3 last:border-0"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                                    <div class="text-sm">{{ starter.text }}</div>
+                                </div>
                                 <Button
                                     type="button"
-                                    variant="outline"
+                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
                                     size="sm"
-                                    @click="showPreviewModal = true"
-                                    class="gap-2"
+                                    variant="ghost"
+                                    @click="removeStarter(starter.id)"
                                 >
-                                    <Eye class="h-4 w-4" />
-                                    Full Preview
+                                    <Trash2 class="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
 
+                        <Alert>
+                            <Info class="h-4 w-4" />
+                            <AlertDescription>
+                                Good starter messages are specific questions that showcase your agent's capabilities
+                            </AlertDescription>
+                        </Alert>
+                    </div>
 
-                        <div class="border-2 border-dashed border-border rounded-lg bg-background p-4 flex-1">
-                            <iframe
-                                :key="embedKey"
-                                :src="buildIframeUrl(agent.chat_embed_url)"
-                                class="w-full border-0 rounded bg-white h-[400px] md:h-[500px] lg:h-full lg:min-h-[600px]"
-                                title="Chat Preview"
-                                sandbox="allow-scripts allow-same-origin allow-forms"
-                            />
+                    <!-- Models Panel -->
+                    <div v-if="activeTab === 'models'" class="p-6">
+                        <AgentModelSelector
+                            :agent-id="agent.id"
+                            :multiple="true"
+                            description="Select one or more AI models for your knowledge base. Users can switch between selected models when chatting."
+                            @saved="refreshPreview"
+                        />
+                    </div>
+
+                    <!-- Colors Panel -->
+                    <div v-if="activeTab === 'colors'" class="p-6 space-y-2">
+                        <Label>Color Theme</Label>
+                        <p class="text-xs text-muted-foreground mb-3">Click the color swatch to choose your primary color</p>
+
+                        <div class="relative cursor-pointer inline-block" @click="showColorPicker = true">
+                            <div
+                                class="h-20 w-20 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                                :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"
+                            >
+                                <div class="flex h-full items-center justify-center">
+                                    <div class="h-10 w-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
+                                        <div class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
+                        <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
+                            {{ appearanceForm.errors.color_theme }}
+                        </p>
+                    </div>
+
+                    <!-- Branding Panel -->
+                    <div v-if="activeTab === 'branding'" class="p-6 space-y-6">
+                        <div class="space-y-2">
+                            <Label>Agent Avatar</Label>
+                            <p class="text-xs text-muted-foreground mb-3">Upload an avatar for your agent (256x256px recommended)</p>
+
+                            <div class="flex items-center gap-4">
+                                <div class="h-20 w-20 overflow-hidden rounded-full border bg-muted">
+                                    <img v-if="avatarPreview" :src="avatarPreview" alt="Agent avatar" class="h-full w-full object-cover" />
+                                    <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
+                                        <User class="h-10 w-10" />
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <input ref="avatarInputRef" accept="image/*" class="hidden" type="file" @change="handleAvatarUpload" />
+                                    <Button type="button" variant="outline" size="sm" @click="triggerAvatarInput">
+                                        <Upload class="mr-2 h-4 w-4" />
+                                        Upload Avatar
+                                    </Button>
+                                    <Button
+                                        v-if="avatarPreview"
+                                        class="text-destructive hover:text-destructive/80"
+                                        size="sm"
+                                        type="button"
+                                        variant="ghost"
+                                        @click="removeAvatar"
+                                    >
+                                        <Trash2 class="mr-2 h-4 w-4" />
+                                        Remove
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <Label>Logo Image</Label>
+                            <p class="text-xs text-muted-foreground mb-3">Upload a logo for your agent (256x256px recommended)</p>
+
+                            <div class="flex items-center gap-4">
+                                <div class="h-20 w-20 overflow-hidden rounded-full border bg-muted">
+                                    <img v-if="logoPreview" :src="logoPreview" alt="Logo" class="h-full w-full object-cover" />
+                                    <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
+                                        <Image class="h-10 w-10" />
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <input ref="logoInputRef" accept="image/*" class="hidden" type="file" @change="handleLogoUpload" />
+                                    <Button type="button" variant="outline" size="sm" @click="triggerLogoInput">
+                                        <Upload class="mr-2 h-4 w-4" />
+                                        Upload Logo
+                                    </Button>
+                                    <Button
+                                        v-if="logoPreview"
+                                        class="text-destructive hover:text-destructive/80"
+                                        size="sm"
+                                        type="button"
+                                        variant="ghost"
+                                        @click="removeLogo"
+                                    >
+                                        <Trash2 class="mr-2 h-4 w-4" />
+                                        Remove
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Embed Panel -->
+                    <div v-if="activeTab === 'embed'" class="p-6 space-y-4">
+                        <div class="space-y-3">
+                            <Label class="text-sm font-medium">Embed Configuration</Label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <Label for="embed_width" class="text-xs">Width</Label>
+                                    <Input id="embed_width" v-model="iframeOptions.width" type="text" placeholder="100%" class="text-sm" />
+                                </div>
+                                <div class="space-y-2">
+                                    <Label for="embed_height" class="text-xs">Height</Label>
+                                    <Input id="embed_height" v-model="iframeOptions.height" type="text" placeholder="600px" class="text-sm" />
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <Button type="button" variant="outline" size="sm" @click="setPresetSize('full')" class="text-xs">
+                                    Full Width
+                                </Button>
+                                <Button type="button" variant="outline" size="sm" @click="setPresetSize('large')" class="text-xs">
+                                    Large
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div class="bg-muted rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-sm text-muted-foreground">HTML Embed Code</p>
+                                <Button type="button" variant="outline" size="sm" @click="copyEmbedCode" class="gap-2">
+                                    <Copy class="h-4 w-4" />
+                                    Copy
+                                </Button>
+                            </div>
+                            <div class="bg-background border rounded p-3">
+                                <pre class="text-xs text-foreground overflow-x-auto whitespace-pre-wrap"><code v-text="embedCode"></code></pre>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 pt-4 border-t">
+                            <h4 class="text-sm font-medium">Interface Options</h4>
+
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <Label for="remove_sidebar" class="text-sm">Remove sidebar</Label>
+                                    <Switch
+                                        id="remove_sidebar"
+                                        :model-value="embedForm.remove_sidebar"
+                                        @update:model-value="(value: any) => updateSetting('remove_sidebar', value)"
+                                    />
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <Label for="enable_chat_expand" class="text-sm">Enable chat expand</Label>
+                                    <Switch
+                                        id="enable_chat_expand"
+                                        :model-value="embedForm.enable_chat_expand"
+                                        @update:model-value="(value: any) => updateSetting('enable_chat_expand', value)"
+                                    />
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <Label for="enable_theme_switcher" class="text-sm">Enable theme switcher</Label>
+                                    <Switch
+                                        id="enable_theme_switcher"
+                                        :model-value="embedForm.enable_theme_switcher"
+                                        @update:model-value="(value: any) => updateSetting('enable_theme_switcher', value)"
+                                    />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="default_theme" class="text-sm">Default theme</Label>
+                                    <Select
+                                        v-model="embedForm.default_theme"
+                                        @update:model-value="(value: any) => updateSetting('default_theme', value)"
+                                    >
+                                        <SelectTrigger class="w-full">
+                                            <SelectValue placeholder="Select default theme" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="auto">Auto (System)</SelectItem>
+                                            <SelectItem value="light">Light</SelectItem>
+                                            <SelectItem value="dark">Dark</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Share Panel -->
+                    <div v-if="activeTab === 'share'" class="p-6 space-y-4">
+                        <div>
+                            <Label class="text-base">Agent URL</Label>
+                            <p class="text-sm text-muted-foreground mt-1 mb-3">
+                                Share this URL to give others access to your agent
+                            </p>
+                        </div>
+
+                        <div class="bg-muted rounded-lg p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <code class="text-sm text-foreground break-all">
+                                    {{ agent.public_url || agent.url }}
+                                </code>
+                                <Button type="button" variant="outline" size="sm" @click="copyAgentUrl" class="gap-2 shrink-0">
+                                    <Copy class="h-4 w-4" />
+                                    Copy
+                                </Button>
+                            </div>
+                        </div>
+
+                        <Alert>
+                            <Info class="h-4 w-4" />
+                            <AlertDescription>
+                                Anyone with this URL can access your agent. Make sure to set the appropriate security settings.
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+
+                    <!-- Security Panel -->
+                    <div v-if="activeTab === 'security'" class="p-6 space-y-4">
+                        <div class="flex items-center justify-between space-x-2">
+                            <div class="flex-1">
+                                <Label class="text-base" for="is_public">Make this agent public</Label>
+                                <p class="text-sm text-muted-foreground mt-1">
+                                    Public agents can be accessed by anyone with the link
+                                </p>
+                            </div>
+                            <Switch id="is_public" v-model="securityForm.is_public" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Live Preview -->
+            <div class="w-[420px] flex-shrink-0 flex flex-col h-full bg-background">
+                <!-- Preview Header -->
+                <div class="px-4 py-3 border-b flex items-center justify-between flex-shrink-0">
+                    <span class="text-sm font-medium text-muted-foreground">Live Preview</span>
+                    <div class="flex items-center gap-1">
+                        <Button type="button" variant="ghost" size="sm" class="h-8 gap-1.5" @click="refreshPreview">
+                            <RotateCcw class="h-3.5 w-3.5" />
+                            <span class="text-xs">Refresh</span>
+                        </Button>
+                        <Button type="button" variant="ghost" size="sm" class="h-8 gap-1.5" @click="showPreviewModal = true">
+                            <Eye class="h-3.5 w-3.5" />
+                            <span class="text-xs">Preview</span>
+                        </Button>
+                    </div>
+                </div>
+
+                <!-- Preview Frame -->
+                <div class="flex-1 p-4 bg-muted/20 overflow-hidden">
+                    <div class="h-full bg-background border rounded-lg overflow-hidden shadow-sm">
+                        <iframe
+                            :key="embedKey"
+                            :src="buildIframeUrl(agent.chat_embed_url)"
+                            class="w-full h-full border-0"
+                            title="Chat Preview"
+                            sandbox="allow-scripts allow-same-origin allow-forms"
+                        />
                     </div>
                 </div>
             </div>
@@ -979,9 +863,7 @@ const removeStarter = (id: number) => {
                                     'border-primary ring-2 ring-primary/20': appearanceForm.color_theme === theme,
                                     'border-border hover:border-primary/50 hover:shadow-md': appearanceForm.color_theme !== theme
                                 }"
-                                :style="{
-                                    backgroundColor: `var(--${theme}-${appearanceForm.color_shade})`
-                                }"
+                                :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"
                             >
                                 <div class="flex h-full items-center justify-center">
                                     <div
@@ -1009,9 +891,7 @@ const removeStarter = (id: number) => {
                                 step="50"
                                 v-model="appearanceForm.color_shade"
                                 class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                                :style="{
-                                    background: `linear-gradient(to right, var(--${appearanceForm.color_theme}-50), var(--${appearanceForm.color_theme}-950))`
-                                }"
+                                :style="{ background: `linear-gradient(to right, var(--${appearanceForm.color_theme}-50), var(--${appearanceForm.color_theme}-950))` }"
                             />
                         </div>
                         <div class="flex justify-between text-xs text-muted-foreground">
@@ -1075,10 +955,7 @@ const removeStarter = (id: number) => {
                     <Button variant="outline" @click="showAddStarterDialog = false">
                         Cancel
                     </Button>
-                    <Button
-                        :disabled="!starterMessageForm.text.trim()"
-                        @click="addStarterMessage"
-                    >
+                    <Button :disabled="!starterMessageForm.text.trim()" @click="addStarterMessage">
                         <PlusCircle class="mr-2 h-4 w-4" />
                         Add Message
                     </Button>

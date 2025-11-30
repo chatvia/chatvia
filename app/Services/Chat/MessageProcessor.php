@@ -4,6 +4,7 @@ namespace App\Services\Chat;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Models\Agent;
+use App\Models\AgentQuestionAnswer;
 use App\Services\Chat\Data\StreamRequestData;
 use App\Services\Search\KnowledgeBase;
 use Illuminate\Support\Collection;
@@ -27,6 +28,25 @@ readonly class MessageProcessor
         ];
 
         return array_merge([$systemPrompt], $messages, [$userMessage]);
+    }
+
+    /**
+     * Search for a Q&A match using strict phrase matching.
+     * Exact phrase match - word order matters.
+     */
+    public function searchQA(int $agentId, string $query): ?object
+    {
+        $results = AgentQuestionAnswer::query()
+            ->phraseSearch($agentId, $query);
+
+        if (empty($results)) {
+            return null;
+        }
+
+        $qa = $results[0];
+        $qa->confidence_score = 0.99;
+
+        return $qa;
     }
 
     public function searchKnowledgeBase(Agent $agent, ChatInputPayload $payload, array $lastMessages): Collection

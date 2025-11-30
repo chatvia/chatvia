@@ -93,6 +93,19 @@ const props = defineProps({
     description: {
         type: String,
         default: '',
+    },
+    // Layout options
+    hideHeader: {
+        type: Boolean,
+        default: false,
+    },
+    noPadding: {
+        type: Boolean,
+        default: false,
+    },
+    fullHeight: {
+        type: Boolean,
+        default: false,
     }
 })
 
@@ -708,7 +721,7 @@ onMounted(() => {
                 <!-- Page Content Wrapper -->
                 <div class="flex-1 flex flex-col overflow-hidden min-w-0">
                     <!-- Page Header -->
-                    <div class="bg-background border-b border-border px-4 lg:px-6 py-4">
+                    <div v-if="!hideHeader" class="bg-background border-b border-border px-4 lg:px-6 py-4">
                         <div class="flex items-center justify-between">
                             <div class="min-w-0 flex-1">
                                 <h1 class="text-lg lg:text-xl font-semibold text-foreground truncate flex items-center gap-2">
@@ -743,8 +756,20 @@ onMounted(() => {
                     </div>
 
                     <!-- Page Content -->
-                    <div class="flex-1 overflow-auto bg-muted/30 min-w-0">
-                        <div class="p-3 sm:p-4 lg:p-6 min-w-0 max-w-full">
+                    <div 
+                        class="flex-1 min-w-0"
+                        :class="[
+                            fullHeight ? 'overflow-hidden' : 'overflow-auto',
+                            noPadding ? '' : 'bg-muted/30'
+                        ]"
+                    >
+                        <div 
+                            :class="[
+                                'min-w-0 max-w-full',
+                                noPadding ? 'h-full' : 'p-3 sm:p-4 lg:p-6',
+                                fullHeight ? 'h-full' : ''
+                            ]"
+                        >
                             <slot />
                         </div>
                     </div>

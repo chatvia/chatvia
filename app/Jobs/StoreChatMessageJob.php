@@ -125,6 +125,8 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'confidence_score' => $this->payload?->confidence_score ?? null,
             'sentiment' => $sentiment,
             'emotion' => $emotion,
+            'is_direct_response' => $this->payload instanceof ChatOutputPayload ? $this->payload->is_direct_response : false,
+            'agent_question_answer_id' => $this->payload instanceof ChatOutputPayload ? $this->payload->agent_question_answer_id : null,
         ];
 
         // Use the sent_at timestamp if provided to ensure correct message ordering

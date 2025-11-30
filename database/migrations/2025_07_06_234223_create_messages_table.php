@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Agent;
+use App\Models\AgentQuestionAnswer;
 use App\Models\ChatTopic;
 use App\Models\Country;
 use App\Models\Llm;
@@ -77,6 +78,8 @@ return new class extends Migration
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 
             $table->boolean('is_direct_response')->nullable()->index();
+
+            $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->constrained()->nullOnDelete();
 
             $table->unsignedInteger('response_time_ms')->nullable();
             $table->unsignedInteger('token_count')->nullable();

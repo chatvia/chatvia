@@ -176,6 +176,7 @@ completion_tokens: number | null;
 llm_name: string | null;
 llm_icon: string | null;
 created_at: string;
+agent_question_answer_id: number | null;
 };
 export type ChatLogMessagesResourceData = {
 messages: any;

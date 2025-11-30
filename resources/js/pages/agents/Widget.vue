@@ -1,531 +1,372 @@
 <template>
-    <AgentLayout :agent="agent" title="Widget Configuration">
-        <Tabs v-model="activeTab" class="w-full overflow-hidden">
-            <div class="flex flex-col xl:grid xl:grid-cols-12 xl:items-start gap-6">
-                <!-- Left Column - Navigation Menu -->
-                <div class="xl:col-span-2 order-1 xl:order-none">
-                    <Card class="xl:sticky xl:top-6 overflow-hidden">
-                        <CardContent class="p-2 xl:p-2.5 overflow-hidden">
-                            <TabsList class="flex flex-row xl:flex-col w-full h-auto gap-1 xl:gap-0.5 bg-transparent overflow-x-auto xl:overflow-x-visible scrollbar-hide">
-                                <TabsTrigger value="text" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
-                                    <Type class="h-4 w-4 flex-shrink-0" />
-                                    <span class="hidden xl:inline text-sm font-medium">Text</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="starters" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
-                                    <MessageSquare class="h-4 w-4 flex-shrink-0" />
-                                    <span class="hidden xl:inline text-sm font-medium">Starters</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="models" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
-                                    <Brain class="h-4 w-4 flex-shrink-0" />
-                                    <span class="hidden xl:inline text-sm font-medium">Model</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="colors" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
-                                    <Palette class="h-4 w-4 flex-shrink-0" />
-                                    <span class="hidden xl:inline text-sm font-medium">Colors</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="behavior" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
-                                    <Settings class="h-4 w-4 flex-shrink-0" />
-                                    <span class="hidden xl:inline text-sm font-medium">Behavior</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="embed" class="flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md">
-                                    <Code class="h-4 w-4 flex-shrink-0" />
-                                    <span class="hidden xl:inline text-sm font-medium">Embed</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="security" :class="['flex-shrink-0 xl:w-full !h-10 !flex-none !flex !flex-row items-center justify-center xl:justify-start gap-0 xl:gap-3 px-3.5 xl:px-3.5 cursor-pointer data-[state=active]:bg-muted/80 data-[state=active]:text-foreground hover:bg-muted/40 transition-colors rounded-md', hasNoSitesConfigured && 'animate-pulse']">
-                                    <Shield class="h-4 w-4 flex-shrink-0" :class="hasNoSitesConfigured && 'text-orange-500'" />
-                                    <span class="hidden xl:inline text-sm font-medium" :class="hasNoSitesConfigured && 'text-orange-500'">Security</span>
-                                </TabsTrigger>
-                            </TabsList>
-                        </CardContent>
-                    </Card>
-                </div>
+    <AgentLayout :agent="agent" title="Widget Configuration" hide-header no-padding full-height>
+        <div class="flex h-full">
+            <!-- Left Column - Navigation Menu -->
+            <div class="w-[180px] flex-shrink-0 flex flex-col h-full bg-muted/30 border-r">
+                <nav class="flex flex-col gap-0.5 p-2">
+                    <button
+                        v-for="item in menuItems"
+                        :key="item.value"
+                        @click="activeTab = item.value"
+                        class="w-full h-9 flex items-center gap-2.5 px-3 text-sm rounded-md transition-colors cursor-pointer"
+                        :class="[
+                            activeTab === item.value
+                                ? 'bg-background shadow-sm text-foreground font-medium'
+                                : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
+                            item.value === 'security' && hasNoSitesConfigured && 'animate-pulse'
+                        ]"
+                    >
+                        <component
+                            :is="item.icon"
+                            class="h-4 w-4 flex-shrink-0"
+                            :class="item.value === 'security' && hasNoSitesConfigured && 'text-orange-500'"
+                        />
+                        <span :class="item.value === 'security' && hasNoSitesConfigured && 'text-orange-500'">
+                            {{ item.label }}
+                        </span>
+                    </button>
+                </nav>
+            </div>
 
-                <!-- Middle Column - Configuration Content -->
-                <div class="xl:col-span-6 order-2 xl:order-none">
-                    <Card>
-                        <CardContent class="p-0">
-                            <form @submit.prevent="updateWidgetSettings">
-                                    <!-- Security Tab -->
-                                    <TabsContent value="security" class="p-6 space-y-6 mt-0">
-                                    <form @submit.prevent="saveSecuritySettings">
-                                        <Alert variant="destructive">
-                                            <Shield class="h-4 w-4" />
-                                            <AlertTitle>Important Security Notice</AlertTitle>
-                                            <AlertDescription>
-                                                You must specify allowed websites below, otherwise your widget will not work. This prevents unauthorized usage.
-                                            </AlertDescription>
-                                        </Alert>
+            <!-- Middle Column - Configuration Content -->
+            <div class="flex-1 flex flex-col h-full overflow-hidden border-r">
+                <div class="flex-1 overflow-y-auto">
+                    <!-- Security Panel -->
+                    <div v-if="activeTab === 'security'" class="p-6 space-y-6">
+                        <form @submit.prevent="saveSecuritySettings">
+                            <Alert variant="destructive">
+                                <Shield class="h-4 w-4" />
+                                <AlertTitle>Important Security Notice</AlertTitle>
+                                <AlertDescription>
+                                    You must specify allowed websites below, otherwise your widget will not work. This prevents unauthorized usage.
+                                </AlertDescription>
+                            </Alert>
 
-                                        <div class="space-y-2 mt-5">
-                                            <Label>Allowed Websites</Label>
-                                            <p class="text-xs text-muted-foreground mb-2">
-                                                Enter domains that can use this widget (without https://). Press Enter to add a domain.
-                                            </p>
+                            <div class="space-y-2 mt-5">
+                                <Label>Allowed Websites</Label>
+                                <p class="text-xs text-muted-foreground mb-2">
+                                    Enter domains that can use this widget (without https://). Press Enter to add a domain.
+                                </p>
 
-                                            <TagsInput v-model="widgetForm.sites" class="w-full">
-                                                <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
-                                                    <TagsInputItemText />
-                                                    <TagsInputItemDelete />
-                                                </TagsInputItem>
-                                                <TagsInputInput placeholder="example.com" />
-                                            </TagsInput>
+                                <TagsInput v-model="widgetForm.sites" class="w-full">
+                                    <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
+                                        <TagsInputItemText />
+                                        <TagsInputItemDelete />
+                                    </TagsInputItem>
+                                    <TagsInputInput placeholder="example.com" />
+                                </TagsInput>
 
-                                            <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
-                                                {{ widgetForm.errors.sites }}
-                                            </p>
+                                <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
+                                    {{ widgetForm.errors.sites }}
+                                </p>
 
-                                            <p class="text-xs text-muted-foreground">
-                                                Examples: example.com, www.example.com, *.example.com (all subdomains)
-                                            </p>
-                                        </div>
+                                <p class="text-xs text-muted-foreground">
+                                    Examples: example.com, www.example.com, *.example.com (all subdomains)
+                                </p>
+                            </div>
 
-                                        <!-- Save Button -->
-                                        <div class="pt-4 border-t">
-                                            <Button 
-                                                type="submit"
-                                                :disabled="!hasSecurityChanges"
-                                                size="sm"
-                                            >
-                                                <Save class="h-4 w-4 mr-2" />
-                                                Save Settings
-                                            </Button>
-                                        </div>
-                                    </form>
-                                </TabsContent>
+                            <!-- Save Button -->
+                            <div class="pt-4 border-t mt-6">
+                                <Button type="submit" :disabled="!hasSecurityChanges" size="sm">
+                                    <Save class="h-4 w-4 mr-2" />
+                                    Save Settings
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
 
-                                    <!-- Text Tab -->
-                                    <TabsContent value="text" class="p-6 space-y-6 mt-0">
-                                    <div class="space-y-2">
-                                        <Label for="chat_window_title">Chat Title</Label>
-                                        <Input
-                                            id="chat_window_title"
-                                            v-model="appearanceForm.chat_window_title"
-                                            placeholder="Chat with us"
-                                        />
-                                        <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
-                                            {{ appearanceForm.errors.chat_window_title }}
-                                        </p>
-                                        <p class="text-xs text-muted-foreground">
-                                            This title appears at the top of the chat window
-                                        </p>
-                                    </div>
+                    <!-- Text Panel -->
+                    <div v-if="activeTab === 'text'" class="p-6 space-y-6">
+                        <form @submit.prevent="updateWidgetSettings" class="space-y-6">
+                            <div class="space-y-2">
+                                <Label for="chat_window_title">Chat Title</Label>
+                                <Input
+                                    id="chat_window_title"
+                                    v-model="appearanceForm.chat_window_title"
+                                    placeholder="Chat with us"
+                                />
+                                <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
+                                    {{ appearanceForm.errors.chat_window_title }}
+                                </p>
+                                <p class="text-xs text-muted-foreground">
+                                    This title appears at the top of the chat window
+                                </p>
+                            </div>
 
-                                    <div class="space-y-2">
-                                        <Label for="welcome_message">Welcome Message</Label>
-                                        <Input
-                                            id="welcome_message"
-                                            v-model="appearanceForm.welcome_message"
-                                            placeholder="Hello! How can I help you today?"
-                                        />
-                                        <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
-                                            {{ appearanceForm.errors.welcome_message }}
-                                        </p>
-                                        <p class="text-xs text-muted-foreground">
-                                            First message users see when opening the widget
-                                        </p>
-                                    </div>
+                            <div class="space-y-2">
+                                <Label for="welcome_message">Welcome Message</Label>
+                                <Input
+                                    id="welcome_message"
+                                    v-model="appearanceForm.welcome_message"
+                                    placeholder="Hello! How can I help you today?"
+                                />
+                                <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
+                                    {{ appearanceForm.errors.welcome_message }}
+                                </p>
+                                <p class="text-xs text-muted-foreground">
+                                    First message users see when opening the widget
+                                </p>
+                            </div>
 
-                                    <div class="space-y-2">
-                                        <Label>Chat Bubbles</Label>
-                                        <p class="text-xs text-muted-foreground mb-2">Quick message prompts to help users start conversations</p>
+                            <div class="space-y-2">
+                                <Label>Chat Bubbles</Label>
+                                <p class="text-xs text-muted-foreground mb-2">Quick message prompts to help users start conversations</p>
 
-                                        <TagsInput v-model="widgetForm.bubbles" class="w-full">
-                                            <TagsInputItem v-for="(bubble, index) in widgetForm.bubbles" :key="index" :value="bubble">
-                                                <TagsInputItemText />
-                                                <TagsInputItemDelete />
-                                            </TagsInputItem>
-                                            <TagsInputInput placeholder="e.g., How can I help you?" />
-                                        </TagsInput>
+                                <TagsInput v-model="widgetForm.bubbles" class="w-full">
+                                    <TagsInputItem v-for="(bubble, index) in widgetForm.bubbles" :key="index" :value="bubble">
+                                        <TagsInputItemText />
+                                        <TagsInputItemDelete />
+                                    </TagsInputItem>
+                                    <TagsInputInput placeholder="e.g., How can I help you?" />
+                                </TagsInput>
 
-                                        <p v-if="widgetForm.errors.bubbles" class="text-sm text-destructive">
-                                            {{ widgetForm.errors.bubbles }}
-                                        </p>
-                                    </div>
+                                <p v-if="widgetForm.errors.bubbles" class="text-sm text-destructive">
+                                    {{ widgetForm.errors.bubbles }}
+                                </p>
+                            </div>
 
-                                    <!-- Save Button -->
-                                    <div class="pt-4 border-t">
-                                        <Button
-                                            type="submit"
-                                            :disabled="isSubmitting || !hasUnsavedChanges"
-                                            size="sm"
-                                        >
-                                            <Save class="h-4 w-4 mr-2" />
-                                            {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
-                                        </Button>
-                                        <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2">
-                                            Settings saved successfully
-                                        </p>
-                                    </div>
-                                </TabsContent>
+                            <!-- Save Button -->
+                            <div class="pt-4 border-t">
+                                <Button type="submit" :disabled="isSubmitting || !hasUnsavedChanges" size="sm">
+                                    <Save class="h-4 w-4 mr-2" />
+                                    {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+                                </Button>
+                                <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2">
+                                    Settings saved successfully
+                                </p>
+                            </div>
+                        </form>
+                    </div>
 
-                                    <!-- Starters Tab -->
-                                    <TabsContent value="starters" class="p-6 space-y-6 mt-0">
-                                    <div class="space-y-4">
-                                        <div class="flex justify-between items-center">
-                                            <div>
-                                                <h3 class="text-sm font-medium">Conversation Starters</h3>
-                                                <p class="text-xs text-muted-foreground mt-1">
-                                                    Suggest questions to help users start conversations
-                                                </p>
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                @click="showAddStarterDialog = true"
-                                            >
-                                                <PlusCircle class="mr-2 h-4 w-4" />
-                                                Add Starter
-                                            </Button>
-                                        </div>
+                    <!-- Starters Panel -->
+                    <div v-if="activeTab === 'starters'" class="p-6 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-sm font-medium">Conversation Starters</h3>
+                                <p class="text-xs text-muted-foreground mt-1">
+                                    Suggest questions to help users start conversations
+                                </p>
+                            </div>
+                            <Button type="button" variant="outline" size="sm" @click="showAddStarterDialog = true">
+                                <PlusCircle class="mr-2 h-4 w-4" />
+                                Add Starter
+                            </Button>
+                        </div>
 
-                                        <div class="rounded-md border">
-                                            <div
-                                                v-if="starters.length === 0"
-                                                class="p-4 text-center text-muted-foreground text-sm"
-                                            >
-                                                No starter messages yet
-                                            </div>
-                                            <div
-                                                v-for="starter in starters"
-                                                :key="starter.id"
-                                                class="flex items-center justify-between border-b p-3 last:border-0"
-                                            >
-                                                <div class="flex items-center gap-3">
-                                                    <MessageSquare class="h-4 w-4 text-muted-foreground" />
-                                                    <div class="text-sm">{{ starter.text }}</div>
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    @click="removeStarter(starter.id)"
-                                                >
-                                                    <Trash2 class="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
+                        <div class="rounded-md border">
+                            <div v-if="starters.length === 0" class="p-4 text-center text-muted-foreground text-sm">
+                                No starter messages yet
+                            </div>
+                            <div
+                                v-for="starter in starters"
+                                :key="starter.id"
+                                class="flex items-center justify-between border-b p-3 last:border-0"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                                    <div class="text-sm">{{ starter.text }}</div>
+                                </div>
+                                <Button
+                                    type="button"
+                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
+                                    size="sm"
+                                    variant="ghost"
+                                    @click="removeStarter(starter.id)"
+                                >
+                                    <Trash2 class="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
 
-                                        <Alert>
-                                            <Info class="h-4 w-4" />
-                                            <AlertDescription>
-                                                Good starter messages are specific questions that showcase your agent's capabilities
-                                            </AlertDescription>
-                                        </Alert>
-                                    </div>
-                                </TabsContent>
+                        <Alert>
+                            <Info class="h-4 w-4" />
+                            <AlertDescription>
+                                Good starter messages are specific questions that showcase your agent's capabilities
+                            </AlertDescription>
+                        </Alert>
+                    </div>
 
-                                    <!-- Models Tab -->
-                                    <TabsContent value="models" class="p-6 space-y-6 mt-0">
-                                    <div class="space-y-4">
-                                        <div>
-                                            <h3 class="text-sm font-medium">AI Model Selection</h3>
-                                            <p class="text-xs text-muted-foreground mt-1">
-                                                Select which AI model to use for your widget
-                                            </p>
-                                        </div>
+                    <!-- Models Panel -->
+                    <div v-if="activeTab === 'models'" class="p-6">
+                        <AgentModelSelector
+                            :agent-id="agent.id"
+                            description="Select which AI model to use for your widget"
+                            @saved="refreshPreview"
+                        />
+                    </div>
 
-                                        <!-- Loading State -->
-                                        <div v-if="isLoadingModels" class="text-center py-8">
-                                            <Loader2 class="h-6 w-6 text-muted-foreground/50 mx-auto mb-2 animate-spin" />
-                                            <p class="text-sm text-muted-foreground">Loading models...</p>
-                                        </div>
+                    <!-- Colors Panel -->
+                    <div v-if="activeTab === 'colors'" class="p-6 space-y-2">
+                        <Label>Widget Color</Label>
+                        <p class="text-xs text-muted-foreground mb-3">Choose the primary color for your widget</p>
 
-                                        <!-- Error State -->
-                                        <div v-else-if="modelsError" class="rounded-md border border-destructive/20 bg-destructive/10 p-4">
-                                            <p class="text-sm text-destructive">{{ modelsError }}</p>
-                                        </div>
-
-                                        <!-- Models List -->
-                                        <div v-else-if="models.length > 0" class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-                                            <button
-                                                v-for="model in models"
-                                                :key="model.id"
-                                                type="button"
-                                                class="w-full flex items-center gap-3 p-3 rounded-lg border transition-all"
-                                                :class="[
-                                                    !model.user_allowed_to_use
-                                                        ? 'border-muted bg-muted/30 opacity-60 cursor-not-allowed'
-                                                        : isModelToggling(model)
-                                                            ? 'border-muted bg-muted/10 opacity-75 cursor-wait'
-                                                            : model.is_selected
-                                                                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                                                                : 'border-border hover:border-primary/50 hover:bg-accent/30 cursor-pointer'
-                                                ]"
-                                                @click="toggleModel(model)"
-                                                :disabled="!model.user_allowed_to_use || isModelToggling(model)"
-                                            >
-                                                <!-- Model Icon -->
-                                                <img
-                                                    v-if="model.icon"
-                                                    :src="`/images/llms/${model.icon}`"
-                                                    :alt="model.name"
-                                                    class="h-8 w-8 flex-shrink-0"
-                                                    :class="[!model.user_allowed_to_use ? 'opacity-50' : '']"
-                                                />
-                                                <Brain
-                                                    v-else
-                                                    class="h-8 w-8 flex-shrink-0"
-                                                    :class="[
-                                                        !model.user_allowed_to_use
-                                                            ? 'text-muted-foreground/50'
-                                                            : 'text-muted-foreground'
-                                                    ]"
-                                                />
-
-                                                <!-- Model Name -->
-                                                <div class="flex-1 text-left">
-                                                    <p class="text-sm font-medium">{{ model.name }}</p>
-                                                </div>
-
-                                                <!-- Upgrade Badge or Selection Status -->
-                                                <div class="flex-shrink-0">
-                                                    <Badge
-                                                        v-if="!model.user_allowed_to_use"
-                                                        variant="outline"
-                                                        class="text-[10px]"
-                                                    >
-                                                        Upgrade
-                                                    </Badge>
-                                                    <div
-                                                        v-else
-                                                        class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
-                                                        :class="[
-                                                            model.is_selected
-                                                                ? 'border-primary bg-primary text-primary-foreground'
-                                                                : 'border-muted-foreground/30'
-                                                        ]"
-                                                    >
-                                                        <Loader2
-                                                            v-if="isModelToggling(model)"
-                                                            class="h-3 w-3 animate-spin"
-                                                        />
-                                                        <CheckCircle2
-                                                            v-else-if="model.is_selected"
-                                                            class="h-3 w-3"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        </div>
-
-                                        <!-- No Models -->
-                                        <div v-else class="text-center py-8">
-                                            <Brain class="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-                                            <p class="text-sm text-muted-foreground">No models available</p>
-                                        </div>
-                                    </div>
-                                </TabsContent>
-
-                                    <!-- Colors Tab -->
-                                    <TabsContent value="colors" class="p-6 space-y-6 mt-0">
-                                    <div class="space-y-2">
-                                        <Label>Widget Color</Label>
-                                        <p class="text-xs text-muted-foreground mb-3">Choose the primary color for your widget</p>
-
-                                        <div class="relative cursor-pointer inline-block" @click="showColorPicker = true">
-                                            <div
-                                                class="h-20 w-20 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
-                                                :style="{
-                                                    backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})`
-                                                }"
-                                            >
-                                                <div class="flex h-full items-center justify-center">
-                                                    <div class="h-10 w-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
-                                                        <div class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
-                                            {{ appearanceForm.errors.color_theme }}
-                                        </p>
-                                    </div>
-                                </TabsContent>
-
-                                    <!-- Behavior Tab -->
-                                    <TabsContent value="behavior" class="p-6 space-y-6 mt-0">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div class="space-y-2">
-                                            <Label for="position">Position</Label>
-                                            <Select v-model="widgetForm.position" @update:model-value="saveBehaviorSettings">
-                                                <SelectTrigger class="w-full">
-                                                    <SelectValue placeholder="Select position" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="bottom-right">Bottom Right</SelectItem>
-                                                    <SelectItem value="bottom-left">Bottom Left</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <p class="text-xs text-muted-foreground">
-                                                Where the widget appears on the page
-                                            </p>
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="window_size">Window Size</Label>
-                                            <Select v-model="widgetForm.window_size" @update:model-value="saveBehaviorSettings">
-                                                <SelectTrigger class="w-full">
-                                                    <SelectValue placeholder="Select size" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="small">Small</SelectItem>
-                                                    <SelectItem value="medium">Medium</SelectItem>
-                                                    <SelectItem value="large">Large</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <p class="text-xs text-muted-foreground">
-                                                Chat window dimensions
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <Separator />
-
-                                    <div class="space-y-4">
-                                        <div class="flex items-center justify-between">
-                                            <div class="space-y-0.5">
-                                                <Label for="show_on_load">Auto-open Widget</Label>
-                                                <p class="text-xs text-muted-foreground">
-                                                    Automatically show widget when page loads
-                                                </p>
-                                            </div>
-                                            <Switch
-                                                id="show_on_load"
-                                                :model-value="widgetForm.show_on_load"
-                                                @update:model-value="(value: any) => { widgetForm.show_on_load = value; saveBehaviorSettings(); }"
-                                            />
-                                        </div>
-
-                                        <div v-if="widgetForm.show_on_load" class="ml-0 space-y-2">
-                                            <Label for="show_on_load_delay">Display Delay (ms)</Label>
-                                            <Input
-                                                id="show_on_load_delay"
-                                                v-model.number="widgetForm.show_on_load_delay"
-                                                type="number"
-                                                min="0"
-                                                step="100"
-                                                placeholder="500"
-                                                @blur="saveBehaviorSettings"
-                                            />
-                                            <p class="text-xs text-muted-foreground">
-                                                Time to wait before showing the widget
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <Alert>
-                                        <Info class="h-4 w-4" />
-                                        <AlertDescription>
-                                            Position, window size, and chat bubbles are visible in preview mode
-                                        </AlertDescription>
-                                    </Alert>
-                                </TabsContent>
-
-                                    <!-- Embed Tab -->
-                                    <TabsContent value="embed" class="p-6 space-y-6 mt-0">
-                                    <div class="space-y-4">
-                                        <div>
-                                            <h3 class="text-sm font-medium mb-1">Installation Instructions</h3>
-                                            <p class="text-xs text-muted-foreground">
-                                                Copy and paste this code into your website's <code class="bg-muted px-1 py-0.5 rounded text-xs">&lt;head&gt;</code> section
-                                            </p>
-                                        </div>
-
-                                        <div class="bg-muted rounded-lg p-4 space-y-3">
-                                            <div class="flex items-center justify-end gap-2">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    @click="copyEmbedSnippet"
-                                                    class="gap-2"
-                                                >
-                                                    <Copy class="h-4 w-4" />
-                                                    Copy Code
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    @click="openPreview"
-                                                    class="gap-2"
-                                                >
-                                                    <Eye class="h-4 w-4" />
-                                                    Full Preview
-                                                </Button>
-                                            </div>
-                                            <div class="bg-background border rounded p-3">
-                                                <pre class="text-xs text-foreground overflow-x-auto"><code v-text="embedSnippet"></code></pre>
-                                            </div>
-                                        </div>
-
-                                        <Alert>
-                                            <Info class="h-4 w-4" />
-                                            <AlertDescription>
-                                                Make sure to add allowed domains in the Security tab before deploying
-                                            </AlertDescription>
-                                        </Alert>
-                                    </div>
-                                    </TabsContent>
-                                </form>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <!-- Right Column - Live Preview -->
-                <div class="xl:col-span-4 order-last xl:order-none">
-                    <div class="xl:sticky xl:top-6">
-                        <Card>
-                            <CardContent class="p-4">
-                                <div class="space-y-4 flex flex-col">
-
-                                    <!-- Preview Controls -->
-                                    <div class="flex items-center justify-between gap-2 pb-3 border-b">
-                                        <h3 class="text-sm font-medium">Live Preview</h3>
-                                        <div class="flex items-center gap-1">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                @click="refreshPreview"
-                                                title="Refresh preview"
-                                                class="h-8 w-8 p-0"
-                                            >
-                                                <RotateCcw class="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                @click="openFullPreview"
-                                                title="Full preview"
-                                                class="h-8 w-8 p-0"
-                                            >
-                                                <Eye class="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Live Preview Iframe -->
-                                    <div class="border border-border rounded-lg bg-muted/20 p-3">
-                                        <iframe
-                                            :key="previewKey"
-                                            :src="previewUrl"
-                                            class="w-full border-0 rounded bg-white h-[500px] md:h-[700px] xl:h-[550px]"
-                                            title="Widget Live Preview"
-                                            sandbox="allow-scripts allow-same-origin allow-forms"
-                                        />
+                        <div class="relative cursor-pointer inline-block" @click="showColorPicker = true">
+                            <div
+                                class="h-20 w-20 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                                :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"
+                            >
+                                <div class="flex h-full items-center justify-center">
+                                    <div class="h-10 w-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
+                                        <div class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
+
+                        <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
+                            {{ appearanceForm.errors.color_theme }}
+                        </p>
+                    </div>
+
+                    <!-- Behavior Panel -->
+                    <div v-if="activeTab === 'behavior'" class="p-6 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <Label for="position">Position</Label>
+                                <Select v-model="widgetForm.position" @update:model-value="saveBehaviorSettings">
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue placeholder="Select position" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="bottom-right">Bottom Right</SelectItem>
+                                        <SelectItem value="bottom-left">Bottom Left</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p class="text-xs text-muted-foreground">Where the widget appears on the page</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="window_size">Window Size</Label>
+                                <Select v-model="widgetForm.window_size" @update:model-value="saveBehaviorSettings">
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue placeholder="Select size" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="small">Small</SelectItem>
+                                        <SelectItem value="medium">Medium</SelectItem>
+                                        <SelectItem value="large">Large</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p class="text-xs text-muted-foreground">Chat window dimensions</p>
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="space-y-0.5">
+                                    <Label for="show_on_load">Auto-open Widget</Label>
+                                    <p class="text-xs text-muted-foreground">Automatically show widget when page loads</p>
+                                </div>
+                                <Switch
+                                    id="show_on_load"
+                                    :model-value="widgetForm.show_on_load"
+                                    @update:model-value="(value: any) => { widgetForm.show_on_load = value; saveBehaviorSettings(); }"
+                                />
+                            </div>
+
+                            <div v-if="widgetForm.show_on_load" class="space-y-2">
+                                <Label for="show_on_load_delay">Display Delay (ms)</Label>
+                                <Input
+                                    id="show_on_load_delay"
+                                    v-model.number="widgetForm.show_on_load_delay"
+                                    type="number"
+                                    min="0"
+                                    step="100"
+                                    placeholder="500"
+                                    @blur="saveBehaviorSettings"
+                                />
+                                <p class="text-xs text-muted-foreground">Time to wait before showing the widget</p>
+                            </div>
+                        </div>
+
+                        <Alert>
+                            <Info class="h-4 w-4" />
+                            <AlertDescription>
+                                Position, window size, and chat bubbles are visible in preview mode
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+
+                    <!-- Embed Panel -->
+                    <div v-if="activeTab === 'embed'" class="p-6 space-y-4">
+                        <div>
+                            <h3 class="text-sm font-medium mb-1">Installation Instructions</h3>
+                            <p class="text-xs text-muted-foreground">
+                                Copy and paste this code into your website's <code class="bg-muted px-1 py-0.5 rounded text-xs">&lt;head&gt;</code> section
+                            </p>
+                        </div>
+
+                        <div class="bg-muted rounded-lg p-4 space-y-3">
+                            <div class="flex items-center justify-end gap-2">
+                                <Button type="button" variant="outline" size="sm" @click="copyEmbedSnippet" class="gap-2">
+                                    <Copy class="h-4 w-4" />
+                                    Copy Code
+                                </Button>
+                                <Button type="button" variant="outline" size="sm" @click="openPreview" class="gap-2">
+                                    <Eye class="h-4 w-4" />
+                                    Full Preview
+                                </Button>
+                            </div>
+                            <div class="bg-background border rounded p-3">
+                                <pre class="text-xs text-foreground overflow-x-auto"><code v-text="embedSnippet"></code></pre>
+                            </div>
+                        </div>
+
+                        <Alert>
+                            <Info class="h-4 w-4" />
+                            <AlertDescription>
+                                Make sure to add allowed domains in the Security tab before deploying
+                            </AlertDescription>
+                        </Alert>
                     </div>
                 </div>
             </div>
-        </Tabs>
+
+            <!-- Right Column - Live Preview -->
+            <div class="w-[420px] flex-shrink-0 flex flex-col h-full bg-background">
+                <!-- Preview Header -->
+                <div class="px-4 py-3 border-b flex items-center justify-between flex-shrink-0">
+                    <span class="text-sm font-medium text-muted-foreground">Live Preview</span>
+                    <div class="flex items-center gap-1">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            class="h-8 gap-1.5"
+                            @click="refreshPreview"
+                        >
+                            <RotateCcw class="h-3.5 w-3.5" />
+                            <span class="text-xs">Refresh</span>
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            class="h-8 gap-1.5"
+                            @click="openFullPreview"
+                        >
+                            <Eye class="h-3.5 w-3.5" />
+                            <span class="text-xs">Preview</span>
+                        </Button>
+                    </div>
+                </div>
+
+                <!-- Preview Frame -->
+                <div class="flex-1 p-4 bg-muted/20 overflow-hidden">
+                    <div class="h-full bg-background border rounded-lg overflow-hidden shadow-sm">
+                        <iframe
+                            :key="previewKey"
+                            :src="previewUrl"
+                            class="w-full h-full border-0"
+                            title="Widget Live Preview"
+                            sandbox="allow-scripts allow-same-origin allow-forms"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Widget Preview Modal -->
         <PreviewModal
@@ -667,11 +508,10 @@
 
 
 <script setup lang="ts">
-import { computed, ref, watch, reactive, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -680,27 +520,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Type, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code, MessageSquare, PlusCircle, Trash2, Brain, Loader2, CheckCircle2 } from 'lucide-vue-next';
-import { Badge } from '@/components/ui/badge';
+import { Type, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code, MessageSquare, PlusCircle, Trash2, Brain } from 'lucide-vue-next';
+import AgentModelSelector from '@/components/agents/AgentModelSelector.vue';
 import { toast } from 'vue-sonner';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PreviewModal from '@/components/PreviewModal.vue';
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
-
-interface AIModel {
-    id: string;
-    name: string;
-    context_window: number;
-    icon: string;
-    description: string;
-    features?: string[];
-    location: string;
-    reasoning: boolean;
-    user_allowed_to_use: boolean;
-    is_selected: boolean;
-}
 
 interface Props {
     agent: App.Data.Resources.Agent.AgentResourceData;
@@ -729,6 +555,17 @@ const widgetForm = useForm({
     sites: props.widgetSettings.sites || [], // Initialize sites
 });
 
+// Menu items for navigation
+const menuItems = [
+    { value: 'text', label: 'Text', icon: Type },
+    { value: 'starters', label: 'Starters', icon: MessageSquare },
+    { value: 'models', label: 'Model', icon: Brain },
+    { value: 'colors', label: 'Colors', icon: Palette },
+    { value: 'behavior', label: 'Behavior', icon: Settings },
+    { value: 'embed', label: 'Embed', icon: Code },
+    { value: 'security', label: 'Security', icon: Shield },
+];
+
 // States
 const activeTab = ref('text');
 const isSubmitting = ref(false);
@@ -739,12 +576,6 @@ const previewKey = ref(0);
 const showAddStarterDialog = ref(false);
 const starterMessageForm = ref({ text: '' });
 const starters = ref(props.starters || []);
-
-// Models state
-const models = ref<AIModel[]>([]);
-const isLoadingModels = ref(false);
-const modelsError = ref<string | null>(null);
-const toggleLoadingModels = ref<Set<string>>(new Set());
 
 // Computed properties for header button states
 const hasUnsavedChanges = computed(() => {
@@ -871,7 +702,6 @@ const saveBehaviorSettings = () => {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Behavior settings updated');
-            previewKey.value += 1;
         },
         onError: () => {
             toast.error('Failed to update behavior settings');
@@ -937,6 +767,7 @@ const addStarterMessage = () => {
             });
             starterMessageForm.value.text = '';
             toast.success('Starter message added');
+            previewKey.value += 1;
         })
         .catch(() => {
             toast.error('Failed to add starter message');
@@ -948,6 +779,7 @@ const removeStarter = (id: number) => {
         .then(() => {
             starters.value = starters.value.filter(starter => starter.id !== id);
             toast.success('Starter message removed');
+            previewKey.value += 1;
         })
         .catch(() => {
             toast.error('Failed to remove starter message');
@@ -955,93 +787,6 @@ const removeStarter = (id: number) => {
 };
 
 // Models functionality
-const fetchModels = async () => {
-    try {
-        isLoadingModels.value = true;
-        modelsError.value = null;
-
-        const response = await axios.get(route('agents.models.list', { agent: props.agent.id }));
-        models.value = response.data.models;
-    } catch (error) {
-        console.error('Failed to fetch models:', error);
-        modelsError.value = 'Failed to load available models. Please try again.';
-    } finally {
-        isLoadingModels.value = false;
-    }
-};
-
-const toggleModel = async (model: AIModel) => {
-    if (!model.user_allowed_to_use || toggleLoadingModels.value.has(model.id)) return;
-
-    // For widget agents, if model is already selected, don't allow deselection
-    if (model.is_selected) {
-        return;
-    }
-
-    toggleLoadingModels.value.add(model.id);
-
-    try {
-        // Deselect all other models first
-        for (const otherModel of models.value) {
-            if (otherModel.id !== model.id && otherModel.is_selected) {
-                const otherModelIndex = models.value.findIndex(m => m.id === otherModel.id);
-                if (otherModelIndex !== -1) {
-                    models.value[otherModelIndex].is_selected = false;
-                }
-
-                await axios.patch(route('agents.models.toggle', { agent: props.agent.id }), {
-                    model_id: otherModel.id,
-                    status: false
-                });
-            }
-        }
-
-        // Select the new model
-        const modelIndex = models.value.findIndex(m => m.id === model.id);
-        if (modelIndex !== -1) {
-            models.value[modelIndex].is_selected = true;
-        }
-
-        await axios.patch(route('agents.models.toggle', { agent: props.agent.id }), {
-            model_id: model.id,
-            status: true
-        });
-
-        toast.success('Model updated successfully');
-    } catch (error) {
-        console.error('Failed to toggle model:', error);
-
-        // Revert on error
-        const modelIndex = models.value.findIndex(m => m.id === model.id);
-        if (modelIndex !== -1) {
-            models.value[modelIndex].is_selected = !models.value[modelIndex].is_selected;
-        }
-
-        toast.error('Failed to update model');
-    } finally {
-        toggleLoadingModels.value.delete(model.id);
-    }
-};
-
-const isModelToggling = (model: AIModel) => {
-    return toggleLoadingModels.value.has(model.id);
-};
-
-onMounted(() => {
-    fetchModels();
-});
-
 // Preview updates only when Save is clicked - removed auto-update watcher
 </script>
 
-<style scoped>
-/* Hide scrollbar for mobile tabs while keeping scroll functionality */
-.scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari and Opera */
-}
-</style>

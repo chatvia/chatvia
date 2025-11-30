@@ -18,6 +18,8 @@ class ChatContext
 
     public ?float $confidenceScore = null;
 
+    public ?object $qaMatch = null;
+
     private float $startTime;
 
     private float $endTime;
@@ -53,6 +55,16 @@ class ChatContext
     public function setConfidenceScore(?float $confidenceScore): void
     {
         $this->confidenceScore = $confidenceScore;
+    }
+
+    public function setQAMatch(?object $qaMatch): void
+    {
+        $this->qaMatch = $qaMatch;
+    }
+
+    public function hasQAMatch(): bool
+    {
+        return $this->qaMatch !== null;
     }
 
     public function markEndTime(): void

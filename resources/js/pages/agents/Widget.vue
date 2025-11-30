@@ -138,6 +138,15 @@
                         </form>
                     </div>
 
+                    <!-- Persona Panel -->
+                    <div v-if="activeTab === 'persona'" class="p-6">
+                        <AgentPersonaEditor
+                            :agent-id="agent.id"
+                            :initial-instructions="agent.system_instructions"
+                            @saved="refreshPreview"
+                        />
+                    </div>
+
                     <!-- Starters Panel -->
                     <div v-if="activeTab === 'starters'" class="p-6 space-y-4">
                         <div class="flex justify-between items-center">
@@ -520,8 +529,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
 import { Separator } from '@/components/ui/separator';
-import { Type, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code, MessageSquare, PlusCircle, Trash2, Brain } from 'lucide-vue-next';
+import { Type, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code, MessageSquare, PlusCircle, Trash2, Brain, Bot } from 'lucide-vue-next';
 import AgentModelSelector from '@/components/agents/AgentModelSelector.vue';
+import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
 import { toast } from 'vue-sonner';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -558,6 +568,7 @@ const widgetForm = useForm({
 // Menu items for navigation
 const menuItems = [
     { value: 'text', label: 'Text', icon: Type },
+    { value: 'persona', label: 'Persona', icon: Bot },
     { value: 'starters', label: 'Starters', icon: MessageSquare },
     { value: 'models', label: 'Model', icon: Brain },
     { value: 'colors', label: 'Colors', icon: Palette },

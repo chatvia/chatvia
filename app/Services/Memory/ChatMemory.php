@@ -189,20 +189,7 @@ class ChatMemory implements ChatMemoryInterface
 
         $messageId = $this->messageManager->addMessageFromPayload($this->conversationId, $payload);
 
-        // Dispatch job for database persistence
-        $role = $payload instanceof ChatInputPayload ? 'user' : 'assistant';
-
-        $conversation = $this->getConversationById($this->conversationId);
-
-        StoreChatMessageJob::dispatch(
-            $this->agent,
-            $this->sessionId,
-            $role,
-            $this->conversationId,
-            $conversation['title'] ?? null,
-            $messageId,
-            $payload,
-        );
+        StoreChatMessageJob::dispatch($this->agent, $payload);
 
         return $messageId;
     }

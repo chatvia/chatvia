@@ -47,8 +47,8 @@ return new class extends Migration
 
         Schema::create('chat_conversations', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->foreignUlid('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
 
+            $table->foreignUlid('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
             $table->foreignIdFor(Language::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(ChatTopic::class)->nullable()->constrained()->nullOnDelete();
 
@@ -71,6 +71,9 @@ return new class extends Migration
             $table->ulid('id')->primary();
 
             $table->foreignUlid('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
+            $table->foreignIdFor(Llm::class)->nullable()->constrained()->restrictOnDelete();
+            $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->constrained()->nullOnDelete();
+
             $table->string('generation_id')->nullable()->index();
 
             $table->unsignedInteger('message_credits')->default(1);
@@ -81,7 +84,6 @@ return new class extends Migration
             $table->json('metadata')->nullable();
 
             $table->enum('role', ['user', 'assistant'])->index();
-            $table->foreignIdFor(Llm::class)->nullable()->constrained()->restrictOnDelete();
             $table->decimal('confidence_score', 5, 4)->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
@@ -90,8 +92,6 @@ return new class extends Migration
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 
             $table->boolean('is_direct_response')->nullable()->index();
-
-            $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->constrained()->nullOnDelete();
 
             $table->unsignedInteger('response_time_ms')->nullable();
             $table->unsignedInteger('prompt_tokens')->nullable();

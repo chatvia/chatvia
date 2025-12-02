@@ -30,7 +30,13 @@ readonly class ChatService
 
         ['lang' => $lang, 'query' => $query] = $this->knowledgeBase->rewriteQuery($data->message->message);
 
+        $userMessageId = Str::ulid()->toString();
+        $assistantMessageId = Str::ulid()->toString();
+
         $payload = ChatInputPayload::from([
+            'session_id' => $data->sessionId,
+            'conversation_id' => $data->conversationId,
+            'message_id' => $userMessageId,
             'model' => $data->message->model->external_name,
             'message' => $data->message->message,
             'sent_at' => $data->message->createdAt ? Carbon::parse($data->message->createdAt) : now(),
@@ -46,11 +52,10 @@ readonly class ChatService
         ]);
 
         $llmMessages = $this->memory->getLlmMessages();
-        $userMessageId = null;
 
         // Add user message if not the first conversation
         if ($data->saveUserMessageImmediately || count($llmMessages) > 1) {
-            $userMessageId = $this
+            $this
                 ->memory
                 ->setAgent($data->agent)
                 ->setSessionId($data->sessionId)
@@ -63,7 +68,7 @@ readonly class ChatService
             payload: $payload,
             llmMessages: $llmMessages,
             userMessageId: $userMessageId,
-            assistantMessageId: Str::ulid()->toString(),
+            assistantMessageId: $assistantMessageId,
             queryLanguage: $lang,
         );
     }
@@ -121,6 +126,9 @@ readonly class ChatService
         );
 
         $enrichedPayload = ChatInputPayload::from([
+            'session_id' => $context->payload->session_id,
+            'conversation_id' => $context->payload->conversation_id,
+            'message_id' => $context->payload->message_id,
             'model' => $context->payload->model,
             'message' => $context->payload->message,
             'sent_at' => $context->payload->sent_at,
@@ -199,8 +207,9 @@ readonly class ChatService
             ->setConversationId($context->requestData->conversationId)
             ->addMessageViaPayload(
                 new ChatOutputPayload(
+                    session_id: $context->requestData->sessionId,
+                    conversation_id: $context->requestData->conversationId,
                     message_id: $context->assistantMessageId,
-                    role: 'assistant',
                     message: $message,
                     model: $context->requestData->message->model->external_name,
                     sent_at: now(),

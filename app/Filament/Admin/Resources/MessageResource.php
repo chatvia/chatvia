@@ -53,10 +53,8 @@ class MessageResource extends Resource
                             ->required()
                             ->maxLength(65535)
                             ->columnSpanFull(),
-                        Grid::make(3)
+                        Grid::make(2)
                             ->schema([
-                                Forms\Components\TextInput::make('token_count')
-                                    ->numeric(),
                                 Forms\Components\TextInput::make('response_time_ms')
                                     ->numeric(),
                                 Forms\Components\Select::make('feedback')
@@ -93,39 +91,10 @@ class MessageResource extends Resource
                 TextColumn::make('model')
                     ->label('Model')
                     ->searchable(),
-                TextColumn::make('token_count')
-                    ->label('Tokens')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('cost')
                     ->label('Cost')
-                    ->getStateUsing(function (ChatMessage $record): string {
-                        $models = config('llms', []);
-                        $modelKey = strtolower((string) ($record->model ?? ''));
-                        $entry = collect($models)->first(function ($m) use ($modelKey) {
-                            return strtolower($m['internal_name'] ?? '') === $modelKey
-                                || strtolower($m['external_name'] ?? '') === $modelKey
-                                || strtolower($m['descriptive_name'] ?? '') === $modelKey;
-                        });
-
-                        $ppm = $entry['price_per_million_tokens'] ?? null;
-                        $tokens = (int) ($record->token_count ?? 0);
-                        if (! $ppm || $tokens <= 0) {
-                            return '—';
-                        }
-
-                        $rate = $record->role === 'assistant'
-                            ? ($ppm['output'] ?? null)
-                            : ($ppm['input'] ?? null);
-
-                        if ($rate === null) {
-                            return '—';
-                        }
-
-                        $cost = ($tokens / 1000000) * (float) $rate;
-
-                        return '$'.number_format($cost, 6);
-                    }),
+                    ->formatStateUsing(fn ($state) => $state ? '$'.number_format($state, 6) : '—')
+                    ->sortable(),
                 TextColumn::make('response_time_ms')
                     ->label('Response Time (ms)')
                     ->numeric()

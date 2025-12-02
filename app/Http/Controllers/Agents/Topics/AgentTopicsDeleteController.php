@@ -23,13 +23,13 @@ class AgentTopicsDeleteController
         // Detach the topic from the agent
         $agent->topics()->detach($topic->id);
 
-        // If no other agents are using this topic, delete it
-        if ($topic->agents()->count() === 0) {
+        // If this is a user-created topic and no other agents are using it, delete it
+        if ($topic->isUserDefined() && $topic->agents()->count() === 0) {
             $topic->delete();
         }
 
         return response()->json([
-            'message' => 'Topic deleted successfully',
+            'message' => 'Topic removed successfully',
         ]);
     }
 }

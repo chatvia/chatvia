@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use App\Data\Chat\LlmModelData;
+use App\Data\Resources\Billing\BillingPackageCapabilitiesData;
+use App\Enums\CapabilityEnum;
 use App\Enums\PermissionEnum;
-use App\Enums\UserCapabilityEnum;
 use App\Services\Billing\Billing;
 use App\Services\Billing\UserCapabilities;
 use App\Services\Billing\UserCreditSystem;
@@ -104,112 +105,29 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
+     * Get the capabilities DTO for this user's plan
+     */
+    public function capabilities(): BillingPackageCapabilitiesData
+    {
+        return BillingPackageCapabilitiesData::forPlan($this->plan);
+    }
+
+    /**
      * Check if user has a specific capability
      */
     public function hasCapability(string $capability): bool
     {
-        $packageConfig = $this->getPackageConfig();
-        $capabilities = $packageConfig['capabilities'] ?? [];
+        $capabilities = $this->capabilities();
 
-        if (! isset($capabilities[$capability])) {
-            return false;
-        }
-
-        $value = $capabilities[$capability];
-
-        // Handle boolean capabilities
-        if (is_bool($value)) {
-            return $value;
-        }
-
-        // Handle string capabilities (like support levels)
-        if (is_string($value)) {
-            return $value !== false && $value !== 'false' && $value !== '';
-        }
-
-        // Handle numeric capabilities (greater than 0 means enabled)
-        if (is_numeric($value)) {
-            return $value > 0;
-        }
-
-        // Handle array capabilities (non-empty means enabled)
-        if (is_array($value)) {
-            return ! empty($value);
-        }
-
-        // For 'unlimited' string or other truthy values
-        return ! empty($value);
+        return property_exists($capabilities, $capability) && $capabilities->{$capability} === true;
     }
 
     /**
-     * Get the value of a specific capability
-     */
-    public function getCapability(string $capability, $default = null)
-    {
-        $packageConfig = $this->getPackageConfig();
-        $capabilities = $packageConfig['capabilities'] ?? [];
-
-        return $capabilities[$capability] ?? $default;
-    }
-
-    /**
-     * Check if capability allows a specific value/amount
-     */
-    public function capabilityAllows(string $capability, $value = null): bool
-    {
-        $capabilityValue = $this->getCapability($capability);
-
-        if ($capabilityValue === null || $capabilityValue === false) {
-            return false;
-        }
-
-        // If no specific value to check, just check if capability exists
-        if ($value === null) {
-            return $this->hasCapability($capability);
-        }
-
-        // Handle 'unlimited' capability
-        if ($capabilityValue === 'unlimited') {
-            return true;
-        }
-
-        // Handle array capabilities (check if value is in allowed array)
-        if (is_array($capabilityValue)) {
-            return in_array($value, $capabilityValue);
-        }
-
-        // Handle numeric capabilities (check if value is within limit)
-        if (is_numeric($capabilityValue) && is_numeric($value)) {
-            return $value <= $capabilityValue;
-        }
-
-        // Handle string capabilities (exact match or level comparison)
-        if (is_string($capabilityValue)) {
-            return $capabilityValue === $value;
-        }
-
-        return false;
-    }
-
-    /**
-     * Get all capabilities for this user's plan
+     * Get all capabilities for this user's plan as array
      */
     public function getAllCapabilities(): array
     {
-        $packageConfig = $this->getPackageConfig();
-
-        return $packageConfig['capabilities'] ?? [];
-    }
-
-    // Legacy methods for backward compatibility
-    public function canAccessFeature(string $feature, $value = null): bool
-    {
-        return $this->capabilityAllows($feature, $value);
-    }
-
-    public function getFeatureLimit(string $feature)
-    {
-        return $this->getCapability($feature);
+        return $this->capabilities()->toArray();
     }
 
     public function cancelSubscription(): void
@@ -338,7 +256,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         )->latest('ends_at');
     }
 
-    public function canPerform(UserCapabilityEnum $capability): bool
+    public function canPerform(CapabilityEnum $capability): bool
     {
         return app(UserCapabilities::class)->setUser($this)->can($capability);
     }

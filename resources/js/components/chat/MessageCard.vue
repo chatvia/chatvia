@@ -263,7 +263,7 @@ const deleteMessage = () => {};
                 :class="[
                     message.role === 'user'
                         ? 'group relative inline-block max-w-xl rounded-2xl bg-gray-800 px-4 py-2 text-base font-normal text-white shadow-sm'
-                        : 'mx-auto my-8 block px-2 text-lg leading-relaxed text-gray-800 dark:text-white',
+                        : 'mx-auto my-4 block px-2 text-lg leading-relaxed text-gray-800 dark:text-white',
                 ]"
             >
                 <div v-if="isEditing && message.role === 'user'" class="w-full">

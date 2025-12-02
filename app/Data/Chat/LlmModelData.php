@@ -19,6 +19,7 @@ class LlmModelData extends Data
         public array $features,
         public string $location,
         public bool $reasoning,
+        public int $credits = 1,
         public bool $user_allowed_to_use = false,
         public bool $is_selected = true,
     ) {}
@@ -35,6 +36,7 @@ class LlmModelData extends Data
             features: $llm->features,
             location: $llm->location,
             reasoning: $llm->reasoning,
+            credits: $llm->credits,
         );
     }
 }

@@ -25,8 +25,10 @@ class BillingCurrentPackageData extends Data
 
     public static function fromArray(array $package): self
     {
+        $planId = $package['id'] ?? strtolower($package['name']);
+
         return new self(
-            id: $package['id'] ?? strtolower($package['name']),
+            id: $planId,
             name: $package['name'],
             description: $package['description'] ?? '',
             features: BillingPackageFeaturesData::fromArray($package['features'] ?? []),
@@ -37,7 +39,7 @@ class BillingCurrentPackageData extends Data
             is_yearly: $package['is_yearly'] ?? false,
             is_popular: $package['is_popular'] ?? false,
             limits: BillingQuotaLimitsData::fromArray($package['quota_limits'] ?? []),
-            capabilities: BillingPackageCapabilitiesData::fromArray($package['capabilities'] ?? []),
+            capabilities: BillingPackageCapabilitiesData::forPlan($planId),
         );
     }
 }

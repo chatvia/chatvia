@@ -4,6 +4,7 @@ namespace App\Services\Chat;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
+use App\Jobs\UpdateUserCreditsJob;
 use App\Services\Chat\Data\StreamRequestData;
 use App\Services\Memory\ChatMemory;
 use App\Services\Search\KnowledgeBase;
@@ -41,13 +42,14 @@ readonly class ChatService
             'referrer_url' => $data->referrerUrl,
             'page_url' => $data->pageUrl,
             'locale' => $data->locale,
+            'source' => $data->source,
         ]);
 
         $llmMessages = $this->memory->getLlmMessages();
         $userMessageId = null;
 
         // Add user message if not the first conversation
-        if ($data->persistMessage && ($data->saveUserMessageImmediately || count($llmMessages) > 1)) {
+        if ($data->saveUserMessageImmediately || count($llmMessages) > 1) {
             $userMessageId = $this
                 ->memory
                 ->setAgent($data->agent)
@@ -130,6 +132,7 @@ readonly class ChatService
             'referrer_url' => $context->payload->referrer_url,
             'page_url' => $context->payload->page_url,
             'locale' => $context->payload->locale,
+            'source' => $context->payload->source,
         ]);
 
         $enrichedContext = new ChatContext(
@@ -139,6 +142,7 @@ readonly class ChatService
             userMessageId: $context->userMessageId,
             assistantMessageId: $context->assistantMessageId,
             queryLanguage: $context->queryLanguage,
+            startTime: $context->getStartTime(),
         );
 
         $enrichedContext->setSources($sources);
@@ -149,13 +153,14 @@ readonly class ChatService
 
     public function handleChatCompletion(ChatContext $context): void
     {
-        if (! $context->requestData->persistMessage) {
-            return;
-        }
+        // Update user credits based on LLM model used
+        UpdateUserCreditsJob::dispatch(
+            userId: $context->requestData->agent->user_id,
+            modelId: $context->requestData->message->model->id
+        );
 
-        if ($context->requestData->persistMessage) {
-            $this->saveAssistantMessage($context);
-        }
+        // Always persist messages (including playground)
+        $this->saveAssistantMessage($context);
 
         if (count($context->llmMessages) <= 2) {
             $this
@@ -205,6 +210,7 @@ readonly class ChatService
                     confidence_score: $context->confidenceScore,
                     is_direct_response: $context->hasQAMatch(),
                     agent_question_answer_id: $context->qaMatch?->id,
+                    source: $context->requestData->source,
                 )
             );
     }

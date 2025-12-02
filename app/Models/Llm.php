@@ -19,11 +19,15 @@ class Llm extends Model
         'requires_paid_plan' => 'boolean',
         'reasoning' => 'boolean',
         'context_window' => 'integer',
+        'credits' => 'integer',
+        'input_price_per_1m_tokens' => 'decimal:4',
+        'output_price_per_1m_tokens' => 'decimal:4',
     ];
 
     protected $attributes = [
         'reasoning' => false,
         'requires_paid_plan' => false,
+        'credits' => 1,
     ];
 
     public static function rules(): array

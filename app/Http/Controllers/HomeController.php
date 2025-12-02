@@ -21,6 +21,7 @@ class HomeController
                 'ui' => config('billing.ui'),
                 'currencySymbol' => config('billing.currency_symbol'),
                 'discount' => config('billing.discount'),
+                'commonFeatures' => config('billing.common_features'),
             ],
         ]);
     }

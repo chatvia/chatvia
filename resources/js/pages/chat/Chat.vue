@@ -492,7 +492,21 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
                     });
                 }
             },
-            onError: (error) => {},
+            onError: (error) => {
+                streamingForMessageIndex.value = null;
+                
+                // Stream the error message into the assistant bubble
+                let messageIndex = messages.value.length - 1;
+                if (messageIndex >= 0 && messages.value[messageIndex].role === 'assistant') {
+                    messages.value[messageIndex].content = error?.message || 'An error occurred. Please try again.';
+                    messages.value[messageIndex].isError = true;
+                }
+                
+                // Disable sending if subscription/limit issue
+                if (error?.code === 'subscription_expired' || error?.code === 'message_limit_reached') {
+                    canSendMessages.value = false;
+                }
+            },
         },
     );
 
@@ -945,30 +959,17 @@ const handleScrollToBottomClick = () => {
                 <!-- Sticky composer area -->
                 <div class="shrink-0 bg-background pt-4 pb-6 px-4 sm:px-6">
                     <div class="mx-auto transition-all duration-300" :class="[isChatExpanded ? 'max-w-5xl' : 'max-w-3xl']">
-                        <!-- Show composer if user can send messages -->
                         <ChatComposer
-                            v-if="canSendMessages"
                             :isThinking="isStreaming"
                             :models="models"
                             :defaultModel="defaultModel"
                             :isLoadingModels="isLoadingModels"
                             :placeholder="appearance.composer_placeholder"
+                            :disabled="!canSendMessages"
                             @messageAdded="messageAdded"
                             @modelSelected="updateModel"
                             @stopStreaming="stopStreaming"
                         />
-
-                        <!-- Show limit message if user cannot send messages -->
-                        <div v-else class="flex items-center justify-center p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl">
-                            <div class="text-center">
-                                <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
-                                    You've reached your message limit
-                                </p>
-                                <p class="text-xs text-orange-600 dark:text-orange-300 mt-1">
-                                    Please upgrade your plan to continue chatting
-                                </p>
-                            </div>
-                        </div>
 
                         <div v-if="props.appearance?.chat_footer_text" class="text-center mt-3">
                             <p class="text-[11px] text-muted-foreground/60">{{ props.appearance.chat_footer_text }}</p>

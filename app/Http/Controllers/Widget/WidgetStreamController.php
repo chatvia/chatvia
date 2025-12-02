@@ -33,7 +33,7 @@ readonly class WidgetStreamController
 
         $referer = $request->header('referer') ?: $request->server('HTTP_REFERER');
 
-        $persistMessage = ! str_starts_with($referer, route('agents.widget.preview', ['agent' => $agent->id]));
+        $isPlayground = str_starts_with($referer, route('agents.widget.preview', ['agent' => $agent->id]));
 
         return $this->chatStreamService->stream(
             new StreamRequestData(
@@ -44,12 +44,12 @@ readonly class WidgetStreamController
                 ),
                 sessionId: $sessionId,
                 conversationId: $threadId,
-                saveUserMessageImmediately: true, // TODO: this is a work-around, needs to be fixed
-                persistMessage: $persistMessage,
+                saveUserMessageImmediately: true,
                 streamSources: false,
                 streamLanguage: false,
                 canCollectLead: $agent->canCollectLeads(),
                 leadAlreadyCollected: $leadCollected,
+                source: $isPlayground ? 'playground' : null,
                 ipAddress: $request->ip(),
                 userAgent: $request->userAgent(),
                 referrerUrl: $referer,

@@ -157,6 +157,27 @@
 
                 </div>
 
+                <!-- Common Features -->
+                @if(isset($billingConfig['commonFeatures']) && count($billingConfig['commonFeatures']) > 0)
+                    <div class="mt-16 max-w-4xl mx-auto">
+                        <div class="bg-white rounded-lg shadow-sm p-8">
+                            <h3 class="text-lg font-semibold text-slate-800 mb-6 text-center">
+                                What's included with all plans
+                            </h3>
+                            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                @foreach($billingConfig['commonFeatures'] as $feature)
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-4 h-4 fill-current text-emerald-500 shrink-0" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z"/>
+                                        </svg>
+                                        <span class="text-slate-600 text-sm">{{ $feature }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
             </div>
         </div>
     </section>

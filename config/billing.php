@@ -8,16 +8,13 @@ return [
     |--------------------------------------------------------------------------
     |
     | This configuration defines all available subscription packages for your
-    | application. Each package consists of three main components:
+    | application. Each package consists of two main components:
     |
     | 1. FEATURES: User-facing descriptions for marketing and UI display
-    | 2. CAPABILITIES: Backend flags for code logic and feature checking
-    | 3. QUOTA_LIMITS: Usage tracking limits for billing periods
+    | 2. QUOTA_LIMITS: Usage tracking limits for billing periods
     |
-    | Example usage in code:
-    | - UI: get_plan_features('starter') // Returns marketing features
-    | - Logic: user_has_capability('ocr') // Checks backend capability
-    | - Quotas: $user->quota->pages_limit // Gets usage limits
+    | NOTE: Capabilities are defined in BillingPackageCapabilitiesData DTO.
+    | Use BillingPackageCapabilitiesData::forPlan('starter') at runtime.
     |
     */
 
@@ -29,66 +26,51 @@ return [
     'packages' => [
         /*
         |----------------------------------------------------------------------
-        | Starter Plan
+        | Starter Plan - $30/month
         |----------------------------------------------------------------------
-        |
-        | Entry-level paid plan with essential features for individuals and
-        | small projects. Includes basic AI capabilities and file processing.
-        |
         */
         'starter' => [
             'name' => 'Starter',
-            'description' => '',
+            'description' => 'For individuals and small projects.',
             'features' => [
                 'monthly' => [
-                    'Access to all models',
-                    'Widgets & Knowledge Bases',
-                    '1,000 messages/month',
-                    '500 pages',
-                    '1,000 links',
-                    '300 minutes (Audio/Video)',
-                    '3 AI agents',
-                    '2 Members',
-                    'Simple PDF (No image processing)',
-                    'Custom subdomain',
+                    'models' => 'Access to all models',
+                    'messages' => '2,000 messages per month',
+                    'agents' => '3 AI agents',
+                    'pages' => '500 pages (PDF, Word, Text)',
+                    'links' => '1,000 website links',
+                    'minutes' => '300 minutes audio/video',
+                    'members' => '2 team members',
+                    'pdf' => 'Basic PDF processing',
+                    'transcription' => 'Audio & video transcription',
+                    'analytics' => 'Basic analytics (metrics & sources)',
+                    'subdomain' => 'Custom subdomain',
                 ],
                 'yearly' => [
-                    'Access to all models',
-                    '13,000 messages upfront',
-                    '500 pages',
-                    '1,000 links',
-                    '300 minutes (Audio/Video)',
-                    '3 AI agents',
-                    '2 Members',
-                    'Simple PDF (No image processing)',
-                    'Custom subdomain',
+                    'messages' => '25,000 messages per year',
+                    'agents' => '3 AI agents',
+                    'pages' => '500 pages (PDF, Word, Text)',
+                    'links' => '1,000 website links',
+                    'minutes' => '300 minutes audio/video',
+                    'members' => '2 team members',
+                    'pdf' => 'Basic PDF processing',
+                    'transcription' => 'Audio & video transcription',
+                    'analytics' => 'Basic analytics (metrics & sources)',
+                    'subdomain' => 'Custom subdomain',
                 ],
-            ],
-
-            'capabilities' => [
-                'custom_sub_domain' => true,
-                'custom_domains' => false,
-                'advanced_pdf' => true,
-                'ocr' => true,
-                'audio' => false,
-                'video' => false,
-                'api_access' => false,
-                'custom_integrations' => false,
-                'team_collaboration' => true,
-                'priority_support' => false,
             ],
             'stripe_monthly_price_id' => env('STRIPE_STARTER_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STARTER_YEARLY_PRICE_ID'),
-            'monthly_price' => 1900,
-            'yearly_price' => 9000,
+            'monthly_price' => 3000,
+            'yearly_price' => 21600,
             'is_popular' => false,
 
             'quota_limits' => [
                 'monthly' => [
-                    'messages_limit' => 1000,
+                    'messages_limit' => 2000,
                 ],
                 'yearly' => [
-                    'messages_limit' => 13000,
+                    'messages_limit' => 25000,
                 ],
                 'fixed' => [
                     'agents_limit' => 3,
@@ -103,55 +85,46 @@ return [
 
         /*
         |----------------------------------------------------------------------
-        | Standard Plan
+        | Standard Plan - $100/month
         |----------------------------------------------------------------------
-        |
-        | Mid-tier plan for growing businesses. Includes team collaboration,
-        | API access, and advanced analytics. Most popular choice.
-        |
         */
         'standard' => [
             'name' => 'Standard',
-            'description' => '',
+            'description' => 'For growing teams and businesses.',
             'features' => [
                 'monthly' => [
-                    '5,000 messages/month',
-                    '1,000 pages',
-                    '3,000 links',
-                    '1,200 minutes (Audio/Video)',
-                    '5 AI agents',
-                    '5 Members',
-                    'Sentiment analysis',
-                    'Advanced PDF (with image understanding)',
+                    'messages' => '10,000 messages per month',
+                    'agents' => '5 AI agents',
+                    'pages' => '1,000 pages (PDF, Word, Text)',
+                    'links' => '3,000 website links',
+                    'minutes' => '1,200 minutes audio/video',
+                    'members' => '5 team members',
+                    'pdf' => 'Advanced PDF with image understanding',
+                    'ocr' => 'OCR for scanned documents',
+                    'collaboration' => 'Team collaboration',
+                    'sentiment' => 'Sentiment analysis',
+                    'analytics' => 'Advanced analytics',
+                    'subdomain' => 'Custom subdomain',
                 ],
                 'yearly' => [
-                    '60,000 messages upfront',
-                    '1,000 pages',
-                    '3,000 links',
-                    '1,200 minutes (Audio/Video)',
-                    '5 AI agents',
-                    '5 Members',
-                    'Sentiment analysis',
-                    'Advanced PDF (with image understanding)',
+                    'messages' => '60,000 messages per year',
+                    'agents' => '5 AI agents',
+                    'pages' => '1,000 pages (PDF, Word, Text)',
+                    'links' => '3,000 website links',
+                    'minutes' => '1,200 minutes audio/video',
+                    'members' => '5 team members',
+                    'pdf' => 'Advanced PDF with image understanding',
+                    'ocr' => 'OCR for scanned documents',
+                    'collaboration' => 'Team collaboration',
+                    'sentiment' => 'Sentiment analysis',
+                    'analytics' => 'Advanced analytics',
+                    'subdomain' => 'Custom subdomain',
                 ],
-            ],
-
-            'capabilities' => [
-                'custom_sub_domain' => true,
-                'custom_domains' => false,
-                'advanced_pdf' => true,
-                'ocr' => true,
-                'audio' => false,
-                'video' => false,
-                'api_access' => false,
-                'custom_integrations' => false,
-                'team_collaboration' => true,
-                'priority_support' => false,
             ],
             'stripe_monthly_price_id' => env('STRIPE_STANDARD_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STANDARD_YEARLY_PRICE_ID'),
-            'monthly_price' => 5000,
-            'yearly_price' => 30000,
+            'monthly_price' => 10000,
+            'yearly_price' => 72000,
             'is_popular' => true,
 
             'quota_limits' => [
@@ -174,57 +147,50 @@ return [
 
         /*
         |----------------------------------------------------------------------
-        | Pro Plan
+        | Pro Plan - $400/month
         |----------------------------------------------------------------------
-        |
-        | Enterprise-grade solution with premium features like white labeling,
-        | custom domains, audio/video processing, and dedicated support.
-        |
         */
         'pro' => [
             'name' => 'Pro',
-            'description' => '',
+            'description' => 'For organizations that need it all.',
             'features' => [
                 'monthly' => [
-                    'Search Bar',
-                    '25,000 messages/month',
-                    '5,000 pages',
-                    '10,000 links',
-                    '6,000 minutes (Audio/Video)',
-                    '20 AI agents',
-                    '100 Members',
-                    'Topic analysis',
-                    'Emotion analysis',
-                    'Free custom integrations',
-                    'Priority support',
+                    'messages' => '50,000 messages per month',
+                    'agents' => '20 AI agents',
+                    'pages' => '5,000 pages (PDF, Word, Text)',
+                    'links' => '10,000 website links',
+                    'minutes' => '6,000 minutes audio/video',
+                    'members' => '100 team members',
+                    'pdf' => 'Advanced PDF with image understanding',
+                    'ocr' => 'OCR for scanned documents',
+                    'transcription' => 'Audio & video transcription',
+                    'analytics' => 'Full analytics (topics, sentiment, tone)',
+                    'domains' => 'Custom domains',
+                    'api' => 'API access',
+                    'integrations' => 'Custom integrations',
+                    'collaboration' => 'Team collaboration',
                 ],
                 'yearly' => [
-                    '300,000 messages upfront',
-                    '5,000 pages',
-                    '10,000 links',
-                    '20 AI agents',
-                    '100 Members',
-                    'Free custom integrations',
-                    'Priority support',
+                    'messages' => '300,000 messages per year',
+                    'agents' => '20 AI agents',
+                    'pages' => '5,000 pages (PDF, Word, Text)',
+                    'links' => '10,000 website links',
+                    'minutes' => '6,000 minutes audio/video',
+                    'members' => '100 team members',
+                    'pdf' => 'Advanced PDF with image understanding',
+                    'ocr' => 'OCR for scanned documents',
+                    'transcription' => 'Audio & video transcription',
+                    'analytics' => 'Full analytics (topics, sentiment, tone)',
+                    'domains' => 'Custom domains',
+                    'api' => 'API access',
+                    'integrations' => 'Custom integrations',
+                    'collaboration' => 'Team collaboration',
                 ],
-            ],
-
-            'capabilities' => [
-                'custom_sub_domain' => true,
-                'custom_domains' => true,
-                'advanced_pdf' => true,
-                'ocr' => true,
-                'audio' => true,
-                'video' => true,
-                'api_access' => true,
-                'custom_integrations' => true,
-                'team_collaboration' => true,
-                'priority_support' => true,
             ],
             'stripe_monthly_price_id' => env('STRIPE_PRO_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_PRO_YEARLY_PRICE_ID'),
-            'monthly_price' => 25000,
-            'yearly_price' => 150000,
+            'monthly_price' => 40000,
+            'yearly_price' => 288000,
             'is_popular' => false,
 
             'quota_limits' => [
@@ -251,30 +217,11 @@ return [
     | Comparison Features Configuration
     |--------------------------------------------------------------------------
     |
-    | Defines features displayed in the pricing comparison table on your
-    | billing pages. Each feature maps a user-friendly display to an actual
-    | capability key that exists in the packages above.
-    |
-    | Structure:
-    | - 'name': Display name shown to users
-    | - 'description': Tooltip/help text explaining the feature
-    | - 'capability_key': Maps to the actual capability in package configs
-    |
-    | The Vue component uses 'capability_key' to check each package's
-    | capabilities and display ✓/✗ or values in the comparison table.
+    | Defines features displayed in the pricing comparison table. Each feature
+    | maps to a capability key from BillingPackageCapabilitiesData DTO.
     |
     */
     'comparison_features' => [
-        'ai_agents' => [
-            'name' => 'Document-Based Agents',
-            'description' => 'AI agents trained on your documents, PDFs, and knowledge base',
-            'capability_key' => 'max_agents',
-        ],
-        'monthly_message_credits' => [
-            'name' => 'Monthly Messages',
-            'description' => 'Total conversations you can have with your AI agents each month',
-            'capability_key' => 'monthly_message_credits',
-        ],
         'advanced_pdf' => [
             'name' => 'Advanced PDF Processing',
             'description' => 'Extract and understand complex PDFs with tables, images, and layouts',
@@ -285,30 +232,30 @@ return [
             'description' => 'Extract text from images and scanned documents',
             'capability_key' => 'ocr',
         ],
-        'audio_video' => [
-            'name' => 'Audio & Video Processing',
-            'description' => 'Process and transcribe audio and video files',
-            'capability_key' => 'audio_video',
+        'audio' => [
+            'name' => 'Audio Processing',
+            'description' => 'Transcribe and process audio files',
+            'capability_key' => 'audio',
+        ],
+        'video' => [
+            'name' => 'Video Processing',
+            'description' => 'Transcribe and process video files',
+            'capability_key' => 'video',
+        ],
+        'team_collaboration' => [
+            'name' => 'Team Collaboration',
+            'description' => 'Invite team members to collaborate on AI agents',
+            'capability_key' => 'team_collaboration',
         ],
         'api_access' => [
             'name' => 'API Access',
             'description' => 'Integrate with your applications using our REST API',
             'capability_key' => 'api_access',
         ],
-        'priority_support' => [
-            'name' => 'Customer Support',
-            'description' => 'Get help when you need it with dedicated support channels',
-            'capability_key' => 'priority_support',
-        ],
-        'advanced_analytics' => [
-            'name' => 'Analytics & Insights',
-            'description' => 'Track usage, performance, and conversation metrics in real-time',
-            'capability_key' => 'advanced_analytics',
-        ],
-        'white_label' => [
-            'name' => 'White Label Branding',
-            'description' => 'Customize the interface with your own branding and remove ours',
-            'capability_key' => 'white_label',
+        'custom_integrations' => [
+            'name' => 'Custom Integrations',
+            'description' => 'Build custom integrations with third-party services',
+            'capability_key' => 'custom_integrations',
         ],
         'custom_domains' => [
             'name' => 'Custom Domains',
@@ -321,50 +268,39 @@ return [
     |--------------------------------------------------------------------------
     | Plan Add-ons
     |--------------------------------------------------------------------------
-    |
-    | Optional services users can purchase on top of their base subscription.
-    | These extend plan capabilities beyond the standard limits.
-    |
-    | Each add-on includes:
-    | - Pricing information (cents and formatted display)
-    | - Billing unit description (per month, per agent, etc.)
-    | - Icon for UI display
-    | - User-friendly name and description
-    |
     */
     'addons' => [
         'auto_recharge_credits' => [
-            'name' => 'Auto recharge credits',
-            'description' => 'When your credits fall below the threshold you set, we\'ll automatically add credits that don\'t expire to your account, ensuring uninterrupted service.',
-            'price_cents' => 1000, // $10.00
+            'name' => 'Auto Recharge Credits',
+            'description' => 'Automatically add credits when your balance falls below a threshold.',
+            'price_cents' => 1000,
             'price_formatted' => '$10',
-            'billing_unit' => 'per 1000 message credits',
+            'billing_unit' => 'per 1,000 credits',
             'icon' => 'credit-card',
         ],
         'extra_message_credits' => [
-            'name' => 'Extra message credits',
+            'name' => 'Extra Message Credits',
             'description' => 'Purchase additional message credits to extend your monthly allowance.',
-            'price_cents' => 900, // $9.00
+            'price_cents' => 900,
             'price_formatted' => '$9',
-            'billing_unit' => 'per 1000 credits / month',
+            'billing_unit' => 'per 1,000 credits/month',
             'icon' => 'message-circle',
             'stripe_price_id' => env('STRIPE_EXTRA_1000_MESSAGES_PRICE_ID'),
-
         ],
         'extra_agents' => [
-            'name' => 'Extra agents',
-            'description' => 'Add more AI agents beyond your plan limit to handle additional use cases.',
-            'price_cents' => 500, // $5.00
+            'name' => 'Extra AI Agents',
+            'description' => 'Add more AI agents beyond your plan limit.',
+            'price_cents' => 500,
             'price_formatted' => '$5',
-            'billing_unit' => 'per AI agent / month',
+            'billing_unit' => 'per agent/month',
             'icon' => 'bot',
         ],
         'custom_domains' => [
-            'name' => 'Custom domains',
-            'description' => 'Use your own custom domains for the AI agent\'s.',
-            'price_cents' => 2900, // $29.00
+            'name' => 'Custom Domain',
+            'description' => 'Use your own custom domain for AI agents.',
+            'price_cents' => 2900,
             'price_formatted' => '$29',
-            'billing_unit' => 'per AI agent / month',
+            'billing_unit' => 'per domain/month',
             'icon' => 'globe',
         ],
     ],
@@ -373,9 +309,6 @@ return [
     |--------------------------------------------------------------------------
     | Default Package
     |--------------------------------------------------------------------------
-    |
-    | The default package that new users will be assigned to.
-    |
     */
     'default_package' => 'starter',
 
@@ -383,9 +316,6 @@ return [
     |--------------------------------------------------------------------------
     | Trial Settings
     |--------------------------------------------------------------------------
-    |
-    | Configure trial periods for packages that support trials.
-    |
     */
     'trial' => [
         'days' => 7,
@@ -393,178 +323,50 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Currency
+    | Currency Settings
     |--------------------------------------------------------------------------
-    |
-    | The currency to use for billing. This should match your Stripe account
-    | currency settings.
-    |
     */
     'currency' => env('CASHIER_CURRENCY', 'usd'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Currency Symbol
-    |--------------------------------------------------------------------------
-    |
-    | The currency symbol to display in the UI.
-    |
-    */
     'currency_symbol' => env('BILLING_CURRENCY_SYMBOL', '$'),
 
     /*
     |--------------------------------------------------------------------------
     | UI Configuration
     |--------------------------------------------------------------------------
-    |
-    | Customizable text and settings for the billing interface. These values
-    | are passed to Vue components for consistent messaging across the app.
-    |
-    | Used for button text, badges, savings calculations, and other UI elements
-    | that may need to be adjusted without code changes.
-    |
     */
     'ui' => [
-        'yearly_savings_percentage' => 50,
-        'yearly_savings_text' => 'Save 50%',
+        'yearly_savings_percentage' => 40,
+        'yearly_savings_text' => 'Save 40%',
         'most_popular_text' => 'Most Popular',
         'current_plan_text' => 'Current Plan',
         'popular_badge_text' => 'Most Popular',
-
         'money_back_guarantee_days' => 30,
         'yearly_upfront_text' => 'All credits available immediately',
-        'yearly_benefit_text' => 'Get your full year allocation upfront + bonus credits',
+        'yearly_benefit_text' => 'Get your full year allocation upfront',
     ],
 
     /*
     |--------------------------------------------------------------------------
     | Universal Features
     |--------------------------------------------------------------------------
-    |
-    | Features that are included with ALL plans, including free. These appear
-    | in a separate "What's included with all plans" section on pricing pages.
-    |
-    | Typically includes basic platform benefits like security, reliability,
-    | and customer support that every user receives.
-    |
     */
     'common_features' => [
-        'Secure & reliable platform',
-        'Regular updates & improvements',
-        'Cancel anytime',
-        'No setup fees',
-        '30-day money-back guarantee',
-        'Expert customer support',
+        'models' => 'Access to all AI models',
+        'security' => 'Secure & encrypted platform',
+        'updates' => 'Regular updates & improvements',
+        'cancel' => 'Cancel anytime',
+        'fees' => 'No setup fees',
+        'guarantee' => '30-day money-back guarantee',
     ],
 
     /*
     |--------------------------------------------------------------------------
     | Package Icons
     |--------------------------------------------------------------------------
-    |
-    | Icon mappings for each package displayed in the UI. Icons help users
-    | quickly identify and differentiate between plans.
-    |
-    | Supported icons: gift, zap, star, crown, building
-    | These map to Lucide icons in the Vue components.
-    |
     */
     'package_icons' => [
         'starter' => 'zap',
         'standard' => 'star',
         'pro' => 'crown',
-        'enterprise' => 'building',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Integrated Quota System
-    |--------------------------------------------------------------------------
-    |
-    | Quota management system that works seamlessly with billing plans.
-    | The QuotaService automatically uses plan-specific limits defined in
-    | the 'quota_limits' section of each package above.
-    |
-    | Key Components:
-    | - Default limits for new users (typically matches free plan)
-    | - Warning thresholds for usage notifications
-    | - Cache settings for performance optimization
-    | - Billing period configuration for quota resets
-    | - Rate limiting to prevent quota abuse
-    |
-    | The system automatically updates user quotas when plans change and
-    | resets usage counters at the start of each billing period.
-    |
-    */
-
-    'quota' => [
-        /*
-        |--------------------------------------------------------------------------
-        | Quota Warning Thresholds
-        |--------------------------------------------------------------------------
-        |
-        | Define at what percentage of usage to warn users.
-        |
-        */
-        'warning_thresholds' => [
-            'warning' => 80,  // Warn at 80% usage
-            'critical' => 95, // Critical warning at 95% usage
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cache Settings
-        |--------------------------------------------------------------------------
-        |
-        | Configure caching behavior for quota data.
-        |
-        */
-        'cache' => [
-            'ttl' => env('QUOTA_CACHE_TTL', 300), // 5 minutes default
-            'prefix' => 'user_quota:',
-            'tags' => ['user_quotas'],
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Billing Period Settings
-        |--------------------------------------------------------------------------
-        |
-        | Configure how billing periods work.
-        |
-        */
-        'billing_period' => [
-            'type' => 'monthly', // monthly, yearly, custom
-            'reset_day' => 1, // Day of month to reset (1-31)
-            'timezone' => 'UTC',
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Quota Types
-        |--------------------------------------------------------------------------
-        |
-        | Define all available quota types for validation.
-        |
-        */
-        'quota_types' => [
-            'pages',
-            'minutes',
-            'messages',
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Rate Limiting
-        |--------------------------------------------------------------------------
-        |
-        | Configure rate limiting for quota operations.
-        |
-        */
-        'rate_limiting' => [
-            'enabled' => env('QUOTA_RATE_LIMITING', true),
-            'max_increments_per_minute' => 100,
-            'max_checks_per_minute' => 500,
-        ],
     ],
 ];

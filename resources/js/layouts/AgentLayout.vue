@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { computed, onMounted, watch } from 'vue';
-import { Head, Link, usePage, router } from '@inertiajs/vue3';
+import { computed, onMounted, watch, ref } from 'vue';
+import { Head, Link, usePage, router, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -77,7 +77,6 @@ import {
     Heart,
 } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
-import { ref } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -152,7 +151,7 @@ const uiNavigationItems = computed(() => {
     // Show Widget or Embed based on agent type
     baseItems.push({
         id: 'embed',
-        label: props.agent.type === 'widget' ? 'Widget' : 'Embed',
+        label: 'Setup',
         icon: props.agent.type === 'widget' ? Globe : Code,
         route: props.agent.type === 'widget' ? 'agents.widget' : 'agents.embed',
         tooltip: props.agent.type === 'widget' ? 'Configure and preview chat widget' : 'Generate embed code for your website'
@@ -173,7 +172,7 @@ const controlPanelNavigationItems = computed(() => {
                 { id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' },
                 { id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' },
                 { id: 'analytics-sentiment', label: 'Sentiment', icon: SmilePlus, route: 'agents.analytics.sentiment' },
-                { id: 'analytics-emotion', label: 'Emotion', icon: Heart, route: 'agents.analytics.emotion' },
+                { id: 'analytics-tone', label: 'Tone', icon: Heart, route: 'agents.analytics.tone' },
                 { id: 'analytics-topics', label: 'Topics', icon: MessageSquare, route: 'agents.analytics.topics' },
                 { id: 'analytics-sources', label: 'Sources', icon: FileText, route: 'agents.analytics.sources' },
             ]
@@ -221,8 +220,11 @@ const isDeleting = ref(false);
 const agentNameConfirmation = ref('');
 
 const showRenameDialog = ref(false);
-const isRenaming = ref(false);
-const newAgentName = ref('');
+
+const renameForm = useForm({
+    name: '',
+    sub_domain: '',
+});
 
 const deleteAgent = () => {
     if (agentNameConfirmation.value !== props.agent.name) {
@@ -246,37 +248,40 @@ const deleteAgent = () => {
 };
 
 const renameAgent = () => {
-    if (!newAgentName.value.trim()) {
+    if (!renameForm.name.trim()) {
         return;
     }
 
-    isRenaming.value = true;
+    if (props.agent.type === 'knowledge_base' && !renameForm.sub_domain.trim()) {
+        return;
+    }
 
-    router.patch(route('agents.rename', { agent: props.agent.id }), {
-        name: newAgentName.value.trim(),
-    }, {
+    // Prepare data - only include sub_domain for knowledge_base agents
+    const data: { name: string; sub_domain?: string } = {
+        name: renameForm.name.trim(),
+    };
+
+    if (props.agent.type === 'knowledge_base') {
+        data.sub_domain = renameForm.sub_domain.trim().toLowerCase();
+    }
+
+    renameForm.patch(route('agents.rename', { agent: props.agent.id }), {
+        data,
         preserveScroll: true,
         onSuccess: () => {
-            isRenaming.value = false;
             showRenameDialog.value = false;
-            newAgentName.value = '';
-            toast.success('Agent renamed successfully');
+            renameForm.reset();
+            toast.success('Agent updated successfully');
         },
-        onError: (errors) => {
-            isRenaming.value = false;
-            if (errors.name) {
-                toast.error(errors.name[0]);
-            } else {
-                toast.error('Failed to rename agent. Please try again.');
-            }
-        }
     });
 };
 
-// Watch for rename dialog opening to set default name
+// Watch for rename dialog opening to set default values
 watch(showRenameDialog, (newValue) => {
     if (newValue) {
-        newAgentName.value = props.agent.name;
+        renameForm.name = props.agent.name;
+        renameForm.sub_domain = props.agent.sub_domain || '';
+        renameForm.clearErrors();
     }
 });
 
@@ -342,13 +347,13 @@ const analyticsSubmenuOpen = ref(
     currentRoute.value.startsWith('agents/Analytics') ||
     currentRoute.value.startsWith('agents/Metrics') ||
     currentRoute.value.startsWith('agents/Sentiment') ||
-    currentRoute.value.startsWith('agents/Emotion') ||
+    currentRoute.value.startsWith('agents/Tone') ||
     currentRoute.value.startsWith('agents/Topics') ||
     currentRoute.value === 'agents/Sources' ||
     isActiveRoute('agents.analytics') ||
     isActiveRoute('agents.analytics.metrics') ||
     isActiveRoute('agents.analytics.sentiment') ||
-    isActiveRoute('agents.analytics.emotion') ||
+    isActiveRoute('agents.analytics.tone') ||
     isActiveRoute('agents.analytics.topics') ||
     isActiveRoute('agents.analytics.sources')
 );
@@ -441,9 +446,8 @@ onMounted(() => {
 
                 <!-- Sidebar Content -->
                 <SidebarContent class="!gap-6 overflow-y-auto">
-                    <!-- Interface Section -->
-                    <SidebarGroup class="py-0">
-                        <SidebarGroupLabel class="mb-2 px-2">Interface</SidebarGroupLabel>
+                    <!-- Navigation Section -->
+                    <SidebarGroup class="py-0 pt-2">
                         <SidebarMenu class="space-y-1">
                             <SidebarMenuItem v-for="item in uiNavigationItems" :key="item.id">
                                 <SidebarMenuButton
@@ -835,12 +839,46 @@ onMounted(() => {
                         </label>
                         <input
                             id="new-agent-name"
-                            v-model="newAgentName"
+                            v-model="renameForm.name"
                             type="text"
                             class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                            :class="{ 'border-red-500': renameForm.errors.name }"
                             placeholder="Enter new agent name"
                             @keyup.enter="renameAgent"
                         />
+                        <p v-if="renameForm.errors.name" class="text-xs text-red-500 mt-1">
+                            {{ renameForm.errors.name }}
+                        </p>
+                    </div>
+
+                    <!-- Subdomain field for knowledge_base only -->
+                    <div v-if="agent.type === 'knowledge_base'">
+                        <label for="subdomain" class="block text-sm font-medium text-foreground mb-2">
+                            Subdomain
+                        </label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 py-2 bg-muted border border-r-0 border-input rounded-l-md text-sm text-muted-foreground">
+                                https://
+                            </span>
+                            <input
+                                id="subdomain"
+                                v-model="renameForm.sub_domain"
+                                type="text"
+                                class="flex-1 px-3 py-2 border-y border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:z-10"
+                                :class="{ 'border-red-500': renameForm.errors.sub_domain }"
+                                placeholder="your-subdomain"
+                                @keyup.enter="renameAgent"
+                            />
+                            <span class="inline-flex items-center px-3 py-2 bg-muted border border-l-0 border-input rounded-r-md text-sm text-muted-foreground">
+                                .chatvia.ai
+                            </span>
+                        </div>
+                        <p v-if="renameForm.errors.sub_domain" class="text-xs text-red-500 mt-1">
+                            {{ renameForm.errors.sub_domain }}
+                        </p>
+                        <p v-else class="text-xs text-muted-foreground mt-1">
+                            Only lowercase letters, numbers, and hyphens allowed.
+                        </p>
                     </div>
                 </div>
 
@@ -850,10 +888,10 @@ onMounted(() => {
                     </Button>
                     <Button
                         @click="renameAgent"
-                        :disabled="isRenaming || !newAgentName.trim()"
+                        :disabled="renameForm.processing || !renameForm.name.trim() || (agent.type === 'knowledge_base' && !renameForm.sub_domain.trim())"
                     >
-                        <LoaderCircle v-if="isRenaming" class="mr-2 h-4 w-4 animate-spin" />
-                        Rename Agent
+                        <LoaderCircle v-if="renameForm.processing" class="mr-2 h-4 w-4 animate-spin" />
+                        Save
                     </Button>
                 </DialogFooter>
             </DialogContent>

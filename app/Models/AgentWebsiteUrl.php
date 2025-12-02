@@ -16,7 +16,7 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
 
     public function agentWebsite(): BelongsTo
     {
-        return $this->belongsTo(SourceWebsite::class);
+        return $this->belongsTo(SourceWebsite::class, 'source_website_id');
     }
 
     public function train(int $agentId): void

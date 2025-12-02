@@ -32,7 +32,6 @@ class ChatMessageFactory extends Factory
             'confidence_score' => $role === 'assistant' ? $this->faker->optional(0.7)->randomFloat(4, 0.7, 1) : null,
             'feedback' => $this->faker->optional(0.2)->randomElement(['positive', 'negative']),
             'response_time_ms' => $role === 'assistant' ? $this->faker->numberBetween(500, 5000) : null,
-            'token_count' => $role === 'assistant' ? $this->faker->numberBetween(50, 2000) : null,
             'expires_at' => null,
         ];
     }
@@ -57,7 +56,6 @@ class ChatMessageFactory extends Factory
             'llm_id' => null,
             'confidence_score' => null,
             'response_time_ms' => null,
-            'token_count' => null,
         ]);
     }
 
@@ -71,7 +69,6 @@ class ChatMessageFactory extends Factory
             'llm_id' => $this->getRandomLlmId(),
             'confidence_score' => $this->faker->randomFloat(4, 0.7, 1),
             'response_time_ms' => $this->faker->numberBetween(500, 5000),
-            'token_count' => $this->faker->numberBetween(50, 2000),
         ]);
     }
 

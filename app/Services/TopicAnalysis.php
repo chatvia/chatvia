@@ -2,17 +2,28 @@
 
 namespace App\Services;
 
+use App\Models\Agent;
 use App\Models\ChatTopic;
 use App\Services\Infrastructure\LLM\OpenAI;
 
 class TopicAnalysis
 {
-    public function analyze(string $text): ChatTopic
+    public function analyze(string $text, ?Agent $agent = null): ?ChatTopic
     {
-        $topics = ChatTopic::query()
-            ->select('id', 'topic')
-            ->pluck('topic', 'id')
-            ->toJson();
+        // Get topics available for this agent
+        $query = ChatTopic::query()->select('id', 'topic');
+
+        if ($agent) {
+            // Get topics assigned to this agent
+            $topicIds = $agent->topics()->pluck('chat_topics.id');
+            $query->whereIn('id', $topicIds);
+        }
+
+        $topics = $query->pluck('topic', 'id')->toJson();
+
+        if (empty($topics) || $topics === '{}') {
+            return null;
+        }
 
         $topicId = OpenAI::completion([
             'model' => 'gpt-5-nano',

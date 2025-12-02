@@ -16,7 +16,10 @@ return new class extends Migration
 
             $table->unsignedInteger('messages')->default(0);
 
+            $table->unsignedInteger('credits')->default(0);
+
             $table->timestamp('started_at');
+
             $table->timestamp('ends_at');
 
             $table->unique(['user_id', 'started_at']);
@@ -28,6 +31,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Credit::class)->unique()->constrained()->cascadeOnDelete();
             $table->unsignedInteger('messages')->default(0);
+            $table->unsignedInteger('credits')->default(0);
             $table->unsignedInteger('messages_exceeded')->default(0);
             $table->timestamps();
         });

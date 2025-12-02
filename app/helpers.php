@@ -5,6 +5,7 @@ use App\Services\HostConfig;
 use App\Services\Infrastructure\Documents\LibreOffice;
 use App\Services\Infrastructure\Embeddings\Cohere;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 if (! function_exists('temp_dir')) {
@@ -102,7 +103,19 @@ if (! function_exists('template')) {
 if (! function_exists('current_agent')) {
     function current_agent(): ?App\Models\Agent
     {
-        return Agent::resolveAgentFromSubdomain(request()->subdomain());
+        $cache = Cache::get('current_agent_'.request()->subdomain());
+
+        if ($cache) {
+            return $cache;
+        }
+
+        $agent = Agent::resolveAgentFromSubdomain(request()->subdomain());
+
+        if ($agent) {
+            Cache::put('current_agent_'.request()->subdomain(), $agent, now()->addMonth());
+        }
+
+        return $agent;
     }
 }
 

@@ -332,32 +332,6 @@ class AgentQueryBuilder extends Builder
             ->count('chat_conversations.id');
     }
 
-    public function avgTokensPerMessage()
-    {
-        $agentId = $this->getModel()->id;
-
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_messages.role', 'assistant')
-            ->whereNotNull('chat_messages.token_count')
-            ->selectRaw('ROUND(AVG(chat_messages.token_count)) as avg_tokens')
-            ->value('avg_tokens') ?? 0;
-    }
-
-    public function totalTokensUsed()
-    {
-        $agentId = $this->getModel()->id;
-
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_messages.role', 'assistant')
-            ->sum('chat_messages.token_count') ?? 0;
-    }
-
     public function conversationsTrend(int $days = 30)
     {
         $agentId = $this->getModel()->id;

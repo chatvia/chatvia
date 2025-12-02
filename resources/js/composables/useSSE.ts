@@ -72,11 +72,27 @@ export function useSSE() {
                             const dataMatch = line.match(/^data: (.+)$/m);
                             const sourcesMatch = line.match(/^sources: (.+)$/m);
                             const languageMatch = line.match(/^language: (.+)$/m);
+                            const errorMatch = line.match(/^error: (.+)$/m);
                             
-                            if (dataMatch) {
+                            if (errorMatch) {
+                                try {
+                                    const errorData = JSON.parse(errorMatch[1]);
+                                    console.error('Received SSE error:', errorData);
+                                    isDone = true;
+                                    isStreaming.value = false;
+                                    if (callbacks.onError) {
+                                        callbacks.onError({
+                                            message: errorData.message,
+                                            code: errorData.code || 'error'
+                                        });
+                                    }
+                                    return Promise.resolve();
+                                } catch (e) {
+                                    console.error('Error parsing SSE error:', e);
+                                }
+                            } else if (dataMatch) {
                                 try {
                                     const data = JSON.parse(dataMatch[1]);
-                                    console.log('Received SSE message:', data);
                                     if (data.content === '[DONE]') {
                                         isDone = true;
                                         isStreaming.value = false;
@@ -93,14 +109,12 @@ export function useSSE() {
                             } else if (sourcesMatch) {
                                 try {
                                     const sources = JSON.parse(sourcesMatch[1]);
-                                    console.log('Received SSE sources:', sources);
                                     if (callbacks.onSources) callbacks.onSources(sources);
                                 } catch (e) {
                                     console.error('Error parsing SSE sources:', e);
                                 }
                             } else if (languageMatch) {
                                 const language = languageMatch[1].trim();
-                                console.log('Received SSE language:', language);
                                 if (callbacks.onLanguage) callbacks.onLanguage(language);
                             }
                         }

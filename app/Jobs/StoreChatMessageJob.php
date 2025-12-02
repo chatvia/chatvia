@@ -10,10 +10,9 @@ use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\Country;
 use App\Models\Llm;
-use App\Models\User;
-use App\Services\Infrastructure\EmotionAnalysis;
+use App\Services\Infrastructure\LLM\OpenRouter;
+use App\Services\Infrastructure\ToneAnalysis;
 use App\Services\IP2Country;
-use App\Services\TikToken;
 use App\Services\TopicAnalysis;
 use App\Services\UserAgentParser;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -38,7 +37,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $this->onQueue('messages');
     }
 
-    public function handle(EmotionAnalysis $emotionAnalysis, TopicAnalysis $topicAnalysis): void
+    public function handle(ToneAnalysis $toneAnalysis, TopicAnalysis $topicAnalysis): void
     {
         $isInputMessage = $this->payload instanceof ChatInputPayload;
 
@@ -72,13 +71,17 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         ]);
 
         // Update device info if not already set
-        if ($isInputMessage && $this->payload->user_agent && (! $session->device_type || ! $session->browser || ! $session->os)) {
-            $session->update([
-                'device_type' => $session->device_type ?? $userAgentData['device_type'] ?? null,
-                'browser' => $session->browser ?? $userAgentData['browser'] ?? null,
-                'os' => $session->os ?? $userAgentData['os'] ?? null,
-            ]);
-        }
+        //        if ($isInputMessage && $this->payload->user_agent && (! $session->device_type || ! $session->browser || ! $session->os)) {
+        //            $session->update([
+        //                'device_type' => $session->device_type ?? $userAgentData['device_type'] ?? null,
+        //                'browser' => $session->browser ?? $userAgentData['browser'] ?? null,
+        //                'os' => $session->os ?? $userAgentData['os'] ?? null,
+        //            ]);
+        //        }
+
+        $session->update([
+            'last_activity_at' => now(),
+        ]);
 
         // Get country from IP address if not already set
         if ($session->ip_address && ! $session->country_id) {
@@ -97,21 +100,31 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'chat_session_id' => $sessionId,
         ], ['title' => $this->title]);
 
-        // Find LLM by internal_name (model string)
-        $llmId = null;
-        if ($this->payload->model) {
-            $llm = Llm::where('internal_name', $this->payload->model)->first();
-            $llmId = $llm?->id;
-        }
+        // Find LLM by external_name (model string from payload)
+        $llmId = $this->payload->model
+            ? Llm::where('external_name', $this->payload->model)->value('id')
+            : null;
 
         $sentiment = null;
-        $emotion = null;
+        $tone = null;
 
         if ($this->payload instanceof ChatInputPayload) {
-            $analysis = $emotionAnalysis->analyze($this->payload->message);
+            $analysis = $toneAnalysis->analyze($this->payload->message);
             $sentiment = $analysis['sentiment']->value;
-            $emotion = $analysis['emotion']->value;
+            $tone = $analysis['tone']->value;
         }
+
+        // Determine if this is an assistant message (has output-specific fields)
+        $isAssistant = $this->payload instanceof ChatOutputPayload;
+
+        // Fetch usage data from OpenRouter if we have a generation ID
+        $generationId = $isAssistant ? $this->payload->generation_id : null;
+        $usageData = $generationId ? OpenRouter::getGeneration($generationId) : null;
+
+        // Get tokens and cost from OpenRouter generation data
+        $promptTokens = $usageData['tokens_prompt'] ?? null;
+        $completionTokens = $usageData['tokens_completion'] ?? null;
+        $cost = $usageData['total_cost'] ?? null;
 
         $messageData = [
             'id' => $this->messageId,
@@ -119,14 +132,17 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'content' => $this->payload->message,
             'role' => $this->role,
             'llm_id' => $llmId,
-            'response_time_ms' => $this->payload?->response_time_ms ?? 0,
-            'generation_id' => $this->payload?->generation_id ?? null,
-            'token_count' => TikToken::countTokens($this->payload->message),
-            'confidence_score' => $this->payload?->confidence_score ?? null,
+            'response_time_ms' => $isAssistant ? $this->payload->response_time_ms : null,
+            'generation_id' => $generationId,
+            'prompt_tokens' => $promptTokens,
+            'completion_tokens' => $completionTokens,
+            'cost' => $cost,
+            'confidence_score' => $isAssistant ? $this->payload->confidence_score : null,
             'sentiment' => $sentiment,
-            'emotion' => $emotion,
-            'is_direct_response' => $this->payload instanceof ChatOutputPayload ? $this->payload->is_direct_response : false,
-            'agent_question_answer_id' => $this->payload instanceof ChatOutputPayload ? $this->payload->agent_question_answer_id : null,
+            'tone' => $tone,
+            'is_direct_response' => $isAssistant ? $this->payload->is_direct_response : false,
+            'agent_question_answer_id' => $isAssistant ? $this->payload->agent_question_answer_id : null,
+            'source' => $this->payload->source,
         ];
 
         // Use the sent_at timestamp if provided to ensure correct message ordering
@@ -137,13 +153,6 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         ChatMessage::create($messageData);
 
-        /** @var User $user */
-        $user = $this->agent->user;
-
-        if ($isInputMessage) {
-            $user->creditSystem()->incrementMessagesUsage($this->agent->user_id);
-        }
-
         // Topic analysis
         $conversation->refresh();
 
@@ -152,14 +161,18 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
                 $conversation
                     ->messages()
                     ->select('content')
-                    ->implode('content', "\n")
+                    ->implode('content', "\n"),
+                $this->agent
             );
-            $conversation->update(['chat_topic_id' => $topic->id]);
+
+            if ($topic) {
+                $conversation->update(['chat_topic_id' => $topic->id]);
+            }
         }
     }
 
     public function uniqueId(): string
     {
-        return $this->messageId;
+        return 'messages:store:id:'.$this->messageId;
     }
 }

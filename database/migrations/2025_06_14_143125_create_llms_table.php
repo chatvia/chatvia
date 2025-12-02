@@ -15,6 +15,8 @@ return new class extends Migration
             $table->string('internal_name')->unique()->index();
             $table->string('external_name')->unique()->index();
 
+            $table->unsignedInteger('credits');
+
             // Display information
             $table->string('descriptive_name'); // Maps to config 'name'
             $table->text('description'); // Changed to text for longer descriptions
@@ -51,6 +53,7 @@ return new class extends Migration
                 'location' => $llmData['location'],
                 'requires_paid_plan' => $llmData['requires_paid_plan'],
                 'reasoning' => $llmData['reasoning'],
+                'credits' => $llmData['credits'] ?? 1,
                 'input_price_per_1m_tokens' => $llmData['price_per_million_tokens']['input'] ?? null,
                 'output_price_per_1m_tokens' => $llmData['price_per_million_tokens']['output'] ?? null,
                 'is_default' => $llmData['default'] ?? false,

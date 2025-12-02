@@ -2,6 +2,7 @@
 
 namespace App\Services\Billing;
 
+use App\Data\Resources\Billing\BillingPackageCapabilitiesData;
 use Illuminate\Support\Collection;
 
 class Billing
@@ -49,13 +50,11 @@ class Billing
     }
 
     /**
-     * Get capabilities for a specific package
+     * Get capabilities DTO for a specific package
      */
-    public static function getCapabilitiesForPackage(string $packageKey): array
+    public static function getCapabilitiesForPackage(string $packageKey): BillingPackageCapabilitiesData
     {
-        $packages = static::getPackages();
-
-        return $packages[$packageKey]['capabilities'] ?? [];
+        return BillingPackageCapabilitiesData::forPlan($packageKey);
     }
 
     /**
@@ -65,33 +64,7 @@ class Billing
     {
         $capabilities = static::getCapabilitiesForPackage($packageKey);
 
-        if (! isset($capabilities[$capability])) {
-            return false;
-        }
-
-        $value = $capabilities[$capability];
-
-        // Handle boolean capabilities
-        if (is_bool($value)) {
-            return $value;
-        }
-
-        // Handle string capabilities
-        if (is_string($value)) {
-            return $value !== false && $value !== 'false' && $value !== '';
-        }
-
-        // Handle numeric capabilities
-        if (is_numeric($value)) {
-            return $value > 0;
-        }
-
-        // Handle array capabilities
-        if (is_array($value)) {
-            return ! empty($value);
-        }
-
-        return ! empty($value);
+        return property_exists($capabilities, $capability) && $capabilities->{$capability} === true;
     }
 
     /**
@@ -125,9 +98,7 @@ class Billing
                 'monthly_price_formatted' => $this->formatPrice($package['monthly_price']),
                 'yearly_price_formatted' => $this->formatPrice($package['yearly_price']),
                 'monthly_savings' => $this->calculateSavings($package['monthly_price'], $package['yearly_price']),
-                // Ensure capabilities are explicitly passed through
-                'capabilities' => $package['capabilities'] ?? [],
-                // Include both monthly and yearly features
+                'capabilities' => BillingPackageCapabilitiesData::forPlan($key)->toArray(),
                 'features_monthly' => $package['features']['monthly'] ?? [],
                 'features_yearly' => $package['features']['yearly'] ?? [],
             ]);

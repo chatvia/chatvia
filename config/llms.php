@@ -12,6 +12,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => false,
         'reasoning' => false,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.035,
             'output' => 0.14,
@@ -28,6 +29,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => false,
         'reasoning' => false,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.06,
             'output' => 0.24,
@@ -45,6 +47,7 @@ return [
         'requires_paid_plan' => false,
         'reasoning' => false,
         'default' => true,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.15,
             'output' => 0.60,
@@ -61,6 +64,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 5,
         'price_per_million_tokens' => [
             'input' => 1.25,
             'output' => 10.0,
@@ -77,11 +81,13 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 3,
         'price_per_million_tokens' => [
             'input' => 5.00,
             'output' => 15.00,
         ],
-    ], [
+    ],
+    [
         'internal_name' => 'openai/o4-mini-high',
         'external_name' => 'o4-mini',
         'descriptive_name' => 'o4 Mini',
@@ -92,6 +98,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => true,
+        'credits' => 2,
         'price_per_million_tokens' => [
             'input' => 1.10,
             'output' => 4.40,
@@ -108,6 +115,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => false,
         'reasoning' => false,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.40,
             'output' => 1.60,
@@ -124,6 +132,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 4,
         'price_per_million_tokens' => [
             'input' => 3.00,
             'output' => 15.00,
@@ -140,6 +149,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 4,
         'price_per_million_tokens' => [
             'input' => 3.00,
             'output' => 15.00,
@@ -156,6 +166,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.30,
             'output' => 2.50,
@@ -172,6 +183,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.18,
             'output' => 0.72,
@@ -188,12 +200,12 @@ return [
         'location' => 'cn',
         'requires_paid_plan' => false,
         'reasoning' => false,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.035,
             'output' => 0.138,
         ],
     ],
-
     [
         'internal_name' => 'openai/gpt-4.1',
         'external_name' => 'gpt-4.1',
@@ -205,12 +217,12 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => true,
+        'credits' => 3,
         'price_per_million_tokens' => [
             'input' => 2.0,
             'output' => 8.0,
         ],
     ],
-
     [
         'internal_name' => 'openai/gpt-4.1-nano',
         'external_name' => 'gpt-4.1-nano',
@@ -222,6 +234,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => false,
         'reasoning' => false,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.10,
             'output' => 0.40,
@@ -238,6 +251,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => false,
         'reasoning' => false,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.038,
             'output' => 0.12,
@@ -254,6 +268,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 2,
         'price_per_million_tokens' => [
             'input' => 0.15,
             'output' => 0.60,
@@ -270,6 +285,7 @@ return [
         'location' => 'eu',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 2,
         'price_per_million_tokens' => [
             'input' => 0.40,
             'output' => 2.00,
@@ -286,6 +302,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 4,
         'price_per_million_tokens' => [
             'input' => 1.25,
             'output' => 10.00,
@@ -302,6 +319,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => true,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.07,
             'output' => 0.35,
@@ -318,6 +336,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => false,
         'reasoning' => false,
+        'credits' => 2,
         'price_per_million_tokens' => [
             'input' => 0.80,
             'output' => 4.00,
@@ -334,6 +353,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 1,
         'price_per_million_tokens' => [
             'input' => 0.30,
             'output' => 0.50,
@@ -350,6 +370,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 3,
         'price_per_million_tokens' => [
             'input' => 2.00,
             'output' => 8.00,
@@ -366,6 +387,7 @@ return [
         'location' => 'us',
         'requires_paid_plan' => true,
         'reasoning' => false,
+        'credits' => 2,
         'price_per_million_tokens' => [
             'input' => 0.80,
             'output' => 3.20,

@@ -18,8 +18,10 @@ use App\Observers\PostObserver;
 use App\Observers\SourceFileObserver;
 use App\Observers\SourceYoutubeVideoObserver;
 use App\Observers\UserObserver;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -84,6 +86,10 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
+        });
+
+        RateLimiter::for('widgets', function ($request) {
+            return Limit::perMinute(30)->by($request->ip());
         });
     }
 }

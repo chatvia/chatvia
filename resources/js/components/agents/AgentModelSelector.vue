@@ -15,8 +15,9 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Brain, Loader2, Save, ChevronDown, Search, Check } from 'lucide-vue-next';
+import { Brain, Loader2, Save, ChevronDown, Search, Check, Info } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AIModel {
     id: string;
@@ -27,6 +28,7 @@ interface AIModel {
     features?: string[];
     location: string;
     reasoning: boolean;
+    credits: number;
     user_allowed_to_use: boolean;
     is_selected: boolean;
 }
@@ -218,16 +220,6 @@ const saveSelection = async () => {
     }
 };
 
-const getProviderName = (model: AIModel) => {
-    if (model.name.toLowerCase().includes('gpt')) return 'OpenAI';
-    if (model.name.toLowerCase().includes('claude')) return 'Anthropic';
-    if (model.name.toLowerCase().includes('gemini')) return 'Google';
-    if (model.name.toLowerCase().includes('llama')) return 'Meta';
-    if (model.name.toLowerCase().includes('mistral')) return 'Mistral AI';
-    if (model.name.toLowerCase().includes('deepseek')) return 'DeepSeek';
-    return model.location || 'AI Provider';
-};
-
 const isSelected = (modelId: string) => {
     if (props.multiple) {
         return selectedModelIds.value.includes(modelId);
@@ -344,7 +336,7 @@ onMounted(() => {
                                     class="w-72 bg-popover text-popover-foreground border shadow-md p-4"
                                 >
                                     <div class="space-y-3">
-                                        <!-- Provider & Model Name -->
+                                        <!-- Model Name -->
                                         <div class="flex items-center gap-2">
                                             <img
                                                 v-if="model.icon"
@@ -353,13 +345,13 @@ onMounted(() => {
                                                 class="h-5 w-5"
                                             />
                                             <Brain v-else class="h-5 w-5 text-muted-foreground" />
-                                            <span class="font-medium text-sm">{{ getProviderName(model) }} / {{ model.name }}</span>
+                                            <span class="font-medium text-sm">{{ model.name }}</span>
                                         </div>
 
                                         <!-- Credits Cost -->
                                         <div class="text-sm">
                                             <span class="font-medium">Credits cost:</span>
-                                            <span class="ml-1">1</span>
+                                            <span class="ml-1">{{ model.credits }}</span>
                                         </div>
 
                                         <!-- Description -->
@@ -407,6 +399,13 @@ onMounted(() => {
                     Save
                 </Button>
             </div>
+
+            <Alert>
+                <Info class="h-4 w-4" />
+                <AlertDescription>
+                    Credits are deducted per message. Different models have different costs based on their capabilities.
+                </AlertDescription>
+            </Alert>
         </div>
     </div>
 </template>

@@ -7,7 +7,7 @@ use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class AgentEmotionController
+class AgentToneController
 {
     public function __invoke(Request $request, Agent $agent)
     {
@@ -16,7 +16,7 @@ class AgentEmotionController
             code: 404,
         );
 
-        return Inertia::render('agents/Emotion', [
+        return Inertia::render('agents/Tone', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

@@ -15,9 +15,9 @@ class UserCreditSystem
 
     private const string MESSAGES_SENT_CACHE_PREFIX = 'user:{id}:credit:messages:sent';
 
-    private const string MESSAGES_AVAILABLE_CACHE_PREFIX = 'user:{id}:credit:messages:available';
+    private const string CAN_SEND_MESSAGES_CACHE_PREFIX = 'user:{id}:can-send-messages';
 
-    private const string MESSAGE_CONSUMED_ALL_TIME = 'messages:sent:all';
+    private const string MESSAGES_AVAILABLE_CACHE_PREFIX = 'user:{id}:credit:messages:available';
 
     public function setUserId(int $userId): static
     {
@@ -51,13 +51,111 @@ class UserCreditSystem
             ttl: $endsAt,
         );
 
-        $this->refreshAvailableMessages();
-
         Cache::put(template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]), 0, $endsAt);
+
+        // Cache available messages and set can-send flag
+        $this->refreshAvailableMessages();
+        $this->setCanSendMessages(true, $endsAt);
 
         return $credit;
     }
 
+    /**
+     * Check if user can send messages (fast cached check).
+     */
+    public function canSendMessages(): bool
+    {
+        $cached = Cache::get(template(self::CAN_SEND_MESSAGES_CACHE_PREFIX, ['id' => $this->userId]));
+
+        // If not cached, calculate and cache it
+        if ($cached === null) {
+            return $this->refreshCanSendMessages();
+        }
+
+        return $cached;
+    }
+
+    /**
+     * Set the can-send-messages flag in cache.
+     */
+    public function setCanSendMessages(bool $canSend, ?Carbon $ttl = null): void
+    {
+        $ttl = $ttl ?? now()->addDay();
+
+        Cache::put(
+            template(self::CAN_SEND_MESSAGES_CACHE_PREFIX, ['id' => $this->userId]),
+            $canSend,
+            $ttl
+        );
+    }
+
+    /**
+     * Refresh the can-send-messages flag by checking database.
+     */
+    public function refreshCanSendMessages(): bool
+    {
+        $available = $this->refreshAvailableMessages();
+        $hasMessages = $available > 0;
+
+        $this->setCanSendMessages($hasMessages);
+
+        return $hasMessages;
+    }
+
+    /**
+     * Refresh the available messages cache from database.
+     */
+    public function refreshAvailableMessages(): int
+    {
+        $available = $this->calculateAvailableMessages();
+
+        Cache::put(
+            template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]),
+            $available,
+            now()->addHour()
+        );
+
+        return $available;
+    }
+
+    /**
+     * Get available messages from cache or calculate.
+     */
+    public function getAvailableMessages(): int
+    {
+        $cached = Cache::get(template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]));
+
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        return $this->refreshAvailableMessages();
+    }
+
+    /**
+     * Update cache after consuming messages.
+     * Called by UpdateUserCreditsJob after successful consumption.
+     *
+     * @param  int  $messagesUsed  Number of messages consumed (based on LLM credits multiplier)
+     */
+    public function updateAfterCreditConsumption(int $messagesUsed = 1): void
+    {
+        // Increment sent messages counter
+        Cache::increment(
+            key: template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]),
+            value: $messagesUsed
+        );
+
+        // Decrement available messages cache
+        Cache::decrement(
+            key: template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]),
+            value: $messagesUsed
+        );
+    }
+
+    /**
+     * @deprecated Use UpdateUserCreditsJob instead for proper locking
+     */
     public function incrementMessagesUsage(int $amount = 1): void
     {
         Cache::increment(
@@ -65,17 +163,10 @@ class UserCreditSystem
             value: $amount
         );
 
-        Cache::decrement(
-            key: template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]),
-            value: $amount
-        );
-
-        Cache::increment(self::MESSAGE_CONSUMED_ALL_TIME, $amount);
-
-        /** @var Credit $user */
+        /** @var User $user */
         $user = User::find($this->userId);
 
-        $user->credit->usage()->increment('messages', $amount);
+        $user->credit?->usage()?->increment('messages', $amount);
     }
 
     public function getTotalSentMessages(): int
@@ -91,14 +182,21 @@ class UserCreditSystem
         Cache::put(template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]), 0);
     }
 
-    public function canSendMessages(): bool
+    public function consumableMessages(bool $refresh = false): int
     {
-        return $this->consumableMessages() !== 0;
+        if ($refresh) {
+            return $this->refreshAvailableMessages();
+        }
+
+        return $this->getAvailableMessages();
     }
 
-    public function consumableMessages($refresh = false): int
+    /**
+     * Calculate available messages from database.
+     */
+    private function calculateAvailableMessages(): int
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = User::find($this->userId);
 
         $messages = $user
@@ -114,10 +212,5 @@ class UserCreditSystem
             ->sum('amount');
 
         return $addons + $messages;
-    }
-
-    public function refreshAvailableMessages(): void
-    {
-        $this->consumableMessages(true);
     }
 }

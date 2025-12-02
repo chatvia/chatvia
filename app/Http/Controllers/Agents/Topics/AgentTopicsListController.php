@@ -18,9 +18,11 @@ class AgentTopicsListController
         $search = $request->input('search');
         $all = $request->input('all', false);
 
-        // If 'all' parameter is true, return all topics from the database
+        // If 'all' parameter is true, return all topics available to this user (system + user's own)
         if ($all) {
-            $query = ChatTopic::query()->orderBy('topic');
+            $query = ChatTopic::query()
+                ->forUser($request->user())
+                ->orderBy('topic');
 
             if ($search) {
                 $query->where('topic', 'ilike', "%{$search}%");
@@ -38,7 +40,7 @@ class AgentTopicsListController
             $query->where('chat_topics.topic', 'ilike', "%{$search}%");
         }
 
-        $topics = $query->get(['chat_topics.*', 'agent_topics.is_frozen']);
+        $topics = $query->get(['chat_topics.*']);
 
         return response()->json($topics);
     }

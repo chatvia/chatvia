@@ -294,3 +294,4 @@ describe('Password Confirmation', function () {
         $response->assertSessionHasErrors('password');
     });
 });
+

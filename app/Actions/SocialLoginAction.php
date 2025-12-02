@@ -3,11 +3,7 @@
 namespace App\Actions;
 
 use App\Models\User;
-use App\Services\IP2Country;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class SocialLoginAction
@@ -17,13 +13,13 @@ class SocialLoginAction
         /** @var \Laravel\Socialite\Contracts\User $socialUser */
         $socialUser = Socialite::driver($driver)->stateless()->user();
 
-        $driverId =  $driver.'_id';
+        $driverId = $driver.'_id';
 
         $user = User::where($driver.'_id', $socialUser->getId())
             ->orWhere('email', $socialUser->getEmail())
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             return redirect(route('login'))->with(['error' => 'No account found!']);
         }
 

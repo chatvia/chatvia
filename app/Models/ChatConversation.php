@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ChatConversation extends Model
@@ -37,8 +38,25 @@ class ChatConversation extends Model
         return $this->belongsTo(ChatTopic::class, 'chat_topic_id');
     }
 
+    public function language(): BelongsTo
+    {
+        return $this->belongsTo(Language::class);
+    }
+
     public function lead(): HasOne
     {
         return $this->hasOne(Lead::class, 'chat_conversation_id');
+    }
+
+    public function agent(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Agent::class,
+            ChatSession::class,
+            'id',
+            'id',
+            'chat_session_id',
+            'agent_id'
+        );
     }
 }

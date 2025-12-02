@@ -227,3 +227,4 @@ describe('Session Management', function () {
         expect(session()->getId())->not->toBe($firstSessionId);
     });
 });
+

@@ -190,7 +190,7 @@ return [
     'defaults' => [
         'app' => [
             'connection' => 'redis',
-            'queue' => ['default', 'messages'],
+            'queue' => ['default', 'messages', 'analytics'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,

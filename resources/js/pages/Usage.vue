@@ -1,16 +1,13 @@
 <script lang="ts" setup>
-import { computed, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { type BreadcrumbItem } from '@/types';
 import {
     MessageSquare,
     FileText,
     Bot,
-    Database,
     Loader2,
     BarChart3,
     TrendingUp,
@@ -22,8 +19,12 @@ type UsageData = App.Data.Resources.My.Usage.UsageResourceData;
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: 'Usage statistics',
-        href: '/settings/usage',
+        title: 'Dashboard',
+        href: route('dashboard'),
+    },
+    {
+        title: 'Usage',
+        href: route('usage'),
     },
 ];
 
@@ -63,8 +64,6 @@ const getUsageColor = (percentage: number) => {
     return 'bg-green-500';
 };
 
-
-
 onMounted(() => {
     fetchUsageData();
 });
@@ -72,24 +71,17 @@ onMounted(() => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Usage statistics" />
+        <Head title="Usage" />
 
-        <SettingsLayout>
+        <div class="mx-auto max-w-5xl px-4 py-8">
             <div class="space-y-8">
                 <!-- Usage Header -->
-                <div class="flex flex-col space-y-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="rounded-full bg-primary/10 p-2">
-                            <BarChart3 class="size-6 text-primary" />
-                        </div>
-                        <h1 class="text-2xl font-bold tracking-tight">Usage Statistics</h1>
-                    </div>
+                <div class="flex flex-col space-y-2">
+                    <h1 class="text-2xl font-bold tracking-tight">Usage</h1>
                     <p class="text-muted-foreground">
-                        Monitor your current usage across all services and features to stay within your plan limits.
+                        Monitor your current usage across all services and features.
                     </p>
                 </div>
-
-                <Separator />
 
                 <div v-if="isLoadingUsage" class="flex items-center justify-center py-12">
                     <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
@@ -311,6 +303,7 @@ onMounted(() => {
                     <p class="text-muted-foreground">Unable to load usage data</p>
                 </div>
             </div>
-        </SettingsLayout>
+        </div>
     </AppLayout>
 </template>
+

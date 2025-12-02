@@ -46,8 +46,8 @@ interface Package {
     id: string;
     name: string;
     description: string;
-    features_monthly: string[];
-    features_yearly: string[];
+    features_monthly: Record<string, string>;
+    features_yearly: Record<string, string>;
     capabilities: Record<string, string | number | boolean>;
     monthly_price: number;
     yearly_price: number;
@@ -103,7 +103,7 @@ const props = defineProps<{
             yearly_upfront_text: string;
             yearly_benefit_text: string;
         };
-        commonFeatures: string[];
+        commonFeatures: Record<string, string>;
         packageIcons: Record<string, string>;
         currencySymbol: string;
         trial: {

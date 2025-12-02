@@ -2,7 +2,9 @@
 
 namespace App\Jobs\Crawler;
 
+use App\Events\UrlIngestionEvent;
 use App\Events\WebsiteCrawlerEvent;
+use App\Events\WebsiteIngestionProgressEvent;
 use App\Jobs\Ingestion\ChunkIngestionJob;
 use App\Jobs\Ingestion\SummaryIngestionJob;
 use App\Models\AgentWebsiteUrl;
@@ -71,8 +73,21 @@ class WebsiteIngestionJob implements ShouldQueue
             ->name('Ingestion Agent WebSite ID: '.$websiteId)
             ->then(function (Batch $batch) use ($websiteId, $agentId) {
                 $website = SourceWebsite::find($websiteId);
-                $website?->update(['status' => 'ingested']);
+
                 if ($website) {
+                    // Get URLs that are still in 'ingesting' status and update them
+                    $urlsToUpdate = $website->urls()
+                        ->where('status', 'ingesting')
+                        ->get();
+
+                    foreach ($urlsToUpdate as $url) {
+                        $url->update(['status' => 'ingested', 'crawled_at' => now()]);
+                        UrlIngestionEvent::dispatch($url, $agentId);
+                    }
+
+                    // Update website status and dispatch final progress event
+                    $website->update(['status' => 'ingested']);
+                    WebsiteIngestionProgressEvent::dispatch($website, $agentId);
                     WebsiteCrawlerEvent::dispatch($website, $agentId);
                 }
             })

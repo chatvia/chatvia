@@ -13,6 +13,7 @@ interface Props {
     modelValue?: { start: string; end: string }
     firstDataDate?: string | null
     disabled?: boolean
+    class?: string
 }
 
 interface Emits {
@@ -154,7 +155,7 @@ const displayText = computed(() => {
             <Button
                 variant="outline"
                 :disabled="disabled"
-                :class="cn('justify-start text-left font-normal', !value && 'text-muted-foreground')"
+                :class="cn('justify-start text-left font-normal', !value && 'text-muted-foreground', props.class)"
             >
                 <CalendarIcon class="mr-2 h-4 w-4" />
                 {{ displayText }}

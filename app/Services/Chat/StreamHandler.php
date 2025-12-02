@@ -130,12 +130,9 @@ class StreamHandler
                 flush();
             }
 
-            // Extract generation metadata on first response
-            if (is_null($context->generationId) && isset($json['id'])) {
-                $context->setGenerationData(
-                    $json['id'] ?? null,
-                    $json['usage']['total_tokens'] ?? 0
-                );
+            // Extract generation ID from the response
+            if (isset($json['id']) && is_null($context->generationId)) {
+                $context->generationId = $json['id'];
             }
 
         } catch (Exception $e) {

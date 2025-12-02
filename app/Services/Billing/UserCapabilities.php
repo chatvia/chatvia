@@ -2,7 +2,8 @@
 
 namespace App\Services\Billing;
 
-use App\Enums\UserCapabilityEnum;
+use App\Data\Resources\Billing\BillingPackageCapabilitiesData;
+use App\Enums\CapabilityEnum;
 use App\Models\User;
 
 class UserCapabilities
@@ -16,19 +17,20 @@ class UserCapabilities
         return $this;
     }
 
-    public function can(UserCapabilityEnum $capability): bool
+    public function can(CapabilityEnum $capability): bool
     {
-        $planName = strtolower($this->user->plan);
+        $capabilities = $this->dto();
 
-        $plan = config('billing.packages.'.$planName.'.capabilities');
-
-        return $plan[$capability->value] === true;
+        return $capabilities->{$capability->value} === true;
     }
 
-    public function list()
+    public function dto(): BillingPackageCapabilitiesData
     {
-        $planName = strtolower($this->user->plan);
+        return BillingPackageCapabilitiesData::forPlan($this->user->plan);
+    }
 
-        return config('billing.packages.'.$planName.'.capabilities');
+    public function list(): array
+    {
+        return $this->dto()->toArray();
     }
 }

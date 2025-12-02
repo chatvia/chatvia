@@ -38,6 +38,7 @@ context_window: number;
 features: Array<any>;
 location: string;
 reasoning: boolean;
+credits: number;
 user_allowed_to_use: boolean;
 is_selected: boolean;
 };
@@ -130,6 +131,7 @@ messages_count: number;
 first_message_excerpt: string | null;
 title: string | null;
 country: string | null;
+country_name: string | null;
 user_agent: string | null;
 device_type: string | null;
 browser: string | null;
@@ -165,18 +167,17 @@ chat_conversation_id: string;
 content: string;
 role: string;
 sentiment: string | null;
-emotion: string | null;
-emotion_confidence: number | null;
+tone: string | null;
 feedback: string | null;
 is_direct_response: boolean | null;
 response_time_ms: number | null;
-token_count: number | null;
 prompt_tokens: number | null;
 completion_tokens: number | null;
 llm_name: string | null;
 llm_icon: string | null;
 created_at: string;
 agent_question_answer_id: number | null;
+source: string | null;
 };
 export type ChatLogMessagesResourceData = {
 messages: any;
@@ -270,6 +271,13 @@ accessed: number;
 };
 }
 declare namespace App.Data.Resources.Billing {
+export type AnalyticsCapabilitiesData = {
+topics: boolean;
+sentiment: boolean;
+tone: boolean;
+metrics: boolean;
+sources: boolean;
+};
 export type BillingCurrentPackageData = {
 id: string;
 name: string;
@@ -294,7 +302,7 @@ video: boolean;
 api_access: boolean;
 custom_integrations: boolean;
 team_collaboration: boolean;
-priority_support: boolean;
+analytics: App.Data.Resources.Billing.AnalyticsCapabilitiesData;
 };
 export type BillingPackageFeaturesData = {
 monthly: { [key: number]: string } | Array<any>;

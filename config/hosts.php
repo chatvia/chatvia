@@ -223,10 +223,10 @@ return [
                             'description' => 'Capture, track, and nurture leads automatically. Our intelligent system identifies potential customers and helps you convert conversations into sales.',
                         ],
                         [
-                            'img' => 'images/chatvia/emotion-analysis.png',
-                            'tab_name' => 'Emotions',
-                            'title' => 'Emotion Analysis',
-                            'description' => 'Understand how your visitors feel during conversations. Track emotions in real-time and improve responses to increase customer satisfaction.',
+                            'img' => 'images/chatvia/tone-analysis.png',
+                            'tab_name' => 'Tone',
+                            'title' => 'Tone Analysis',
+                            'description' => 'Understand how your visitors communicate. Track tone in real-time and improve responses to increase customer satisfaction.',
                         ],
                         [
                             'img' => 'images/chatvia/sentiment-analysis.png',

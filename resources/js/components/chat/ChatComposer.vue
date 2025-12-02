@@ -14,6 +14,7 @@ interface Props {
     defaultModel?: AIModel | null,
     isLoadingModels?: boolean,
     placeholder?: string,
+    disabled?: boolean,
 }
 
 const props = defineProps<Props>();
@@ -138,7 +139,7 @@ onMounted(() => {
     });
 });
 
-const canSend = () => userInput.value.trim() !== '' && selectedModel.value;
+const canSend = () => userInput.value.trim() !== '' && selectedModel.value && !props.disabled;
 
 // Voice recording handlers
 const toggleRecording = async () => {
@@ -166,7 +167,8 @@ const toggleRecording = async () => {
         <div
             class="relative rounded-3xl border bg-card transition-all duration-200"
             :class="[
-                isFocused ? 'border-primary/40 shadow-lg ring-1 ring-primary/10' : 'border-gray-300 dark:border-gray-600 shadow-sm hover:border-gray-400 dark:hover:border-gray-500',
+                disabled ? 'opacity-50 cursor-not-allowed' : '',
+                isFocused && !disabled ? 'border-primary/40 shadow-lg ring-1 ring-primary/10' : 'border-gray-300 dark:border-gray-600 shadow-sm hover:border-gray-400 dark:hover:border-gray-500',
                 isThinking ? 'border-primary/40' : ''
             ]"
         >
@@ -180,9 +182,9 @@ const toggleRecording = async () => {
                         @input="adjustTextareaHeight"
                         @focus="handleFocus"
                         @blur="handleBlur"
-                        :placeholder="placeholder || 'Message...'"
+                        :placeholder="disabled ? 'Chat disabled' : (placeholder || 'Message...')"
                         class="w-full resize-none !border-0 !shadow-none !bg-transparent dark:!bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-0 focus-visible:!border-0 min-h-[28px] max-h-[160px] px-4 py-4"
-                        :disabled="isThinking"
+                        :disabled="isThinking || disabled"
                         rows="1"
                     />
                 </div>
@@ -200,7 +202,7 @@ const toggleRecording = async () => {
 
                     <!-- Voice recording button -->
                     <Button
-                        v-if="isVoiceSupported && !isThinking"
+                        v-if="isVoiceSupported && !isThinking && !disabled"
                         @click="toggleRecording"
                         :disabled="isTranscribing"
                         size="icon"

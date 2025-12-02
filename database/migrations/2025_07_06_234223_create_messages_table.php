@@ -4,6 +4,7 @@ use App\Models\Agent;
 use App\Models\AgentQuestionAnswer;
 use App\Models\ChatTopic;
 use App\Models\Country;
+use App\Models\Language;
 use App\Models\Llm;
 use App\Models\Member;
 use Illuminate\Database\Migrations\Migration;
@@ -20,9 +21,9 @@ return new class extends Migration
 
             $table->foreignIdFor(Agent::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(Member::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(Country::class)->nullable()->constrained()->nullOnDelete();
 
             $table->ipAddress()->nullable();
-            $table->foreignIdFor(Country::class)->nullable()->constrained()->nullOnDelete();
 
             $table->text('user_agent')->nullable();
 
@@ -31,11 +32,11 @@ return new class extends Migration
             $table->string('os')->nullable()->index();
             $table->string('city')->nullable();
 
-            // Tracking columns
             $table->text('referrer_url')->nullable();
             $table->text('page_url')->nullable();
             $table->string('locale', 50)->nullable();
 
+            $table->timestamp('last_activity_at')->nullable()->index();
             $table->timestamps();
 
             $table->index(['agent_id', 'created_at']);
@@ -48,15 +49,22 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->foreignUlid('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
 
+            $table->foreignIdFor(Language::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(ChatTopic::class)->nullable()->constrained()->nullOnDelete();
 
             $table->string('title')->nullable();
 
+            $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
+            $table->enum('tone', ['neutral', 'frustrated', 'urgent', 'confused', 'satisfied', 'formal', 'casual'])->nullable();
+
+            $table->timestamp('last_activity_at')->nullable()->index();
             $table->timestamps();
             $table->softDeletes();
 
             $table->index(['chat_session_id', 'created_at']);
             $table->index(['deleted_at', 'created_at']);
+            $table->index('chat_topic_id'); // For topic filtering
+            $table->index('updated_at'); // For ORDER BY latest activity
         });
 
         Schema::create('chat_messages', function (Blueprint $table) {
@@ -64,6 +72,10 @@ return new class extends Migration
 
             $table->foreignUlid('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
             $table->string('generation_id')->nullable()->index();
+
+            $table->unsignedInteger('message_credits')->default(1);
+
+            $table->string('source')->nullable()->index();
 
             $table->text('content');
             $table->json('metadata')->nullable();
@@ -73,7 +85,7 @@ return new class extends Migration
             $table->decimal('confidence_score', 5, 4)->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
-            $table->enum('emotion', ['happy', 'neutral', 'frustrated', 'confused', 'angry', 'sad', 'anxious', 'excited', 'satisfied'])->nullable();
+            $table->enum('tone', ['neutral', 'frustrated', 'urgent', 'confused', 'satisfied', 'formal', 'casual'])->nullable();
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 
@@ -82,7 +94,6 @@ return new class extends Migration
             $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->constrained()->nullOnDelete();
 
             $table->unsignedInteger('response_time_ms')->nullable();
-            $table->unsignedInteger('token_count')->nullable();
             $table->unsignedInteger('prompt_tokens')->nullable();
             $table->unsignedInteger('completion_tokens')->nullable();
             $table->decimal('cost', 10, 6)->nullable()->index();
@@ -97,6 +108,12 @@ return new class extends Migration
             $table->index(['feedback', 'created_at']);
             $table->index(['expires_at', 'deleted_at']);
             $table->index(['deleted_at', 'created_at']);
+
+            // Indexes for conversation filtering (sentiment, tone, confidence, source)
+            $table->index(['chat_conversation_id', 'sentiment']);
+            $table->index(['chat_conversation_id', 'tone']);
+            $table->index(['chat_conversation_id', 'confidence_score']);
+            $table->index(['chat_conversation_id', 'source']);
         });
 
         // Create basic indexes immediately (within transaction)

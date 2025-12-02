@@ -2,11 +2,11 @@
 
 namespace App\Services\Infrastructure;
 
-use App\Enums\EmotionEnum;
 use App\Enums\SentimentEnum;
+use App\Enums\ToneEnum;
 use App\Services\Infrastructure\LLM\OpenAI;
 
-class EmotionAnalysis
+class ToneAnalysis
 {
     public function analyze(string $text): array
     {
@@ -16,19 +16,19 @@ class EmotionAnalysis
                 [
                     'role' => 'system',
                     'content' => '
-                    You are an expert in sentiment and emotion analysis.
+                    You are an expert in sentiment and tone analysis for customer support messages.
                     Analyze the given text and respond with TWO things:
                     1. Sentiment: Positive, Negative, or Neutral
-                    2. Emotion: Happy, Neutral, Frustrated, Confused, Angry, Sad, Anxious, Excited, or Satisfied
+                    2. Tone: Neutral, Frustrated, Urgent, Confused, Satisfied, Formal, or Casual
                     
                     Respond in this exact format:
                     Sentiment: [sentiment]
-                    Emotion: [emotion]
+                    Tone: [tone]
                 ',
                 ],
                 [
                     'role' => 'user',
-                    'content' => "Analyze the sentiment and emotion of the following text:\n\n\"{$text}\"",
+                    'content' => "Analyze the sentiment and tone of the following text:\n\n\"{$text}\"",
                 ],
             ],
         ]);
@@ -45,31 +45,27 @@ class EmotionAnalysis
             }
         }
 
-        // Parse emotion
-        $emotion = EmotionEnum::NEUTRAL;
-        if (str_contains($response, 'emotion:')) {
-            if (str_contains($response, 'happy')) {
-                $emotion = EmotionEnum::HAPPY;
-            } elseif (str_contains($response, 'frustrated')) {
-                $emotion = EmotionEnum::FRUSTRATED;
+        // Parse tone
+        $tone = ToneEnum::NEUTRAL;
+        if (str_contains($response, 'tone:')) {
+            if (str_contains($response, 'frustrated')) {
+                $tone = ToneEnum::FRUSTRATED;
+            } elseif (str_contains($response, 'urgent')) {
+                $tone = ToneEnum::URGENT;
             } elseif (str_contains($response, 'confused')) {
-                $emotion = EmotionEnum::CONFUSED;
-            } elseif (str_contains($response, 'angry')) {
-                $emotion = EmotionEnum::ANGRY;
-            } elseif (str_contains($response, 'sad')) {
-                $emotion = EmotionEnum::SAD;
-            } elseif (str_contains($response, 'anxious')) {
-                $emotion = EmotionEnum::ANXIOUS;
-            } elseif (str_contains($response, 'excited')) {
-                $emotion = EmotionEnum::EXCITED;
+                $tone = ToneEnum::CONFUSED;
             } elseif (str_contains($response, 'satisfied')) {
-                $emotion = EmotionEnum::SATISFIED;
+                $tone = ToneEnum::SATISFIED;
+            } elseif (str_contains($response, 'formal')) {
+                $tone = ToneEnum::FORMAL;
+            } elseif (str_contains($response, 'casual')) {
+                $tone = ToneEnum::CASUAL;
             }
         }
 
         return [
             'sentiment' => $sentiment,
-            'emotion' => $emotion,
+            'tone' => $tone,
         ];
     }
 }

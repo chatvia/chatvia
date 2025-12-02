@@ -12,8 +12,6 @@ class ChatContext
 
     public ?string $generationId = null;
 
-    public ?int $tokenCount = 0;
-
     public Collection $sources;
 
     public ?float $confidenceScore = null;
@@ -31,20 +29,20 @@ class ChatContext
         public readonly ?string $userMessageId,
         public readonly string $assistantMessageId,
         public readonly string $queryLanguage,
+        ?float $startTime = null,
     ) {
         $this->sources = collect();
-        $this->startTime = microtime(true);
+        $this->startTime = $startTime ?? microtime(true);
+    }
+
+    public function getStartTime(): float
+    {
+        return $this->startTime;
     }
 
     public function appendStreamedMessage(string $content): void
     {
         $this->streamedMessage .= $content;
-    }
-
-    public function setGenerationData(?string $generationId, ?int $tokenCount): void
-    {
-        $this->generationId = $generationId;
-        $this->tokenCount = $tokenCount;
     }
 
     public function setSources(Collection $sources): void

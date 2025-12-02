@@ -260,7 +260,7 @@ class Agent extends Model
 
     public function topics(): BelongsToMany
     {
-        return $this->belongsToMany(ChatTopic::class, 'agent_topics');
+        return $this->belongsToMany(ChatTopic::class, 'agent_topic', 'agent_id', 'chat_topic_id');
     }
 
     public function newEloquentBuilder($query): AgentQueryBuilder

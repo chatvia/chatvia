@@ -825,16 +825,14 @@ const removeStarter = (id: number) => {
                 </div>
 
                 <!-- Preview Frame -->
-                <div class="flex-1 p-4 bg-muted/20 overflow-hidden">
-                    <div class="h-full bg-background border rounded-lg overflow-hidden shadow-sm">
-                        <iframe
-                            :key="embedKey"
-                            :src="buildIframeUrl(agent.chat_embed_url)"
-                            class="w-full h-full border-0"
-                            title="Chat Preview"
-                            sandbox="allow-scripts allow-same-origin allow-forms"
-                        />
-                    </div>
+                <div class="flex-1 overflow-hidden">
+                    <iframe
+                        :key="embedKey"
+                        :src="buildIframeUrl(agent.chat_embed_url)"
+                        class="w-full h-full border-0"
+                        title="Chat Preview"
+                        sandbox="allow-scripts allow-same-origin allow-forms"
+                    />
                 </div>
             </div>
         </div>

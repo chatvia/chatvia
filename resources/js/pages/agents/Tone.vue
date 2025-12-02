@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ref, computed, watch, onMounted } from 'vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ref, computed, onMounted } from 'vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Line, Pie } from 'vue-chartjs';
 import { 
@@ -19,7 +19,7 @@ import {
     type ChartOptions
 } from 'chart.js';
 import { 
-    Heart, LoaderCircle, Info
+    MessageCircle, LoaderCircle, Info
 } from 'lucide-vue-next';
 import axios from 'axios';
 
@@ -43,20 +43,20 @@ interface Props {
 const props = defineProps<Props>();
 
 const loading = ref(true);
-const emotionData = ref<any>(null);
+const toneData = ref<any>(null);
 const error = ref<string | null>(null);
 const activeView = ref<'graph' | 'pie'>('graph');
 
-const fetchEmotionData = async () => {
+const fetchToneData = async () => {
     loading.value = true;
     error.value = null;
 
     try {
-        const response = await axios.get(route('agents.emotion.data', props.agent.id));
-        emotionData.value = response.data;
+        const response = await axios.get(route('agents.tone.data', props.agent.id));
+        toneData.value = response.data;
     } catch (err: any) {
-        error.value = err.response?.data?.message || 'Failed to load emotion data';
-        console.error('Error fetching emotion data:', err);
+        error.value = err.response?.data?.message || 'Failed to load tone data';
+        console.error('Error fetching tone data:', err);
     } finally {
         loading.value = false;
     }
@@ -70,44 +70,14 @@ const formatDate = (dateStr: string): string => {
 
 // Line chart data
 const lineChartData = computed(() => {
-    if (!emotionData.value) return null;
+    if (!toneData.value) return null;
 
     return {
-        labels: emotionData.value.emotionByDate.map((d: any) => formatDate(d.date)),
+        labels: toneData.value.toneByDate.map((d: any) => formatDate(d.date)),
         datasets: [
             {
-                label: '😊 Happy',
-                data: emotionData.value.emotionByDate.map((d: any) => d.happy),
-                borderColor: 'rgb(74, 222, 128)',
-                backgroundColor: 'rgba(74, 222, 128, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(74, 222, 128)',
-            },
-            {
-                label: '😃 Excited',
-                data: emotionData.value.emotionByDate.map((d: any) => d.excited),
-                borderColor: 'rgb(251, 191, 36)',
-                backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(251, 191, 36)',
-            },
-            {
-                label: '😌 Satisfied',
-                data: emotionData.value.emotionByDate.map((d: any) => d.satisfied),
-                borderColor: 'rgb(96, 165, 250)',
-                backgroundColor: 'rgba(96, 165, 250, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(96, 165, 250)',
-            },
-            {
                 label: '😐 Neutral',
-                data: emotionData.value.emotionByDate.map((d: any) => d.neutral),
+                data: toneData.value.toneByDate.map((d: any) => d.neutral),
                 borderColor: 'rgb(156, 163, 175)',
                 backgroundColor: 'rgba(156, 163, 175, 0.1)',
                 fill: true,
@@ -116,18 +86,18 @@ const lineChartData = computed(() => {
                 pointBackgroundColor: 'rgb(156, 163, 175)',
             },
             {
-                label: '😕 Confused',
-                data: emotionData.value.emotionByDate.map((d: any) => d.confused),
-                borderColor: 'rgb(168, 85, 247)',
-                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                label: '😤 Frustrated',
+                data: toneData.value.toneByDate.map((d: any) => d.frustrated),
+                borderColor: 'rgb(239, 68, 68)',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
                 fill: true,
                 tension: 0.4,
                 pointRadius: 3,
-                pointBackgroundColor: 'rgb(168, 85, 247)',
+                pointBackgroundColor: 'rgb(239, 68, 68)',
             },
             {
-                label: '😤 Frustrated',
-                data: emotionData.value.emotionByDate.map((d: any) => d.frustrated),
+                label: '⚡ Urgent',
+                data: toneData.value.toneByDate.map((d: any) => d.urgent),
                 borderColor: 'rgb(251, 146, 60)',
                 backgroundColor: 'rgba(251, 146, 60, 0.1)',
                 fill: true,
@@ -136,8 +106,28 @@ const lineChartData = computed(() => {
                 pointBackgroundColor: 'rgb(251, 146, 60)',
             },
             {
-                label: '😢 Sad',
-                data: emotionData.value.emotionByDate.map((d: any) => d.sad),
+                label: '😕 Confused',
+                data: toneData.value.toneByDate.map((d: any) => d.confused),
+                borderColor: 'rgb(168, 85, 247)',
+                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3,
+                pointBackgroundColor: 'rgb(168, 85, 247)',
+            },
+            {
+                label: '😊 Satisfied',
+                data: toneData.value.toneByDate.map((d: any) => d.satisfied),
+                borderColor: 'rgb(74, 222, 128)',
+                backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3,
+                pointBackgroundColor: 'rgb(74, 222, 128)',
+            },
+            {
+                label: '👔 Formal',
+                data: toneData.value.toneByDate.map((d: any) => d.formal),
                 borderColor: 'rgb(59, 130, 246)',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 fill: true,
@@ -146,24 +136,14 @@ const lineChartData = computed(() => {
                 pointBackgroundColor: 'rgb(59, 130, 246)',
             },
             {
-                label: '😰 Anxious',
-                data: emotionData.value.emotionByDate.map((d: any) => d.anxious),
-                borderColor: 'rgb(245, 158, 11)',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                label: '😎 Casual',
+                data: toneData.value.toneByDate.map((d: any) => d.casual),
+                borderColor: 'rgb(251, 191, 36)',
+                backgroundColor: 'rgba(251, 191, 36, 0.1)',
                 fill: true,
                 tension: 0.4,
                 pointRadius: 3,
-                pointBackgroundColor: 'rgb(245, 158, 11)',
-            },
-            {
-                label: '😠 Angry',
-                data: emotionData.value.emotionByDate.map((d: any) => d.angry),
-                borderColor: 'rgb(239, 68, 68)',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(239, 68, 68)',
+                pointBackgroundColor: 'rgb(251, 191, 36)',
             },
         ]
     };
@@ -235,18 +215,31 @@ const lineChartOptions: ChartOptions<'line'> = {
 
 // Pie chart data
 const pieChartData = computed(() => {
-    if (!emotionData.value) return null;
+    if (!toneData.value) return null;
 
-    const totals = emotionData.value.totalEmotions;
+    const totals = toneData.value.totalTones;
 
     return {
-        labels: ['Neutral', 'Happy', 'Angry', 'Unspecified'],
+        labels: ['Neutral', 'Frustrated', 'Urgent', 'Confused', 'Satisfied', 'Formal', 'Casual', 'Unspecified'],
         datasets: [{
-            data: [totals.neutral, totals.happy, totals.angry, totals.unspecified],
+            data: [
+                totals.neutral, 
+                totals.frustrated, 
+                totals.urgent, 
+                totals.confused, 
+                totals.satisfied, 
+                totals.formal, 
+                totals.casual, 
+                totals.unspecified
+            ],
             backgroundColor: [
-                'rgb(71, 85, 105)',
-                'rgb(96, 165, 250)',
-                'rgb(248, 113, 113)',
+                'rgb(156, 163, 175)',
+                'rgb(239, 68, 68)',
+                'rgb(251, 146, 60)',
+                'rgb(168, 85, 247)',
+                'rgb(74, 222, 128)',
+                'rgb(59, 130, 246)',
+                'rgb(251, 191, 36)',
                 'rgb(203, 213, 225)',
             ],
             borderColor: '#fff',
@@ -283,7 +276,7 @@ const pieChartOptions: ChartOptions<'pie'> = {
                 label: function(context) {
                     const label = context.label || '';
                     const value = context.parsed || 0;
-                    const total = emotionData.value?.totalEmotions?.total || 0;
+                    const total = toneData.value?.totalTones?.total || 0;
                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                     return `${label}: ${value} (${percentage}%)`;
                 }
@@ -294,23 +287,23 @@ const pieChartOptions: ChartOptions<'pie'> = {
 
 // Summary stats
 const summaryStats = computed(() => {
-    if (!emotionData.value) return null;
+    if (!toneData.value) return null;
 
-    const totals = emotionData.value.totalEmotions;
+    const totals = toneData.value.totalTones;
     const total = totals.total;
 
     return {
-        happy: {
-            count: totals.happy,
-            percentage: total > 0 ? ((totals.happy / total) * 100).toFixed(1) : '0',
-        },
         neutral: {
             count: totals.neutral,
             percentage: total > 0 ? ((totals.neutral / total) * 100).toFixed(1) : '0',
         },
-        angry: {
-            count: totals.angry,
-            percentage: total > 0 ? ((totals.angry / total) * 100).toFixed(1) : '0',
+        frustrated: {
+            count: totals.frustrated,
+            percentage: total > 0 ? ((totals.frustrated / total) * 100).toFixed(1) : '0',
+        },
+        satisfied: {
+            count: totals.satisfied,
+            percentage: total > 0 ? ((totals.satisfied / total) * 100).toFixed(1) : '0',
         },
         unspecified: {
             count: totals.unspecified,
@@ -321,14 +314,14 @@ const summaryStats = computed(() => {
 });
 
 onMounted(() => {
-    fetchEmotionData();
+    fetchToneData();
 });
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Emotion Analysis" description="Analyze user sentiment patterns and trends">
+    <AgentLayout :agent="agent" title="Tone Analysis" description="Analyze user communication tone patterns and trends">
         <template #header-icon>
-            <Heart class="h-5 w-5" />
+            <MessageCircle class="h-5 w-5" />
         </template>
 
         <!-- Delayed Data Notice -->
@@ -350,7 +343,7 @@ onMounted(() => {
                     <div class="text-center space-y-2">
                         <p class="text-destructive font-medium">{{ error }}</p>
                         <button
-                            @click="fetchEmotionData"
+                            @click="fetchToneData"
                             class="text-sm text-muted-foreground hover:text-foreground underline"
                         >
                             Try again
@@ -361,23 +354,9 @@ onMounted(() => {
         </div>
 
         <!-- Content -->
-        <div v-else-if="emotionData" class="space-y-6">
+        <div v-else-if="toneData" class="space-y-6">
             <!-- Summary Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                    <CardContent class="!p-4">
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between">
-                                <p class="text-sm text-muted-foreground">Positive</p>
-                                <Badge class="bg-blue-100 text-blue-700 hover:bg-blue-100">
-                                    {{ summaryStats?.happy.percentage }}%
-                                </Badge>
-                            </div>
-                            <p class="text-2xl font-bold">{{ summaryStats?.happy.count }}</p>
-                        </div>
-                    </CardContent>
-                </Card>
-
                 <Card>
                     <CardContent class="!p-4">
                         <div class="space-y-2">
@@ -396,12 +375,26 @@ onMounted(() => {
                     <CardContent class="!p-4">
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm text-muted-foreground">Negative</p>
+                                <p class="text-sm text-muted-foreground">Frustrated</p>
                                 <Badge class="bg-red-100 text-red-700 hover:bg-red-100">
-                                    {{ summaryStats?.angry.percentage }}%
+                                    {{ summaryStats?.frustrated.percentage }}%
                                 </Badge>
                             </div>
-                            <p class="text-2xl font-bold">{{ summaryStats?.angry.count }}</p>
+                            <p class="text-2xl font-bold">{{ summaryStats?.frustrated.count }}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent class="!p-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-muted-foreground">Satisfied</p>
+                                <Badge class="bg-green-100 text-green-700 hover:bg-green-100">
+                                    {{ summaryStats?.satisfied.percentage }}%
+                                </Badge>
+                            </div>
+                            <p class="text-2xl font-bold">{{ summaryStats?.satisfied.count }}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -421,12 +414,12 @@ onMounted(() => {
                 </Card>
             </div>
 
-            <!-- Emotion Chart -->
+            <!-- Tone Chart -->
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <CardTitle>Sentiment</CardTitle>
+                            <CardTitle>Tone Distribution</CardTitle>
                             <Info class="h-4 w-4 text-muted-foreground" />
                         </div>
                         <Tabs v-model="activeView" class="w-auto">
@@ -466,3 +459,4 @@ onMounted(() => {
         </div>
     </AgentLayout>
 </template>
+

@@ -134,12 +134,6 @@ class UserResource extends Resource
                             ->getStateUsing(function ($record): int {
                                 return $record->usage?->messages ?? 0;
                             }),
-                        TextEntry::make('tokens_used')
-                            ->label('Tokens Used')
-                            ->getStateUsing(function ($record): int {
-                                return $record->messages()->sum('token_count') ?? 0;
-                            })
-                            ->formatStateUsing(fn ($state) => number_format($state)),
                         TextEntry::make('average_response_time')
                             ->label('Avg Response Time')
                             ->getStateUsing(function ($record): string {

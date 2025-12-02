@@ -26,7 +26,7 @@ readonly class ChatStreamController
                 ),
                 sessionId: $this->session->firstOrCreateChatSession(),
                 conversationId: $conversationId,
-                saveUserMessageImmediately: $request->boolean('save_user_message_immediately', false),
+                saveUserMessageImmediately: $request->boolean('save_user_message_immediately'),
                 streamSources: false,
                 ipAddress: $request->ip(),
                 userAgent: $request->userAgent(),

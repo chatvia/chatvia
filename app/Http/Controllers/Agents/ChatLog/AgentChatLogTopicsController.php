@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Agents\ChatLog;
 
 use App\Data\Resources\Agent\ChatLog\ChatLogTopicsResourceData;
 use App\Models\Agent;
-use App\Models\ChatTopic;
 use Illuminate\Http\Request;
 
 class AgentChatLogTopicsController
@@ -16,9 +15,10 @@ class AgentChatLogTopicsController
             code: 404,
         );
 
-        $topics = ChatTopic::query()
-            ->orderBy('topic')
-            ->get(['id', 'topic', 'description']);
+        // Get topics assigned to this agent
+        $topics = $agent->topics()
+            ->orderBy('chat_topics.topic')
+            ->get(['chat_topics.id', 'chat_topics.topic', 'chat_topics.description']);
 
         return ChatLogTopicsResourceData::fromCollection($topics);
     }

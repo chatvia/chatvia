@@ -2,6 +2,7 @@
 
 namespace App\Services\Memory;
 
+use App\Models\ChatConversation;
 use App\Models\Member;
 use App\Services\Infrastructure\LLM\OpenRouter;
 use Illuminate\Support\Facades\Auth;
@@ -83,7 +84,10 @@ class ConversationManager
 
     public function deleteConversation(string $conversationId): void
     {
-        // Delete conversation messages
+        // Soft delete the conversation
+        ChatConversation::where('id', $conversationId)->delete();
+
+        // Clear conversation from cache
         $conversationKey = $this->cache->generateConversationKey($conversationId);
         $this->cache->forget($conversationKey);
 
@@ -101,6 +105,10 @@ class ConversationManager
 
     public function deleteAllConversations(): void
     {
+        // Soft delete all conversations for this session
+        ChatConversation::where('chat_session_id', $this->sessionId)->delete();
+
+        // Clear cache
         $this->cache->flush();
     }
 

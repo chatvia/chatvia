@@ -31,9 +31,6 @@ class StatsOverview extends BaseWidget
         // Get new users from last 30 days
         $newUsersLast30Days = User::where('created_at', '>=', now()->subDays(30))->count();
 
-        // Get total tokens used (if available)
-        $totalTokens = ChatMessage::whereNotNull('token_count')->sum('token_count');
-
         // Get subscription revenue (basic calculation)
         $activeSubscriptions = User::whereHas('subscriptions', function ($query) {
             $query->where('stripe_status', 'active');
@@ -69,11 +66,6 @@ class StatsOverview extends BaseWidget
                 ->description('AI agents created by users')
                 ->descriptionIcon('heroicon-m-cpu-chip')
                 ->color('success'),
-
-            Stat::make('Total Tokens', number_format($totalTokens))
-                ->description('Total tokens consumed')
-                ->descriptionIcon('heroicon-m-calculator')
-                ->color('info'),
 
             Stat::make('Active Subscriptions', $activeSubscriptions)
                 ->description('Users with active paid subscriptions')

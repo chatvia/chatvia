@@ -4,9 +4,6 @@ namespace App\Http\Controllers\Agents\ChatLog;
 
 use App\Data\Resources\Agent\ChatLog\ChatLogConversationsResourceData;
 use App\Models\Agent;
-use App\Models\ChatConversation;
-use App\Models\ChatMessage;
-use App\Models\Lead;
 use Illuminate\Http\Request;
 
 class AgentChatLogConversationsController
@@ -18,59 +15,18 @@ class AgentChatLogConversationsController
             code: 404,
         );
 
-        $conversations = ChatConversation::query()
-            ->forAgent($agent->id)
-            ->withSessionAndTopic()
-            ->filterByTopic($request->query('topic'))
-            ->filterBySentiment($request->query('sentiment'))
-            ->filterByEmotion($request->query('emotion'))
-            ->withCount('messages')
-            ->orderByLatestActivity()
-            ->paginate(10, pageName: 'conversations', page: $request->integer('page', 1));
-
-        $excerpts = $this->getFirstMessageExcerpts($conversations->pluck('id'));
-        $leadConversationIds = $this->getLeadConversationIds($agent);
-
-        return ChatLogConversationsResourceData::fromPaginator(
-            conversations: $conversations,
-            excerpts: $excerpts,
-            leadConversationIds: $leadConversationIds,
+        return ChatLogConversationsResourceData::fromAgent(
+            agent: $agent,
+            page: $request->integer('page', 1),
+            topicFilter: $request->query('topic'),
+            sentimentFilter: $request->query('sentiment'),
+            toneFilter: $request->query('tone'),
+            startDate: $request->query('start_date'),
+            endDate: $request->query('end_date'),
+            countryFilter: $request->query('country'),
+            confidenceScoreFilter: $request->query('confidence_score'),
+            feedbackFilter: $request->query('feedback'),
+            sourceFilter: $request->query('source'),
         );
-    }
-
-    private function getFirstMessageExcerpts($conversationIds)
-    {
-        if ($conversationIds->isEmpty()) {
-            return collect();
-        }
-
-        $firstMessagesRaw = ChatMessage::query()
-            ->whereIn('chat_conversation_id', $conversationIds)
-            ->orderBy('created_at')
-            ->get(['chat_conversation_id', 'content', 'created_at']);
-
-        $firstPerConversation = collect();
-        foreach ($firstMessagesRaw as $message) {
-            if (! $firstPerConversation->has($message->chat_conversation_id)) {
-                $firstPerConversation->put(
-                    $message->chat_conversation_id,
-                    str($message->content)->stripTags()->limit(80)->value()
-                );
-            }
-        }
-
-        return $firstPerConversation;
-    }
-
-    private function getLeadConversationIds(Agent $agent)
-    {
-        $allConversationIds = ChatConversation::query()
-            ->forAgent($agent->id)
-            ->pluck('id');
-
-        return Lead::query()
-            ->where('agent_id', $agent->id)
-            ->whereIn('chat_conversation_id', $allConversationIds)
-            ->pluck('chat_conversation_id');
     }
 }

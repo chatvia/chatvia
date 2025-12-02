@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agents\Topics;
 use App\Models\Agent;
 use App\Models\ChatTopic;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class AgentTopicsStoreController
 {
@@ -44,18 +43,33 @@ class AgentTopicsStoreController
             ]);
         }
 
-        // Create new topic and associate with agent
+        // Create new user topic and associate with agent
         $validated = $request->validate([
             'topic' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('chat_topics', 'topic'),
             ],
             'description' => 'required|string|max:500',
         ]);
 
-        $topic = ChatTopic::create($validated);
+        // Check if user already has a topic with this name
+        $existingTopic = ChatTopic::query()
+            ->where('user_id', $request->user()->id)
+            ->where('topic', $validated['topic'])
+            ->first();
+
+        if ($existingTopic) {
+            return response()->json([
+                'message' => 'You already have a topic with this name',
+            ], 422);
+        }
+
+        $topic = ChatTopic::create([
+            'user_id' => $request->user()->id,
+            'topic' => $validated['topic'],
+            'description' => $validated['description'],
+        ]);
 
         // Associate the topic with the agent
         $agent->topics()->attach($topic->id);

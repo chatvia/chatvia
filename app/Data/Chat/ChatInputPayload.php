@@ -20,5 +20,6 @@ class ChatInputPayload extends Data
         public ?string $referrer_url = null,
         public ?string $page_url = null,
         public ?string $locale = null,
+        public ?string $source = null,
     ) {}
 }

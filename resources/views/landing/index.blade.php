@@ -399,7 +399,7 @@
 
 {{--                @include('landing.partials.product-types')--}}
 
-                @include('landing.partials.emotion-detection')
+                @include('landing.partials.tone-detection')
 
                 @if (count($landing['features']['slide2']['slides']) !== 0)
                     <section>

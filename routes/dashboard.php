@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CapabilitiesController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\DashboardStatsController;
 use App\Http\Controllers\FeaturesController;
@@ -37,4 +38,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/tickets/{ticket}', TicketShowController::class)->name('tickets.show');
     Route::post('dashboard/tickets/{ticket}/reply', TicketReplyController::class)->name('tickets.reply.store');
     Route::post('dashboard/tickets/{ticket}/priority', TicketChangePriorityController::class)->name('tickets.priority');
+
+    Route::get('my/capabilities', CapabilitiesController::class)->name('my.capabilities');
 });

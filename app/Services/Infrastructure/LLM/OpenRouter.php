@@ -37,6 +37,31 @@ class OpenRouter
             ->throw();
     }
 
+    /**
+     * Fetch generation data from OpenRouter.
+     * Returns the raw data object with tokens_prompt, tokens_completion, total_cost, etc.
+     */
+    public static function getGeneration(string $generationId): ?array
+    {
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
+            ])
+                ->timeout(10)
+                ->get(config('services.openrouter.base_url', 'https://openrouter.ai/api/v1').'/generation', [
+                    'id' => $generationId,
+                ]);
+
+            if ($response->successful()) {
+                return $response->json('data');
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Failed to fetch OpenRouter generation data: '.$e->getMessage());
+        }
+
+        return null;
+    }
+
     public function headers(): array
     {
         return [

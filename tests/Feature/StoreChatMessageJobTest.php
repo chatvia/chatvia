@@ -42,7 +42,7 @@ describe('StoreChatMessageJob', function () {
         );
 
         $job->handle(
-            app(\App\Services\Infrastructure\EmotionAnalysis::class),
+            app(\App\Services\Infrastructure\ToneAnalysis::class),
             app(\App\Services\TopicAnalysis::class)
         );
 
@@ -90,7 +90,7 @@ describe('StoreChatMessageJob', function () {
         );
 
         $job->handle(
-            app(\App\Services\Infrastructure\EmotionAnalysis::class),
+            app(\App\Services\Infrastructure\ToneAnalysis::class),
             app(\App\Services\TopicAnalysis::class)
         );
 
@@ -128,7 +128,7 @@ describe('StoreChatMessageJob', function () {
         );
 
         $job->handle(
-            app(\App\Services\Infrastructure\EmotionAnalysis::class),
+            app(\App\Services\Infrastructure\ToneAnalysis::class),
             app(\App\Services\TopicAnalysis::class)
         );
 
@@ -167,7 +167,7 @@ describe('StoreChatMessageJob', function () {
         );
 
         $job->handle(
-            app(\App\Services\Infrastructure\EmotionAnalysis::class),
+            app(\App\Services\Infrastructure\ToneAnalysis::class),
             app(\App\Services\TopicAnalysis::class)
         );
 
@@ -205,7 +205,7 @@ describe('StoreChatMessageJob', function () {
         );
 
         $job->handle(
-            app(\App\Services\Infrastructure\EmotionAnalysis::class),
+            app(\App\Services\Infrastructure\ToneAnalysis::class),
             app(\App\Services\TopicAnalysis::class)
         );
 
@@ -244,7 +244,7 @@ describe('StoreChatMessageJob', function () {
         );
 
         $job->handle(
-            app(\App\Services\Infrastructure\EmotionAnalysis::class),
+            app(\App\Services\Infrastructure\ToneAnalysis::class),
             app(\App\Services\TopicAnalysis::class)
         );
 

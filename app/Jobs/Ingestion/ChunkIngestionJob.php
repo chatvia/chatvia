@@ -126,13 +126,15 @@ class ChunkIngestionJob implements ShouldQueue
                 /** @var AgentWebsiteUrl $agentWebsiteUrl */
                 $agentWebsiteUrl = AgentWebsiteUrl::find($ref->referenceable_id);
 
-                if ($agentWebsiteUrl && $agentWebsiteUrl->agentWebsite) {
+                if ($agentWebsiteUrl) {
                     $agentWebsiteUrl->update(['status' => 'ingested', 'crawled_at' => now()]);
+                    $agentWebsiteUrl->refresh();
 
-                    WebsiteIngestionProgressEvent::dispatch(
-                        $agentWebsiteUrl->agentWebsite,
-                        $this->chunk->agent_id
-                    );
+                    // Dispatch events - load relationship fresh to ensure it exists
+                    $website = $agentWebsiteUrl->agentWebsite;
+                    if ($website) {
+                        WebsiteIngestionProgressEvent::dispatch($website, $this->chunk->agent_id);
+                    }
 
                     UrlIngestionEvent::dispatch($agentWebsiteUrl, $this->chunk->agent_id);
                 }

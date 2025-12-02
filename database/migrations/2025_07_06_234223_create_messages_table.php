@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ToneEnum;
 use App\Models\Agent;
 use App\Models\AgentQuestionAnswer;
 use App\Models\ChatTopic;
@@ -25,12 +26,17 @@ return new class extends Migration
 
             $table->ipAddress()->nullable();
 
+            $table->string('region')->nullable();
+            $table->string('city')->nullable();
+            $table->string('zip_code', 20)->nullable();
+            $table->string('time_zone', 10)->nullable();
+            $table->boolean('is_proxy')->nullable();
+
             $table->text('user_agent')->nullable();
 
             $table->string('device_type')->nullable()->index();
             $table->string('browser')->nullable()->index();
             $table->string('os')->nullable()->index();
-            $table->string('city')->nullable();
 
             $table->text('referrer_url')->nullable();
             $table->text('page_url')->nullable();
@@ -55,9 +61,10 @@ return new class extends Migration
             $table->string('title')->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
-            $table->enum('tone', ['neutral', 'frustrated', 'urgent', 'confused', 'satisfied', 'formal', 'casual'])->nullable();
+            $table->enum('tone', ToneEnum::values())->nullable();
 
             $table->timestamp('last_activity_at')->nullable()->index();
+
             $table->timestamps();
             $table->softDeletes();
 
@@ -87,7 +94,7 @@ return new class extends Migration
             $table->decimal('confidence_score', 5, 4)->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
-            $table->enum('tone', ['neutral', 'frustrated', 'urgent', 'confused', 'satisfied', 'formal', 'casual'])->nullable();
+            $table->enum('tone', ToneEnum::values())->nullable();
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 

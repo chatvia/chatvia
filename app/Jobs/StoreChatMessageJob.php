@@ -61,14 +61,9 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         $session->update(['last_activity_at' => now()]);
 
+        // Fetch and store location data if IP exists but country is not yet set
         if ($session->ip_address && ! $session->country_id) {
-            $countryCode = IP2Country::getCountryByIP($session->ip_address);
-            if ($countryCode) {
-                $country = Country::where('code', $countryCode)->first();
-                if ($country) {
-                    $session->update(['country_id' => $country->id]);
-                }
-            }
+            $this->updateSessionLocation($session);
         }
 
         /** @var ChatConversation $conversation */
@@ -116,7 +111,58 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         AnalyzeMessageJob::dispatchIf($isUserMessage, $this->payload->message_id);
 
-        AnalyzeConversationJob::dispatchIf($conversation->messages()->count() >= 5, $conversation);
+        AnalyzeConversationJob::dispatchIf(
+            ! $conversation->chat_topic_id && $conversation->messages()->count() >= 5,
+            $conversation
+        );
+    }
+
+    /**
+     * Update session with location data from IP address.
+     */
+    private function updateSessionLocation(ChatSession $session): void
+    {
+        $location = IP2Country::getLocationByIP($session->ip_address);
+
+        if (! $location) {
+            return;
+        }
+
+        $updateData = [];
+
+        // Set country if found
+        if ($location->countryCode) {
+            $country = Country::where('code', $location->countryCode)->first();
+            if ($country) {
+                $updateData['country_id'] = $country->id;
+            }
+        }
+
+        // Set city if not already set
+        if (! $session->city && $location->cityName) {
+            $updateData['city'] = $location->cityName;
+        }
+
+        // Set new location fields
+        if ($location->regionName) {
+            $updateData['region'] = $location->regionName;
+        }
+
+        if ($location->zipCode) {
+            $updateData['zip_code'] = $location->zipCode;
+        }
+
+        if ($location->timeZone) {
+            $updateData['time_zone'] = $location->timeZone;
+        }
+
+        if ($location->isProxy !== null) {
+            $updateData['is_proxy'] = $location->isProxy;
+        }
+
+        if (! empty($updateData)) {
+            $session->update($updateData);
+        }
     }
 
     public function uniqueId(): string

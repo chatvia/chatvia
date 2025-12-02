@@ -24,4 +24,3 @@ class ChatLogTopicData extends Data
         );
     }
 }
-

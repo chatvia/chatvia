@@ -125,26 +125,6 @@ const lineChartData = computed(() => {
                 pointRadius: 3,
                 pointBackgroundColor: 'rgb(74, 222, 128)',
             },
-            {
-                label: '👔 Formal',
-                data: toneData.value.toneByDate.map((d: any) => d.formal),
-                borderColor: 'rgb(59, 130, 246)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(59, 130, 246)',
-            },
-            {
-                label: '😎 Casual',
-                data: toneData.value.toneByDate.map((d: any) => d.casual),
-                borderColor: 'rgb(251, 191, 36)',
-                backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(251, 191, 36)',
-            },
         ]
     };
 });
@@ -220,7 +200,7 @@ const pieChartData = computed(() => {
     const totals = toneData.value.totalTones;
 
     return {
-        labels: ['Neutral', 'Frustrated', 'Urgent', 'Confused', 'Satisfied', 'Formal', 'Casual', 'Unspecified'],
+        labels: ['Neutral', 'Frustrated', 'Urgent', 'Confused', 'Satisfied', 'Unspecified'],
         datasets: [{
             data: [
                 totals.neutral, 
@@ -228,8 +208,6 @@ const pieChartData = computed(() => {
                 totals.urgent, 
                 totals.confused, 
                 totals.satisfied, 
-                totals.formal, 
-                totals.casual, 
                 totals.unspecified
             ],
             backgroundColor: [
@@ -238,8 +216,6 @@ const pieChartData = computed(() => {
                 'rgb(251, 146, 60)',
                 'rgb(168, 85, 247)',
                 'rgb(74, 222, 128)',
-                'rgb(59, 130, 246)',
-                'rgb(251, 191, 36)',
                 'rgb(203, 213, 225)',
             ],
             borderColor: '#fff',

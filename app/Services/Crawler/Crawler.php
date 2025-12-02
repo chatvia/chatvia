@@ -43,7 +43,7 @@ class Crawler
             ->setConcurrency($this->concurrency)
             ->setTotalCrawlLimit($this->totalCrawlLimit)
             ->setDelayBetweenRequests($data->slow_crawling ? 1000 : 0)
-            ->doNotExecuteJavaScript()
+            ->executeJavaScript()
             ->respectRobots();
 
         if ($data->limit) {

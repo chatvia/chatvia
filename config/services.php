@@ -117,8 +117,8 @@ return [
         'region' => env('AWS_COMPREHEND_REGION', 'eu-central-1'),
     ],
 
-    'ipapi' => [
-        'key' => env('IPAPI_API_KEY'),
-        'endpoint' => env('IPAPI_API_ENDPOINT', 'http://api.ipapi.com/api'),
+    'ip2location' => [
+        'key' => env('IP2LOCATION_API_KEY'),
+        'endpoint' => env('IP2LOCATION_ENDPOINT', 'https://api.ip2location.io'),
     ],
 ];

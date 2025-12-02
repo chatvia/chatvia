@@ -2,32 +2,54 @@
 
 namespace App\Services;
 
+use App\Data\IpLocationData;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class IP2Country
 {
-    public static function getCountryByIP($ip): string
+    /**
+     * Get location data by IP address.
+     */
+    public static function getLocationByIP(string $ip): ?IpLocationData
     {
         // Validate IP address format
         if (! filter_var($ip, FILTER_VALIDATE_IP)) {
-            return '';
+            return null;
         }
 
         // Skip geolocation for private/local IP addresses
         if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-            return '';
+            return null;
         }
 
-        $url = Str::of(rtrim(config('services.ipapi.endpoint'), '/'))
+        $url = Str::of(rtrim(config('services.ip2location.endpoint'), '/'))
             ->append($ip)
-            ->append('?access_key='.config('services.ipapi.key'))
+            ->append('?key='.config('services.ip2location.key'))
             ->toString();
 
-        $result = Http::get($url)
-            ->throw()
-            ->json();
+        try {
+            $result = Http::get($url)
+                ->throw()
+                ->json();
 
-        return strtolower($result['country_code'] ?? '');
+            return IpLocationData::fromApiResponse($result);
+        } catch (\Exception $e) {
+            report($e);
+
+            return null;
+        }
+    }
+
+    /**
+     * Get country code by IP address.
+     *
+     * @deprecated Use getLocationByIP() instead for full location data.
+     */
+    public static function getCountryByIP(string $ip): string
+    {
+        $location = self::getLocationByIP($ip);
+
+        return $location?->countryCode ?? '';
     }
 }

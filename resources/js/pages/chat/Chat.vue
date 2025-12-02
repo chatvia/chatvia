@@ -492,21 +492,6 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
                     });
                 }
             },
-            onError: (error) => {
-                streamingForMessageIndex.value = null;
-                
-                // Stream the error message into the assistant bubble
-                let messageIndex = messages.value.length - 1;
-                if (messageIndex >= 0 && messages.value[messageIndex].role === 'assistant') {
-                    messages.value[messageIndex].content = error?.message || 'An error occurred. Please try again.';
-                    messages.value[messageIndex].isError = true;
-                }
-                
-                // Disable sending if subscription/limit issue
-                if (error?.code === 'subscription_expired' || error?.code === 'message_limit_reached') {
-                    canSendMessages.value = false;
-                }
-            },
         },
     );
 

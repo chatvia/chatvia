@@ -89,7 +89,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('widgets', function ($request) {
-            return Limit::perMinute(30)->by($request->ip());
+            return Limit::perMinute(90)->by($request->ip());
         });
     }
 }

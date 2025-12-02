@@ -8,7 +8,6 @@ export function useSSE() {
     const startStream = (url: string, payload: string, callbacks: {
         onMessage?: (content: string, messageId?: string) => void,
         onDone?: () => void,
-        onError?: (error: any) => void,
         onSources?: (sources: any[]) => void,
         onLanguage?: (language: string) => void
     }) => {
@@ -72,25 +71,8 @@ export function useSSE() {
                             const dataMatch = line.match(/^data: (.+)$/m);
                             const sourcesMatch = line.match(/^sources: (.+)$/m);
                             const languageMatch = line.match(/^language: (.+)$/m);
-                            const errorMatch = line.match(/^error: (.+)$/m);
-                            
-                            if (errorMatch) {
-                                try {
-                                    const errorData = JSON.parse(errorMatch[1]);
-                                    console.error('Received SSE error:', errorData);
-                                    isDone = true;
-                                    isStreaming.value = false;
-                                    if (callbacks.onError) {
-                                        callbacks.onError({
-                                            message: errorData.message,
-                                            code: errorData.code || 'error'
-                                        });
-                                    }
-                                    return Promise.resolve();
-                                } catch (e) {
-                                    console.error('Error parsing SSE error:', e);
-                                }
-                            } else if (dataMatch) {
+
+                            if (dataMatch) {
                                 try {
                                     const data = JSON.parse(dataMatch[1]);
                                     if (data.content === '[DONE]') {
@@ -126,11 +108,8 @@ export function useSSE() {
                     return reader.read().then(processChunk);
                 })
                 .catch(error => {
-                    if (error.name === 'AbortError') {
-                        console.log('Fetch aborted');
-                    } else {
-                        console.error('SSE error:', error);
-                        if (callbacks.onError) callbacks.onError(error);
+                    if (error.name !== 'AbortError') {
+                        console.error('SSE connection error:', error);
                     }
                     isStreaming.value = false;
                 });

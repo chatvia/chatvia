@@ -38,8 +38,8 @@ class TrialSuccessController extends Controller
             // Log the user in automatically
             Auth::login($user);
 
-            // Redirect to dashboard with success message
-            return redirect()->route('agents.index')->with('success', 'Welcome! Your trial has started successfully.');
+            // Redirect to billing success page (same as upgrading)
+            return redirect()->route('billing.success');
 
         } catch (\Exception $e) {
             \Log::error('Trial success error', [

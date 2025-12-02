@@ -40,10 +40,8 @@ class AgentToneDataController
                 COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as urgent_count,
                 COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as confused_count,
                 COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as satisfied_count,
-                COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as formal_count,
-                COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as casual_count,
                 COUNT(CASE WHEN chat_messages.tone IS NULL THEN 1 END) as unspecified_count
-            ', ['neutral', 'frustrated', 'urgent', 'confused', 'satisfied', 'formal', 'casual'])
+            ', ['neutral', 'frustrated', 'urgent', 'confused', 'satisfied'])
             ->groupBy('date')
             ->orderBy('date')
             ->get();
@@ -62,11 +60,9 @@ class AgentToneDataController
                 COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as urgent,
                 COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as confused,
                 COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as satisfied,
-                COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as formal,
-                COUNT(CASE WHEN chat_messages.tone = ? THEN 1 END) as casual,
                 COUNT(CASE WHEN chat_messages.tone IS NULL THEN 1 END) as unspecified,
                 COUNT(*) as total
-            ', ['neutral', 'frustrated', 'urgent', 'confused', 'satisfied', 'formal', 'casual'])
+            ', ['neutral', 'frustrated', 'urgent', 'confused', 'satisfied'])
             ->first();
 
         // Fill in missing dates with zeros
@@ -84,8 +80,6 @@ class AgentToneDataController
                 'urgent' => $dataPoint?->urgent_count ?? 0,
                 'confused' => $dataPoint?->confused_count ?? 0,
                 'satisfied' => $dataPoint?->satisfied_count ?? 0,
-                'formal' => $dataPoint?->formal_count ?? 0,
-                'casual' => $dataPoint?->casual_count ?? 0,
                 'unspecified' => $dataPoint?->unspecified_count ?? 0,
             ];
 
@@ -100,8 +94,6 @@ class AgentToneDataController
                 'urgent' => $totalTones->urgent ?? 0,
                 'confused' => $totalTones->confused ?? 0,
                 'satisfied' => $totalTones->satisfied ?? 0,
-                'formal' => $totalTones->formal ?? 0,
-                'casual' => $totalTones->casual ?? 0,
                 'unspecified' => $totalTones->unspecified ?? 0,
                 'total' => $totalTones->total ?? 0,
             ],

@@ -18,7 +18,7 @@ class AgentChatLogController
 
         $conversationId = $request->query('conversation_id');
 
-        return Inertia::render('agents/ChatLog', [
+        return Inertia::render('agents/ChatLog/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'current_conversation_id' => $conversationId,
         ]);

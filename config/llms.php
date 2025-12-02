@@ -19,8 +19,8 @@ return [
         ],
     ],
     [
-        'internal_name' => 'amazon/nova-lite-v1',
-        'external_name' => 'nova-lite-v1',
+        'internal_name' => 'amazon/nova-2-lite-v1',
+        'external_name' => 'nova-2-lite-v1',
         'descriptive_name' => 'Nova Lite 1.0',
         'description' => 'Amazon\'s lightweight AI model. Fast and efficient for everyday conversations and quick tasks.',
         'context_window' => 300000,
@@ -31,8 +31,8 @@ return [
         'reasoning' => false,
         'credits' => 1,
         'price_per_million_tokens' => [
-            'input' => 0.06,
-            'output' => 0.24,
+            'input' => 0.30,
+            'output' => 2.50,
         ],
     ],
     [
@@ -306,23 +306,6 @@ return [
         'price_per_million_tokens' => [
             'input' => 1.25,
             'output' => 10.00,
-        ],
-    ],
-    [
-        'internal_name' => 'microsoft/phi-4-reasoning-plus',
-        'external_name' => 'phi-4-reasoning',
-        'descriptive_name' => 'Phi 4 Reasoning',
-        'description' => 'Logical and methodical. Specialized in step-by-step problem solving and analytical thinking.',
-        'context_window' => 1048576,
-        'icon' => 'microsoft.svg',
-        'features' => ['pro', 'reasoning'],
-        'location' => 'us',
-        'requires_paid_plan' => true,
-        'reasoning' => true,
-        'credits' => 1,
-        'price_per_million_tokens' => [
-            'input' => 0.07,
-            'output' => 0.35,
         ],
     ],
     [

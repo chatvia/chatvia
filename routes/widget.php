@@ -37,4 +37,10 @@ Route::prefix('widget')->group(function () {
     Route::post('/leads/form', WidgetLeadCollectController::class)->name('widget.leads.collect');
 
     Route::post('/feedback', WidgetFeedbackController::class)->name('widget.feedback');
+
+    Route::get('/version', function () {
+        return response()->json([
+            'version' => config('app.version'),
+        ]);
+    })->name('widget.version');
 });

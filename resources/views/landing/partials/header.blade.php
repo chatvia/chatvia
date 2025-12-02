@@ -1,5 +1,27 @@
-<!-- Site header -->
-<header class="fixed w-full z-50 bg-white border-b border-slate-200">
+<!-- Announcement Bar + Header wrapper -->
+<div x-data="{ showBanner: true }">
+    <!-- Announcement Bar -->
+    <div class="fixed top-0 left-0 right-0 bg-slate-900 text-white py-2.5 px-4 text-center text-sm z-50" x-show="showBanner" x-transition>
+        <div class="max-w-6xl mx-auto flex items-center justify-center gap-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-700 text-slate-200 uppercase tracking-wide">
+                New Release
+            </span>
+            <span class="text-slate-300">
+                AI-Powered Chat Agents, Knowledge Bases, Analytics
+            </span>
+            <a href="#features" class="text-blue-400 hover:text-blue-300 font-medium hover:underline transition">
+                Learn more
+            </a>
+            <button @click="showBanner = false" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Site header -->
+    <header class="fixed left-0 right-0 w-full z-40 bg-white/95 backdrop-blur-sm border-b border-slate-100 transition-all duration-300" :class="showBanner ? 'top-[41px]' : 'top-0'">
     <div class="max-w-6xl mx-auto px-5 sm:px-6">
         <div class="flex items-center justify-between h-16 md:h-18">
 
@@ -8,8 +30,8 @@
                 <!-- Logo -->
                 <a class="flex items-center gap-2 transition duration-150 ease-in-out" href="{{ route('home') }}"
                    aria-label="{{ config('app.name') }}">
-                    <img src="{{ asset('images/logo.png') }}" class="w-10 h-10" alt="{{ config('app.name') }} Logo"/>
-                    <span class="font-semibold text-lg text-slate-800 hidden sm:block">{{ config('app.name') }}</span>
+                    <img src="{{ asset('images/logo.png') }}" class="w-9 h-9" alt="{{ config('app.name') }} Logo"/>
+                    <span class="font-semibold text-lg text-slate-900 hidden sm:block">{{ config('app.name') }}</span>
                 </a>
             </div>
 
@@ -20,7 +42,7 @@
                 <ul class="flex grow justify-center flex-wrap items-center gap-1">
                     @foreach(landing()['navigation'] as $navItem)
                         <li>
-                            <a class="text-sm font-medium text-slate-700 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
+                            <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
                                href="{{ $navItem['link'] }}">{{ $navItem['label'] }}</a>
                         </li>
                     @endforeach
@@ -30,23 +52,28 @@
                 <ul class="flex grow justify-end flex-wrap items-center gap-3">
                     @auth
                         <li>
-                            <a class="text-sm font-medium text-slate-700 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
+                            <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
                                href="{{ route('dashboard') }}">Dashboard</a>
                         </li>
                     @else
                         @if (host_config('user')['demo'] === true)
                             <li>
-                                <a class="text-sm font-medium text-slate-700 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
-                                   href="{{ route('demo') }}">Request Demo</a>
+                                <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
+                                   href="{{ route('demo') }}">Book demo</a>
                             </li>
                         @endif
                         <li>
-                            <a class="text-sm font-medium text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 px-5 py-2 rounded-full flex items-center transition duration-150 ease-in-out"
+                            <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
                                href="{{ route('login') }}">Log in</a>
                         </li>
                         <li>
-                            <a class="text-sm font-semibold text-white bg-red-500 hover:bg-red-600 px-5 py-2 rounded-full flex items-center transition duration-150 ease-in-out"
-                               href="{{ route('home') }}#pricing">Sign up free</a>
+                            <a class="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-lg flex items-center gap-1.5 transition duration-150 ease-in-out shadow-sm"
+                               href="{{ route('home') }}#pricing">
+                                Get started
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                                </svg>
+                            </a>
                         </li>
                     @endif
                 </ul>
@@ -78,7 +105,7 @@
                 <!-- Mobile navigation -->
                 <nav
                     id="mobile-nav"
-                    class="absolute top-full left-0 w-full bg-white border-b border-slate-200"
+                    class="absolute top-full left-0 w-full bg-white border-b border-slate-200 shadow-lg"
                     @click.away="expanded = false"
                     @keydown.escape.window="expanded = false"
                     x-show="expanded"
@@ -107,11 +134,11 @@
                         @guest
                             @if (host_config('user')['demo'] === true)
                                 <li>
-                                    <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition" href="{{ route('demo') }}">Request Demo</a>
+                                    <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition" href="{{ route('demo') }}">Book demo</a>
                                 </li>
                             @endif
                             <li class="pt-2">
-                                <a class="flex font-semibold text-white bg-red-500 hover:bg-red-600 py-3 px-4 rounded-full justify-center transition" href="{{ route('home') }}#pricing">Sign up free</a>
+                                <a class="flex font-semibold text-white bg-indigo-600 hover:bg-indigo-700 py-3 px-4 rounded-lg justify-center transition" href="{{ route('home') }}#pricing">Get started</a>
                             </li>
                         @endguest
                     </ul>
@@ -122,3 +149,4 @@
         </div>
     </div>
 </header>
+</div>

@@ -42,4 +42,3 @@ class ChatLogLeadData extends Data
         );
     }
 }
-

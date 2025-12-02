@@ -223,4 +223,3 @@ describe('Protected Routes', function () {
         $response->assertRedirect(route('verification.notice'));
     });
 });
-

@@ -27,6 +27,8 @@ class ChatLogConversationData extends Data
         public ?string $locale,
         public ?string $topic,
         public ?string $topic_id,
+        public ?string $sentiment,
+        public ?string $tone,
     ) {}
 
     public static function fromConversation(ChatConversation $conversation, ?string $excerpt = null): self
@@ -49,6 +51,8 @@ class ChatLogConversationData extends Data
             locale: $conversation->session?->locale,
             topic: $conversation->topic?->topic,
             topic_id: $conversation->chat_topic_id,
+            sentiment: $conversation->sentiment,
+            tone: $conversation->tone,
         );
     }
 }

@@ -9,13 +9,23 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --color-slate-900: #101d2d;
+    --color-slate-900: #0f172a;
 
     --color-blue-500: #5696ff;
     --color-blue-600: #2174ea;
 
-    --font-display: 'DM Serif Display', serif;
-    --font-inter: Inter, sans-serif;
+    --color-indigo-50: #eef2ff;
+    --color-indigo-100: #e0e7ff;
+    --color-indigo-200: #c7d2fe;
+    --color-indigo-400: #818cf8;
+    --color-indigo-500: #6366f1;
+    --color-indigo-600: #4f46e5;
+    --color-indigo-700: #4338ca;
+    --color-indigo-950: #1e1b4b;
+
+    --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    --font-inter: 'Inter', sans-serif;
+    --font-heading: 'Inter', 'Plus Jakarta Sans', sans-serif;
 
     --text-xs: 0.75rem;
     --text-xs--line-height: 1.5;
@@ -115,6 +125,15 @@
     .animate-marquee {
         animation: marquee 20s linear infinite;
     }
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
 }
 
 /* Smooth scrolling */

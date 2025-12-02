@@ -19,7 +19,7 @@ class ToneAnalysis
                     You are an expert in sentiment and tone analysis for customer support messages.
                     Analyze the given text and respond with TWO things:
                     1. Sentiment: Positive, Negative, or Neutral
-                    2. Tone: Neutral, Frustrated, Urgent, Confused, Satisfied, Formal, or Casual
+                    2. Tone: Neutral, Frustrated, Urgent, Confused, or Satisfied
                     
                     Respond in this exact format:
                     Sentiment: [sentiment]
@@ -56,10 +56,6 @@ class ToneAnalysis
                 $tone = ToneEnum::CONFUSED;
             } elseif (str_contains($response, 'satisfied')) {
                 $tone = ToneEnum::SATISFIED;
-            } elseif (str_contains($response, 'formal')) {
-                $tone = ToneEnum::FORMAL;
-            } elseif (str_contains($response, 'casual')) {
-                $tone = ToneEnum::CASUAL;
             }
         }
 

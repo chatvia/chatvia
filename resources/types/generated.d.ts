@@ -142,6 +142,8 @@ page_url: string | null;
 locale: string | null;
 topic: string | null;
 topic_id: string | null;
+sentiment: string | null;
+tone: string | null;
 };
 export type ChatLogConversationsResourceData = {
 conversations: any;

@@ -72,11 +72,12 @@ readonly class ChatStreamService
     }
 
     /**
-     * Stream an error response to the client.
+     * Stream an error message as regular content to the client.
+     * This allows errors to appear naturally in the chat bubble.
      */
     private function streamErrorResponse(string $message, string $code = 'error'): StreamedResponse
     {
-        return new StreamedResponse(function () use ($message, $code) {
+        return new StreamedResponse(function () use ($message) {
             header('Content-Type: text/event-stream');
             header('Cache-Control: no-cache, no-store, must-revalidate');
             header('Connection: keep-alive');
@@ -86,7 +87,12 @@ readonly class ChatStreamService
                 ob_end_clean();
             }
 
-            echo 'error: '.json_encode(['message' => $message, 'code' => $code])."\n\n";
+            // Stream the error message as regular content
+            echo 'data: '.json_encode(['content' => $message])."\n\n";
+            flush();
+
+            // Send done signal
+            echo "data: {\"content\":\"[DONE]\"}\n\n";
             flush();
 
         }, 200, [

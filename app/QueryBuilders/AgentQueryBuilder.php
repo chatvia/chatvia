@@ -439,4 +439,40 @@ class AgentQueryBuilder extends Builder
             ->limit($limit)
             ->get();
     }
+
+    /**
+     * Get the average tokens per message (prompt_tokens + completion_tokens).
+     */
+    public function avgTokensPerMessage(): ?int
+    {
+        $agentId = $this->getModel()->id;
+
+        $result = DB::table('chat_sessions')
+            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
+            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_messages.role', 'assistant')
+            ->selectRaw('ROUND(AVG(COALESCE(chat_messages.prompt_tokens, 0) + COALESCE(chat_messages.completion_tokens, 0))) as avg_tokens')
+            ->value('avg_tokens');
+
+        return $result ? (int) $result : null;
+    }
+
+    /**
+     * Get the total tokens used (sum of prompt_tokens + completion_tokens).
+     */
+    public function totalTokensUsed(): ?int
+    {
+        $agentId = $this->getModel()->id;
+
+        $result = DB::table('chat_sessions')
+            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
+            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_messages.role', 'assistant')
+            ->selectRaw('SUM(COALESCE(chat_messages.prompt_tokens, 0) + COALESCE(chat_messages.completion_tokens, 0)) as total_tokens')
+            ->value('total_tokens');
+
+        return $result ? (int) $result : null;
+    }
 }

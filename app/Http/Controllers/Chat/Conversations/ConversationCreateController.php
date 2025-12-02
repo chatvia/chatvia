@@ -8,6 +8,7 @@ use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Memory\ChatMemory;
 use App\Services\Memory\ChatSession;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 final class ConversationCreateController
 {
@@ -24,7 +25,17 @@ final class ConversationCreateController
 
         ['lang' => $lang, 'query' => $query] = OpenAI::rewriteQuery($request->input('message'));
 
+        $sessionId = $session->firstOrCreateChatSession();
+
+        $conversationId = $memory
+            ->setAgent($agent)
+            ->setSessionId($sessionId)
+            ->createConversation(title: 'New Chat');
+
         $payload = ChatInputPayload::from([
+            'session_id' => $sessionId,
+            'conversation_id' => $conversationId,
+            'message_id' => Str::ulid()->toString(),
             'model' => $request->input('model'),
             'message' => $request->input('message'),
             'sent_at' => now(),
@@ -36,11 +47,6 @@ final class ConversationCreateController
             'page_url' => $request->url(),
             'locale' => $request->header('accept-language') ? substr($request->header('accept-language'), 0, 5) : null,
         ]);
-
-        $conversationId = $memory
-            ->setAgent($agent)
-            ->setSessionId($session->firstOrCreateChatSession())
-            ->createConversation(title: 'New Chat');
 
         $memory->setConversationId($conversationId);
 

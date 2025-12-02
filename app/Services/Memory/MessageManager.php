@@ -66,7 +66,7 @@ class MessageManager
             conversationId: $conversationId,
             role: $role,
             message: $payload->message,
-            messageId: $payload->message_id ?? null,
+            messageId: $payload->message_id,
             model: $payload->model,
             append: $append
         );

@@ -8,10 +8,13 @@ use Spatie\LaravelData\Data;
 class ChatInputPayload extends Data
 {
     public function __construct(
+        public string $session_id,
+        public string $conversation_id,
+        public string $message_id,
         public string $model,
         public string $message,
         public Carbon $sent_at,
-        public array $updated_message_info = [], // TODO: find a better name
+        public array $updated_message_info = [],
         public ?string $message_for_llm = null,
         public ?int $member_id = null,
         public ?string $language = null,

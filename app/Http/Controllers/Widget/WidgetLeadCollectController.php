@@ -57,8 +57,9 @@ class WidgetLeadCollectController
                 ->setConversationId($threadId)
                 ->addMessageViaPayload(
                     new ChatOutputPayload(
+                        session_id: $sessionId,
+                        conversation_id: $threadId,
                         message_id: Str::ulid()->toString(),
-                        role: 'assistant',
                         message: 'We have received your contact information. We will get back to you shortly. Thank you!',
                         model: $llm->internal_name,
                         sent_at: now(),

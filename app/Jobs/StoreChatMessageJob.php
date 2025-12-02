@@ -27,61 +27,43 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
     public function __construct(
         public Agent $agent,
-        public string $sessionId,
-        public string $role,
-        public ?string $conversationId,
-        public ?string $title,
-        public string $messageId,
-        public ChatInputPayload|ChatOutputPayload $payload
+        public ChatInputPayload|ChatOutputPayload $payload,
     ) {
         $this->onQueue('messages');
     }
 
     public function handle(ToneAnalysis $toneAnalysis, TopicAnalysis $topicAnalysis): void
     {
-        $isInputMessage = $this->payload instanceof ChatInputPayload;
-
-        $sessionId = $this->sessionId;
+        $isUserMessage = $this->payload instanceof ChatInputPayload;
 
         // Parse user agent to extract device, browser, and OS information
         $userAgentData = [];
-        if ($isInputMessage && $this->payload->user_agent) {
+        if ($isUserMessage && $this->payload->user_agent) {
             $userAgentData = UserAgentParser::parse($this->payload->user_agent);
         }
 
         // Parse locale to extract primary language (e.g., "en-US" from "en-US,en;q=0.5")
         $locale = null;
-        if ($isInputMessage && $this->payload->locale) {
+        if ($isUserMessage && $this->payload->locale) {
             $locale = explode(',', $this->payload->locale)[0];
         }
 
         $session = ChatSession::firstOrCreate([
-            'id' => $sessionId,
+            'id' => $this->payload->session_id,
             'agent_id' => $this->agent->id,
-            'member_id' => $isInputMessage ? $this->payload->member_id : null,
+            'member_id' => $isUserMessage ? $this->payload->member_id : null,
         ], [
-            'ip_address' => $isInputMessage ? $this->payload->ip_address : null,
-            'user_agent' => $isInputMessage ? $this->payload->user_agent : null,
+            'ip_address' => $isUserMessage ? $this->payload->ip_address : null,
+            'user_agent' => $isUserMessage ? $this->payload->user_agent : null,
             'device_type' => $userAgentData['device_type'] ?? null,
             'browser' => $userAgentData['browser'] ?? null,
             'os' => $userAgentData['os'] ?? null,
-            'referrer_url' => $isInputMessage ? $this->payload->referrer_url ?? null : null,
-            'page_url' => $isInputMessage ? $this->payload->page_url ?? null : null,
+            'referrer_url' => $isUserMessage ? $this->payload->referrer_url ?? null : null,
+            'page_url' => $isUserMessage ? $this->payload->page_url ?? null : null,
             'locale' => $locale,
         ]);
 
-        // Update device info if not already set
-        //        if ($isInputMessage && $this->payload->user_agent && (! $session->device_type || ! $session->browser || ! $session->os)) {
-        //            $session->update([
-        //                'device_type' => $session->device_type ?? $userAgentData['device_type'] ?? null,
-        //                'browser' => $session->browser ?? $userAgentData['browser'] ?? null,
-        //                'os' => $session->os ?? $userAgentData['os'] ?? null,
-        //            ]);
-        //        }
-
-        $session->update([
-            'last_activity_at' => now(),
-        ]);
+        $session->update(['last_activity_at' => now()]);
 
         // Get country from IP address if not already set
         if ($session->ip_address && ! $session->country_id) {
@@ -96,9 +78,9 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         /** @var ChatConversation $conversation */
         $conversation = ChatConversation::firstOrCreate([
-            'id' => $this->conversationId,
-            'chat_session_id' => $sessionId,
-        ], ['title' => $this->title]);
+            'id' => $this->payload->conversation_id,
+            'chat_session_id' => $this->payload->session_id,
+        ]);
 
         // Find LLM by external_name (model string from payload)
         $llmId = $this->payload->model
@@ -108,17 +90,14 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $sentiment = null;
         $tone = null;
 
-        if ($this->payload instanceof ChatInputPayload) {
+        if ($isUserMessage) {
             $analysis = $toneAnalysis->analyze($this->payload->message);
             $sentiment = $analysis['sentiment']->value;
             $tone = $analysis['tone']->value;
         }
 
-        // Determine if this is an assistant message (has output-specific fields)
-        $isAssistant = $this->payload instanceof ChatOutputPayload;
-
         // Fetch usage data from OpenRouter if we have a generation ID
-        $generationId = $isAssistant ? $this->payload->generation_id : null;
+        $generationId = ! $isUserMessage ? $this->payload->generation_id : null;
         $usageData = $generationId ? OpenRouter::getGeneration($generationId) : null;
 
         // Get tokens and cost from OpenRouter generation data
@@ -127,21 +106,21 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $cost = $usageData['total_cost'] ?? null;
 
         $messageData = [
-            'id' => $this->messageId,
-            'chat_conversation_id' => $this->conversationId,
+            'id' => $this->payload->message_id,
+            'chat_conversation_id' => $this->payload->conversation_id,
             'content' => $this->payload->message,
-            'role' => $this->role,
+            'role' => $isUserMessage ? 'user' : 'assistant',
             'llm_id' => $llmId,
-            'response_time_ms' => $isAssistant ? $this->payload->response_time_ms : null,
+            'response_time_ms' => ! $isUserMessage ? $this->payload->response_time_ms : null,
             'generation_id' => $generationId,
             'prompt_tokens' => $promptTokens,
             'completion_tokens' => $completionTokens,
             'cost' => $cost,
-            'confidence_score' => $isAssistant ? $this->payload->confidence_score : null,
+            'confidence_score' => ! $isUserMessage ? $this->payload->confidence_score : null,
             'sentiment' => $sentiment,
             'tone' => $tone,
-            'is_direct_response' => $isAssistant ? $this->payload->is_direct_response : false,
-            'agent_question_answer_id' => $isAssistant ? $this->payload->agent_question_answer_id : null,
+            'is_direct_response' => ! $isUserMessage ? $this->payload->is_direct_response : false,
+            'agent_question_answer_id' => ! $isUserMessage ? $this->payload->agent_question_answer_id : null,
             'source' => $this->payload->source,
         ];
 
@@ -173,6 +152,6 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'messages:store:id:'.$this->messageId;
+        return 'messages:store:id:'.$this->payload->message_id;
     }
 }

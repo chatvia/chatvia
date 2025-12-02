@@ -11,9 +11,7 @@ use App\Models\ChatSession;
 use App\Models\Country;
 use App\Models\Llm;
 use App\Services\Infrastructure\LLM\OpenRouter;
-use App\Services\Infrastructure\ToneAnalysis;
 use App\Services\IP2Country;
-use App\Services\TopicAnalysis;
 use App\Services\UserAgentParser;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -32,17 +30,15 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $this->onQueue('messages');
     }
 
-    public function handle(ToneAnalysis $toneAnalysis, TopicAnalysis $topicAnalysis): void
+    public function handle(): void
     {
         $isUserMessage = $this->payload instanceof ChatInputPayload;
 
-        // Parse user agent to extract device, browser, and OS information
         $userAgentData = [];
         if ($isUserMessage && $this->payload->user_agent) {
             $userAgentData = UserAgentParser::parse($this->payload->user_agent);
         }
 
-        // Parse locale to extract primary language (e.g., "en-US" from "en-US,en;q=0.5")
         $locale = null;
         if ($isUserMessage && $this->payload->locale) {
             $locale = explode(',', $this->payload->locale)[0];
@@ -65,7 +61,6 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         $session->update(['last_activity_at' => now()]);
 
-        // Get country from IP address if not already set
         if ($session->ip_address && ! $session->country_id) {
             $countryCode = IP2Country::getCountryByIP($session->ip_address);
             if ($countryCode) {
@@ -82,25 +77,15 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'chat_session_id' => $this->payload->session_id,
         ]);
 
-        // Find LLM by external_name (model string from payload)
+        $conversation->update(['last_activity_at' => now()]);
+
         $llmId = $this->payload->model
             ? Llm::where('external_name', $this->payload->model)->value('id')
             : null;
 
-        $sentiment = null;
-        $tone = null;
-
-        if ($isUserMessage) {
-            $analysis = $toneAnalysis->analyze($this->payload->message);
-            $sentiment = $analysis['sentiment']->value;
-            $tone = $analysis['tone']->value;
-        }
-
-        // Fetch usage data from OpenRouter if we have a generation ID
         $generationId = ! $isUserMessage ? $this->payload->generation_id : null;
         $usageData = $generationId ? OpenRouter::getGeneration($generationId) : null;
 
-        // Get tokens and cost from OpenRouter generation data
         $promptTokens = $usageData['tokens_prompt'] ?? null;
         $completionTokens = $usageData['tokens_completion'] ?? null;
         $cost = $usageData['total_cost'] ?? null;
@@ -117,14 +102,11 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'completion_tokens' => $completionTokens,
             'cost' => $cost,
             'confidence_score' => ! $isUserMessage ? $this->payload->confidence_score : null,
-            'sentiment' => $sentiment,
-            'tone' => $tone,
             'is_direct_response' => ! $isUserMessage ? $this->payload->is_direct_response : false,
             'agent_question_answer_id' => ! $isUserMessage ? $this->payload->agent_question_answer_id : null,
             'source' => $this->payload->source,
         ];
 
-        // Use the sent_at timestamp if provided to ensure correct message ordering
         if ($this->payload->sent_at) {
             $messageData['created_at'] = $this->payload->sent_at;
             $messageData['updated_at'] = $this->payload->sent_at;
@@ -132,22 +114,9 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         ChatMessage::create($messageData);
 
-        // Topic analysis
-        $conversation->refresh();
+        AnalyzeMessageJob::dispatchIf($isUserMessage, $this->payload->message_id);
 
-        if (! $conversation->chat_topic_id && $conversation->messages()->count() >= 4) {
-            $topic = $topicAnalysis->analyze(
-                $conversation
-                    ->messages()
-                    ->select('content')
-                    ->implode('content', "\n"),
-                $this->agent
-            );
-
-            if ($topic) {
-                $conversation->update(['chat_topic_id' => $topic->id]);
-            }
-        }
+        AnalyzeConversationJob::dispatchIf($conversation->messages()->count() >= 5, $conversation);
     }
 
     public function uniqueId(): string

@@ -46,7 +46,7 @@ return [
         'group' => Jurager\Teams\Models\Group::class,
         'invitation' => App\Models\Invitation::class, // Custom model to fix role relationship bug
         'membership' => Jurager\Teams\Models\Membership::class,
-        'role' => Jurager\Teams\Models\Role::class,
+        'role' => App\Models\Role::class, // Custom model with agent access fields
     ],
 
     /*

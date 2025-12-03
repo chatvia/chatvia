@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Jurager\Teams\Models\Team as JuragerTeam;
 
 class Team extends JuragerTeam
@@ -26,6 +27,14 @@ class Team extends JuragerTeam
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Get the agents that belong to the team (via the owner).
+     */
+    public function agents(): HasMany
+    {
+        return $this->hasMany(Agent::class, 'user_id', 'user_id');
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agents\ChatLog;
 
 use App\Data\Resources\Agent\ChatLog\ChatLogMessagesResourceData;
 use App\Models\Agent;
+use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\Lead;
 use Illuminate\Http\Request;
@@ -29,6 +30,20 @@ class AgentChatLogMessagesController
             ->where('chat_conversation_id', $conversationId)
             ->first();
 
-        return ChatLogMessagesResourceData::fromPaginator($messages, $lead);
+        // Get conversation with handoff info
+        $conversation = ChatConversation::with('handoffUser')->find($conversationId);
+
+        $response = ChatLogMessagesResourceData::fromPaginator($messages, $lead);
+
+        // Convert to array and add handoff info
+        $data = $response->toArray();
+        $data['handoff'] = [
+            'status' => $conversation?->handoff_status ?? 'ai',
+            'admin_id' => $conversation?->handoff_user_id,
+            'admin_name' => $conversation?->handoffUser?->name,
+            'handoff_at' => $conversation?->handoff_at?->toIso8601String(),
+        ];
+
+        return response()->json($data);
     }
 }

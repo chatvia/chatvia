@@ -18,6 +18,13 @@ class ChatConversation extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return [
+            'handoff_at' => 'datetime',
+        ];
+    }
+
     public function newEloquentBuilder($query): ChatConversationQueryBuilder
     {
         return new ChatConversationQueryBuilder($query);
@@ -58,5 +65,29 @@ class ChatConversation extends Model
             'chat_session_id',
             'agent_id'
         );
+    }
+
+    /**
+     * The admin user who has taken over this conversation (handoff).
+     */
+    public function handoffUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'handoff_user_id');
+    }
+
+    /**
+     * Check if conversation is currently controlled by a human admin.
+     */
+    public function isHandedOff(): bool
+    {
+        return $this->handoff_status === 'human';
+    }
+
+    /**
+     * Check if AI should respond to this conversation.
+     */
+    public function shouldAiRespond(): bool
+    {
+        return in_array($this->handoff_status, ['ai', 'returned', null]);
     }
 }

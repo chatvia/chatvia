@@ -26,6 +26,7 @@ class ChatLogMessageData extends Data
         public string $created_at,
         public ?int $agent_question_answer_id,
         public ?string $source = null,
+        public ?string $read_at = null,
     ) {}
 
     public static function fromMessage(ChatMessage $message): self
@@ -47,6 +48,7 @@ class ChatLogMessageData extends Data
             created_at: $message->created_at->toISOString(),
             agent_question_answer_id: $message->agent_question_answer_id,
             source: $message->source,
+            read_at: $message->read_at?->toISOString(),
         );
     }
 }

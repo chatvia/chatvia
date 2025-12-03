@@ -35,6 +35,12 @@ use App\Http\Controllers\Agents\ChatLog\AgentChatLogMessagesController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogReviseAnswerController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogTopicsController;
 use App\Http\Controllers\Agents\Embed\EmbedController;
+use App\Http\Controllers\Agents\Handoff\HandoffMarkReadController;
+use App\Http\Controllers\Agents\Handoff\HandoffMessageController;
+use App\Http\Controllers\Agents\Handoff\HandoffPendingListController;
+use App\Http\Controllers\Agents\Handoff\HandoffReturnController;
+use App\Http\Controllers\Agents\Handoff\HandoffTakeOverController;
+use App\Http\Controllers\Agents\Handoff\HandoffTypingController;
 use App\Http\Controllers\Agents\History\AgentHistoryController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsDataController;
@@ -214,6 +220,14 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::get('logs/topics', AgentChatLogTopicsController::class)->name('logs.topics');
         Route::get('logs/countries', AgentChatLogCountriesController::class)->name('logs.countries');
         Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->name('logs.revise-answer');
+
+        // Handoff (Admin Takeover) Routes
+        Route::get('handoff/pending', HandoffPendingListController::class)->name('handoff.pending');
+        Route::post('handoff/{conversation}/takeover', HandoffTakeOverController::class)->name('handoff.takeover');
+        Route::post('handoff/{conversation}/return', HandoffReturnController::class)->name('handoff.return');
+        Route::post('handoff/{conversation}/message', HandoffMessageController::class)->name('handoff.message');
+        Route::post('handoff/{conversation}/typing', HandoffTypingController::class)->name('handoff.typing');
+        Route::post('handoff/{conversation}/mark-read', HandoffMarkReadController::class)->name('handoff.mark-read');
 
         Route::get('widget', WidgetController::class)->name('widget');
         Route::get('embed', EmbedController::class)->name('embed');

@@ -37,6 +37,11 @@ class MessageManager
             'timestamp' => now()->timestamp,
         ];
 
+        // Only add read_at for human agent messages (handoff mode)
+        if ($role === 'agent') {
+            $formattedMessage['read_at'] = null;
+        }
+
         if ($model) {
             $formattedMessage['model'] = $model;
         }
@@ -58,6 +63,11 @@ class MessageManager
 
         if ($isInputMessage) {
             $append['message_for_llm'] = $payload->message_for_llm;
+
+            // Add read_at for user messages during handoff
+            if ($payload->source === 'handoff') {
+                $append['read_at'] = null;
+            }
         }
 
         $role = $isInputMessage ? 'user' : 'assistant';
@@ -87,11 +97,55 @@ class MessageManager
                             'feedback' => $value ? 'positive' : 'negative',
                         ]);
                     }
+
+                    // Handle read_at persistence to database
+                    if ($key === 'read_at') {
+                        ChatMessage::where('id', $message['id'])->update([
+                            'read_at' => $value,
+                        ]);
+                    }
                 }
             }
         }
 
         $this->saveMessages($conversationId, $messages);
+    }
+
+    /**
+     * Mark messages as read by role (only for handoff/human mode).
+     * - For user: mark agent messages as read (NOT assistant - AI messages don't need read receipts)
+     * - For admin: mark user messages as read (only those sent during handoff)
+     */
+    public function markMessagesAsRead(string $conversationId, string $readerType): int
+    {
+        $messages = $this->getMessagesForConversation($conversationId);
+        $now = now();
+        $markedCount = 0;
+
+        // Determine which roles to mark as read based on who is reading
+        // Only 'agent' role messages (human admin) need read receipts, not 'assistant' (AI)
+        $rolesToMark = $readerType === 'user'
+            ? ['agent'] // User reads human agent messages only
+            : ['user']; // Admin reads user messages
+
+        foreach ($messages as &$message) {
+            // Only mark if it has read_at field (handoff messages) and hasn't been read
+            if (in_array($message['role'], $rolesToMark) && array_key_exists('read_at', $message) && empty($message['read_at'])) {
+                $message['read_at'] = $now->timestamp;
+                $markedCount++;
+
+                // Persist to database
+                ChatMessage::where('id', $message['id'])->update([
+                    'read_at' => $now,
+                ]);
+            }
+        }
+
+        if ($markedCount > 0) {
+            $this->saveMessages($conversationId, $messages);
+        }
+
+        return $markedCount;
     }
 
     public function deleteMessage(string $conversationId, string $messageId): void

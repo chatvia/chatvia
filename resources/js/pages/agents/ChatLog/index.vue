@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LoaderCircle, Search, MessageSquare, RefreshCcw, X, UserCheck, Tag, Activity } from 'lucide-vue-next';
+import { LoaderCircle, Search, MessageSquare, RefreshCcw, X, UserCheck, Tag, Activity, Phone } from 'lucide-vue-next';
 import LeadDetailsSheet from '@/components/LeadDetailsSheet.vue';
 import axios from 'axios';
 
@@ -17,6 +17,7 @@ import ChatMessages from './ChatMessages.vue';
 import ConversationDetails from './ConversationDetails.vue';
 import ConversationPulse from './ConversationPulse.vue';
 import ChatLogFilters from './ChatLogFilters.vue';
+import HandoffPanel from './HandoffPanel.vue';
 
 // Composable
 import { useChatLog } from './useChatLog';
@@ -35,6 +36,7 @@ const {
   messagesData,
   fetchInitialData,
   fetchMessages,
+  handoff,
 } = useChatLog();
 
 // Page title
@@ -208,6 +210,18 @@ watch(() => currentConversationId.value, (newId, oldId) => {
                   <Tag class="h-4 w-4 mr-2" />
                   Details
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="handoff" 
+                  class="relative px-4 py-2.5 rounded-none bg-transparent text-muted-foreground hover:text-foreground transition-colors data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium text-sm cursor-pointer after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-transparent data-[state=active]:after:bg-primary"
+                  :class="{ 'text-amber-600 dark:text-amber-400': handoff.isHandedOff.value }"
+                >
+                  <Phone class="h-4 w-4 mr-2" />
+                  Live Chat
+                  <span 
+                    v-if="handoff.userIsOnline.value" 
+                    class="ml-1.5 w-2 h-2 rounded-full bg-green-500 animate-pulse"
+                  />
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -224,6 +238,11 @@ watch(() => currentConversationId.value, (newId, oldId) => {
             <!-- Details Tab Content -->
             <TabsContent value="details" class="flex-1 min-h-0 mt-0 overflow-auto">
               <ConversationDetails />
+            </TabsContent>
+
+            <!-- Handoff/Live Chat Tab Content -->
+            <TabsContent value="handoff" class="flex-1 flex flex-col min-h-0 mt-0 overflow-hidden">
+              <HandoffPanel />
             </TabsContent>
           </Tabs>
         </div>

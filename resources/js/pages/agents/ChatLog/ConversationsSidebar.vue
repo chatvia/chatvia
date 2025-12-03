@@ -2,7 +2,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { LoaderCircle, RefreshCcw, Download, Filter, X, ThumbsUp, ThumbsDown, Globe, Calendar } from 'lucide-vue-next';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { LoaderCircle, RefreshCcw, Download, Filter, X, ThumbsUp, ThumbsDown, Globe, Calendar, Circle } from 'lucide-vue-next';
 import { useChatLog } from './useChatLog';
 
 const {
@@ -24,6 +25,7 @@ const {
   selectedFeedback,
   selectedSource,
   dateRange,
+  onlineOnly,
   fetchConversations,
   selectConversation,
   formatTimeAgo,
@@ -40,6 +42,11 @@ const {
   getSourceDisplayName,
   formatDateRangeDisplay,
 } = useChatLog();
+
+function toggleOnlineOnly() {
+  onlineOnly.value = !onlineOnly.value;
+  fetchConversations(1);
+}
 
 const isRefreshingConversations = ref(false);
 
@@ -81,8 +88,30 @@ import { ref } from 'vue';
     <div class="p-0 flex-1 overflow-y-auto min-h-0">
       <div class="px-4 pb-3 pt-4 flex-shrink-0 border-b border-border/50 sticky top-0 bg-muted/30 backdrop-blur-sm z-10">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="text-sm font-semibold tracking-tight">Conversations</h2>
           <div class="flex items-center gap-1">
+            <!-- Online Only Toggle -->
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="toggleOnlineOnly"
+                    class="h-8 px-2.5 gap-1.5"
+                    :class="onlineOnly ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50' : ''"
+                  >
+                    <Circle class="h-2.5 w-2.5 fill-current" :class="onlineOnly ? 'text-green-500' : 'text-muted-foreground'" />
+                    <span class="text-xs font-medium">Online</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Show only online users</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div class="flex items-center gap-1">
+
             <!-- Filters Button -->
             <Button 
               variant="ghost" 
@@ -227,11 +256,6 @@ import { ref } from 'vue';
                 >
                   {{ c.messages_count }}
                 </span>
-                <span 
-                  v-if="leadConversationIds.includes(c.conversation_id)" 
-                  class="w-1.5 h-1.5 rounded-full bg-green-500"
-                  :class="currentConversationId === c.conversation_id ? 'bg-primary-foreground' : ''"
-                />
               </div>
             </div>
             

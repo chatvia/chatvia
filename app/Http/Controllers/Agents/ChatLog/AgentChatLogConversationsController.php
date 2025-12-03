@@ -27,6 +27,7 @@ class AgentChatLogConversationsController
             confidenceScoreFilter: $request->query('confidence_score'),
             feedbackFilter: $request->query('feedback'),
             sourceFilter: $request->query('source'),
+            onlineOnly: $request->boolean('online_only'),
         );
     }
 }

@@ -191,7 +191,7 @@ const controlPanelNavigationItems = computed(() => {
         ...[
             { id: 'history', label: 'History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
             { id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads', tooltip: 'Manage leads captured by your agent' },
-            { id: 'logs', label: 'Chat Log', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' },
+            { id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' },
         ]
     )
 
@@ -751,14 +751,14 @@ onMounted(() => {
                     </div>
 
                     <!-- Page Content -->
-                    <div 
+                    <div
                         class="flex-1 min-w-0"
                         :class="[
                             fullHeight ? 'overflow-hidden' : 'overflow-auto',
                             noPadding ? '' : 'bg-muted/30'
                         ]"
                     >
-                        <div 
+                        <div
                             :class="[
                                 'min-w-0 max-w-full',
                                 noPadding ? 'h-full' : 'p-3 sm:p-4 lg:p-6',

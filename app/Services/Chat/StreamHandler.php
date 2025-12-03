@@ -162,7 +162,7 @@ class StreamHandler
 
     private function handleRequestException(RequestException $e, ChatContext $context): void
     {
-        $errorMessage = 'Error: Could not connect to '.$context->llmModel->id.' model. Please choose a different model';
+        $errorMessage = 'Error: Could not connect to '.$context->requestData->message->model->internal_name.' model. Please choose a different model';
 
         echo 'data: '.json_encode(['content' => $errorMessage], JSON_THROW_ON_ERROR)."\n\n";
         echo "data: {\"content\":\"[DONE]\"}\n\n";

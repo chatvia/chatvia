@@ -44,7 +44,7 @@ return [
         'ability' => Jurager\Teams\Models\Ability::class,
         'permission' => Jurager\Teams\Models\Permission::class,
         'group' => Jurager\Teams\Models\Group::class,
-        'invitation' => Jurager\Teams\Models\Invitation::class,
+        'invitation' => App\Models\Invitation::class, // Custom model to fix role relationship bug
         'membership' => Jurager\Teams\Models\Membership::class,
         'role' => Jurager\Teams\Models\Role::class,
     ],
@@ -72,6 +72,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Request Lifecycle
+    |--------------------------------------------------------------------------
+    | Configure request lifecycle options
+    */
+    'request' => [
+        // Enabling this option caches the permission decision for the request
+        'cache_decisions' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Invitations
     |--------------------------------------------------------------------------
     | Configures the team invitation feature, allowing users to be invited to join teams.
@@ -81,9 +92,27 @@ return [
         'enabled' => true,
 
         'routes' => [
-            'register' => true,
-            'url' => '/invitation/{invitation_id}/accept',
+            // Disabled - we use our own invitation routes
+            'register' => false,
+            'url' => '/invitation/{invitation}/accept',
             'middleware' => 'web',
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Wildcard Permissions
+    |--------------------------------------------------------------------------
+    | Configure wildcard permission nodes, allowing you to specify super admin
+    | permission node(s) that allows a user to perform all actions on a team.
+    */
+    'wildcards' => [
+        'enabled' => false,
+        'nodes' => [
+            '*',
+            '*.*',
+            'all',
+        ],
+    ],
+
 ];

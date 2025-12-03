@@ -87,6 +87,14 @@ class ChatConversationQueryBuilder extends Builder
         });
     }
 
+    public function filterByOnlineStatus(?bool $onlineOnly): self
+    {
+        return $this->when($onlineOnly, function ($query) {
+            // Consider users "online" if active within the last 3 minutes
+            $query->where('last_activity_at', '>=', now()->subMinutes(3));
+        });
+    }
+
     public function orderByLatestActivity(): self
     {
         return $this->orderByDesc('updated_at');

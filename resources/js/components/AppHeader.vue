@@ -20,6 +20,7 @@ import type { BreadcrumbItem, NavItem, Auth } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { LayoutGrid, Menu, BotMessageSquare, CreditCard, Zap, HelpCircle, BarChart3 } from 'lucide-vue-next';
 import { computed } from 'vue';
+import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 
 interface Props {
@@ -173,6 +174,7 @@ const rightNavItems: NavItem[] = [];
                     </div>
 
                     <div class="ml-auto flex items-center space-x-2">
+                        <TeamSwitcher class="hidden md:flex" />
                         <div class="relative flex items-center space-x-1">
                             <Link
                                 v-if="!auth.user.is_paid"

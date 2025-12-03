@@ -8,6 +8,7 @@ use App\Models\Country;
 use App\Models\Language;
 use App\Models\Llm;
 use App\Models\Member;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -63,8 +64,11 @@ return new class extends Migration
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
             $table->enum('tone', ToneEnum::values())->nullable();
 
-            $table->timestamp('last_activity_at')->nullable()->index();
+            $table->foreignIdFor(User::class, 'handoff_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('handoff_status', ['ai', 'pending', 'human', 'returned'])->default('ai')->index();
 
+            $table->timestamp('handoff_at')->nullable();
+            $table->timestamp('last_activity_at')->nullable()->index();
             $table->timestamps();
             $table->softDeletes();
 
@@ -90,7 +94,7 @@ return new class extends Migration
             $table->text('content');
             $table->json('metadata')->nullable();
 
-            $table->enum('role', ['user', 'assistant'])->index();
+            $table->enum('role', ['user', 'assistant', 'agent'])->index();
             $table->decimal('confidence_score', 5, 4)->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
@@ -108,6 +112,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('expires_at')->nullable();
+            $table->timestamp('read_at')->nullable();
 
             $table->index(['chat_conversation_id', 'created_at']);
             $table->index(['role', 'created_at']);

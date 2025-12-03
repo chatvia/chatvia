@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { useTimeAgo } from '@/composables/useTimeAgo';
+import { useHandoff } from '@/composables/useHandoff';
 import axios from 'axios';
 
 type Message = App.Data.Resources.Agent.ChatLog.ChatLogMessageData;
@@ -16,11 +17,14 @@ const conversationTitle = ref<string | null>(null);
 const leadConversationIds = ref<string[]>([]);
 const lead = ref<any | null>(null);
 const currentConversationData = ref<any | null>(null);
-const activeTab = ref<'chat' | 'details' | 'pulse'>('chat');
+const activeTab = ref<'chat' | 'details' | 'pulse' | 'handoff'>('chat');
 
 // Loading states
 const isLoadingConversations = ref(false);
 const isLoadingMessages = ref(false);
+
+// Singleton handoff instance
+let handoffInstance: ReturnType<typeof useHandoff> | null = null;
 
 // Filter data
 const topics = ref<Topic[]>([]);
@@ -37,6 +41,7 @@ const selectedFeedback = ref<string>('all');
 const selectedSource = ref<string>('all');
 const dateRange = ref<{ start: string; end: string } | undefined>(undefined);
 const showFiltersDialog = ref(false);
+const onlineOnly = ref(false);
 
 // Search
 const search = ref('');
@@ -49,12 +54,21 @@ const pulseError = ref<string | null>(null);
 export function useChatLog() {
   const page = usePage();
   const { formatTimeAgo } = useTimeAgo();
-
+  
   // Initialize agent from page props (only once)
   if (!agent.value) {
     agent.value = page.props.agent;
     currentConversationId.value = page.props.current_conversation_id as string | null;
   }
+
+  // Singleton handoff composable - create once
+  if (!handoffInstance) {
+    handoffInstance = useHandoff(
+      () => agent.value?.id ?? null,
+      () => currentConversationId.value
+    );
+  }
+  const handoff = handoffInstance;
 
   // Computed values
   const totalConversations = computed(() => conversations.value?.total || 0);
@@ -115,6 +129,7 @@ export function useChatLog() {
       if (selectedConfidenceScore.value !== 'all') params.confidence_score = selectedConfidenceScore.value;
       if (selectedFeedback.value !== 'all') params.feedback = selectedFeedback.value;
       if (selectedSource.value !== 'all') params.source = selectedSource.value;
+      if (onlineOnly.value) params.online_only = true;
       if (dateRange.value?.start && dateRange.value?.end) {
         params.start_date = dateRange.value.start;
         params.end_date = dateRange.value.end;
@@ -149,6 +164,26 @@ export function useChatLog() {
       messagesData.value = response.data.messages;
       conversationTitle.value = response.data.conversation_title;
       lead.value = response.data.lead;
+      
+      // Update handoff state from response
+      if (response.data.handoff) {
+        const h = response.data.handoff;
+        handoff.handoffState.value = {
+          status: h.status || 'ai',
+          adminId: h.admin_id || null,
+          adminName: h.admin_name || null,
+          handoffAt: h.handoff_at || null,
+        };
+        
+        // Mark user messages as read when admin opens a handed-off conversation
+        if (h.status === 'human') {
+          handoff.markMessagesAsRead();
+        }
+      }
+      
+      // Always join the channel to see user online status
+      // (leave previous channel first via the composable's watch)
+      handoff.joinChannel(conversationId);
     } catch (error) {
       console.error('Failed to fetch messages:', error);
     } finally {
@@ -195,6 +230,27 @@ export function useChatLog() {
     } catch (error) {
       console.error('Failed to fetch initial data:', error);
     }
+  }
+
+  // Append a message directly to the messages list (for real-time updates)
+  function appendMessage(messageData: any) {
+    if (!messagesData.value?.data) {
+      messagesData.value = { data: [] };
+    }
+    
+    // Check if message already exists
+    const exists = messagesData.value.data.some((m: any) => m.id === messageData.id);
+    if (exists) return;
+    
+    // Create message object matching the expected format
+    const newMessage: Message = {
+      id: messageData.id,
+      content: messageData.content,
+      role: messageData.role,
+      created_at: messageData.timestamp || new Date().toISOString(),
+    };
+    
+    messagesData.value.data.push(newMessage);
   }
 
   function selectConversation(conversationId: string, conversationData: any) {
@@ -351,10 +407,14 @@ export function useChatLog() {
     selectedSource,
     dateRange,
     showFiltersDialog,
+    onlineOnly,
     search,
     pulseData,
     isLoadingPulse,
     pulseError,
+    
+    // Handoff
+    handoff,
     
     // Computed
     totalConversations,
@@ -373,6 +433,7 @@ export function useChatLog() {
     selectConversation,
     clearAllFilters,
     applyFilters,
+    appendMessage,
     
     // Utilities
     formatTimeAgo,

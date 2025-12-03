@@ -225,6 +225,19 @@ class ChatMemory implements ChatMemoryInterface
     }
 
     /**
+     * Mark messages as read based on who is reading.
+     * - 'user': marks agent/assistant messages as read
+     * - 'admin': marks user messages as read
+     */
+    public function markMessagesAsRead(string $readerType): int
+    {
+        $this->requireConversationId();
+        $this->ensureInitialized();
+
+        return $this->messageManager->markMessagesAsRead($this->conversationId, $readerType);
+    }
+
+    /**
      * Get a specific message by its ID.
      */
     public function getMessageById(string $messageId): ?array

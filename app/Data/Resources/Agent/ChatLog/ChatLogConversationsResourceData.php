@@ -34,6 +34,7 @@ class ChatLogConversationsResourceData extends Data
         ?string $confidenceScoreFilter = null,
         ?string $feedbackFilter = null,
         ?string $sourceFilter = null,
+        ?bool $onlineOnly = null,
     ): self {
         $conversationsPaginator = ChatConversation::query()
             ->forAgent($agent->id)
@@ -46,6 +47,7 @@ class ChatLogConversationsResourceData extends Data
             ->filterByConfidenceScore($confidenceScoreFilter)
             ->filterByFeedback($feedbackFilter)
             ->filterBySource($sourceFilter)
+            ->filterByOnlineStatus($onlineOnly)
             ->withCount('messages')
             ->orderByLatestActivity()
             ->paginate(10, pageName: 'conversations', page: $page);

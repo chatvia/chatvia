@@ -21,6 +21,7 @@ class ChatMessage extends Model
         return [
             'confidence_score' => 'float',
             'metadata' => 'array',
+            'read_at' => 'datetime',
         ];
     }
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2ade9f07ad3d3876aee0531211d6155a",
+    "content-hash": "09424889e44369cb881600c67dcf4b52",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -4106,6 +4106,70 @@
                 "source": "https://github.com/Jean85/pretty-package-versions/tree/2.1.1"
             },
             "time": "2025-03-19T14:43:43+00:00"
+        },
+        {
+            "name": "jurager/teams",
+            "version": "3.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Jurager/teams.git",
+                "reference": "04fbd54a3fd1fb7d2092363ea7f465ecfbf9065b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Jurager/teams/zipball/04fbd54a3fd1fb7d2092363ea7f465ecfbf9065b",
+                "reference": "04fbd54a3fd1fb7d2092363ea7f465ecfbf9065b",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "illuminate/bus": "^8.0|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/http": "^8.0|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/mail": "^8.0|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/queue": "^8.0|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Teams": "Jurager\\Teams\\Support\\Facades\\Teams"
+                    },
+                    "providers": [
+                        "Jurager\\Teams\\TeamsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Jurager\\Teams\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Yuri Gerassimov",
+                    "email": "jurager01@gmail.com"
+                }
+            ],
+            "description": "Laravel package to manage team functionality and operate with user permissions.",
+            "keywords": [
+                "Teams",
+                "abilities",
+                "auth",
+                "gropus",
+                "laravel",
+                "permissions"
+            ],
+            "support": {
+                "issues": "https://github.com/Jurager/teams/issues",
+                "source": "https://github.com/Jurager/teams/tree/3.0.2"
+            },
+            "time": "2025-11-21T09:19:58+00:00"
         },
         {
             "name": "kirschbaum-development/eloquent-power-joins",
@@ -10955,6 +11019,89 @@
                 "source": "https://github.com/spatie/laravel-pdf/tree/1.8.0"
             },
             "time": "2025-09-12T08:05:44+00:00"
+        },
+        {
+            "name": "spatie/laravel-permission",
+            "version": "6.23.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-permission.git",
+                "reference": "9e41247bd512b1e6c229afbc1eb528f7565ae3bb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/9e41247bd512b1e6c229afbc1eb528f7565ae3bb",
+                "reference": "9e41247bd512b1e6c229afbc1eb528f7565ae3bb",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/auth": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/container": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/contracts": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/database": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "laravel/passport": "^11.0|^12.0",
+                "laravel/pint": "^1.0",
+                "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0|^10.0",
+                "phpunit/phpunit": "^9.4|^10.1|^11.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Spatie\\Permission\\PermissionServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-main": "6.x-dev",
+                    "dev-master": "6.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Spatie\\Permission\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Permission handling for Laravel 8.0 and up",
+            "homepage": "https://github.com/spatie/laravel-permission",
+            "keywords": [
+                "acl",
+                "laravel",
+                "permission",
+                "permissions",
+                "rbac",
+                "roles",
+                "security",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-permission/issues",
+                "source": "https://github.com/spatie/laravel-permission/tree/6.23.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-11-03T20:16:13+00:00"
         },
         {
             "name": "spatie/laravel-ray",

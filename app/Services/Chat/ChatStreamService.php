@@ -3,6 +3,7 @@
 namespace App\Services\Chat;
 
 use App\Models\AgentQuestionAnswer;
+use App\Models\ChatConversation;
 use App\Models\User;
 use App\Services\Billing\UserCreditSystem;
 use App\Services\Chat\Data\StreamRequestData;
@@ -15,13 +16,36 @@ readonly class ChatStreamService
         private ChatService $chatService,
         private StreamHandler $streamHandler,
         private UserCreditSystem $creditSystem,
+        private HandoffService $handoffService,
     ) {}
 
     public function stream(StreamRequestData $data): StreamedResponse
     {
         $user = $data->agent->user;
 
-        // 0. Check subscription status first
+        // 0. Check if conversation is handed off to a human
+        if ($data->conversationId) {
+            $conversation = ChatConversation::find($data->conversationId);
+            if ($conversation && $this->handoffService->isHandedOff($conversation)) {
+                // Save the user message and broadcast it to the admin
+                if ($data->message->message) {
+                    $this->handoffService->sendUserMessage(
+                        conversation: $conversation,
+                        content: $data->message->message,
+                        model: $data->message->model?->external_name,
+                        ipAddress: $data->ipAddress,
+                        userAgent: $data->userAgent,
+                        referrerUrl: $data->referrerUrl,
+                        pageUrl: $data->pageUrl,
+                        locale: $data->locale,
+                    );
+                }
+
+                return $this->streamHandoffResponse($conversation);
+            }
+        }
+
+        // 1. Check subscription status first
         if (! $this->userIsSubscribed($user)) {
             return $this->streamErrorResponse(
                 'Your subscription has expired. Please renew your subscription to continue.',
@@ -29,7 +53,7 @@ readonly class ChatStreamService
             );
         }
 
-        // 1. Check if user can send messages (has remaining messages)
+        // 2. Check if user can send messages (has remaining messages)
         if (! $this->userCanSendMessages($user->id)) {
             return $this->streamErrorResponse(
                 'You have reached your message limit. Please upgrade your plan to continue.',
@@ -37,22 +61,58 @@ readonly class ChatStreamService
             );
         }
 
-        // 2. Initialize chat context
+        // 3. Initialize chat context
         $context = $this->chatService->initializeChatContext($data);
 
-        // 3. Enrich context with knowledge (checks Q&A first, then chunks)
+        // 4. Enrich context with knowledge (checks Q&A first, then chunks)
         $context = $this->chatService->enrichContextWithKnowledge($context);
 
-        // 4. If Q&A match found, stream it directly without LLM
+        // 5. If Q&A match found, stream it directly without LLM
         if ($context->hasQAMatch()) {
             return $this->streamQAResponse($context);
         }
 
-        // 5. Prepare LLM messages
+        // 6. Prepare LLM messages
         $llmMessages = $this->chatService->prepareLlmMessages($context);
 
-        // 6. Create and return the stream response
+        // 7. Create and return the stream response
         return $this->createStreamResponse($context, $llmMessages);
+    }
+
+    /**
+     * Stream a response indicating the message was received during handoff.
+     * The message has already been saved and broadcast to the admin via WebSocket.
+     */
+    private function streamHandoffResponse(ChatConversation $conversation): StreamedResponse
+    {
+        return new StreamedResponse(function () use ($conversation) {
+            header('Content-Type: text/event-stream');
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            header('Connection: keep-alive');
+            header('X-Accel-Buffering: no');
+
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            // Send acknowledgment that message was received (no AI response needed)
+            echo 'data: '.json_encode([
+                'type' => 'handoff_ack',
+                'status' => 'human',
+                'conversation_id' => $conversation->id,
+            ])."\n\n";
+            flush();
+
+            // Send done signal
+            echo "data: {\"content\":\"[DONE]\"}\n\n";
+            flush();
+
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache',
+            'Connection' => 'keep-alive',
+            'X-Accel-Buffering' => 'no',
+        ]);
     }
 
     /**

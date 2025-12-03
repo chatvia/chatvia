@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('chat_sessions', function (Blueprint $table) {
-            //
+        Schema::create('entity_permission', static function (Blueprint $table) {
+            $table->id();
+            $table->morphs('entity');
+            $table->foreignId('permission_id')->constrained()->cascadeOnDelete();
         });
     }
 
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('chat_sessions', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('entity_permission');
     }
 };

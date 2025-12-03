@@ -8,7 +8,16 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Teams\TeamInvitationController;
 use Illuminate\Support\Facades\Route;
+
+// Team invitation routes (accessible via signed URL)
+Route::get('invitation/{invitation}', [TeamInvitationController::class, 'show'])
+    ->middleware('signed')
+    ->name('teams.invitation.show');
+
+Route::post('invitation/{invitation}/accept', [TeamInvitationController::class, 'accept'])
+    ->name('teams.invitation.accept');
 
 Route::middleware('guest')->group(function () {
     //    Route::get('register', [RegisteredUserController::class, 'create'])

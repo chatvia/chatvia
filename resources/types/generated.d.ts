@@ -180,6 +180,7 @@ llm_icon: string | null;
 created_at: string;
 agent_question_answer_id: number | null;
 source: string | null;
+read_at: string | null;
 };
 export type ChatLogMessagesResourceData = {
 messages: any;

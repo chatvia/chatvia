@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Features\Actions;
 use App\Features\Widget;
 use App\Features\Workflow;
+use App\Services\Teams\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Laravel\Pennant\Feature;
@@ -52,8 +53,21 @@ class HandleInertiaRequests extends Middleware
                 'workflow' => Feature::active(Workflow::class),
                 'actions' => Feature::active(Actions::class),
             ],
-            'permissions' => $request->user('web')?->permissionsKeyValue() ?? [],
+            'permissions' => $this->getTeamPermissions($request),
+            'currentTeam' => $request->user('web')?->ownedTeams()->first()
+                ?? $request->user('web')?->teams()->first(),
         ];
+    }
+
+    private function getTeamPermissions(Request $request): array
+    {
+        $user = $request->user('web');
+
+        if (! $user) {
+            return [];
+        }
+
+        return app(TeamService::class)->getUserPermissionsForInertia($user);
     }
 
     private function subDomain(string $host): ?string

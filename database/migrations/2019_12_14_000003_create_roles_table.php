@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('code');
             $table->string('name')->nullable();
             $table->string('description')->nullable();
+            $table->boolean('all_agents')->default(false)->index();
 
             $table->unique([Config::get('teams.foreign_keys.team_id', 'team_id'), 'code']);
         });

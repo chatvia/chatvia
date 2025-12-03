@@ -39,6 +39,14 @@ class Agent extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get the roles that have access to this agent.
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
     public function addFile(
         UploadedFile $file,
         AgentFileStatusEnum $status = AgentFileStatusEnum::UPLOADED,

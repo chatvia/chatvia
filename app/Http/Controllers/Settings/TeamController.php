@@ -66,12 +66,13 @@ class TeamController extends Controller
             ];
         });
 
-        $roles = $team->roles()->with('permissions')->get()->map(fn ($role) => [
-            'id' => $role->id,
-            'code' => $role->code,
-            'name' => $role->name,
-            'description' => $role->description,
-            'permissions' => $role->permissions->pluck('code')->toArray(),
+        $roles = $team->roles()->with('permissions')->get()->map(
+            fn ($role) => $this->teamService->formatRoleForFrontend($role, $team)
+        )->values()->all();
+
+        $agents = $team->agents()->select('id', 'name')->get()->map(fn ($agent) => [
+            'id' => $agent->id,
+            'name' => $agent->name,
         ])->values()->all();
 
         $pendingInvitations = $team->invitations()->with('role')->get()->map(fn ($invitation) => [
@@ -94,6 +95,7 @@ class TeamController extends Controller
             ],
             'members' => $members,
             'roles' => $roles,
+            'agents' => $agents,
             'pendingInvitations' => $pendingInvitations,
             'isOwner' => $user->ownsTeam($team),
             'userRole' => $user->teamRole($team)?->code ?? 'owner',
@@ -297,6 +299,9 @@ class TeamController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'permissions' => ['required', 'array', 'min:1'],
             'permissions.*' => ['string'],
+            'all_agents' => ['boolean'],
+            'agent_ids' => ['array'],
+            'agent_ids.*' => ['integer', 'exists:agents,id'],
         ]);
 
         // Generate a code from the name
@@ -307,11 +312,16 @@ class TeamController extends Controller
             return back()->withErrors(['name' => 'A role with this name already exists.']);
         }
 
-        $team->addRole(
+        $role = $team->addRole(
             $code,
             $validated['permissions'],
             $validated['name']
         );
+
+        // Update agent access
+        $allAgents = $validated['all_agents'] ?? false;
+        $agentIds = $validated['agent_ids'] ?? [];
+        $this->teamService->updateRoleAgentAccess($role, $allAgents, $agentIds);
 
         return back()->with('success', 'Role created successfully.');
     }
@@ -335,6 +345,9 @@ class TeamController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'permissions' => ['required', 'array', 'min:1'],
             'permissions.*' => ['string'],
+            'all_agents' => ['boolean'],
+            'agent_ids' => ['array'],
+            'agent_ids.*' => ['integer', 'exists:agents,id'],
         ]);
 
         // Use the package's built-in updateRole method
@@ -343,6 +356,11 @@ class TeamController extends Controller
             $validated['permissions'],
             $validated['name']
         );
+
+        // Update agent access
+        $allAgents = $validated['all_agents'] ?? false;
+        $agentIds = $validated['agent_ids'] ?? [];
+        $this->teamService->updateRoleAgentAccess($roleModel, $allAgents, $agentIds);
 
         return back()->with('success', 'Role updated successfully.');
     }
@@ -363,7 +381,7 @@ class TeamController extends Controller
         }
 
         // Check if any members have this role
-        $membersWithRole = $team->users()->wherePivot('role', $roleModel->code)->count();
+        $membersWithRole = $team->users()->wherePivot('role_id', $roleModel->id)->count();
         if ($membersWithRole > 0) {
             return back()->with('error', 'Cannot delete this role. '.$membersWithRole.' member(s) are assigned to it.');
         }

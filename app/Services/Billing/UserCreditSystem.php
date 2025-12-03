@@ -34,13 +34,20 @@ class UserCreditSystem
         $user = User::find($this->userId);
 
         /** @var Credit $credit */
-        $credit = $user->credits()->create([
-            'messages' => $quotaLimit['messages_limit'],
-            'started_at' => now(),
-            'ends_at' => $endsAt,
-        ]);
+        $credit = $user->credits()->updateOrCreate(
+            [
+                'started_at' => $startedAt,
+            ],
+            [
+                'messages' => $quotaLimit['messages_limit'],
+                'ends_at' => $endsAt,
+            ]
+        );
 
-        $credit->usage()->create();
+        // Only create usage if it doesn't exist
+        if (! $credit->usage()->exists()) {
+            $credit->usage()->create();
+        }
 
         Cache::put(
             key: template(self::CREDIT_CACHE_PREFIX, ['id' => $this->userId]),

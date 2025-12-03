@@ -2,9 +2,12 @@
 
 namespace App\Services\Teams;
 
+use App\Models\Agent;
+use App\Models\Role;
 use App\Models\Team;
 use App\Models\User;
 use App\Notifications\TeamInvitationNotification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 use Jurager\Teams\Events\TeamMemberInvited;
 use Jurager\Teams\Events\TeamMemberInviting;
@@ -93,6 +96,30 @@ class TeamService
     }
 
     /**
+     * Get all agents for a team.
+     */
+    public function getAllAgentsForTeam(Team $team): Collection
+    {
+        return $team->agents()->get(['id', 'name']);
+    }
+
+    /**
+     * Create a default team for a user.
+     */
+    public function createDefaultTeam(User $user): Team
+    {
+        $team = new Team;
+        $team->name = $user->name."'s Team";
+        $team->user_id = $user->id;
+        $team->save();
+
+        // Create default roles for the team
+        $this->createDefaultRoles($team);
+
+        return $team;
+    }
+
+    /**
      * Create default roles for a team.
      */
     public function createDefaultRoles(Team $team): void
@@ -137,5 +164,115 @@ class TeamService
         }
 
         return $permissions;
+    }
+
+    /**
+     * Check if a user has access to a specific agent.
+     */
+    public function userHasAgentAccess(User $user, Team $team, Agent $agent): bool
+    {
+        // Owner has access to all agents
+        if ($user->ownsTeam($team)) {
+            return true;
+        }
+
+        // Check if agent belongs to the team (via owner)
+        if ($agent->user_id !== $team->user_id) {
+            return false;
+        }
+
+        $role = $user->teamRole($team);
+        if (! $role) {
+            return false;
+        }
+
+        return $this->roleHasAgentAccess($role, $agent);
+    }
+
+    /**
+     * Check if a role has access to a specific agent.
+     */
+    public function roleHasAgentAccess(Role $role, Agent $agent): bool
+    {
+        // Owner role has access to all agents
+        if ($role->code === 'owner') {
+            return true;
+        }
+
+        // Check if role has access to all agents
+        if ($role->all_agents) {
+            return true;
+        }
+
+        // Check if agent is in the role's agent list via relationship
+        return $role->agents()->where('agents.id', $agent->id)->exists();
+    }
+
+    /**
+     * Get all agents a user can access in a team.
+     */
+    public function getUserAccessibleAgents(User $user, Team $team): Collection
+    {
+        // Owner has access to all agents
+        if ($user->ownsTeam($team)) {
+            return $team->agents;
+        }
+
+        $role = $user->teamRole($team);
+        if (! $role) {
+            return collect();
+        }
+
+        return $this->getRoleAccessibleAgents($role, $team);
+    }
+
+    /**
+     * Get all agents a role can access in a team.
+     */
+    public function getRoleAccessibleAgents(Role $role, Team $team): Collection
+    {
+        // Owner role or all_agents flag = all team agents
+        if ($role->code === 'owner' || $role->all_agents) {
+            return $team->agents;
+        }
+
+        // Get agents via relationship, filtered to team's agents
+        $teamAgentIds = $team->agents()->pluck('id');
+
+        return $role->agents()->whereIn('agents.id', $teamAgentIds)->get();
+    }
+
+    /**
+     * Update agent access for a role.
+     */
+    public function updateRoleAgentAccess(Role $role, bool $allAgents, array $agentIds = []): void
+    {
+        $role->all_agents = $allAgents;
+        $role->save();
+
+        // Sync agents via relationship
+        if ($allAgents) {
+            // If all agents, clear the specific agent assignments
+            $role->agents()->detach();
+        } else {
+            // Sync specific agents
+            $role->agents()->sync($agentIds);
+        }
+    }
+
+    /**
+     * Get role with agent access data formatted for frontend.
+     */
+    public function formatRoleForFrontend(Role $role, Team $team): array
+    {
+        return [
+            'id' => $role->id,
+            'code' => $role->code,
+            'name' => $role->name,
+            'description' => $role->description,
+            'permissions' => $role->permissions->pluck('code')->toArray(),
+            'all_agents' => (bool) $role->all_agents,
+            'agent_ids' => $role->agents()->pluck('agents.id')->toArray(),
+        ];
     }
 }

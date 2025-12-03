@@ -6,105 +6,174 @@ return [
     | Team Permissions
     |--------------------------------------------------------------------------
     |
-    | Define all available permissions that can be assigned to team roles.
-    | Permissions are organized by category for easier management.
+    | Two-level permission system:
+    | 1. Role Permissions - What actions can the user perform?
+    | 2. Agent Access - Which specific agents can they access? (per role)
+    |
+    | Owners automatically have full access to everything.
     |
     */
 
     'permissions' => [
-        // Agents
-        'agents.view' => 'View agents',
-        'agents.create' => 'Create agents',
-        'agents.edit' => 'Edit agents',
-        'agents.delete' => 'Delete agents',
+        // Team-wide permissions
+        'agents.create' => 'Create new agents',
 
-        // Sources (in agent)
-        'sources.view' => 'View sources',
-        'sources.add' => 'Add sources',
-        'sources.delete' => 'Delete sources',
+        // Agent-scoped permissions (apply to assigned agents only)
+        'agent.view' => 'View agent dashboard',
+        'agent.setup' => 'Configure agent settings',
+        'agent.delete' => 'Delete agent',
+
+        // Sources
+        'agent.sources.train' => 'Train files',
+        'agent.sources.view.pdf' => 'View PDF sources',
+        'agent.sources.view.word' => 'View Word sources',
+        'agent.sources.view.website' => 'View website sources',
+        'agent.sources.view.qa' => 'View Q&A sources',
+        'agent.sources.view.text' => 'View text sources',
+        'agent.sources.view.audio' => 'View audio sources',
+        'agent.sources.view.video' => 'View video sources',
+        'agent.sources.view.youtube' => 'View YouTube sources',
+        'agent.sources.delete' => 'Delete sources',
 
         // Chat
-        'chat.view' => 'View chat conversations',
-        'chat.takeover' => 'Take over chat conversations',
-        'chat.delete' => 'Delete chat conversations',
+        'agent.chat.view' => 'View conversations',
+        'agent.chat.takeover' => 'Take over conversations',
+        'agent.chat.delete' => 'Delete conversations',
 
         // Analytics
-        'analytics.chats' => 'View chat analytics',
-        'analytics.metrics' => 'View metrics analytics',
-        'analytics.sentiment' => 'View sentiment analytics',
-        'analytics.tone' => 'View tone analytics',
-        'analytics.topics' => 'View topics analytics',
-        'analytics.sources' => 'View sources analytics',
+        'agent.analytics.chats' => 'View chat analytics',
+        'agent.analytics.metrics' => 'View metrics',
+        'agent.analytics.sentiment' => 'View sentiment analysis',
+        'agent.analytics.tone' => 'View tone analysis',
+        'agent.analytics.topics' => 'View topics analytics',
+        'agent.analytics.sources' => 'View sources analytics',
+
+        // Topics
+        'agent.topics.add' => 'Add topics',
+        'agent.topics.edit' => 'Edit topics',
+        'agent.topics.delete' => 'Delete topics',
 
         // Leads
-        'leads.view' => 'View leads',
-        'leads.settings' => 'Edit lead settings',
-        'leads.export' => 'Export leads',
+        'agent.leads.view' => 'View leads',
+        'agent.leads.settings' => 'Configure lead capture',
+        'agent.leads.export' => 'Export leads',
 
-        // Billing
-        'billing.view' => 'View billing & subscription',
-        'billing.manage' => 'Manage subscription & payments',
+        // Billing (account-level)
+        'billing.view' => 'View billing & invoices',
+        'billing.manage' => 'Manage subscription',
     ],
 
     /*
     |--------------------------------------------------------------------------
     | Default Roles
     |--------------------------------------------------------------------------
-    |
-    | Define default roles that are created when a new team is created.
-    | The 'owner' role is special and gets all permissions automatically.
-    |
     */
 
     'roles' => [
         'owner' => [
             'name' => 'Owner',
-            'description' => 'Full access to all team resources',
-            'permissions' => ['*'], // Wildcard = all permissions
+            'description' => 'Full access to all agents and settings',
+            'permissions' => ['*'],
+            'all_agents' => true,
         ],
-
     ],
 
     /*
     |--------------------------------------------------------------------------
     | Permission Groups (for UI display)
     |--------------------------------------------------------------------------
-    |
-    | Group permissions for display in the UI when assigning roles.
-    |
     */
 
     'groups' => [
-        'agents' => [
-            'label' => 'Agents',
-            'permissions' => ['agents.view', 'agents.create', 'agents.edit', 'agents.delete'],
+        // Agent-specific permissions (apply to assigned agents)
+        'agent' => [
+            'label' => 'Agent',
+            'description' => 'Agent management',
+            'category' => 'agent',
+            'permissions' => [
+                'agent.view',
+                'agent.setup',
+                'agent.delete',
+            ],
         ],
         'sources' => [
             'label' => 'Sources',
-            'permissions' => ['sources.view', 'sources.add', 'sources.delete'],
+            'description' => 'Knowledge base management',
+            'category' => 'agent',
+            'permissions' => [
+                'agent.sources.train',
+                'agent.sources.view.pdf',
+                'agent.sources.view.word',
+                'agent.sources.view.website',
+                'agent.sources.view.qa',
+                'agent.sources.view.text',
+                'agent.sources.view.audio',
+                'agent.sources.view.video',
+                'agent.sources.view.youtube',
+                'agent.sources.delete',
+            ],
         ],
         'chat' => [
             'label' => 'Chat',
-            'permissions' => ['chat.view', 'chat.takeover', 'chat.delete'],
+            'description' => 'Conversation management',
+            'category' => 'agent',
+            'permissions' => [
+                'agent.chat.view',
+                'agent.chat.takeover',
+                'agent.chat.delete',
+            ],
         ],
         'analytics' => [
             'label' => 'Analytics',
+            'description' => 'View performance data',
+            'category' => 'agent',
             'permissions' => [
-                'analytics.chats',
-                'analytics.metrics',
-                'analytics.sentiment',
-                'analytics.tone',
-                'analytics.topics',
-                'analytics.sources',
+                'agent.analytics.chats',
+                'agent.analytics.metrics',
+                'agent.analytics.sentiment',
+                'agent.analytics.tone',
+                'agent.analytics.topics',
+                'agent.analytics.sources',
+            ],
+        ],
+        'topics' => [
+            'label' => 'Topics',
+            'description' => 'Manage conversation topics',
+            'category' => 'agent',
+            'permissions' => [
+                'agent.topics.add',
+                'agent.topics.edit',
+                'agent.topics.delete',
             ],
         ],
         'leads' => [
             'label' => 'Leads',
-            'permissions' => ['leads.view', 'leads.settings', 'leads.export'],
+            'description' => 'Lead management',
+            'category' => 'agent',
+            'permissions' => [
+                'agent.leads.view',
+                'agent.leads.settings',
+                'agent.leads.export',
+            ],
+        ],
+
+        // Team/Account-level permissions
+        'team' => [
+            'label' => 'Team',
+            'description' => 'Team-wide permissions',
+            'category' => 'other',
+            'permissions' => [
+                'agents.create',
+            ],
         ],
         'billing' => [
             'label' => 'Billing',
-            'permissions' => ['billing.view', 'billing.manage'],
+            'description' => 'Account billing',
+            'category' => 'other',
+            'permissions' => [
+                'billing.view',
+                'billing.manage',
+            ],
         ],
     ],
 ];

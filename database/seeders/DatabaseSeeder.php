@@ -24,10 +24,19 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info("Demo user created: {$user->email}");
 
+        // Get or create primary team
+        $team = $user->primaryTeam();
+        if (! $team) {
+            $this->command->error('User has no primary team. Please ensure UserObserver is creating teams.');
+
+            return;
+        }
+
         // Create Knowledge Base agent if it doesn't exist
         if (! Agent::where('external_id', 'e8c75295bf6572')->exists()) {
             Agent::factory()->create([
                 'user_id' => $user->id,
+                'team_id' => $team->id,
                 'name' => 'Knowledge Base',
                 'sub_domain' => 'knowledge',
                 'system_instructions' => PromptLoader::load('knowledge/system'),
@@ -43,6 +52,7 @@ class DatabaseSeeder extends Seeder
         if (! Agent::where('external_id', '407f7fdfa1cf18')->exists()) {
             Agent::factory()->create([
                 'user_id' => $user->id,
+                'team_id' => $team->id,
                 'name' => 'Support Widget',
                 'sub_domain' => 'support',
                 'system_instructions' => PromptLoader::load('knowledge/system'),
@@ -58,6 +68,7 @@ class DatabaseSeeder extends Seeder
         if (! Agent::where('external_id', 'demo_sales_agent')->exists()) {
             Agent::factory()->create([
                 'user_id' => $user->id,
+                'team_id' => $team->id,
                 'name' => 'Sales Assistant',
                 'sub_domain' => 'sales',
                 'system_instructions' => 'You are a helpful sales assistant that helps customers understand our products and pricing.',

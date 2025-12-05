@@ -21,10 +21,14 @@ class AgentStoreController
         $user = $request->user();
 
         /** @var Team $team */
-        $team = $user->allTeams();
+        $team = current_team();
 
-        if ($user->ownsTeam($team) || $user->hasTeamPermission($team, 'agents.create')) {
-            // User is owner OR has the permission
+        if (! $team) {
+            abort(404, 'No team found. Please select or create a team first.');
+        }
+
+        if (! $user->ownsTeam($team) && ! $user->hasTeamPermission($team, 'agents.create')) {
+            abort(403, 'You do not have permission to create agents.');
         }
 
         try {
@@ -37,6 +41,7 @@ class AgentStoreController
             /** @var Agent $agent */
             $agent = Agent::create([
                 'user_id' => $user->id,
+                'team_id' => $team->id,
                 'name' => $validatedData['name'],
                 'sub_domain' => $validatedData['type'] === 'knowledge_base' ? $subdomain->generateRandomSubdomain() : null,
                 'system_instructions' => PromptLoader::load('knowledge/system'),

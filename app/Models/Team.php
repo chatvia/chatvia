@@ -34,7 +34,7 @@ class Team extends JuragerTeam
      */
     public function agents(): HasMany
     {
-        return $this->hasMany(Agent::class, 'user_id', 'user_id');
+        return $this->hasMany(Agent::class);
     }
 
     /**

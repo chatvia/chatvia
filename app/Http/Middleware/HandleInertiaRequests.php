@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Features\Actions;
 use App\Features\Widget;
 use App\Features\Workflow;
+use App\Models\Team;
 use App\Services\Teams\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -49,14 +50,84 @@ class HandleInertiaRequests extends Middleware
             'domain' => $request->domain(),
             'subdomain' => $request->subdomain(),
             'features' => [
-                'widget' => Feature::active(Widget::class),
-                'workflow' => Feature::active(Workflow::class),
-                'actions' => Feature::active(Actions::class),
+                //                'widget' => Feature::active(Widget::class),
+                //                'workflow' => Feature::active(Workflow::class),
+                //                'actions' => Feature::active(Actions::class),
             ],
             'permissions' => $this->getTeamPermissions($request),
-            'currentTeam' => $request->user('web')?->ownedTeams()->first()
-                ?? $request->user('web')?->teams()->first(),
+            'currentTeam' => $request->user('web') ? $this->getCurrentTeam($request) : null,
+            'allTeams' => $request->user('web') ? $this->getAllTeams($request) : [],
         ];
+    }
+
+    private function getCurrentTeam(Request $request): ?array
+    {
+        $user = $request->user('web');
+
+        if (! $user) {
+            return null;
+        }
+
+        // Check if there's a team in session
+        $currentTeamId = session('current_team_id');
+
+        if ($currentTeamId) {
+            $team = Team::find($currentTeamId);
+
+            // Verify user still has access to this team
+            if ($team && ($user->ownsTeam($team) || $user->belongsToTeam($team))) {
+                return [
+                    'id' => $team->id,
+                    'name' => $team->name,
+                    'is_owner' => $user->ownsTeam($team),
+                    'is_primary' => $team->id === $user->primaryTeam()?->id,
+                ];
+            }
+        }
+
+        // Fall back to primary team
+        $primaryTeam = $user->primaryTeam();
+
+        if (! $primaryTeam) {
+            return null;
+        }
+
+        // Store in session for next time
+        session(['current_team_id' => $primaryTeam->id]);
+
+        return [
+            'id' => $primaryTeam->id,
+            'name' => $primaryTeam->name,
+            'is_owner' => $user->ownsTeam($primaryTeam),
+            'is_primary' => true,
+        ];
+    }
+
+    private function getAllTeams(Request $request): array
+    {
+        $user = $request->user('web');
+
+        if (! $user) {
+            return [];
+        }
+
+        // Get owned teams
+        $ownedTeams = $user->ownedTeams()->get()->map(fn ($team) => [
+            'id' => $team->id,
+            'name' => $team->name,
+            'is_owner' => true,
+            'is_primary' => $team->id === $user->primaryTeam()?->id,
+        ]);
+
+        // Get teams where user is a member
+        $memberTeams = $user->teams()->get()->map(fn ($team) => [
+            'id' => $team->id,
+            'name' => $team->name,
+            'is_owner' => false,
+            'is_primary' => false,
+        ]);
+
+        return $ownedTeams->merge($memberTeams)->values()->all();
     }
 
     private function getTeamPermissions(Request $request): array

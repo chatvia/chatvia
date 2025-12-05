@@ -83,6 +83,19 @@ class TeamController extends Controller
             'created_at' => $invitation->created_at->toDateTimeString(),
         ]);
 
+        // Get managed users (users invited by this team owner who aren't members yet)
+        $currentMemberIds = $team->allUsers()->pluck('id')->toArray();
+
+        $managedUsers = $user->managedUsers()
+            ->whereNotIn('id', $currentMemberIds)
+            ->select('id', 'name', 'email')
+            ->get()
+            ->map(fn ($managedUser) => [
+                'id' => $managedUser->id,
+                'name' => $managedUser->name,
+                'email' => $managedUser->email,
+            ]);
+
         return Inertia::render('settings/teams/Show', [
             'team' => [
                 'id' => $team->id,
@@ -97,10 +110,12 @@ class TeamController extends Controller
             'roles' => $roles,
             'agents' => $agents,
             'pendingInvitations' => $pendingInvitations,
+            'managedUsers' => $managedUsers,
             'isOwner' => $user->ownsTeam($team),
             'userRole' => $user->teamRole($team)?->code ?? 'owner',
             'availableRoles' => $this->teamService->getDefaultRoles(),
-            'availablePermissions' => $this->teamService->getAvailablePermissions(),
+            'availablePermissions' => $this->teamService->getPermissionLabels(),
+            'permissionDescriptions' => $this->teamService->getPermissionDescriptions(),
             'permissionGroups' => $this->teamService->getPermissionGroups(),
         ]);
     }
@@ -178,10 +193,40 @@ class TeamController extends Controller
         $validRoles = $team->roles()->where('code', '!=', 'owner')->pluck('code')->toArray();
 
         $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255'],
+            'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'email' => ['nullable', 'email', 'max:255', 'required_without:user_id'],
             'role' => ['required', 'string', Rule::in($validRoles)],
         ]);
 
+        // Check if owner has an active subscription
+        if (! $this->teamService->canInviteMembers($team)) {
+            return back()->withErrors(['email' => 'You need an active subscription to invite team members.']);
+        }
+
+        // If adding an existing user
+        if ($validated['user_id']) {
+            $existingUser = User::findOrFail($validated['user_id']);
+
+            // Check if this user is managed by the current user
+            if ($existingUser->managed_by_user_id !== $user->id) {
+                return back()->withErrors(['user_id' => 'You can only add users you have invited.']);
+            }
+
+            // Check if user is already a member
+            if ($team->hasUser($existingUser)) {
+                return back()->withErrors(['user_id' => 'This user is already a member of the team.']);
+            }
+
+            // Get the role
+            $role = $team->roles()->where('code', $validated['role'])->firstOrFail();
+
+            // Add user to team with role
+            $team->users()->attach($existingUser->id, ['role_id' => $role->id]);
+
+            return back()->with('success', 'Member added successfully.');
+        }
+
+        // Otherwise, invite by email
         // Check if user is already a member
         if ($team->hasUserWithEmail($validated['email'])) {
             return back()->withErrors(['email' => 'This user is already a member of the team.']);
@@ -190,11 +235,6 @@ class TeamController extends Controller
         // Check if invitation already exists
         if ($team->invitations()->where('email', $validated['email'])->exists()) {
             return back()->withErrors(['email' => 'An invitation has already been sent to this email.']);
-        }
-
-        // Check if owner has an active subscription
-        if (! $this->teamService->canInviteMembers($team)) {
-            return back()->withErrors(['email' => 'You need an active subscription to invite team members.']);
         }
 
         // Use our custom service to send invitation with our notification
@@ -267,10 +307,10 @@ class TeamController extends Controller
             abort(403, 'You do not have access to this team.');
         }
 
-        // Update user's current team
-        $user->switchTeam($team);
+        // Store current team in session
+        session(['current_team_id' => $team->id]);
 
-        return back()->with('success', 'Switched to '.$team->name);
+        return redirect()->route('dashboard')->with('success', 'Switched to '.$team->name);
     }
 
     public function leave(Request $request, Team $team)

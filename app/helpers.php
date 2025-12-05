@@ -106,6 +106,37 @@ if (! function_exists('current_agent')) {
     }
 }
 
+if (! function_exists('current_team')) {
+    function current_team(): ?App\Models\Team
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        // Check session first
+        $currentTeamId = session('current_team_id');
+
+        if ($currentTeamId) {
+            $team = \App\Models\Team::find($currentTeamId);
+
+            if ($team && ($user->ownsTeam($team) || $user->belongsToTeam($team))) {
+                return $team;
+            }
+        }
+
+        // Fall back to primary team
+        $primaryTeam = $user->primaryTeam();
+
+        if ($primaryTeam) {
+            session(['current_team_id' => $primaryTeam->id]);
+        }
+
+        return $primaryTeam;
+    }
+}
+
 if (! function_exists('get_file_type')) {
     function get_file_type(string $mimeType): string
     {

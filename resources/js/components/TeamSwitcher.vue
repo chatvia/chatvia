@@ -35,6 +35,7 @@ interface Team {
 
 const page = usePage<SharedData>();
 const currentTeam = computed(() => page.props.currentTeam as Team | null);
+const allTeams = computed(() => (page.props.allTeams as Team[]) || []);
 
 const isOpen = ref(false);
 const isCreateDialogOpen = ref(false);
@@ -82,17 +83,27 @@ const createTeam = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" class="w-56">
             <DropdownMenuLabel class="text-xs text-muted-foreground">
-                Current Team
+                Teams
             </DropdownMenuLabel>
-            <DropdownMenuItem v-if="currentTeam" class="gap-2">
-                <Avatar class="size-6">
-                    <AvatarFallback class="text-[10px] bg-primary/10 text-primary font-medium">
-                        {{ getInitials(currentTeam.name) }}
-                    </AvatarFallback>
-                </Avatar>
-                <span class="flex-1 truncate">{{ currentTeam.name }}</span>
-                <Check class="size-4 text-primary" />
-            </DropdownMenuItem>
+            <div class="max-h-[300px] overflow-y-auto">
+                <DropdownMenuItem
+                    v-for="team in allTeams"
+                    :key="team.id"
+                    class="gap-2 cursor-pointer"
+                    @click="team.id !== currentTeam?.id && switchTeam(team.id)"
+                >
+                    <Avatar class="size-6">
+                        <AvatarFallback class="text-[10px] bg-primary/10 text-primary font-medium">
+                            {{ getInitials(team.name) }}
+                        </AvatarFallback>
+                    </Avatar>
+                    <span class="flex-1 truncate">{{ team.name }}</span>
+                    <Check v-if="team.id === currentTeam?.id" class="size-4 text-primary" />
+                </DropdownMenuItem>
+                <div v-if="allTeams.length === 0" class="px-2 py-4 text-sm text-muted-foreground text-center">
+                    No teams available
+                </div>
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem as-child>
                 <a :href="route('teams.index')" class="gap-2 cursor-pointer">

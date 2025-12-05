@@ -39,6 +39,11 @@ class Agent extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
     /**
      * Get the roles that have access to this agent.
      */

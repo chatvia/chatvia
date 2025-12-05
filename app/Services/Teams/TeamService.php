@@ -102,6 +102,20 @@ class TeamService
     }
 
     /**
+     * Get permission descriptions for UI display (code => description).
+     */
+    public function getPermissionDescriptions(): array
+    {
+        $permissions = $this->getAvailablePermissions();
+
+        return collect($permissions)->mapWithKeys(function ($data, $code) {
+            $description = is_array($data) ? ($data['description'] ?? '') : '';
+
+            return [$code => $description];
+        })->all();
+    }
+
+    /**
      * Get all permission codes.
      */
     public function getPermissionCodes(): array
@@ -199,8 +213,8 @@ class TeamService
             return true;
         }
 
-        // Check if agent belongs to the team (via owner)
-        if ($agent->user_id !== $team->user_id) {
+        // Check if agent belongs to this team
+        if ($agent->team_id !== $team->id) {
             return false;
         }
 

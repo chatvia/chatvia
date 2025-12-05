@@ -51,6 +51,12 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData } from '@/types';
@@ -75,6 +81,9 @@ import {
     Clock,
     CheckCircle,
     Bot,
+    Info,
+    ChevronRight,
+    UserCog,
 } from 'lucide-vue-next';
 
 interface TeamOwner {
@@ -127,16 +136,24 @@ interface PermissionGroup {
     permissions: string[];
 }
 
+interface ManagedUser {
+    id: number;
+    name: string;
+    email: string;
+}
+
 interface Props {
     team: Team;
     members: TeamMember[];
     roles: TeamRole[];
     agents: TeamAgent[];
     pendingInvitations: Invitation[];
+    managedUsers: ManagedUser[];
     isOwner: boolean;
     userRole: string;
     availableRoles: Record<string, { name: string; description: string; permissions: string[] }>;
     availablePermissions: Record<string, string>;
+    permissionDescriptions: Record<string, string>;
     permissionGroups: Record<string, PermissionGroup>;
 }
 
@@ -180,24 +197,44 @@ const updateTeamName = () => {
     });
 };
 
+// Expanded roles (for permissions toggle)
+const expandedRoles = ref<Set<number>>(new Set());
+
+const toggleRoleExpanded = (roleId: number) => {
+    if (expandedRoles.value.has(roleId)) {
+        expandedRoles.value.delete(roleId);
+    } else {
+        expandedRoles.value.add(roleId);
+    }
+};
+
 // Invite member
 const isInviteDialogOpen = ref(false);
+const inviteType = ref<'existing' | 'email'>('existing'); // default to existing managed users
 const inviteForm = useForm({
+    user_id: null as number | null,
     email: '',
     role: 'admin',
 });
 
 const inviteMember = () => {
+    const data = inviteType.value === 'existing' 
+        ? { user_id: inviteForm.user_id, role: inviteForm.role }
+        : { email: inviteForm.email, role: inviteForm.role };
+    
     inviteForm.post(route('teams.invite', props.team.id), {
+        data,
         onSuccess: () => {
             isInviteDialogOpen.value = false;
             inviteForm.reset();
+            inviteType.value = 'existing';
         },
     });
 };
 
 const openInviteDialogForRole = (role: TeamRole) => {
     inviteForm.role = role.code;
+    inviteType.value = props.managedUsers.length > 0 ? 'existing' : 'email';
     isInviteDialogOpen.value = true;
 };
 
@@ -250,6 +287,23 @@ const removeMember = () => {
 // Delete role
 const roleToDelete = ref<TeamRole | null>(null);
 const deleteRoleForm = useForm({});
+
+// View role members
+const viewingRoleMembers = ref<TeamRole | null>(null);
+const isRoleMembersDialogOpen = ref(false);
+
+const openRoleMembersDialog = (role: TeamRole) => {
+    viewingRoleMembers.value = role;
+    isRoleMembersDialogOpen.value = true;
+};
+
+const getRoleMemberCount = (roleCode: string): number => {
+    return props.members.filter(m => m.role === roleCode).length;
+};
+
+const getRoleMembers = (roleCode: string) => {
+    return props.members.filter(m => m.role === roleCode);
+};
 
 const deleteRole = () => {
     if (!roleToDelete.value) return;
@@ -408,10 +462,23 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                 class="border rounded-lg p-4"
                             >
                                 <div class="flex items-center justify-between mb-3">
-                                    <Badge :variant="getRoleBadgeVariant(role.code)" class="gap-1.5">
-                                        <component :is="getRoleIcon(role.code)" class="size-3.5" />
-                                        {{ role.name }}
-                                    </Badge>
+                                    <div class="flex items-center gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            class="size-6"
+                                            @click="toggleRoleExpanded(role.id)"
+                                        >
+                                            <ChevronRight
+                                                class="size-4 transition-transform"
+                                                :class="expandedRoles.has(role.id) ? 'rotate-90' : ''"
+                                            />
+                                        </Button>
+                                        <Badge :variant="getRoleBadgeVariant(role.code)" class="gap-1.5">
+                                            <component :is="getRoleIcon(role.code)" class="size-3.5" />
+                                            {{ role.name }}
+                                        </Badge>
+                                    </div>
                                     <div class="flex items-center gap-1">
                                         <Button
                                             v-if="canManageMembers"
@@ -421,6 +488,21 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                             @click="openInviteDialogForRole(role)"
                                         >
                                             <UserPlus class="size-4" />
+                                        </Button>
+                                        <Button
+                                            v-if="canManageMembers"
+                                            variant="ghost"
+                                            size="icon"
+                                            class="size-8 relative"
+                                            @click="openRoleMembersDialog(role)"
+                                        >
+                                            <UserCog class="size-4" />
+                                            <span
+                                                v-if="getRoleMemberCount(role.code) > 0"
+                                                class="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full size-4 flex items-center justify-center"
+                                            >
+                                                {{ getRoleMemberCount(role.code) }}
+                                            </span>
                                         </Button>
                                         <Button
                                             v-if="isOwner"
@@ -444,42 +526,55 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                         </Button>
                                     </div>
                                 </div>
-                                <!-- Agent Access -->
-                                <div class="flex items-center gap-2 text-sm mb-3 pb-3 border-b">
-                                    <Bot class="size-4 text-muted-foreground" />
-                                    <span class="font-medium">Agent Access:</span>
-                                    <span v-if="role.all_agents" class="text-green-600">All agents</span>
-                                    <span v-else-if="role.agent_ids?.length === 0" class="text-muted-foreground">No agents assigned</span>
-                                    <span v-else class="text-foreground">
-                                        {{ role.agent_ids?.length }} agent{{ role.agent_ids?.length === 1 ? '' : 's' }}
-                                        <span class="text-muted-foreground">
-                                            ({{ agents.filter(a => role.agent_ids?.includes(a.id)).map(a => a.name).join(', ') }})
-                                        </span>
-                                    </span>
-                                </div>
-
-                                <!-- Permissions Grid -->
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                    <template v-for="(groupData, groupKey) in permissionGroups" :key="groupKey">
-                                        <div
-                                            v-for="permission in groupData.permissions"
-                                            :key="permission"
-                                            class="flex items-center gap-2 text-sm"
-                                        >
-                                            <CheckCircle
-                                                v-if="hasPermission(role, permission)"
-                                                class="size-4 text-green-500 shrink-0"
-                                            />
-                                            <X v-else class="size-4 text-muted-foreground/50 shrink-0" />
-                                            <span :class="[
-                                                hasPermission(role, permission)
-                                                    ? 'text-foreground'
-                                                    : 'text-muted-foreground/50'
-                                            ]">
-                                                {{ getPermissionLabel(permission) }}
+                                
+                                <div v-if="expandedRoles.has(role.id)">
+                                    <!-- Agent Access -->
+                                    <div class="flex items-center gap-2 text-sm mb-3 pb-3 border-b">
+                                        <Bot class="size-4 text-muted-foreground" />
+                                        <span class="font-medium">Agent Access:</span>
+                                        <span v-if="role.all_agents" class="text-green-600">All agents</span>
+                                        <span v-else-if="role.agent_ids?.length === 0" class="text-muted-foreground">No agents assigned</span>
+                                        <span v-else class="text-foreground">
+                                            {{ role.agent_ids?.length }} agent{{ role.agent_ids?.length === 1 ? '' : 's' }}
+                                            <span class="text-muted-foreground">
+                                                ({{ agents.filter(a => role.agent_ids?.includes(a.id)).map(a => a.name).join(', ') }})
                                             </span>
+                                        </span>
+                                    </div>
+
+                                    <!-- Permissions Grid -->
+                                    <TooltipProvider>
+                                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                            <template v-for="(groupData, groupKey) in permissionGroups" :key="groupKey">
+                                                <div
+                                                    v-for="permission in groupData.permissions"
+                                                    :key="permission"
+                                                    class="flex items-center gap-1.5 text-sm"
+                                                >
+                                                    <CheckCircle
+                                                        v-if="hasPermission(role, permission)"
+                                                        class="size-4 text-green-500 shrink-0"
+                                                    />
+                                                    <X v-else class="size-4 text-muted-foreground/50 shrink-0" />
+                                                    <span :class="[
+                                                        hasPermission(role, permission)
+                                                            ? 'text-foreground'
+                                                            : 'text-muted-foreground/50'
+                                                    ]">
+                                                        {{ getPermissionLabel(permission) }}
+                                                    </span>
+                                                    <Tooltip v-if="permissionDescriptions[permission]">
+                                                        <TooltipTrigger as-child>
+                                                            <Info class="size-3.5 text-muted-foreground hover:text-foreground cursor-help shrink-0" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top" class="max-w-xs">
+                                                            <p>{{ permissionDescriptions[permission] }}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </div>
+                                            </template>
                                         </div>
-                                    </template>
+                                    </TooltipProvider>
                                 </div>
                             </div>
                         </div>
@@ -624,24 +719,72 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
             <Dialog v-model:open="isInviteDialogOpen">
                 <DialogContent class="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Invite Team Member</DialogTitle>
+                        <DialogTitle>Add Team Member</DialogTitle>
                         <DialogDescription>
-                            Send an invitation to join this team with the selected role.
+                            Add an existing user or invite someone new to join this team.
                         </DialogDescription>
                     </DialogHeader>
                     <form @submit.prevent="inviteMember">
                         <div class="grid gap-4 py-4">
-                            <div class="grid gap-2">
+                            <!-- Toggle between existing users and email -->
+                            <div v-if="managedUsers.length > 0" class="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                                <Button
+                                    type="button"
+                                    :variant="inviteType === 'existing' ? 'default' : 'ghost'"
+                                    size="sm"
+                                    @click="inviteType = 'existing'"
+                                    class="flex-1"
+                                >
+                                    Select Existing
+                                </Button>
+                                <Button
+                                    type="button"
+                                    :variant="inviteType === 'email' ? 'default' : 'ghost'"
+                                    size="sm"
+                                    @click="inviteType = 'email'"
+                                    class="flex-1"
+                                >
+                                    Invite by Email
+                                </Button>
+                            </div>
+
+                            <!-- Existing users dropdown -->
+                            <div v-if="inviteType === 'existing' && managedUsers.length > 0" class="grid gap-2">
+                                <Label>Select User</Label>
+                                <Select v-model="inviteForm.user_id">
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Choose a user..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem
+                                            v-for="user in managedUsers"
+                                            :key="user.id"
+                                            :value="user.id"
+                                        >
+                                            <div class="flex flex-col">
+                                                <span>{{ user.name }}</span>
+                                                <span class="text-xs text-muted-foreground">{{ user.email }}</span>
+                                            </div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError :message="inviteForm.errors.user_id" />
+                            </div>
+
+                            <!-- Email input -->
+                            <div v-if="inviteType === 'email'" class="grid gap-2">
                                 <Label for="invite-email">Email Address</Label>
                                 <Input
                                     id="invite-email"
                                     v-model="inviteForm.email"
                                     type="email"
                                     placeholder="colleague@example.com"
-                                    required
+                                    :required="inviteType === 'email'"
                                 />
                                 <InputError :message="inviteForm.errors.email" />
                             </div>
+
+                            <!-- Role display -->
                             <div class="grid gap-2">
                                 <Label>Role</Label>
                                 <Badge :variant="getRoleBadgeVariant(inviteForm.role)" class="w-fit gap-1.5">
@@ -654,12 +797,65 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                             <Button type="button" variant="outline" @click="isInviteDialogOpen = false">
                                 Cancel
                             </Button>
-                            <Button type="submit" :disabled="inviteForm.processing">
+                            <Button
+                                type="submit"
+                                :disabled="inviteForm.processing || (inviteType === 'existing' && !inviteForm.user_id)"
+                            >
                                 <Loader2 v-if="inviteForm.processing" class="mr-2 size-4 animate-spin" />
-                                Send Invitation
+                                {{ inviteType === 'existing' ? 'Add Member' : 'Send Invitation' }}
                             </Button>
                         </DialogFooter>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            <!-- Role Members Dialog -->
+            <Dialog v-model:open="isRoleMembersDialogOpen">
+                <DialogContent class="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle v-if="viewingRoleMembers">
+                            {{ viewingRoleMembers.name }} Members
+                        </DialogTitle>
+                        <DialogDescription>
+                            Members with this role. You can remove their access to this team.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div v-if="viewingRoleMembers" class="py-4">
+                        <div v-if="getRoleMembers(viewingRoleMembers.code).length === 0" class="text-center py-8 text-muted-foreground">
+                            <p>No members with this role yet.</p>
+                        </div>
+                        <div v-else class="space-y-2">
+                            <div
+                                v-for="member in getRoleMembers(viewingRoleMembers.code)"
+                                :key="member.id"
+                                class="flex items-center justify-between p-3 rounded-lg border hover:bg-accent"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <Avatar class="size-8">
+                                        <AvatarFallback>{{ getInitials(member.name) }}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <div class="font-medium text-sm">{{ member.name }}</div>
+                                        <div class="text-xs text-muted-foreground">{{ member.email }}</div>
+                                    </div>
+                                </div>
+                                <Button
+                                    v-if="!member.is_owner"
+                                    variant="ghost"
+                                    size="sm"
+                                    class="text-destructive hover:text-destructive"
+                                    @click="memberToRemove = member; isRoleMembersDialogOpen = false"
+                                >
+                                    <Trash2 class="size-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="isRoleMembersDialogOpen = false">
+                            Close
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 

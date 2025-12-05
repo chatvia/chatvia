@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -13,6 +14,7 @@ return new class extends Migration
             $table->id();
             $table->string('external_id', 20)->unique();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Team::class)->constrained()->cascadeOnDelete();
             $table->enum('type', ['knowledge_base', 'widget', 'search']);
             $table->string('name');
             $table->string('sub_domain')->nullable()->unique();

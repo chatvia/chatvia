@@ -14,6 +14,7 @@ use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
@@ -343,10 +344,58 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
-     * Get the user's primary team.
+     * Get the user's primary team (first owned team created at registration).
      */
-    public function primaryTeam(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function primaryTeam()
     {
-        return $this->belongsTo(Team::class, 'team_id');
+        return $this->ownedTeams()->oldest()->first();
+    }
+
+    /**
+     * Check if a team is the user's primary team.
+     */
+    public function isPrimaryTeam($team): bool
+    {
+        $primaryTeam = $this->primaryTeam();
+
+        return $primaryTeam && $primaryTeam->id === $team->id;
+        }
+
+    /**
+     * Get the user who manages this user (the team owner who invited them).
+     */
+    public function manager(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'managed_by_user_id');
+    }
+
+    /**
+     * Get all users managed by this user (invited via their teams).
+     */
+    public function managedUsers(): HasMany
+    {
+        return $this->hasMany(User::class, 'managed_by_user_id');
+    }
+
+    /**
+     * Check if this user was invited (managed by someone else).
+     */
+    public function isManagedUser(): bool
+    {
+        return $this->managed_by_user_id !== null;
+    }
+
+    /**
+     * Check if this user has valid access (either own subscription or manager's subscription).
+     */
+    public function hasValidAccess(): bool
+    {
+        // Self-managed users need their own subscription
+        if (! $this->isManagedUser()) {
+            return $this->hasActiveSubscription();
+        }
+
+        // Managed users depend on their manager's subscription
+        return $this->manager?->hasActiveSubscription() ?? false;
     }
 }

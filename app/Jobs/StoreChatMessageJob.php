@@ -112,7 +112,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         AnalyzeMessageJob::dispatchIf($isUserMessage, $this->payload->message_id);
 
         AnalyzeConversationJob::dispatchIf(
-            ! $conversation->chat_topic_id && $conversation->messages()->count() >= 5,
+            $conversation->messages()->count() >= 5,
             $conversation
         );
     }

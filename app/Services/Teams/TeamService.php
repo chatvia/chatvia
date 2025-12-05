@@ -80,11 +80,33 @@ class TeamService
     }
 
     /**
-     * Get all available permissions.
+     * Get all available permissions with full metadata.
      */
     public function getAvailablePermissions(): array
     {
         return config('team-permissions.permissions', []);
+    }
+
+    /**
+     * Get permission labels for UI display (code => label).
+     */
+    public function getPermissionLabels(): array
+    {
+        $permissions = $this->getAvailablePermissions();
+
+        return collect($permissions)->mapWithKeys(function ($data, $code) {
+            $label = is_array($data) ? ($data['label'] ?? $code) : $data;
+
+            return [$code => $label];
+        })->all();
+    }
+
+    /**
+     * Get all permission codes.
+     */
+    public function getPermissionCodes(): array
+    {
+        return array_keys($this->getAvailablePermissions());
     }
 
     /**
@@ -125,7 +147,7 @@ class TeamService
     public function createDefaultRoles(Team $team): void
     {
         $roles = $this->getDefaultRoles();
-        $allPermissions = array_keys($this->getAvailablePermissions());
+        $allPermissions = $this->getPermissionCodes();
 
         foreach ($roles as $code => $roleConfig) {
             // Handle wildcard permissions for owner
@@ -149,7 +171,7 @@ class TeamService
     public function getUserPermissionsForInertia(User $user): array
     {
         $permissions = [];
-        $allPermissions = array_keys($this->getAvailablePermissions());
+        $allPermissions = $this->getPermissionCodes();
 
         foreach ($user->allTeams() as $team) {
             // Owner has all permissions
@@ -160,7 +182,8 @@ class TeamService
             }
 
             // Get user's role permissions in the team
-            $permissions[$team->id] = $user->teamPermissions($team)->toArray();
+            $teamPermissions = $user->teamPermissions($team);
+            $permissions[$team->id] = is_array($teamPermissions) ? $teamPermissions : $teamPermissions->toArray();
         }
 
         return $permissions;

@@ -32,10 +32,7 @@ class UserObserver
 
         // Create a default team for the user if they don't have one
         if (! $user->ownedTeams()->exists()) {
-            $team = app(TeamService::class)->createDefaultTeam($user);
-
-            // Set this as the user's primary team
-            $user->updateQuietly(['team_id' => $team->id]);
+            app(TeamService::class)->createDefaultTeam($user);
         }
     }
 

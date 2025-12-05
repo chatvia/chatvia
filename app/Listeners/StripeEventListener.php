@@ -40,10 +40,19 @@ class StripeEventListener
 
     /**
      * Handle invoice.payment_succeeded event (subscription renewals).
-     * For first invoice of trial registrations, user may not exist yet - that's handled by handleTrialRegistration.
+     * Only grants credits for actual renewals (subscription_cycle), not initial charges.
+     * Initial charges from trial conversions are handled by handleTrialRegistration.
      */
     private function handleInvoicePaymentSucceeded(array $data): void
     {
+        // Only process subscription renewals, not initial subscription creation
+        // This prevents double credits when trial converts to paid subscription
+        $billingReason = $data['billing_reason'] ?? null;
+
+        if ($billingReason !== 'subscription_cycle') {
+            return;
+        }
+
         $user = User::query()->where('stripe_id', $data['customer'])->first();
 
         if (! $user) {

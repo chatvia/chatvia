@@ -39,7 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('settings/teams/{team}/members/{member}', [TeamController::class, 'removeMember'])->name('teams.remove-member');
 
     // Team roles
+    Route::get('settings/teams/{team}/roles/create', [TeamController::class, 'showCreateRole'])->name('teams.roles.create');
     Route::post('settings/teams/{team}/roles', [TeamController::class, 'createRole'])->name('teams.create-role');
+    Route::get('settings/teams/{team}/roles/{roleId}/edit', [TeamController::class, 'showEditRole'])->name('teams.roles.edit');
     Route::put('settings/teams/{team}/roles/{roleId}', [TeamController::class, 'updateRole'])->name('teams.update-role');
     Route::delete('settings/teams/{team}/roles/{roleId}', [TeamController::class, 'deleteRole'])->name('teams.delete-role');
 });

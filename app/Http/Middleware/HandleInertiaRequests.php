@@ -56,7 +56,6 @@ class HandleInertiaRequests extends Middleware
             ],
             'permissions' => $this->getTeamPermissions($request),
             'currentTeam' => $request->user('web') ? $this->getCurrentTeam($request) : null,
-            'allTeams' => $request->user('web') ? $this->getAllTeams($request) : [],
         ];
     }
 
@@ -101,33 +100,6 @@ class HandleInertiaRequests extends Middleware
             'is_owner' => $user->ownsTeam($primaryTeam),
             'is_primary' => true,
         ];
-    }
-
-    private function getAllTeams(Request $request): array
-    {
-        $user = $request->user('web');
-
-        if (! $user) {
-            return [];
-        }
-
-        // Get owned teams
-        $ownedTeams = $user->ownedTeams()->get()->map(fn ($team) => [
-            'id' => $team->id,
-            'name' => $team->name,
-            'is_owner' => true,
-            'is_primary' => $team->id === $user->primaryTeam()?->id,
-        ]);
-
-        // Get teams where user is a member
-        $memberTeams = $user->teams()->get()->map(fn ($team) => [
-            'id' => $team->id,
-            'name' => $team->name,
-            'is_owner' => false,
-            'is_primary' => false,
-        ]);
-
-        return $ownedTeams->merge($memberTeams)->values()->all();
     }
 
     private function getTeamPermissions(Request $request): array

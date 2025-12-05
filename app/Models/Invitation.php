@@ -2,18 +2,30 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Jurager\Teams\Models\Invitation as BaseInvitation;
-use Jurager\Teams\Models\Role;
 
-class Invitation extends BaseInvitation
+class Invitation extends Model
 {
+    protected $fillable = [
+        'team_id',
+        'role_id',
+        'email',
+    ];
+
     /**
-     * Get the role associated with the invitation.
-     * Override to fix the incorrect foreign key in the package.
+     * Get the team this invitation is for.
+     */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    /**
+     * Get the role this invitation is for.
      */
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Role::class, 'role_id');
+        return $this->belongsTo(Role::class);
     }
 }

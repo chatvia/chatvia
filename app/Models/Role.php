@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Jurager\Teams\Models\Role as JuragerRole;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends JuragerRole
+class Role extends SpatieRole
 {
     /**
      * The attributes that are mass assignable.
@@ -17,6 +18,8 @@ class Role extends JuragerRole
         'name',
         'description',
         'all_agents',
+        'team_id',
+        'guard_name',
     ];
 
     /**
@@ -32,10 +35,26 @@ class Role extends JuragerRole
     }
 
     /**
+     * Get the team this role belongs to.
+     */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    /**
      * Get the agents this role has access to.
      */
     public function agents(): BelongsToMany
     {
         return $this->belongsToMany(Agent::class);
+    }
+
+    /**
+     * Scope roles to a specific team.
+     */
+    public function scopeForTeam($query, Team $team)
+    {
+        return $query->where('team_id', $team->id);
     }
 }

@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('invitations', static function (Blueprint $table) {
             $table->id();
-            $table->foreignId(Config::get('teams.foreign_keys.team_id', 'team_id'))->constrained()->cascadeOnDelete();
-            $table->foreignId('role_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('team_id')->constrained('teams')->cascadeOnDelete();
+            $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
             $table->string('email');
             $table->timestamps();
 
-            $table->unique([Config::get('teams.foreign_keys.team_id', 'team_id'), 'email']);
+            $table->unique(['team_id', 'email']);
         });
     }
 

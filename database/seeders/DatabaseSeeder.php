@@ -27,9 +27,8 @@ class DatabaseSeeder extends Seeder
         // Get or create primary team
         $team = $user->primaryTeam();
         if (! $team) {
-            $this->command->error('User has no primary team. Please ensure UserObserver is creating teams.');
-
-            return;
+            $team = app(\App\Services\Teams\TeamService::class)->createDefaultTeam($user);
+            $this->command->info("Created default team: {$team->name}");
         }
 
         // Create Knowledge Base agent if it doesn't exist

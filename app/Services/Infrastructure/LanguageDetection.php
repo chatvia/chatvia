@@ -33,4 +33,3 @@ class LanguageDetection
         return Language::where('code', $languageCode)->first();
     }
 }
-

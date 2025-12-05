@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agents\Agents;
 use App\Http\Requests\Agents\CreateAgentRequest;
 use App\Models\Agent;
 use App\Models\ChatTopic;
+use App\Models\Team;
 use App\Models\User;
 use App\Services\Ingestion\Ingestion;
 use App\Services\Prompts\PromptLoader;
@@ -18,6 +19,13 @@ class AgentStoreController
     {
         /** @var User $user */
         $user = $request->user();
+
+        /** @var Team $team */
+        $team = $user->allTeams();
+
+        if ($user->ownsTeam($team) || $user->hasTeamPermission($team, 'agents.create')) {
+            // User is owner OR has the permission
+        }
 
         try {
             DB::beginTransaction();

@@ -10,57 +10,153 @@ return [
     | 1. Role Permissions - What actions can the user perform?
     | 2. Agent Access - Which specific agents can they access? (per role)
     |
+    | Each permission has:
+    | - label: Short name shown in UI
+    | - description: Tooltip description explaining what the permission does
+    | - requires: Array of permission codes that must be enabled for this to work
+    |
     | Owners automatically have full access to everything.
     |
     */
 
     'permissions' => [
         // Team-wide permissions
-        'agents.create' => 'Create new agents',
+        'agents.create' => [
+            'label' => 'Create agents',
+            'description' => 'Allow creating new AI agents for the team',
+        ],
 
         // Agent-scoped permissions (apply to assigned agents only)
-        'agent.view' => 'View agent dashboard',
-        'agent.setup' => 'Configure agent settings',
-        'agent.delete' => 'Delete agent',
+        'agent.rename' => [
+            'label' => 'Rename agent',
+            'description' => 'Change the agent name',
+        ],
+        'agent.setup' => [
+            'label' => 'Setup agent',
+            'description' => 'Modify agent settings, personality, and behavior',
+        ],
+        'agent.delete' => [
+            'label' => 'Delete agent',
+            'description' => 'Permanently remove the agent and all its data',
+        ],
 
-        // Sources
-        'agent.sources.train' => 'Train files',
-        'agent.sources.view.pdf' => 'View PDF sources',
-        'agent.sources.view.word' => 'View Word sources',
-        'agent.sources.view.website' => 'View website sources',
-        'agent.sources.view.qa' => 'View Q&A sources',
-        'agent.sources.view.text' => 'View text sources',
-        'agent.sources.view.audio' => 'View audio sources',
-        'agent.sources.view.video' => 'View video sources',
-        'agent.sources.view.youtube' => 'View YouTube sources',
-        'agent.sources.delete' => 'Delete sources',
+        // Sources - Training
+        'agent.sources.train' => [
+            'label' => 'Train sources',
+            'description' => 'Upload and process new training files',
+        ],
+        'agent.sources.delete' => [
+            'label' => 'Delete sources',
+            'description' => 'Remove training sources from the agent',
+        ],
+
+        // Sources - View
+        'agent.sources.view.pdf' => [
+            'label' => 'PDF files',
+            'description' => 'View PDF document sources',
+        ],
+        'agent.sources.view.word' => [
+            'label' => 'Word files',
+            'description' => 'View Word document sources',
+        ],
+        'agent.sources.view.website' => [
+            'label' => 'Websites',
+            'description' => 'View crawled website sources',
+        ],
+        'agent.sources.view.qa' => [
+            'label' => 'Q&A pairs',
+            'description' => 'View question and answer pairs',
+        ],
+        'agent.sources.view.text' => [
+            'label' => 'Text files',
+            'description' => 'View plain text sources',
+        ],
+        'agent.sources.view.audio' => [
+            'label' => 'Audio files',
+            'description' => 'View transcribed audio sources',
+        ],
+        'agent.sources.view.video' => [
+            'label' => 'Video files',
+            'description' => 'View transcribed video sources',
+        ],
+        'agent.sources.view.youtube' => [
+            'label' => 'YouTube',
+            'description' => 'View YouTube video transcriptions',
+        ],
 
         // Chat
-        'agent.chat.view' => 'View conversations',
-        'agent.chat.takeover' => 'Take over conversations',
-        'agent.chat.delete' => 'Delete conversations',
+        'agent.chat.view' => [
+            'label' => 'View conversations',
+            'description' => 'Read chat history and conversation logs',
+        ],
+        'agent.chat.takeover' => [
+            'label' => 'Take over',
+            'description' => 'Take control of a live conversation from the AI',
+            'requires' => ['agent.chat.view'],
+        ],
+        'agent.chat.delete' => [
+            'label' => 'Delete conversations',
+            'description' => 'Permanently delete conversation history',
+            'requires' => ['agent.chat.view'],
+        ],
 
         // Analytics
-        'agent.analytics.chats' => 'View chat analytics',
-        'agent.analytics.metrics' => 'View metrics',
-        'agent.analytics.sentiment' => 'View sentiment analysis',
-        'agent.analytics.tone' => 'View tone analysis',
-        'agent.analytics.topics' => 'View topics analytics',
-        'agent.analytics.sources' => 'View sources analytics',
+        'agent.analytics.chats' => [
+            'label' => 'Chat analytics',
+            'description' => 'View conversation volume and trends',
+        ],
+        'agent.analytics.metrics' => [
+            'label' => 'Metrics',
+            'description' => 'View performance metrics and KPIs',
+        ],
+        'agent.analytics.sentiment' => [
+            'label' => 'Sentiment',
+            'description' => 'View sentiment analysis of conversations',
+        ],
+        'agent.analytics.tone' => [
+            'label' => 'Tone',
+            'description' => 'View tone analysis of conversations',
+        ],
+        'agent.analytics.topics' => [
+            'label' => 'Topics',
+            'description' => 'View topic distribution and trends',
+        ],
+        'agent.analytics.sources' => [
+            'label' => 'Sources',
+            'description' => 'View which sources are being used in responses',
+        ],
 
         // Topics
-        'agent.topics.add' => 'Add topics',
-        'agent.topics.edit' => 'Edit topics',
-        'agent.topics.delete' => 'Delete topics',
+        'agent.topics.add' => [
+            'label' => 'Add topics',
+            'description' => 'Create new conversation topics',
+        ],
+        'agent.topics.edit' => [
+            'label' => 'Edit topics',
+            'description' => 'Modify existing topics',
+            'requires' => ['agent.topics.add'],
+        ],
+        'agent.topics.delete' => [
+            'label' => 'Delete topics',
+            'description' => 'Remove topics from the agent',
+            'requires' => ['agent.topics.add'],
+        ],
 
         // Leads
-        'agent.leads.view' => 'View leads',
-        'agent.leads.settings' => 'Configure lead capture',
-        'agent.leads.export' => 'Export leads',
-
-        // Billing (account-level)
-        'billing.view' => 'View billing & invoices',
-        'billing.manage' => 'Manage subscription',
+        'agent.leads.view' => [
+            'label' => 'View leads',
+            'description' => 'See captured lead information',
+        ],
+        'agent.leads.settings' => [
+            'label' => 'Lead settings',
+            'description' => 'Configure lead capture forms and rules',
+            'requires' => ['agent.leads.view'],
+        ],
+        'agent.leads.export' => [
+            'label' => 'Export leads',
+            'description' => 'Download leads as CSV or integrate with CRM',
+            'requires' => ['agent.leads.view'],
+        ],
     ],
 
     /*
@@ -85,38 +181,40 @@ return [
     */
 
     'groups' => [
-        // Agent-specific permissions (apply to assigned agents)
         'agent' => [
             'label' => 'Agent',
             'description' => 'Agent management',
-            'category' => 'agent',
             'permissions' => [
-                'agent.view',
+                'agent.rename',
                 'agent.setup',
                 'agent.delete',
             ],
         ],
         'sources' => [
             'label' => 'Sources',
-            'description' => 'Knowledge base management',
-            'category' => 'agent',
+            'description' => 'Training management',
             'permissions' => [
                 'agent.sources.train',
+                'agent.sources.delete',
+            ],
+        ],
+        'sources_view' => [
+            'label' => 'View Sources',
+            'description' => 'Access to source types',
+            'permissions' => [
                 'agent.sources.view.pdf',
                 'agent.sources.view.word',
+                'agent.sources.view.text',
                 'agent.sources.view.website',
                 'agent.sources.view.qa',
-                'agent.sources.view.text',
                 'agent.sources.view.audio',
                 'agent.sources.view.video',
                 'agent.sources.view.youtube',
-                'agent.sources.delete',
             ],
         ],
         'chat' => [
             'label' => 'Chat',
             'description' => 'Conversation management',
-            'category' => 'agent',
             'permissions' => [
                 'agent.chat.view',
                 'agent.chat.takeover',
@@ -126,7 +224,6 @@ return [
         'analytics' => [
             'label' => 'Analytics',
             'description' => 'View performance data',
-            'category' => 'agent',
             'permissions' => [
                 'agent.analytics.chats',
                 'agent.analytics.metrics',
@@ -139,7 +236,6 @@ return [
         'topics' => [
             'label' => 'Topics',
             'description' => 'Manage conversation topics',
-            'category' => 'agent',
             'permissions' => [
                 'agent.topics.add',
                 'agent.topics.edit',
@@ -149,30 +245,10 @@ return [
         'leads' => [
             'label' => 'Leads',
             'description' => 'Lead management',
-            'category' => 'agent',
             'permissions' => [
                 'agent.leads.view',
                 'agent.leads.settings',
                 'agent.leads.export',
-            ],
-        ],
-
-        // Team/Account-level permissions
-        'team' => [
-            'label' => 'Team',
-            'description' => 'Team-wide permissions',
-            'category' => 'other',
-            'permissions' => [
-                'agents.create',
-            ],
-        ],
-        'billing' => [
-            'label' => 'Billing',
-            'description' => 'Account billing',
-            'category' => 'other',
-            'permissions' => [
-                'billing.view',
-                'billing.manage',
             ],
         ],
     ],

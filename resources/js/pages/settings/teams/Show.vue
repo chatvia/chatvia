@@ -124,7 +124,6 @@ interface Invitation {
 interface PermissionGroup {
     label: string;
     description?: string;
-    category: 'agent' | 'other';
     permissions: string[];
 }
 
@@ -244,101 +243,9 @@ const removeMember = () => {
     });
 };
 
-// Create role
-const isCreateRoleDialogOpen = ref(false);
-const createRoleForm = useForm({
-    name: '',
-    permissions: [] as string[],
-    all_agents: true,
-    agent_ids: [] as number[],
-});
-
-const createRole = () => {
-    createRoleForm.post(route('teams.create-role', props.team.id), {
-        onSuccess: () => {
-            isCreateRoleDialogOpen.value = false;
-            createRoleForm.reset();
-        },
-    });
-};
-
-const togglePermissionForCreate = (permission: string, checked: boolean | "indeterminate") => {
-    const isChecked = checked === true;
-    if (isChecked) {
-        if (!createRoleForm.permissions.includes(permission)) {
-            createRoleForm.permissions = [...createRoleForm.permissions, permission];
-        }
-    } else {
-        createRoleForm.permissions = createRoleForm.permissions.filter(p => p !== permission);
-    }
-};
-
-const toggleGroupPermissionsForCreate = (groupKey: string, checked: boolean | "indeterminate") => {
-    const isChecked = checked === true;
-    const groupPerms = props.permissionGroups[groupKey]?.permissions || [];
-
-    if (isChecked) {
-        // Select all in group
-        const newPerms = groupPerms.filter(p => !createRoleForm.permissions.includes(p));
-        createRoleForm.permissions = [...createRoleForm.permissions, ...newPerms];
-    } else {
-        // Deselect all in group
-        createRoleForm.permissions = createRoleForm.permissions.filter(p => !groupPerms.includes(p));
-    }
-};
-
-// Edit role
-const roleToEdit = ref<TeamRole | null>(null);
-const editRoleForm = useForm({
-    name: '',
-    permissions: [] as string[],
-    all_agents: true,
-    agent_ids: [] as number[],
-});
-
-const openEditRoleDialog = (role: TeamRole) => {
-    roleToEdit.value = role;
-    editRoleForm.name = role.name;
-    editRoleForm.permissions = [...role.permissions];
-    editRoleForm.all_agents = role.all_agents;
-    editRoleForm.agent_ids = [...(role.agent_ids || [])];
-};
-
-const updateRole = () => {
-    if (!roleToEdit.value) return;
-
-    editRoleForm.put(route('teams.update-role', { team: props.team.id, roleId: roleToEdit.value.id }), {
-        onSuccess: () => {
-            roleToEdit.value = null;
-            editRoleForm.reset();
-        },
-    });
-};
-
-const togglePermissionForEdit = (permission: string, checked: boolean | "indeterminate") => {
-    const isChecked = checked === true;
-    if (isChecked) {
-        if (!editRoleForm.permissions.includes(permission)) {
-            editRoleForm.permissions = [...editRoleForm.permissions, permission];
-        }
-    } else {
-        editRoleForm.permissions = editRoleForm.permissions.filter(p => p !== permission);
-    }
-};
-
-const toggleGroupPermissionsForEdit = (groupKey: string, checked: boolean | "indeterminate") => {
-    const isChecked = checked === true;
-    const groupPerms = props.permissionGroups[groupKey]?.permissions || [];
-
-    if (isChecked) {
-        // Select all in group
-        const newPerms = groupPerms.filter(p => !editRoleForm.permissions.includes(p));
-        editRoleForm.permissions = [...editRoleForm.permissions, ...newPerms];
-    } else {
-        // Deselect all in group
-        editRoleForm.permissions = editRoleForm.permissions.filter(p => !groupPerms.includes(p));
-    }
-};
+// Create and Edit role now use dedicated pages
+// See: /settings/teams/{team}/roles/create
+// See: /settings/teams/{team}/roles/{roleId}/edit
 
 // Delete role
 const roleToDelete = ref<TeamRole | null>(null);
@@ -395,37 +302,6 @@ const selectableRoles = computed(() => props.roles.filter(r => r.code !== 'owner
 
 // Get displayable roles (exclude owner - owner is implicit)
 const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owner'));
-
-// Permission groups by category
-const agentPermissionGroups = computed(() => {
-    return Object.entries(props.permissionGroups)
-        .filter(([_, group]) => group.category === 'agent')
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as Record<string, PermissionGroup>);
-});
-
-const otherPermissionGroups = computed(() => {
-    return Object.entries(props.permissionGroups)
-        .filter(([_, group]) => group.category === 'other')
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as Record<string, PermissionGroup>);
-});
-
-// Agent selection helpers
-const getSelectedAgentNames = (agentIds: number[]): string => {
-    if (agentIds.length === 0) return 'Select agents...';
-    const names = agentIds
-        .map(id => props.agents.find(a => a.id === id)?.name)
-        .filter(Boolean);
-    if (names.length <= 2) return names.join(', ');
-    return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
-};
-
-const toggleAgentSelection = (form: { agent_ids: number[] }, agentId: number) => {
-    if (form.agent_ids.includes(agentId)) {
-        form.agent_ids = form.agent_ids.filter(id => id !== agentId);
-    } else {
-        form.agent_ids = [...form.agent_ids, agentId];
-    }
-};
 </script>
 
 <template>
@@ -513,200 +389,12 @@ const toggleAgentSelection = (form: { agent_ids: number[] }, agentId: number) =>
                                     Define roles and their permissions for team members.
                                 </CardDescription>
                             </div>
-                            <Dialog v-if="isOwner" v-model:open="isCreateRoleDialogOpen">
-                                    <DialogTrigger as-child>
-                                        <Button class="gap-2">
-                                            <Plus class="size-4" />
-                                            Create Role
-                                        </Button>
-                                    </DialogTrigger>
-                                <DialogContent class="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-                                    <DialogHeader>
-                                        <DialogTitle>Create New Role</DialogTitle>
-                                        <DialogDescription>
-                                            Define a role name and select the permissions for this role.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <form @submit.prevent="createRole" class="flex flex-col flex-1 overflow-hidden">
-                                        <div class="flex-1 overflow-y-auto pr-2 space-y-6 py-4">
-                                            <div class="space-y-2">
-                                                <Label for="role-name">Role Name</Label>
-                                                <Input
-                                                    id="role-name"
-                                                    v-model="createRoleForm.name"
-                                                    placeholder="e.g., Support Agent"
-                                                    required
-                                                />
-                                                <InputError :message="createRoleForm.errors.name" />
-                                            </div>
-
-                                            <!-- Agent Access Section (moved to first) -->
-                                            <div class="space-y-4">
-                                                <div>
-                                                    <Label class="text-base flex items-center gap-2">
-                                                        <Bot class="size-4" />
-                                                        Agent Access
-                                                    </Label>
-                                                    <p class="text-sm text-muted-foreground mt-1">
-                                                        Which agents can members with this role access?
-                                                    </p>
-                                                </div>
-
-                                                <div class="flex items-center gap-2">
-                                                    <Checkbox
-                                                        id="create-all-agents"
-                                                        :model-value="createRoleForm.all_agents"
-                                                        @update:model-value="(checked) => createRoleForm.all_agents = checked === true"
-                                                    />
-                                                    <Label for="create-all-agents" class="font-medium cursor-pointer">
-                                                        All agents (including future agents)
-                                                    </Label>
-                                                </div>
-
-                                                <div v-if="!createRoleForm.all_agents">
-                                                    <Popover>
-                                                        <PopoverTrigger as-child>
-                                                            <Button
-                                                                variant="outline"
-                                                                role="combobox"
-                                                                class="w-full justify-between font-normal h-auto min-h-10 py-2"
-                                                            >
-                                                                <span class="flex items-center gap-2 truncate text-left">
-                                                                    <Bot class="size-4 text-muted-foreground shrink-0" />
-                                                                    {{ getSelectedAgentNames(createRoleForm.agent_ids) }}
-                                                                </span>
-                                                                <ChevronDown class="ml-2 size-4 shrink-0 opacity-50" />
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent class="w-[--radix-popover-trigger-width] p-2" align="start">
-                                                            <ScrollArea class="max-h-60">
-                                                                <div v-if="agents.length === 0" class="text-sm text-muted-foreground py-2 text-center">
-                                                                    No agents available
-                                                                </div>
-                                                                <div v-else class="space-y-1">
-                                                                    <div
-                                                                        v-for="agent in agents"
-                                                                        :key="agent.id"
-                                                                        class="flex items-center gap-2 p-2 rounded-md hover:bg-accent cursor-pointer"
-                                                                        @click="toggleAgentSelection(createRoleForm, agent.id)"
-                                                                    >
-                                                                        <Checkbox
-                                                                            :model-value="createRoleForm.agent_ids.includes(agent.id)"
-                                                                            @click.stop
-                                                                            @update:model-value="() => toggleAgentSelection(createRoleForm, agent.id)"
-                                                                        />
-                                                                        <Bot class="size-4 text-muted-foreground" />
-                                                                        <span class="text-sm">{{ agent.name }}</span>
-                                                                    </div>
-                                                                </div>
-                                                            </ScrollArea>
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                </div>
-                                            </div>
-
-                                            <div class="space-y-4 pt-4 border-t">
-                                                <div class="flex items-center justify-between">
-                                                    <Label class="text-base">Permissions</Label>
-                                                    <span class="text-xs text-muted-foreground">
-                                                        {{ createRoleForm.permissions.length }} selected
-                                                    </span>
-                                                </div>
-                                                <InputError :message="createRoleForm.errors.permissions" />
-
-                                                <!-- Agent-specific permissions -->
-                                                <div class="space-y-3">
-                                                    <p class="text-sm font-medium text-muted-foreground">Agent Permissions</p>
-                                                    <p class="text-xs text-muted-foreground -mt-2">These permissions apply to assigned agents only</p>
-                                                    <div class="grid gap-4 sm:grid-cols-2">
-                                                        <div
-                                                            v-for="(groupData, groupKey) in agentPermissionGroups"
-                                                            :key="groupKey"
-                                                            class="border rounded-lg p-4 space-y-3"
-                                                        >
-                                                            <div class="flex items-center gap-2">
-                                                                <Checkbox
-                                                                    :id="`create-group-${groupKey}`"
-                                                                    :model-value="groupData.permissions.every(p => createRoleForm.permissions.includes(p))"
-                                                                    @update:model-value="(checked) => toggleGroupPermissionsForCreate(groupKey.toString(), checked)"
-                                                                />
-                                                                <Label :for="`create-group-${groupKey}`" class="font-semibold cursor-pointer">
-                                                                    {{ groupData.label }}
-                                                                </Label>
-                                                            </div>
-                                                            <div class="space-y-2 ml-6">
-                                                                <div
-                                                                    v-for="permission in groupData.permissions"
-                                                                    :key="permission"
-                                                                    class="flex items-center gap-2"
-                                                                >
-                                                                    <Checkbox
-                                                                        :id="`create-${permission}`"
-                                                                        :model-value="createRoleForm.permissions.includes(permission)"
-                                                                        @update:model-value="(checked) => togglePermissionForCreate(permission, checked)"
-                                                                    />
-                                                                    <Label :for="`create-${permission}`" class="text-sm font-normal cursor-pointer">
-                                                                        {{ getPermissionLabel(permission) }}
-                                                                    </Label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Other permissions -->
-                                                <div class="space-y-3 pt-4 border-t">
-                                                    <p class="text-sm font-medium text-muted-foreground">Other Permissions</p>
-                                                    <p class="text-xs text-muted-foreground -mt-2">Team-wide and account-level permissions</p>
-                                                    <div class="grid gap-4 sm:grid-cols-2">
-                                                        <div
-                                                            v-for="(groupData, groupKey) in otherPermissionGroups"
-                                                            :key="groupKey"
-                                                            class="border rounded-lg p-4 space-y-3"
-                                                        >
-                                                            <div class="flex items-center gap-2">
-                                                                <Checkbox
-                                                                    :id="`create-other-group-${groupKey}`"
-                                                                    :model-value="groupData.permissions.every(p => createRoleForm.permissions.includes(p))"
-                                                                    @update:model-value="(checked) => toggleGroupPermissionsForCreate(groupKey.toString(), checked)"
-                                                                />
-                                                                <Label :for="`create-other-group-${groupKey}`" class="font-semibold cursor-pointer">
-                                                                    {{ groupData.label }}
-                                                                </Label>
-                                                            </div>
-                                                            <div class="space-y-2 ml-6">
-                                                                <div
-                                                                    v-for="permission in groupData.permissions"
-                                                                    :key="permission"
-                                                                    class="flex items-center gap-2"
-                                                                >
-                                                                    <Checkbox
-                                                                        :id="`create-other-${permission}`"
-                                                                        :model-value="createRoleForm.permissions.includes(permission)"
-                                                                        @update:model-value="(checked) => togglePermissionForCreate(permission, checked)"
-                                                                    />
-                                                                    <Label :for="`create-other-${permission}`" class="text-sm font-normal cursor-pointer">
-                                                                        {{ getPermissionLabel(permission) }}
-                                                                    </Label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <DialogFooter class="pt-4 border-t mt-4">
-                                            <Button type="button" variant="outline" @click="isCreateRoleDialogOpen = false">
-                                                Cancel
-                                            </Button>
-                                            <Button type="submit" :disabled="createRoleForm.processing || createRoleForm.permissions.length === 0">
-                                                <Loader2 v-if="createRoleForm.processing" class="mr-2 size-4 animate-spin" />
-                                                Create Role
-                                            </Button>
-                                        </DialogFooter>
-                                    </form>
-                                </DialogContent>
-                            </Dialog>
+                            <Link v-if="isOwner" :href="route('teams.roles.create', team.id)">
+                                <Button class="gap-2">
+                                    <Plus class="size-4" />
+                                    Create Role
+                                </Button>
+                            </Link>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -739,9 +427,11 @@ const toggleAgentSelection = (form: { agent_ids: number[] }, agentId: number) =>
                                             variant="ghost"
                                             size="icon"
                                             class="size-8"
-                                            @click="openEditRoleDialog(role)"
+                                            as-child
                                         >
-                                            <Edit class="size-4" />
+                                            <Link :href="route('teams.roles.edit', { team: team.id, roleId: role.id })">
+                                                <Edit class="size-4" />
+                                            </Link>
                                         </Button>
                                         <Button
                                             v-if="isOwner && role.code !== 'admin'"
@@ -1016,194 +706,7 @@ const toggleAgentSelection = (form: { agent_ids: number[] }, agentId: number) =>
                 </DialogContent>
             </Dialog>
 
-            <!-- Edit Role Dialog -->
-            <Dialog :open="!!roleToEdit" @update:open="(open) => !open && (roleToEdit = null)">
-                <DialogContent class="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-                    <DialogHeader>
-                        <DialogTitle>Edit Role: {{ roleToEdit?.name }}</DialogTitle>
-                        <DialogDescription>
-                            Modify the role name and permissions.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form @submit.prevent="updateRole" class="flex flex-col flex-1 overflow-hidden">
-                        <div class="flex-1 overflow-y-auto pr-2 space-y-6 py-4">
-                            <div class="space-y-2">
-                                <Label for="edit-role-name">Role Name</Label>
-                                <Input
-                                    id="edit-role-name"
-                                    v-model="editRoleForm.name"
-                                    required
-                                />
-                                <InputError :message="editRoleForm.errors.name" />
-                            </div>
-
-                            <!-- Agent Access Section (moved to first) -->
-                            <div class="space-y-4">
-                                <div>
-                                    <Label class="text-base flex items-center gap-2">
-                                        <Bot class="size-4" />
-                                        Agent Access
-                                    </Label>
-                                    <p class="text-sm text-muted-foreground mt-1">
-                                        Which agents can members with this role access?
-                                    </p>
-                                </div>
-
-                                <div class="flex items-center gap-2">
-                                    <Checkbox
-                                        id="edit-all-agents"
-                                        :model-value="editRoleForm.all_agents"
-                                        @update:model-value="(checked) => editRoleForm.all_agents = checked === true"
-                                    />
-                                    <Label for="edit-all-agents" class="font-medium cursor-pointer">
-                                        All agents (including future agents)
-                                    </Label>
-                                </div>
-
-                                <div v-if="!editRoleForm.all_agents">
-                                    <Popover>
-                                        <PopoverTrigger as-child>
-                                            <Button
-                                                variant="outline"
-                                                role="combobox"
-                                                class="w-full justify-between font-normal h-auto min-h-10 py-2"
-                                            >
-                                                <span class="flex items-center gap-2 truncate text-left">
-                                                    <Bot class="size-4 text-muted-foreground shrink-0" />
-                                                    {{ getSelectedAgentNames(editRoleForm.agent_ids) }}
-                                                </span>
-                                                <ChevronDown class="ml-2 size-4 shrink-0 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent class="w-[--radix-popover-trigger-width] p-2" align="start">
-                                            <ScrollArea class="max-h-60">
-                                                <div v-if="agents.length === 0" class="text-sm text-muted-foreground py-2 text-center">
-                                                    No agents available
-                                                </div>
-                                                <div v-else class="space-y-1">
-                                                    <div
-                                                        v-for="agent in agents"
-                                                        :key="agent.id"
-                                                        class="flex items-center gap-2 p-2 rounded-md hover:bg-accent cursor-pointer"
-                                                        @click="toggleAgentSelection(editRoleForm, agent.id)"
-                                                    >
-                                                        <Checkbox
-                                                            :model-value="editRoleForm.agent_ids.includes(agent.id)"
-                                                            @click.stop
-                                                            @update:model-value="() => toggleAgentSelection(editRoleForm, agent.id)"
-                                                        />
-                                                        <Bot class="size-4 text-muted-foreground" />
-                                                        <span class="text-sm">{{ agent.name }}</span>
-                                                    </div>
-                                                </div>
-                                            </ScrollArea>
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                            </div>
-
-                            <div class="space-y-4 pt-4 border-t">
-                                <div class="flex items-center justify-between">
-                                    <Label class="text-base">Permissions</Label>
-                                    <span class="text-xs text-muted-foreground">
-                                        {{ editRoleForm.permissions.length }} selected
-                                    </span>
-                                </div>
-                                <InputError :message="editRoleForm.errors.permissions" />
-
-                                <!-- Agent-specific permissions -->
-                                <div class="space-y-3">
-                                    <p class="text-sm font-medium text-muted-foreground">Agent Permissions</p>
-                                    <p class="text-xs text-muted-foreground -mt-2">These permissions apply to assigned agents only</p>
-                                    <div class="grid gap-4 sm:grid-cols-2">
-                                        <div
-                                            v-for="(groupData, groupKey) in agentPermissionGroups"
-                                            :key="groupKey"
-                                            class="border rounded-lg p-4 space-y-3"
-                                        >
-                                            <div class="flex items-center gap-2">
-                                                <Checkbox
-                                                    :id="`edit-group-${groupKey}`"
-                                                    :model-value="groupData.permissions.every(p => editRoleForm.permissions.includes(p))"
-                                                    @update:model-value="(checked) => toggleGroupPermissionsForEdit(groupKey.toString(), checked)"
-                                                />
-                                                <Label :for="`edit-group-${groupKey}`" class="font-semibold cursor-pointer">
-                                                    {{ groupData.label }}
-                                                </Label>
-                                            </div>
-                                            <div class="space-y-2 ml-6">
-                                                <div
-                                                    v-for="permission in groupData.permissions"
-                                                    :key="permission"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <Checkbox
-                                                        :id="`edit-${permission}`"
-                                                        :model-value="editRoleForm.permissions.includes(permission)"
-                                                        @update:model-value="(checked) => togglePermissionForEdit(permission, checked)"
-                                                    />
-                                                    <Label :for="`edit-${permission}`" class="text-sm font-normal cursor-pointer">
-                                                        {{ getPermissionLabel(permission) }}
-                                                    </Label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Other permissions -->
-                                <div class="space-y-3 pt-4 border-t">
-                                    <p class="text-sm font-medium text-muted-foreground">Other Permissions</p>
-                                    <p class="text-xs text-muted-foreground -mt-2">Team-wide and account-level permissions</p>
-                                    <div class="grid gap-4 sm:grid-cols-2">
-                                        <div
-                                            v-for="(groupData, groupKey) in otherPermissionGroups"
-                                            :key="groupKey"
-                                            class="border rounded-lg p-4 space-y-3"
-                                        >
-                                            <div class="flex items-center gap-2">
-                                                <Checkbox
-                                                    :id="`edit-other-group-${groupKey}`"
-                                                    :model-value="groupData.permissions.every(p => editRoleForm.permissions.includes(p))"
-                                                    @update:model-value="(checked) => toggleGroupPermissionsForEdit(groupKey.toString(), checked)"
-                                                />
-                                                <Label :for="`edit-other-group-${groupKey}`" class="font-semibold cursor-pointer">
-                                                    {{ groupData.label }}
-                                                </Label>
-                                            </div>
-                                            <div class="space-y-2 ml-6">
-                                                <div
-                                                    v-for="permission in groupData.permissions"
-                                                    :key="permission"
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <Checkbox
-                                                        :id="`edit-other-${permission}`"
-                                                        :model-value="editRoleForm.permissions.includes(permission)"
-                                                        @update:model-value="(checked) => togglePermissionForEdit(permission, checked)"
-                                                    />
-                                                    <Label :for="`edit-other-${permission}`" class="text-sm font-normal cursor-pointer">
-                                                        {{ getPermissionLabel(permission) }}
-                                                    </Label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <DialogFooter class="pt-4 border-t mt-4">
-                            <Button type="button" variant="outline" @click="roleToEdit = null">
-                                Cancel
-                            </Button>
-                            <Button type="submit" :disabled="editRoleForm.processing || editRoleForm.permissions.length === 0">
-                                <Loader2 v-if="editRoleForm.processing" class="mr-2 size-4 animate-spin" />
-                                Save Changes
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            <!-- Edit Role now uses dedicated page at /settings/teams/{team}/roles/{roleId}/edit -->
 
             <!-- Remove Member Confirmation -->
             <AlertDialog :open="!!memberToRemove" @update:open="(open) => !open && (memberToRemove = null)">

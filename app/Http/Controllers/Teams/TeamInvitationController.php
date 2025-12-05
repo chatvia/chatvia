@@ -117,6 +117,7 @@ class TeamInvitationController extends Controller
                 'email' => $invitation->email,
                 'password' => Hash::make($request->password),
                 'email_verified_at' => now(), // Auto-verify since they received the invitation email
+                'managed_by_user_id' => $owner->id, // User is managed by the team owner
             ]);
 
             event(new Registered($user));

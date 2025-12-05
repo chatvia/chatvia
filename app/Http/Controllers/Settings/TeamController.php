@@ -30,7 +30,7 @@ class TeamController extends Controller
                     'email' => $team->owner->email,
                 ],
                 'is_owner' => $user->ownsTeam($team),
-                'is_primary' => $user->team_id === $team->id,
+                'is_primary' => $user->isPrimaryTeam($team),
                 'role' => $user->teamRole($team)?->code ?? 'owner',
                 'members_count' => $team->allUsers()->count(),
                 'created_at' => $team->created_at->toDateTimeString(),
@@ -151,7 +151,7 @@ class TeamController extends Controller
         }
 
         // Prevent deleting the user's primary team
-        if ($user->team_id === $team->id) {
+        if ($user->isPrimaryTeam($team)) {
             return back()->with('error', 'You cannot delete your primary team.');
         }
 
@@ -287,6 +287,62 @@ class TeamController extends Controller
             ->with('success', 'You have left the team.');
     }
 
+    public function showCreateRole(Request $request, Team $team)
+    {
+        $user = $request->user();
+
+        if (! $user->ownsTeam($team)) {
+            abort(403, 'Only the team owner can create roles.');
+        }
+
+        $agents = $team->agents()->select('id', 'name')->get()->map(fn ($agent) => [
+            'id' => $agent->id,
+            'name' => $agent->name,
+        ])->values()->all();
+
+        return Inertia::render('settings/teams/roles/Create', [
+            'team' => [
+                'id' => $team->id,
+                'name' => $team->name,
+            ],
+            'agents' => $agents,
+            'availablePermissions' => $this->teamService->getAvailablePermissions(),
+            'permissionGroups' => $this->teamService->getPermissionGroups(),
+        ]);
+    }
+
+    public function showEditRole(Request $request, Team $team, int $roleId)
+    {
+        $user = $request->user();
+
+        if (! $user->ownsTeam($team)) {
+            abort(403, 'Only the team owner can edit roles.');
+        }
+
+        $roleModel = $team->roles()->with('permissions')->findOrFail($roleId);
+
+        // Prevent editing owner role
+        if ($roleModel->code === 'owner') {
+            return redirect()->route('teams.show', $team)->with('error', 'Cannot edit the owner role.');
+        }
+
+        $agents = $team->agents()->select('id', 'name')->get()->map(fn ($agent) => [
+            'id' => $agent->id,
+            'name' => $agent->name,
+        ])->values()->all();
+
+        return Inertia::render('settings/teams/roles/Edit', [
+            'team' => [
+                'id' => $team->id,
+                'name' => $team->name,
+            ],
+            'role' => $this->teamService->formatRoleForFrontend($roleModel, $team),
+            'agents' => $agents,
+            'availablePermissions' => $this->teamService->getAvailablePermissions(),
+            'permissionGroups' => $this->teamService->getPermissionGroups(),
+        ]);
+    }
+
     public function createRole(Request $request, Team $team)
     {
         $user = $request->user();
@@ -323,7 +379,7 @@ class TeamController extends Controller
         $agentIds = $validated['agent_ids'] ?? [];
         $this->teamService->updateRoleAgentAccess($role, $allAgents, $agentIds);
 
-        return back()->with('success', 'Role created successfully.');
+        return redirect()->route('teams.show', $team)->with('success', 'Role created successfully.');
     }
 
     public function updateRole(Request $request, Team $team, int $roleId)
@@ -362,7 +418,7 @@ class TeamController extends Controller
         $agentIds = $validated['agent_ids'] ?? [];
         $this->teamService->updateRoleAgentAccess($roleModel, $allAgents, $agentIds);
 
-        return back()->with('success', 'Role updated successfully.');
+        return redirect()->route('teams.show', $team)->with('success', 'Role updated successfully.');
     }
 
     public function deleteRole(Request $request, Team $team, int $roleId)

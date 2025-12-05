@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId(Config::get('teams.foreign_keys.team_id', 'team_id'))->constrained(Config::get('teams.tables.teams'))->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('role_id')->constrained('roles')->cascadeOnUpdate()->restrictOnDelete();
+
             $table->timestamps();
 
             $table->unique([Config::get('teams.foreign_keys.team_id', 'team_id'), 'user_id']);

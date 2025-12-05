@@ -17,7 +17,7 @@ return new class extends Migration
             $table->boolean('is_admin')->index()->default(false);
             $table->rememberToken();
 
-            $table->unsignedBigInteger('team_id')->nullable();
+            $table->foreignId('managed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
 
             $table->string('stripe_id')->nullable()->index();
             $table->string('pm_type')->nullable();

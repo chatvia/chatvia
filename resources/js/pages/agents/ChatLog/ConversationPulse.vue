@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { computed, watch, onMounted } from 'vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { LoaderCircle, MessageSquare, Activity, TrendingUp, TrendingDown, HelpCircle } from 'lucide-vue-next';
+import { LoaderCircle, MessageSquare, Activity, TrendingUp, TrendingDown, HelpCircle, RefreshCw } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
 import { Line } from 'vue-chartjs';
 import { 
   Chart as ChartJS, 
@@ -176,6 +177,21 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
 
   <!-- Pulse Content -->
   <div v-else class="p-5 space-y-5">
+    <!-- Header with Refresh -->
+    <div class="flex items-center justify-between">
+      <h3 class="text-sm font-medium text-muted-foreground">Conversation Pulse</h3>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        @click="fetchPulseData"
+        :disabled="isLoadingPulse"
+        class="h-8 gap-1.5"
+      >
+        <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isLoadingPulse }" />
+        Refresh
+      </Button>
+    </div>
+
     <!-- Summary Table -->
     <div class="rounded-lg border bg-card">
       <table class="w-full text-sm">

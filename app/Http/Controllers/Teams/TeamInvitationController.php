@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Teams;
 
 use App\Http\Controllers\Controller;
+use App\Models\Invitation;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\Teams\TeamService;
@@ -12,7 +13,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
-use Jurager\Teams\Models\Invitation;
 
 class TeamInvitationController extends Controller
 {

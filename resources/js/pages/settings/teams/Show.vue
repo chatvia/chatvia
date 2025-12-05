@@ -474,56 +474,88 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                                 :class="expandedRoles.has(role.id) ? 'rotate-90' : ''"
                                             />
                                         </Button>
-                                        <Badge :variant="getRoleBadgeVariant(role.code)" class="gap-1.5">
-                                            <component :is="getRoleIcon(role.code)" class="size-3.5" />
-                                            {{ role.name }}
-                                        </Badge>
+                                        <div class="flex items-center gap-1.5">
+                                            <component :is="getRoleIcon(role.code)" class="size-4" />
+                                            <span class="font-semibold text-base">{{ role.name }}</span>
+                                        </div>
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <Button
-                                            v-if="canManageMembers"
-                                            variant="ghost"
-                                            size="icon"
-                                            class="size-8"
-                                            @click="openInviteDialogForRole(role)"
-                                        >
-                                            <UserPlus class="size-4" />
-                                        </Button>
-                                        <Button
-                                            v-if="canManageMembers"
-                                            variant="ghost"
-                                            size="icon"
-                                            class="size-8 relative"
-                                            @click="openRoleMembersDialog(role)"
-                                        >
-                                            <UserCog class="size-4" />
-                                            <span
-                                                v-if="getRoleMemberCount(role.code) > 0"
-                                                class="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full size-4 flex items-center justify-center"
-                                            >
-                                                {{ getRoleMemberCount(role.code) }}
-                                            </span>
-                                        </Button>
-                                        <Button
-                                            v-if="isOwner"
-                                            variant="ghost"
-                                            size="icon"
-                                            class="size-8"
-                                            as-child
-                                        >
-                                            <Link :href="route('teams.roles.edit', { team: team.id, roleId: role.id })">
-                                                <Edit class="size-4" />
-                                            </Link>
-                                        </Button>
-                                        <Button
-                                            v-if="isOwner && role.code !== 'admin'"
-                                            variant="ghost"
-                                            size="icon"
-                                            class="size-8 text-muted-foreground hover:text-destructive"
-                                            @click="roleToDelete = role"
-                                        >
-                                            <Trash2 class="size-4" />
-                                        </Button>
+                                        <TooltipProvider v-if="canManageMembers" :delay-duration="0">
+                                            <Tooltip>
+                                                <TooltipTrigger as-child>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        class="size-8"
+                                                        @click="openInviteDialogForRole(role)"
+                                                    >
+                                                        <UserPlus class="size-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Add Member</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider v-if="canManageMembers" :delay-duration="0">
+                                            <Tooltip>
+                                                <TooltipTrigger as-child>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        class="size-8 relative"
+                                                        @click="openRoleMembersDialog(role)"
+                                                    >
+                                                        <UserCog class="size-4" />
+                                                        <span
+                                                            v-if="getRoleMemberCount(role.code) > 0"
+                                                            class="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full size-4 flex items-center justify-center"
+                                                        >
+                                                            {{ getRoleMemberCount(role.code) }}
+                                                        </span>
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>View Members ({{ getRoleMemberCount(role.code) }})</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider v-if="isOwner" :delay-duration="0">
+                                            <Tooltip>
+                                                <TooltipTrigger as-child>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        class="size-8"
+                                                        as-child
+                                                    >
+                                                        <Link :href="route('teams.roles.edit', { team: team.id, roleId: role.id })">
+                                                            <Edit class="size-4" />
+                                                        </Link>
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Edit Role</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider v-if="isOwner && role.code !== 'admin'" :delay-duration="0">
+                                            <Tooltip>
+                                                <TooltipTrigger as-child>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        class="size-8 text-muted-foreground hover:text-destructive"
+                                                        @click="roleToDelete = role"
+                                                    >
+                                                        <Trash2 class="size-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Delete Role</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     </div>
                                 </div>
                                 

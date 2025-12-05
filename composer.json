@@ -23,7 +23,6 @@
         "intervention/image": "^3.11",
         "intervention/image-laravel": "^1.5",
         "james-heinrich/getid3": "^1.9",
-        "jurager/teams": "^3.0",
         "laravel/cashier": "^15.6",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.33",

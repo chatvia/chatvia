@@ -39,14 +39,14 @@ class UserCreditSystem
                 'started_at' => $startedAt,
             ],
             [
-            'messages' => $quotaLimit['messages_limit'],
-            'ends_at' => $endsAt,
+                'messages' => $quotaLimit['messages_limit'],
+                'ends_at' => $endsAt,
             ]
         );
 
         // Only create usage if it doesn't exist
         if (! $credit->usage()->exists()) {
-        $credit->usage()->create();
+            $credit->usage()->create();
         }
 
         Cache::put(

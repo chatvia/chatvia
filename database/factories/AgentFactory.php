@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -20,7 +19,7 @@ class AgentFactory extends Factory
     public function definition(): array
     {
         $user = User::factory()->create();
-        $team = $user->primaryTeam() ?? Team::factory()->create(['user_id' => $user->id]);
+        $team = $user->primaryTeam() ?? app(\App\Services\Teams\TeamService::class)->createDefaultTeam($user);
 
         return [
             'external_id' => Str::random(20),

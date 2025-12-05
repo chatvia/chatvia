@@ -3,14 +3,13 @@
 namespace App\Services\Teams;
 
 use App\Models\Agent;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Team;
 use App\Models\User;
 use App\Notifications\TeamInvitationNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
-use Jurager\Teams\Events\TeamMemberInvited;
-use Jurager\Teams\Events\TeamMemberInviting;
 use RuntimeException;
 
 class TeamService
@@ -25,20 +24,17 @@ class TeamService
             throw new RuntimeException('This user already belongs to the team.');
         }
 
-        if (! $role = $team->getRole($keyword)) {
+        // Get role by code
+        $role = $team->roles()->where('code', $keyword)->first();
+
+        if (! $role) {
             throw new RuntimeException("The role '{$keyword}' does not exist or does not belong to the team.");
         }
-
-        // Dispatch event before inviting the user
-        TeamMemberInviting::dispatch($team, $email, $role);
 
         $invitation = $team->invitations()->create([
             'email' => $email,
             'role_id' => $role->id,
         ]);
-
-        // Dispatch event after inviting the user
-        TeamMemberInvited::dispatch($team, $email, $role);
 
         // Send our custom invitation notification
         Notification::route('mail', $email)
@@ -152,6 +148,15 @@ class TeamService
         // Create default roles for the team
         $this->createDefaultRoles($team);
 
+        // Add owner to team_user table with is_owner flag
+        $ownerRole = $team->roles()->where('code', 'owner')->first();
+        if ($ownerRole) {
+            $team->users()->attach($user->id, [
+                'role_id' => $ownerRole->id,
+                'is_owner' => true,
+            ]);
+        }
+
         return $team;
     }
 
@@ -161,21 +166,41 @@ class TeamService
     public function createDefaultRoles(Team $team): void
     {
         $roles = $this->getDefaultRoles();
-        $allPermissions = $this->getPermissionCodes();
+        $allPermissionNames = $this->getPermissionCodes();
 
         foreach ($roles as $code => $roleConfig) {
+            // Create or get the role
+            $role = Role::firstOrCreate(
+                [
+                    'name' => $roleConfig['name'],
+                    'team_id' => $team->id,
+                    'guard_name' => 'web',
+                ],
+                [
+                    'code' => $code,
+                    'description' => $roleConfig['description'] ?? null,
+                    'all_agents' => $roleConfig['all_agents'] ?? false,
+                ]
+            );
+
             // Handle wildcard permissions for owner
-            $permissions = $roleConfig['permissions'];
-            if (in_array('*', $permissions)) {
-                $permissions = $allPermissions;
+            $permissionNames = $roleConfig['permissions'];
+            if (in_array('*', $permissionNames)) {
+                $permissionNames = $allPermissionNames;
             }
 
-            $team->addRole(
-                $code,
-                $permissions,
-                $roleConfig['name'],
-                $roleConfig['description'] ?? null
-            );
+            // Create global permissions if they don't exist
+            foreach ($permissionNames as $permissionName) {
+                Permission::firstOrCreate([
+                    'name' => $permissionName,
+                    'guard_name' => 'web',
+                ]);
+            }
+
+            // Sync permissions to role (permissions are global, roles are team-scoped)
+            $permissions = Permission::whereIn('name', $permissionNames)->get();
+
+            $role->syncPermissions($permissions);
         }
     }
 
@@ -187,7 +212,7 @@ class TeamService
         $permissions = [];
         $allPermissions = $this->getPermissionCodes();
 
-        foreach ($user->allTeams() as $team) {
+        foreach ($user->teams as $team) {
             // Owner has all permissions
             if ($user->ownsTeam($team)) {
                 $permissions[$team->id] = $allPermissions;
@@ -307,7 +332,7 @@ class TeamService
             'code' => $role->code,
             'name' => $role->name,
             'description' => $role->description,
-            'permissions' => $role->permissions->pluck('code')->toArray(),
+            'permissions' => $role->permissions->pluck('name')->toArray(),
             'all_agents' => (bool) $role->all_agents,
             'agent_ids' => $role->agents()->pluck('agents.id')->toArray(),
         ];

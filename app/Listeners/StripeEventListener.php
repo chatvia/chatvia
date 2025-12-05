@@ -5,6 +5,8 @@ namespace App\Listeners;
 use App\Models\Member;
 use App\Models\User;
 use App\Notifications\TrialWelcomeNotification;
+use App\Services\Teams\TeamService;
+use Exception;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Cashier\Cashier;
@@ -135,6 +137,8 @@ class StripeEventListener
                 'email_verified_at' => now(),
             ]);
 
+            app(TeamService::class)->createDefaultTeam($user);
+
             // Create member record
             Member::create([
                 'user_id' => $user->id,
@@ -152,7 +156,7 @@ class StripeEventListener
             $package = $data['metadata']['package'] ?? 'starter';
             $user->notify(new TrialWelcomeNotification($password, $package));
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             report($e);
         }
     }

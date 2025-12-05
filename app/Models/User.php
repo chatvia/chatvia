@@ -15,19 +15,20 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Jurager\Teams\Traits\HasTeams;
 use Laravel\Cashier\Billable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use Billable, HasFactory, HasSettings, HasTeams, Notifiable;
+    use Billable, HasFactory, HasRoles, HasSettings, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -88,15 +89,6 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         }
 
         return $billing->getPackageByPriceId($stripePrice, true);
-    }
-
-    public function getPackageConfig(): array
-    {
-        $package = $this->getCurrentPackage();
-
-        $defaultPackage = config('billing.default_package', 'starter');
-
-        return config('billing.packages.'.strtolower($package['name']), config('billing.packages.'.$defaultPackage));
     }
 
     public function hasActiveSubscription(): bool
@@ -344,6 +336,99 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
+     * Get all teams the user belongs to.
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this
+            ->belongsToMany(Team::class, 'team_user')
+            ->withPivot('role_id', 'is_owner')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all teams owned by the user.
+     */
+    public function ownedTeams(): BelongsToMany
+    {
+        return $this->teams()->wherePivot('is_owner', true);
+    }
+
+    /**
+     * Get teams where user is a member (not owner).
+     */
+    public function memberTeams(): BelongsToMany
+    {
+        return $this->teams()->wherePivot('is_owner', false);
+    }
+
+    /**
+     * Check if user owns a specific team.
+     */
+    public function ownsTeam(Team $team): bool
+    {
+        return $this->ownedTeams()->where('teams.id', $team->id)->exists();
+    }
+
+    /**
+     * Check if user is a member of a team (but not owner).
+     */
+    public function belongsToTeam(Team $team): bool
+    {
+        return $this->teams->contains($team);
+    }
+
+    /**
+     * Get the user's role in a specific team.
+     */
+    public function teamRole(Team $team): ?Role
+    {
+        $membership = $this->teams()->where('teams.id', $team->id)->first();
+
+        if (! $membership) {
+            return null;
+        }
+
+        return Role::find($membership->pivot->role_id);
+    }
+
+    /**
+     * Check if user has a specific permission in a team.
+     */
+    public function hasTeamPermission(Team $team, string $permission): bool
+    {
+        $role = $this->teamRole($team);
+
+        if (! $role) {
+            return false;
+        }
+
+        // Set team context for Spatie
+        setPermissionsTeamId($team->id);
+
+        $hasPermission = $this->hasPermissionTo($permission, 'web');
+
+        // Clear team context
+        setPermissionsTeamId(null);
+
+        return $hasPermission;
+    }
+
+    /**
+     * Get the user's permissions in a specific team.
+     */
+    public function teamPermissions(Team $team)
+    {
+        $role = $this->teamRole($team);
+
+        if (! $role) {
+            return [];
+        }
+
+        return $role->permissions->pluck('name')->toArray();
+    }
+
+    /**
      * Get the user's primary team (first owned team created at registration).
      */
     public function primaryTeam()
@@ -359,7 +444,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         $primaryTeam = $this->primaryTeam();
 
         return $primaryTeam && $primaryTeam->id === $team->id;
-        }
+    }
 
     /**
      * Get the user who manages this user (the team owner who invited them).
@@ -383,19 +468,5 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function isManagedUser(): bool
     {
         return $this->managed_by_user_id !== null;
-    }
-
-    /**
-     * Check if this user has valid access (either own subscription or manager's subscription).
-     */
-    public function hasValidAccess(): bool
-    {
-        // Self-managed users need their own subscription
-        if (! $this->isManagedUser()) {
-            return $this->hasActiveSubscription();
-        }
-
-        // Managed users depend on their manager's subscription
-        return $this->manager?->hasActiveSubscription() ?? false;
     }
 }

@@ -2,14 +2,13 @@
 
 namespace App\Notifications;
 
+use App\Models\Invitation;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
-use Jurager\Teams\Models\Invitation;
 
 class TeamInvitationNotification extends Notification
 {
-
     public function __construct(
         public Invitation $invitation
     ) {}

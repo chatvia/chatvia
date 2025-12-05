@@ -3,7 +3,6 @@
 namespace App\Observers;
 
 use App\Models\User;
-use App\Services\Teams\TeamService;
 
 class UserObserver
 {
@@ -28,11 +27,6 @@ class UserObserver
                 $quotaLimit,
                 now()->addMonth(),
             );
-        }
-
-        // Create a default team for the user if they don't have one
-        if (! $user->ownedTeams()->exists()) {
-            app(TeamService::class)->createDefaultTeam($user);
         }
     }
 

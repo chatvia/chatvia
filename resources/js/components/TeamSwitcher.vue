@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { router, useForm, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import axios from 'axios';
+import { computed, ref, watch } from 'vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,10 +36,26 @@ interface Team {
 
 const page = usePage<SharedData>();
 const currentTeam = computed(() => page.props.currentTeam as Team | null);
-const allTeams = computed(() => (page.props.allTeams as Team[]) || []);
 
 const isOpen = ref(false);
 const isCreateDialogOpen = ref(false);
+const teams = ref<Team[]>([]);
+const isLoading = ref(false);
+
+const fetchTeams = async () => {
+    if (teams.value.length > 0) return;
+    isLoading.value = true;
+    try {
+        const response = await axios.get('/my/teams');
+        teams.value = response.data.teams;
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+watch(isOpen, (open) => {
+    if (open) fetchTeams();
+});
 
 const createForm = useForm({
     name: '',
@@ -61,6 +78,7 @@ const createTeam = () => {
         onSuccess: () => {
             isCreateDialogOpen.value = false;
             createForm.reset();
+            teams.value = []; // Reset to refetch on next open
         },
     });
 };
@@ -86,30 +104,35 @@ const createTeam = () => {
                 Teams
             </DropdownMenuLabel>
             <div class="max-h-[300px] overflow-y-auto">
-                <DropdownMenuItem
-                    v-for="team in allTeams"
-                    :key="team.id"
-                    class="gap-2 cursor-pointer"
-                    @click="team.id !== currentTeam?.id && switchTeam(team.id)"
-                >
-                    <Avatar class="size-6">
-                        <AvatarFallback class="text-[10px] bg-primary/10 text-primary font-medium">
-                            {{ getInitials(team.name) }}
-                        </AvatarFallback>
-                    </Avatar>
-                    <span class="flex-1 truncate">{{ team.name }}</span>
-                    <Check v-if="team.id === currentTeam?.id" class="size-4 text-primary" />
-                </DropdownMenuItem>
-                <div v-if="allTeams.length === 0" class="px-2 py-4 text-sm text-muted-foreground text-center">
-                    No teams available
+                <div v-if="isLoading" class="px-2 py-4 flex justify-center">
+                    <Loader2 class="size-4 animate-spin text-muted-foreground" />
                 </div>
+                <template v-else>
+                    <DropdownMenuItem
+                        v-for="team in teams"
+                        :key="team.id"
+                        class="gap-2 cursor-pointer"
+                        @click="team.id !== currentTeam?.id && switchTeam(team.id)"
+                    >
+                        <Avatar class="size-6">
+                            <AvatarFallback class="text-[10px] bg-primary/10 text-primary font-medium">
+                                {{ getInitials(team.name) }}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span class="flex-1 truncate">{{ team.name }}</span>
+                        <Check v-if="team.id === currentTeam?.id" class="size-4 text-primary" />
+                    </DropdownMenuItem>
+                    <div v-if="teams.length === 0" class="px-2 py-4 text-sm text-muted-foreground text-center">
+                        No teams available
+                    </div>
+                </template>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem as-child>
-                <a :href="route('teams.index')" class="gap-2 cursor-pointer">
+                <Link :href="route('teams.index')" class="gap-2 cursor-pointer">
                     <Settings class="size-4" />
                     Manage Teams
-                </a>
+                </Link>
             </DropdownMenuItem>
             <DropdownMenuItem class="gap-2 cursor-pointer" @click="openCreateDialog">
                 <Plus class="size-4" />

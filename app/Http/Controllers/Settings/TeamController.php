@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\Teams\TeamService;
@@ -20,7 +22,7 @@ class TeamController extends Controller
     {
         $user = $request->user();
 
-        $teams = $user->allTeams()->map(function ($team) use ($user) {
+        $teams = $user->teams->map(function ($team) use ($user) {
             return [
                 'id' => $team->id,
                 'name' => $team->name,
@@ -408,16 +410,30 @@ class TeamController extends Controller
             return back()->withErrors(['name' => 'A role with this name already exists.']);
         }
 
-        $role = $team->addRole(
-            $code,
-            $validated['permissions'],
-            $validated['name']
-        );
+        // Create the role using Spatie
+        $role = Role::create([
+            'name' => $validated['name'],
+            'code' => $code,
+            'team_id' => $team->id,
+            'guard_name' => 'web',
+            'all_agents' => $validated['all_agents'] ?? false,
+        ]);
+
+        // Create and attach permissions (permissions are global)
+        $permissionModels = collect($validated['permissions'])->map(function ($permissionName) {
+            return Permission::firstOrCreate([
+                'name' => $permissionName,
+                'guard_name' => 'web',
+            ]);
+        });
+
+        $role->syncPermissions($permissionModels);
 
         // Update agent access
-        $allAgents = $validated['all_agents'] ?? false;
         $agentIds = $validated['agent_ids'] ?? [];
-        $this->teamService->updateRoleAgentAccess($role, $allAgents, $agentIds);
+        if (! ($validated['all_agents'] ?? false) && ! empty($agentIds)) {
+            $role->agents()->sync($agentIds);
+        }
 
         return redirect()->route('teams.show', $team)->with('success', 'Role created successfully.');
     }
@@ -446,17 +462,29 @@ class TeamController extends Controller
             'agent_ids.*' => ['integer', 'exists:agents,id'],
         ]);
 
-        // Use the package's built-in updateRole method
-        $team->updateRole(
-            $roleModel->code,
-            $validated['permissions'],
-            $validated['name']
-        );
+        // Update role name and all_agents flag
+        $roleModel->update([
+            'name' => $validated['name'],
+            'all_agents' => $validated['all_agents'] ?? false,
+        ]);
+
+        // Create and attach permissions (permissions are global)
+        $permissionModels = collect($validated['permissions'])->map(function ($permissionName) {
+            return Permission::firstOrCreate([
+                'name' => $permissionName,
+                'guard_name' => 'web',
+            ]);
+        });
+
+        $roleModel->syncPermissions($permissionModels);
 
         // Update agent access
-        $allAgents = $validated['all_agents'] ?? false;
         $agentIds = $validated['agent_ids'] ?? [];
-        $this->teamService->updateRoleAgentAccess($roleModel, $allAgents, $agentIds);
+        if ($validated['all_agents'] ?? false) {
+            $roleModel->agents()->detach();
+        } else {
+            $roleModel->agents()->sync($agentIds);
+        }
 
         return redirect()->route('teams.show', $team)->with('success', 'Role updated successfully.');
     }

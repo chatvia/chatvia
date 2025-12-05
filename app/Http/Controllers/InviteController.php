@@ -2,31 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
+use App\Models\Invitation;
+use App\Models\User;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Routing\Redirector;
-use Jurager\Teams\Support\Facades\Teams as TeamsFacade;
 
 class InviteController extends Controller
 {
     /**
      * Accept the given invite.
-     *
-     * @throws Exception
      */
     public function inviteAccept(Request $request, $invitationId): \Illuminate\Foundation\Application|Redirector|Application|RedirectResponse
     {
-        // Get the invitation model
-        $invitation = TeamsFacade::instance('invitation')->whereKey($invitationId)->firstOrFail();
-
-        // Get the team from invitation
+        // Get the invitation
+        $invitation = Invitation::with(['team', 'role'])->findOrFail($invitationId);
         $team = $invitation->team;
+        $role = $invitation->role;
 
-        // Accept the invitation
-        $team->inviteAccept($invitation->id);
+        /** @var User $user */
+        $user = $request->user();
+
+        // Attach user to team with the role
+        $team->users()->syncWithoutDetaching([
+            $user->id => ['role_id' => $role->id],
+        ]);
+
+        // Delete the invitation
+        $invitation->delete();
 
         return redirect('/')->with('status', __('Success! You have accepted the invitation to join the :team team.', ['team' => $team->name]));
     }

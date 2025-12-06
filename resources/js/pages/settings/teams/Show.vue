@@ -66,9 +66,6 @@ import {
     Plus,
     ChevronLeft,
     ChevronDown,
-    Crown,
-    Shield,
-    User,
     UserPlus,
     Mail,
     MoreHorizontal,
@@ -86,75 +83,29 @@ import {
     UserCog,
 } from 'lucide-vue-next';
 
-interface TeamOwner {
-    id: number;
-    name: string;
-    email: string;
-}
-
-interface Team {
-    id: number;
-    name: string;
-    owner: TeamOwner;
-}
-
-interface TeamMember {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-    role_name: string;
-    is_owner: boolean;
-    joined_at: string | null;
-}
-
-interface TeamRole {
-    id: number;
-    code: string;
-    name: string;
-    description: string;
-    permissions: string[];
-    all_agents: boolean;
-    agent_ids: number[];
-}
-
-interface TeamAgent {
-    id: number;
-    name: string;
-}
-
-interface Invitation {
-    id: number;
-    email: string;
-    role: string;
-    created_at: string;
-}
-
-interface PermissionGroup {
-    label: string;
-    description?: string;
-    permissions: string[];
-}
-
-interface ManagedUser {
-    id: number;
-    name: string;
-    email: string;
-}
+// Use generated TypeScript types from DTOs
+type TeamData = App.Data.Resources.Team.TeamData;
+type TeamMemberData = App.Data.Resources.Team.TeamMemberData;
+type TeamRoleData = App.Data.Resources.Team.TeamRoleData;
+type TeamAgentData = App.Data.Resources.Team.TeamAgentData;
+type TeamInvitationData = App.Data.Resources.Team.TeamInvitationData;
+type ManagedUserData = App.Data.Resources.Team.ManagedUserData;
+type PermissionMetaData = App.Data.Resources.Team.PermissionMetaData;
+type PermissionGroupData = App.Data.Resources.Team.PermissionGroupData;
+type RoleConfigData = App.Data.Resources.Team.RoleConfigData;
 
 interface Props {
-    team: Team;
-    members: TeamMember[];
-    roles: TeamRole[];
-    agents: TeamAgent[];
-    pendingInvitations: Invitation[];
-    managedUsers: ManagedUser[];
+    team: TeamData;
+    members: TeamMemberData[];
+    roles: TeamRoleData[];
+    agents: TeamAgentData[];
+    pendingInvitations: TeamInvitationData[];
+    managedUsers: ManagedUserData[];
     isOwner: boolean;
     userRole: string;
-    availableRoles: Record<string, { name: string; description: string; permissions: string[] }>;
-    availablePermissions: Record<string, string>;
-    permissionDescriptions: Record<string, string>;
-    permissionGroups: Record<string, PermissionGroup>;
+    availableRoles: Record<string, RoleConfigData>;
+    permissionsConfig: Record<string, PermissionMetaData>;
+    permissionGroups: Record<string, PermissionGroupData>;
 }
 
 const props = defineProps<Props>();
@@ -316,17 +267,6 @@ const deleteRole = () => {
 };
 
 // Helper functions
-const getRoleIcon = (role: string) => {
-    switch (role) {
-        case 'owner':
-            return Crown;
-        case 'admin':
-            return Shield;
-        default:
-            return User;
-    }
-};
-
 const getRoleBadgeVariant = (role: string): 'default' | 'secondary' | 'outline' => {
     switch (role) {
         case 'owner':
@@ -339,7 +279,11 @@ const getRoleBadgeVariant = (role: string): 'default' | 'secondary' | 'outline' 
 };
 
 const getPermissionLabel = (permission: string): string => {
-    return props.availablePermissions[permission] || permission;
+    return props.permissionsConfig[permission]?.label || permission;
+};
+
+const getPermissionDescription = (permission: string): string => {
+    return props.permissionsConfig[permission]?.description || '';
 };
 
 const hasPermission = (role: TeamRole, permission: string): boolean => {
@@ -414,15 +358,8 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                             <X class="size-4" />
                                         </Button>
                                     </form>
-                                    <CardDescription class="mt-1">
-                                        Owned by {{ team.owner.name }}
-                                    </CardDescription>
                                 </div>
                             </div>
-                            <Badge :variant="getRoleBadgeVariant(userRole)" class="gap-1.5">
-                                <component :is="getRoleIcon(userRole)" class="size-3.5" />
-                                {{ roles.find(r => r.code === userRole)?.name || 'Owner' }}
-                            </Badge>
                         </div>
                     </CardHeader>
                 </Card>
@@ -475,7 +412,6 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                             />
                                         </Button>
                                         <div class="flex items-center gap-1.5">
-                                            <component :is="getRoleIcon(role.code)" class="size-4" />
                                             <span class="font-semibold text-base">{{ role.name }}</span>
                                         </div>
                                     </div>
@@ -595,12 +531,12 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                                     ]">
                                                         {{ getPermissionLabel(permission) }}
                                                     </span>
-                                                    <Tooltip v-if="permissionDescriptions[permission]">
+                                                    <Tooltip v-if="getPermissionDescription(permission)">
                                                         <TooltipTrigger as-child>
                                                             <Info class="size-3.5 text-muted-foreground hover:text-foreground cursor-help shrink-0" />
                                                         </TooltipTrigger>
                                                         <TooltipContent side="top" class="max-w-xs">
-                                                            <p>{{ permissionDescriptions[permission] }}</p>
+                                                            <p>{{ getPermissionDescription(permission) }}</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </div>
@@ -654,8 +590,7 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge :variant="getRoleBadgeVariant(member.role)" class="gap-1">
-                                            <component :is="getRoleIcon(member.role)" class="size-3" />
+                                        <Badge :variant="getRoleBadgeVariant(member.role)">
                                             {{ member.role_name }}
                                         </Badge>
                                     </TableCell>
@@ -681,7 +616,6 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
-                                        <span v-else-if="member.is_owner" class="text-sm text-muted-foreground">Owner</span>
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -719,8 +653,7 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge :variant="getRoleBadgeVariant(invitation.role)" class="gap-1">
-                                            <component :is="getRoleIcon(invitation.role)" class="size-3" />
+                                        <Badge :variant="getRoleBadgeVariant(invitation.role)">
                                             {{ roles.find(r => r.code === invitation.role)?.name || invitation.role }}
                                         </Badge>
                                     </TableCell>
@@ -819,8 +752,7 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                             <!-- Role display -->
                             <div class="grid gap-2">
                                 <Label>Role</Label>
-                                <Badge :variant="getRoleBadgeVariant(inviteForm.role)" class="w-fit gap-1.5">
-                                    <component :is="getRoleIcon(inviteForm.role)" class="size-3.5" />
+                                <Badge :variant="getRoleBadgeVariant(inviteForm.role)" class="w-fit">
                                     {{ roles.find(r => r.code === inviteForm.role)?.name || inviteForm.role }}
                                 </Badge>
                             </div>

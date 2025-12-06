@@ -10,6 +10,6 @@ class Widget
 
     public function resolve(User $user): mixed
     {
-        return $user->is_admin;
+        return $user->type === 'admin';
     }
 }

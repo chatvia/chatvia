@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Data\Resources\Team\ManagedUserData;
+use App\Data\Resources\Team\TeamData;
+use App\Data\Resources\Team\TeamInvitationData;
+use App\Data\Resources\Team\TeamMemberData;
+use App\Data\Resources\Team\TeamRoleData;
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use App\Models\Role;
@@ -41,7 +46,7 @@ class TeamController extends Controller
 
         return Inertia::render('settings/teams/Index', [
             'teams' => $teams,
-            'availableRoles' => $this->teamService->getDefaultRoles(),
+            'availableRoles' => $this->teamService->defaultRoles(),
         ]);
     }
 
@@ -49,65 +54,31 @@ class TeamController extends Controller
     {
         $user = $request->user();
 
-        // Ensure user belongs to this team
         if (! $user->belongsToTeam($team) && ! $user->ownsTeam($team)) {
             abort(403, 'You do not have access to this team.');
         }
 
-        $members = $team->allUsers()->map(function ($member) use ($team) {
-            $role = $team->userRole($member);
+        $members = $team->allUsers()->map(
+            fn ($member) => TeamMemberData::fromUser($member, $team)
+        );
 
-            return [
-                'id' => $member->id,
-                'name' => $member->name,
-                'email' => $member->email,
-                'role' => $role?->code ?? 'owner',
-                'role_name' => $role?->name ?? 'Owner',
-                'is_owner' => $team->user_id === $member->id,
-                'joined_at' => $member->pivot?->created_at?->toDateTimeString(),
-            ];
-        });
+        $roles = $this->teamService->teamRoles($team);
 
-        $roles = $team->roles()->with('permissions')->get()->map(
-            fn ($role) => $this->teamService->formatRoleForFrontend($role, $team)
-        )->values()->all();
+        $agents = $this->teamService->teamAgents($team);
 
-        $agents = $team->agents()->select('id', 'name')->get()->map(fn ($agent) => [
-            'id' => $agent->id,
-            'name' => $agent->name,
-        ])->values()->all();
+        $pendingInvitations = $team->invitations()
+            ->with('role')
+            ->get()
+            ->map(fn ($invitation) => TeamInvitationData::fromModel($invitation));
 
-        $pendingInvitations = $team->invitations()->with('role')->get()->map(fn ($invitation) => [
-            'id' => $invitation->id,
-            'email' => $invitation->email,
-            'role' => $invitation->role?->code,
-            'role_name' => $invitation->role?->name,
-            'created_at' => $invitation->created_at->toDateTimeString(),
-        ]);
-
-        // Get managed users (users invited by this team owner who aren't members yet)
         $currentMemberIds = $team->allUsers()->pluck('id')->toArray();
-
         $managedUsers = $user->managedUsers()
             ->whereNotIn('id', $currentMemberIds)
-            ->select('id', 'name', 'email')
             ->get()
-            ->map(fn ($managedUser) => [
-                'id' => $managedUser->id,
-                'name' => $managedUser->name,
-                'email' => $managedUser->email,
-            ]);
+            ->map(fn ($managedUser) => ManagedUserData::fromModel($managedUser));
 
         return Inertia::render('settings/teams/Show', [
-            'team' => [
-                'id' => $team->id,
-                'name' => $team->name,
-                'owner' => [
-                    'id' => $team->owner->id,
-                    'name' => $team->owner->name,
-                    'email' => $team->owner->email,
-                ],
-            ],
+            'team' => TeamData::fromModel($team),
             'members' => $members,
             'roles' => $roles,
             'agents' => $agents,
@@ -115,10 +86,9 @@ class TeamController extends Controller
             'managedUsers' => $managedUsers,
             'isOwner' => $user->ownsTeam($team),
             'userRole' => $user->teamRole($team)?->code ?? 'owner',
-            'availableRoles' => $this->teamService->getDefaultRoles(),
-            'availablePermissions' => $this->teamService->getPermissionLabels(),
-            'permissionDescriptions' => $this->teamService->getPermissionDescriptions(),
-            'permissionGroups' => $this->teamService->getPermissionGroups(),
+            'availableRoles' => $this->teamService->defaultRoles(),
+            'permissionsConfig' => $this->teamService->permissionsConfig(),
+            'permissionGroups' => $this->teamService->permissionGroups(),
         ]);
     }
 
@@ -135,8 +105,15 @@ class TeamController extends Controller
         $team->user_id = $user->id;
         $team->save();
 
-        // Create default roles
         $this->teamService->createDefaultRoles($team);
+
+        $ownerRole = $team->roles()->where('code', 'owner')->first();
+        if ($ownerRole) {
+            $team->users()->attach($user->id, [
+                'role_id' => $ownerRole->id,
+                'is_owner' => true,
+            ]);
+        }
 
         return redirect()->route('teams.show', $team)
             ->with('success', 'Team created successfully.');
@@ -167,14 +144,20 @@ class TeamController extends Controller
             abort(403, 'Only the team owner can delete the team.');
         }
 
-        // Prevent deleting the user's primary team
         if ($user->isPrimaryTeam($team)) {
             return back()->with('error', 'You cannot delete your primary team.');
         }
 
-        // Prevent deleting the user's only team
         if ($user->ownedTeams()->count() <= 1) {
             return back()->with('error', 'You cannot delete your only team. Create another team first.');
+        }
+
+        if ($team->agents()->exists()) {
+            return back()->with('error', 'You cannot delete a team that has agents. Please delete or move all agents first.');
+        }
+
+        if ($team->members()->exists()) {
+            return back()->with('error', 'You cannot delete a team that has members. Please remove all members first.');
         }
 
         $team->delete();
@@ -191,7 +174,6 @@ class TeamController extends Controller
             abort(403, 'You do not have permission to invite members.');
         }
 
-        // Get valid role codes from the team's actual roles (excluding owner)
         $validRoles = $team->roles()->where('code', '!=', 'owner')->pluck('code')->toArray();
 
         $validated = $request->validate([
@@ -200,46 +182,35 @@ class TeamController extends Controller
             'role' => ['required', 'string', Rule::in($validRoles)],
         ]);
 
-        // Check if owner has an active subscription
         if (! $this->teamService->canInviteMembers($team)) {
             return back()->withErrors(['email' => 'You need an active subscription to invite team members.']);
         }
 
-        // If adding an existing user
         if ($validated['user_id']) {
             $existingUser = User::findOrFail($validated['user_id']);
 
-            // Check if this user is managed by the current user
             if ($existingUser->managed_by_user_id !== $user->id) {
                 return back()->withErrors(['user_id' => 'You can only add users you have invited.']);
             }
 
-            // Check if user is already a member
             if ($team->hasUser($existingUser)) {
                 return back()->withErrors(['user_id' => 'This user is already a member of the team.']);
             }
 
-            // Get the role
             $role = $team->roles()->where('code', $validated['role'])->firstOrFail();
-
-            // Add user to team with role
             $team->users()->attach($existingUser->id, ['role_id' => $role->id]);
 
             return back()->with('success', 'Member added successfully.');
         }
 
-        // Otherwise, invite by email
-        // Check if user is already a member
         if ($team->hasUserWithEmail($validated['email'])) {
             return back()->withErrors(['email' => 'This user is already a member of the team.']);
         }
 
-        // Check if invitation already exists
         if ($team->invitations()->where('email', $validated['email'])->exists()) {
             return back()->withErrors(['email' => 'An invitation has already been sent to this email.']);
         }
 
-        // Use our custom service to send invitation with our notification
         $this->teamService->inviteUser($team, $validated['email'], $validated['role']);
 
         return back()->with('success', 'Invitation sent successfully.');
@@ -271,7 +242,6 @@ class TeamController extends Controller
             abort(403, 'Cannot change the owner\'s role.');
         }
 
-        // Get valid role codes from the team's actual roles (excluding owner)
         $validRoles = $team->roles()->where('code', '!=', 'owner')->pluck('code')->toArray();
 
         $validated = $request->validate([
@@ -304,15 +274,13 @@ class TeamController extends Controller
     {
         $user = $request->user();
 
-        // Ensure user belongs to this team or owns it
         if (! $user->belongsToTeam($team) && ! $user->ownsTeam($team)) {
             abort(403, 'You do not have access to this team.');
         }
 
-        // Store current team in session
         session(['current_team_id' => $team->id]);
 
-        return redirect()->route('dashboard')->with('success', 'Switched to '.$team->name);
+        return redirect()->back()->with('success', 'Switched to '.$team->name);
     }
 
     public function leave(Request $request, Team $team)
@@ -337,19 +305,11 @@ class TeamController extends Controller
             abort(403, 'Only the team owner can create roles.');
         }
 
-        $agents = $team->agents()->select('id', 'name')->get()->map(fn ($agent) => [
-            'id' => $agent->id,
-            'name' => $agent->name,
-        ])->values()->all();
-
         return Inertia::render('settings/teams/roles/Create', [
-            'team' => [
-                'id' => $team->id,
-                'name' => $team->name,
-            ],
-            'agents' => $agents,
-            'availablePermissions' => $this->teamService->getAvailablePermissions(),
-            'permissionGroups' => $this->teamService->getPermissionGroups(),
+            'team' => TeamData::fromModel($team),
+            'agents' => $this->teamService->teamAgents($team),
+            'permissionsConfig' => $this->teamService->permissionsConfig(),
+            'permissionGroups' => $this->teamService->permissionGroups(),
         ]);
     }
 
@@ -363,25 +323,16 @@ class TeamController extends Controller
 
         $roleModel = $team->roles()->with('permissions')->findOrFail($roleId);
 
-        // Prevent editing owner role
         if ($roleModel->code === 'owner') {
             return redirect()->route('teams.show', $team)->with('error', 'Cannot edit the owner role.');
         }
 
-        $agents = $team->agents()->select('id', 'name')->get()->map(fn ($agent) => [
-            'id' => $agent->id,
-            'name' => $agent->name,
-        ])->values()->all();
-
         return Inertia::render('settings/teams/roles/Edit', [
-            'team' => [
-                'id' => $team->id,
-                'name' => $team->name,
-            ],
-            'role' => $this->teamService->formatRoleForFrontend($roleModel, $team),
-            'agents' => $agents,
-            'availablePermissions' => $this->teamService->getAvailablePermissions(),
-            'permissionGroups' => $this->teamService->getPermissionGroups(),
+            'team' => TeamData::fromModel($team),
+            'role' => TeamRoleData::fromModel($roleModel),
+            'agents' => $this->teamService->teamAgents($team),
+            'permissionsConfig' => $this->teamService->permissionsConfig(),
+            'permissionGroups' => $this->teamService->permissionGroups(),
         ]);
     }
 
@@ -397,29 +348,23 @@ class TeamController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'permissions' => ['required', 'array', 'min:1'],
             'permissions.*' => ['string'],
-            'all_agents' => ['boolean'],
             'agent_ids' => ['array'],
             'agent_ids.*' => ['integer', 'exists:agents,id'],
         ]);
 
-        // Generate a code from the name
         $code = strtolower(str_replace(' ', '_', $validated['name']));
 
-        // Check if role code already exists
         if ($team->roles()->where('code', $code)->exists()) {
             return back()->withErrors(['name' => 'A role with this name already exists.']);
         }
 
-        // Create the role using Spatie
         $role = Role::create([
             'name' => $validated['name'],
             'code' => $code,
             'team_id' => $team->id,
             'guard_name' => 'web',
-            'all_agents' => $validated['all_agents'] ?? false,
         ]);
 
-        // Create and attach permissions (permissions are global)
         $permissionModels = collect($validated['permissions'])->map(function ($permissionName) {
             return Permission::firstOrCreate([
                 'name' => $permissionName,
@@ -429,9 +374,8 @@ class TeamController extends Controller
 
         $role->syncPermissions($permissionModels);
 
-        // Update agent access
         $agentIds = $validated['agent_ids'] ?? [];
-        if (! ($validated['all_agents'] ?? false) && ! empty($agentIds)) {
+        if (! $role->hasPermissionTo('agents.access-all') && ! empty($agentIds)) {
             $role->agents()->sync($agentIds);
         }
 
@@ -448,7 +392,6 @@ class TeamController extends Controller
 
         $roleModel = $team->roles()->findOrFail($roleId);
 
-        // Prevent updating owner role
         if ($roleModel->code === 'owner') {
             abort(403, 'Cannot modify the owner role.');
         }
@@ -457,18 +400,14 @@ class TeamController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'permissions' => ['required', 'array', 'min:1'],
             'permissions.*' => ['string'],
-            'all_agents' => ['boolean'],
             'agent_ids' => ['array'],
             'agent_ids.*' => ['integer', 'exists:agents,id'],
         ]);
 
-        // Update role name and all_agents flag
         $roleModel->update([
             'name' => $validated['name'],
-            'all_agents' => $validated['all_agents'] ?? false,
         ]);
 
-        // Create and attach permissions (permissions are global)
         $permissionModels = collect($validated['permissions'])->map(function ($permissionName) {
             return Permission::firstOrCreate([
                 'name' => $permissionName,
@@ -478,9 +417,8 @@ class TeamController extends Controller
 
         $roleModel->syncPermissions($permissionModels);
 
-        // Update agent access
         $agentIds = $validated['agent_ids'] ?? [];
-        if ($validated['all_agents'] ?? false) {
+        if ($roleModel->hasPermissionTo('agents.access-all')) {
             $roleModel->agents()->detach();
         } else {
             $roleModel->agents()->sync($agentIds);
@@ -499,12 +437,10 @@ class TeamController extends Controller
 
         $roleModel = $team->roles()->findOrFail($roleId);
 
-        // Prevent deleting owner or admin roles
         if (in_array($roleModel->code, ['owner', 'admin'])) {
             abort(403, 'Cannot delete the owner or admin role.');
         }
 
-        // Check if any members have this role
         $membersWithRole = $team->users()->wherePivot('role_id', $roleModel->id)->count();
         if ($membersWithRole > 0) {
             return back()->with('error', 'Cannot delete this role. '.$membersWithRole.' member(s) are assigned to it.');

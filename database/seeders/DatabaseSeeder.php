@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'ahmad@mayahi.net'],
             [
                 'name' => 'Ahmad Mayahi',
-                'is_admin' => 1,
+                'type' => 'admin',
                 'password' => bcrypt('password'),
                 'email_verified_at' => now(),
             ]

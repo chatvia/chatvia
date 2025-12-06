@@ -47,6 +47,7 @@ export interface User {
     created_at: string;
     updated_at: string;
     is_paid: boolean;
+    type: 'admin' | 'company' | 'staff';
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

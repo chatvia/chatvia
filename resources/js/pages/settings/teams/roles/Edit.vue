@@ -24,42 +24,19 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Loader2, Bot, ChevronDown, Check, Info } from 'lucide-vue-next';
 
-interface TeamAgent {
-    id: number;
-    name: string;
-}
-
-interface TeamRole {
-    id: number;
-    code: string;
-    name: string;
-    description: string;
-    permissions: string[];
-    all_agents: boolean;
-    agent_ids: number[];
-}
-
-interface Permission {
-    label: string;
-    description: string;
-    requires?: string[];
-}
-
-interface PermissionGroup {
-    label: string;
-    description?: string;
-    permissions: string[];
-}
+// Use generated TypeScript types from DTOs
+type TeamData = App.Data.Resources.Team.TeamData;
+type TeamAgentData = App.Data.Resources.Team.TeamAgentData;
+type TeamRoleData = App.Data.Resources.Team.TeamRoleData;
+type PermissionMetaData = App.Data.Resources.Team.PermissionMetaData;
+type PermissionGroupData = App.Data.Resources.Team.PermissionGroupData;
 
 interface Props {
-    team: {
-        id: number;
-        name: string;
-    };
-    role: TeamRole;
-    agents: TeamAgent[];
-    availablePermissions: Record<string, Permission>;
-    permissionGroups: Record<string, PermissionGroup>;
+    team: TeamData;
+    role: TeamRoleData;
+    agents: TeamAgentData[];
+    permissionsConfig: Record<string, PermissionMetaData>;
+    permissionGroups: Record<string, PermissionGroupData>;
 }
 
 const props = defineProps<Props>();
@@ -92,7 +69,7 @@ const submit = () => {
 
 // Get all required permissions recursively
 const getRequiredPermissions = (permission: string): string[] => {
-    const permData = props.availablePermissions[permission];
+    const permData = props.permissionsConfig[permission];
     if (!permData?.requires?.length) return [];
 
     const required: string[] = [];
@@ -107,7 +84,7 @@ const getRequiredPermissions = (permission: string): string[] => {
 // Get all permissions that depend on a given permission
 const getDependentPermissions = (permission: string): string[] => {
     const dependents: string[] = [];
-    for (const [code, data] of Object.entries(props.availablePermissions)) {
+    for (const [code, data] of Object.entries(props.permissionsConfig)) {
         if (data.requires?.includes(permission)) {
             dependents.push(code);
             // Recursively get permissions that depend on this one
@@ -156,17 +133,17 @@ const toggleGroupPermissions = (groupKey: string, checked: boolean | "indetermin
 };
 
 const getPermissionLabel = (permission: string): string => {
-    const permData = props.availablePermissions[permission];
+    const permData = props.permissionsConfig[permission];
     return permData?.label || permission;
 };
 
 const getPermissionDescription = (permission: string): string => {
-    const permData = props.availablePermissions[permission];
+    const permData = props.permissionsConfig[permission];
     return permData?.description || '';
 };
 
 const getPermissionRequires = (permission: string): string[] => {
-    const permData = props.availablePermissions[permission];
+    const permData = props.permissionsConfig[permission];
     return permData?.requires || [];
 };
 

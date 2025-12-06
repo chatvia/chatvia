@@ -91,9 +91,31 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $billing->getPackageByPriceId($stripePrice, true);
     }
 
+    public function isStaff(): bool
+    {
+        return $this->type === 'staff';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->type === 'admin';
+    }
+
+    public function isCompany(): bool
+    {
+        return $this->type === 'company';
+    }
+
     public function hasActiveSubscription(): bool
     {
-        return $this->subscribed('default') || $this->onTrial();
+        if ($this->isStaff()) {
+            /** @var User $user */
+            $user = $this->manager;
+
+            return $user->subscribed() || $this->onTrial();
+        }
+
+        return $this->subscribed() || $this->onTrial();
     }
 
     /**
@@ -179,7 +201,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function isPaid(): Attribute
     {
         // All users are now paid (on trial or subscribed)
-        return Attribute::get(fn () => $this->subscribed('default') || $this->onTrial());
+        return Attribute::get(fn () => $this->hasActiveSubscription());
     }
 
     public function credits(): HasMany
@@ -312,7 +334,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->is_admin;
+        return $this->type === 'admin';
     }
 
     public function tickets(): HasMany
@@ -403,15 +425,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             return false;
         }
 
-        // Set team context for Spatie
-        setPermissionsTeamId($team->id);
-
-        $hasPermission = $this->hasPermissionTo($permission, 'web');
-
-        // Clear team context
-        setPermissionsTeamId(null);
-
-        return $hasPermission;
+        return $role->hasPermissionTo($permission);
     }
 
     /**

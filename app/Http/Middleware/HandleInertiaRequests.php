@@ -40,7 +40,7 @@ class HandleInertiaRequests extends Middleware
                 'info' => $request->session()->get('info'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'subscribed' => $request->user()?->subscribed(),
+            'subscribed' => $request->user()?->hasActiveSubscription(),
             'onTrial' => $request->user()?->onTrial(),
             'trialEndsAt' => $request->user()?->onTrial() ? $request->user()->subscription()?->trial_ends_at?->format('F j, Y') : null,
             'subscriptionStartsAt' => $request->user()?->onTrial() ? $request->user()->subscription()?->trial_ends_at?->format('F j, Y') : null,
@@ -110,7 +110,7 @@ class HandleInertiaRequests extends Middleware
             return [];
         }
 
-        return app(TeamService::class)->getUserPermissionsForInertia($user);
+        return app(TeamService::class)->userPermissionsMap($user);
     }
 
     private function subDomain(string $host): ?string

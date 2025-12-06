@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Models\Lead;
 use App\Models\SourceFile;
 use App\Models\SourceWebsite;
+use App\Models\Team;
 use App\Models\User;
 use App\Models\UserQuota;
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ class DashboardStatsController
     {
         /** @var User $user */
         $user = $request->user();
-        $agentIds = $user->agents()->pluck('id');
+        $team = current_team();
+        $agentIds = $team ? $team->agents()->pluck('id') : collect();
 
         // Count conversations for user's agents
         $totalConversations = DB::table('chat_conversations')
@@ -37,25 +39,16 @@ class DashboardStatsController
         $knowledgeSources = $this->getKnowledgeSourcesBreakdown($user, $agentIds);
 
         // Messages this period vs last period
-        $messagesTrend = $this->getMessagesTrend($user);
+        $messagesTrend = $this->getMessagesTrend($team);
 
         // Usage stats
         $usage = $this->getUsageStats($user);
 
         return [
             'agents' => [
-                'total' => $user->agents()->count(),
-                'widget_count' => $user->agents()->where('type', 'widget')->count(),
-                'knowledge_base_count' => $user->agents()->where('type', 'knowledge_base')->count(),
-                'recent' => $user->agents()
-                    ->select(['id', 'name', 'sub_domain', 'type', 'external_id'])
-                    ->withCount(['chatSessions as conversations_count' => function ($query) {
-                        $query->select(DB::raw('count(distinct chat_conversations.id)'))
-                            ->join('chat_conversations', 'chat_sessions.id', '=', 'chat_conversations.chat_session_id');
-                    }])
-                    ->latest()
-                    ->limit(5)
-                    ->get(),
+                'total' => $team ? $team->agents()->count() : 0,
+                'widget_count' => $team ? $team->agents()->where('type', 'widget')->count() : 0,
+                'knowledge_base_count' => $team ? $team->agents()->where('type', 'knowledge_base')->count() : 0,
             ],
             'messages' => [
                 'total' => $user->creditSystem()->getTotalSentMessages(),
@@ -67,9 +60,10 @@ class DashboardStatsController
             'active_sessions' => $activeSessions,
             'knowledge_sources' => $knowledgeSources,
             'team' => [
-                'members' => $user->members()->count(),
+                'members' => $team ? $team->members()->count() : 0,
             ],
-            'weekly_usage' => $this->getWeeklyMessagesVolume($user),
+            'weekly_usage' => $this->getWeeklyMessagesVolume($team),
+            'monthly_usage' => $this->getMonthlyMessagesVolume($team),
             'usage' => $usage,
         ];
     }
@@ -149,9 +143,13 @@ class DashboardStatsController
         ];
     }
 
-    private function getMessagesTrend(User $user): array
+    private function getMessagesTrend(?Team $team): array
     {
-        $agentIds = $user->agents()->pluck('id');
+        if (! $team) {
+            return ['this_month' => 0, 'last_month' => 0, 'percent_change' => 0];
+        }
+
+        $agentIds = $team->agents()->pluck('id');
 
         // This month's messages
         $thisMonth = DB::table('chat_messages')
@@ -183,17 +181,27 @@ class DashboardStatsController
         ];
     }
 
-    private function getWeeklyMessagesVolume(User $user): array
+    private function getWeeklyMessagesVolume(?Team $team): array
     {
+        $weeklyData = [];
+
+        if (! $team) {
+            for ($i = 6; $i >= 0; $i--) {
+                $weeklyData[] = ['label' => now()->subDays($i)->format('D'), 'value' => 0];
+            }
+
+            return $weeklyData;
+        }
+
         $startDate = now()->subDays(6)->startOfDay();
         $endDate = now()->endOfDay();
 
-        // Get daily message counts from user's agents using the date index
+        // Get daily message counts from team's agents using the date index
         $dailyMessages = DB::table('chat_messages')
             ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('agents', 'chat_sessions.agent_id', '=', 'agents.id')
-            ->where('agents.user_id', $user->id)
+            ->where('agents.team_id', $team->id)
             ->where('chat_messages.role', 'assistant')
             ->whereRaw('date(chat_messages.created_at) >= ?', [$startDate->format('Y-m-d')])
             ->whereRaw('date(chat_messages.created_at) <= ?', [$endDate->format('Y-m-d')])
@@ -204,18 +212,62 @@ class DashboardStatsController
             ->toArray();
 
         // Generate last 7 days with day names
-        $weeklyData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $dateKey = $date->format('Y-m-d');
             $dayName = $date->format('D'); // Mon, Tue, Wed, etc.
 
             $weeklyData[] = [
-                'day' => $dayName,
+                'label' => $dayName,
                 'value' => $dailyMessages[$dateKey] ?? 0,
             ];
         }
 
         return $weeklyData;
+    }
+
+    private function getMonthlyMessagesVolume(?Team $team): array
+    {
+        $monthlyData = [];
+
+        if (! $team) {
+            for ($i = 29; $i >= 0; $i--) {
+                $monthlyData[] = ['label' => now()->subDays($i)->format('j'), 'value' => 0];
+            }
+
+            return $monthlyData;
+        }
+
+        $startDate = now()->subDays(29)->startOfDay();
+        $endDate = now()->endOfDay();
+
+        // Get daily message counts from team's agents
+        $dailyMessages = DB::table('chat_messages')
+            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
+            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
+            ->join('agents', 'chat_sessions.agent_id', '=', 'agents.id')
+            ->where('agents.team_id', $team->id)
+            ->where('chat_messages.role', 'assistant')
+            ->whereRaw('date(chat_messages.created_at) >= ?', [$startDate->format('Y-m-d')])
+            ->whereRaw('date(chat_messages.created_at) <= ?', [$endDate->format('Y-m-d')])
+            ->selectRaw('DATE(chat_messages.created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('count', 'date')
+            ->toArray();
+
+        // Generate last 30 days with day numbers
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $dateKey = $date->format('Y-m-d');
+            $dayNumber = $date->format('j'); // 1, 2, 3, etc.
+
+            $monthlyData[] = [
+                'label' => $dayNumber,
+                'value' => $dailyMessages[$dateKey] ?? 0,
+            ];
+        }
+
+        return $monthlyData;
     }
 }

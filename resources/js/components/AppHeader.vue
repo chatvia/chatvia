@@ -65,33 +65,44 @@ const activeItemStyles = computed(
     () => (url: string) => (isCurrentRoute.value(url) ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100' : ''),
 );
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: route('dashboard'),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Agents',
-        href: route('agents.index'),
-        icon: BotMessageSquare,
-    },
-    {
-        title: 'Usage',
-        href: route('usage'),
-        icon: BarChart3,
-    },
-    {
-        title: 'Billing',
-        href: route('billing.index'),
-        icon: CreditCard,
-    },
-    {
+const isStaff = computed(() => auth.value.user.type === 'staff');
+
+const mainNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: route('dashboard'),
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Agents',
+            href: route('agents.index'),
+            icon: BotMessageSquare,
+        },
+        {
+            title: 'Usage',
+            href: route('usage'),
+            icon: BarChart3,
+        },
+    ];
+
+    // Only show billing for non-staff users
+    if (!isStaff.value) {
+        items.push({
+            title: 'Billing',
+            href: route('billing.index'),
+            icon: CreditCard,
+        });
+    }
+
+    items.push({
         title: 'Support',
         href: route('support'),
         icon: HelpCircle,
-    },
-];
+    });
+
+    return items;
+});
 
 const rightNavItems: NavItem[] = [];
 </script>
@@ -177,7 +188,7 @@ const rightNavItems: NavItem[] = [];
                         <TeamSwitcher class="hidden md:flex" />
                         <div class="relative flex items-center space-x-1">
                             <Link
-                                v-if="!auth.user.is_paid"
+                                v-if="!auth.user.is_paid && !isStaff"
                                 :href="route('billing.packages')"
                                 class="hidden lg:flex items-center gap-1.5 font-medium px-4 py-2 text-sm rounded-md transition-all duration-300 ease-out bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 hover:shadow-lg transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 group"
                             >

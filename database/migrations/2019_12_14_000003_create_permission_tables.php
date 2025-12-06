@@ -44,7 +44,6 @@ return new class extends Migration
             $table->string('name');       // For MyISAM use string('name', 225); // (or 166 for InnoDB with Redundant/Compact row format)
             $table->string('code')->nullable(); // Role code for system identification
             $table->text('description')->nullable(); // Role description
-            $table->boolean('all_agents')->default(false); // Can access all agents in team
             $table->string('guard_name'); // For MyISAM use string('guard_name', 25);
             $table->timestamps();
             if ($teams || config('permission.testing')) {

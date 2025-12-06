@@ -375,3 +375,64 @@ started_at: any;
 ends_at: any;
 };
 }
+declare namespace App.Data.Resources.Team {
+export type ManagedUserData = {
+id: number;
+name: string;
+email: string;
+};
+export type PermissionGroupData = {
+label: string;
+description: string | null;
+permissions: Array<string>;
+};
+export type PermissionMetaData = {
+label: string;
+description: string;
+requires: Array<string>;
+};
+export type RoleConfigData = {
+name: string;
+description: string | null;
+permissions: Array<string>;
+};
+export type TeamAgentData = {
+id: number;
+name: string;
+};
+export type TeamData = {
+id: number;
+name: string;
+owner: App.Data.Resources.Team.TeamOwnerData;
+};
+export type TeamInvitationData = {
+id: number;
+email: string;
+role: string | null;
+role_name: string | null;
+created_at: string;
+};
+export type TeamMemberData = {
+id: number;
+name: string;
+email: string;
+role: string;
+role_name: string;
+is_owner: boolean;
+joined_at: string | null;
+};
+export type TeamOwnerData = {
+id: number;
+name: string;
+email: string;
+};
+export type TeamRoleData = {
+id: number;
+code: string;
+name: string;
+description: string | null;
+permissions: Array<string>;
+all_agents: boolean;
+agent_ids: Array<number>;
+};
+}

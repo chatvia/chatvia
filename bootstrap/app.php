@@ -6,6 +6,7 @@ use App\Http\Middleware\ChatHandleInertiaRequests;
 use App\Http\Middleware\ContentSecurityPolicy;
 use App\Http\Middleware\EnsureAgentHasMessagesCapacity;
 use App\Http\Middleware\EnsureChatIsAccessible;
+use App\Http\Middleware\EnsureUserCanAccessAgent;
 use App\Http\Middleware\ForceWww;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -61,6 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.member' => AuthenticateMember::class,
             'guest.member' => MemberGuestMiddleware::class,
+            'can.access.agent' => EnsureUserCanAccessAgent::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

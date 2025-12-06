@@ -39,9 +39,6 @@ import {
     Users,
     Plus,
     Settings,
-    Crown,
-    Shield,
-    User,
     LogOut,
     Trash2,
     Loader2,
@@ -95,7 +92,6 @@ const filteredTeams = computed(() => {
     const query = searchQuery.value.toLowerCase();
     return (props.teams || []).filter(team =>
         team.name.toLowerCase().includes(query) ||
-        team.owner.name.toLowerCase().includes(query) ||
         team.role.toLowerCase().includes(query)
     );
 });
@@ -118,28 +114,6 @@ const leaveTeam = (team: Team) => {
 
 const deleteTeam = (team: Team) => {
     deleteForm.delete(route('teams.destroy', team.id), {});
-};
-
-const getRoleIcon = (role: string) => {
-    switch (role) {
-        case 'owner':
-            return Crown;
-        case 'admin':
-            return Shield;
-        default:
-            return User;
-    }
-};
-
-const getRoleBadgeClass = (role: string) => {
-    switch (role) {
-        case 'owner':
-            return 'rounded-full bg-amber-100 p-2 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400';
-        case 'admin':
-            return 'rounded-full bg-blue-100 p-2 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
-        default:
-            return 'rounded-full bg-primary/10 p-2 text-primary';
-    }
 };
 
 const formatDate = (dateString: string) => {
@@ -211,17 +185,12 @@ const formatDate = (dateString: string) => {
             <div v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <Card v-for="team in filteredTeams" :key="team.id" class="overflow-hidden">
                     <CardHeader class="pb-3">
-                        <div class="flex items-center justify-between">
-                            <CardTitle class="flex items-center gap-2 text-xl">
-                                <Users class="h-5 w-5 flex-shrink-0" />
-                                <span class="truncate">
-                                    <Link :href="route('teams.show', team.id)">{{ team.name }}</Link>
-                                </span>
-                            </CardTitle>
-                            <div :class="getRoleBadgeClass(team.role)">
-                                <component :is="getRoleIcon(team.role)" class="h-4 w-4" />
-                            </div>
-                        </div>
+                        <CardTitle class="flex items-center gap-2 text-xl">
+                            <Users class="h-5 w-5 flex-shrink-0" />
+                            <span class="truncate">
+                                <Link :href="route('teams.show', team.id)">{{ team.name }}</Link>
+                            </span>
+                        </CardTitle>
                     </CardHeader>
 
                     <CardContent>
@@ -280,13 +249,17 @@ const formatDate = (dateString: string) => {
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Delete Team</AlertDialogTitle>
-                                        <AlertDialogDescription>
+                                        <AlertDialogDescription v-if="team.members_count > 0" class="text-destructive">
+                                            This team has {{ team.members_count }} member(s). You must remove all members before deleting the team.
+                                        </AlertDialogDescription>
+                                        <AlertDialogDescription v-else>
                                             Are you sure? This cannot be undone.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                                         <AlertDialogAction
+                                            v-if="team.members_count === 0"
                                             class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                             @click="deleteTeam(team)"
                                             :disabled="deleteForm.processing"

@@ -118,19 +118,26 @@ class TeamInvitationController extends Controller
                 'password' => Hash::make($request->password),
                 'email_verified_at' => now(), // Auto-verify since they received the invitation email
                 'managed_by_user_id' => $owner->id, // User is managed by the team owner
+                'type' => 'staff', // Staff user belongs to a company
             ]);
 
             event(new Registered($user));
         }
 
         // Add user to the team with the invited role
-        $team->addUser($user, $invitation->role_id);
+        $team->users()->attach($user->id, [
+            'role_id' => $invitation->role_id,
+            'is_owner' => false,
+        ]);
 
         // Delete the invitation
         $invitation->delete();
 
         // Log the user in
         Auth::login($user);
+
+        // Set the team they were invited to as the current team
+        session(['current_team_id' => $team->id]);
 
         return redirect()->route('dashboard')
             ->with('success', "Welcome to {$team->name}!");

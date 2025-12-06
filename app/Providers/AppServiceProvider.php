@@ -18,6 +18,7 @@ use App\Observers\PostObserver;
 use App\Observers\SourceFileObserver;
 use App\Observers\SourceYoutubeVideoObserver;
 use App\Observers\UserObserver;
+use App\Services\Teams\TeamService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -81,7 +82,28 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Gate::define('viewPulse', function (User $user) {
-            return $user->is_admin;
+            return $user->isAdmin();
+        });
+
+        Gate::define('access-agent', function (User $user, Agent $agent) {
+            // Admin users have access to all agents
+            if ($user->isAdmin()) {
+                return true;
+            }
+
+            $team = current_team();
+
+            if (! $team) {
+                return false;
+            }
+
+            // Check if user belongs to the agent's team
+            if (! $user->belongsToTeam($team)) {
+                return false;
+            }
+
+            // Use TeamService to check agent access
+            return app(TeamService::class)->canAccessAgent($user, $team, $agent);
         });
 
         Event::listen(function (SocialiteWasCalled $event) {

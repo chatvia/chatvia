@@ -128,7 +128,7 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
 
     Route::get('countries/list', CountriesListController::class)->name('countries.list');
 
-    Route::prefix('agents/{agent}')->name('agents.')->group(function () {
+    Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function () {
         Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
         Route::get('analytics/data', AgentAnalyticsDataController::class)->name('analytics.data');
         Route::get('analytics/chart-data', AgentChartDataController::class)->name('analytics.chart-data');

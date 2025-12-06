@@ -4,6 +4,7 @@ use App\Services\Agents\Agent;
 use App\Services\HostConfig;
 use App\Services\Infrastructure\Documents\LibreOffice;
 use App\Services\Infrastructure\Embeddings\Cohere;
+use App\Services\Teams\TeamService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 
@@ -134,6 +135,35 @@ if (! function_exists('current_team')) {
         }
 
         return $primaryTeam;
+    }
+}
+
+if (! function_exists('has_permission_to_agent')) {
+    /**
+     * Check if the current user has a specific permission for an agent.
+     */
+    function has_permission_to_agent(\App\Models\Agent $agent, string $permission): bool
+    {
+        $user = auth()->user();
+        $team = current_team();
+
+        if (! $team) {
+            return false;
+        }
+
+        // Team owners have all permissions
+        if ($user->ownsTeam($team)) {
+            return true;
+        }
+
+        // Check agent access first, then permission
+        $teamService = app(TeamService::class);
+
+        if (! $teamService->canAccessAgent($user, $team, $agent)) {
+            return false;
+        }
+
+        return $user->hasTeamPermission($team, $permission);
     }
 }
 

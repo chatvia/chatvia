@@ -18,16 +18,17 @@ use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionChangeControll
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionResumeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionScheduleCancelController;
 use App\Http\Controllers\PlansController;
+use App\Http\Middleware\DenyStaff;
 use Illuminate\Support\Facades\Route;
 
 Route::get('subscribe', BillingSubscribeController::class)
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', DenyStaff::class])
     ->name('subscribe');
 
 Route::get('subscribe/failure', BillingSubscribeFailureController::class)
     ->name('subscribe.failure');
 
-Route::middleware(['auth', 'verified'])->prefix('billing')->name('billing.')->group(function () {
+Route::middleware(['auth', 'verified', DenyStaff::class])->prefix('billing')->name('billing.')->group(function () {
 
     Route::get('addons/extra-message-credits', CheckoutExtraMessagesController::class)
         ->name('addons.extra-message-credits');

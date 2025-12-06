@@ -12,7 +12,7 @@ class SourceTextPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->is_admin;
+        return $user->type === 'admin';
     }
 
     /**

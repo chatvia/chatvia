@@ -7,10 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Invitation extends Model
 {
-    protected $fillable = [
-        'team_id',
-        'role_id',
-        'email',
+    protected $guarded = [
+        'id',
     ];
 
     /**

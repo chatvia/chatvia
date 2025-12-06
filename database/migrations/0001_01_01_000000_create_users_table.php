@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->index()->nullable();
             $table->string('password');
-            $table->boolean('is_admin')->index()->default(false);
+            $table->enum('type', ['admin', 'company', 'staff'])->default('company')->index();
             $table->rememberToken();
 
             $table->foreignId('managed_by_user_id')->nullable()->constrained('users')->nullOnDelete();

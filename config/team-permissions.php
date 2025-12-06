@@ -20,13 +20,11 @@ return [
     */
 
     'permissions' => [
-        // Team-wide permissions
+        // Agent permissions
         'agents.create' => [
             'label' => 'Create agents',
             'description' => 'Allow creating new AI agents for the team',
         ],
-
-        // Agent-scoped permissions (apply to assigned agents only)
         'agent.rename' => [
             'label' => 'Rename agent',
             'description' => 'Change the agent name',
@@ -40,48 +38,38 @@ return [
             'description' => 'Permanently remove the agent and all its data',
         ],
 
-        // Sources - Training
-        'agent.sources.train' => [
-            'label' => 'Train sources',
-            'description' => 'Upload and process new training files',
+        // Sources - Training by type
+        'agent.sources.train.pdf' => [
+            'label' => 'Train PDF',
+            'description' => 'Upload and process PDF documents',
+        ],
+        'agent.sources.train.word' => [
+            'label' => 'Train Word',
+            'description' => 'Upload and process Word documents',
+        ],
+        'agent.sources.train.text' => [
+            'label' => 'Train Text',
+            'description' => 'Upload and process plain text files',
+        ],
+        'agent.sources.train.qa' => [
+            'label' => 'Train Q&A',
+            'description' => 'Add question and answer pairs',
+        ],
+        'agent.sources.train.web' => [
+            'label' => 'Train Web',
+            'description' => 'Crawl and process website content',
+        ],
+        'agent.sources.train.audio' => [
+            'label' => 'Train Audio',
+            'description' => 'Upload and transcribe audio files',
+        ],
+        'agent.sources.train.video' => [
+            'label' => 'Train Video',
+            'description' => 'Upload and transcribe video files',
         ],
         'agent.sources.delete' => [
             'label' => 'Delete sources',
             'description' => 'Remove training sources from the agent',
-        ],
-
-        // Sources - View
-        'agent.sources.view.pdf' => [
-            'label' => 'PDF files',
-            'description' => 'View PDF document sources',
-        ],
-        'agent.sources.view.word' => [
-            'label' => 'Word files',
-            'description' => 'View Word document sources',
-        ],
-        'agent.sources.view.website' => [
-            'label' => 'Websites',
-            'description' => 'View crawled website sources',
-        ],
-        'agent.sources.view.qa' => [
-            'label' => 'Q&A pairs',
-            'description' => 'View question and answer pairs',
-        ],
-        'agent.sources.view.text' => [
-            'label' => 'Text files',
-            'description' => 'View plain text sources',
-        ],
-        'agent.sources.view.audio' => [
-            'label' => 'Audio files',
-            'description' => 'View transcribed audio sources',
-        ],
-        'agent.sources.view.video' => [
-            'label' => 'Video files',
-            'description' => 'View transcribed video sources',
-        ],
-        'agent.sources.view.youtube' => [
-            'label' => 'YouTube',
-            'description' => 'View YouTube video transcriptions',
         ],
 
         // Chat
@@ -97,6 +85,11 @@ return [
         'agent.chat.delete' => [
             'label' => 'Delete conversations',
             'description' => 'Permanently delete conversation history',
+            'requires' => ['agent.chat.view'],
+        ],
+        'agent.chat.export' => [
+            'label' => 'Export conversations',
+            'description' => 'Export chat history to CSV or other formats',
             'requires' => ['agent.chat.view'],
         ],
 
@@ -170,7 +163,6 @@ return [
             'name' => 'Owner',
             'description' => 'Full access to all agents and settings',
             'permissions' => ['*'],
-            'all_agents' => true,
         ],
     ],
 
@@ -185,6 +177,7 @@ return [
             'label' => 'Agent',
             'description' => 'Agent management',
             'permissions' => [
+                'agents.create',
                 'agent.rename',
                 'agent.setup',
                 'agent.delete',
@@ -194,22 +187,14 @@ return [
             'label' => 'Sources',
             'description' => 'Training management',
             'permissions' => [
-                'agent.sources.train',
+                'agent.sources.train.pdf',
+                'agent.sources.train.word',
+                'agent.sources.train.text',
+                'agent.sources.train.qa',
+                'agent.sources.train.web',
+                'agent.sources.train.audio',
+                'agent.sources.train.video',
                 'agent.sources.delete',
-            ],
-        ],
-        'sources_view' => [
-            'label' => 'View Sources',
-            'description' => 'Access to source types',
-            'permissions' => [
-                'agent.sources.view.pdf',
-                'agent.sources.view.word',
-                'agent.sources.view.text',
-                'agent.sources.view.website',
-                'agent.sources.view.qa',
-                'agent.sources.view.audio',
-                'agent.sources.view.video',
-                'agent.sources.view.youtube',
             ],
         ],
         'chat' => [
@@ -219,6 +204,7 @@ return [
                 'agent.chat.view',
                 'agent.chat.takeover',
                 'agent.chat.delete',
+                'agent.chat.export',
             ],
         ],
         'analytics' => [

@@ -9,8 +9,13 @@ class AgentsListController
 {
     public function __invoke(Request $request)
     {
-        $agents = $request
-            ->user()
+        $team = current_team();
+
+        if (! $team) {
+            return AgentResourceData::collection(collect());
+        }
+
+        $agents = $team
             ->agents()
             ->withStats()
             ->latest()

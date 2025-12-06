@@ -26,7 +26,16 @@
 
             <!-- Middle Column - Configuration Content -->
             <div class="flex-1 flex flex-col h-full overflow-hidden border-r">
-                <div class="flex-1 overflow-y-auto">
+                <!-- Permission Warning Banner -->
+                <Alert v-if="!canEdit" variant="destructive" class="rounded-none border-x-0 border-t-0">
+                    <Shield class="h-4 w-4" />
+                    <AlertTitle>View Only</AlertTitle>
+                    <AlertDescription>
+                        You don't have permission to edit widget settings. Contact your team owner to request access.
+                    </AlertDescription>
+                </Alert>
+
+                <div class="flex-1 overflow-y-auto" :class="{ 'opacity-60 pointer-events-none select-none': !canEdit }">
                     <!-- Text Panel -->
                     <div v-if="activeTab === 'text'" class="p-6 space-y-6">
                         <form @submit.prevent="updateWidgetSettings" class="space-y-6">
@@ -79,7 +88,7 @@
 
                             <!-- Save Button -->
                             <div class="pt-4 border-t">
-                                <Button type="submit" :disabled="isSubmitting || !hasUnsavedChanges" size="sm">
+                                <Button type="submit" :disabled="!canEdit || isSubmitting || !hasUnsavedChanges" size="sm">
                                     <Save class="h-4 w-4 mr-2" />
                                     {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
                                 </Button>
@@ -108,7 +117,7 @@
                                     Suggest questions to help users start conversations
                                 </p>
                             </div>
-                            <Button type="button" variant="outline" size="sm" @click="showAddStarterDialog = true">
+                            <Button type="button" variant="outline" size="sm" @click="showAddStarterDialog = true" :disabled="!canEdit">
                                 <PlusCircle class="mr-2 h-4 w-4" />
                                 Add Starter
                             </Button>
@@ -132,6 +141,7 @@
                                     class="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
                                     size="sm"
                                     variant="ghost"
+                                    :disabled="!canEdit"
                                     @click="removeStarter(starter.id)"
                                 >
                                     <Trash2 class="h-4 w-4" />
@@ -286,7 +296,7 @@
                             </div>
 
                             <div class="pt-3">
-                                <Button type="submit" :disabled="!hasSecurityChanges" size="sm">
+                                <Button type="submit" :disabled="!canEdit || !hasSecurityChanges" size="sm">
                                     <Save class="h-4 w-4 mr-2" />
                                     Save Domains
                                 </Button>
@@ -471,7 +481,7 @@
                 </div>
 
                 <DialogFooter>
-                    <Button @click="() => { saveColorSettings(); showColorPicker = false; }">
+                    <Button @click="() => { saveColorSettings(); showColorPicker = false; }" :disabled="!canEdit">
                         Apply & Save
                     </Button>
                 </DialogFooter>
@@ -501,7 +511,7 @@
                         Cancel
                     </Button>
                     <Button
-                        :disabled="!starterMessageForm.text.trim()"
+                        :disabled="!canEdit || !starterMessageForm.text.trim()"
                         @click="addStarterMessage"
                     >
                         <PlusCircle class="mr-2 h-4 w-4" />
@@ -652,9 +662,13 @@ interface Props {
     appearanceSettings: any;
     embedScriptUrl: string;
     starters: Array<{ id: number; text: string }>;
+    has_permission: boolean;
 }
 
 const props = defineProps<Props>();
+
+// Permission check
+const canEdit = computed(() => props.has_permission);
 
 // Separate forms for different setting groups
 const appearanceForm = useForm({

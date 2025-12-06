@@ -25,7 +25,7 @@ import {
 import InputError from '@/components/InputError.vue';
 import { getInitials } from '@/composables/useInitials';
 import { Check, ChevronsUpDown, Plus, Settings, Loader2 } from 'lucide-vue-next';
-import type { SharedData } from '@/types';
+import type { SharedData, Auth } from '@/types';
 
 interface Team {
     id: number;
@@ -35,7 +35,9 @@ interface Team {
 }
 
 const page = usePage<SharedData>();
+const auth = computed(() => page.props.auth as Auth);
 const currentTeam = computed(() => page.props.currentTeam as Team | null);
+const isStaff = computed(() => auth.value.user.type === 'staff');
 
 const isOpen = ref(false);
 const isCreateDialogOpen = ref(false);
@@ -85,7 +87,8 @@ const createTeam = () => {
 </script>
 
 <template>
-    <DropdownMenu v-model:open="isOpen">
+    <div>
+        <DropdownMenu v-model:open="isOpen">
         <DropdownMenuTrigger as-child>
             <Button variant="outline" class="gap-2 h-9 px-3">
                 <Avatar class="size-5">
@@ -127,17 +130,19 @@ const createTeam = () => {
                     </div>
                 </template>
             </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem as-child>
-                <Link :href="route('teams.index')" class="gap-2 cursor-pointer">
-                    <Settings class="size-4" />
-                    Manage Teams
-                </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem class="gap-2 cursor-pointer" @click="openCreateDialog">
-                <Plus class="size-4" />
-                Create Team
-            </DropdownMenuItem>
+            <template v-if="!isStaff">
+                <DropdownMenuSeparator />
+                <DropdownMenuItem as-child>
+                    <Link :href="route('teams.index')" class="gap-2 cursor-pointer">
+                        <Settings class="size-4" />
+                        Manage Teams
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem class="gap-2 cursor-pointer" @click="openCreateDialog">
+                    <Plus class="size-4" />
+                    Create Team
+                </DropdownMenuItem>
+            </template>
         </DropdownMenuContent>
     </DropdownMenu>
 
@@ -175,5 +180,6 @@ const createTeam = () => {
             </form>
         </DialogContent>
     </Dialog>
+    </div>
 </template>
 

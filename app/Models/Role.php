@@ -17,22 +17,9 @@ class Role extends SpatieRole
         'code',
         'name',
         'description',
-        'all_agents',
         'team_id',
         'guard_name',
     ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'all_agents' => 'boolean',
-        ];
-    }
 
     /**
      * Get the team this role belongs to.

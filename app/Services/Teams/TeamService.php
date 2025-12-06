@@ -2,6 +2,11 @@
 
 namespace App\Services\Teams;
 
+use App\Data\Resources\Team\PermissionGroupData;
+use App\Data\Resources\Team\PermissionMetaData;
+use App\Data\Resources\Team\RoleConfigData;
+use App\Data\Resources\Team\TeamAgentData;
+use App\Data\Resources\Team\TeamRoleData;
 use App\Models\Agent;
 use App\Models\Permission;
 use App\Models\Role;
@@ -14,327 +19,323 @@ use RuntimeException;
 
 class TeamService
 {
+    // =========================================================================
+    // Team Creation & Setup
+    // =========================================================================
+
     /**
-     * Invite a user to a team.
-     * This bypasses the package's default email and uses our custom notification.
+     * Create a default team for a new user with owner role.
      */
-    public function inviteUser(Team $team, string $email, int|string $keyword): void
+    public function createDefaultTeam(User $user): Team
     {
-        if ($team->hasUserWithEmail($email)) {
-            throw new RuntimeException('This user already belongs to the team.');
-        }
+        $team = Team::create([
+            'name' => $user->name."'s Team",
+            'user_id' => $user->id,
+        ]);
 
-        // Get role by code
-        $role = $team->roles()->where('code', $keyword)->first();
+        $this->createDefaultRoles($team);
+        $this->attachOwner($team, $user);
 
-        if (! $role) {
-            throw new RuntimeException("The role '{$keyword}' does not exist or does not belong to the team.");
+        return $team;
+    }
+
+    /**
+     * Create default roles for a team based on config.
+     */
+    public function createDefaultRoles(Team $team): void
+    {
+        $allPermissionCodes = $this->allPermissionCodes();
+
+        foreach ($this->defaultRolesConfig() as $code => $config) {
+            $role = $this->createRole($team, $code, $config);
+            $permissionNames = $this->resolvePermissions($config['permissions'], $allPermissionCodes);
+            $this->ensurePermissionsExist($permissionNames);
+            $role->syncPermissions(Permission::whereIn('name', $permissionNames)->get());
         }
+    }
+
+    // =========================================================================
+    // Team Invitations
+    // =========================================================================
+
+    /**
+     * Invite a user to a team by email and role code.
+     */
+    public function inviteUser(Team $team, string $email, string $roleCode): void
+    {
+        $this->validateInvitation($team, $email, $roleCode);
+
+        $role = $team->roles()->where('code', $roleCode)->firstOrFail();
 
         $invitation = $team->invitations()->create([
             'email' => $email,
             'role_id' => $role->id,
         ]);
 
-        // Send our custom invitation notification
         Notification::route('mail', $email)
             ->notify(new TeamInvitationNotification($invitation));
     }
 
     /**
-     * Check if a team owner can invite members.
+     * Check if team owner can invite members (requires active subscription).
      */
     public function canInviteMembers(Team $team): bool
     {
-        $owner = $team->owner;
-
-        return $owner->subscribed() || $owner->onTrial();
+        return $team->owner->subscribed() || $team->owner->onTrial();
     }
 
     /**
-     * Get the maximum number of team members allowed based on subscription.
+     * Get max team members based on subscription.
      */
     public function getMaxTeamMembers(Team $team): int
     {
-        $owner = $team->owner;
-
-        // Default to 1 (owner only) if no subscription
-        if (! $owner->subscribed() && ! $owner->onTrial()) {
-            return 1;
+        if (! $this->canInviteMembers($team)) {
+            return 1; // Owner only
         }
 
-        // You can customize this based on subscription plans
         return config('teams.max_members', 10);
     }
 
+    // =========================================================================
+    // Permission & Role DTOs
+    // =========================================================================
+
     /**
-     * Get default roles configuration.
+     * Get all permission codes defined in config.
      */
-    public function getDefaultRoles(): array
+    public function allPermissionCodes(): array
     {
-        return config('team-permissions.roles', []);
+        return array_keys($this->permissionsConfigRaw());
     }
 
     /**
-     * Get all available permissions with full metadata.
+     * Get permission metadata as DTOs for frontend.
+     *
+     * @return array<string, PermissionMetaData>
      */
-    public function getAvailablePermissions(): array
+    public function permissionsConfig(): array
     {
-        return config('team-permissions.permissions', []);
+        return collect($this->permissionsConfigRaw())
+            ->map(fn ($data, $code) => PermissionMetaData::fromConfig(is_array($data) ? $data : ['label' => $data], $code))
+            ->all();
     }
 
     /**
-     * Get permission labels for UI display (code => label).
+     * Get permission groups as DTOs for frontend.
+     *
+     * @return array<string, PermissionGroupData>
      */
-    public function getPermissionLabels(): array
+    public function permissionGroups(): array
     {
-        $permissions = $this->getAvailablePermissions();
-
-        return collect($permissions)->mapWithKeys(function ($data, $code) {
-            $label = is_array($data) ? ($data['label'] ?? $code) : $data;
-
-            return [$code => $label];
-        })->all();
+        return collect(config('team-permissions.groups', []))
+            ->map(fn ($data) => PermissionGroupData::fromConfig($data))
+            ->all();
     }
 
     /**
-     * Get permission descriptions for UI display (code => description).
+     * Get default roles config as DTOs for frontend.
+     *
+     * @return array<string, RoleConfigData>
      */
-    public function getPermissionDescriptions(): array
+    public function defaultRoles(): array
     {
-        $permissions = $this->getAvailablePermissions();
-
-        return collect($permissions)->mapWithKeys(function ($data, $code) {
-            $description = is_array($data) ? ($data['description'] ?? '') : '';
-
-            return [$code => $description];
-        })->all();
+        return collect($this->defaultRolesConfig())
+            ->map(fn ($data) => RoleConfigData::fromConfig($data))
+            ->all();
     }
 
     /**
-     * Get all permission codes.
+     * Get team agents as DTOs.
+     *
+     * @return Collection<int, TeamAgentData>
      */
-    public function getPermissionCodes(): array
+    public function teamAgents(Team $team): Collection
     {
-        return array_keys($this->getAvailablePermissions());
+        return $team->agents()
+            ->get(['id', 'name'])
+            ->map(fn (Agent $agent) => TeamAgentData::fromModel($agent));
     }
 
     /**
-     * Get permission groups for UI display.
+     * Get team roles as DTOs.
+     *
+     * @return Collection<int, TeamRoleData>
      */
-    public function getPermissionGroups(): array
+    public function teamRoles(Team $team): Collection
     {
-        return config('team-permissions.groups', []);
+        return $team->roles()
+            ->with('permissions')
+            ->get()
+            ->map(fn (Role $role) => TeamRoleData::fromModel($role));
     }
 
-    /**
-     * Get all agents for a team.
-     */
-    public function getAllAgentsForTeam(Team $team): Collection
-    {
-        return $team->agents()->get(['id', 'name']);
-    }
+    // =========================================================================
+    // Agent Access Control
+    // =========================================================================
 
     /**
-     * Create a default team for a user.
+     * Check if user can access a specific agent.
      */
-    public function createDefaultTeam(User $user): Team
+    public function canAccessAgent(User $user, Team $team, Agent $agent): bool
     {
-        $team = new Team;
-        $team->name = $user->name."'s Team";
-        $team->user_id = $user->id;
-        $team->save();
-
-        // Create default roles for the team
-        $this->createDefaultRoles($team);
-
-        // Add owner to team_user table with is_owner flag
-        $ownerRole = $team->roles()->where('code', 'owner')->first();
-        if ($ownerRole) {
-            $team->users()->attach($user->id, [
-                'role_id' => $ownerRole->id,
-                'is_owner' => true,
-            ]);
-        }
-
-        return $team;
-    }
-
-    /**
-     * Create default roles for a team.
-     */
-    public function createDefaultRoles(Team $team): void
-    {
-        $roles = $this->getDefaultRoles();
-        $allPermissionNames = $this->getPermissionCodes();
-
-        foreach ($roles as $code => $roleConfig) {
-            // Create or get the role
-            $role = Role::firstOrCreate(
-                [
-                    'name' => $roleConfig['name'],
-                    'team_id' => $team->id,
-                    'guard_name' => 'web',
-                ],
-                [
-                    'code' => $code,
-                    'description' => $roleConfig['description'] ?? null,
-                    'all_agents' => $roleConfig['all_agents'] ?? false,
-                ]
-            );
-
-            // Handle wildcard permissions for owner
-            $permissionNames = $roleConfig['permissions'];
-            if (in_array('*', $permissionNames)) {
-                $permissionNames = $allPermissionNames;
-            }
-
-            // Create global permissions if they don't exist
-            foreach ($permissionNames as $permissionName) {
-                Permission::firstOrCreate([
-                    'name' => $permissionName,
-                    'guard_name' => 'web',
-                ]);
-            }
-
-            // Sync permissions to role (permissions are global, roles are team-scoped)
-            $permissions = Permission::whereIn('name', $permissionNames)->get();
-
-            $role->syncPermissions($permissions);
-        }
-    }
-
-    /**
-     * Get user permissions for all teams (for Inertia shared data).
-     */
-    public function getUserPermissionsForInertia(User $user): array
-    {
-        $permissions = [];
-        $allPermissions = $this->getPermissionCodes();
-
-        foreach ($user->teams as $team) {
-            // Owner has all permissions
-            if ($user->ownsTeam($team)) {
-                $permissions[$team->id] = $allPermissions;
-
-                continue;
-            }
-
-            // Get user's role permissions in the team
-            $teamPermissions = $user->teamPermissions($team);
-            $permissions[$team->id] = is_array($teamPermissions) ? $teamPermissions : $teamPermissions->toArray();
-        }
-
-        return $permissions;
-    }
-
-    /**
-     * Check if a user has access to a specific agent.
-     */
-    public function userHasAgentAccess(User $user, Team $team, Agent $agent): bool
-    {
-        // Owner has access to all agents
         if ($user->ownsTeam($team)) {
             return true;
         }
 
-        // Check if agent belongs to this team
         if ($agent->team_id !== $team->id) {
             return false;
         }
 
         $role = $user->teamRole($team);
-        if (! $role) {
-            return false;
-        }
 
-        return $this->roleHasAgentAccess($role, $agent);
+        return $role && $this->roleCanAccessAgent($role, $agent);
     }
 
     /**
-     * Check if a role has access to a specific agent.
+     * Check if a role can access a specific agent.
      */
-    public function roleHasAgentAccess(Role $role, Agent $agent): bool
+    public function roleCanAccessAgent(Role $role, Agent $agent): bool
     {
-        // Owner role has access to all agents
         if ($role->code === 'owner') {
             return true;
         }
 
-        // Check if role has access to all agents
-        if ($role->all_agents) {
+        if ($role->hasPermissionTo('agents.access-all')) {
             return true;
         }
 
-        // Check if agent is in the role's agent list via relationship
         return $role->agents()->where('agents.id', $agent->id)->exists();
     }
 
     /**
      * Get all agents a user can access in a team.
      */
-    public function getUserAccessibleAgents(User $user, Team $team): Collection
+    public function accessibleAgents(User $user, Team $team): Collection
     {
-        // Owner has access to all agents
         if ($user->ownsTeam($team)) {
             return $team->agents;
         }
 
         $role = $user->teamRole($team);
+
         if (! $role) {
             return collect();
         }
 
-        return $this->getRoleAccessibleAgents($role, $team);
+        return $this->roleAccessibleAgents($role, $team);
     }
 
     /**
-     * Get all agents a role can access in a team.
+     * Get all agents accessible by a role.
      */
-    public function getRoleAccessibleAgents(Role $role, Team $team): Collection
+    public function roleAccessibleAgents(Role $role, Team $team): Collection
     {
-        // Owner role or all_agents flag = all team agents
-        if ($role->code === 'owner' || $role->all_agents) {
+        if ($role->code === 'owner' || $role->hasPermissionTo('agents.access-all')) {
             return $team->agents;
         }
 
-        // Get agents via relationship, filtered to team's agents
-        $teamAgentIds = $team->agents()->pluck('id');
-
-        return $role->agents()->whereIn('agents.id', $teamAgentIds)->get();
+        return $role->agents()
+            ->whereIn('agents.id', $team->agents()->pluck('id'))
+            ->get();
     }
 
     /**
-     * Update agent access for a role.
+     * Update which agents a role can access.
      */
-    public function updateRoleAgentAccess(Role $role, bool $allAgents, array $agentIds = []): void
+    public function syncRoleAgents(Role $role, array $agentIds = []): void
     {
-        $role->all_agents = $allAgents;
-        $role->save();
-
-        // Sync agents via relationship
-        if ($allAgents) {
-            // If all agents, clear the specific agent assignments
+        if ($role->hasPermissionTo('agents.access-all')) {
             $role->agents()->detach();
         } else {
-            // Sync specific agents
             $role->agents()->sync($agentIds);
         }
     }
 
+    // =========================================================================
+    // User Permissions
+    // =========================================================================
+
     /**
-     * Get role with agent access data formatted for frontend.
+     * Get user's permissions for all teams (for Inertia shared data).
      */
-    public function formatRoleForFrontend(Role $role, Team $team): array
+    public function userPermissionsMap(User $user): array
     {
-        return [
-            'id' => $role->id,
-            'code' => $role->code,
-            'name' => $role->name,
-            'description' => $role->description,
-            'permissions' => $role->permissions->pluck('name')->toArray(),
-            'all_agents' => (bool) $role->all_agents,
-            'agent_ids' => $role->agents()->pluck('agents.id')->toArray(),
-        ];
+        $allPermissions = $this->allPermissionCodes();
+        $permissions = [];
+
+        foreach ($user->teams as $team) {
+            $permissions[$team->id] = $user->ownsTeam($team)
+                ? $allPermissions
+                : $user->teamPermissions($team);
+        }
+
+        return $permissions;
+    }
+
+    // =========================================================================
+    // Private Helpers
+    // =========================================================================
+
+    private function permissionsConfigRaw(): array
+    {
+        return config('team-permissions.permissions', []);
+    }
+
+    private function defaultRolesConfig(): array
+    {
+        return config('team-permissions.roles', []);
+    }
+
+    private function validateInvitation(Team $team, string $email, string $roleCode): void
+    {
+        if ($team->hasUserWithEmail($email)) {
+            throw new RuntimeException('This user already belongs to the team.');
+        }
+
+        if (! $team->roles()->where('code', $roleCode)->exists()) {
+            throw new RuntimeException("The role '{$roleCode}' does not exist for this team.");
+        }
+    }
+
+    private function attachOwner(Team $team, User $user): void
+    {
+        $ownerRole = $team->roles()->where('code', 'owner')->first();
+
+        if ($ownerRole) {
+            $team->users()->attach($user->id, [
+                'role_id' => $ownerRole->id,
+                'is_owner' => true,
+            ]);
+        }
+    }
+
+    private function createRole(Team $team, string $code, array $config): Role
+    {
+        return Role::firstOrCreate(
+            [
+                'name' => $config['name'],
+                'team_id' => $team->id,
+                'guard_name' => 'web',
+            ],
+            [
+                'code' => $code,
+                'description' => $config['description'] ?? null,
+            ]
+        );
+    }
+
+    private function resolvePermissions(array $permissions, array $allPermissions): array
+    {
+        return in_array('*', $permissions) ? $allPermissions : $permissions;
+    }
+
+    private function ensurePermissionsExist(array $permissionNames): void
+    {
+        foreach ($permissionNames as $name) {
+            Permission::firstOrCreate([
+                'name' => $name,
+                'guard_name' => 'web',
+            ]);
+        }
     }
 }

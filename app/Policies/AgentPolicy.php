@@ -4,15 +4,20 @@ namespace App\Policies;
 
 use App\Models\Agent;
 use App\Models\User;
+use App\Services\Teams\TeamService;
 
 class AgentPolicy
 {
+    public function __construct(
+        private TeamService $teamService
+    ) {}
+
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->is_admin;
+        return $user->type === 'admin';
     }
 
     /**
@@ -20,7 +25,23 @@ class AgentPolicy
      */
     public function view(User $user, Agent $agent): bool
     {
-        return $user->id === $agent->user_id;
+        // Admin can view all
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Agent owner can view
+        if ($user->id === $agent->user_id) {
+            return true;
+        }
+
+        // Check team-based access
+        $team = current_team();
+        if ($team && $this->teamService->canAccessAgent($user, $team, $agent)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

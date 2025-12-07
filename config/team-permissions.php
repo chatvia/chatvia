@@ -107,12 +107,12 @@ return [
             'description' => 'View sentiment analysis of conversations',
         ],
         'agent.analytics.tone' => [
-            'label' => 'Tone',
+            'label' => 'Tones',
             'description' => 'View tone analysis of conversations',
         ],
         'agent.analytics.topics' => [
             'label' => 'Topics',
-            'description' => 'View topic distribution and trends',
+            'description' => 'View and manage topics',
         ],
         'agent.analytics.sources' => [
             'label' => 'Sources',

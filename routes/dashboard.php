@@ -10,7 +10,6 @@ use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesShowController;
 use App\Http\Controllers\Members\MembersControllerShow;
 use App\Http\Controllers\Members\MembersListController;
 use App\Http\Controllers\SupportController;
-use App\Http\Controllers\Teams\TeamController;
 use App\Http\Controllers\Tickets\TicketChangePriorityController;
 use App\Http\Controllers\Tickets\TicketReplyController;
 use App\Http\Controllers\Tickets\TicketsController;
@@ -41,5 +40,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('dashboard/tickets/{ticket}/priority', TicketChangePriorityController::class)->name('tickets.priority');
 
     Route::get('my/capabilities', CapabilitiesController::class)->name('my.capabilities');
-    Route::get('my/teams', [TeamController::class, 'index'])->name('my.teams');
 });

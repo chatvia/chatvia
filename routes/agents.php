@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Agents\AgentManagerController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteSettingsController;
 use App\Http\Controllers\Agents\Agents\AgentFileSummaryController;
@@ -129,6 +130,7 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
     Route::get('countries/list', CountriesListController::class)->name('countries.list');
 
     Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function () {
+        Route::get('manager', AgentManagerController::class)->name('manager');
         Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
         Route::get('analytics/data', AgentAnalyticsDataController::class)->name('analytics.data');
         Route::get('analytics/chart-data', AgentChartDataController::class)->name('analytics.chart-data');

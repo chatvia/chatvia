@@ -56,11 +56,8 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        // Set the first team as the current team
-        $firstTeam = $user->teams()->first();
-        if ($firstTeam) {
-            session(['current_team_id' => $firstTeam->id]);
-        }
+        // Ensure user has a current team set in database
+        $user->ensureCurrentTeam();
 
         return to_route('dashboard');
     }

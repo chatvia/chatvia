@@ -469,6 +469,50 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
+     * Get the user's current active team.
+     */
+    public function currentTeam(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'current_team_id');
+    }
+
+    /**
+     * Switch to a different team.
+     */
+    public function switchTeam(Team $team): bool
+    {
+        if (! $this->ownsTeam($team) && ! $this->belongsToTeam($team)) {
+            return false;
+        }
+
+        $this->update(['current_team_id' => $team->id]);
+
+        return true;
+    }
+
+    /**
+     * Ensure the user has a current team set.
+     * Sets to first available team if not set.
+     */
+    public function ensureCurrentTeam(): ?Team
+    {
+        if ($this->current_team_id && $this->currentTeam) {
+            return $this->currentTeam;
+        }
+
+        // Get the first team the user belongs to
+        $team = $this->teams()->first();
+
+        if ($team) {
+            $this->update(['current_team_id' => $team->id]);
+
+            return $team;
+        }
+
+        return null;
+    }
+
+    /**
      * Get all users managed by this user (invited via their teams).
      */
     public function managedUsers(): HasMany

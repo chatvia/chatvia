@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\ChatConversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Lists conversations with pending handoff requests for an agent.
@@ -14,10 +15,8 @@ readonly class HandoffPendingListController
 {
     public function __invoke(Request $request, Agent $agent): JsonResponse
     {
-        $user = auth()->user();
-
-        // Check if user owns the agent
-        if ($agent->user_id !== $user->id) {
+        // Check access (handles both ownership and team permissions)
+        if (Gate::denies('access-agent', $agent)) {
             return response()->json([
                 'error' => 'Unauthorized',
             ], 403);

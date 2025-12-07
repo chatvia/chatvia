@@ -116,25 +116,9 @@ if (! function_exists('current_team')) {
             return null;
         }
 
-        // Check session first
-        $currentTeamId = session('current_team_id');
-
-        if ($currentTeamId) {
-            $team = \App\Models\Team::find($currentTeamId);
-
-            if ($team && ($user->ownsTeam($team) || $user->belongsToTeam($team))) {
-                return $team;
-            }
-        }
-
-        // Fall back to primary team
-        $primaryTeam = $user->primaryTeam();
-
-        if ($primaryTeam) {
-            session(['current_team_id' => $primaryTeam->id]);
-        }
-
-        return $primaryTeam;
+        // Use the current_team_id from the database
+        // This ensures it's available in all contexts (including broadcasting)
+        return $user->ensureCurrentTeam();
     }
 }
 

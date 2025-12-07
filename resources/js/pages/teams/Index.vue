@@ -6,13 +6,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -33,34 +27,18 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type SharedData } from '@/types';
-import { getInitials } from '@/composables/useInitials';
+import { type BreadcrumbItem } from '@/types';
 import {
     Users,
     Plus,
-    Settings,
     LogOut,
     Trash2,
     Loader2,
     Search,
+    Bot,
 } from 'lucide-vue-next';
 
-interface TeamOwner {
-    id: number;
-    name: string;
-    email: string;
-}
-
-interface Team {
-    id: number;
-    name: string;
-    owner: TeamOwner;
-    is_owner: boolean;
-    is_primary: boolean;
-    role: string;
-    members_count: number;
-    created_at: string;
-}
+type Team = App.Data.Resources.Team.TeamListItemData;
 
 interface Props {
     teams: Team[];
@@ -84,7 +62,8 @@ const createForm = useForm({
 });
 
 const leaveForm = useForm({});
-const deleteForm = useForm({});
+const deleteForm = useForm<{ team?: string }>({});
+const teamToDelete = ref<Team | null>(null);
 
 const filteredTeams = computed(() => {
     if (!searchQuery.value) return props.teams || [];
@@ -112,8 +91,14 @@ const leaveTeam = (team: Team) => {
     leaveForm.post(route('teams.leave', team.id), {});
 };
 
-const deleteTeam = (team: Team) => {
-    deleteForm.delete(route('teams.destroy', team.id), {});
+const deleteTeam = () => {
+    if (!teamToDelete.value) return;
+
+    deleteForm.delete(route('teams.destroy', teamToDelete.value.id), {
+        onSuccess: () => {
+            teamToDelete.value = null;
+        },
+    });
 };
 
 const formatDate = (dateString: string) => {
@@ -185,38 +170,40 @@ const formatDate = (dateString: string) => {
             <div v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <Card v-for="team in filteredTeams" :key="team.id" class="overflow-hidden">
                     <CardHeader class="pb-3">
-                        <CardTitle class="flex items-center gap-2 text-xl">
-                            <Users class="h-5 w-5 flex-shrink-0" />
-                            <span class="truncate">
-                                <Link :href="route('teams.show', team.id)">{{ team.name }}</Link>
-                            </span>
-                        </CardTitle>
+                        <div class="flex items-center justify-between">
+                            <CardTitle class="flex items-center gap-2 text-xl">
+                                <Users class="h-5 w-5 flex-shrink-0" />
+                                <span class="truncate">
+                                    <Link :href="route('teams.show', team.id)">{{ team.name }}</Link>
+                                </span>
+                            </CardTitle>
+                            <div v-if="team.is_primary" class="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                                Primary
+                            </div>
+                        </div>
                     </CardHeader>
 
                     <CardContent>
-                        <div class="grid gap-4 text-sm grid-cols-2">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div class="flex flex-col">
+                                <span class="text-muted-foreground">Agents</span>
+                                <span class="text-lg font-medium">{{ team.agents_count }}</span>
+                            </div>
                             <div class="flex flex-col">
                                 <span class="text-muted-foreground">Members</span>
                                 <span class="text-lg font-medium">{{ team.members_count }}</span>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-muted-foreground">Your Role</span>
-                                <span class="text-lg font-medium capitalize">{{ availableRoles[team.role]?.name || team.role }}</span>
-                            </div>
-                            <div class="flex flex-col col-span-2">
-                                <span class="text-muted-foreground">Created</span>
-                                <span>{{ formatDate(team.created_at) }}</span>
                             </div>
                         </div>
                     </CardContent>
 
                     <CardFooter class="flex justify-between border-t p-4">
-                        <div class="flex gap-1">
+                        <div class="flex items-center gap-1">
                             <!-- Leave Team -->
                             <AlertDialog v-if="!team.is_owner">
                                 <AlertDialogTrigger as-child>
                                     <Button variant="ghost" size="sm" class="text-muted-foreground hover:text-destructive">
-                                        <LogOut class="h-4 w-4" />
+                                        <LogOut class="h-4 w-4 mr-1" />
+                                        Leave
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -240,39 +227,20 @@ const formatDate = (dateString: string) => {
                             </AlertDialog>
 
                             <!-- Delete Team -->
-                            <AlertDialog v-if="canDeleteTeam(team)">
-                                <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-muted-foreground hover:text-destructive">
-                                        <Trash2 class="h-4 w-4" />
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Team</AlertDialogTitle>
-                                        <AlertDialogDescription v-if="team.members_count > 0" class="text-destructive">
-                                            This team has {{ team.members_count }} member(s). You must remove all members before deleting the team.
-                                        </AlertDialogDescription>
-                                        <AlertDialogDescription v-else>
-                                            Are you sure? This cannot be undone.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            v-if="team.members_count === 0"
-                                            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                            @click="deleteTeam(team)"
-                                            :disabled="deleteForm.processing"
-                                        >
-                                            Delete
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                            <Button
+                                v-if="canDeleteTeam(team)"
+                                variant="ghost"
+                                size="sm"
+                                class="text-muted-foreground hover:text-destructive"
+                                @click.prevent="teamToDelete = team; deleteForm.clearErrors()"
+                            >
+                                <Trash2 class="h-4 w-4 mr-1" />
+                                Delete
+                            </Button>
                         </div>
 
                         <Button as-child size="sm">
-                            <Link :href="route('teams.show', team.id)" class="gap-1">
+                            <Link :href="route('teams.show', team.id)">
                                 Manage
                             </Link>
                         </Button>
@@ -280,6 +248,32 @@ const formatDate = (dateString: string) => {
                 </Card>
             </div>
         </div>
+
+        <!-- Delete Team Confirmation -->
+        <AlertDialog :open="!!teamToDelete" @update:open="(open) => !open && (teamToDelete = null)">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Team</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to delete "{{ teamToDelete?.name }}"? This cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div v-if="deleteForm.errors.team" class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                    {{ deleteForm.errors.team }}
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <Button
+                        variant="destructive"
+                        @click="deleteTeam"
+                        :disabled="deleteForm.processing"
+                    >
+                        <Loader2 v-if="deleteForm.processing" class="mr-2 size-4 animate-spin" />
+                        Delete
+                    </Button>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
         <!-- Create Team Dialog -->
         <Dialog v-model:open="isCreateDialogOpen">

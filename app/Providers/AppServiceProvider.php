@@ -86,23 +86,21 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('access-agent', function (User $user, Agent $agent) {
-            // Admin users have access to all agents
-            if ($user->isAdmin()) {
-                return true;
+            // Admin or Company users: access to their own agents (they are the owners)
+            if ($user->isAdmin() || $user->isCompany()) {
+                return $agent->user_id === $user->id;
             }
 
-            $team = current_team();
+            // Staff users: check team-based access with permissions
+            // Use the user's current_team_id from the database (works in all contexts including broadcasting)
+            $team = $user->currentTeam ?? $user->ensureCurrentTeam();
 
             if (! $team) {
                 return false;
             }
 
-            // Check if user belongs to the agent's team
-            if (! $user->belongsToTeam($team)) {
-                return false;
-            }
-
-            // Use TeamService to check agent access
+            // Use TeamService to check if staff user can access this agent
+            // This checks: agent belongs to team + user has correct permissions
             return app(TeamService::class)->canAccessAgent($user, $team, $agent);
         });
 

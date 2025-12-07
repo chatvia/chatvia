@@ -22,15 +22,15 @@ class AgentObserver
             ->where('is_default', true)
             ->value('id');
 
-            $llms = $user->llms();
-            $agentLlms = $agent->isStandalone() ? $llms->pluck('id')->toArray() : [$defaultLlm];
+        $llms = $user->llms();
+        $agentLlms = $agent->isStandalone() ? $llms->pluck('id')->toArray() : [$defaultLlm];
 
-            $llmIds = Llm::query()
-                ->select('id')
-                ->whereIn('id', $agentLlms)
-                ->get()
-                ->pluck('id')
-                ->toArray();
+        $llmIds = Llm::query()
+            ->select('id')
+            ->whereIn('id', $agentLlms)
+            ->get()
+            ->pluck('id')
+            ->toArray();
 
         $agent
             ->llms()

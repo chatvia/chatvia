@@ -24,6 +24,12 @@ export interface NavItem {
     isActive?: boolean;
 }
 
+export interface CurrentTeam {
+    id: number;
+    name: string;
+    is_owner: boolean;
+}
+
 export interface SharedData extends PageProps {
     name: string;
     quote: { message: string; author: string };
@@ -36,6 +42,8 @@ export interface SharedData extends PageProps {
     onTrial: boolean;
     trialEndsAt?: string | null;
     subscriptionStartsAt?: string | null;
+    permissions: Record<number, string[]>;
+    currentTeam: CurrentTeam | null;
 }
 
 export interface User {

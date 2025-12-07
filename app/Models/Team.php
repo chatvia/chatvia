@@ -51,7 +51,8 @@ class Team extends Model
      */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'team_user')
+        return $this
+            ->belongsToMany(User::class, 'team_user')
             ->withPivot('role_id', 'is_owner')
             ->withTimestamps();
     }
@@ -62,14 +63,6 @@ class Team extends Model
     public function members(): BelongsToMany
     {
         return $this->users()->wherePivot('is_owner', false);
-    }
-
-    /**
-     * Get all users (alias for users() - kept for backward compatibility).
-     */
-    public function allUsers()
-    {
-        return $this->users;
     }
 
     /**
@@ -85,7 +78,7 @@ class Team extends Model
      */
     public function hasUserWithEmail(string $email): bool
     {
-        return $this->allUsers()->contains(fn ($user) => $user->email === $email);
+        return $this->users->contains(fn ($user) => $user->email === $email);
     }
 
     /**
@@ -93,7 +86,7 @@ class Team extends Model
      */
     public function hasUser(User $user): bool
     {
-        return $this->allUsers()->contains($user);
+        return $this->users->contains($user);
     }
 
     /**
@@ -117,5 +110,13 @@ class Team extends Model
         }
 
         return Role::find($membership->pivot->role_id);
+    }
+
+    /**
+     * Remove a user from the team.
+     */
+    public function deleteUser(User $user): void
+    {
+        $this->users()->detach($user->id);
     }
 }

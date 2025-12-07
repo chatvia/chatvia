@@ -25,17 +25,12 @@ class AgentPolicy
      */
     public function view(User $user, Agent $agent): bool
     {
-        // Admin can view all
-        if ($user->isAdmin()) {
-            return true;
+        // Admin or Company users: access to their own agents
+        if ($user->isAdmin() || $user->isCompany()) {
+            return $agent->user_id === $user->id;
         }
 
-        // Agent owner can view
-        if ($user->id === $agent->user_id) {
-            return true;
-        }
-
-        // Check team-based access
+        // Staff users: check team-based access with permissions
         $team = current_team();
         if ($team && $this->teamService->canAccessAgent($user, $team, $agent)) {
             return true;

@@ -2,9 +2,16 @@
 
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
-use App\Http\Controllers\Settings\TeamController;
 use App\Http\Controllers\SettingsUsageController;
-use App\Http\Middleware\DenyStaff;
+use App\Http\Controllers\Teams\TeamController;
+use App\Http\Controllers\Teams\TeamDeleteController;
+use App\Http\Controllers\Teams\TeamLeaveController;
+use App\Http\Controllers\Teams\TeamListController;
+use App\Http\Controllers\Teams\TeamsHomeController;
+use App\Http\Controllers\Teams\TeamShowController;
+use App\Http\Controllers\Teams\TeamsStoreController;
+use App\Http\Controllers\Teams\TeamUpdateController;
+use App\Http\Middleware\DenyIfStaff;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -24,29 +31,31 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('settings/Appearance');
     })->name('appearance');
 
-    // Team switching (allowed for staff)
+    // Team switching and list (allowed for staff)
     Route::post('settings/teams/{team}/switch', [TeamController::class, 'switch'])->name('teams.switch');
+    Route::get('my/teams/list', TeamListController::class)->name('my.teams.list');
 
     // Teams management (denied for staff)
-    Route::middleware(DenyStaff::class)->group(function () {
-        Route::get('settings/teams', [TeamController::class, 'index'])->name('teams.index');
-        Route::post('settings/teams', [TeamController::class, 'store'])->name('teams.store');
-        Route::get('settings/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
-        Route::put('settings/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
-        Route::delete('settings/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
-        Route::post('settings/teams/{team}/leave', [TeamController::class, 'leave'])->name('teams.leave');
+    Route::middleware(DenyIfStaff::class)->group(function () {
+        Route::get('my/teams', TeamsHomeController::class)->name('teams.index');
+        Route::post('my/teams', TeamsStoreController::class)->name('teams.store');
+
+        Route::get('my/teams/{team}', TeamShowController::class)->name('teams.show');
+        Route::put('my/teams/{team}', TeamUpdateController::class)->name('teams.update');
+        Route::delete('my/teams/{team}', TeamDeleteController::class)->name('teams.destroy');
+        Route::post('my/teams/{team}/leave', TeamLeaveController::class)->name('teams.leave');
 
         // Team members
-        Route::post('settings/teams/{team}/invite', [TeamController::class, 'inviteMember'])->name('teams.invite');
-        Route::delete('settings/teams/{team}/invitations/{invitationId}', [TeamController::class, 'cancelInvitation'])->name('teams.cancel-invitation');
-        Route::put('settings/teams/{team}/members/{member}', [TeamController::class, 'updateMemberRole'])->name('teams.update-member');
-        Route::delete('settings/teams/{team}/members/{member}', [TeamController::class, 'removeMember'])->name('teams.remove-member');
+        Route::post('my/teams/{team}/invite', [TeamController::class, 'inviteMember'])->name('teams.invite');
+        Route::delete('my/teams/{team}/invitations/{invitationId}', [TeamController::class, 'cancelInvitation'])->name('teams.cancel-invitation');
+        Route::put('my/teams/{team}/members/{member}', [TeamController::class, 'updateMemberRole'])->name('teams.update-member');
+        Route::delete('my/teams/{team}/members/{member}', [TeamController::class, 'removeMember'])->name('teams.remove-member');
 
         // Team roles
-        Route::get('settings/teams/{team}/roles/create', [TeamController::class, 'showCreateRole'])->name('teams.roles.create');
-        Route::post('settings/teams/{team}/roles', [TeamController::class, 'createRole'])->name('teams.create-role');
-        Route::get('settings/teams/{team}/roles/{roleId}/edit', [TeamController::class, 'showEditRole'])->name('teams.roles.edit');
-        Route::put('settings/teams/{team}/roles/{roleId}', [TeamController::class, 'updateRole'])->name('teams.update-role');
-        Route::delete('settings/teams/{team}/roles/{roleId}', [TeamController::class, 'deleteRole'])->name('teams.delete-role');
+        Route::get('my/teams/{team}/roles/create', [TeamController::class, 'showCreateRole'])->name('teams.roles.create');
+        Route::post('my/teams/{team}/roles', [TeamController::class, 'createRole'])->name('teams.create-role');
+        Route::get('my/teams/{team}/roles/{roleId}/edit', [TeamController::class, 'showEditRole'])->name('teams.roles.edit');
+        Route::put('my/teams/{team}/roles/{roleId}', [TeamController::class, 'updateRole'])->name('teams.update-role');
+        Route::delete('my/teams/{team}/roles/{roleId}', [TeamController::class, 'deleteRole'])->name('teams.delete-role');
     });
 });

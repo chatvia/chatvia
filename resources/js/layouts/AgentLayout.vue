@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'vue-sonner';
 import { Toaster } from '@/components/ui/sonner';
-import type { Features } from '@/types';
+import type { Features, SharedData } from '@/types';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import UserMenu from '@/components/UserMenu.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
@@ -107,11 +107,20 @@ const props = defineProps({
     }
 })
 
-const page = usePage();
+const page = usePage<SharedData>();
 const currentRoute = computed(() => page.component);
 
 // Get features from page props
 const features = page.props.features as Features;
+
+// Permission checking helper
+const hasPermission = (permission: string): boolean => {
+    const currentTeam = page.props.currentTeam;
+    if (!currentTeam) return false;
+    
+    const teamPermissions = page.props.permissions[currentTeam.id] || [];
+    return teamPermissions.includes(permission);
+};
 
 // Load sidebar state from localStorage
 const getSidebarStateFromStorage = (): boolean => {
@@ -137,8 +146,8 @@ const toggleSidebar = () => {
 const uiNavigationItems = computed(() => {
     const baseItems = [];
 
-    // Only show Playground for non-widget agents
-    if (props.agent.type !== 'widget') {
+    // Only show Playground for non-widget agents (owners only, or users with setup permission)
+    if (props.agent.type !== 'widget' && (isOwner.value || hasPermission('agent.setup'))) {
         baseItems.push({
             id: 'playground',
             label: 'Playground',
@@ -148,66 +157,141 @@ const uiNavigationItems = computed(() => {
         });
     }
 
-    // Show Widget or Embed based on agent type
-    baseItems.push({
-        id: 'embed',
-        label: 'Setup',
-        icon: props.agent.type === 'widget' ? Globe : Code,
-        route: props.agent.type === 'widget' ? 'agents.widget' : 'agents.embed',
-        tooltip: props.agent.type === 'widget' ? 'Configure and preview chat widget' : 'Generate embed code for your website'
-    });
+    // Show Widget or Embed based on agent type - only if user has setup permission
+    if (isOwner.value || hasPermission('agent.setup')) {
+        baseItems.push({
+            id: 'embed',
+            label: 'Setup',
+            icon: props.agent.type === 'widget' ? Globe : Code,
+            route: props.agent.type === 'widget' ? 'agents.widget' : 'agents.embed',
+            tooltip: props.agent.type === 'widget' ? 'Configure and preview chat widget' : 'Generate embed code for your website'
+        });
+    }
 
     return baseItems;
+});
+
+// Check if user is owner (has all permissions)
+const isOwner = computed(() => {
+    const currentTeam = page.props.currentTeam;
+    return !currentTeam || currentTeam.is_owner;
+});
+
+// Check if user has any of the given permissions
+const hasAnyPermission = (permissions: string[]): boolean => {
+    if (isOwner.value) return true;
+    return permissions.some(p => hasPermission(p));
+};
+
+// Check if user has any source training permission
+const hasAnySourcePermission = computed(() => {
+    if (isOwner.value) return true;
+    return hasAnyPermission([
+        'agent.sources.train.pdf',
+        'agent.sources.train.word',
+        'agent.sources.train.text',
+        'agent.sources.train.qa',
+        'agent.sources.train.web',
+        'agent.sources.train.audio',
+        'agent.sources.train.video',
+    ]);
+});
+
+// Check if user has any analytics permission
+const hasAnyAnalyticsPermission = computed(() => {
+    if (isOwner.value) return true;
+    return hasAnyPermission([
+        'agent.analytics.chats',
+        'agent.analytics.metrics',
+        'agent.analytics.sentiment',
+        'agent.analytics.tone',
+        'agent.analytics.topics',
+        'agent.analytics.sources',
+    ]);
 });
 
 const controlPanelNavigationItems = computed(() => {
-    const baseItems = [
-        {
-            id: 'analytics',
-            label: 'Analytics',
-            icon: BarChart3,
-            route: 'agents.analytics',
-            tooltip: 'View usage analytics and insights',
-            subItems: [
-                { id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' },
-                { id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' },
-                { id: 'analytics-sentiment', label: 'Sentiment', icon: SmilePlus, route: 'agents.analytics.sentiment' },
-                { id: 'analytics-tone', label: 'Tone', icon: Heart, route: 'agents.analytics.tone' },
-                { id: 'analytics-topics', label: 'Topics', icon: MessageSquare, route: 'agents.analytics.topics' },
-                { id: 'analytics-sources', label: 'Sources', icon: FileText, route: 'agents.analytics.sources' },
-            ]
-        },
-    ];
+    const baseItems: any[] = [];
 
-    // baseItems.push(
-    //     { id: 'persona', label: 'Persona', icon: Bot, route: 'agents.persona', tooltip: 'Configure agent personality and behavior' },
-    // )
+    // Analytics - only show if user has any analytics permission
+    if (hasAnyAnalyticsPermission.value) {
+        const analyticsSubItems = [];
+        
+        if (isOwner.value || hasPermission('agent.analytics.chats')) {
+            analyticsSubItems.push({ id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' });
+        }
+        if (isOwner.value || hasPermission('agent.analytics.metrics')) {
+            analyticsSubItems.push({ id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' });
+        }
+        if (isOwner.value || hasPermission('agent.analytics.sentiment')) {
+            analyticsSubItems.push({ id: 'analytics-sentiment', label: 'Sentiment', icon: SmilePlus, route: 'agents.analytics.sentiment' });
+        }
+        if (isOwner.value || hasPermission('agent.analytics.tone')) {
+            analyticsSubItems.push({ id: 'analytics-tone', label: 'Tone', icon: Heart, route: 'agents.analytics.tone' });
+        }
+        if (isOwner.value || hasPermission('agent.analytics.topics')) {
+            analyticsSubItems.push({ id: 'analytics-topics', label: 'Topics', icon: MessageSquare, route: 'agents.analytics.topics' });
+        }
+        if (isOwner.value || hasPermission('agent.analytics.sources')) {
+            analyticsSubItems.push({ id: 'analytics-sources', label: 'Sources', icon: FileText, route: 'agents.analytics.sources' });
+        }
 
+        if (analyticsSubItems.length > 0) {
+            baseItems.push({
+                id: 'analytics',
+                label: 'Analytics',
+                icon: BarChart3,
+                route: analyticsSubItems[0].route,
+                tooltip: 'View usage analytics and insights',
+                subItems: analyticsSubItems
+            });
+        }
+    }
+
+    // Sources - only show if user has any source training permission
+    if (hasAnySourcePermission.value) {
+        baseItems.push(
+            { id: 'knowledge', label: 'Sources', icon: Database, route: 'agents.sources', tooltip: 'Manage agent knowledge and training data' },
+        );
+    }
+
+    // History - always visible (no specific permission required, just agent access)
     baseItems.push(
-        { id: 'knowledge', label: 'Sources', icon: Database, route: 'agents.sources', tooltip: 'Manage agent knowledge and training data' },
+        { id: 'history', label: 'History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
     );
 
-    baseItems.push(
-        ...[
-            { id: 'history', label: 'History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
+    // Leads - only show if user has leads permission
+    if (isOwner.value || hasPermission('agent.leads.view')) {
+        baseItems.push(
             { id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads', tooltip: 'Manage leads captured by your agent' },
-            { id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' },
-        ]
-    )
+        );
+    }
 
-    // Only add members if the agent is not a widget
-    if (props.agent.type !== 'widget') {
+    // Chat/Logs - only show if user has chat view permission
+    if (isOwner.value || hasPermission('agent.chat.view')) {
+        baseItems.push(
+            { id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' },
+        );
+    }
+
+    // Members - only for non-widget agents and owners
+    if (props.agent.type !== 'widget' && isOwner.value) {
         baseItems.push({ id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' });
     }
 
-    // Add rename for all agents
-    baseItems.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
+    // Rename - only show if user has rename permission
+    if (isOwner.value || hasPermission('agent.rename')) {
+        baseItems.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
+    }
 
     return baseItems;
 });
 
-// Danger Zone navigation items
+// Danger Zone navigation items - only show for owners or users with delete permission
 const dangerZoneNavigationItems = computed(() => {
+    if (!isOwner.value && !hasPermission('agent.delete')) {
+        return [];
+    }
     return [
         { id: 'delete', label: 'Delete Agent', icon: Trash2, action: 'delete', tooltip: 'Permanently delete this agent' }
     ];
@@ -256,17 +340,13 @@ const renameAgent = () => {
         return;
     }
 
-    // Prepare data - only include sub_domain for knowledge_base agents
-    const data: { name: string; sub_domain?: string } = {
-        name: renameForm.name.trim(),
-    };
-
+    // Update form data - trim and lowercase subdomain
+    renameForm.name = renameForm.name.trim();
     if (props.agent.type === 'knowledge_base') {
-        data.sub_domain = renameForm.sub_domain.trim().toLowerCase();
+        renameForm.sub_domain = renameForm.sub_domain.trim().toLowerCase();
     }
 
     renameForm.patch(route('agents.rename', { agent: props.agent.id }), {
-        data,
         preserveScroll: true,
         onSuccess: () => {
             showRenameDialog.value = false;

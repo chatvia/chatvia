@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\ChatConversation;
 use App\Services\Chat\HandoffService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Gate;
 
 readonly class HandoffReturnController
 {
@@ -25,8 +26,8 @@ readonly class HandoffReturnController
             ], 404);
         }
 
-        // Check ownership
-        if ($agent->user_id !== $user->id || $conversation->session?->agent_id !== $agent->id) {
+        // Check access (handles both ownership and team permissions)
+        if (Gate::denies('access-agent', $agent) || $conversation->session?->agent_id !== $agent->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized.',

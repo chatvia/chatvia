@@ -25,7 +25,6 @@ class TeamInvitationController extends Controller
      */
     public function show(Request $request, Invitation $invitation)
     {
-        // Check if invitation is still valid
         if (! $invitation || $invitation->created_at->addDays(7)->isPast()) {
             return Inertia::render('auth/InvitationExpired', [
                 'message' => 'This invitation has expired.',
@@ -137,7 +136,7 @@ class TeamInvitationController extends Controller
         Auth::login($user);
 
         // Set the team they were invited to as the current team
-        session(['current_team_id' => $team->id]);
+        $user->switchTeam($team);
 
         return redirect()->route('dashboard')
             ->with('success', "Welcome to {$team->name}!");

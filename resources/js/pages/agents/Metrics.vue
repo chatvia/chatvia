@@ -18,13 +18,13 @@ interface Props {
 const props = defineProps<Props>();
 
 const loading = ref(true);
-const metrics = ref<any>(null);
+const metrics = ref<App.Data.Agent.Stats.AgentMetricsData | null>(null);
 const error = ref<string | null>(null);
 
 const satisfactionRate = computed(() => {
-    if (!metrics.value) return 0;
+    if (!metrics.value) return '0';
     const total = metrics.value.totalPositiveFeedback + metrics.value.totalNegativeFeedback;
-    if (total === 0) return 0;
+    if (total === 0) return '0';
     return ((metrics.value.totalPositiveFeedback / total) * 100).toFixed(1);
 });
 
@@ -32,7 +32,7 @@ const qualityScore = computed(() => {
     if (!metrics.value) return '0';
     // Calculate quality score based on satisfaction rate and avg messages per conversation
     const satisfaction = parseFloat(satisfactionRate.value);
-    const engagementScore = Math.min(metrics.value.avgMessagesPerConversation * 10, 100);
+    const engagementScore = Math.min((metrics.value.avgMessagesPerConversation ?? 0) * 10, 100);
     return ((satisfaction * 0.7 + engagementScore * 0.3)).toFixed(1);
 });
 
@@ -161,7 +161,7 @@ onMounted(() => {
                             <div class="flex-1 min-w-0">
                                 <p class="text-xs text-muted-foreground mb-0.5">Response Speed</p>
                                 <div class="flex items-center gap-2">
-                                    <p class="text-xl font-bold">{{ metrics.avgResponseTime }}s</p>
+                                    <p class="text-xl font-bold">{{ metrics.avgResponseTime ?? 0 }}s</p>
                                     <Badge variant="secondary" class="text-xs">{{ performanceRating }}</Badge>
                                 </div>
                             </div>
@@ -178,7 +178,7 @@ onMounted(() => {
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-xs text-muted-foreground mb-0.5">Avg Depth</p>
-                                <p class="text-xl font-bold">{{ Number(metrics.avgMessagesPerConversation).toFixed(1) }} msgs</p>
+                                <p class="text-xl font-bold">{{ Number(metrics.avgMessagesPerConversation ?? 0).toFixed(1) }} msgs</p>
                             </div>
                         </div>
                     </CardContent>
@@ -209,7 +209,7 @@ onMounted(() => {
                             <div class="flex items-center justify-between">
                                 <p class="text-sm text-muted-foreground">Avg Response Time</p>
                             </div>
-                            <p class="text-3xl font-bold">{{ metrics.avgResponseTime }}s</p>
+                            <p class="text-3xl font-bold">{{ metrics.avgResponseTime ?? 0 }}s</p>
                             <p class="text-xs text-muted-foreground">Average per message</p>
                         </div>
 
@@ -243,8 +243,8 @@ onMounted(() => {
                             </div>
                             <Progress :model-value="parseFloat(satisfactionRate)" class="h-2" />
                             <div class="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                                <span>{{ metrics.totalPositiveFeedback }} positive</span>
-                                <span>{{ metrics.totalNegativeFeedback }} negative</span>
+                                <span>{{ metrics.totalPositiveFeedback ?? 0 }} positive</span>
+                                <span>{{ metrics.totalNegativeFeedback ?? 0 }} negative</span>
                             </div>
                         </div>
 
@@ -252,15 +252,15 @@ onMounted(() => {
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
                             <div>
                                 <p class="text-sm text-muted-foreground mb-1">Conversations with Feedback</p>
-                                <p class="text-2xl font-bold">{{ metrics.conversationsWithFeedback }}</p>
+                                <p class="text-2xl font-bold">{{ metrics.conversationsWithFeedback ?? 0 }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-muted-foreground mb-1">Avg Messages per Chat</p>
-                                <p class="text-2xl font-bold">{{ Number(metrics.avgMessagesPerConversation).toFixed(1) }}</p>
+                                <p class="text-2xl font-bold">{{ Number(metrics.avgMessagesPerConversation ?? 0).toFixed(1) }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-muted-foreground mb-1">Unique Sessions</p>
-                                <p class="text-2xl font-bold">{{ metrics.uniqueSessions.toLocaleString() }}</p>
+                                <p class="text-2xl font-bold">{{ (metrics.uniqueSessions ?? 0).toLocaleString() }}</p>
                             </div>
                         </div>
                     </div>
@@ -282,7 +282,7 @@ onMounted(() => {
                             <div class="flex items-center justify-between">
                                 <p class="text-sm text-muted-foreground">Total Tokens Used</p>
                             </div>
-                            <p class="text-3xl font-bold">{{ metrics.totalTokens.toLocaleString() }}</p>
+                            <p class="text-3xl font-bold">{{ (metrics.totalTokens ?? 0).toLocaleString() }}</p>
                             <p class="text-xs text-muted-foreground">Across all conversations</p>
                         </div>
 
@@ -291,7 +291,7 @@ onMounted(() => {
                                 <p class="text-sm text-muted-foreground">Avg Tokens per Message</p>
                                 <Badge variant="outline">{{ tokenEfficiency }}</Badge>
                             </div>
-                            <p class="text-3xl font-bold">{{ Math.round(metrics.avgTokensPerMessage).toLocaleString() }}</p>
+                            <p class="text-3xl font-bold">{{ Math.round(metrics.avgTokensPerMessage ?? 0).toLocaleString() }}</p>
                             <p class="text-xs text-muted-foreground">Token efficiency rating</p>
                         </div>
 
@@ -299,7 +299,7 @@ onMounted(() => {
                             <div class="flex items-center justify-between">
                                 <p class="text-sm text-muted-foreground">Total Messages</p>
                             </div>
-                            <p class="text-3xl font-bold">{{ metrics.totalMessages.toLocaleString() }}</p>
+                            <p class="text-3xl font-bold">{{ (metrics.totalMessages ?? 0).toLocaleString() }}</p>
                             <p class="text-xs text-muted-foreground">Assistant messages sent</p>
                         </div>
                     </div>
@@ -316,7 +316,7 @@ onMounted(() => {
                     <CardDescription>AI model usage distribution and effectiveness</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="!metrics.modelUsage.length" class="text-center py-8 text-muted-foreground">
+                    <div v-if="!metrics.modelUsage?.length" class="text-center py-8 text-muted-foreground">
                         No model usage data available
                     </div>
                     <div v-else class="space-y-4">

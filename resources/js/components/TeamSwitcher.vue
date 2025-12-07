@@ -48,7 +48,7 @@ const fetchTeams = async () => {
     if (teams.value.length > 0) return;
     isLoading.value = true;
     try {
-        const response = await axios.get('/my/teams');
+        const response = await axios.get(route('my.teams.list'));
         teams.value = response.data.teams;
     } finally {
         isLoading.value = false;
@@ -63,11 +63,20 @@ const createForm = useForm({
     name: '',
 });
 
+const isSwitching = ref(false);
+
 const switchTeam = (teamId: number) => {
+    if (teamId === currentTeam.value?.id || isSwitching.value) return;
+    
+    isSwitching.value = true;
+    isOpen.value = false;
+    
     router.post(route('teams.switch', teamId), {}, {
         preserveState: false,
+        onFinish: () => {
+            isSwitching.value = false;
+        },
     });
-    isOpen.value = false;
 };
 
 const openCreateDialog = () => {
@@ -115,7 +124,7 @@ const createTeam = () => {
                         v-for="team in teams"
                         :key="team.id"
                         class="gap-2 cursor-pointer"
-                        @click="team.id !== currentTeam?.id && switchTeam(team.id)"
+                        @select.prevent="switchTeam(team.id)"
                     >
                         <Avatar class="size-6">
                             <AvatarFallback class="text-[10px] bg-primary/10 text-primary font-medium">

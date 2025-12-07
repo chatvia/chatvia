@@ -19,13 +19,6 @@ use RuntimeException;
 
 class TeamService
 {
-    // =========================================================================
-    // Team Creation & Setup
-    // =========================================================================
-
-    /**
-     * Create a default team for a new user with owner role.
-     */
     public function createDefaultTeam(User $user): Team
     {
         $team = Team::create([
@@ -34,6 +27,7 @@ class TeamService
         ]);
 
         $this->createDefaultRoles($team);
+
         $this->attachOwner($team, $user);
 
         return $team;
@@ -44,7 +38,7 @@ class TeamService
      */
     public function createDefaultRoles(Team $team): void
     {
-        $allPermissionCodes = $this->allPermissionCodes();
+        $allPermissionCodes = $this->permissionCodes();
 
         foreach ($this->defaultRolesConfig() as $code => $config) {
             $role = $this->createRole($team, $code, $config);
@@ -54,13 +48,6 @@ class TeamService
         }
     }
 
-    // =========================================================================
-    // Team Invitations
-    // =========================================================================
-
-    /**
-     * Invite a user to a team by email and role code.
-     */
     public function inviteUser(Team $team, string $email, string $roleCode): void
     {
         $this->validateInvitation($team, $email, $roleCode);
@@ -96,23 +83,11 @@ class TeamService
         return config('teams.max_members', 10);
     }
 
-    // =========================================================================
-    // Permission & Role DTOs
-    // =========================================================================
-
-    /**
-     * Get all permission codes defined in config.
-     */
-    public function allPermissionCodes(): array
+    public function permissionCodes(): array
     {
         return array_keys($this->permissionsConfigRaw());
     }
 
-    /**
-     * Get permission metadata as DTOs for frontend.
-     *
-     * @return array<string, PermissionMetaData>
-     */
     public function permissionsConfig(): array
     {
         return collect($this->permissionsConfigRaw())
@@ -120,11 +95,6 @@ class TeamService
             ->all();
     }
 
-    /**
-     * Get permission groups as DTOs for frontend.
-     *
-     * @return array<string, PermissionGroupData>
-     */
     public function permissionGroups(): array
     {
         return collect(config('team-permissions.groups', []))
@@ -168,10 +138,6 @@ class TeamService
             ->get()
             ->map(fn (Role $role) => TeamRoleData::fromModel($role));
     }
-
-    // =========================================================================
-    // Agent Access Control
-    // =========================================================================
 
     /**
      * Check if user can access a specific agent.
@@ -251,16 +217,12 @@ class TeamService
         }
     }
 
-    // =========================================================================
-    // User Permissions
-    // =========================================================================
-
     /**
      * Get user's permissions for all teams (for Inertia shared data).
      */
     public function userPermissionsMap(User $user): array
     {
-        $allPermissions = $this->allPermissionCodes();
+        $allPermissions = $this->permissionCodes();
         $permissions = [];
 
         foreach ($user->teams as $team) {
@@ -271,10 +233,6 @@ class TeamService
 
         return $permissions;
     }
-
-    // =========================================================================
-    // Private Helpers
-    // =========================================================================
 
     private function permissionsConfigRaw(): array
     {

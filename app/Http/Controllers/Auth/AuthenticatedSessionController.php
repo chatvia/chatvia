@@ -33,12 +33,8 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Set the first team as the current team
-        $user = Auth::user();
-        $firstTeam = $user->teams()->first();
-        if ($firstTeam) {
-            $request->session()->put('current_team_id', $firstTeam->id);
-        }
+        // Ensure user has a current team set in database
+        Auth::user()->ensureCurrentTeam();
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

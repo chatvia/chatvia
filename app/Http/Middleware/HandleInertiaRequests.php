@@ -67,38 +67,18 @@ class HandleInertiaRequests extends Middleware
             return null;
         }
 
-        // Check if there's a team in session
-        $currentTeamId = session('current_team_id');
+        // Get the current team from the database (ensures it's available in all contexts)
+        $team = $user->ensureCurrentTeam();
 
-        if ($currentTeamId) {
-            $team = Team::find($currentTeamId);
-
-            // Verify user still has access to this team
-            if ($team && ($user->ownsTeam($team) || $user->belongsToTeam($team))) {
-                return [
-                    'id' => $team->id,
-                    'name' => $team->name,
-                    'is_owner' => $user->ownsTeam($team),
-                    'is_primary' => $team->id === $user->primaryTeam()?->id,
-                ];
-            }
-        }
-
-        // Fall back to primary team
-        $primaryTeam = $user->primaryTeam();
-
-        if (! $primaryTeam) {
+        if (! $team) {
             return null;
         }
 
-        // Store in session for next time
-        session(['current_team_id' => $primaryTeam->id]);
-
         return [
-            'id' => $primaryTeam->id,
-            'name' => $primaryTeam->name,
-            'is_owner' => $user->ownsTeam($primaryTeam),
-            'is_primary' => true,
+            'id' => $team->id,
+            'name' => $team->name,
+            'is_owner' => $user->ownsTeam($team),
+            'is_primary' => $team->id === $user->primaryTeam()?->id,
         ];
     }
 

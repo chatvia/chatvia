@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\Agents\Analytics;
 
+use App\Data\Agent\Stats\AgentMetricsData;
+use App\Data\Agent\Stats\ModelFeedbackData;
+use App\Data\Agent\Stats\ModelUsageData;
 use App\Models\Agent;
 use App\Models\Llm;
 use Illuminate\Http\Request;
 
 class AgentMetricsDataController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Request $request, Agent $agent): AgentMetricsData
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),
@@ -45,32 +48,32 @@ class AgentMetricsDataController
         $modelUsage = $modelUsageData->map(function ($item) use ($llms) {
             $model = $llms->firstWhere('external_name', $item->model_external_name);
 
-            return [
-                'name' => $model->descriptive_name,
-                'icon' => $model->icon,
-                'count' => $item->usage_count,
-                'percentage' => $item->percentage,
-                'feedback' => [
-                    'positive' => $item->positive_feedback,
-                    'negative' => $item->negative_feedback,
-                ],
-            ];
-        })->toArray();
+            return new ModelUsageData(
+                name: $model->descriptive_name,
+                icon: $model->icon,
+                count: $item->usage_count,
+                percentage: $item->percentage,
+                feedback: new ModelFeedbackData(
+                    positive: $item->positive_feedback,
+                    negative: $item->negative_feedback,
+                ),
+            );
+        })->all();
 
-        return response()->json([
-            'totalMessages' => $totalMessages,
-            'totalConversations' => $totalConversations,
-            'avgMessagesPerConversation' => $avgMessagesPerConversation,
-            'uniqueSessions' => $uniqueSessions,
-            'conversationsWithFeedback' => $conversationsWithFeedback,
-            'totalPositiveFeedback' => $totalPositiveFeedback,
-            'totalNegativeFeedback' => $totalNegativeFeedback,
-            'avgResponseTime' => $avgResponseTime ? round($avgResponseTime, 2) : 0,
-            'avgFirstResponseTime' => $avgFirstResponseTime ? round($avgFirstResponseTime, 2) : null,
-            'avgConversationDuration' => $avgConversationDuration ? round($avgConversationDuration, 2) : null,
-            'totalTokens' => $totalTokens,
-            'avgTokensPerMessage' => $avgTokensPerMessage,
-            'modelUsage' => $modelUsage,
-        ]);
+        return new AgentMetricsData(
+            totalMessages: $totalMessages,
+            totalConversations: $totalConversations,
+            avgMessagesPerConversation: $avgMessagesPerConversation,
+            uniqueSessions: $uniqueSessions,
+            conversationsWithFeedback: $conversationsWithFeedback,
+            totalPositiveFeedback: $totalPositiveFeedback,
+            totalNegativeFeedback: $totalNegativeFeedback,
+            avgResponseTime: $avgResponseTime ? round($avgResponseTime, 2) : 0,
+            avgFirstResponseTime: $avgFirstResponseTime ? round($avgFirstResponseTime, 2) : null,
+            avgConversationDuration: $avgConversationDuration ? round($avgConversationDuration, 2) : null,
+            totalTokens: $totalTokens,
+            avgTokensPerMessage: $avgTokensPerMessage,
+            modelUsage: $modelUsage,
+        );
     }
 }

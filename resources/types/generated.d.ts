@@ -7,6 +7,34 @@ is_audio_file: boolean;
 is_video_file: boolean;
 };
 }
+declare namespace App.Data.Agent.Stats {
+export type AgentMetricsData = {
+totalMessages: number;
+totalConversations: number;
+avgMessagesPerConversation: number | null;
+uniqueSessions: number;
+conversationsWithFeedback: number;
+totalPositiveFeedback: number;
+totalNegativeFeedback: number;
+avgResponseTime: number;
+avgFirstResponseTime: number | null;
+avgConversationDuration: number | null;
+totalTokens: number | null;
+avgTokensPerMessage: number | null;
+modelUsage: Array<any>;
+};
+export type ModelFeedbackData = {
+positive: number;
+negative: number;
+};
+export type ModelUsageData = {
+name: string;
+icon: string | null;
+count: number;
+percentage: number;
+feedback: App.Data.Agent.Stats.ModelFeedbackData;
+};
+}
 declare namespace App.Data.Agent.Topics {
 export type TopicCountByDateData = {
 date: string;
@@ -410,6 +438,17 @@ id: number;
 email: string;
 role: string | null;
 role_name: string | null;
+created_at: string;
+};
+export type TeamListItemData = {
+id: number;
+name: string;
+owner: App.Data.Resources.Team.TeamOwnerData;
+is_owner: boolean;
+is_primary: boolean;
+role: string;
+members_count: number;
+agents_count: number;
 created_at: string;
 };
 export type TeamMemberData = {

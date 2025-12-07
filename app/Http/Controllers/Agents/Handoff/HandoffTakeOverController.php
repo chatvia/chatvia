@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\ChatConversation;
 use App\Services\Chat\HandoffService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Gate;
 
 readonly class HandoffTakeOverController
 {
@@ -25,8 +26,9 @@ readonly class HandoffTakeOverController
             ], 404);
         }
 
-        // Check if user owns the agent and conversation belongs to agent
-        if ($agent->user_id !== $user->id || $conversation->session?->agent_id !== $agent->id) {
+        // Check if user can access the agent (handles both ownership and team permissions)
+        // and conversation belongs to the agent
+        if (Gate::denies('access-agent', $agent) || $conversation->session?->agent_id !== $agent->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to take over this conversation.',

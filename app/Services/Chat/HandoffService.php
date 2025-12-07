@@ -242,10 +242,14 @@ class HandoffService
             return false;
         }
 
-        // Admin must own the agent
+        // User must have access to the agent (owner or team member with permissions)
         $agent = $conversation->session?->agent;
 
-        return $agent && $agent->user_id === $admin->id;
+        if (! $agent) {
+            return false;
+        }
+
+        return \Illuminate\Support\Facades\Gate::forUser($admin)->allows('access-agent', $agent);
     }
 
     /**

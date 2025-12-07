@@ -81,6 +81,7 @@ import {
     Info,
     ChevronRight,
     UserCog,
+    Shield,
 } from 'lucide-vue-next';
 
 // Use generated TypeScript types from DTOs
@@ -183,7 +184,7 @@ const inviteMember = () => {
     });
 };
 
-const openInviteDialogForRole = (role: TeamRole) => {
+const openInviteDialogForRole = (role: TeamRoleData) => {
     inviteForm.role = role.code;
     inviteType.value = props.managedUsers.length > 0 ? 'existing' : 'email';
     isInviteDialogOpen.value = true;
@@ -196,12 +197,12 @@ const cancelInvitation = (invitationId: number) => {
 };
 
 // Update member role
-const memberToEdit = ref<TeamMember | null>(null);
+const memberToEdit = ref<TeamMemberData | null>(null);
 const updateMemberForm = useForm({
     role: '',
 });
 
-const openEditMemberDialog = (member: TeamMember) => {
+const openEditMemberDialog = (member: TeamMemberData) => {
     memberToEdit.value = member;
     updateMemberForm.role = member.role;
 };
@@ -219,7 +220,7 @@ const updateMemberRole = () => {
 
 // Remove member
 const removeMemberForm = useForm({});
-const memberToRemove = ref<TeamMember | null>(null);
+const memberToRemove = ref<TeamMemberData | null>(null);
 
 const removeMember = () => {
     if (!memberToRemove.value) return;
@@ -236,14 +237,14 @@ const removeMember = () => {
 // See: /settings/teams/{team}/roles/{roleId}/edit
 
 // Delete role
-const roleToDelete = ref<TeamRole | null>(null);
+const roleToDelete = ref<TeamRoleData | null>(null);
 const deleteRoleForm = useForm({});
 
 // View role members
-const viewingRoleMembers = ref<TeamRole | null>(null);
+const viewingRoleMembers = ref<TeamRoleData | null>(null);
 const isRoleMembersDialogOpen = ref(false);
 
-const openRoleMembersDialog = (role: TeamRole) => {
+const openRoleMembersDialog = (role: TeamRoleData) => {
     viewingRoleMembers.value = role;
     isRoleMembersDialogOpen.value = true;
 };
@@ -286,7 +287,7 @@ const getPermissionDescription = (permission: string): string => {
     return props.permissionsConfig[permission]?.description || '';
 };
 
-const hasPermission = (role: TeamRole, permission: string): boolean => {
+const hasPermission = (role: TeamRoleData, permission: string): boolean => {
     if (role.permissions.includes('*')) return true;
     const [group] = permission.split('.');
     if (role.permissions.includes(`${group}.*`)) return true;
@@ -878,15 +879,15 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel @click="memberToRemove = null">Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <Button
+                            variant="destructive"
                             @click="removeMember"
                             :disabled="removeMemberForm.processing"
                         >
                             <Loader2 v-if="removeMemberForm.processing" class="mr-2 size-4 animate-spin" />
                             Remove Member
-                        </AlertDialogAction>
+                        </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -901,7 +902,7 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel @click="roleToDelete = null">Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <Button
                             variant="destructive"
                             @click="deleteRole"

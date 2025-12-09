@@ -52,34 +52,29 @@ Broadcast::channel('agents.{id}.web.ingestion.url', function (User $user, $id) {
 |
 */
 Broadcast::channel('chat.{conversationId}', function ($user, $conversationId) {
-    // User authentication - check access via Gate (handles admin & staff permissions)
-    if ($user instanceof User) {
-        $conversation = ChatConversation::with('session.agent')->find($conversationId);
-
-        if (! $conversation) {
-            return false;
-        }
-
-        $agent = $conversation->session?->agent;
-
-        if (! $agent) {
-            return false;
-        }
-
-        // Use the access-agent Gate which handles:
-        // - Admin users: full access to their own agents
-        // - Staff users: team-based access via current_team_id (stored in database)
-        if (! Gate::forUser($user)->allows('access-agent', $agent)) {
-            return false;
-        }
-
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'type' => 'agent',
-        ];
+    if (! $user instanceof User) {
+        return false;
     }
 
-    // Widget user authentication is handled via custom auth endpoint
-    return false;
+    $conversation = ChatConversation::with('session.agent')->find($conversationId);
+
+    if (! $conversation) {
+        return false;
+    }
+
+    $agent = $conversation->session?->agent;
+
+    if (! $agent) {
+        return false;
+    }
+
+    if (! Gate::forUser($user)->allows('access-agent', $agent)) {
+        return false;
+    }
+
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+        'type' => 'agent',
+    ];
 });

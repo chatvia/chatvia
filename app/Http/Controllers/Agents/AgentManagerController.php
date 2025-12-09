@@ -60,8 +60,8 @@ class AgentManagerController
             }
         }
 
-        // Fallback: if no specific permission, try history page (most common for staff)
-        return redirect()->route('agents.history', ['agent' => $agent->id]);
+        // Fallback: if no specific permission, redirect to chat logs
+        return redirect()->route('agents.logs', ['agent' => $agent->id]);
     }
 
     private function redirectToDefaultPage(Agent $agent)

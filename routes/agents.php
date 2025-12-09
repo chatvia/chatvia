@@ -42,7 +42,6 @@ use App\Http\Controllers\Agents\Handoff\HandoffPendingListController;
 use App\Http\Controllers\Agents\Handoff\HandoffReturnController;
 use App\Http\Controllers\Agents\Handoff\HandoffTakeOverController;
 use App\Http\Controllers\Agents\Handoff\HandoffTypingController;
-use App\Http\Controllers\Agents\History\AgentHistoryController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsDataController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsDeleteController;
@@ -208,7 +207,6 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::post('starters', StartersStoreController::class)->name('starters.store');
         Route::delete('starters/{id}', StarterDeleteController::class)->name('starters.delete');
 
-        Route::get('history', AgentHistoryController::class)->name('history');
         Route::get('leads', AgentLeadsController::class)->name('leads');
         Route::get('leads/data', AgentLeadsDataController::class)->name('leads.data');
         Route::delete('leads', AgentLeadsDeleteController::class)->name('leads.delete');

@@ -44,7 +44,6 @@ import AgentSourcesMenu from '@/components/AgentSourcesMenu.vue';
 import {
     Bot,
     ChevronRight,
-    Clock,
     Database,
     LoaderCircle,
     MessageSquare,
@@ -255,10 +254,6 @@ const controlPanelNavigationItems = computed(() => {
         );
     }
 
-    // History - always visible (no specific permission required, just agent access)
-    baseItems.push(
-        { id: 'history', label: 'History', icon: Clock, route: 'agents.history', tooltip: 'View all agent conversations' },
-    );
 
     // Leads - only show if user has leads permission
     if (isOwner.value || hasPermission('agent.leads.view')) {
@@ -412,13 +407,14 @@ const isActiveRoute = (routeName: string) => {
     } else if (routeName === 'agents.leads') {
         componentName = 'Leads';  // Maps to Leads component file
     } else if (routeName === 'agents.logs') {
-        componentName = 'ChatLog'; // Maps to ChatLog component file
+        componentName = 'ChatLog'; // Maps to ChatLog folder with index.vue
     } else {
         const routeSuffix = routeParts[routeParts.length - 1]; // Get last part
         componentName = routeSuffix.charAt(0).toUpperCase() + routeSuffix.slice(1);
     }
 
-    return currentRoute.value === `agents/${componentName}`;
+    // Handle both direct component and index.vue in folder (e.g., 'agents/ChatLog' and 'agents/ChatLog/index')
+    return currentRoute.value === `agents/${componentName}` || currentRoute.value === `agents/${componentName}/index`;
 };
 
 // Analytics submenu state - auto-open if on any analytics page

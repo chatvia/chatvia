@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
+import type { SharedData } from '@/types';
 import AppLayout from '@/layouts/AppLayout.vue';
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
 import {
@@ -24,7 +25,7 @@ import {
 } from 'lucide-vue-next';
 import axios from 'axios';
 
-const page = usePage();
+const page = usePage<SharedData>();
 
 type Agent = App.Data.Resources.Agent.AgentResourceData;
 
@@ -35,6 +36,19 @@ const searchQuery = ref('');
 
 // Modal state
 const showCreateAgentModal = ref(false);
+
+// Permission checking
+const canCreateAgent = computed(() => {
+    const currentTeam = page.props.currentTeam;
+    if (!currentTeam) return false;
+    
+    // Team owners can always create agents
+    if (currentTeam.is_owner) return true;
+    
+    // Check if user has 'agents.create' permission
+    const teamPermissions = page.props.permissions[currentTeam.id] || [];
+    return teamPermissions.includes('agents.create');
+});
 
 onMounted(async () => {
     try {
@@ -111,7 +125,7 @@ const getAgentTypeIcon = (type: string) => {
                         Create and manage your AI agents
                     </p>
                 </div>
-                <Button size="lg" @click="showCreateAgentModal = true" class="flex items-center gap-2">
+                <Button v-if="canCreateAgent" size="lg" @click="showCreateAgentModal = true" class="flex items-center gap-2">
                     <Plus class="h-4 w-4" />
                     Create Agent
                 </Button>
@@ -139,10 +153,13 @@ const getAgentTypeIcon = (type: string) => {
             <Card v-else-if="agents.length === 0" class="flex h-64 flex-col items-center justify-center">
                 <Bot class="h-12 w-12 text-muted-foreground opacity-50" />
                 <h3 class="mt-4 text-xl font-medium">No agents yet</h3>
-                <p class="mt-2 text-center text-muted-foreground">
+                <p v-if="canCreateAgent" class="mt-2 text-center text-muted-foreground">
                     Create your first AI agent to start building conversational experiences
                 </p>
-                <Button size="lg" @click="showCreateAgentModal = true" class="flex items-center gap-2">
+                <p v-else class="mt-2 text-center text-muted-foreground">
+                    You don't have permission to create agents. Contact your team owner for access.
+                </p>
+                <Button v-if="canCreateAgent" size="lg" @click="showCreateAgentModal = true" class="flex items-center gap-2">
                     <Plus class="h-4 w-4" />
                     Create Agent
                 </Button>

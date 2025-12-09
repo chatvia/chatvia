@@ -188,7 +188,8 @@ class Agent extends Model
 
     public function messageRetentionInDays(): int
     {
-        return $this->settings('message_history')->get('retention', 30);
+        // TODO: Make this configurable as a setting
+        return 360;
     }
 
     public function members(): BelongsToMany

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import {
@@ -109,11 +109,24 @@ const dashboardData = ref<DashboardData>({
 // Activity period tab
 const activityPeriod = ref<'week' | 'month'>('week');
 
-const page = usePage();
+const page = usePage<SharedData>();
 const loading = ref(true);
 
 // Modal state
 const showCreateAgentModal = ref(false);
+
+// Permission checking
+const canCreateAgent = computed(() => {
+    const currentTeam = page.props.currentTeam;
+    if (!currentTeam) return false;
+    
+    // Team owners can always create agents
+    if (currentTeam.is_owner) return true;
+    
+    // Check if user has 'agents.create' permission
+    const teamPermissions = page.props.permissions[currentTeam.id] || [];
+    return teamPermissions.includes('agents.create');
+});
 
 // Fetch dashboard data from API
 const fetchDashboardData = async () => {
@@ -177,7 +190,7 @@ const formatNumber = (num: number): string => {
                         <h1 class="text-2xl font-bold tracking-tight">Dashboard</h1>
                         <p class="text-muted-foreground">Overview of your AI agents and activity</p>
                     </div>
-                    <Button @click="showCreateAgentModal = true" class="gap-2 self-start">
+                    <Button v-if="canCreateAgent" @click="showCreateAgentModal = true" class="gap-2 self-start">
                         <Plus class="h-4 w-4" />
                         Create Agent
                     </Button>

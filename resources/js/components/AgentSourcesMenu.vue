@@ -15,7 +15,7 @@ import {
 
 defineProps({
     agentId: {
-        type: Number,
+        type: String,
         required: true,
     },
     sourceStats: {

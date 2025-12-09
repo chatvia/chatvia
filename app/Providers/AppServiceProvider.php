@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
 use Stripe\Stripe;
@@ -62,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //        Cashier::calculateTaxes();
+        Cashier::calculateTaxes();
 
         //        Cashier::keepIncompleteSubscriptionsActive();
 
@@ -86,8 +87,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('access-agent', function (User $user, Agent $agent) {
-            // Admin or Company users: access to their own agents (they are the owners)
-            if ($user->isAdmin() || $user->isCompany()) {
+            if ($user->isAdmin()) {
+                return true;
+            }
+
+            if ($user->isCompany()) {
                 return $agent->user_id === $user->id;
             }
 

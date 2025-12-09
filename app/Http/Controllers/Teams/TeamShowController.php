@@ -18,10 +18,13 @@ class TeamShowController
         $user = $request->user();
 
         if (! $user->belongsToTeam($team) && ! $user->ownsTeam($team)) {
-            abort(403, 'You do not have access to this team.');
+            return back();
         }
 
-        $members = $team->users->map(
+        // Get all team members (owner + members)
+        $allMembers = collect([$team->owner])->concat($team->members);
+
+        $members = $allMembers->map(
             fn ($member) => TeamMemberData::fromUser($member, $team)
         );
 
@@ -35,7 +38,7 @@ class TeamShowController
             ->get()
             ->map(fn ($invitation) => TeamInvitationData::fromModel($invitation));
 
-        $currentMemberIds = $team->users->pluck('id')->toArray();
+        $currentMemberIds = $allMembers->pluck('id')->toArray();
         $managedUsers = $user->managedUsers()
             ->whereNotIn('id', $currentMemberIds)
             ->get()

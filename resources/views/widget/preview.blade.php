@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Widget Preview</title>
     <style>
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100vh;
-            overflow: hidden; /* Prevents scrollbars */
+            overflow: hidden;
+            /* Prevents scrollbars */
         }
+
         #chat-container {
             width: 70%;
             height: 90%;
@@ -41,26 +45,19 @@
         }
     </style>
 </head>
+
 <body>
 
-@if(request()->get('full-preview') === 'true')
-    <script
-        id="chatbot-embed-script"
-        src="{{ $embedScriptUrl }}"
-        agent-id="{{ $agentId }}"
-        async>
-    </script>
-@else
-    <div id="chat-container"></div>
+    @if (request()->get('full-preview') === 'true')
+        <script id="chatbot-embed-script" src="{{ $embedScriptUrl }}" agent-id="{{ $agentId }}"
+            data-language="{{ $language }}" async></script>
+    @else
+        <div id="chat-container"></div>
 
 
-    <script
-        id="chatbot-embed-script"
-        src="{{ $embedScriptUrl }}"
-        agent-id="{{ $agentId }}"
-        mount-id="chat-container"
-        async>
-    </script>
-@endif
+        <script id="chatbot-embed-script" src="{{ $embedScriptUrl }}" agent-id="{{ $agentId }}" mount-id="chat-container"
+            data-language="{{ $language }}" async></script>
+    @endif
 </body>
+
 </html>

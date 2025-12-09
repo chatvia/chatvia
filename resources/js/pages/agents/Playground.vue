@@ -97,7 +97,7 @@ const showPreviewModal = ref(false);
 const buildIframeUrl = (baseUrl: string) => {
     // Use widget preview route for widget agents
     if (props.agent.type === 'widget') {
-        return route('agents.widget.preview', { agent: props.agent.id });
+        return route('agents.widget.preview', { agent: props.agent.external_id });
     }
 
     // Use regular chat URL with auth token for other agents

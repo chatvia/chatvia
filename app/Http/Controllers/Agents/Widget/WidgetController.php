@@ -20,6 +20,7 @@ class WidgetController
             'widgetSettings' => $agent->settings('widget'),
             'appearanceSettings' => $agent->settings('appearance'),
             'embedScriptUrl' => config('widget.script_url_embed'),
+            'availableLanguages' => config('widget.available_languages'),
             'starters' => $agent->starters->toArray(),
             'has_permission' => has_permission_to_agent($agent, 'agent.setup'),
         ]);

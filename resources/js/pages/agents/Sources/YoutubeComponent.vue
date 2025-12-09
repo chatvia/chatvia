@@ -48,7 +48,7 @@ const videoToDelete = ref<YoutubeVideo | null>(null);
 const loadYoutubeVideos = async () => {
     try {
         isLoadingVideos.value = true;
-        const response = await axios.get(route('agents.sources.youtube.list', { agent: props.agent.id }));
+        const response = await axios.get(route('agents.sources.youtube.list', { agent: props.agent.external_id }));
         youtubeVideos.value = response.data;
     } catch (error) {
         console.error('Failed to load YouTube videos:', error);
@@ -61,7 +61,7 @@ const loadYoutubeVideos = async () => {
 
 // Submit YouTube URL
 const submitYoutubeUrl = () => {
-    youtubeForm.post(route('agents.sources.youtube.store', { agent: props.agent.id }), {
+    youtubeForm.post(route('agents.sources.youtube.store', { agent: props.agent.external_id }), {
         preserveScroll: true,
         onSuccess: () => {
             youtubeForm.reset();
@@ -90,7 +90,7 @@ const deleteVideo = async () => {
 
     try {
         await axios.delete(route('agents.sources.youtube.destroy', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             youtube: videoToDelete.value.id
         }));
         
@@ -108,7 +108,7 @@ const deleteVideo = async () => {
 const retrainVideo = async (video: YoutubeVideo) => {
     try {
         await axios.post(route('agents.sources.youtube.retrain', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             youtube: video.id
         }));
         

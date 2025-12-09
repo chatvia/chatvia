@@ -69,7 +69,7 @@ const fetchMetrics = async () => {
     error.value = null;
 
     try {
-        const response = await axios.get(route('agents.metrics.data', props.agent.id));
+        const response = await axios.get(route('agents.metrics.data', props.agent.external_id));
         metrics.value = response.data;
     } catch (err: any) {
         error.value = err.response?.data?.message || 'Failed to load metrics';

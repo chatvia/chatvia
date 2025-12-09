@@ -23,15 +23,6 @@ class TeamsStoreController
 
         $teamService->createDefaultRoles($team);
 
-        $ownerRole = $team->roles()->where('code', 'owner')->first();
-
-        if ($ownerRole) {
-            $team->users()->attach($user->id, [
-                'role_id' => $ownerRole->id,
-                'is_owner' => true,
-            ]);
-        }
-
         return redirect()
             ->route('teams.show', $team)
             ->with('success', 'Team created successfully.');

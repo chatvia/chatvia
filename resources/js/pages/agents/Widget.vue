@@ -102,7 +102,7 @@
                     <!-- Persona Panel -->
                     <div v-if="activeTab === 'persona'" class="p-6">
                         <AgentPersonaEditor
-                            :agent-id="agent.id"
+                            :agent-id="agent.external_id"
                             :initial-instructions="agent.system_instructions"
                             @saved="refreshPreview"
                         />
@@ -160,7 +160,7 @@
                     <!-- Models Panel -->
                     <div v-if="activeTab === 'models'" class="p-6">
                         <AgentModelSelector
-                            :agent-id="agent.id"
+                            :agent-id="agent.external_id"
                             description="Select which AI model to use for your widget"
                             @saved="refreshPreview"
                         />
@@ -302,6 +302,24 @@
                                 </Button>
                             </div>
                         </form>
+
+                        <!-- Language Selection Section -->
+                        <div class="pt-4 border-t space-y-2">
+                            <Label for="widget-language">Widget Language</Label>
+                            <Select v-model="selectedLanguage">
+                                <SelectTrigger id="widget-language" class="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="(label, code) in availableLanguages" :key="code" :value="code">
+                                        {{ label }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p class="text-xs text-muted-foreground">
+                                Select the language for the widget interface. Auto-detect will use the visitor's browser language.
+                            </p>
+                        </div>
 
                         <!-- Embed Code Section -->
                         <div class="pt-4 border-t space-y-4">
@@ -661,6 +679,7 @@ interface Props {
     widgetSettings: any;
     appearanceSettings: any;
     embedScriptUrl: string;
+    availableLanguages: Record<string, string>;
     starters: Array<{ id: number; text: string }>;
     has_permission: boolean;
 }
@@ -709,6 +728,7 @@ const showAddStarterDialog = ref(false);
 const starterMessageForm = ref({ text: '' });
 const starters = ref(props.starters || []);
 const showApiDocsDialog = ref(false);
+const selectedLanguage = ref('auto');
 
 // API documentation data
 const apiMethods = [
@@ -793,7 +813,7 @@ const updateWidgetSettings = async () => {
     try {
         // Send text/appearance settings
         await new Promise((resolve, reject) => {
-            appearanceForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+            appearanceForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
                 preserveScroll: true,
                 onSuccess: () => resolve(true),
                 onError: () => reject(new Error('Appearance settings failed'))
@@ -806,7 +826,7 @@ const updateWidgetSettings = async () => {
         });
 
         await new Promise((resolve, reject) => {
-            textForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'widget' }), {
+            textForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
                 preserveScroll: true,
                 onSuccess: () => resolve(true),
                 onError: () => reject(new Error('Widget settings failed'))
@@ -835,7 +855,7 @@ const saveSecuritySettings = () => {
         sites: widgetForm.sites,
     });
 
-    securityForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'widget' }), {
+    securityForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Security settings updated');
@@ -853,7 +873,7 @@ const saveColorSettings = () => {
         color_shade: appearanceForm.color_shade,
     });
 
-    colorForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+    colorForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Color updated successfully');
@@ -873,7 +893,7 @@ const saveBehaviorSettings = () => {
         window_size: widgetForm.window_size,
     });
 
-    behaviorForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'widget' }), {
+    behaviorForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Behavior settings updated');
@@ -896,6 +916,7 @@ const embedSnippet = computed(() => {
         `  id="chatbot-embed-script"`,
         `  src="${props.embedScriptUrl}"`,
         `  agent-id="${props.agent.external_id}"`,
+        `  data-language="${selectedLanguage.value}"`,
         '  async>',
         '</scr' + 'ipt>',
     ];
@@ -913,13 +934,14 @@ const copyEmbedSnippet = async () => {
 
 // Live preview URL that updates with current settings
 const previewUrl = computed(() => {
-    return route('agents.widget.preview', { agent: props.agent.id });
+    const baseUrl = route('agents.widget.preview', { agent: props.agent.external_id });
+    return `${baseUrl}?language=${selectedLanguage.value}`;
 });
 
 // Full preview URL - just adds full-preview=true to the base URL
 const fullPreviewUrl = computed(() => {
-    const baseUrl = route('agents.widget.preview', { agent: props.agent.id });
-    return `${baseUrl}?full-preview=true`;
+    const baseUrl = route('agents.widget.preview', { agent: props.agent.external_id });
+    return `${baseUrl}?full-preview=true&language=${selectedLanguage.value}`;
 });
 
 // Methods for preview management
@@ -933,7 +955,7 @@ const openFullPreview = () => {
 
 // Starters functionality
 const addStarterMessage = () => {
-    axios.post(route('agents.starters.store', props.agent.id), { text: starterMessageForm.value.text })
+    axios.post(route('agents.starters.store', props.agent.external_id), { text: starterMessageForm.value.text })
         .then((response) => {
             showAddStarterDialog.value = false;
             starters.value.push({
@@ -950,7 +972,7 @@ const addStarterMessage = () => {
 };
 
 const removeStarter = (id: number) => {
-    axios.delete(route('agents.starters.delete', { agent: props.agent.id, id }))
+    axios.delete(route('agents.starters.delete', { agent: props.agent.external_id, id }))
         .then(() => {
             starters.value = starters.value.filter(starter => starter.id !== id);
             toast.success('Starter message removed');

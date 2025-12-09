@@ -26,7 +26,7 @@ class InviteController extends Controller
         $user = $request->user();
 
         // Attach user to team with the role
-        $team->users()->syncWithoutDetaching([
+        $team->members()->syncWithoutDetaching([
             $user->id => ['role_id' => $role->id],
         ]);
 

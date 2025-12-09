@@ -114,11 +114,11 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Teams',
-        href: '/settings/teams',
+        href: '/teams',
     },
     {
         title: props.team.name,
-        href: `/settings/teams/${props.team.id}`,
+        href: `/teams/${props.team.id}`,
     },
 ];
 
@@ -170,10 +170,10 @@ const inviteForm = useForm({
 });
 
 const inviteMember = () => {
-    const data = inviteType.value === 'existing' 
+    const data = inviteType.value === 'existing'
         ? { user_id: inviteForm.user_id, role: inviteForm.role }
         : { email: inviteForm.email, role: inviteForm.role };
-    
+
     inviteForm.post(route('teams.invite', props.team.id), {
         data,
         onSuccess: () => {
@@ -495,7 +495,7 @@ const displayableRoles = computed(() => props.roles.filter(r => r.code !== 'owne
                                         </TooltipProvider>
                                     </div>
                                 </div>
-                                
+
                                 <div v-if="expandedRoles.has(role.id)">
                                     <!-- Agent Access -->
                                     <div class="flex items-center gap-2 text-sm mb-3 pb-3 border-b">

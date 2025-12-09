@@ -58,7 +58,7 @@ const handleRecorded = async (data: { blob: Blob; name: string; duration: number
         const formData = new FormData();
         formData.append('file', file);
         
-        await axios.post(route('agents.sources.files.upload', { agent: props.agent.id }), formData, {
+        await axios.post(route('agents.sources.files.upload', { agent: props.agent.external_id }), formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },

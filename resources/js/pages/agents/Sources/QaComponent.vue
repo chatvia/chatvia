@@ -52,7 +52,7 @@ const props = defineProps<Props>();
 
 // WebSocket event listener for QA ingestion status updates
 useEcho(
-    `agents.${props.agent.id}.ingestion.qa`,
+    `agents.${props.agent.external_id}.ingestion.qa`,
     "QAIngestionEvent",
     (e) => {
         handleIngestionUpdate(e);
@@ -61,7 +61,7 @@ useEcho(
 
 // WebSocket event listener for QA ingestion progress updates
 useEcho(
-    `agents.${props.agent.id}.qa.progress`,
+    `agents.${props.agent.external_id}.qa.progress`,
     "QAIngestionProgressEvent",
     (e) => {
         handleQAIngestionProgress(e);
@@ -123,8 +123,8 @@ const submitForm = () => {
 
 const createEntry = () => {
     isSubmitting.value = true;
-    
-    form.post(route('agents.sources.qa.store', { agent: props.agent.id }), {
+
+    form.post(route('agents.sources.qa.store', { agent: props.agent.external_id }), {
         preserveScroll: true,
         onSuccess: () => {
             closeCreateForm();
@@ -144,17 +144,17 @@ const createEntry = () => {
 const editEntry = async (entry: QAEntry) => {
     try {
         isLoading.value = true;
-        const response = await axios.get(route('agents.sources.qa.show', { 
-            agent: props.agent.id,
-            id: entry.id 
+        const response = await axios.get(route('agents.sources.qa.show', {
+            agent: props.agent.external_id,
+            id: entry.id
         }));
-        
+
         const data = response.data;
-        
+
         form.title = data.title;
         form.questions = data.questions || [{ id: crypto.randomUUID(), question: '' }];
         form.answer = data.answer;
-        
+
         editingEntry.value = entry;
         showCreateForm.value = true;
     } catch (error) {
@@ -167,12 +167,12 @@ const editEntry = async (entry: QAEntry) => {
 
 const updateEntry = () => {
     if (!editingEntry.value) return;
-    
+
     isSubmitting.value = true;
-    
-    form.patch(route('agents.sources.qa.update', { 
-        agent: props.agent.id,
-        id: editingEntry.value.id 
+
+    form.patch(route('agents.sources.qa.update', {
+        agent: props.agent.external_id,
+        id: editingEntry.value.id
     }), {
         preserveScroll: true,
         onSuccess: () => {
@@ -197,15 +197,15 @@ const confirmDelete = (entry: QAEntry) => {
 
 const deleteEntry = async () => {
     if (!entryToDelete.value) return;
-    
+
     try {
         isDeleting.value = true;
-        
-        await axios.delete(route('agents.sources.qa.destroy', { 
-            agent: props.agent.id,
-            id: entryToDelete.value.id 
+
+        await axios.delete(route('agents.sources.qa.destroy', {
+            agent: props.agent.external_id,
+            id: entryToDelete.value.id
         }));
-        
+
         toast.success('Q&A entry deleted successfully');
         fetchQAEntries();
     } catch (error) {
@@ -221,12 +221,12 @@ const deleteEntry = async () => {
 const unlinkEntry = async (entry: QAEntry) => {
     try {
         isUnlinking.value = true;
-        
-        await axios.post(route('agents.sources.qa.unlink', { 
-            agent: props.agent.id,
-            id: entry.id 
+
+        await axios.post(route('agents.sources.qa.unlink', {
+            agent: props.agent.external_id,
+            id: entry.id
         }));
-        
+
         toast.success('Q&A entry unlinked successfully');
         fetchQAEntries();
     } catch (error) {
@@ -240,7 +240,7 @@ const unlinkEntry = async (entry: QAEntry) => {
 const fetchQAEntries = async () => {
     try {
         isLoading.value = true;
-        const response = await axios.get(route('agents.sources.qa.index', { agent: props.agent.id }));
+        const response = await axios.get(route('agents.sources.qa.index', { agent: props.agent.external_id }));
         qaEntries.value = response.data.data || [];
     } catch (error) {
         console.error('Error fetching Q&A entries:', error);

@@ -20,22 +20,16 @@ return [
     */
 
     'permissions' => [
-        // Agent permissions
-        'agents.create' => [
-            'label' => 'Create agents',
-            'description' => 'Allow creating new AI agents for the team',
+        // Agent Access Control
+        'agents.access-all' => [
+            'label' => 'Access all agents',
+            'description' => 'Grant access to all current and future agents in the team',
         ],
-        'agent.rename' => [
-            'label' => 'Rename agent',
-            'description' => 'Change the agent name',
-        ],
+
+        // Agent permissions (create/delete/rename only by company owner)
         'agent.setup' => [
             'label' => 'Setup agent',
             'description' => 'Modify agent settings, personality, and behavior',
-        ],
-        'agent.delete' => [
-            'label' => 'Delete agent',
-            'description' => 'Permanently remove the agent and all its data',
         ],
 
         // Sources - Training by type
@@ -120,19 +114,9 @@ return [
         ],
 
         // Topics
-        'agent.topics.add' => [
-            'label' => 'Add topics',
-            'description' => 'Create new conversation topics',
-        ],
-        'agent.topics.edit' => [
-            'label' => 'Edit topics',
-            'description' => 'Modify existing topics',
-            'requires' => ['agent.topics.add'],
-        ],
-        'agent.topics.delete' => [
-            'label' => 'Delete topics',
-            'description' => 'Remove topics from the agent',
-            'requires' => ['agent.topics.add'],
+        'agent.topics.manage' => [
+            'label' => 'Manage topics',
+            'description' => 'Create, edit, and delete conversation topics',
         ],
 
         // Leads
@@ -177,10 +161,7 @@ return [
             'label' => 'Agent',
             'description' => 'Agent management',
             'permissions' => [
-                'agents.create',
-                'agent.rename',
                 'agent.setup',
-                'agent.delete',
             ],
         ],
         'sources' => [
@@ -223,9 +204,7 @@ return [
             'label' => 'Topics',
             'description' => 'Manage conversation topics',
             'permissions' => [
-                'agent.topics.add',
-                'agent.topics.edit',
-                'agent.topics.delete',
+                'agent.topics.manage',
             ],
         ],
         'leads' => [

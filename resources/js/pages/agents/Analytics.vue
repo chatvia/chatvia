@@ -112,7 +112,7 @@ const fetchAnalytics = async () => {
     error.value = null;
     
     try {
-        const response = await axios.get(route('agents.analytics.data', props.agent.id), {
+        const response = await axios.get(route('agents.analytics.data', props.agent.external_id), {
             params: {
                 start_date: dateRange.value.start || undefined,
                 end_date: dateRange.value.end || undefined,

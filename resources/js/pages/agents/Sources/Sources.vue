@@ -169,7 +169,7 @@ const selectContentType = (typeId: string) => {
 
     if (contentType?.route) {
         // Navigate to the appropriate route
-        router.visit(route(contentType.route, { agent: props.agent.id }));
+        router.visit(route(contentType.route, { agent: props.agent.external_id }));
     } else {
         // For not-yet-implemented features, just update local state
         selectedContentType.value = typeId;
@@ -180,7 +180,7 @@ const selectContentType = (typeId: string) => {
 const fetchStats = async () => {
     try {
         isLoadingStats.value = true;
-        const response = await axios.get(route('agents.sources.stats', { agent: props.agent.id }));
+        const response = await axios.get(route('agents.sources.stats', { agent: props.agent.external_id }));
         stats.value = response.data;
     } catch (error) {
         console.error('Failed to fetch source stats:', error);

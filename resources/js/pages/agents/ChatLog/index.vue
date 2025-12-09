@@ -90,7 +90,7 @@ async function updateAnswer() {
   
   isUpdatingAnswer.value = true;
   try {
-    const response = await axios.post(route('agents.logs.revise-answer', { agent: agent.value.id }), {
+    const response = await axios.post(route('agents.logs.revise-answer', { agent: agent.value.external_id }), {
       message_id: currentReviseMessageId.value,
       user_message: reviseUserMessage.value,
       expected_response: reviseExpectedResponse.value

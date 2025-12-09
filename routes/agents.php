@@ -30,6 +30,7 @@ use App\Http\Controllers\Agents\Analytics\AgentToneDataController;
 use App\Http\Controllers\Agents\Analytics\AgentTopicsController;
 use App\Http\Controllers\Agents\Analytics\AgentTopicsDataController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
+use App\Http\Controllers\Agents\ChatLog\AgentChatLogConversationPulseController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogConversationsController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogCountriesController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogMessagesController;
@@ -216,7 +217,7 @@ Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
         Route::get('logs', AgentChatLogController::class)->name('logs');
         Route::get('logs/conversations', AgentChatLogConversationsController::class)->name('logs.conversations');
         Route::get('logs/messages/{conversation}', AgentChatLogMessagesController::class)->name('logs.messages');
-        Route::get('logs/conversations/{conversation}/pulse', \App\Http\Controllers\Agents\ConversationPulseController::class)->name('logs.pulse');
+        Route::get('logs/conversations/{conversation}/pulse', AgentChatLogConversationPulseController::class)->name('logs.pulse');
         Route::get('logs/topics', AgentChatLogTopicsController::class)->name('logs.topics');
         Route::get('logs/countries', AgentChatLogCountriesController::class)->name('logs.countries');
         Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->name('logs.revise-answer');

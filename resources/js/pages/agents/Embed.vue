@@ -115,7 +115,7 @@ const updateAppearance = () => {
         composer_placeholder: appearanceForm.composer_placeholder,
     });
 
-    textForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+    textForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
         preserveScroll: true,
         onSuccess: () => {
             isSubmitting.value = false;
@@ -152,7 +152,7 @@ const handleAvatarUpload = (event: Event) => {
 
     const uploadForm = useForm({ avatar: file });
 
-    uploadForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+    uploadForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
@@ -167,7 +167,7 @@ const handleAvatarUpload = (event: Event) => {
 
 const removeAvatar = () => {
     router.delete(route('agents.settings.delete', {
-        agent: props.agent.id,
+        agent: props.agent.external_id,
         group: 'appearance',
         key: 'avatar'
     }), {
@@ -207,7 +207,7 @@ const handleLogoUpload = (event: Event) => {
 
     const uploadForm = useForm({ logo: file });
 
-    uploadForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+    uploadForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
@@ -222,7 +222,7 @@ const handleLogoUpload = (event: Event) => {
 
 const removeLogo = () => {
     router.delete(route('agents.settings.delete', {
-        agent: props.agent.id,
+        agent: props.agent.external_id,
         group: 'appearance',
         key: 'logo'
     }), {
@@ -252,7 +252,7 @@ const updateSetting = (key: string, value: any) => {
     }
 
     router.post(route('agents.settings.update', {
-        agent: props.agent.id,
+        agent: props.agent.external_id,
         group: 'embed'
     }), dataToSend, {
         preserveScroll: true,
@@ -344,7 +344,7 @@ const copyAgentUrl = async () => {
 };
 
 const updateSecuritySettings = () => {
-    securityForm.patch(route('agents.security.update', props.agent.id), {
+    securityForm.patch(route('agents.security.update', props.agent.external_id), {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Security settings updated');
@@ -382,7 +382,7 @@ const saveColorSettings = () => {
         color_shade: appearanceForm.color_shade,
     });
 
-    colorForm.post(route('agents.settings.update', { agent: props.agent.id, group: 'appearance' }), {
+    colorForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Color updated successfully');
@@ -395,7 +395,7 @@ const saveColorSettings = () => {
 };
 
 const addStarterMessage = () => {
-    axios.post(route('agents.starters.store', props.agent.id), { text: starterMessageForm.value.text })
+    axios.post(route('agents.starters.store', props.agent.external_id), { text: starterMessageForm.value.text })
         .then((response: any) => {
             showAddStarterDialog.value = false;
             starters.value.push({
@@ -412,7 +412,7 @@ const addStarterMessage = () => {
 };
 
 const removeStarter = (id: number) => {
-    axios.delete(route('agents.starters.delete', { agent: props.agent.id, id }))
+    axios.delete(route('agents.starters.delete', { agent: props.agent.external_id, id }))
         .then(() => {
             starters.value = starters.value.filter(starter => starter.id !== id);
             toast.success('Starter message removed');
@@ -520,7 +520,7 @@ const removeStarter = (id: number) => {
                     <!-- Persona Panel -->
                     <div v-if="activeTab === 'persona'" class="p-6">
                         <AgentPersonaEditor
-                            :agent-id="agent.id"
+                            :agent-id="agent.external_id"
                             :initial-instructions="agent.system_instructions"
                             @saved="refreshPreview"
                         />
@@ -577,7 +577,7 @@ const removeStarter = (id: number) => {
                     <!-- Models Panel -->
                     <div v-if="activeTab === 'models'" class="p-6">
                         <AgentModelSelector
-                            :agent-id="agent.id"
+                            :agent-id="agent.external_id"
                             :multiple="true"
                             description="Select one or more AI models for your knowledge base. Users can switch between selected models when chatting."
                             @saved="refreshPreview"

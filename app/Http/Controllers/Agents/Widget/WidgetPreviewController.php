@@ -12,6 +12,7 @@ class WidgetPreviewController
         return view('widget.preview', [
             'embedScriptUrl' => config('widget.script_url_embed'),
             'agentId' => $agent->external_id,
+            'language' => $request->query('language', 'auto'),
         ]);
     }
 }

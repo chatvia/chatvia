@@ -54,7 +54,7 @@ const pulseError = ref<string | null>(null);
 export function useChatLog() {
   const page = usePage();
   const { formatTimeAgo } = useTimeAgo();
-  
+
   // Initialize agent from page props (only once)
   if (!agent.value) {
     agent.value = page.props.agent;
@@ -64,7 +64,7 @@ export function useChatLog() {
   // Singleton handoff composable - create once
   if (!handoffInstance) {
     handoffInstance = useHandoff(
-      () => agent.value?.id ?? null,
+      () => agent.value?.external_id ?? null,
       () => currentConversationId.value
     );
   }
@@ -75,7 +75,7 @@ export function useChatLog() {
   const currentConversationsPage = computed(() => conversations.value?.current_page || 1);
   const hasLeadForCurrentConversation = computed(() => !!lead.value);
   const totalMessages = computed(() => messagesData.value?.data?.length || 0);
-  
+
   const messages = computed(() => {
     const list: Message[] = (messagesData.value?.data) || [];
     if (!search.value.trim()) return list;
@@ -94,8 +94,8 @@ export function useChatLog() {
   });
 
   const hasActiveFilters = computed(() => {
-    return selectedTopic.value !== 'all' || 
-      selectedSentiment.value !== 'all' || 
+    return selectedTopic.value !== 'all' ||
+      selectedSentiment.value !== 'all' ||
       selectedTone.value !== 'all' ||
       selectedCountry.value !== 'all' ||
       selectedConfidenceScore.value !== 'all' ||
@@ -134,14 +134,14 @@ export function useChatLog() {
         params.start_date = dateRange.value.start;
         params.end_date = dateRange.value.end;
       }
-      
-      const response = await axios.get(route('agents.logs.conversations', { agent: agent.value.id }), { params });
+
+      const response = await axios.get(route('agents.logs.conversations', { agent: agent.value.external_id }), { params });
       conversations.value = response.data.conversations;
       leadConversationIds.value = response.data.lead_conversation_ids;
-      
+
       // Update URL
       if (page !== 1 || currentConversationId.value) {
-        const urlParams: any = { agent: agent.value.id };
+        const urlParams: any = { agent: agent.value.external_id };
         if (currentConversationId.value) urlParams.conversation_id = currentConversationId.value;
         if (page > 1) urlParams.conversations = page;
         window.history.pushState({}, '', route('agents.logs', urlParams));
@@ -157,14 +157,14 @@ export function useChatLog() {
     if (!conversationId) return;
     isLoadingMessages.value = true;
     try {
-      const response = await axios.get(route('agents.logs.messages', { 
-        agent: agent.value.id, 
-        conversation: conversationId 
+      const response = await axios.get(route('agents.logs.messages', {
+        agent: agent.value.external_id,
+        conversation: conversationId
       }), { params: { page } });
       messagesData.value = response.data.messages;
       conversationTitle.value = response.data.conversation_title;
       lead.value = response.data.lead;
-      
+
       // Update handoff state from response
       if (response.data.handoff) {
         const h = response.data.handoff;
@@ -174,13 +174,13 @@ export function useChatLog() {
           adminName: h.admin_name || null,
           handoffAt: h.handoff_at || null,
         };
-        
+
         // Mark user messages as read when admin opens a handed-off conversation
         if (h.status === 'human') {
           handoff.markMessagesAsRead();
         }
       }
-      
+
       // Always join the channel to see user online status
       // (leave previous channel first via the composable's watch)
       handoff.joinChannel(conversationId);
@@ -196,9 +196,9 @@ export function useChatLog() {
     isLoadingPulse.value = true;
     pulseError.value = null;
     try {
-      const response = await axios.get(route('agents.logs.pulse', { 
-        agent: agent.value.id, 
-        conversation: currentConversationId.value 
+      const response = await axios.get(route('agents.logs.pulse', {
+        agent: agent.value.external_id,
+        conversation: currentConversationId.value
       }));
       pulseData.value = response.data;
     } catch (err: any) {
@@ -211,17 +211,17 @@ export function useChatLog() {
   async function fetchInitialData() {
     try {
       const [modelsResponse, topicsResponse, countriesResponse] = await Promise.all([
-        axios.get(route('agents.models.list', { agent: agent.value.id })),
-        axios.get(route('agents.logs.topics', { agent: agent.value.id })),
-        axios.get(route('agents.logs.countries', { agent: agent.value.id }))
+        axios.get(route('agents.models.list', { agent: agent.value.external_id })),
+        axios.get(route('agents.logs.topics', { agent: agent.value.external_id })),
+        axios.get(route('agents.logs.countries', { agent: agent.value.external_id }))
       ]);
-      
+
       models.value = modelsResponse.data.models || [];
       topics.value = topicsResponse.data.topics || [];
       countries.value = countriesResponse.data.countries || [];
-      
+
       await fetchConversations();
-      
+
       if (currentConversationId.value) {
         await fetchMessages(currentConversationId.value);
         const found = conversations.value?.data?.find((c: any) => c.conversation_id === currentConversationId.value);
@@ -237,11 +237,11 @@ export function useChatLog() {
     if (!messagesData.value?.data) {
       messagesData.value = { data: [] };
     }
-    
+
     // Check if message already exists
     const exists = messagesData.value.data.some((m: any) => m.id === messageData.id);
     if (exists) return;
-    
+
     // Create message object matching the expected format
     const newMessage: Message = {
       id: messageData.id,
@@ -249,7 +249,7 @@ export function useChatLog() {
       role: messageData.role,
       created_at: messageData.timestamp || new Date().toISOString(),
     };
-    
+
     messagesData.value.data.push(newMessage);
   }
 
@@ -368,7 +368,7 @@ export function useChatLog() {
   function formatFullDateTime(dt: string | null | undefined): string {
     if (!dt) return '';
     try {
-      return new Intl.DateTimeFormat('en-US', { 
+      return new Intl.DateTimeFormat('en-US', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
         hour: '2-digit', minute: '2-digit', second: '2-digit'
       }).format(new Date(dt));
@@ -412,10 +412,10 @@ export function useChatLog() {
     pulseData,
     isLoadingPulse,
     pulseError,
-    
+
     // Handoff
     handoff,
-    
+
     // Computed
     totalConversations,
     currentConversationsPage,
@@ -424,7 +424,7 @@ export function useChatLog() {
     messages,
     hasActiveFilters,
     activeFilterCount,
-    
+
     // Actions
     fetchConversations,
     fetchMessages,
@@ -434,7 +434,7 @@ export function useChatLog() {
     clearAllFilters,
     applyFilters,
     appendMessage,
-    
+
     // Utilities
     formatTimeAgo,
     getFlagPath,

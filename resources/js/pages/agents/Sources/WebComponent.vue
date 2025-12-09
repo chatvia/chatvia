@@ -64,7 +64,7 @@ const props = defineProps<Props>();
 
 // WebSocket event listener for crawling status updates
 useEcho(
-    `agents.${props.agent.id}.crawler`,
+    `agents.${props.agent.external_id}.crawler`,
     "WebsiteCrawlerEvent",
     (e) => {
         handleCrawlingUpdate(e);
@@ -73,7 +73,7 @@ useEcho(
 
 // WebSocket event listener for URL ingestion status updates
 useEcho(
-    `agents.${props.agent.id}.web.ingestion.url`,
+    `agents.${props.agent.external_id}.web.ingestion.url`,
     "UrlIngestionEvent",
     (e) => {
         handleUrlIngestionUpdate(e);
@@ -82,7 +82,7 @@ useEcho(
 
 // WebSocket event listener for website ingestion progress updates
 useEcho(
-    `agents.${props.agent.id}.crawler.progress`,
+    `agents.${props.agent.external_id}.crawler.progress`,
     "WebsiteIngestionProgressEvent",
     (e) => {
         handleWebsiteIngestionProgress(e);
@@ -463,7 +463,7 @@ const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuer
 
         // Fetch paginated links from API
         const response = await axios.get(route('agents.sources.websites.links', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             website: websiteId
         }), {
             params
@@ -518,7 +518,7 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
     }
 
     try {
-        const response = await axios.get(route('agents.sources.websites.list', { agent: props.agent.id }));
+        const response = await axios.get(route('agents.sources.websites.list', { agent: props.agent.external_id }));
 
         // Transform the response data to match our WebSource interface
         webSources.value = response.data.map((website: any) => {
@@ -587,7 +587,7 @@ const addWebsite = () => {
         websiteForm.url = getFullUrl.value;
 
         // Submit form with comprehensive error handling
-        websiteForm.post(route('agents.sources.website.crawl', { agent: props.agent.id }), {
+        websiteForm.post(route('agents.sources.website.crawl', { agent: props.agent.external_id }), {
             preserveScroll: true,
             onStart: () => {
                 console.log('Form submission started');
@@ -677,12 +677,12 @@ const unlinkWebsite = async () => {
 
     try {
         await axios.post(route('agents.sources.websites.unlink', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             websiteId: websiteToUnlink.id
         }));
 
         toast.success('Website unlinked from agent successfully!');
-        
+
         deleteDialogOpen.value = false;
         sourceToDelete.value = null;
 
@@ -704,7 +704,7 @@ const deleteWebSource = async () => {
 
     try {
         await axios.delete(route('agents.sources.websites.delete', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             website: sourceToDelete.value.id
         }));
 
@@ -949,9 +949,9 @@ const handleUrlIngestionUpdate = (event: any) => {
 // Handle website ingestion progress updates
 const handleWebsiteIngestionProgress = (event: any) => {
     const { website_id, progress } = event;
-    
+
     console.log('WebsiteIngestionProgressEvent received:', { website_id, progress });
-    
+
     if (!website_id || progress === undefined) {
         console.warn('Missing website_id or progress in WebsiteIngestionProgressEvent', event);
         return;
@@ -959,9 +959,9 @@ const handleWebsiteIngestionProgress = (event: any) => {
 
     // Find the website and update its progress
     const sourceIndex = webSources.value.findIndex(source => source.id === website_id);
-    
+
     console.log('Found source at index:', sourceIndex, 'Current sources:', webSources.value.length);
-    
+
     if (sourceIndex !== -1) {
         // Create a new array with the updated source for reactivity
         const updatedSources = [...webSources.value];
@@ -1182,7 +1182,7 @@ const deleteLink = async (websiteId: number, linkId: number) => {
 
     try {
         await axios.delete(route('agents.sources.websites.links.delete', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             website: websiteId,
             link: linkId
         }));
@@ -1232,7 +1232,7 @@ const deleteSelectedLinks = async (websiteId: number) => {
 
     try {
         await axios.post(route('agents.sources.websites.links.bulk-delete', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             website: websiteId
         }), {
             link_ids: Array.from(selectedLinksForWebsite)
@@ -1354,7 +1354,7 @@ const trainSelectedWebsites = async () => {
             // Send request to train all links from the website
             await new Promise<void>((resolve, reject) => {
                 router.post(route('agents.sources.website.train', {
-                    agent: props.agent.id,
+                    agent: props.agent.external_id,
                     website: websiteId
                 }), {
                     // Empty payload means train all links
@@ -1437,7 +1437,7 @@ const fetchDialogLinks = async (websiteId: number, page: number = 1, searchQuery
         }
 
         const response = await axios.get(route('agents.sources.websites.links', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             website: websiteId
         }), {
             params
@@ -1506,7 +1506,7 @@ const deleteDialogLink = async (linkId: number) => {
 
     try {
         await axios.delete(route('agents.sources.websites.links.delete', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             website: currentWebsite.value.id,
             link: linkId
         }));
@@ -1571,7 +1571,7 @@ const deleteSelectedDialogLinks = async () => {
 
     try {
         await axios.post(route('agents.sources.websites.links.bulk-delete', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             website: currentWebsite.value.id
         }), {
             link_ids: Array.from(dialogSelectedLinks.value)
@@ -1635,7 +1635,7 @@ const retrainDialogLink = async (linkId: number) => {
         }
 
         await axios.post(route('agents.sources.websites.links.retrain', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             website: currentWebsite.value.id,
             link: linkId
         }));
@@ -1674,7 +1674,7 @@ const retrainEntireWebsite = async () => {
 
     try {
         await axios.post(route('agents.sources.website.train', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             website: websiteToRetrain.value.id
         }), {
             recrawl: reCrawlNewLinks.value
@@ -2385,7 +2385,7 @@ onUnmounted(() => {
                                                 Added {{ formatDate(source.created_at) }}
                                             </span>
                                         </div>
-                                        
+
                                         <!-- Progress Bar -->
                                         <IngestionProgressBar
                                             v-if="source.status === 'ingesting'"
@@ -2972,7 +2972,7 @@ onUnmounted(() => {
                 <DialogTitle>{{ sourceToDelete.name || getDomainFromUrl(sourceToDelete.url) }}</DialogTitle>
                 <DialogDescription>
                     <span v-if="isWebsiteShared(sourceToDelete)">
-                        This website is used in <strong>{{ sourceToDelete.agents_count }} agents</strong>. 
+                        This website is used in <strong>{{ sourceToDelete.agents_count }} agents</strong>.
                         You can unlink it from this agent or permanently delete it from all agents.
                     </span>
                     <span v-else-if="sourceToDelete.status === 'ingesting' || sourceToDelete.status === 'crawling'">
@@ -2984,16 +2984,16 @@ onUnmounted(() => {
                 </DialogDescription>
             </DialogHeader>
             <div class="flex items-center justify-end gap-2 mt-4">
-                <Button 
-                    variant="outline" 
+                <Button
+                    variant="outline"
                     @click="deleteDialogOpen = false"
                     :disabled="isUnlinking || isDeletingSource"
                 >
                     Cancel
                 </Button>
-                <Button 
-                    v-if="isWebsiteShared(sourceToDelete)" 
-                    variant="secondary" 
+                <Button
+                    v-if="isWebsiteShared(sourceToDelete)"
+                    variant="secondary"
                     @click="unlinkWebsite"
                     :disabled="isUnlinking || isDeletingSource"
                     class="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
@@ -3002,8 +3002,8 @@ onUnmounted(() => {
                     <Unlink v-else class="h-4 w-4 mr-2" />
                     {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
                 </Button>
-                <Button 
-                    variant="destructive" 
+                <Button
+                    variant="destructive"
                     @click="deleteWebSource"
                     :disabled="isUnlinking || isDeletingSource"
                 >
@@ -3279,7 +3279,7 @@ onUnmounted(() => {
     <!-- Attach Website Dialog -->
     <AttachWebsiteDialog
         v-model:open="attachWebsiteDialogOpen"
-        :agent-id="agent.id"
+        :agent-id="agent.external_id"
         @websiteAttached="handleWebsiteAttached"
     />
 </template>

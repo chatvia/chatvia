@@ -34,6 +34,14 @@ class Agent extends Model
         'chat_embed_url',
     ];
 
+    /**
+     * Get the route key name for Laravel route model binding.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'external_id';
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

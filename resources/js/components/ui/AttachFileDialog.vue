@@ -83,7 +83,7 @@ const attachFile = async (file: AvailableFile) => {
     if (isFileAdded(file.id) || isFileAttaching(file.id)) return;
 
     attachingFileIds.value.add(file.id);
-    
+
     try {
         await axios.post(route('agents.sources.files.link', {
             agent: props.agentId,
@@ -200,7 +200,7 @@ watch(() => props.open, (isOpen) => {
                             <div class="p-2 rounded-lg bg-accent/50 flex-shrink-0">
                                 <FileText class="h-5 w-5 text-foreground" />
                             </div>
-                            
+
                             <div class="min-w-0 flex-1 overflow-hidden">
                                 <TooltipProvider>
                                     <Tooltip>
@@ -214,7 +214,7 @@ watch(() => props.open, (isOpen) => {
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                                
+
                                 <div class="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                                     <Badge variant="secondary" class="text-xs font-medium flex-shrink-0">
                                         {{ formatFileType(file.filetype) }}
@@ -237,7 +237,7 @@ watch(() => props.open, (isOpen) => {
                                                     <div class="space-y-1">
                                                         <p class="font-semibold text-xs mb-1">Used in:</p>
                                                         <ul class="list-disc list-inside space-y-0.5">
-                                                            <li v-for="agent in file.agents" :key="agent.id" class="text-xs">
+                                                            <li v-for="agent in file.agents" :key="agent.external_id" class="text-xs">
                                                                 {{ agent.name }}
                                                             </li>
                                                         </ul>
@@ -248,7 +248,7 @@ watch(() => props.open, (isOpen) => {
                                     </span>
                                 </div>
                             </div>
-                            
+
                             <div class="flex-shrink-0">
                                 <Button
                                     v-if="!isFileAdded(file.id)"

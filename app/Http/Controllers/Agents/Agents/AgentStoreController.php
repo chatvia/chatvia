@@ -27,8 +27,9 @@ class AgentStoreController
             abort(404, 'No team found. Please select or create a team first.');
         }
 
-        if (! $user->ownsTeam($team) && ! $user->hasTeamPermission($team, 'agents.create')) {
-            abort(403, 'You do not have permission to create agents.');
+        // Only team owners can create agents
+        if (! $user->ownsTeam($team)) {
+            abort(403, 'Only team owners can create agents.');
         }
 
         try {
@@ -38,9 +39,11 @@ class AgentStoreController
 
             $externalId = \App\Services\Agents\Agent::generateRandomExternalId();
 
+            $agentOwnerId = $user->isManagedUser() ? $user->managed_by_user_id : $user->id;
+
             /** @var Agent $agent */
             $agent = Agent::create([
-                'user_id' => $user->id,
+                'user_id' => $agentOwnerId,
                 'team_id' => $team->id,
                 'name' => $validatedData['name'],
                 'sub_domain' => $validatedData['type'] === 'knowledge_base' ? $subdomain->generateRandomSubdomain() : null,
@@ -62,7 +65,7 @@ class AgentStoreController
 
             DB::commit();
 
-            return to_route('agents.sources', ['agent' => $agent->id, 'new' => true])
+            return to_route('agents.sources', ['agent' => $agent, 'new' => true])
                 ->with('success', 'Agent created successfully.');
 
         } catch (Throwable $exception) {

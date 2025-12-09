@@ -49,7 +49,7 @@ const props = defineProps<Props>();
 
 // WebSocket event listener for text ingestion status updates
 useEcho(
-    `agents.${props.agent.id}.ingestion.text`,
+    `agents.${props.agent.external_id}.ingestion.text`,
     "TextIngestionEvent",
     (e) => {
         handleIngestionUpdate(e);
@@ -58,7 +58,7 @@ useEcho(
 
 // WebSocket event listener for text ingestion progress updates
 useEcho(
-    `agents.${props.agent.id}.texts.progress`,
+    `agents.${props.agent.external_id}.texts.progress`,
     "TextIngestionProgressEvent",
     (e) => {
         handleTextIngestionProgress(e);
@@ -107,7 +107,7 @@ const openEditForm = async (entry: TextEntry) => {
     try {
         isLoading.value = true;
         const response = await axios.get(route('agents.sources.text.show', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             id: entry.id
         }));
 
@@ -152,7 +152,7 @@ const saveTextEntry = () => {
     if (editingEntry.value) {
         // Update existing entry
         form.patch(route('agents.sources.text.update', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             id: editingEntry.value.id
         }), {
             onSuccess,
@@ -160,7 +160,7 @@ const saveTextEntry = () => {
         });
     } else {
         // Create new entry
-        form.post(route('agents.sources.text.store', { agent: props.agent.id }), {
+        form.post(route('agents.sources.text.store', { agent: props.agent.external_id }), {
             onSuccess,
             onError
         });
@@ -184,12 +184,12 @@ const unlinkTextEntry = async () => {
 
     try {
         await axios.post(route('agents.sources.text.unlink', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             id: textToUnlink.id
         }));
 
         toast.success('Text unlinked from agent successfully!');
-        
+
         deleteDialogOpen.value = false;
         entryToDelete.value = null;
 
@@ -212,12 +212,12 @@ const deleteTextEntry = async () => {
 
     try {
         await axios.delete(route('agents.sources.text.destroy', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             id: textToDelete.id
         }));
 
         toast.success('Text deleted successfully!');
-        
+
         deleteDialogOpen.value = false;
         entryToDelete.value = null;
 
@@ -235,7 +235,7 @@ const deleteTextEntry = async () => {
 const fetchTextEntries = async () => {
     isLoading.value = true;
     try {
-        const response = await axios.get(route('agents.sources.text.index', { agent: props.agent.id }));
+        const response = await axios.get(route('agents.sources.text.index', { agent: props.agent.external_id }));
         textEntries.value = response.data;
     } catch (error) {
         console.error('Failed to fetch text entries:', error);
@@ -306,14 +306,14 @@ const handleIngestionUpdate = async (event: any) => {
 // Handle text ingestion progress updates from WebSocket
 const handleTextIngestionProgress = (event: any) => {
     const { text_id, progress } = event;
-    
+
     if (!text_id || progress === undefined) {
         return;
     }
 
     // Find the text entry and update its progress
     const entryIndex = textEntries.value.findIndex(entry => entry.id === text_id);
-    
+
     if (entryIndex !== -1) {
         // Create a new array with the updated entry for reactivity
         const updatedEntries = [...textEntries.value];
@@ -611,7 +611,7 @@ fetchTextEntries();
                     <DialogTitle>{{ entryToDelete.excerpt.substring(0, 100) }}...</DialogTitle>
                     <DialogDescription>
                         <span v-if="isTextShared(entryToDelete)">
-                            This text is used in <strong>{{ entryToDelete.agents_count }} agents</strong>. 
+                            This text is used in <strong>{{ entryToDelete.agents_count }} agents</strong>.
                             You can unlink it from this agent or permanently delete it from all agents.
                         </span>
                         <span v-else>
@@ -620,16 +620,16 @@ fetchTextEntries();
                     </DialogDescription>
                 </DialogHeader>
                 <div class="flex items-center justify-end gap-2 mt-4">
-                    <Button 
-                        variant="outline" 
+                    <Button
+                        variant="outline"
                         @click="deleteDialogOpen = false"
                         :disabled="isUnlinking || isDeleting"
                     >
                         Cancel
                     </Button>
-                    <Button 
-                        v-if="isTextShared(entryToDelete)" 
-                        variant="secondary" 
+                    <Button
+                        v-if="isTextShared(entryToDelete)"
+                        variant="secondary"
                         @click="unlinkTextEntry"
                         :disabled="isUnlinking || isDeleting"
                         class="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
@@ -638,8 +638,8 @@ fetchTextEntries();
                         <Unlink v-else class="h-4 w-4 mr-2" />
                         {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
                     </Button>
-                    <Button 
-                        variant="destructive" 
+                    <Button
+                        variant="destructive"
                         @click="deleteTextEntry"
                         :disabled="isUnlinking || isDeleting"
                     >
@@ -655,7 +655,7 @@ fetchTextEntries();
         <!-- Attach Text Dialog -->
         <AttachTextDialog
             v-model:open="attachTextDialogOpen"
-            :agent-id="agent.id"
+            :agent-id="agent.external_id"
             @textAttached="handleTextAttached"
         />
         </div>

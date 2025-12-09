@@ -11,8 +11,7 @@ class AgentManagerController
      * Permission to route mapping - ordered by priority.
      */
     private array $permissionRoutes = [
-        // Chat/History has highest priority
-        'agent.chat.view' => 'agents.logs',
+        'agent.setup' => 'agents.widget',
 
         // Analytics
         'agent.analytics.chats' => 'agents.analytics',
@@ -21,6 +20,9 @@ class AgentManagerController
         'agent.analytics.tone' => 'agents.analytics.tone',
         'agent.analytics.topics' => 'agents.analytics.topics',
         'agent.analytics.sources' => 'agents.analytics.sources',
+
+        // Chat/History has highest priority
+        'agent.chat.view' => 'agents.logs',
 
         // Sources (any training permission)
         'agent.sources.train.pdf' => 'agents.sources.pdf',
@@ -38,7 +40,6 @@ class AgentManagerController
         'agent.topics.add' => 'agents.topics.manage',
 
         // Setup/Config (lowest priority for staff)
-        'agent.setup' => 'agents.widget',
     ];
 
     public function __invoke(Request $request, Agent $agent)
@@ -55,21 +56,21 @@ class AgentManagerController
         if ($team) {
             foreach ($this->permissionRoutes as $permission => $routeName) {
                 if ($user->hasTeamPermission($team, $permission)) {
-                    return redirect()->route($routeName, ['agent' => $agent->id]);
+                    return redirect()->route($routeName, ['agent' => $agent]);
                 }
             }
         }
 
         // Fallback: if no specific permission, redirect to chat logs
-        return redirect()->route('agents.logs', ['agent' => $agent->id]);
+        return redirect()->route('agents.logs', ['agent' => $agent]);
     }
 
     private function redirectToDefaultPage(Agent $agent)
     {
         if ($agent->type === 'widget') {
-            return redirect()->route('agents.widget', ['agent' => $agent->id]);
+            return redirect()->route('agents.widget', ['agent' => $agent]);
         }
 
-        return redirect()->route('agents.playground', ['agent' => $agent->id]);
+        return redirect()->route('agents.playground', ['agent' => $agent]);
     }
 }

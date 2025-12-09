@@ -37,17 +37,12 @@ const searchQuery = ref('');
 // Modal state
 const showCreateAgentModal = ref(false);
 
-// Permission checking
+// Permission checking - only team owners can create agents
 const canCreateAgent = computed(() => {
     const currentTeam = page.props.currentTeam;
     if (!currentTeam) return false;
-    
-    // Team owners can always create agents
-    if (currentTeam.is_owner) return true;
-    
-    // Check if user has 'agents.create' permission
-    const teamPermissions = page.props.permissions[currentTeam.id] || [];
-    return teamPermissions.includes('agents.create');
+
+    return currentTeam.is_owner;
 });
 
 onMounted(async () => {
@@ -157,7 +152,7 @@ const getAgentTypeIcon = (type: string) => {
                     Create your first AI agent to start building conversational experiences
                 </p>
                 <p v-else class="mt-2 text-center text-muted-foreground">
-                    You don't have permission to create agents. Contact your team owner for access.
+                    Only team owners can create agents. Contact your team owner.
                 </p>
                 <Button v-if="canCreateAgent" size="lg" @click="showCreateAgentModal = true" class="flex items-center gap-2">
                     <Plus class="h-4 w-4" />
@@ -179,13 +174,13 @@ const getAgentTypeIcon = (type: string) => {
 
             <!-- Agents grid -->
             <div v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <Card v-for="agent in filteredAgents" :key="agent.id" class="overflow-hidden">
+                <Card v-for="agent in filteredAgents" :key="agent.external_id" class="overflow-hidden">
                     <CardHeader class="pb-3">
                         <div class="flex items-center justify-between">
                             <CardTitle class="flex items-center gap-2 text-xl">
                                 <Bot class="h-5 w-5 flex-shrink-0" />
                                 <span class="truncate">
-                                    <Link :href="route('agents.manager', { agent: agent.id})">{{ agent.name }}</Link>
+                                    <Link :href="route('agents.manager', { agent: agent.external_id})">{{ agent.name }}</Link>
                                 </span>
                             </CardTitle>
                             <div :class="getAgentTypeBadgeClass(agent.type)">
@@ -214,7 +209,7 @@ const getAgentTypeIcon = (type: string) => {
 
                     <CardFooter class="flex justify-end border-t p-4">
                         <Button as-child size="sm">
-                            <Link :href="route('agents.manager', {agent: agent.id})" class="gap-1">
+                            <Link :href="route('agents.manager', {agent: agent.external_id})" class="gap-1">
                                 Manage
                             </Link>
                         </Button>

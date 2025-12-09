@@ -8,6 +8,7 @@ use App\Enums\CapabilityEnum;
 use App\Services\Billing\Billing;
 use App\Services\Billing\UserCapabilities;
 use App\Services\Billing\UserCreditSystem;
+use App\Services\Teams\TeamService;
 use App\Traits\HasSettings;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -358,30 +359,21 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
-     * Get all teams the user belongs to.
+     * Get all teams where the user is a member (not owner).
      */
-    public function teams(): BelongsToMany
+    public function memberTeams(): BelongsToMany
     {
         return $this
             ->belongsToMany(Team::class, 'team_user')
-            ->withPivot('role_id', 'is_owner')
-            ->withTimestamps();
+            ->withPivot('role_id');
     }
 
     /**
      * Get all teams owned by the user.
      */
-    public function ownedTeams(): BelongsToMany
+    public function ownedTeams(): HasMany
     {
-        return $this->teams()->wherePivot('is_owner', true);
-    }
-
-    /**
-     * Get teams where user is a member (not owner).
-     */
-    public function memberTeams(): BelongsToMany
-    {
-        return $this->teams()->wherePivot('is_owner', false);
+        return $this->hasMany(Team::class, 'user_id');
     }
 
     /**
@@ -389,15 +381,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function ownsTeam(Team $team): bool
     {
-        return $this->ownedTeams()->where('teams.id', $team->id)->exists();
+        return $team->user_id === $this->id;
     }
 
     /**
-     * Check if user is a member of a team (but not owner).
+     * Check if user is a member or owner of a team.
      */
     public function belongsToTeam(Team $team): bool
     {
-        return $this->teams->contains($team);
+        return $this->ownsTeam($team) || $this->memberTeams->contains($team);
     }
 
     /**
@@ -405,7 +397,12 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function teamRole(Team $team): ?Role
     {
-        $membership = $this->teams()->where('teams.id', $team->id)->first();
+        // Owner doesn't have a role in the pivot table
+        if ($this->ownsTeam($team)) {
+            return null;
+        }
+
+        $membership = $this->memberTeams()->where('teams.id', $team->id)->first();
 
         if (! $membership) {
             return null;
@@ -433,6 +430,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function teamPermissions(Team $team)
     {
+        // Owner has all permissions
+        if ($this->ownsTeam($team)) {
+            return collect(config('team-permissions.permissions'))->keys()->toArray();
+        }
+
         $role = $this->teamRole($team);
 
         if (! $role) {
@@ -481,7 +483,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function switchTeam(Team $team): bool
     {
-        if (! $this->ownsTeam($team) && ! $this->belongsToTeam($team)) {
+        if (! $this->belongsToTeam($team)) {
             return false;
         }
 
@@ -500,8 +502,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             return $this->currentTeam;
         }
 
-        // Get the first team the user belongs to
-        $team = $this->teams()->first();
+        // Get the first team the user belongs to (owned first, then member)
+        $team = $this->ownedTeams()->first() ?? $this->memberTeams()->first();
 
         if ($team) {
             $this->update(['current_team_id' => $team->id]);
@@ -526,5 +528,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function isManagedUser(): bool
     {
         return $this->managed_by_user_id !== null;
+    }
+
+    public function canAccessAgent(Agent $agent): bool
+    {
+        return app(TeamService::class)->canAccessAgent(
+            user: $this,
+            team: $this->currentTeam,
+            agent: $agent,
+        );
     }
 }

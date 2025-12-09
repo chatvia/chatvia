@@ -28,7 +28,7 @@ const isSubmitting = ref(false);
 
 const updateGeneralSettings = () => {
     isSubmitting.value = true;
-    form.patch(route('agents.update', props.agent.id), {
+    form.patch(route('agents.update', props.agent.external_id), {
         preserveScroll: true,
         onSuccess: () => {
             isSubmitting.value = false;

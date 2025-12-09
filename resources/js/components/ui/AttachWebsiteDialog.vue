@@ -77,7 +77,7 @@ const attachWebsite = async (website: AvailableWebsite) => {
     if (isWebsiteAdded(website.id) || isWebsiteAttaching(website.id)) return;
 
     attachingWebsiteIds.value.add(website.id);
-    
+
     try {
         await axios.post(route('agents.sources.trained-websites.link', {
             agent: props.agentId,
@@ -190,9 +190,9 @@ watch(() => props.open, (isOpen) => {
                                     <Globe class="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                     <span class="font-medium truncate">{{ getDomainFromUrl(website.url) }}</span>
                                 </div>
-                                <a 
-                                    :href="website.url" 
-                                    target="_blank" 
+                                <a
+                                    :href="website.url"
+                                    target="_blank"
                                     class="text-xs text-muted-foreground hover:underline block truncate"
                                 >
                                     {{ website.url }}
@@ -202,7 +202,7 @@ watch(() => props.open, (isOpen) => {
                                     <span>•</span>
                                     <span>{{ formatDate(website.created_at) }}</span>
                                 </div>
-                                
+
                                 <!-- Show agents using this website -->
                                 <div v-if="website.agents && website.agents.length > 0" class="flex items-center gap-2 mt-2">
                                     <TooltipProvider>
@@ -217,7 +217,7 @@ watch(() => props.open, (isOpen) => {
                                                 <div class="text-xs">
                                                     <p class="font-medium mb-1">Used in agents:</p>
                                                     <ul class="space-y-0.5">
-                                                        <li v-for="agent in website.agents" :key="agent.id">
+                                                        <li v-for="agent in website.agents" :key="agent.external_id">
                                                             {{ agent.name }}
                                                         </li>
                                                     </ul>

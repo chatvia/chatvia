@@ -28,8 +28,6 @@ class TeamService
 
         $this->createDefaultRoles($team);
 
-        $this->attachOwner($team, $user);
-
         return $team;
     }
 
@@ -144,6 +142,10 @@ class TeamService
      */
     public function canAccessAgent(User $user, Team $team, Agent $agent): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         if ($user->ownsTeam($team)) {
             return true;
         }
@@ -225,7 +227,10 @@ class TeamService
         $allPermissions = $this->permissionCodes();
         $permissions = [];
 
-        foreach ($user->teams as $team) {
+        // Get all teams (owned + member)
+        $allTeams = $user->ownedTeams->concat($user->memberTeams);
+
+        foreach ($allTeams as $team) {
             $permissions[$team->id] = $user->ownsTeam($team)
                 ? $allPermissions
                 : $user->teamPermissions($team);
@@ -252,18 +257,6 @@ class TeamService
 
         if (! $team->roles()->where('code', $roleCode)->exists()) {
             throw new RuntimeException("The role '{$roleCode}' does not exist for this team.");
-        }
-    }
-
-    private function attachOwner(Team $team, User $user): void
-    {
-        $ownerRole = $team->roles()->where('code', 'owner')->first();
-
-        if ($ownerRole) {
-            $team->users()->attach($user->id, [
-                'role_id' => $ownerRole->id,
-                'is_owner' => true,
-            ]);
         }
     }
 

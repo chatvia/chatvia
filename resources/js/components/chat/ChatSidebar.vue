@@ -401,7 +401,7 @@ const switchToSelectedAgent = () => {
     console.log('Sending switch request for agent:', selectedAgent.value.id);
 
     agentSwitchForm.post(route('chat.member.agents.switch', {
-        agent: selectedAgent.value.id
+        agent: selectedAgent.value.external_id
     }), {
         preserveState: true,
         preserveScroll: true,
@@ -526,7 +526,7 @@ const switchToSelectedAgent = () => {
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                                
+
                                 <!-- Hover actions -->
                                 <div class="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 bg-accent/80 rounded-md px-0.5">
                                     <DropdownMenu>
@@ -830,20 +830,20 @@ const switchToSelectedAgent = () => {
                         <p class="text-muted-foreground">No agents found.</p>
                     </div>
                     <div v-else class="space-y-3">
-                        <div v-for="agent in agents" :key="agent.id"
+                        <div v-for="agent in agents" :key="agent.external_id"
                              :class="[
                                  'flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-colors',
-                                 selectedAgent?.id === agent.id ? 'border-primary bg-primary/5' : 'hover:bg-accent'
+                                 selectedAgent?.id === agent.external_id ? 'border-primary bg-primary/5' : 'hover:bg-accent'
                              ]"
                              @click="selectAgent(agent)">
                             <div class="flex items-center gap-3 flex-1">
                                 <div :class="[
                                     'w-4 h-4 rounded-full border-2',
-                                    selectedAgent?.id === agent.id
+                                    selectedAgent?.id === agent.external_id
                                         ? 'border-primary bg-primary'
                                         : 'border-muted-foreground'
                                 ]">
-                                    <div v-if="selectedAgent?.id === agent.id" class="w-2 h-2 bg-white rounded-full m-0.5"></div>
+                                    <div v-if="selectedAgent?.id === agent.external_id" class="w-2 h-2 bg-white rounded-full m-0.5"></div>
                                 </div>
                                 <div class="flex-1">
                                     <h4 class="font-semibold">{{ agent.name }}</h4>

@@ -115,17 +115,12 @@ const loading = ref(true);
 // Modal state
 const showCreateAgentModal = ref(false);
 
-// Permission checking
+// Permission checking - only team owners can create agents
 const canCreateAgent = computed(() => {
     const currentTeam = page.props.currentTeam;
     if (!currentTeam) return false;
     
-    // Team owners can always create agents
-    if (currentTeam.is_owner) return true;
-    
-    // Check if user has 'agents.create' permission
-    const teamPermissions = page.props.permissions[currentTeam.id] || [];
-    return teamPermissions.includes('agents.create');
+    return currentTeam.is_owner;
 });
 
 // Fetch dashboard data from API

@@ -14,71 +14,37 @@ class Team extends Model
         'user_id',
     ];
 
-    /**
-     * Get the team owner.
-     */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Get the user that owns the team (alias for owner).
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    /**
-     * Get the agents that belong to the team.
-     */
     public function agents(): HasMany
     {
         return $this->hasMany(Agent::class);
     }
 
-    /**
-     * Get the roles for this team.
-     */
     public function roles(): HasMany
     {
         return $this->hasMany(Role::class);
     }
 
-    /**
-     * Get all users in this team (including owner).
-     */
-    public function users(): BelongsToMany
+    public function members(): BelongsToMany
     {
         return $this
             ->belongsToMany(User::class, 'team_user')
-            ->withPivot('role_id', 'is_owner')
-            ->withTimestamps();
+            ->withPivot('role_id');
     }
 
-    /**
-     * Get only the members (not the owner).
-     */
-    public function members(): BelongsToMany
-    {
-        return $this->users()->wherePivot('is_owner', false);
-    }
-
-    /**
-     * Get invitations for this team.
-     */
     public function invitations(): HasMany
     {
         return $this->hasMany(Invitation::class);
     }
 
-    /**
-     * Check if a user with the given email is already a member.
-     */
     public function hasUserWithEmail(string $email): bool
     {
-        return $this->users->contains(fn ($user) => $user->email === $email);
+        return $this->owner->email === $email
+            || $this->members->contains(fn ($user) => $user->email === $email);
     }
 
     /**
@@ -86,16 +52,17 @@ class Team extends Model
      */
     public function hasUser(User $user): bool
     {
-        return $this->users->contains($user);
+        return $this->owner->id === $user->id
+            || $this->members->contains($user);
     }
 
     /**
      * Update a team member's role.
      */
-    public function updateUser(User $user, string $roleCode): void
+    public function updateMember(User $user, string $roleCode): void
     {
         $role = $this->roles()->where('code', $roleCode)->firstOrFail();
-        $this->users()->updateExistingPivot($user->id, ['role_id' => $role->id]);
+        $this->members()->updateExistingPivot($user->id, ['role_id' => $role->id]);
     }
 
     /**
@@ -103,7 +70,12 @@ class Team extends Model
      */
     public function userRole(User $user): ?Role
     {
-        $membership = $this->users()->where('users.id', $user->id)->first();
+        // Team owner doesn't have a role in the pivot table
+        if ($this->user_id === $user->id) {
+            return null;
+        }
+
+        $membership = $this->members()->where('users.id', $user->id)->first();
 
         if (! $membership) {
             return null;
@@ -113,10 +85,10 @@ class Team extends Model
     }
 
     /**
-     * Remove a user from the team.
+     * Remove a member from the team.
      */
-    public function deleteUser(User $user): void
+    public function removeMember(User $user): void
     {
-        $this->users()->detach($user->id);
+        $this->members()->detach($user->id);
     }
 }

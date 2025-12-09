@@ -63,7 +63,7 @@ const remainingMembers = computed(() => {
 
 // Helper function to check if member has access to current agent
 const memberHasAccess = (member: any) => {
-    return member.agents && member.agents.hasOwnProperty(props.agent.id.toString());
+    return member.agents && member.agents.hasOwnProperty(props.agent.external_id.toString());
 };
 
 // Helper function to get agent access details
@@ -102,7 +102,7 @@ onMounted(() => {
 
 const fetchTeamMembers = async () => {
     try {
-        const response = await axios.get(route('agents.team.list', props.agent.id));
+        const response = await axios.get(route('agents.team.list', props.agent.external_id));
         teamMembers.value = response.data;
     } catch (error) {
         console.error('Failed to fetch team members:', error);
@@ -116,7 +116,7 @@ const sendInvitation = () => {
     const invitedName = invitationForm.name;
     const invitedEmail = invitationForm.email;
 
-    invitationForm.post(route('agents.team.invite', props.agent.id), {
+    invitationForm.post(route('agents.team.invite', props.agent.external_id), {
         preserveScroll: true,
         onSuccess: () => {
             isSubmitting.value = false;
@@ -220,7 +220,7 @@ const revokeAccess = async (member: any) => {
 const grantAccess = async (member: any) => {
     try {
         await axios.post(route('agents.team.member.grant', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             member: member.id,
         }));
 
@@ -559,7 +559,7 @@ const cancelDelete = () => {
                                 <div class="flex items-center gap-2">
                                     <h4 class="font-medium text-sm">Agent ID: {{ agentAccess.id }}</h4>
                                     <span
-                                        v-if="agentAccess.id === props.agent.id.toString()"
+                                        v-if="agentAccess.id === props.agent.external_id.toString()"
                                         class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                                     >
                                         Current Agent

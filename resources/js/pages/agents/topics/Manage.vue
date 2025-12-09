@@ -50,7 +50,7 @@ const filteredTopics = computed(() => {
 const fetchTopics = async () => {
     loading.value = true;
     try {
-        const response = await axios.get(route('agents.topics.list', props.agent.id));
+        const response = await axios.get(route('agents.topics.list', props.agent.external_id));
         topics.value = response.data;
 
         // Set frozen status from first topic (assuming all have same status)
@@ -94,7 +94,7 @@ const handleAdd = async () => {
 
     isSubmitting.value = true;
     try {
-        await axios.post(route('agents.topics.store', props.agent.id), form.value);
+        await axios.post(route('agents.topics.store', props.agent.external_id), form.value);
         toast.success('Topic created successfully');
         isAddDialogOpen.value = false;
         fetchTopics();
@@ -113,7 +113,7 @@ const handleEdit = async () => {
 
     isSubmitting.value = true;
     try {
-        await axios.patch(route('agents.topics.update', [props.agent.id, currentTopic.value.id]), form.value);
+        await axios.patch(route('agents.topics.update', [props.agent.external_id, currentTopic.value.id]), form.value);
         toast.success('Topic updated successfully');
         isEditDialogOpen.value = false;
         fetchTopics();
@@ -127,7 +127,7 @@ const handleEdit = async () => {
 const handleDelete = async () => {
     isSubmitting.value = true;
     try {
-        await axios.delete(route('agents.topics.delete', [props.agent.id, currentTopic.value.id]));
+        await axios.delete(route('agents.topics.delete', [props.agent.external_id, currentTopic.value.id]));
         toast.success('Topic deleted successfully');
         isDeleteDialogOpen.value = false;
         fetchTopics();
@@ -140,7 +140,7 @@ const handleDelete = async () => {
 
 const handleToggleFreeze = async (value: boolean) => {
     try {
-        await axios.post(route('agents.topics.toggle-freeze', props.agent.id), {
+        await axios.post(route('agents.topics.toggle-freeze', props.agent.external_id), {
             is_frozen: value,
         });
         toast.success(value ? 'Topics frozen successfully' : 'Topics unfrozen successfully');
@@ -240,7 +240,7 @@ onMounted(() => {
                             </div>
                         </div>
                         <Button variant="outline" size="sm" as-child>
-                            <a :href="route('agents.analytics.topics', props.agent.id)">
+                            <a :href="route('agents.analytics.topics', props.agent.external_id)">
                                 Done
                             </a>
                         </Button>

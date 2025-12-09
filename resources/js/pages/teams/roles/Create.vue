@@ -251,14 +251,14 @@ const toggleAgentSelection = (agentId: number) => {
                                             <div class="p-2 space-y-1">
                                                 <div
                                                     v-for="agent in agents"
-                                                    :key="agent.id"
-                                                    @click="toggleAgentSelection(agent.id)"
+                                                    :key="agent.external_id"
+                                                    @click="toggleAgentSelection(agent.external_id)"
                                                     class="flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer hover:bg-accent"
                                                 >
                                                     <div class="w-4 h-4 border rounded flex items-center justify-center"
-                                                        :class="form.agent_ids.includes(agent.id) ? 'bg-primary border-primary' : 'border-input'"
+                                                        :class="form.agent_ids.includes(agent.external_id) ? 'bg-primary border-primary' : 'border-input'"
                                                     >
-                                                        <Check v-if="form.agent_ids.includes(agent.id)" class="h-3 w-3 text-primary-foreground" />
+                                                        <Check v-if="form.agent_ids.includes(agent.external_id)" class="h-3 w-3 text-primary-foreground" />
                                                     </div>
                                                     <span class="text-sm">{{ agent.name }}</span>
                                                 </div>

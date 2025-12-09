@@ -124,9 +124,8 @@ class TeamInvitationController extends Controller
         }
 
         // Add user to the team with the invited role
-        $team->users()->attach($user->id, [
+        $team->members()->attach($user->id, [
             'role_id' => $invitation->role_id,
-            'is_owner' => false,
         ]);
 
         // Delete the invitation

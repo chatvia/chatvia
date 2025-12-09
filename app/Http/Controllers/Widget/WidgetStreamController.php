@@ -33,7 +33,7 @@ readonly class WidgetStreamController
 
         $referer = $request->header('referer') ?: $request->server('HTTP_REFERER');
 
-        $isPlayground = str_starts_with($referer, route('agents.widget.preview', ['agent' => $agent->id]));
+        $isPlayground = str_starts_with($referer, route('agents.widget.preview', ['agent' => $agent]));
 
         return $this->chatStreamService->stream(
             new StreamRequestData(

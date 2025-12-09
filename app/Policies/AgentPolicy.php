@@ -4,20 +4,15 @@ namespace App\Policies;
 
 use App\Models\Agent;
 use App\Models\User;
-use App\Services\Teams\TeamService;
 
 class AgentPolicy
 {
-    public function __construct(
-        private TeamService $teamService
-    ) {}
-
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->type === 'admin';
+        return $user->isAdmin();
     }
 
     /**
@@ -25,18 +20,7 @@ class AgentPolicy
      */
     public function view(User $user, Agent $agent): bool
     {
-        // Admin or Company users: access to their own agents
-        if ($user->isAdmin() || $user->isCompany()) {
-            return $agent->user_id === $user->id;
-        }
-
-        // Staff users: check team-based access with permissions
-        $team = current_team();
-        if ($team && $this->teamService->canAccessAgent($user, $team, $agent)) {
-            return true;
-        }
-
-        return false;
+        return $user->canAccessAgent($agent);
     }
 
     /**
@@ -44,7 +28,7 @@ class AgentPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->isAdmin() || $user->isCompany();
     }
 
     /**

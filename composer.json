@@ -55,7 +55,8 @@
         "symfony/browser-kit": "^7.3",
         "symfony/dom-crawler": "^7.3",
         "tightenco/ziggy": "^2.5",
-        "yethee/tiktoken": "^0.10.0"
+        "yethee/tiktoken": "^0.10.0",
+        "ext-pdo": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

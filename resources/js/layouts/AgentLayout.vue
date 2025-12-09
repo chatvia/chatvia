@@ -116,7 +116,7 @@ const features = page.props.features as Features;
 const hasPermission = (permission: string): boolean => {
     const currentTeam = page.props.currentTeam;
     if (!currentTeam) return false;
-    
+
     const teamPermissions = page.props.permissions[currentTeam.id] || [];
     return teamPermissions.includes(permission);
 };
@@ -215,7 +215,7 @@ const controlPanelNavigationItems = computed(() => {
     // Analytics - only show if user has any analytics permission
     if (hasAnyAnalyticsPermission.value) {
         const analyticsSubItems = [];
-        
+
         if (isOwner.value || hasPermission('agent.analytics.chats')) {
             analyticsSubItems.push({ id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' });
         }
@@ -274,17 +274,17 @@ const controlPanelNavigationItems = computed(() => {
         baseItems.push({ id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' });
     }
 
-    // Rename - only show if user has rename permission
-    if (isOwner.value || hasPermission('agent.rename')) {
+    // Rename - only show for team owners
+    if (isOwner.value) {
         baseItems.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
     }
 
     return baseItems;
 });
 
-// Danger Zone navigation items - only show for owners or users with delete permission
+// Danger Zone navigation items - only show for team owners
 const dangerZoneNavigationItems = computed(() => {
-    if (!isOwner.value && !hasPermission('agent.delete')) {
+    if (!isOwner.value) {
         return [];
     }
     return [
@@ -312,7 +312,7 @@ const deleteAgent = () => {
 
     isDeleting.value = true;
 
-    router.delete(route('agents.delete', { agent: props.agent.id }), {
+    router.delete(route('agents.delete', { agent: props.agent.external_id }), {
         onSuccess: () => {
             isDeleting.value = false;
             showDeleteDialog.value = false;
@@ -341,7 +341,7 @@ const renameAgent = () => {
         renameForm.sub_domain = renameForm.sub_domain.trim().toLowerCase();
     }
 
-    renameForm.patch(route('agents.rename', { agent: props.agent.id }), {
+    renameForm.patch(route('agents.rename', { agent: props.agent.external_id }), {
         preserveScroll: true,
         onSuccess: () => {
             showRenameDialog.value = false;
@@ -455,7 +455,7 @@ const sourceStats = ref<any>(null);
 // Fetch source stats
 const fetchSourceStats = async () => {
     try {
-        const response = await axios.get(route('agents.sources.stats', { agent: props.agent.id }));
+        const response = await axios.get(route('agents.sources.stats', { agent: props.agent.external_id }));
         sourceStats.value = response.data;
     } catch (error) {
         console.error('Failed to fetch source stats:', error);
@@ -532,7 +532,7 @@ onMounted(() => {
                                     :tooltip="item.tooltip"
                                     class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
                                 >
-                                    <Link :href="route(item.route, { agent: agent.id })">
+                                    <Link :href="route(item.route, { agent: agent.external_id })">
                                         <component :is="item.icon" />
                                         <span>{{ item.label }}</span>
                                     </Link>
@@ -574,7 +574,7 @@ onMounted(() => {
                                                 as-child
                                             >
                                                 <Link
-                                                    :href="route(subItem.route, { agent: agent.id })"
+                                                    :href="route(subItem.route, { agent: agent.external_id })"
                                                     class="flex items-center gap-2"
                                                 >
                                                     <component :is="subItem.icon" class="h-4 w-4" />
@@ -606,7 +606,7 @@ onMounted(() => {
                                                 :is-active="isActiveRoute(subItem.route)"
                                                 class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
                                             >
-                                                <Link :href="route(subItem.route, { agent: agent.id })">
+                                                <Link :href="route(subItem.route, { agent: agent.external_id })">
                                                     <component :is="subItem.icon" class="h-4 w-4" />
                                                     <span>{{ subItem.label }}</span>
                                                 </Link>
@@ -638,7 +638,7 @@ onMounted(() => {
                                             class="w-56"
                                         >
                                             <AgentSourcesMenu
-                                                :agent-id="agent.id"
+                                                :agent-id="agent.external_id"
                                                 :source-stats="sourceStats"
                                                 variant="dropdown"
                                                 :is-active-route="isActiveRoute"
@@ -646,7 +646,7 @@ onMounted(() => {
                                                 <template #default="{ item, label }">
                                                     <DropdownMenuItem as-child>
                                                         <Link
-                                                            :href="route(item.route, { agent: agent.id })"
+                                                            :href="route(item.route, { agent: agent.external_id })"
                                                             class="flex items-center gap-2"
                                                         >
                                                             <component :is="item.icon" class="h-4 w-4" />
@@ -675,7 +675,7 @@ onMounted(() => {
                                     </div>
                                     <SidebarMenuSub v-if="sourcesSubmenuOpen" class="mt-1 space-y-0.5 group-data-[collapsible=icon]:hidden">
                                         <AgentSourcesMenu
-                                            :agent-id="agent.id"
+                                            :agent-id="agent.external_id"
                                             :source-stats="sourceStats"
                                             variant="submenu"
                                             :is-active-route="isActiveRoute"
@@ -687,7 +687,7 @@ onMounted(() => {
                                                         :is-active="isActive"
                                                         class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
                                                     >
-                                                        <Link :href="route(item.route, { agent: agent.id })">
+                                                        <Link :href="route(item.route, { agent: agent.external_id })">
                                                             <component :is="item.icon" class="h-4 w-4" />
                                                             <span>{{ label }}</span>
                                                         </Link>
@@ -717,7 +717,7 @@ onMounted(() => {
                                         :tooltip="item.tooltip"
                                         class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
                                     >
-                                        <Link :href="route(item.route, { agent: agent.id })">
+                                        <Link :href="route(item.route, { agent: agent.external_id })">
                                             <component :is="item.icon" />
                                             <span>{{ item.label }}</span>
                                         </Link>

@@ -16,9 +16,6 @@ return new class extends Migration
             $table->foreignId('team_id')->constrained('teams')->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('role_id')->constrained('roles')->cascadeOnUpdate()->restrictOnDelete();
-            $table->boolean('is_owner')->default(false);
-
-            $table->timestamps();
 
             $table->unique(['team_id', 'user_id']);
         });

@@ -20,7 +20,7 @@ const fetchSources = async () => {
     error.value = null;
     
     try {
-        const response = await axios.get(route('agents.analytics.sources.data', props.agent.id));
+        const response = await axios.get(route('agents.analytics.sources.data', props.agent.external_id));
         sources.value = response.data;
     } catch (err: any) {
         error.value = err.response?.data?.message || 'Failed to load sources';

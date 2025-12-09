@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Agents;
+namespace App\Http\Controllers\Agents\ChatLog;
 
 use App\Models\Agent;
 use App\Models\ChatConversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class ConversationPulseController
+class AgentChatLogConversationPulseController
 {
     public function __invoke(Request $request, Agent $agent, ChatConversation $conversation): JsonResponse
     {

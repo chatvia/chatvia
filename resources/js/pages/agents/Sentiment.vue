@@ -52,7 +52,7 @@ const fetchSentimentData = async () => {
     error.value = null;
 
     try {
-        const response = await axios.get(route('agents.sentiment.data', props.agent.id));
+        const response = await axios.get(route('agents.sentiment.data', props.agent.external_id));
         sentimentData.value = response.data;
     } catch (err: any) {
         error.value = err.response?.data?.message || 'Failed to load sentiment data';
@@ -289,11 +289,17 @@ onMounted(() => {
             <SmilePlus class="h-5 w-5" />
         </template>
 
-        <!-- Delayed Data Notice -->
+        <!-- Live Analytics Indicator -->
         <div class="mb-6 flex justify-end">
-            <p class="text-sm text-muted-foreground">
-                Analytics data for today might be delayed
-            </p>
+            <div class="flex items-center gap-2">
+                <div class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </div>
+                <p class="text-sm text-muted-foreground">
+                    Live analytics
+                </p>
+            </div>
         </div>
 
         <!-- Loading State -->

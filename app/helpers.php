@@ -129,6 +129,11 @@ if (! function_exists('has_permission_to_agent')) {
     function has_permission_to_agent(\App\Models\Agent $agent, string $permission): bool
     {
         $user = auth()->user();
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         $team = current_team();
 
         if (! $team) {

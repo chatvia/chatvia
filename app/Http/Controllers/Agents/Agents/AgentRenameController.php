@@ -15,6 +15,19 @@ class AgentRenameController
             code: 404,
         );
 
+        $user = $request->user();
+        $team = current_team();
+
+        // Only team owners can rename agents
+        if (! $team || ! $user->ownsTeam($team)) {
+            abort(403, 'Only team owners can rename agents.');
+        }
+
+        // Verify agent belongs to this team
+        if ($agent->team_id !== $team->id) {
+            abort(404);
+        }
+
         $rules = [
             'name' => [
                 'required',

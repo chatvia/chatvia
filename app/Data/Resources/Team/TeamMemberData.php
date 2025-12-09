@@ -31,7 +31,7 @@ class TeamMemberData extends Data
             role: $role?->code ?? 'owner',
             role_name: $role?->name ?? 'Owner',
             is_owner: $team->user_id === $user->id,
-            joined_at: $user->pivot?->created_at?->toDateTimeString(),
+            joined_at: null, // No timestamp on pivot table anymore
         );
     }
 }

@@ -18,6 +18,10 @@ return new class extends Migration
             $table->rememberToken();
 
             $table->foreignId('managed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('current_team_id')
+                ->nullable()
+                ->constrained('teams')
+                ->nullOnDelete();
 
             $table->string('stripe_id')->nullable()->index();
             $table->string('pm_type')->nullable();

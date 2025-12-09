@@ -300,7 +300,7 @@ onMounted(() => {
                                     as-child
                                     class="gap-1 flex-1"
                                 >
-                                    <Link :href="route('agents.sources', { agent: file.agent.id })">
+                                    <Link :href="route('agents.sources', { agent: file.agent.external_id })">
                                         <Play class="h-3.5 w-3.5" />
                                         Train
                                     </Link>

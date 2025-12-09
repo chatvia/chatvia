@@ -45,7 +45,7 @@ const handleSubmit = () => {
     error.value = null;
     success.value = null;
 
-    form.put(route('agents.update-models', props.agent.id), {
+    form.put(route('agents.update-models', props.agent.external_id), {
         onSuccess: () => {
             success.value = 'Models updated successfully';
             isLoading.value = false;

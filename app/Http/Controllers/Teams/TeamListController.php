@@ -20,13 +20,22 @@ class TeamListController
             ]);
         }
 
-        // Get all teams (owner + members) from team_user pivot
-        $teams = $user->teams()->get()->map(fn ($team) => [
+        // Get all teams (owned + member)
+        $ownedTeams = $user->ownedTeams->map(fn ($team) => [
             'id' => $team->id,
             'name' => $team->name,
-            'is_owner' => (bool) $team->pivot->is_owner,
+            'is_owner' => true,
             'is_primary' => $team->id === $user->primaryTeam()?->id,
-        ])->values();
+        ]);
+
+        $memberTeams = $user->memberTeams->map(fn ($team) => [
+            'id' => $team->id,
+            'name' => $team->name,
+            'is_owner' => false,
+            'is_primary' => false,
+        ]);
+
+        $teams = $ownedTeams->concat($memberTeams)->values();
 
         return response()->json([
             'teams' => $teams,

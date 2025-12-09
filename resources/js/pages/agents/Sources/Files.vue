@@ -74,7 +74,7 @@ const props = defineProps<Props>();
 
 // WebSocket event listener for file ingestion progress updates
 useEcho(
-    `agents.${props.agent.id}.files.progress`,
+    `agents.${props.agent.external_id}.files.progress`,
     "FileIngestionProgressEvent",
     (e) => {
         handleFileIngestionProgress(e);
@@ -136,7 +136,7 @@ const fileUploaderConfig = computed<FileUploaderConfig>(() => {
         maxFiles: maxFilesToUpload,
         acceptedTypes,
         maxFileSize,
-        analyzeEndpoint: (file: File) => route('agents.sources.files.upload', { agent: props.agent.id }),
+        analyzeEndpoint: (file: File) => route('agents.sources.files.upload', { agent: props.agent.external_id }),
         onFileAnalyzed: (file: BaseUploadingFileData, data: FileAnalyzedData) => {
             // For Knowledge.vue, the upload endpoint uploads the file
             // Remove the file from FileUploader since it's now uploaded and will show in "Ready to Train"
@@ -294,10 +294,10 @@ const isKnowledgeAgent = computed(() => {
 // Helper function to check if a file uses minutes quota (audio or video)
 const usesMinutesQuota = (file: any): boolean => {
     if (!file) return false;
-    
+
     // Check type field first
     if (file.type === 'audio' || file.type === 'video') return true;
-    
+
     // Check MIME type as fallback for uploading files
     const mimeType = file.mime_type || file.stats?.mime_type || '';
     return mimeType.startsWith('audio/') || mimeType.startsWith('video/');
@@ -390,7 +390,7 @@ const wouldExceedQuota = computed(() => {
         }, 0);
         return uploadingMinutes > minutesRemaining.value;
     }
-    
+
     // For other files: check pages quota
     const uploadingPages = uploadingFiles.value.reduce((total, file) => {
         if (!usesMinutesQuota(file.stats)) {
@@ -579,7 +579,7 @@ const clearAllFiles = async () => {
     try {
         // If there are uploaded files, delete them from server
         if (uploadedFiles.value.length > 0) {
-            const deleteUrl = route('agents.sources.uploaded-files', { agent: props.agent.id });
+            const deleteUrl = route('agents.sources.uploaded-files', { agent: props.agent.external_id });
             await axios.delete(deleteUrl);
         }
 
@@ -593,7 +593,7 @@ const clearAllFiles = async () => {
 
         // Refresh the knowledge files list
         await fetchKnowledgeFiles();
-        
+
         // Refresh usage data from server after clearing files
         await fetchUsageData();
     } catch (error: any) {
@@ -669,7 +669,7 @@ const processAllFiles = async () => {
     try {
         // Send single request to process all files
         const processUrl = route('agents.sources.files.process', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             file_type: props.fileType,
         });
 
@@ -718,7 +718,7 @@ const unlinkKnowledgeFile = async () => {
         console.log(`Unlinking knowledge file: ${fileToUnlink.name} (ID: ${fileToUnlink.id})`);
 
         const unlinkUrl = route('agents.sources.files.unlink', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             fileId: fileToUnlink.id
         });
 
@@ -743,7 +743,7 @@ const unlinkKnowledgeFile = async () => {
 
         // Close dialog first
         deleteDialogOpen.value = false;
-        
+
         // Reset state after a delay to allow dialog to close
         setTimeout(() => {
             fileToDelete.value = null;
@@ -777,7 +777,7 @@ const removeKnowledgeFile = async () => {
         console.log(`Deleting knowledge file: ${fileToRemove.name} (ID: ${fileToRemove.id})`);
 
         const deleteUrl = route('agents.sources.files.delete', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             file: fileToRemove.id
         });
 
@@ -800,7 +800,7 @@ const removeKnowledgeFile = async () => {
 
         // Close dialog first
         deleteDialogOpen.value = false;
-        
+
         // Reset state after a delay to allow dialog to close
         setTimeout(() => {
             fileToDelete.value = null;
@@ -827,14 +827,14 @@ const removeKnowledgeFile = async () => {
 // Handle file ingestion progress updates from WebSocket
 const handleFileIngestionProgress = (event: any) => {
     const { file_id, progress } = event;
-    
+
     if (!file_id || progress === undefined) {
         return;
     }
 
     // Find the file and update its progress
     const fileIndex = knowledgeFiles.value.findIndex(file => file.id === file_id);
-    
+
     if (fileIndex !== -1) {
         // Create a new array with the updated file for reactivity
         const updatedFiles = [...knowledgeFiles.value];
@@ -845,7 +845,7 @@ const handleFileIngestionProgress = (event: any) => {
             status: progress >= 100 ? 'ingested' : 'ingesting'
         };
         knowledgeFiles.value = updatedFiles;
-            
+
 
         // If progress is 100%, update the status to 'ingested' immediately
         if (progress >= 100) {
@@ -863,7 +863,7 @@ const fetchKnowledgeFiles = async () => {
 
     try {
         const response = await axios.get(
-            route('agents.sources.files', { agent: props.agent.id, file_type: props.fileType })
+            route('agents.sources.files', { agent: props.agent.external_id, file_type: props.fileType })
         );
 
         const allFiles = response.data as KnowledgeFile[];
@@ -927,7 +927,7 @@ const showFileSummary = async (file: KnowledgeFile) => {
 
     try {
         const response = await axios.get(route('agents.agent.files.summary', {
-            agent: props.agent.id,
+            agent: props.agent.external_id,
             file: file.id
         }));
 
@@ -1347,7 +1347,7 @@ defineExpose({
                 <DialogTitle>{{ fileToDelete.name }}</DialogTitle>
                 <DialogDescription>
                     <span v-if="isFileShared(fileToDelete)">
-                        This file is used in <strong>{{ fileToDelete.agents_count }} agents</strong>. 
+                        This file is used in <strong>{{ fileToDelete.agents_count }} agents</strong>.
                         You can unlink it from this agent or permanently delete it from all agents.
                     </span>
                     <span v-else>
@@ -1356,16 +1356,16 @@ defineExpose({
                 </DialogDescription>
             </DialogHeader>
             <div class="flex items-center justify-end gap-2 mt-4">
-                <Button 
-                    variant="outline" 
+                <Button
+                    variant="outline"
                     @click="deleteDialogOpen = false"
                     :disabled="isUnlinking || isDeleting"
                 >
                     Cancel
                 </Button>
-                <Button 
-                    v-if="isFileShared(fileToDelete)" 
-                    variant="secondary" 
+                <Button
+                    v-if="isFileShared(fileToDelete)"
+                    variant="secondary"
                     @click="unlinkKnowledgeFile"
                     :disabled="isUnlinking || isDeleting"
                     class="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
@@ -1374,8 +1374,8 @@ defineExpose({
                     <Unlink v-else class="h-4 w-4 mr-2" />
                     {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
                 </Button>
-                <Button 
-                    variant="destructive" 
+                <Button
+                    variant="destructive"
                     @click="removeKnowledgeFile"
                     :disabled="isUnlinking || isDeleting"
                 >
@@ -1512,7 +1512,7 @@ defineExpose({
     <!-- Attach File Dialog -->
     <AttachFileDialog
         v-model:open="attachFileDialogOpen"
-        :agent-id="agent.id"
+        :agent-id="agent.external_id"
         :file-type="fileType"
         @file-attached="handleFileAttached"
     />

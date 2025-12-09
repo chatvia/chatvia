@@ -55,7 +55,7 @@ const isLoadingLeads = ref(true);
 const fetchLeads = async () => {
     isLoadingLeads.value = true;
     try {
-        const response = await axios.get(route('agents.leads.data', { agent: props.agent.id }));
+        const response = await axios.get(route('agents.leads.data', { agent: props.agent.external_id }));
         leads.value = response.data;
     } catch (error) {
         console.error('Failed to fetch leads:', error);
@@ -218,7 +218,7 @@ const viewLead = (lead: Lead) => {
 };
 
 const saveSettings = () => {
-    settingsForm.patch(route('agents.leads.settings', { agent: props.agent.id }), {
+    settingsForm.patch(route('agents.leads.settings', { agent: props.agent.external_id }), {
         preserveScroll: true,
         onSuccess: () => {
             showSettingsDialog.value = false;
@@ -274,7 +274,7 @@ const deleteSelectedLeads = async () => {
     isDeleting.value = true;
 
     try {
-        await axios.delete(route('agents.leads.delete', { agent: props.agent.id }), {
+        await axios.delete(route('agents.leads.delete', { agent: props.agent.external_id }), {
             data: {
                 lead_ids: selectedLeads.value
             }
@@ -300,7 +300,7 @@ const exportSelectedLeads = async () => {
     isExporting.value = true;
 
     try {
-        const res = await axios.post(route('agents.leads.export', { agent: props.agent.id }), {
+        const res = await axios.post(route('agents.leads.export', { agent: props.agent.external_id }), {
             lead_ids: selectedLeads.value
         }, { 
             responseType: 'blob' 
@@ -462,7 +462,7 @@ const cancelDelete = () => {
                         <TableCell>
                             <Link
                                 v-if="lead.conversation_id"
-                                :href="route('agents.logs', { agent: agent.id, conversation_id: lead.conversation_id })"
+                                :href="route('agents.logs', { agent: agent.external_id, conversation_id: lead.conversation_id })"
                                 class="inline-flex items-center gap-1 text-primary hover:underline text-sm"
                             >
                                 View Chat

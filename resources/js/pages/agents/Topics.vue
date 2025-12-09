@@ -84,7 +84,7 @@ const fetchTopicsData = async () => {
     error.value = null;
 
     try {
-        const response = await axios.get(route('agents.topics.data', props.agent.id));
+        const response = await axios.get(route('agents.topics.data', props.agent.external_id));
         topicsData.value = response.data;
     } catch (err: any) {
         error.value = err.response?.data?.message || 'Failed to load topics data';
@@ -256,11 +256,11 @@ const pieChartOptions: ChartOptions<'pie'> = {
 const fetchAllTopics = async () => {
     loadingTopics.value = true;
     try {
-        const response = await axios.get(route('agents.topics.list', props.agent.id));
+        const response = await axios.get(route('agents.topics.list', props.agent.external_id));
         agentTopics.value = response.data;
         
         // Get all topics from the database
-        const allTopicsResponse = await axios.get(route('agents.topics.list', props.agent.id), {
+        const allTopicsResponse = await axios.get(route('agents.topics.list', props.agent.external_id), {
             params: { all: true }
         });
         allTopics.value = allTopicsResponse.data;
@@ -308,7 +308,7 @@ const isTopicAssociated = (topicId: number) => {
 // Add topic to agent
 const addTopicToAgent = async (topicId: number) => {
     try {
-        await axios.post(route('agents.topics.store', props.agent.id), {
+        await axios.post(route('agents.topics.store', props.agent.external_id), {
             topic_id: topicId
         });
         
@@ -326,7 +326,7 @@ const addTopicToAgent = async (topicId: number) => {
 // Remove topic from agent
 const removeTopicFromAgent = async (topicId: number) => {
     try {
-        await axios.delete(route('agents.topics.delete', { agent: props.agent.id, topic: topicId }));
+        await axios.delete(route('agents.topics.delete', { agent: props.agent.external_id, topic: topicId }));
         
         // Refresh topics
         await fetchAllTopics();
@@ -348,7 +348,7 @@ const createNewTopic = async () => {
     
     isAddingTopic.value = true;
     try {
-        await axios.post(route('agents.topics.store', props.agent.id), {
+        await axios.post(route('agents.topics.store', props.agent.external_id), {
             topic: newTopicName.value.trim(),
             description: newTopicDescription.value.trim()
         });

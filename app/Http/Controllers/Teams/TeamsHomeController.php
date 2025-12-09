@@ -13,7 +13,10 @@ class TeamsHomeController
     {
         $user = $request->user();
 
-        $teams = $user->teams
+        // Get all teams (owned + member)
+        $allTeams = $user->ownedTeams->concat($user->memberTeams);
+
+        $teams = $allTeams
             ->map(fn ($team) => TeamListItemData::fromTeamForUser($team, $user))
             ->values()
             ->all();

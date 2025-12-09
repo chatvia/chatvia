@@ -15,6 +15,10 @@ class AgentTopicsStoreController
             code: 404,
         );
 
+        abort_if(
+            boolean: Gate::allows('top', $agent)
+        );
+
         // Check if adding an existing topic or creating a new one
         if ($request->has('topic_id')) {
             // Associate existing topic with agent

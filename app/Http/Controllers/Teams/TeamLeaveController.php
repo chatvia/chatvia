@@ -15,7 +15,7 @@ class TeamLeaveController
             return back()->withErrors(['team' => 'Team owners cannot leave their own team. Transfer ownership first or delete the team.']);
         }
 
-        $team->deleteUser($user);
+        $team->removeMember($user);
 
         return redirect()->route('teams.index')->with('success', 'You have left the team.');
     }

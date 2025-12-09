@@ -63,9 +63,6 @@ return [
     */
     'defaults' => [
         \App\Models\Agent::class => [
-            'message_history' => [
-                'retention' => 30,
-            ],
             'appearance' => [
                 'avatar' => null,
                 'logo' => null,
@@ -150,9 +147,6 @@ return [
     |
     */
     'validation' => [
-        'message_history' => [
-            'retention' => ['nullable', 'integer'],
-        ],
         'appearance' => [
             'avatar' => ['nullable', 'image'],
             'logo' => ['nullable', 'image'],

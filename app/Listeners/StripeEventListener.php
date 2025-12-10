@@ -199,6 +199,7 @@ class StripeEventListener
             'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
             'members_limit' => $fixedLimit['members_limit'],
             'links_limit' => $fixedLimit['links_limit'],
+            'teams_limit' => $fixedLimit['teams_limit'],
         ]);
 
         // Add message credits for the billing period

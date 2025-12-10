@@ -42,15 +42,15 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Teams',
-        href: '/settings/teams',
+        href: '/my/teams',
     },
     {
         title: props.team.name,
-        href: `/settings/teams/${props.team.id}`,
+        href: `/my/teams/${props.team.id}`,
     },
     {
         title: 'Create Role',
-        href: `/settings/teams/${props.team.id}/roles/create`,
+        href: `/my/teams/${props.team.id}/roles/create`,
     },
 ];
 
@@ -58,7 +58,7 @@ const form = useForm({
     name: '',
     permissions: [] as string[],
     all_agents: true,
-    agent_ids: [] as number[],
+    agent_ids: [] as string[],
 });
 
 const submit = () => {
@@ -156,13 +156,13 @@ const selectedAgentNames = computed(() => {
     if (form.all_agents) return 'All Agents';
     if (form.agent_ids.length === 0) return 'Select agents...';
     const names = props.agents
-        .filter(a => form.agent_ids.includes(a.id))
+        .filter(a => form.agent_ids.includes(a.external_id))
         .map(a => a.name);
     if (names.length <= 2) return names.join(', ');
     return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
 });
 
-const toggleAgentSelection = (agentId: number) => {
+const toggleAgentSelection = (agentId: string) => {
     if (form.agent_ids.includes(agentId)) {
         form.agent_ids = form.agent_ids.filter(id => id !== agentId);
     } else {

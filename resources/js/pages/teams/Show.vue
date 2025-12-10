@@ -114,11 +114,11 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Teams',
-        href: '/teams',
+        href: '/my/teams',
     },
     {
         title: props.team.name,
-        href: `/teams/${props.team.id}`,
+        href: `/my/teams/${props.team.id}`,
     },
 ];
 

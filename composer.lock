@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fd78efbf8d233786a9533be1dfe820f4",
+    "content-hash": "0a71768a0a9379711a02c6f24f61d045",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -8309,16 +8309,16 @@
         },
         {
             "name": "prism-php/prism",
-            "version": "v0.85.0",
+            "version": "v0.99.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/prism-php/prism.git",
-                "reference": "8f72729336b00619ff8a5181d8e1c899b87f97e2"
+                "reference": "c56ba828bbb6d11a5a4b7f799823b83d3155888b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/prism-php/prism/zipball/8f72729336b00619ff8a5181d8e1c899b87f97e2",
-                "reference": "8f72729336b00619ff8a5181d8e1c899b87f97e2",
+                "url": "https://api.github.com/repos/prism-php/prism/zipball/c56ba828bbb6d11a5a4b7f799823b83d3155888b",
+                "reference": "c56ba828bbb6d11a5a4b7f799823b83d3155888b",
                 "shasum": ""
             },
             "require": {
@@ -8327,6 +8327,8 @@
                 "php": "^8.2"
             },
             "require-dev": {
+                "brianium/paratest": "^7.8.4",
+                "laravel/mcp": "^0.3.2",
                 "laravel/pint": "^1.14",
                 "mockery/mockery": "^1.6",
                 "orchestra/testbench": "^10",
@@ -8334,11 +8336,11 @@
                 "pestphp/pest-plugin-arch": "^3.0",
                 "pestphp/pest-plugin-laravel": "^3.0",
                 "phpstan/extension-installer": "^1.3",
-                "phpstan/phpdoc-parser": "^1.24",
-                "phpstan/phpstan": "^1.11",
-                "phpstan/phpstan-deprecation-rules": "^1.2",
+                "phpstan/phpdoc-parser": "^2.0",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
                 "projektgopher/whisky": "^0.7.0",
-                "rector/rector": "^1.1",
+                "rector/rector": "2.2.7",
                 "spatie/laravel-ray": "^1.39",
                 "symplify/rule-doc-generator-contracts": "^11.2"
             },
@@ -8374,7 +8376,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications.",
             "support": {
                 "issues": "https://github.com/prism-php/prism/issues",
-                "source": "https://github.com/prism-php/prism/tree/v0.85.0"
+                "source": "https://github.com/prism-php/prism/tree/v0.99.0"
             },
             "funding": [
                 {
@@ -8382,7 +8384,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-08-14T15:03:28+00:00"
+            "time": "2025-12-06T22:39:44+00:00"
         },
         {
             "name": "psr/cache",

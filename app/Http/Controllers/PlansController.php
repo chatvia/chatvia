@@ -20,10 +20,10 @@ class PlansController
         $llms = Llm::query()->select(['descriptive_name', 'icon', 'requires_paid_plan'])->get();
 
         return Inertia::render('billing/Plans', [
-            'packages' => $billing->getAvailablePackages(),
+            'packages' => $billing->getAvailablePackages()->values()->toArray(),
             'addons' => $addons,
-            'currentPackage' => $currentPackage['id'],
-            'comparisonFeatures' => $billing->comparisonFeatures(),
+            'currentPackage' => $currentPackage['id'] ?? null,
+            'comparisonFeatures' => array_values($billing->comparisonFeatures()),
             'billingConfig' => [
                 'ui' => config('billing.ui'),
                 'commonFeatures' => config('billing.common_features'),

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedInteger('minutes_limit')->index()->default(0);
             $table->unsignedInteger('custom_domains_limit')->index()->default(0);
             $table->unsignedInteger('members_limit')->index()->default(0);
+            $table->unsignedInteger('teams_limit')->index()->default(0);
         });
     }
 

@@ -13,13 +13,13 @@ class UrlIngestionEvent implements ShouldBroadcastNow
 
     public function __construct(
         public AgentWebsiteUrl $websiteUrl,
-        public int $agentId
+        public string $agentExternalId
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentId.'.web.ingestion.url'),
+            new PrivateChannel('agents.'.$this->agentExternalId.'.web.ingestion.url'),
         ];
     }
 

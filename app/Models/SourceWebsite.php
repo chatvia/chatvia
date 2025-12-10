@@ -60,11 +60,12 @@ class SourceWebsite extends Model implements ChunkableContract
 
         // Dispatch crawler job and event for each agent
         if ($agentId) {
-            WebsiteCrawlerEvent::dispatch($this, $agentId);
+            $externalId = Agent::where('id', $agentId)->value('external_id');
+            WebsiteCrawlerEvent::dispatch($this, $externalId);
             WebsiteCrawlerJob::dispatch($this, $crawlerData, $agentId);
         } else {
             $this->agents->each(function ($agent) use ($crawlerData) {
-                WebsiteCrawlerEvent::dispatch($this, $agent->id);
+                WebsiteCrawlerEvent::dispatch($this, $agent->external_id);
                 WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent->id);
             });
         }

@@ -16,13 +16,13 @@ class WebsiteIngestionProgressEvent implements ShouldBroadcastNow
 
     public function __construct(
         public SourceWebsite $website,
-        public int $agentId
+        public string $agentExternalId
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentId.'.crawler.progress'),
+            new PrivateChannel('agents.'.$this->agentExternalId.'.crawler.progress'),
         ];
     }
 

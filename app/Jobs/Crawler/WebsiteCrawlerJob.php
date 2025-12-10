@@ -4,6 +4,7 @@ namespace App\Jobs\Crawler;
 
 use App\Data\Crawler\CrawlerData;
 use App\Events\WebsiteCrawlerEvent;
+use App\Models\Agent;
 use App\Models\SourceWebsite;
 use App\Services\Crawler\Crawler;
 use Illuminate\Bus\Queueable;
@@ -49,7 +50,8 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
         $this->website->refresh();
 
-        WebsiteCrawlerEvent::dispatch($this->website, $this->agentId);
+        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
+        WebsiteCrawlerEvent::dispatch($this->website, $agentExternalId);
     }
 
     public function uniqueId(): string
@@ -65,6 +67,7 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
         report($exception);
 
-        WebsiteCrawlerEvent::dispatch($this->website, $this->agentId);
+        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
+        WebsiteCrawlerEvent::dispatch($this->website, $agentExternalId);
     }
 }

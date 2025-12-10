@@ -16,13 +16,13 @@ class WebsiteCrawlerEvent implements ShouldBroadcastNow
 
     public function __construct(
         public SourceWebsite $website,
-        public int $agentId
+        public string $agentExternalId
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentId.'.crawler'),
+            new PrivateChannel('agents.'.$this->agentExternalId.'.crawler'),
         ];
     }
 

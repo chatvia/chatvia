@@ -11,12 +11,15 @@ class TextIngestionEvent implements ShouldBroadcastNow
 {
     use Dispatchable;
 
-    public function __construct(public SourceText $text) {}
+    public function __construct(
+        public SourceText $text,
+        public string $agentExternalId
+    ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->text->agent_id.'.ingestion.text'),
+            new PrivateChannel('agents.'.$this->agentExternalId.'.ingestion.text'),
         ];
     }
 

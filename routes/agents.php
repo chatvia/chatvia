@@ -151,7 +151,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::post('topics', AgentTopicsStoreController::class)->name('topics.store');
         Route::patch('topics/{topic}', AgentTopicsUpdateController::class)->name('topics.update');
         Route::delete('topics/{topic}', AgentTopicsDeleteController::class)->name('topics.delete');
-        Route::patch('/', AgentUpdateController::class)->name('update');
+        // Route::patch('/update', AgentUpdateController::class)->name('update');
         Route::get('widget/preview', WidgetPreviewController::class)->name('widget.preview');
         Route::get('playground', AgentPlaygroundController::class)->name('playground');
 
@@ -257,9 +257,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
 
         // Rename Agent
         Route::patch('rename', AgentRenameController::class)->name('rename');
-
-        // Update Agent
-        Route::patch('update', AgentUpdateController::class)->name('update');
 
         // Linking / Unlinking Source Files
         Route::get('sources/trained-files', AgentSourcesTrainedListController::class)->name('sources.list');

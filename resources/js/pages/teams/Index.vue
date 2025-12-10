@@ -50,7 +50,7 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Teams',
-        href: '/settings/teams',
+        href: '/my/teams',
     },
 ];
 

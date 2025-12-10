@@ -119,7 +119,7 @@ use App\Http\Controllers\Agents\Workflow\AgentWorkflowController;
 use App\Http\Controllers\CountriesListController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified'])->prefix('my/')->group(function () {
+Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group(function () {
     //    Route::resource('agents', AgentsIndexController::class);
 
     Route::get('agents', AgentsIndexController::class)->name('agents.index');

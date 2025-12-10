@@ -88,7 +88,6 @@ const props = defineProps<{
     packages: Package[];
     addons?: Addon[];
     currentPackage: string;
-    stripeKey: string;
     comparisonFeatures: ComparisonFeature[];
     llms?: LLM[];
     billingConfig: {

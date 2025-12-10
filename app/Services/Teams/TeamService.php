@@ -120,7 +120,7 @@ class TeamService
     public function teamAgents(Team $team): Collection
     {
         return $team->agents()
-            ->get(['id', 'name'])
+            ->get(['id', 'external_id', 'name'])
             ->map(fn (Agent $agent) => TeamAgentData::fromModel($agent));
     }
 

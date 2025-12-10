@@ -9,6 +9,10 @@ class BillingController
 {
     public function __invoke(Request $request)
     {
+        if (! $request->user()->subscribed()) {
+            return redirect()->route('billing.packages');
+        }
+
         return Inertia::render('billing/Index');
     }
 }

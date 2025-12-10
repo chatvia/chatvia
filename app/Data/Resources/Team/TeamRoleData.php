@@ -17,7 +17,7 @@ class TeamRoleData extends Data
         /** @var string[] */
         public array $permissions,
         public bool $all_agents,
-        /** @var int[] */
+        /** @var string[] */
         public array $agent_ids,
     ) {}
 
@@ -30,7 +30,7 @@ class TeamRoleData extends Data
             description: $role->description,
             permissions: $role->permissions->pluck('name')->toArray(),
             all_agents: $role->hasPermissionTo('agents.access-all'),
-            agent_ids: $role->agents()->pluck('agents.id')->toArray(),
+            agent_ids: $role->agents()->pluck('agents.external_id')->toArray(),
         );
     }
 }

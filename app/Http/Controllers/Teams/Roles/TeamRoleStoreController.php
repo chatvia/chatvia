@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Teams\Roles;
 
+use App\Models\Agent;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Team;
@@ -13,21 +14,28 @@ class TeamRoleStoreController
     {
         $user = $request->user();
 
-        if (! $user->ownsTeam($team)) {
-            abort(403, 'Only the team owner can create roles.');
-        }
+        //        if (! $user->ownsTeam($team)) {
+        //            return back()->withErrors(['teams' => 'Only the team owner can create roles.']);
+        //        }
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'permissions' => ['required', 'array', 'min:1'],
             'permissions.*' => ['string'],
             'all_agents' => ['boolean'],
-            'agent_ids' => ['required_unless:all_agents,true', 'array', 'min:1'],
-            'agent_ids.*' => ['integer', 'exists:agents,id'],
+            'agent_ids' => ['exclude_if:all_agents,true', 'required', 'array', 'min:1'],
+            'agent_ids.*' => ['string', 'exists:agents,external_id'],
         ]);
 
         $allAgents = $validated['all_agents'] ?? false;
-        $agentIds = $validated['agent_ids'] ?? [];
+        $externalIds = $validated['agent_ids'] ?? [];
+
+        // Convert external_ids to actual agent IDs
+        $agentIds = $allAgents ? [] : Agent::whereIn('external_id', $externalIds)->pluck('id')->toArray();
+
+        if (! $allAgents && count($agentIds) !== count($externalIds)) {
+            return back()->withErrors(['agent_ids' => 'One or more selected agents are invalid.']);
+        }
 
         $code = strtolower(str_replace(' ', '_', $validated['name']));
 

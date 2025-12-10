@@ -538,4 +538,56 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             agent: $agent,
         );
     }
+
+    // =========================================================================
+    // Team & Member Quota Methods
+    // =========================================================================
+
+    /**
+     * Get the number of teams the user has created (owns).
+     */
+    public function teamsCreatedCount(): int
+    {
+        return $this->ownedTeams()->count();
+    }
+
+    /**
+     * Get the number of members the user has invited across all teams.
+     */
+    public function teamMembersCount(): int
+    {
+        return $this->managedUsers()->count();
+    }
+
+    /**
+     * Get remaining teams the user can create.
+     */
+    public function remainingTeamsQuota(): int
+    {
+        return max(0, $this->quota->teams_limit - $this->teamsCreatedCount());
+    }
+
+    /**
+     * Get remaining members the user can invite.
+     */
+    public function remainingMembersQuota(): int
+    {
+        return max(0, $this->quota->members_limit - $this->teamMembersCount());
+    }
+
+    /**
+     * Check if the user can create more teams.
+     */
+    public function canCreateTeam(): bool
+    {
+        return $this->teamsCreatedCount() < $this->quota->teams_limit;
+    }
+
+    /**
+     * Check if the user can invite more members.
+     */
+    public function canAddTeamMember(): bool
+    {
+        return $this->teamMembersCount() < $this->quota->members_limit;
+    }
 }

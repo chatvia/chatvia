@@ -426,6 +426,7 @@ permissions: Array<string>;
 };
 export type TeamAgentData = {
 id: number;
+external_id: string;
 name: string;
 };
 export type TeamData = {
@@ -472,6 +473,6 @@ name: string;
 description: string | null;
 permissions: Array<string>;
 all_agents: boolean;
-agent_ids: Array<number>;
+agent_ids: Array<string>;
 };
 }

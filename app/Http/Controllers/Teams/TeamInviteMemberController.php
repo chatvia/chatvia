@@ -16,6 +16,7 @@ class TeamInviteMemberController
 
     public function __invoke(Request $request, Team $team)
     {
+        /** @var User $user */
         $user = $request->user();
 
         if (! $user->ownsTeam($team) && ! $user->hasTeamPermission($team, 'team.invite')) {
@@ -32,6 +33,15 @@ class TeamInviteMemberController
 
         if (! $this->teamService->canInviteMembers($team)) {
             return back()->withErrors(['email' => 'You need an active subscription to invite team members.']);
+        }
+
+        /** @var User $teamOwner */
+        $teamOwner = $team->owner;
+
+        if (! $teamOwner->canAddTeamMember()) {
+            return back()->withErrors([
+                'email' => "You've reached your member limit ({$teamOwner->quota->members_limit}). Upgrade your plan to invite more members.",
+            ]);
         }
 
         if ($validated['user_id']) {

@@ -11,6 +11,7 @@ class TeamAgentData extends Data
 {
     public function __construct(
         public int $id,
+        public string $external_id,
         public string $name,
     ) {}
 
@@ -18,6 +19,7 @@ class TeamAgentData extends Data
     {
         return new self(
             id: $agent->id,
+            external_id: $agent->external_id,
             name: $agent->name,
         );
     }

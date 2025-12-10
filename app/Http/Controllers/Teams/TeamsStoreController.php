@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Teams;
 
 use App\Models\Team;
+use App\Models\User;
 use App\Services\Teams\TeamService;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,14 @@ class TeamsStoreController
             'name' => ['required', 'string', 'max:255'],
         ]);
 
+        /** @var User $user */
         $user = $request->user();
+
+        if (! $user->canCreateTeam()) {
+            return back()->withErrors([
+                'name' => "You've reached your team limit ({$user->quota->teams_limit}). Upgrade your plan to create more teams.",
+            ]);
+        }
 
         $team = Team::create([
             'name' => $validated['name'],

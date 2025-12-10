@@ -79,12 +79,22 @@ class TeamInvitationController extends Controller
             return back()->withErrors(['invitation' => 'This invitation has expired.']);
         }
 
+        /** @var Team $team */
         $team = $invitation->team;
+
+        /** @var User $owner */
         $owner = $team->owner;
 
         // Check if the team owner has an active subscription
         if (! $owner->subscribed() && ! $owner->onTrial()) {
             return back()->withErrors(['invitation' => 'The team owner does not have an active subscription.']);
+        }
+
+        // Check if the team owner has reached their member limit
+        if (! $owner->canAddTeamMember()) {
+            return back()->withErrors([
+                'invitation' => 'The team owner has reached their member limit. Please contact them to upgrade their plan.',
+            ]);
         }
 
         // Check if the user already exists

@@ -16,13 +16,13 @@ class FileIngestionProgressEvent implements ShouldBroadcastNow
 
     public function __construct(
         public SourceFile $sourceFile,
-        public int $agentId,
+        public string $agentExternalId,
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentId.'.files.progress'),
+            new PrivateChannel('agents.'.$this->agentExternalId.'.files.progress'),
         ];
     }
 

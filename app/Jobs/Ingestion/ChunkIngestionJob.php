@@ -95,6 +95,7 @@ class ChunkIngestionJob implements ShouldQueue
         $costInCents = OpenAI::calculateCostInCents($systemPrompt.$userPrompt, $chunk);
 
         $agent = Agent::find($this->chunk->agent_id);
+        $agentExternalId = $agent->external_id;
 
         $createdChunk = Chunk::query()->create([
             'user_id' => $agent->user_id,
@@ -133,10 +134,10 @@ class ChunkIngestionJob implements ShouldQueue
                     // Dispatch events - load relationship fresh to ensure it exists
                     $website = $agentWebsiteUrl->agentWebsite;
                     if ($website) {
-                        WebsiteIngestionProgressEvent::dispatch($website, $this->chunk->agent_id);
+                        WebsiteIngestionProgressEvent::dispatch($website, $agentExternalId);
                     }
 
-                    UrlIngestionEvent::dispatch($agentWebsiteUrl, $this->chunk->agent_id);
+                    UrlIngestionEvent::dispatch($agentWebsiteUrl, $agentExternalId);
                 }
             }
         }
@@ -144,14 +145,14 @@ class ChunkIngestionJob implements ShouldQueue
         if ($this->chunk->chunkable_type === SourceFile::class) {
             FileIngestionProgressEvent::dispatch(
                 SourceFile::find($this->chunk->chunkable_id),
-                $this->chunk->agent_id
+                $agentExternalId
             );
         }
 
         if ($this->chunk->chunkable_type === SourceText::class) {
             TextIngestionProgressEvent::dispatch(
                 SourceText::find($this->chunk->chunkable_id),
-                $this->chunk->agent_id
+                $agentExternalId
             );
         }
     }

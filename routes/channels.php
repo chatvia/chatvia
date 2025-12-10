@@ -6,38 +6,50 @@ use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Gate;
 
-Broadcast::channel('agents.{id}.crawler', function (User $user, $id) {
-    $agent = Agent::find($id);
+Broadcast::channel('agents.{externalId}.crawler', function (User $user, string $externalId) {
+    $agent = Agent::where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
-Broadcast::channel('agents.{id}.crawler.progress', function (User $user, $id) {
-    $agent = Agent::find($id);
+Broadcast::channel('agents.{externalId}.crawler.progress', function (User $user, string $externalId) {
+    $agent = Agent::where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
-Broadcast::channel('agents.{id}.files.progress', function (User $user, $id) {
-    $agent = Agent::find($id);
+Broadcast::channel('agents.{externalId}.files.progress', function (User $user, string $externalId) {
+    $agent = Agent::where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
-Broadcast::channel('agents.{id}.texts.progress', function (User $user, $id) {
-    $agent = Agent::find($id);
+Broadcast::channel('agents.{externalId}.texts.progress', function (User $user, string $externalId) {
+    $agent = Agent::where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
-Broadcast::channel('agents.{id}.ingestion.text', function (User $user, $id) {
-    $agent = Agent::find($id);
+Broadcast::channel('agents.{externalId}.ingestion.text', function (User $user, string $externalId) {
+    $agent = Agent::where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
-Broadcast::channel('agents.{id}.web.ingestion.url', function (User $user, $id) {
-    $agent = Agent::find($id);
+Broadcast::channel('agents.{externalId}.web.ingestion.url', function (User $user, string $externalId) {
+    $agent = Agent::where('external_id', $externalId)->first();
+
+    return $agent && Gate::forUser($user)->allows('access-agent', $agent);
+});
+
+Broadcast::channel('agents.{externalId}.ingestion.qa', function (User $user, string $externalId) {
+    $agent = Agent::where('external_id', $externalId)->first();
+
+    return $agent && Gate::forUser($user)->allows('access-agent', $agent);
+});
+
+Broadcast::channel('agents.{externalId}.qa.progress', function (User $user, string $externalId) {
+    $agent = Agent::where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });

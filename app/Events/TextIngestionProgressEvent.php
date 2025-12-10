@@ -16,13 +16,13 @@ class TextIngestionProgressEvent implements ShouldBroadcastNow
 
     public function __construct(
         public SourceText $sourceText,
-        public int $agentId,
+        public string $agentExternalId,
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentId.'.texts.progress'),
+            new PrivateChannel('agents.'.$this->agentExternalId.'.texts.progress'),
         ];
     }
 

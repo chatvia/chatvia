@@ -3,6 +3,7 @@
 namespace App\Jobs\Ingestion;
 
 use App\Events\TextIngestionEvent;
+use App\Models\Agent;
 use App\Models\SourceText;
 use App\Services\Chunking\Chunker;
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
@@ -49,7 +50,9 @@ class TextIngestionJob implements ShouldQueue
 
         $this->agentText->update(['status' => 'ingesting']);
 
-        TextIngestionEvent::dispatch($this->agentText);
+        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
+
+        TextIngestionEvent::dispatch($this->agentText, $agentExternalId);
 
         $jobs = collect($chunks)->map(fn ($chunk) => new ChunkIngestionJob($chunk));
 
@@ -58,12 +61,13 @@ class TextIngestionJob implements ShouldQueue
         );
 
         $agentTextId = $this->agentText->id;
+        $externalId = $agentExternalId;
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent Text ID: '.$this->agentText->id)
-            ->then(function (Batch $batch) use ($agentTextId) {
+            ->then(function (Batch $batch) use ($agentTextId, $externalId) {
                 SourceText::find($agentTextId)?->update(['status' => 'ingested']);
-                TextIngestionEvent::dispatch(SourceText::find($agentTextId));
+                TextIngestionEvent::dispatch(SourceText::find($agentTextId), $externalId);
             })
             ->dispatch();
 

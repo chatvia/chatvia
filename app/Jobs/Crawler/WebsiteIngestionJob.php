@@ -7,6 +7,7 @@ use App\Events\WebsiteCrawlerEvent;
 use App\Events\WebsiteIngestionProgressEvent;
 use App\Jobs\Ingestion\ChunkIngestionJob;
 use App\Jobs\Ingestion\SummaryIngestionJob;
+use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
 use App\Models\SourceWebsite;
 use App\Services\Ingestion\Sources\WebsiteIngestion;
@@ -37,7 +38,9 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $this->website->refresh();
 
-        WebsiteCrawlerEvent::dispatch($this->website, $this->agentId);
+        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
+
+        WebsiteCrawlerEvent::dispatch($this->website, $agentExternalId);
 
         /** @var WebsiteIngestion $websiteIngestion */
         $websiteIngestion = app(WebsiteIngestion::class, ['website' => $this->website, 'agentId' => $this->agentId]);
@@ -75,6 +78,8 @@ class WebsiteIngestionJob implements ShouldQueue
                 $website = SourceWebsite::find($websiteId);
 
                 if ($website) {
+                    $externalId = Agent::where('id', $agentId)->value('external_id');
+
                     // Get URLs that are still in 'ingesting' status and update them
                     $urlsToUpdate = $website->urls()
                         ->where('status', 'ingesting')
@@ -82,13 +87,13 @@ class WebsiteIngestionJob implements ShouldQueue
 
                     foreach ($urlsToUpdate as $url) {
                         $url->update(['status' => 'ingested', 'crawled_at' => now()]);
-                        UrlIngestionEvent::dispatch($url, $agentId);
+                        UrlIngestionEvent::dispatch($url, $externalId);
                     }
 
                     // Update website status and dispatch final progress event
                     $website->update(['status' => 'ingested']);
-                    WebsiteIngestionProgressEvent::dispatch($website, $agentId);
-                    WebsiteCrawlerEvent::dispatch($website, $agentId);
+                    WebsiteIngestionProgressEvent::dispatch($website, $externalId);
+                    WebsiteCrawlerEvent::dispatch($website, $externalId);
                 }
             })
             ->dispatch();

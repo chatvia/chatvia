@@ -3,6 +3,7 @@
 namespace App\Services\Ingestion\Sources;
 
 use App\Events\UrlIngestionEvent;
+use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
 use App\Models\SourceWebsite;
 use App\Services\Chunking\Chunker;
@@ -76,7 +77,8 @@ class WebsiteIngestion
                 ]);
 
                 if ($status === 'ingested') {
-                    UrlIngestionEvent::dispatch($urlModel, $this->agentId);
+                    $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
+                    UrlIngestionEvent::dispatch($urlModel, $agentExternalId);
                 }
 
                 return [

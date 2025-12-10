@@ -106,7 +106,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
                 // Dispatch final progress event for all agents using this file
                 if ($file) {
                     foreach ($file->agents as $agent) {
-                        \App\Events\FileIngestionProgressEvent::dispatch($file, $agent->id);
+                        \App\Events\FileIngestionProgressEvent::dispatch($file, $agent->external_id);
                     }
                 }
             })

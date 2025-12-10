@@ -4,6 +4,7 @@ namespace App\Jobs\Crawler;
 
 use App\Events\UrlIngestionEvent;
 use App\Jobs\Ingestion\ChunkIngestionJob;
+use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
 use App\Models\SourceWebsite;
 use App\Services\Chunking\Chunker;
@@ -36,9 +37,11 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
         $text = $parser->getTextFromHtml($response->body());
         $checksum = md5($text);
 
+        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
+
         if ($checksum === $this->websiteUrl->checksum) {
             $this->websiteUrl->update(['status' => 'ingested']);
-            UrlIngestionEvent::dispatch($this->websiteUrl, $this->agentId);
+            UrlIngestionEvent::dispatch($this->websiteUrl, $agentExternalId);
 
             return;
         }
@@ -68,7 +71,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
             'expected_chunks' => ($website->expected_chunks - $deletedChunks + count($chunks)),
         ]);
 
-        UrlIngestionEvent::dispatch($this->websiteUrl, $this->agentId);
+        UrlIngestionEvent::dispatch($this->websiteUrl, $agentExternalId);
 
         $prompt = PromptLoader::load('chunking/web');
 

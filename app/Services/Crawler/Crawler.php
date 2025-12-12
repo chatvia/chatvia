@@ -45,7 +45,7 @@ class Crawler
             ->setTotalCrawlLimit($this->totalCrawlLimit)
             ->setDelayBetweenRequests($data->slow_crawling ? 1000 : 0)
             ->setBrowsershot($this->createBrowsershot())
-            ->executeJavaScript()
+//            ->executeJavaScript()
             ->respectRobots();
 
         if ($data->limit) {

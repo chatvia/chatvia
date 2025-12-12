@@ -8,7 +8,7 @@
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
-        "postinstall": "puppeteer browsers install chrome-headless-shell"
+        "postinstall": "puppeteer browsers install chrome-headless-shell && chmod -R 755 ${PUPPETEER_CACHE_DIR:-$HOME/.cache/puppeteer}"
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",

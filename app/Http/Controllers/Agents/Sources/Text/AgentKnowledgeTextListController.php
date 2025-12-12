@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Agents\Sources\Text;
 
 use App\Models\Agent;
+use Illuminate\Http\Request;
 
 class AgentKnowledgeTextListController
 {
-    public function __invoke(Agent $agent)
+    public function __invoke(Request $request, Agent $agent)
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),

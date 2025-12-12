@@ -16,7 +16,7 @@ class ChatShowLoginController
     {
         $agent = Agent::resolveAgentFromSubdomain($request->subdomain());
 
-        if ($agent->is_public) {
+        if (is_null($agent) || $agent->is_public) {
             return to_route('chat.home');
         }
 

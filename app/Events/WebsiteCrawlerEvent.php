@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Agent;
 use App\Models\SourceWebsite;
 use Illuminate\Broadcasting\InteractsWithBroadcasting;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -16,13 +17,13 @@ class WebsiteCrawlerEvent implements ShouldBroadcastNow
 
     public function __construct(
         public SourceWebsite $website,
-        public string $agentExternalId
+        public Agent $agent
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentExternalId.'.crawler'),
+            new PrivateChannel('agents.'.$this->agent->external_id.'.crawler'),
         ];
     }
 

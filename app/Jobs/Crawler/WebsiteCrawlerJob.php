@@ -19,7 +19,9 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public SourceWebsite $website, public CrawlerData $data, public int $agentId)
+    public bool $deleteWhenMissingModels = true;
+
+    public function __construct(public SourceWebsite $website, public CrawlerData $data, public Agent $agent)
     {
         $this->onQueue('ingestion.website');
     }
@@ -50,13 +52,12 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
         $this->website->refresh();
 
-        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
-        WebsiteCrawlerEvent::dispatch($this->website, $agentExternalId);
+        WebsiteCrawlerEvent::dispatch($this->website, $this->agent);
     }
 
     public function uniqueId(): string
     {
-        return 'agents:'.$this->agentId.':website:'.$this->website->id.':crawler';
+        return 'agents:'.$this->agent->external_id.':website:'.$this->website->id.':crawler';
     }
 
     public function failed(?Throwable $exception): void
@@ -67,7 +68,6 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
         report($exception);
 
-        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
-        WebsiteCrawlerEvent::dispatch($this->website, $agentExternalId);
+        WebsiteCrawlerEvent::dispatch($this->website, $this->agent);
     }
 }

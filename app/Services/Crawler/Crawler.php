@@ -3,6 +3,7 @@
 namespace App\Services\Crawler;
 
 use App\Data\Crawler\CrawlerData;
+use Spatie\Browsershot\Browsershot;
 use Spatie\Crawler\Crawler as CrawlerSpatie;
 
 class Crawler
@@ -43,6 +44,7 @@ class Crawler
             ->setConcurrency($this->concurrency)
             ->setTotalCrawlLimit($this->totalCrawlLimit)
             ->setDelayBetweenRequests($data->slow_crawling ? 1000 : 0)
+            ->setBrowsershot($this->createBrowsershot())
             ->executeJavaScript()
             ->respectRobots();
 
@@ -131,5 +133,36 @@ class Crawler
 
         // Wrap in delimiters and anchors
         return '#^'.$regex.'#';
+    }
+
+    private function createBrowsershot(): Browsershot
+    {
+        $browsershot = new Browsershot;
+
+        $nodePath = config('services.bin.node');
+        $npmPath = config('services.bin.npm');
+        $nvmIncludePath = config('services.bin.nvm_include_path');
+
+        if ($nodePath) {
+            $browsershot->setNodeBinary($nodePath);
+        }
+
+        if ($npmPath) {
+            $browsershot->setNpmBinary($npmPath);
+        }
+
+        if ($nvmIncludePath) {
+            $browsershot->setIncludePath($nvmIncludePath);
+        }
+
+        // Add common Chrome flags for server environments
+        $browsershot->addChromiumArguments([
+            'no-sandbox',
+            'disable-setuid-sandbox',
+            'disable-dev-shm-usage',
+            'disable-gpu',
+        ]);
+
+        return $browsershot;
     }
 }

@@ -46,7 +46,7 @@
                 <p class="text-slate-600 mb-6 leading-relaxed">
                     Build custom knowledge bases like ChatGPT. Upload documents, websites, and files to train your AI on your specific content.
                 </p>
-                <a href="#pricing"
+                <a href="https://help.chatvia.ai"
                    class="inline-flex items-center text-purple-600 hover:text-purple-700 font-medium text-sm group-hover:gap-2 transition-all">
                     See how it works in action
                     <svg class="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

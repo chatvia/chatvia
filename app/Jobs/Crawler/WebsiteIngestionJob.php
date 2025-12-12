@@ -27,7 +27,9 @@ class WebsiteIngestionJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable;
 
-    public function __construct(public SourceWebsite $website, public int $agentId)
+    public bool $deleteWhenMissingModels = true;
+
+    public function __construct(public SourceWebsite $website, public Agent $agent)
     {
         $this->onQueue('ingestion.website');
     }
@@ -38,12 +40,10 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $this->website->refresh();
 
-        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
-
-        WebsiteCrawlerEvent::dispatch($this->website, $agentExternalId);
+        WebsiteCrawlerEvent::dispatch($this->website, $this->agent);
 
         /** @var WebsiteIngestion $websiteIngestion */
-        $websiteIngestion = app(WebsiteIngestion::class, ['website' => $this->website, 'agentId' => $this->agentId]);
+        $websiteIngestion = app(WebsiteIngestion::class, ['website' => $this->website, 'agentId' => $this->agent->id]);
 
         /** @var AgentWebsiteUrl<array> $urls */
         $urls = $this->website->untrainedUrls;
@@ -70,7 +70,7 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $websiteId = $this->website->id;
 
-        $agentId = $this->agentId;
+        $agentId = $this->agent->id;
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent WebSite ID: '.$websiteId)
@@ -78,7 +78,7 @@ class WebsiteIngestionJob implements ShouldQueue
                 $website = SourceWebsite::find($websiteId);
 
                 if ($website) {
-                    $externalId = Agent::where('id', $agentId)->value('external_id');
+                    $agent = Agent::find($agentId);
 
                     // Get URLs that are still in 'ingesting' status and update them
                     $urlsToUpdate = $website->urls()
@@ -87,13 +87,13 @@ class WebsiteIngestionJob implements ShouldQueue
 
                     foreach ($urlsToUpdate as $url) {
                         $url->update(['status' => 'ingested', 'crawled_at' => now()]);
-                        UrlIngestionEvent::dispatch($url, $externalId);
+                        UrlIngestionEvent::dispatch($url, $agent->external_id);
                     }
 
                     // Update website status and dispatch final progress event
                     $website->update(['status' => 'ingested']);
-                    WebsiteIngestionProgressEvent::dispatch($website, $externalId);
-                    WebsiteCrawlerEvent::dispatch($website, $externalId);
+                    WebsiteIngestionProgressEvent::dispatch($website, $agent->external_id);
+                    WebsiteCrawlerEvent::dispatch($website, $agent);
                 }
             })
             ->dispatch();

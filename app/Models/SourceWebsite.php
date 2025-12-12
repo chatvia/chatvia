@@ -37,10 +37,11 @@ class SourceWebsite extends Model implements ChunkableContract
         // If agentId is provided, train for that specific agent
         // Otherwise, train for all agents this website is attached to
         if ($agentId) {
-            WebsiteIngestionJob::dispatch($this, $agentId);
+            $agent = Agent::find($agentId);
+            WebsiteIngestionJob::dispatch($this, $agent);
         } else {
             $this->agents->each(function ($agent) {
-                WebsiteIngestionJob::dispatch($this, $agent->id);
+                WebsiteIngestionJob::dispatch($this, $agent);
             });
         }
     }
@@ -60,13 +61,13 @@ class SourceWebsite extends Model implements ChunkableContract
 
         // Dispatch crawler job and event for each agent
         if ($agentId) {
-            $externalId = Agent::where('id', $agentId)->value('external_id');
-            WebsiteCrawlerEvent::dispatch($this, $externalId);
-            WebsiteCrawlerJob::dispatch($this, $crawlerData, $agentId);
+            $agent = Agent::find($agentId);
+            WebsiteCrawlerEvent::dispatch($this, $agent);
+            WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent);
         } else {
             $this->agents->each(function ($agent) use ($crawlerData) {
-                WebsiteCrawlerEvent::dispatch($this, $agent->external_id);
-                WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent->id);
+                WebsiteCrawlerEvent::dispatch($this, $agent);
+                WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent);
             });
         }
     }

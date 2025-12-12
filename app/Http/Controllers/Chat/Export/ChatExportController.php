@@ -59,10 +59,21 @@ readonly class ChatExportController
     private function toPdf(array $messages, string $filename)
     {
         return Pdf::withBrowsershot(function (Browsershot $browsershot) {
-            $browsershot
-                ->setIncludePath(config('services.bin.nvm_include_path'))
-                ->setNodeBinary(config('services.bin.node'))
-                ->setNpmBinary(config('services.bin.npm'));
+            if (config('services.bin.nvm_include_path')) {
+                $browsershot->setIncludePath(config('services.bin.nvm_include_path'));
+            }
+
+            if (config('services.bin.node')) {
+                $browsershot->setNodeBinary(config('services.bin.node'));
+            }
+
+            if (config('services.bin.npm')) {
+                $browsershot->setNpmBinary(config('services.bin.npm'));
+            }
+
+            if (config('services.bin.chrome')) {
+                $browsershot->setChromePath(config('services.bin.chrome'));
+            }
         })->view('chat.export.pdf', [
             'messages' => $messages,
         ])->download($filename.'.pdf');

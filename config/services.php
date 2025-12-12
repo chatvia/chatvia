@@ -86,6 +86,7 @@ return [
         'node' => env('NODE_BIN_PATH'),
         'npm' => env('NPM_BIN_PATH'),
         'nvm_include_path' => env('NVM_INCLUDE_PATH'),
+        'chrome' => env('CHROME_EXECUTABLE_PATH'),
         'libreoffice' => env('LIBREOFFICE_BIN_PATH', '/opt/homebrew/bin/soffice'),
         'pdfinfo' => env('PDFINFO_BIN_PATH', '/opt/homebrew/bin/pdfinfo'),
         'ffmpeg' => env('FFMPEG_BIN_PATH', '/opt/homebrew/bin/ffmpeg'),

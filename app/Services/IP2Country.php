@@ -23,7 +23,7 @@ class IP2Country
             return null;
         }
 
-        $url = Str::of(rtrim(config('services.ip2location.endpoint'), '/'))
+        $url = Str::of(rtrim(config('services.ip2location.endpoint'), '/').'/')
             ->append($ip)
             ->append('?key='.config('services.ip2location.key'))
             ->toString();

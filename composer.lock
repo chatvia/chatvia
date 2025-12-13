@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0a71768a0a9379711a02c6f24f61d045",
+    "content-hash": "2d0a8d226e4256738c6b4e923306a378",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -8306,6 +8306,63 @@
                 "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.0"
             },
             "time": "2025-08-30T15:50:23+00:00"
+        },
+        {
+            "name": "platformcommunity/flysystem-bunnycdn",
+            "version": "v3.3.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PlatformCommunity/flysystem-bunnycdn.git",
+                "reference": "5ebe968b871f04cb03b657d1bdc988384515dc13"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PlatformCommunity/flysystem-bunnycdn/zipball/5ebe968b871f04cb03b657d1bdc988384515dc13",
+                "reference": "5ebe968b871f04cb03b657d1bdc988384515dc13",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^7.4",
+                "league/flysystem": "^3.16",
+                "league/mime-type-detection": "^1.11"
+            },
+            "require-dev": {
+                "fzaninotto/faker": "^1.5",
+                "laravel/pint": "^0.2.3",
+                "league/flysystem-adapter-test-utilities": "^3",
+                "league/flysystem-memory": "^3.0",
+                "league/flysystem-path-prefixing": "^3.3",
+                "phpunit/phpunit": "@stable"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "PlatformCommunity\\Flysystem\\BunnyCDN\\": "src/",
+                    "PlatformCommunity\\Flysystem\\BunnyCDN\\Tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alex",
+                    "email": "alex@platformapp.io"
+                }
+            ],
+            "description": "Flysystem adapter for BunnyCDN",
+            "support": {
+                "issues": "https://github.com/PlatformCommunity/flysystem-bunnycdn/issues",
+                "source": "https://github.com/PlatformCommunity/flysystem-bunnycdn/tree/v3.3.5"
+            },
+            "time": "2024-10-29T03:40:14+00:00"
         },
         {
             "name": "prism-php/prism",

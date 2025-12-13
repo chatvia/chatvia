@@ -14,6 +14,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -66,6 +67,10 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
         // Get the file once and reuse it
         $file = $this->sourceFile->isWordFile() ? $this->sourceFile->convertToPdf() : $this->sourceFile->readFile();
 
+        // Calculate file checksum for caching
+        $fileChecksum = md5_file($file->getPathname());
+        $cacheKey = "llamaparse:file:{$fileChecksum}";
+
         if (! $externalJobId) {
             $externalJobId = $llamaParse->parse($file);
             $updateValues['external_parsing_job_id'] = $externalJobId;
@@ -75,7 +80,10 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
             $pages = Storage::get($this->sourceFile->parser_filepath);
             $pages = json_decode($pages, true, 512, JSON_THROW_ON_ERROR);
         } else {
-            $pages = $llamaParse->getPagesWithImages($externalJobId);
+            // Check cache first (24 hours)
+            $pages = Cache::remember($cacheKey, 86400, function () use ($llamaParse, $externalJobId) {
+                return $llamaParse->getPagesWithImages($externalJobId);
+            });
 
             $fileName = Str::uuid()->toString().'.json';
 

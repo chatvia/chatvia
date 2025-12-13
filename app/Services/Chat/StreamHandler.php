@@ -124,6 +124,9 @@ class StreamHandler
 
                 if ($lineNumber === 0) {
                     $messagePayload['message_id'] = $context->assistantMessageId;
+                    if ($context->userMessageId) {
+                        $messagePayload['user_message_id'] = $context->userMessageId;
+                    }
                 }
 
                 echo 'data: '.json_encode($messagePayload, JSON_THROW_ON_ERROR)."\n\n";

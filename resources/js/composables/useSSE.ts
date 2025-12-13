@@ -1,4 +1,4 @@
-import {ref} from 'vue';
+import { ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 
 export function useSSE() {
@@ -6,7 +6,7 @@ export function useSSE() {
     let abortController: AbortController | null = null;
 
     const startStream = (url: string, payload: string, callbacks: {
-        onMessage?: (content: string, messageId?: string) => void,
+        onMessage?: (content: string, messageId?: string, userMessageId?: string) => void,
         onDone?: () => void,
         onSources?: (sources: any[]) => void,
         onLanguage?: (language: string) => void
@@ -47,7 +47,7 @@ export function useSSE() {
                     const decoder = new TextDecoder();
                     let buffer = '';
 
-                    function processChunk({done, value}: ReadableStreamReadResult<Uint8Array>): Promise<void> {
+                    function processChunk({ done, value }: ReadableStreamReadResult<Uint8Array>): Promise<void> {
                         if (done || isDone) {
                             if (!isDone) {
                                 isDone = true;
@@ -58,7 +58,7 @@ export function useSSE() {
                         }
 
                         // Decode the chunk and add to buffer
-                        buffer += decoder.decode(value, {stream: true});
+                        buffer += decoder.decode(value, { stream: true });
 
                         // Process complete SSE messages
                         const lines = buffer.split('\n\n');
@@ -82,7 +82,7 @@ export function useSSE() {
                                         return Promise.resolve(); // Stop processing after [DONE]
                                     } else if (data.content) {
                                         if (callbacks.onMessage) {
-                                            callbacks.onMessage(data.content, data.message_id);
+                                            callbacks.onMessage(data.content, data.message_id, data.user_message_id);
                                         }
                                     }
                                 } catch (e) {

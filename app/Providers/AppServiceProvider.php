@@ -122,13 +122,15 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Storage::extend('bunnycdn', function ($app, $config) {
+            $bunnyConfig = config('filesystems.disks.bunnycdn');
+
             $adapter = new BunnyCDNAdapter(
                 new BunnyCDNClient(
-                    $config['storage_zone'],
-                    $config['api_key'],
-                    $config['region']
+                    $bunnyConfig['storage_zone'],
+                    $bunnyConfig['api_key'],
+                    $bunnyConfig['region']
                 ),
-                $config['pull_zone']
+                $bunnyConfig['pull_zone']
             );
 
             return new FilesystemAdapter(

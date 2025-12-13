@@ -35,6 +35,7 @@ class OpenAI
             'Content-Type' => 'application/json',
         ])
             ->timeout(600)
+            ->throw()
             ->post(config('services.openai.api_endpoint').'/responses', [
                 'model' => 'gpt-4.1-mini',
                 'input' => [

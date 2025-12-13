@@ -48,8 +48,6 @@ class ChunkIngestionJob implements ShouldQueue
 
         $systemPrompt = PromptLoader::load('chunking/system');
 
-        $visionPrompt = PromptLoader::load('image/describe');
-
         $chunkText = $this->chunk->chunk_text;
 
         $describedImages = [];
@@ -63,17 +61,23 @@ class ChunkIngestionJob implements ShouldQueue
         }
 
         $userPrompt = PromptLoader::load('chunking/user');
+        $visionPrompt = PromptLoader::load('image/describe');
 
         foreach ($this->chunk->chunk_images as $imagePath) {
-            $description = OpenAI::vision(
+            $imageUrl = Storage::disk('public')->url($imagePath);
+            $imageDescription = OpenAI::vision(
                 prompt: $visionPrompt,
-                image: Storage::disk('public')->url($imagePath),
+                image: $imageUrl,
             );
 
-            if ($description !== '0') {
-                $describedImages[$imagePath] = $description;
-                $this->chunk->chunk_text .= $this->chunk->chunk_text."\n\n".$description;
-            }
+            logger()->info(
+                'image description: '.$imageDescription.PHP_EOL.'image url: '.$imageUrl.PHP_EOL.'image path: '.$imagePath.PHP_EOL,
+            );
+
+//            if ($description !== '0') {
+                $describedImages[$imagePath] = $imageDescription;
+//                $this->chunk->chunk_text .= $this->chunk->chunk_text."\n\n".$description;
+//            }
         }
 
         $chunkText = Str::of($chunkText)

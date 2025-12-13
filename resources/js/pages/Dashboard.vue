@@ -289,33 +289,33 @@ const formatNumber = (num: number): string => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="loading" class="flex items-end gap-1 h-40">
-                            <div v-for="i in 7" :key="i" class="flex flex-1 flex-col items-center gap-1">
-                                <div class="w-full bg-muted rounded-sm animate-pulse h-20"></div>
+                        <div v-if="loading" class="flex items-end justify-center gap-3 h-40 px-2">
+                            <div v-for="i in 7" :key="i" class="flex flex-col items-center gap-2 w-full max-w-16">
+                                <div class="w-full bg-muted rounded-lg animate-pulse h-20"></div>
                                 <div class="h-3 w-6 bg-muted rounded animate-pulse"></div>
                             </div>
                         </div>
-                        <div v-else class="flex items-end gap-1 h-40">
+                        <div v-else class="flex items-end justify-center gap-3 h-40 px-2">
                             <div
                                 v-for="item in currentActivityData"
                                 :key="item.label"
-                                class="flex flex-1 flex-col items-center gap-1"
+                                class="flex flex-col items-center gap-2 w-full max-w-16"
                             >
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <div
-                                                class="w-full rounded-sm bg-primary transition-all hover:bg-primary/80 cursor-pointer min-h-[4px]"
-                                                :style="{ height: `${Math.max((item.value / maxUsage) * 100, 2)}%` }"
+                                                class="w-full rounded-lg bg-gradient-to-t from-primary to-primary/90 transition-all duration-300 hover:from-primary hover:to-primary/70 hover:scale-105 cursor-pointer shadow-sm hover:shadow-md"
+                                                :style="{ height: `${Math.max((item.value / maxUsage) * 160, 6)}px` }"
                                             >
                                             </div>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>{{ item.value }} messages</p>
+                                            <p class="font-medium">{{ item.value }} messages</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                                <span class="text-[10px] text-muted-foreground">{{ item.label }}</span>
+                                <span class="text-[10px] text-muted-foreground font-medium">{{ item.label }}</span>
                             </div>
                         </div>
                     </CardContent>

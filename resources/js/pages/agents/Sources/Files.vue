@@ -1141,7 +1141,7 @@ defineExpose({
                                                                     </div>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                    <p>Ready to use in conversations</p>
+                                                                    <p>Ready to chat with</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
@@ -1254,7 +1254,7 @@ defineExpose({
                                                                 </div>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p>Ready to use in conversations</p>
+                                                                <p>Reacy to chat with</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>

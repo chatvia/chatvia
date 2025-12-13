@@ -200,6 +200,9 @@ readonly class ChatStreamService
 
                 if ($isFirst) {
                     $payload['message_id'] = $context->assistantMessageId;
+                    if ($context->userMessageId) {
+                        $payload['user_message_id'] = $context->userMessageId;
+                    }
                     $isFirst = false;
                 }
 

@@ -430,7 +430,7 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
             created_at: createdAt,
         }),
         {
-            onMessage: (content, messageId) => {
+            onMessage: (content, messageId, userMessageId) => {
                 let messageIndex = messages.value.length - 1;
 
                 if (streamingForMessageIndex.value !== null) {
@@ -439,9 +439,14 @@ function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConve
 
                 messages.value[messageIndex].content += content;
 
-                // Set the message ID if provided (only on first chunk)
+                // Set the assistant message ID if provided (only on first chunk)
                 if (messageId && messages.value[messageIndex] && messages.value[messageIndex].role === 'assistant') {
                     messages.value[messageIndex].id = messageId;
+                }
+
+                // Set the user message ID if provided (only on first chunk)
+                if (userMessageId && messageIndex > 0 && messages.value[messageIndex - 1] && messages.value[messageIndex - 1].role === 'user') {
+                    messages.value[messageIndex - 1].id = userMessageId;
                 }
 
                 scrollWhileStreaming();
@@ -693,12 +698,18 @@ const handleMessageEdited = async (userMessageId, assistantMessageId, newContent
                         created_at: createdAt,
                     }),
                     {
-                        onMessage: (content, messageId) => {
+                        onMessage: (content, messageId, userMessageId) => {
                             const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
                             messages.value[messageIndex].content += content;
                             
+                            // Set the assistant message ID if provided
                             if (messageId && messages.value[messageIndex]) {
                                 messages.value[messageIndex].id = messageId;
+                            }
+                            
+                            // Set the user message ID if provided
+                            if (userMessageId && messages.value[userIndex]) {
+                                messages.value[userIndex].id = userMessageId;
                             }
                             
                             scrollWhileStreaming();
@@ -795,12 +806,18 @@ const handleRegenerate = async (userMessageId, assistantMessageId, model) => {
                         created_at: createdAt,
                     }),
                     {
-                        onMessage: (content, messageId) => {
+                        onMessage: (content, messageId, userMessageId) => {
                             const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
                             messages.value[messageIndex].content += content;
                             
+                            // Set the assistant message ID if provided
                             if (messageId && messages.value[messageIndex]) {
                                 messages.value[messageIndex].id = messageId;
+                            }
+                            
+                            // Set the user message ID if provided
+                            if (userMessageId && messages.value[userIndex]) {
+                                messages.value[userIndex].id = userMessageId;
                             }
                             
                             scrollWhileStreaming();

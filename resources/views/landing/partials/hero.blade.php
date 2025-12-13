@@ -2,9 +2,29 @@
 <section class="relative overflow-hidden">
     <!-- Gradient background -->
     <div class="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-indigo-50/30 pointer-events-none"></div>
-    <!-- Subtle decorative elements -->
-    <div class="absolute top-1/4 right-0 w-96 h-96 bg-indigo-100/40 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-0 left-0 w-80 h-80 bg-purple-100/30 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Animated decorative elements -->
+    <div class="absolute inset-0 pointer-events-none">
+        <!-- Large floating circles -->
+        <div class="absolute top-1/4 right-0 w-96 h-96 bg-indigo-200/60 rounded-full blur-3xl animate-float-slow"></div>
+        <div class="absolute bottom-0 left-0 w-80 h-80 bg-purple-200/50 rounded-full blur-3xl animate-float-slower">
+        </div>
+
+        <!-- Small moving circles -->
+        <div class="absolute top-20 left-1/4 w-32 h-32 bg-indigo-300/50 rounded-full blur-2xl animate-float-diagonal">
+        </div>
+        <div class="absolute top-1/3 right-1/4 w-24 h-24 bg-purple-300/45 rounded-full blur-2xl animate-float-reverse">
+        </div>
+        <div
+            class="absolute bottom-1/4 left-1/3 w-40 h-40 bg-indigo-200/40 rounded-full blur-2xl animate-float-slow-reverse">
+        </div>
+
+        <!-- Tiny accent circles -->
+        <div class="absolute top-1/2 right-1/3 w-16 h-16 bg-indigo-400/50 rounded-full blur-xl animate-pulse-slow"></div>
+        <div
+            class="absolute bottom-1/3 right-1/2 w-20 h-20 bg-purple-400/45 rounded-full blur-xl animate-float-diagonal-reverse">
+        </div>
+    </div>
 
     <div class="relative max-w-5xl mx-auto px-4 sm:px-6">
         <div class="pt-32 pb-12 md:pt-40 md:pb-20">

@@ -57,7 +57,7 @@ trait Chunkable
             ->get()
             ->reject(fn ($item) => count($item['metadata']['images'] ?? []) === 0)
             ->pluck('metadata.images')
-            ->map(fn ($images) => collect($images)->keys()->map(fn ($image) => Storage::url($image))->toArray())
+            ->map(fn ($images) => collect($images)->keys()->map(fn ($image) => Storage::disk('public')->url($image))->toArray())
             ->flatten()
             ->toArray();
     }

@@ -67,7 +67,7 @@ class ChunkIngestionJob implements ShouldQueue
         foreach ($this->chunk->chunk_images as $imagePath) {
             $description = OpenAI::vision(
                 prompt: $visionPrompt,
-                image: Storage::url($imagePath),
+                image: Storage::disk('public')->url($imagePath),
             );
 
             if ($description !== '0') {

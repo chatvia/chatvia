@@ -182,7 +182,7 @@ Response: 'We offer many great features including...'
 
                     $imageIndex = 1;
                     foreach ($chunk['images'] as $image => $description) {
-                        $text .= "Image {$imageIndex}: ".Storage::url($image)."\n";
+                        $text .= "Image {$imageIndex}: ".Storage::disk('public')->url($image)."\n";
                         $text .= "Description for image {$imageIndex}: {$description}\n";
                         $imageIndex++;
                     }

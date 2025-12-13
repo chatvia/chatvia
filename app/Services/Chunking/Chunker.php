@@ -110,7 +110,7 @@ readonly class Chunker
         $userId = Agent::find($this->agentId)->user_id;
 
         foreach ($pageImages as $image) {
-            $imagePaths[] = Storage::putFileAs(
+            $imagePaths[] = Storage::disk('public')->putFileAs(
                 path: 'users/'.$userId.'/agents/'.$this->agentId.'/images',
                 file: new File($image['path']),
                 name: $image['name'],

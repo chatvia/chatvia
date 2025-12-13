@@ -39,10 +39,10 @@ return [
         ],
 
         'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
-            'visibility' => 'public',
+            'driver' => env('FILESYSTEM_PUBLIC_DISK', 'public'),
+//            'root' => storage_path('app/public'),
+//            'url' => env('APP_URL').'/storage',
+//            'visibility' => 'public',
             'throw' => false,
             'report' => false,
         ],
@@ -69,6 +69,16 @@ return [
             'url' => env('SCALEWAY_URL'),
             'endpoint' => env('SCALEWAY_ENDPOINT'),
             'use_path_style_endpoint' => env('SCALEWAY_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'bunnycdn' => [
+            'driver' => 'bunnycdn',
+            'storage_zone' => env('BUNNYCDN_STORAGE_ZONE'),
+            'pull_zone' => env('BUNNYCDN_PULL_ZONE'),
+            'api_key' => env('BUNNYCDN_API_KEY'),
+            'region' => env('BUNNYCDN_REGION', \PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNRegion::DEFAULT),
             'throw' => true,
             'report' => true,
         ],

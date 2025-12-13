@@ -24,8 +24,8 @@ class IP2Country
         }
 
         $url = Str::of(rtrim(config('services.ip2location.endpoint'), '/').'/')
-            ->append($ip)
             ->append('?key='.config('services.ip2location.key'))
+            ->append('&ip='.$ip)
             ->toString();
 
         try {

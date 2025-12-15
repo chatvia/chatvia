@@ -162,6 +162,9 @@ class StreamHandler
 
     private function handleStreamCompletion(ChatContext $context): void
     {
+        // Ensure endTime is always marked, even if [DONE] message wasn't received
+        $context->markEndTime();
+
         if (! $this->isClientConnected && $context->userMessageId) {
             // Will be handled by the onError callback
         }

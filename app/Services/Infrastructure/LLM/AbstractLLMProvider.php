@@ -23,6 +23,7 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
             'model' => $this->formatModel($model),
             'messages' => $messages,
             'stream' => true,
+            'max_tokens' => 1024,
         ];
 
         if (static::class === OpenRouter::class) {
@@ -35,7 +36,7 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
             'headers' => $this->headers(),
             'json' => $json,
             'stream' => true,
-            ...$settings,
+//            ...$settings,
         ]);
     }
 

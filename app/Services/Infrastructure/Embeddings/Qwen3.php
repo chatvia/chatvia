@@ -35,7 +35,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
 
     protected function getApiKey(): string
     {
-        return config('filesystems.disks.scaleway.secret');
+        return config('services.scalewayai.api_key');
     }
 
     protected function getBaseUrl(): string

@@ -17,6 +17,7 @@ class Subdomain
     {
         $response = $this->llmProvider->completion([
             'model' => config('ai.models.title'),
+            'max_tokens' => 30,
             'messages' => [
                 [
                     'role' => 'user',

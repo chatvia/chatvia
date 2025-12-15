@@ -178,7 +178,7 @@ readonly class MessageProcessor
             ->append($payload->message_for_llm)
             ->append("\n### Retrieved Context\n")
             ->append($sources->map(function ($chunk, $i) {
-                $text = "Chunk {$i}: ".$chunk['content']."\n";
+                $text = "{$i}: ".$chunk['content']."\n";
 
                 if (! empty($chunk['images'])) {
                     $text .= "These are the images associated with chunk {$i}:\n";

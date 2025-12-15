@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 interface Props {
     open: boolean;
-    agentId: number;
+    agentId: string | number; // Accept external_id (string) or id (number)
 }
 
 interface AvailableWebsite {

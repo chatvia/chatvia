@@ -52,16 +52,17 @@ readonly class MessageProcessor
 
     public function searchKnowledgeBase(Agent $agent, ChatInputPayload $payload, array $lastMessages): Collection
     {
-        $shouldSearch = true;
+//        $shouldSearch = false;
 
-        if (count($lastMessages) > 1) {
+//        if (count($lastMessages) > 1) {
             $lastMessageContents = collect($lastMessages)->pluck('content')->toArray();
             $shouldSearch = $this->knowledgeBase->shouldContinueSearching(
                 $lastMessageContents,
                 $payload->message_for_llm
             );
-        }
+//        }
 
+        ray($shouldSearch);
         if (! $shouldSearch) {
             return collect();
         }
@@ -85,7 +86,7 @@ readonly class MessageProcessor
         //
         // Important: Your response will be used in a Retrieval-Augmented Generation (RAG) system. Do not reference or reveal internal processes, technical terms, or implementation details (e.g., data segmentation, embeddings, or indexing). Focus only on providing a clear, natural, and helpful answer to the user\'s query.
         // ';
-        $preconditions = PromptLoader::load('knowledge/preconditions');
+        $preconditions = '';
 
 //        if ($data->canCollectLead) {
 //            $id = '<ShowLeadForm/>';

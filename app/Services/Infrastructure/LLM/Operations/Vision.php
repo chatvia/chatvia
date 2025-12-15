@@ -12,7 +12,7 @@ class Vision
         public LLMProviderInterface $provider,
     ) {}
 
-    public function describeImage(string $image)
+    public function describeImage(string $image): bool|string
     {
         if (file_exists($image)) {
             $image = Image::read(file_get_contents($image))->toJpeg()->toDataUri();
@@ -41,6 +41,12 @@ class Vision
             ],
         ])->json();
 
-        return $response['choices'][0]['message']['content'] ?? '0';
+        $result = $response['choices'][0]['message']['content'] ?? '0';
+
+        if (str_contains($response, 'no_info')) {
+            return false;
+        }
+
+        return $result;
     }
 }

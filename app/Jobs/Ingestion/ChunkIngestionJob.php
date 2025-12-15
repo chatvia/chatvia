@@ -74,8 +74,10 @@ class ChunkIngestionJob implements ShouldQueue
                 'image description: '.$imageDescription.PHP_EOL.'image url: '.$imageUrl.PHP_EOL.'image path: '.$imagePath.PHP_EOL,
             );
 
-            if ($imageDescription !== '0') {
+            if ($imageDescription !== false) {
                 $describedImages[$imagePath] = $imageDescription;
+            } else {
+                Storage::disk('public')->delete($imagePath);
             }
         }
 

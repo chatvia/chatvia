@@ -158,13 +158,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function formattedLlms()
     {
         $llms = Llm::all();
-        $subscribed = $this->subscribed();
 
-        return $llms->map(function (Llm $llm) use ($subscribed) {
-            $allowed = $llm->requires_paid_plan ? $subscribed : true;
-
+        return $llms->map(function (Llm $llm) {
             $llmData = LlmModelData::fromLlmModel($llm);
-            $llmData->user_allowed_to_use = $allowed;
+            $llmData->user_allowed_to_use = true;
 
             return $llmData;
         });
@@ -172,9 +169,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function llms()
     {
-        return Llm::query()->when(! $this->subscribed(), function ($query) {
-            $query->where('requires_paid_plan', false);
-        })->get();
+        return Llm::all();
     }
 
     public function members(): HasMany

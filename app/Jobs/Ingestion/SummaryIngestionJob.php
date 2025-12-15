@@ -3,11 +3,15 @@
 namespace App\Jobs\Ingestion;
 
 use App\Contracts\ChunkableContract;
+use App\Contracts\EmbeddingsProviderInterface;
 use App\Models\Agent;
 use App\Models\Chunk;
-use App\Services\Infrastructure\LLM\OpenAI;
+use App\Services\Infrastructure\LLM\Operations\ContentAnalyzer;
+use App\Services\Infrastructure\LLM\Operations\CostCalculator;
+use App\Services\Infrastructure\LLM\Operations\Summarize;
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
+use Exception;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -40,8 +44,8 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
         }
 
         try {
-            $response = OpenAI::analyzeContent($this->content);
-        } catch (\Exception $e) {
+            $contentAnalysis = app(ContentAnalyzer::class)->analyze($this->content);
+        } catch (Exception $e) {
             // If analysis fails, skip summary generation
             report($e);
 
@@ -49,17 +53,20 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
         }
 
         $this->source->update([
-            'language' => $response['language'],
-            'document_classification' => $response['document_type'],
+            'language' => $contentAnalysis['language'] ?? null,
+            'document_classification' => $contentAnalysis['document_type'] ?? null,
         ]);
 
-        $chunk = OpenAI::summarize($this->content);
+        $chunk = app(Summarize::class)->summarize($this->content);
 
-        if (isset($response['questions'])) {
-            $chunk .= PHP_EOL.'<Questions>'.$response['questions'].'</Questions>';
+        if (isset($contentAnalysis['questions'])) {
+            $questions = is_array($contentAnalysis['questions'])
+                ? implode("\n", $contentAnalysis['questions'])
+                : $contentAnalysis['questions'];
+            $chunk .= PHP_EOL.'<Questions>'.$questions.'</Questions>';
         }
 
-        $costInCents = OpenAI::calculateCostInCents(
+        $costInCents = app(CostCalculator::class)->calculateCostInCents(
             inputText: $this->content,
             outputText: PromptLoader::load('file/describe').strip_tags($chunk),
             pricePerInputMilToken: 2.0,
@@ -75,12 +82,13 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'type' => 'text',
             'chunk_index' => 0,
             'chunk' => $chunk,
-            'chunked_using_model' => 'gpt-5-mini',
+            'chunked_using_model' => config('ai.models.chunker'),
+            'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
             'cost_in_cents' => $costInCents,
             'tokens' => TikToken::countTokens($chunk),
             'embedding' => embed(strip_tags($chunk), true),
             'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($chunk)).", 'llmlingua2')"),
-            'metadata' => $response['metadata'],
+            'metadata' => $contentAnalysis['metadata'],
             'checksum' => md5($chunk),
             'retrieval_count' => 0,
         ]);

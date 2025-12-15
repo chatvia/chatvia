@@ -23,10 +23,11 @@ return new class extends Migration
             $table->unsignedInteger('chunk_index');
             $table->text('chunk');
             $table->string('chunked_using_model')->nullable();
+            $table->string('embedding_model')->nullable();
             $table->decimal('cost_in_cents', 10, 3)->default(0);
             $table->unsignedInteger('tokens');
 
-            $table->vector('embedding', 1536);
+            $table->vector('embedding', 1024);
             $table->bm25vector('embedding_bm25');
             $table->jsonb('metadata')->nullable();
 

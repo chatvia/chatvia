@@ -6,6 +6,7 @@ use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Jobs\UpdateUserCreditsJob;
 use App\Services\Chat\Data\StreamRequestData;
+use App\Services\Infrastructure\LLM\Operations\QueryRewriter;
 use App\Services\Memory\ChatMemory;
 use App\Services\Search\KnowledgeBase;
 use Carbon\Carbon;
@@ -28,7 +29,7 @@ readonly class ChatService
             ->setSessionId($data->sessionId)
             ->setConversationId($data->conversationId);
 
-        ['lang' => $lang, 'query' => $query] = $this->knowledgeBase->rewriteQuery($data->message->message);
+        ['lang' => $lang, 'query' => $query] = app(QueryRewriter::class)->rewrite($data->message->message);
 
         $userMessageId = Str::ulid()->toString();
         $assistantMessageId = Str::ulid()->toString();

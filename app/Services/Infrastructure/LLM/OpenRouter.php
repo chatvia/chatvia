@@ -2,53 +2,49 @@
 
 namespace App\Services\Infrastructure\LLM;
 
-use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Support\Facades\Http;
-use Psr\Http\Message\ResponseInterface;
+use Illuminate\Support\Facades\Log;
 
-class OpenRouter
+class OpenRouter extends AbstractLLMProvider
 {
-    public function stream($model, array $messages, array $settings = []): ResponseInterface
+    /**
+     * Get the headers for API requests.
+     *
+     * @return array The headers array
+     */
+    public function headers(): array
     {
-        return app(GuzzleClient::class)->post(config('services.openrouter.completion_endpoint'), [
-            'headers' => [
-                'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
-                'Content-Type' => 'application/json',
-            ],
-            'json' => [
-                'model' => $model.':nitro',
-                'messages' => $messages,
-                'stream' => true,
-            ],
-
-            'stream' => true,
-            ...$settings,
-        ]);
+        return [
+            'Authorization' => 'Bearer '.$this->getApiKey(),
+            'Content-Type' => 'application/json',
+        ];
     }
 
-    public static function completion(array $data)
+    /**
+     * Get the completion endpoint URL.
+     *
+     * @return string The completion endpoint
+     */
+    public function getCompletionEndpoint(): string
     {
-        return Http::withHeaders([
-            'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
-            'Content-Type' => 'application/json',
-        ])
-            ->timeout(600)
-            ->post(config('services.openrouter.completion_endpoint'), $data)
-            ->throw();
+        return config('services.openrouter.completion_endpoint');
     }
 
     /**
      * Fetch generation data from OpenRouter.
      * Returns the raw data object with tokens_prompt, tokens_completion, total_cost, etc.
+     *
+     * @param  string  $generationId  The generation ID
+     * @return array|null The generation data or null on failure
      */
-    public static function getGeneration(string $generationId): ?array
+    public function getGenerationCost(string $generationId): ?array
     {
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
+                'Authorization' => 'Bearer '.$this->getApiKey(),
             ])
                 ->timeout(10)
-                ->get(config('services.openrouter.base_url', 'https://openrouter.ai/api/v1').'/generation', [
+                ->get($this->getBaseUrl().'/generation', [
                     'id' => $generationId,
                 ]);
 
@@ -56,17 +52,51 @@ class OpenRouter
                 return $response->json('data');
             }
         } catch (\Exception $e) {
-            \Log::warning('Failed to fetch OpenRouter generation data: '.$e->getMessage());
+            Log::warning('Failed to fetch OpenRouter generation data: '.$e->getMessage());
         }
 
         return null;
     }
 
-    public function headers(): array
+    /**
+     * Check if the provider supports cost tracking.
+     *
+     * @return bool True for OpenRouter
+     */
+    public function supportsCostTracking(): bool
     {
-        return [
-            'Authorization' => 'Bearer '.config('services.openrouter.api_key'),
-            'Content-Type' => 'application/json',
-        ];
+        return true;
+    }
+
+    /**
+     * Format the model name for OpenRouter.
+     * Adds `:nitro` suffix to the model name.
+     *
+     * @param  string  $model  The model identifier
+     * @return string The formatted model name
+     */
+    protected function formatModel(string $model): string
+    {
+        return $model.':nitro';
+    }
+
+    /**
+     * Get the API key for OpenRouter.
+     *
+     * @return string The API key
+     */
+    protected function getApiKey(): string
+    {
+        return config('services.openrouter.api_key');
+    }
+
+    /**
+     * Get the base URL for OpenRouter.
+     *
+     * @return string The base URL
+     */
+    protected function getBaseUrl(): string
+    {
+        return config('services.openrouter.base_url', 'https://openrouter.ai/api/v1');
     }
 }

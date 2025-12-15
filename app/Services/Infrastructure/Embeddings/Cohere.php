@@ -8,17 +8,18 @@ use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
-class Cohere
+class Cohere extends AbstractEmbeddingsProvider
 {
     public function embed(string $text, bool $returnAsText = false): string|array
     {
-        $embedding = Http::withToken(config('services.cohere.api_key'))
+        $embedding = Http::withToken($this->getApiKey())
             ->throw()
             ->post($this->endpoint('/embed'), [
-                'model' => 'embed-v4.0',
+                'model' => $this->getModel(),
                 'texts' => [$text],
                 'input_type' => 'search_document',
                 'embedding_types' => ['float'],
+                'output_dimension' => $this->getDimensions(),
             ])->json('embeddings.float.0');
 
         if ($returnAsText) {
@@ -28,9 +29,9 @@ class Cohere
         return $embedding;
     }
 
-    public function rerank(string $query, array $documents, int $topN = 6): array
+    public function rerank(string $query, array $documents, int $topN = 6): ?array
     {
-        $rerank = Http::withToken(config('services.cohere.api_key'))
+        $rerank = Http::withToken($this->getApiKey())
             ->throw()
             ->post($this->endpoint('/rerank'), [
                 'model' => 'rerank-v3.5',
@@ -43,42 +44,28 @@ class Cohere
         return collect($rerank)->pluck('index')->toArray();
     }
 
-    private function endpoint(?string $append = null): string
+    public function supportsReranking(): bool
     {
-        return rtrim(config('services.cohere.api_endpoint'), '/').$append;
+        return true;
     }
 
-    public function bulkEmbed(Collection $chunks): Collection
+    public function getDimensions(): int
     {
-        $responses = Http::pool(function (Pool $pool) use ($chunks) {
-            /** @var Chunk $chunk */
-            foreach ($chunks as $chunk) {
-                $pool
-                    ->as($chunk->chunk_id)
-                    ->withToken(config('services.cohere.api_key'))
-                    ->asJson()
-                    ->post($this->endpoint('/embed'), [
-                        'model' => 'embed-v4.0',
-                        'texts' => [$chunk->original_content],
-                        'input_type' => 'search_document',
-                        'embedding_types' => ['float'],
-                    ]);
-            }
-        });
+        return config('services.cohere.embedding_dimensions', 1024);
+    }
 
-        return collect($chunks)->map(function (Chunk $chunk) use ($responses) {
-            $response = $responses[$chunk->chunk_id];
+    protected function getApiKey(): string
+    {
+        return config('services.cohere.api_key');
+    }
 
-            logger($response);
+    protected function getBaseUrl(): string
+    {
+        return config('services.cohere.api_endpoint');
+    }
 
-            if ($response->ok()) {
-                $chunk->embedding = $response->json('embeddings.float.0');
-            } else {
-                throw new Exception("Failed to get embedding for chunk {$chunk->chunk_id}: ".
-                    ($response instanceof Exception ? $response->getMessage() : 'Unknown error'));
-            }
-
-            return $chunk;
-        });
+    protected function getModel(): string
+    {
+        return config('services.cohere.embedding_model', 'embed-v4.0');
     }
 }

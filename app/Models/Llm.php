@@ -16,7 +16,6 @@ class Llm extends Model
 
     protected $casts = [
         'features' => 'json',
-        'requires_paid_plan' => 'boolean',
         'reasoning' => 'boolean',
         'context_window' => 'integer',
         'credits' => 'integer',
@@ -26,7 +25,6 @@ class Llm extends Model
 
     protected $attributes = [
         'reasoning' => false,
-        'requires_paid_plan' => false,
         'credits' => 1,
     ];
 
@@ -42,7 +40,6 @@ class Llm extends Model
             'features' => ['nullable', 'array'],
             'location' => ['required', Rule::in(['us', 'eu', 'cn'])],
             'reasoning' => ['boolean'],
-            'requires_paid_plan' => ['boolean'],
         ];
     }
 
@@ -58,7 +55,6 @@ class Llm extends Model
             'features' => ['nullable', 'array'],
             'location' => ['required', Rule::in(['us', 'eu', 'cn'])],
             'reasoning' => ['boolean'],
-            'requires_paid_plan' => ['boolean'],
         ];
     }
 
@@ -70,29 +66,6 @@ class Llm extends Model
             'cn' => 'China',
             default => $this->location,
         };
-    }
-
-    public function isAvailableForUser($user = null): bool
-    {
-        if (! $this->requires_paid_plan) {
-            return true;
-        }
-
-        if (! $user) {
-            return false;
-        }
-
-        // Check if user has an active subscription
-        return $user->subscribed() || $user->onTrial();
-    }
-
-    public function scopeAvailableForUser($query, $user = null)
-    {
-        if (! $user || $user->subscribed() || $user->onTrial()) {
-            return $query;
-        }
-
-        return $query->where('requires_paid_plan', false);
     }
 
     public function scopeByLocation($query, $location)

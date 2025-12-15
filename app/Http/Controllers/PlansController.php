@@ -17,7 +17,7 @@ class PlansController
             return array_merge($addon, ['id' => $key]);
         })->values();
 
-        $llms = Llm::query()->select(['descriptive_name', 'icon', 'requires_paid_plan'])->get();
+        $llms = Llm::query()->select(['descriptive_name', 'icon'])->get();
 
         return Inertia::render('billing/Plans', [
             'packages' => $billing->getAvailablePackages()->values()->toArray(),
@@ -36,7 +36,6 @@ class PlansController
                 return [
                     'name' => $llm->descriptive_name,
                     'icon' => $llm->icon,
-                    'paid' => $llm->requires_paid_plan,
                 ];
             }),
         ]);

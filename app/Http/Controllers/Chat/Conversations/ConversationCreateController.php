@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Chat\Conversations;
 use App\Data\Chat\ChatInputPayload;
 use App\Rules\AgentLLmChatRule;
 use App\Services\Infrastructure\LLM\OpenAI;
+use App\Services\Infrastructure\LLM\Operations\QueryRewriter;
 use App\Services\Memory\ChatMemory;
 use App\Services\Memory\ChatSession;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ final class ConversationCreateController
 
         abort_if(boolean: ! $agent, code: 404);
 
-        ['lang' => $lang, 'query' => $query] = OpenAI::rewriteQuery($request->input('message'));
+        ['lang' => $lang, 'query' => $query] = app(QueryRewriter::class)->rewrite($request->input('message'));
 
         $sessionId = $session->firstOrCreateChatSession();
 

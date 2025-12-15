@@ -1,9 +1,9 @@
 <?php
 
+use App\Contracts\EmbeddingsProviderInterface;
 use App\Services\Agents\Agent;
 use App\Services\HostConfig;
 use App\Services\Infrastructure\Documents\LibreOffice;
-use App\Services\Infrastructure\Embeddings\Cohere;
 use App\Services\Teams\TeamService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -85,7 +85,7 @@ if (! function_exists('office')) {
 if (! function_exists('embed')) {
     function embed(string $text, bool $returnAsText = false)
     {
-        return app(Cohere::class)->embed($text, $returnAsText);
+        return app(EmbeddingsProviderInterface::class)->embed($text, $returnAsText);
     }
 }
 

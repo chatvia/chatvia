@@ -2,16 +2,20 @@
 
 namespace App\Services;
 
+use App\Contracts\LLMProviderInterface;
 use App\Models\Agent;
-use App\Services\Infrastructure\LLM\OpenRouter;
 use App\Services\Prompts\PromptLoader;
 use Illuminate\Support\Str;
 
 class Subdomain
 {
+    public function __construct(
+        private LLMProviderInterface $llmProvider
+    ) {}
+
     public function generateRandomSubDomain(): string
     {
-        $response = OpenRouter::completion([
+        $response = $this->llmProvider->completion([
             'model' => 'gpt-4.1-mini',
             'messages' => [
                 [

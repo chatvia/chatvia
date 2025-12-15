@@ -2,15 +2,21 @@
 
 namespace App\Services\Infrastructure;
 
+use App\Contracts\LLMProviderInterface;
 use App\Models\Language;
-use App\Services\Infrastructure\LLM\OpenAI;
 
 class LanguageDetection
 {
+    public function __construct(
+        public LLMProviderInterface $provider
+    )
+    {
+    }
+
     public function detect(string $text): ?Language
     {
-        $languageCode = OpenAI::completion([
-            'model' => 'gpt-5-nano',
+        $languageCode = $this->provider->completion([
+            'model' => 'llama-3.1-8b-instruct',
             'messages' => [
                 [
                     'role' => 'system',

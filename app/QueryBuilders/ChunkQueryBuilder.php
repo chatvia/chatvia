@@ -38,10 +38,11 @@ class ChunkQueryBuilder extends Builder
         }
 
         $sourceWhereClause = '('.implode(' OR ', $sourceConditions).')';
+        $dims = 1024;
 
         $distanceOperator = $quantize
-            ? 'binary_quantize(c.embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536) as binary_distance'
-            : 'c.embedding <-> ?::vector(1536) as vector_distance';
+            ? 'binary_quantize(c.embedding)::bit('.$dims.') <~> binary_quantize(?::vector('.$dims.'))::bit('.$dims.') as binary_distance'
+            : 'c.embedding <-> ?::vector('.$dims.') as vector_distance';
 
         $sql = "
 WITH vectorchord_candidates AS (
@@ -49,7 +50,7 @@ WITH vectorchord_candidates AS (
            {$distanceOperator}
     FROM chunks c
     WHERE {$sourceWhereClause}
-    ORDER BY ".($quantize ? 'binary_quantize(c.embedding)::bit(1536) <~> binary_quantize(?::vector(1536))::bit(1536)' : 'c.embedding <-> ?::vector(1536)').'
+    ORDER BY ".($quantize ? 'binary_quantize(c.embedding)::bit('.$dims.') <~> binary_quantize(?::vector('.$dims.'))::bit('.$dims.')' : 'c.embedding <-> ?::vector('.$dims.')').'
     LIMIT ?
 ),
 vector_ranked AS (

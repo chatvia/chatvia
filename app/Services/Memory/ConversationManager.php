@@ -2,9 +2,10 @@
 
 namespace App\Services\Memory;
 
+use App\Contracts\LLMProviderInterface;
 use App\Models\ChatConversation;
 use App\Models\Member;
-use App\Services\Infrastructure\LLM\OpenRouter;
+use App\Services\Infrastructure\LLM\Operations\TitleGenerator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -60,24 +61,7 @@ class ConversationManager
             return;
         }
 
-        $newTitle = OpenRouter::completion([
-            'model' => 'openai/gpt-4o-mini',
-            'max_tokens' => 50,
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' => '
-                    You are an AI writer. Your task is to find a meaningful title for the given text.
-                    You must return your response in plain text format.
-                    Make it concise
-                    ',
-                ],
-                [
-                    'role' => 'user',
-                    'content' => 'The text is: '.$messages,
-                ],
-            ],
-        ])->throw()->json('choices.0.message.content');
+        $newTitle = app(TitleGenerator::class)->generate($messages);
 
         $this->updateConversationTitle($conversationId, $newTitle);
     }

@@ -14,4 +14,8 @@ return [
         'tone' => 'gemma-3-27b-it',
     ],
 
+    'query' => [
+        'rewriter_enabled' => env('QUERY_REWRITER_ENABLED', false),
+    ],
+
 ];

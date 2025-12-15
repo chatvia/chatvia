@@ -35,7 +35,7 @@ class QueryRewriter
 
         return [
             'lang' => $lang ?? 'en',
-            'query' => $query ?? $userQuery,
+            'query' => config('ai.query.rewriter_enabled') ? $query : $userQuery,
         ];
     }
 }

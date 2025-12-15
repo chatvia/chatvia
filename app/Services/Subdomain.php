@@ -16,7 +16,7 @@ class Subdomain
     public function generateRandomSubDomain(): string
     {
         $response = $this->llmProvider->completion([
-            'model' => 'gpt-4.1-mini',
+            'model' => config('ai.models.title'),
             'messages' => [
                 [
                     'role' => 'user',

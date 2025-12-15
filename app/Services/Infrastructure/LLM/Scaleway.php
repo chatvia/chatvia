@@ -34,7 +34,7 @@ class Scaleway extends AbstractLLMProvider
      */
     protected function getApiKey(): string
     {
-        return config('filesystems.disks.scaleway.secret');
+        return config('services.scalewayai.api_key');
     }
 
     /**

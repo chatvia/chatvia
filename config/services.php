@@ -136,4 +136,8 @@ return [
         'key' => env('IP2LOCATION_API_KEY'),
         'endpoint' => env('IP2LOCATION_ENDPOINT', 'https://api.ip2location.io'),
     ],
+
+    'scalewayai' => [
+        'api_key' => env('SCALEWAYAI_API_KEY'),
+    ]
 ];

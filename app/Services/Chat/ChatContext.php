@@ -20,7 +20,7 @@ class ChatContext
 
     private float $startTime;
 
-    private float $endTime;
+    private ?float $endTime = null;
 
     public function __construct(
         public readonly StreamRequestData $requestData,
@@ -67,11 +67,17 @@ class ChatContext
 
     public function markEndTime(): void
     {
-        $this->endTime = microtime(true);
+        // Only set endTime once (first call wins)
+        if ($this->endTime === null) {
+            $this->endTime = microtime(true);
+        }
     }
 
     public function getResponseTimeMs(): int
     {
-        return (int) round(($this->endTime - $this->startTime) * 1000);
+        // If endTime hasn't been set yet, use current time
+        $endTime = $this->endTime ?? microtime(true);
+
+        return (int) round(($endTime - $this->startTime) * 1000);
     }
 }

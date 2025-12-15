@@ -5,20 +5,17 @@ namespace App\Services\Infrastructure;
 use App\Contracts\LLMProviderInterface;
 use App\Enums\SentimentEnum;
 use App\Enums\ToneEnum;
-use App\Services\Infrastructure\LLM\OpenAI;
 
 class ToneAnalysis
 {
     public function __construct(
         public LLMProviderInterface $provider
-    )
-    {
-    }
+    ) {}
 
     public function analyze(string $text): array
     {
         $response = $this->provider->completion([
-            'model' => 'llama-3.1-8b-instruct',
+            'model' => config('ai.models.tone'),
             'messages' => [
                 [
                     'role' => 'system',
@@ -27,6 +24,19 @@ class ToneAnalysis
                     Analyze the given text and respond with TWO things:
                     1. Sentiment: Positive, Negative, or Neutral
                     2. Tone: Neutral, Frustrated, Urgent, Confused, or Satisfied
+
+                    TONE DEFINITIONS:
+                    - Neutral: Calm, straightforward questions or statements. Simple inquiries about features, pricing, or information.
+                    - Frustrated: Shows annoyance, disappointment, or irritation. May include complaints or expressions of dissatisfaction.
+                    - Urgent: Time-sensitive requests, critical issues, or immediate need for assistance. Often uses words like "urgent", "asap", "immediately".
+                    - Confused: Genuinely uncertain or lost. Multiple questions showing they don\'t understand how things work, asking for clarification after unclear responses, or expressing they are "lost" or "don\'t understand".
+                    - Satisfied: Happy with service, expressing thanks or positive feedback.
+
+                    IMPORTANT: 
+                    - A simple question like "How do I do X?" is NEUTRAL, not confused.
+                    - "What is your pricing?" is NEUTRAL, not confused.
+                    - Only mark as Confused if the user explicitly shows they are lost, uncertain, or struggling to understand after multiple attempts.
+                    - Questions are the foundation of support - they are NEUTRAL by default unless they show genuine confusion or uncertainty.
 
                     Respond in this exact format:
                     Sentiment: [sentiment]

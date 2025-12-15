@@ -16,6 +16,8 @@ class AgentUpdateController
         );
 
         $validated = $request->validate([
+            'name' => ['sometimes', 'string', 'min:3', 'max:255'],
+            'sub_domain' => ['sometimes', 'nullable', 'string', 'min:3', 'max:255', 'alpha_dash'],
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
         ]);
 

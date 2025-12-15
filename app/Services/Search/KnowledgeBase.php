@@ -2,11 +2,9 @@
 
 namespace App\Services\Search;
 
-use App\Contracts\LLMProviderInterface;
 use App\Jobs\UpdateRetrievalStatsJob;
 use App\Models\Agent;
-use App\Services\Infrastructure\LLM\OpenAI;
-use App\Services\Prompts\PromptLoader;
+use App\Services\Infrastructure\LLM\Operations\SearchDecision;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -191,42 +189,26 @@ class KnowledgeBase
 
     public function searchInKnowledgeBaseIfNeeded(Agent $agent, string $userMessage): string
     {
-        if ($agent->isStandalone()) {
-            $chunks = $this->chunks($agent->id, $userMessage);
-
-            if ($chunks->isEmpty()) {
-                return $userMessage;
-            }
-
-            return Str::of("### User Question:\n")
-                ->append($userMessage."\n")
-                ->append("### Retrieved Context:\n")
-                ->append($chunks->implode("\n\n"))
-                ->toString();
+        // Check if we need to search (handles greetings, acknowledgments, etc.)
+        if (! $this->shouldContinueSearching([], $userMessage)) {
+            return $userMessage;
         }
 
-        return $userMessage;
+        $chunks = $this->chunks($agent->id, $userMessage);
+
+        if ($chunks->isEmpty()) {
+            return $userMessage;
+        }
+
+        return Str::of("### User Question:\n")
+            ->append($userMessage."\n")
+            ->append("### Retrieved Context:\n")
+            ->append($chunks->implode("\n\n"))
+            ->toString();
     }
 
     public function shouldContinueSearching(array $chunks, string $userQuery): bool
     {
-        $res = app(LLMProviderInterface::class)->completion([
-            'model' => 'llama-3.1-8b-instruct',
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' => PromptLoader::load('knowledge/follow-up/system'),
-                ],
-                [
-                    'role' => 'user',
-                    'content' => PromptLoader::load('knowledge/follow-up/user', [
-                        'retrieved_chunks' => collect($chunks)->implode("\n\n"),
-                        'user_query' => $userQuery,
-                    ]),
-                ],
-            ],
-        ])->json('choices.0.message.content');
-
-        return str_contains($res, 'search');
+        return app(SearchDecision::class)->shouldSearch($chunks, $userQuery);
     }
 }

@@ -77,7 +77,7 @@ const hasChanges = computed(() => {
 const filteredModels = computed(() => {
     if (!searchQuery.value) return models.value;
     const query = searchQuery.value.toLowerCase();
-    return models.value.filter(m => 
+    return models.value.filter(m =>
         m.name.toLowerCase().includes(query) ||
         m.description?.toLowerCase().includes(query)
     );
@@ -296,7 +296,7 @@ onMounted(() => {
                                     <button
                                         type="button"
                                         class="flex items-center gap-3 w-full px-2 py-2 rounded-md hover:bg-accent text-left transition-colors"
-                                        :class="{ 
+                                        :class="{
                                             'opacity-50 cursor-not-allowed': !model.user_allowed_to_use,
                                             'bg-accent': isSelected(model.id)
                                         }"
@@ -305,9 +305,9 @@ onMounted(() => {
                                     >
                                         <!-- Checkmark for selection -->
                                         <div class="w-5 h-5 flex items-center justify-center">
-                                            <Check 
-                                                v-if="isSelected(model.id)" 
-                                                class="h-4 w-4 text-primary" 
+                                            <Check
+                                                v-if="isSelected(model.id)"
+                                                class="h-4 w-4 text-primary"
                                             />
                                         </div>
 
@@ -329,8 +329,8 @@ onMounted(() => {
                                 </TooltipTrigger>
 
                                 <!-- Tooltip Content - Model Details -->
-                                <TooltipContent 
-                                    side="right" 
+                                <TooltipContent
+                                    side="right"
                                     :side-offset="10"
                                     :hide-arrow="true"
                                     class="w-72 bg-popover text-popover-foreground border shadow-md p-4"
@@ -352,6 +352,17 @@ onMounted(() => {
                                         <div class="text-sm">
                                             <span class="font-medium">Credits cost:</span>
                                             <span class="ml-1">{{ model.credits }}</span>
+                                        </div>
+
+                                        <!-- Location -->
+                                        <div class="text-sm">
+                                            <span class="font-medium">Hosted in:</span>
+                                            <span class="ml-1">
+                                                <span v-if="model.location === 'us'">🇺🇸 United States</span>
+                                                <span v-else-if="model.location === 'eu'">🇪🇺 Europe</span>
+                                                <span v-else-if="model.location === 'cn'">🇨🇳 China</span>
+                                                <span v-else>{{ model.location.toUpperCase() }}</span>
+                                            </span>
                                         </div>
 
                                         <!-- Description -->
@@ -400,12 +411,21 @@ onMounted(() => {
                 </Button>
             </div>
 
-            <Alert>
-                <Info class="h-4 w-4" />
-                <AlertDescription>
-                    Credits are deducted per message. Different models have different costs based on their capabilities.
-                </AlertDescription>
-            </Alert>
+            <div class="space-y-2">
+                <Alert>
+                    <Info class="h-4 w-4" />
+                    <AlertDescription>
+                        <strong>Recommended:</strong> Mistral is an excellent choice for most use cases.
+                    </AlertDescription>
+                </Alert>
+
+                <Alert>
+                    <Info class="h-4 w-4" />
+                    <AlertDescription>
+                        Credits are deducted per message. Different models have different costs based on their capabilities.
+                    </AlertDescription>
+                </Alert>
+            </div>
         </div>
     </div>
 </template>

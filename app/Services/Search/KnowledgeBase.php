@@ -2,9 +2,9 @@
 
 namespace App\Services\Search;
 
+use App\Contracts\LLMProviderInterface;
 use App\Jobs\UpdateRetrievalStatsJob;
 use App\Models\Agent;
-use App\Services\Infrastructure\Embeddings\Cohere;
 use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Prompts\PromptLoader;
 use Illuminate\Support\Collection;
@@ -39,8 +39,9 @@ class KnowledgeBase
         }
 
         // Cache the embedding for 24 hours to speed up repeated queries
+        $embeddingProvider = app(\App\Contracts\EmbeddingsProviderInterface::class);
         $embedding = Cache::store($this->cacheStore)->remember(
-            'search_embedding:'.md5($query),
+            'search_embedding:'.md5($query).':'.$embeddingProvider->getModelName(),
             3600 * 24,
             fn () => embed($query)
         );
@@ -78,8 +79,15 @@ class KnowledgeBase
 
         return Cache::store($this->cacheStore)->remember($cacheKey, $this->cacheTtl, function () use ($query, $results) {
             try {
+                $embeddings = app(\App\Contracts\EmbeddingsProviderInterface::class);
+
+                // Only rerank if provider supports it
+                if (! $embeddings->supportsReranking()) {
+                    return $results;
+                }
+
                 $chunks = collect($results)->pluck('chunk')->toArray();
-                $rerankedDocumentsIds = app(Cohere::class)->rerank($query, $chunks);
+                $rerankedDocumentsIds = $embeddings->rerank($query, $chunks);
 
                 return collect($results)
                     ->filter(function ($result, $index) use ($rerankedDocumentsIds) {
@@ -202,8 +210,8 @@ class KnowledgeBase
 
     public function shouldContinueSearching(array $chunks, string $userQuery): bool
     {
-        $res = app(OpenAI::class)->completion([
-            'model' => 'gpt-4.1-nano',
+        $res = app(LLMProviderInterface::class)->completion([
+            'model' => 'llama-3.1-8b-instruct',
             'messages' => [
                 [
                     'role' => 'system',
@@ -217,13 +225,8 @@ class KnowledgeBase
                     ]),
                 ],
             ],
-        ]);
+        ])->json('choices.0.message.content');
 
         return str_contains($res, 'search');
-    }
-
-    public function rewriteQuery(string $userQuery, $previousQuery = null): array
-    {
-        return OpenAI::rewriteQuery($userQuery, $previousQuery);
     }
 }

@@ -89,18 +89,12 @@ class LlmResource extends Resource
                                     ->label('Advanced Reasoning')
                                     ->helperText('Whether this model supports advanced reasoning'),
                             ]),
-                        Grid::make(2)
-                            ->schema([
-                                Forms\Components\Toggle::make('requires_paid_plan')
-                                    ->label('Requires Paid Plan')
-                                    ->helperText('Whether this model is only available to paid users'),
-                                Forms\Components\KeyValue::make('features')
-                                    ->label('Features')
-                                    ->keyLabel('Feature')
-                                    ->valueLabel('Value')
-                                    ->helperText('Additional features and capabilities as key-value pairs')
-                                    ->addActionLabel('Add Feature'),
-                            ]),
+                        Forms\Components\KeyValue::make('features')
+                            ->label('Features')
+                            ->keyLabel('Feature')
+                            ->valueLabel('Value')
+                            ->helperText('Additional features and capabilities as key-value pairs')
+                            ->addActionLabel('Add Feature'),
                     ]),
             ]);
     }
@@ -145,13 +139,6 @@ class LlmResource extends Resource
                     ->falseIcon('heroicon-o-x-mark')
                     ->trueColor('success')
                     ->falseColor('gray'),
-                IconColumn::make('requires_paid_plan')
-                    ->label('Paid Only')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-currency-dollar')
-                    ->falseIcon('heroicon-o-gift')
-                    ->trueColor('warning')
-                    ->falseColor('success'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -170,8 +157,6 @@ class LlmResource extends Resource
                     ]),
                 Tables\Filters\TernaryFilter::make('reasoning')
                     ->label('Advanced Reasoning'),
-                Tables\Filters\TernaryFilter::make('requires_paid_plan')
-                    ->label('Paid Plan Required'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

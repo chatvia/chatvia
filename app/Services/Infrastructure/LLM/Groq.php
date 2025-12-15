@@ -2,18 +2,48 @@
 
 namespace App\Services\Infrastructure\LLM;
 
-use Illuminate\Support\Facades\Http;
-
-class Groq
+class Groq extends AbstractLLMProvider
 {
-    public static function completion(array $data)
+    /**
+     * Get the headers for API requests.
+     *
+     * @return array The headers array
+     */
+    public function headers(): array
     {
-        return Http::withHeaders([
-            'Authorization' => 'Bearer '.config('services.groq.api_key'),
+        return [
+            'Authorization' => 'Bearer '.$this->getApiKey(),
             'Content-Type' => 'application/json',
-        ])
-            ->timeout(600)
-            ->post(config('services.grok.completion_endpoint'), $data)
-            ->throw();
+        ];
+    }
+
+    /**
+     * Get the completion endpoint URL.
+     *
+     * @return string The completion endpoint
+     */
+    public function getCompletionEndpoint(): string
+    {
+        return config('services.groq.completion_endpoint');
+    }
+
+    /**
+     * Get the API key for Groq.
+     *
+     * @return string The API key
+     */
+    protected function getApiKey(): string
+    {
+        return config('services.groq.api_key');
+    }
+
+    /**
+     * Get the base URL for Groq.
+     *
+     * @return string The base URL
+     */
+    protected function getBaseUrl(): string
+    {
+        return config('services.groq.base_url', 'https://api.groq.com/openai/v1');
     }
 }

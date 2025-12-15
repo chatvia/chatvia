@@ -2,16 +2,23 @@
 
 namespace App\Services\Infrastructure;
 
+use App\Contracts\LLMProviderInterface;
 use App\Enums\SentimentEnum;
 use App\Enums\ToneEnum;
 use App\Services\Infrastructure\LLM\OpenAI;
 
 class ToneAnalysis
 {
+    public function __construct(
+        public LLMProviderInterface $provider
+    )
+    {
+    }
+
     public function analyze(string $text): array
     {
-        $response = OpenAI::completion([
-            'model' => 'gpt-5-nano',
+        $response = $this->provider->completion([
+            'model' => 'llama-3.1-8b-instruct',
             'messages' => [
                 [
                     'role' => 'system',
@@ -20,7 +27,7 @@ class ToneAnalysis
                     Analyze the given text and respond with TWO things:
                     1. Sentiment: Positive, Negative, or Neutral
                     2. Tone: Neutral, Frustrated, Urgent, Confused, or Satisfied
-                    
+
                     Respond in this exact format:
                     Sentiment: [sentiment]
                     Tone: [tone]

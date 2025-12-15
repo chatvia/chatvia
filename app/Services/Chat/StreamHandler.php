@@ -2,7 +2,7 @@
 
 namespace App\Services\Chat;
 
-use App\Services\Infrastructure\LLM\OpenRouter;
+use App\Contracts\LLMProviderInterface;
 use Exception;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
@@ -11,6 +11,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StreamHandler
 {
+    public function __construct(
+        private LLMProviderInterface $llmProvider
+    ) {}
+
     private bool $isClientConnected = true;
 
     public function createStreamResponse(
@@ -25,10 +29,10 @@ class StreamHandler
             ignore_user_abort(false);
 
             try {
-                $response = app(OpenRouter::class)->stream(
+                $response = $this->llmProvider->stream(
                     $context->requestData->message->model->internal_name,
                     $llmMessages,
-                    $context->requestData->agent->llmSettings(),
+                    $context->requestData->agent->llmSettings()
                 );
 
                 $this->processStreamResponse($response, $context);
@@ -165,11 +169,11 @@ class StreamHandler
 
     private function handleRequestException(RequestException $e, ChatContext $context): void
     {
-        $errorMessage = 'Error: Could not connect to '.$context->requestData->message->model->internal_name.' model. Please choose a different model';
-
-        echo 'data: '.json_encode(['content' => $errorMessage], JSON_THROW_ON_ERROR)."\n\n";
+        echo 'data: '.json_encode(['content' => 'Could not connect to the selected model'], JSON_THROW_ON_ERROR)."\n\n";
         echo "data: {\"content\":\"[DONE]\"}\n\n";
         flush();
+
+        report($e);
 
         Log::error('Chat stream error: '.$e->getMessage());
     }

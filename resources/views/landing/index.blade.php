@@ -1,12 +1,12 @@
 @extends('landing.layouts.app')
 
-@section('title', landing('title') . ' - AI-Powered Chatbot Platform | RAG Technology')
+@section('title', landing('title') . ' - GDPR Compliant AI Chatbot Platform | EU Hosted')
 
-@section('description', 'Build intelligent AI chatbots with ChatVia. Upload documents, create custom AI chatbots with RAG technology, and automate customer support. Start free today.')
+@section('description', 'Build intelligent AI chatbots with ChatVia. Data stored in Germany, AI models in France. GDPR compliant with open-source models like Llama, DeepSeek, Qwen. Your data never leaves EU.')
 
-@section('og_title', landing('title') . ' - AI-Powered Chatbot Platform')
+@section('og_title', landing('title') . ' - GDPR Compliant AI Chatbot Platform')
 
-@section('og_description', 'Transform your customer support with AI-powered chatbots. Upload documents, train agents, and provide instant 24/7 support with ChatVia.')
+@section('og_description', 'Transform your customer support with EU-hosted AI chatbots. Data in Germany, models in France. GDPR compliant with open-source AI (Llama, DeepSeek, Qwen, Gemma). Instant 24/7 support.')
 
 @push('preload')
     {{-- Preload first 3 feature images for better performance --}}
@@ -26,6 +26,8 @@
         <main class="grow">
 
             @include('landing.partials.hero')
+
+            @include('landing.partials.trust-badges')
 
             @include('landing.partials.core-features')
 

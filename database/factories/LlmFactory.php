@@ -53,18 +53,7 @@ class LlmFactory extends Factory
             ],
             'location' => $this->faker->randomElement(['us', 'eu', 'cn']),
             'reasoning' => $this->faker->boolean(60),
-            'requires_paid_plan' => $this->faker->boolean(70),
         ];
-    }
-
-    /**
-     * Indicate that the model requires a paid plan.
-     */
-    public function requiresPaidPlan(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'requires_paid_plan' => true,
-        ]);
     }
 
     /**

@@ -74,13 +74,13 @@
                     <!-- Hosted in EU -->
                     <div
                         class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200 text-sm text-slate-600">
-                        <img src="{{ asset('images/eu-flag.svg') }}" alt="EU Flag" class="w-4 h-4 object-contain" />
+                        <img src="{{ asset('images/flags/eu.svg') }}" alt="EU Flag" class="w-4 h-4 object-contain" />
                         <span class="font-medium">Hosted in EU</span>
                     </div>
                     <!-- Made in Denmark -->
                     <div
                         class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200 text-sm text-slate-600">
-                        <img src="{{ asset('images/dk-flag.svg') }}" alt="Denmark Flag"
+                        <img src="{{ asset('images/flags/dk.svg') }}" alt="Denmark Flag"
                             class="w-4 h-4 object-contain" />
                         <span class="font-medium">Made in Denmark</span>
                     </div>

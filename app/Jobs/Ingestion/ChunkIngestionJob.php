@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Ingestion;
 
+use App\Contracts\EmbeddingsProviderInterface;
 use App\Data\Ingestion\ChunkIngestionData;
 use App\Events\FileIngestionProgressEvent;
 use App\Events\TextIngestionProgressEvent;
@@ -14,6 +15,9 @@ use App\Models\ChunkReference;
 use App\Models\SourceFile;
 use App\Models\SourceText;
 use App\Services\Infrastructure\LLM\OpenAI;
+use App\Services\Infrastructure\LLM\Operations\Chunker;
+use App\Services\Infrastructure\LLM\Operations\CostCalculator;
+use App\Services\Infrastructure\LLM\Operations\Vision;
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
 use Illuminate\Bus\Batchable;
@@ -61,23 +65,18 @@ class ChunkIngestionJob implements ShouldQueue
         }
 
         $userPrompt = PromptLoader::load('chunking/user');
-        $visionPrompt = PromptLoader::load('image/describe');
 
         foreach ($this->chunk->chunk_images as $imagePath) {
             $imageUrl = Storage::disk('public')->url($imagePath);
-            $imageDescription = OpenAI::vision(
-                prompt: $visionPrompt,
-                image: $imageUrl,
-            );
+            $imageDescription = app(Vision::class)->describeImage(image: $imageUrl);
 
             logger()->info(
                 'image description: '.$imageDescription.PHP_EOL.'image url: '.$imageUrl.PHP_EOL.'image path: '.$imagePath.PHP_EOL,
             );
 
-//            if ($description !== '0') {
+            if ($imageDescription !== '0') {
                 $describedImages[$imagePath] = $imageDescription;
-//                $this->chunk->chunk_text .= $this->chunk->chunk_text."\n\n".$description;
-//            }
+            }
         }
 
         $chunkText = Str::of($chunkText)
@@ -92,11 +91,11 @@ class ChunkIngestionJob implements ShouldQueue
             'next_context' => $this->chunk->next_chunk,
         ]).$this->appendUserPrompt;
 
-        $chunk = OpenAI::chunk($userPrompt);
+        $chunk = app(Chunker::class)->chunk($userPrompt);
 
         $tokens = TikToken::countTokens($chunk);
 
-        $costInCents = OpenAI::calculateCostInCents($systemPrompt.$userPrompt, $chunk);
+        $costInCents = app(CostCalculator::class)->calculateCostInCents($systemPrompt.$userPrompt, $chunk);
 
         $agent = Agent::find($this->chunk->agent_id);
         $agentExternalId = $agent->external_id;
@@ -108,7 +107,8 @@ class ChunkIngestionJob implements ShouldQueue
             'type' => 'text',
             'chunk_index' => $this->chunk->chunk_index,
             'chunk' => $chunk,
-            'chunked_using_model' => 'gpt-4.1-mini',
+            'chunked_using_model' => config('ai.models.chunker'),
+            'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
             'cost_in_cents' => $costInCents,
             'tokens' => $tokens,
             'embedding' => embed($chunk, true),

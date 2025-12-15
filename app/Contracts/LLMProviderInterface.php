@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Contracts;
+
+use Psr\Http\Message\ResponseInterface;
+
+interface LLMProviderInterface
+{
+    /**
+     * Stream a completion request.
+     *
+     * @param  string  $model  The model identifier
+     * @param  array  $messages  The messages array
+     * @param  array  $settings  Additional settings for the request
+     * @return ResponseInterface The streaming response
+     */
+    public function stream(string $model, array $messages, array $settings = []): ResponseInterface;
+
+    /**
+     * Execute a completion request.
+     *
+     * @param  array  $data  The request data
+     * @return \Illuminate\Http\Client\Response The response
+     */
+    public function completion(array $data);
+
+    /**
+     * Get the headers for API requests.
+     *
+     * @return array The headers array
+     */
+    public function headers(): array;
+
+    /**
+     * Get generation cost data.
+     * Returns null if the provider doesn't support cost tracking.
+     *
+     * @param  string  $generationId  The generation ID
+     * @return array|null The generation data or null if not supported
+     */
+    public function getGenerationCost(string $generationId): ?array;
+
+    /**
+     * Get the completion endpoint URL.
+     *
+     * @return string The completion endpoint
+     */
+    public function getCompletionEndpoint(): string;
+
+    /**
+     * Check if the provider supports cost tracking.
+     *
+     * @return bool True if cost tracking is supported
+     */
+    public function supportsCostTracking(): bool;
+}

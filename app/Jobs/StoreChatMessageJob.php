@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Contracts\LLMProviderInterface;
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Models\Agent;
@@ -10,7 +11,6 @@ use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\Country;
 use App\Models\Llm;
-use App\Services\Infrastructure\LLM\OpenRouter;
 use App\Services\IP2Country;
 use App\Services\UserAgentParser;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -79,7 +79,10 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             : null;
 
         $generationId = ! $isUserMessage ? $this->payload->generation_id : null;
-        $usageData = $generationId ? OpenRouter::getGeneration($generationId) : null;
+        $llmProvider = app(LLMProviderInterface::class);
+        $usageData = ($generationId && $llmProvider->supportsCostTracking())
+            ? $llmProvider->getGenerationCost($generationId)
+            : null;
 
         $promptTokens = $usageData['tokens_prompt'] ?? null;
         $completionTokens = $usageData['tokens_completion'] ?? null;

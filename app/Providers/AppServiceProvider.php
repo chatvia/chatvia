@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\EmbeddingsProviderInterface;
+use App\Contracts\LLMProviderInterface;
 use App\Models\Agent;
 use App\Models\ModelSetting;
 use App\Models\Post;
@@ -18,6 +20,12 @@ use App\Observers\PostObserver;
 use App\Observers\SourceFileObserver;
 use App\Observers\SourceYoutubeVideoObserver;
 use App\Observers\UserObserver;
+use App\Services\Infrastructure\Embeddings\Cohere;
+use App\Services\Infrastructure\Embeddings\Jina;
+use App\Services\Infrastructure\Embeddings\Qwen3;
+use App\Services\Infrastructure\LLM\Groq;
+use App\Services\Infrastructure\LLM\OpenRouter;
+use App\Services\Infrastructure\LLM\Scaleway;
 use App\Services\Teams\TeamService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -43,6 +51,28 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Bind the LLM provider interface based on configuration
+        $this->app->bind(LLMProviderInterface::class, function ($app) {
+            $provider = config('ai.provider', 'openrouter');
+
+            return match ($provider) {
+                'groq' => $app->make(Groq::class),
+                'scaleway' => $app->make(Scaleway::class),
+                default => $app->make(OpenRouter::class),
+            };
+        });
+
+        // Bind the Embeddings provider interface based on configuration
+        $this->app->bind(EmbeddingsProviderInterface::class, function ($app) {
+            $provider = config('ai.models.embedding', 'cohere');
+
+            return match ($provider) {
+                'jina' => $app->make(Jina::class),
+                'qwen' => $app->make(Qwen3::class),
+                default => $app->make(Cohere::class),
+            };
+        });
+
         Request::macro('subdomain', function () {
             $host = $this->getHost();
             $dots = substr_count($host, '.');

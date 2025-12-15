@@ -2,12 +2,20 @@
 
 namespace App\Services;
 
+use App\Contracts\LLMProviderInterface;
 use App\Models\Agent;
 use App\Models\ChatTopic;
 use App\Services\Infrastructure\LLM\OpenAI;
 
 class TopicAnalysis
 {
+    public function __construct(
+        public LLMProviderInterface $provider
+    )
+    {
+    }
+
+
     public function analyze(string $text, ?Agent $agent = null): ?ChatTopic
     {
         // Get topics available for this agent
@@ -25,8 +33,8 @@ class TopicAnalysis
             return null;
         }
 
-        $topicId = OpenAI::completion([
-            'model' => 'gpt-5-nano',
+        $topicId = $this->provider->completion([
+            'model' => 'llama-3.1-8b-instruct',
             'messages' => [
                 [
                     'role' => 'system',

@@ -6,6 +6,7 @@ use App\Data\Chat\ChatInputPayload;
 use App\Models\Agent;
 use App\Models\AgentQuestionAnswer;
 use App\Services\Chat\Data\StreamRequestData;
+use App\Services\Prompts\PromptLoader;
 use App\Services\Search\KnowledgeBase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -84,71 +85,73 @@ readonly class MessageProcessor
         //
         // Important: Your response will be used in a Retrieval-Augmented Generation (RAG) system. Do not reference or reveal internal processes, technical terms, or implementation details (e.g., data segmentation, embeddings, or indexing). Focus only on providing a clear, natural, and helpful answer to the user\'s query.
         // ';
-        $preconditions = '';
+        $preconditions = PromptLoader::load('knowledge/preconditions');
 
-        if ($data->canCollectLead) {
-            $id = '<ShowLeadForm/>';
+//        if ($data->canCollectLead) {
+//            $id = '<ShowLeadForm/>';
+//
+//            if ($data->leadAlreadyCollected) {
+//                $preconditions .= "\n\n
+//You should never say that you do not know the answer unless you follow these instructions
+//
+//LEAD ALREADY COLLECTED: The user has already provided their contact information in this conversation.
+//
+//Focus on providing helpful information and assistance.
+//
+//If the user asks about getting in touch or providing contact information again, remind them that their information has been received and someone will be in touch soon.
+//
+//";
+//            } else {
+//                $preconditions .= "\n\n
+//You should never say that you do not know the answer unless you follow these instructions
+//
+//You must also collect leads. Here is the LEAD COLLECTION INSTRUCTIONS:
+//- Only include $id when the user shows clear buying intent or requests direct contact
+//- Include $id if user asks for: pricing details, quotes, demos, trials, or to speak with sales
+//- Include $id if user asks: 'How do I buy?', 'Can I get a demo?', 'What does it cost?'
+//- Include $id if user provides contact details and expresses interest in purchasing
+//- Include $id if user asks about custom plans, enterprise solutions, or implementation services
+//- DO NOT include $id for general questions, feature inquiries, or basic information requests
+//- DO NOT include $id if user is just browsing or asking 'What is this product?'
+//- Only include $id once per conversation when genuine sales interest is shown
+//
+//PERMISSION RULES:
+//- If user explicitly asks to contact someone, speak to sales, get a demo, or connect directly: Include $id immediately without asking
+//- If user asks about pricing or costs but doesn't explicitly request contact: Ask for permission first
+//- If user provides contact info voluntarily: Include $id immediately
+//- If user says 'I want to buy' or 'How do I purchase': Include $id immediately
+//
+//- Place $id on a new line at the very end of your response
+//- Do not mention the $id command in your actual response text
+//
+//Example - Direct request (no permission needed):
+//User: 'Can I speak to someone about pricing?'
+//Response: 'I'll connect you with our sales team right away.'
+//$id
+//
+//Example - Pricing inquiry (ask permission):
+//User: 'How much does your premium plan cost?'
+//Response: 'Our premium plan is $99/month and includes advanced features... Would you like me to connect you with our sales team for a personalized quote?'
+//(Wait for user confirmation before adding $id)
+//
+//Example - Explicit purchase intent (no permission needed):
+//User: 'I want to buy this, how do I get started?'
+//Response: 'Great! I'll connect you with our team to get you started.'
+//$id
+//
+//Example of when NOT to include $id:
+//User: 'What features do you offer?'
+//Response: 'We offer many great features including...'
+//(No $id needed - just informational)
+//";
+//            }
+//        }
 
-            if ($data->leadAlreadyCollected) {
-                $preconditions .= "\n\n
-You should never say that you do not know the answer unless you follow these instructions
 
-LEAD ALREADY COLLECTED: The user has already provided their contact information in this conversation.
-
-Focus on providing helpful information and assistance.
-
-If the user asks about getting in touch or providing contact information again, remind them that their information has been received and someone will be in touch soon.
-
-";
-            } else {
-                $preconditions .= "\n\n
-You should never say that you do not know the answer unless you follow these instructions
-
-You must also collect leads. Here is the LEAD COLLECTION INSTRUCTIONS:
-- Only include $id when the user shows clear buying intent or requests direct contact
-- Include $id if user asks for: pricing details, quotes, demos, trials, or to speak with sales
-- Include $id if user asks: 'How do I buy?', 'Can I get a demo?', 'What does it cost?'
-- Include $id if user provides contact details and expresses interest in purchasing
-- Include $id if user asks about custom plans, enterprise solutions, or implementation services
-- DO NOT include $id for general questions, feature inquiries, or basic information requests
-- DO NOT include $id if user is just browsing or asking 'What is this product?'
-- Only include $id once per conversation when genuine sales interest is shown
-
-PERMISSION RULES:
-- If user explicitly asks to contact someone, speak to sales, get a demo, or connect directly: Include $id immediately without asking
-- If user asks about pricing or costs but doesn't explicitly request contact: Ask for permission first
-- If user provides contact info voluntarily: Include $id immediately
-- If user says 'I want to buy' or 'How do I purchase': Include $id immediately
-
-- Place $id on a new line at the very end of your response
-- Do not mention the $id command in your actual response text
-
-Example - Direct request (no permission needed):
-User: 'Can I speak to someone about pricing?'
-Response: 'I'll connect you with our sales team right away.'
-$id
-
-Example - Pricing inquiry (ask permission):
-User: 'How much does your premium plan cost?'
-Response: 'Our premium plan is $99/month and includes advanced features... Would you like me to connect you with our sales team for a personalized quote?'
-(Wait for user confirmation before adding $id)
-
-Example - Explicit purchase intent (no permission needed):
-User: 'I want to buy this, how do I get started?'
-Response: 'Great! I'll connect you with our team to get you started.'
-$id
-
-Example of when NOT to include $id:
-User: 'What features do you offer?'
-Response: 'We offer many great features including...'
-(No $id needed - just informational)
-";
-            }
-        }
-
+        ray($preconditions);
         return [
             'role' => 'system',
-            'content' => $data->agent->system_instructions."\n".$preconditions,
+            'content' => $preconditions,
         ];
     }
 

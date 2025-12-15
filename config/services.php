@@ -38,8 +38,12 @@ return [
         'redirect' => env('SLACK_REDIRECT_URI'),
     ],
 
+    'llm_provider' => env('LLM_PROVIDER', 'scaleway'), // openrouter or groq
+    'embeddings_provider' => env('EMBEDDINGS_PROVIDER', 'qwen'), // cohere or jina
+
     'openrouter' => [
         'api_key' => env('OPENROUTER_API_KEY'),
+        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
         'api_endpoint' => env('OPENROUTER_API_ENDPOINT', 'https://openrouter.ai/api/v1'),
         'completion_endpoint' => env('OPENROUTER_COMPLETION_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions'),
     ],
@@ -57,6 +61,15 @@ return [
     'cohere' => [
         'api_key' => env('COHERE_API_KEY'),
         'api_endpoint' => env('COHERE_API_ENDPOINT', 'https://api.cohere.com/v2'),
+        'embedding_model' => env('COHERE_EMBEDDING_MODEL', 'embed-v4.0'),
+        'embedding_dimensions' => env('COHERE_EMBEDDING_DIMENSIONS', 1024),
+    ],
+
+    'jina' => [
+        'api_key' => env('JINA_API_KEY'),
+        'api_endpoint' => env('JINA_API_ENDPOINT', 'https://api.jina.ai/v1'),
+        'embedding_model' => env('JINA_EMBEDDING_MODEL', 'jina-embeddings-v3'),
+        'embedding_dimensions' => env('JINA_EMBEDDING_DIMENSIONS', 1024),
     ],
 
     'azure_document_intelligence' => [
@@ -66,6 +79,7 @@ return [
 
     'groq' => [
         'api_key' => env('GROQ_API_KEY'),
+        'base_url' => env('GROQ_BASE_URL', 'https://api.groq.com/openai/v1'),
         'completion_endpoint' => env('GROQ_COMPLETION_ENDPOINT', 'https://api.groq.com/openai/v1/chat/completions'),
     ],
 

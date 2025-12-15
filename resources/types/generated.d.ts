@@ -391,6 +391,8 @@ pages: App.Data.Resources.My.Usage.UsageStatsData;
 minutes: App.Data.Resources.My.Usage.UsageStatsData;
 links: App.Data.Resources.My.Usage.UsageStatsData;
 messages: App.Data.Resources.My.Usage.UsageStatsData;
+teams: App.Data.Resources.My.Usage.UsageStatsData;
+members: App.Data.Resources.My.Usage.UsageStatsData;
 };
 export type UsageStatsData = {
 limit: number;

@@ -12,7 +12,9 @@ import {
     BarChart3,
     TrendingUp,
     Clock,
-    Link2
+    Link2,
+    Users,
+    Layers
 } from 'lucide-vue-next';
 
 type UsageData = App.Data.Resources.My.Usage.UsageResourceData;
@@ -73,7 +75,7 @@ onMounted(() => {
     <AppLayout :breadcrumbs="breadcrumbItems">
         <Head title="Usage" />
 
-        <div class="mx-auto max-w-5xl px-4 py-8">
+        <div class="px-4 py-8">
             <div class="space-y-8">
                 <!-- Usage Header -->
                 <div class="flex flex-col space-y-2">
@@ -102,7 +104,7 @@ onMounted(() => {
                     </Card>
 
                     <!-- Usage Details -->
-                    <div class="grid gap-6 md:grid-cols-2">
+                    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         <!-- Messages Usage -->
                         <Card>
                             <CardHeader>
@@ -257,6 +259,68 @@ onMounted(() => {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        <!-- Teams -->
+                        <Card>
+                            <CardHeader>
+                                <CardTitle class="flex items-center gap-2 text-base">
+                                    <Layers class="h-5 w-5 text-teal-500" />
+                                    Teams
+                                </CardTitle>
+                                <CardDescription>
+                                    Teams created
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-2xl font-bold">{{ usageData.teams.used }}</span>
+                                    <span class="text-sm text-muted-foreground">
+                                        of {{ usageData.teams.limit }}
+                                    </span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                    <div
+                                        class="h-3 rounded-full transition-all duration-300"
+                                        :class="getUsageColor(getUsagePercentage(usageData.teams.used, usageData.teams.limit))"
+                                        :style="{ width: `${getUsagePercentage(usageData.teams.used, usageData.teams.limit)}%` }"
+                                    ></div>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-muted-foreground">{{ usageData.teams.remaining }} remaining</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Members -->
+                        <Card>
+                            <CardHeader>
+                                <CardTitle class="flex items-center gap-2 text-base">
+                                    <Users class="h-5 w-5 text-pink-500" />
+                                    Members
+                                </CardTitle>
+                                <CardDescription>
+                                    Team members invited
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-2xl font-bold">{{ usageData.members.used }}</span>
+                                    <span class="text-sm text-muted-foreground">
+                                        of {{ usageData.members.limit }}
+                                    </span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                    <div
+                                        class="h-3 rounded-full transition-all duration-300"
+                                        :class="getUsageColor(getUsagePercentage(usageData.members.used, usageData.members.limit))"
+                                        :style="{ width: `${getUsagePercentage(usageData.members.used, usageData.members.limit)}%` }"
+                                    ></div>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-muted-foreground">{{ usageData.members.remaining }} remaining</span>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     <!-- Usage Summary -->
@@ -271,28 +335,34 @@ onMounted(() => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div class="space-y-4">
-                                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-                                    <div class="space-y-1">
-                                        <div class="text-2xl font-bold text-blue-600">{{ getUsagePercentage(usageData.messages.used, usageData.messages.limit) }}%</div>
-                                        <div class="text-xs text-muted-foreground">Messages Used</div>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <div class="text-2xl font-bold text-green-600">{{ getUsagePercentage(usageData.pages.used, usageData.pages.limit) }}%</div>
-                                        <div class="text-xs text-muted-foreground">Pages Used</div>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <div class="text-2xl font-bold text-orange-600">{{ getUsagePercentage(usageData.minutes.used, usageData.minutes.limit) }}%</div>
-                                        <div class="text-xs text-muted-foreground">Minutes Used</div>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <div class="text-2xl font-bold text-purple-600">{{ getUsagePercentage(usageData.links.used, usageData.links.limit) }}%</div>
-                                        <div class="text-xs text-muted-foreground">Links Used</div>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <div class="text-2xl font-bold text-indigo-600">{{ getUsagePercentage(usageData.agents.used, usageData.agents.limit) }}%</div>
-                                        <div class="text-xs text-muted-foreground">Total Agents</div>
-                                    </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-6 text-center">
+                                <div class="space-y-1">
+                                    <div class="text-2xl font-bold text-blue-600">{{ getUsagePercentage(usageData.messages.used, usageData.messages.limit) }}%</div>
+                                    <div class="text-xs text-muted-foreground">Messages</div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="text-2xl font-bold text-green-600">{{ getUsagePercentage(usageData.pages.used, usageData.pages.limit) }}%</div>
+                                    <div class="text-xs text-muted-foreground">Pages</div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="text-2xl font-bold text-orange-600">{{ getUsagePercentage(usageData.minutes.used, usageData.minutes.limit) }}%</div>
+                                    <div class="text-xs text-muted-foreground">Minutes</div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="text-2xl font-bold text-purple-600">{{ getUsagePercentage(usageData.links.used, usageData.links.limit) }}%</div>
+                                    <div class="text-xs text-muted-foreground">Links</div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="text-2xl font-bold text-indigo-600">{{ getUsagePercentage(usageData.agents.used, usageData.agents.limit) }}%</div>
+                                    <div class="text-xs text-muted-foreground">Agents</div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="text-2xl font-bold text-teal-600">{{ getUsagePercentage(usageData.teams.used, usageData.teams.limit) }}%</div>
+                                    <div class="text-xs text-muted-foreground">Teams</div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="text-2xl font-bold text-pink-600">{{ getUsagePercentage(usageData.members.used, usageData.members.limit) }}%</div>
+                                    <div class="text-xs text-muted-foreground">Members</div>
                                 </div>
                             </div>
                         </CardContent>

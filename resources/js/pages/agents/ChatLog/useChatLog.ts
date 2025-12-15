@@ -118,7 +118,7 @@ export function useChatLog() {
   });
 
   // Fetch functions
-  async function fetchConversations(page = 1) {
+  async function fetchConversations(page = 1, refreshCurrentConversation = false) {
     isLoadingConversations.value = true;
     try {
       const params: any = { page };
@@ -138,6 +138,24 @@ export function useChatLog() {
       const response = await axios.get(route('agents.logs.conversations', { agent: agent.value.external_id }), { params });
       conversations.value = response.data.conversations;
       leadConversationIds.value = response.data.lead_conversation_ids;
+
+      // Update currentConversationData if a conversation is currently selected
+      if (currentConversationId.value) {
+        const found = conversations.value?.data?.find((c: any) => c.conversation_id === currentConversationId.value);
+        if (found) {
+          currentConversationData.value = { ...found };
+        }
+      }
+
+      // Refresh the current conversation's messages and details if requested
+      if (refreshCurrentConversation && currentConversationId.value) {
+        await fetchMessages(currentConversationId.value);
+        
+        // Also refresh pulse data if on pulse tab
+        if (activeTab.value === 'pulse') {
+          await fetchPulseData();
+        }
+      }
 
       // Update URL
       if (page !== 1 || currentConversationId.value) {

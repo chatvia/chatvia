@@ -17,7 +17,8 @@ class UsageResourceData extends Data
         public UsageStatsData $minutes,
         public UsageStatsData $links,
         public UsageStatsData $messages,
-
+        public UsageStatsData $teams,
+        public UsageStatsData $members,
     ) {}
 
     public static function fromUser(User $user): self
@@ -39,6 +40,8 @@ class UsageResourceData extends Data
         $pagesUsed = $user->pagesConsumed();
         $minutesUsed = $user->minutesConsumed();
         $linksUsed = $user->linksConsumed();
+        $teamsUsed = $user->teamsCreatedCount();
+        $membersUsed = $user->teamMembersCount();
 
         return new self(
             subscription: new UsageSubscriptionData(plan: $user->plan, started_at: $credit->started_at, ends_at: $credit->ends_at),
@@ -47,6 +50,8 @@ class UsageResourceData extends Data
             minutes: new UsageStatsData(limit: $quota->minutes_limit, used: $minutesUsed, remaining: max(0, $quota->minutes_limit - $minutesUsed)),
             links: new UsageStatsData(limit: $quota->links_limit, used: $linksUsed, remaining: max(0, $quota->links_limit - $linksUsed)),
             messages: new UsageStatsData(limit: $consumableMessages, used: $totalSentMessage, remaining: max(0, $consumableMessages - $totalSentMessage)),
+            teams: new UsageStatsData(limit: $quota->teams_limit, used: $teamsUsed, remaining: max(0, $quota->teams_limit - $teamsUsed)),
+            members: new UsageStatsData(limit: $quota->members_limit, used: $membersUsed, remaining: max(0, $quota->members_limit - $membersUsed)),
         );
     }
 }

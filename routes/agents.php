@@ -151,7 +151,10 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::post('topics', AgentTopicsStoreController::class)->name('topics.store');
         Route::patch('topics/{topic}', AgentTopicsUpdateController::class)->name('topics.update');
         Route::delete('topics/{topic}', AgentTopicsDeleteController::class)->name('topics.delete');
-        // Route::patch('/update', AgentUpdateController::class)->name('update');
+
+        // Update Agent (Persona/Instructions)
+        Route::patch('/update', AgentUpdateController::class)->name('update');
+
         Route::get('widget/preview', WidgetPreviewController::class)->name('widget.preview');
         Route::get('playground', AgentPlaygroundController::class)->name('playground');
 

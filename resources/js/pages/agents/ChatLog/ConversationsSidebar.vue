@@ -53,7 +53,7 @@ const isRefreshingConversations = ref(false);
 async function refreshConversations() {
   isRefreshingConversations.value = true;
   try {
-    await fetchConversations(currentConversationsPage.value);
+    await fetchConversations(currentConversationsPage.value, true);
   } finally {
     isRefreshingConversations.value = false;
   }

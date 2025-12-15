@@ -10,6 +10,8 @@ return [
 
         // Generate title for conversations
         'title' => 'gemma-3-27b-it',
+
+        'tone' => 'gemma-3-27b-it',
     ],
 
 ];

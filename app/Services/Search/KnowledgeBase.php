@@ -4,6 +4,7 @@ namespace App\Services\Search;
 
 use App\Jobs\UpdateRetrievalStatsJob;
 use App\Models\Agent;
+use App\Models\Chunk;
 use App\Services\Infrastructure\LLM\Operations\SearchDecision;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -50,7 +51,7 @@ class KnowledgeBase
         $quantize = config('vector.quantization.rabitq.enabled', true);
 
         // Use ChunkQueryBuilder for the search
-        $chunkBuilder = \App\Models\Chunk::query();
+        $chunkBuilder = Chunk::query();
         $chunkBuilder->configureSearchAccuracy($accuracyLevel, $this->vectorChordConfig);
 
         $candidateLimit = $this->getOptimalCandidateLimit($limit);

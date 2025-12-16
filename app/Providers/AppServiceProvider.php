@@ -24,6 +24,7 @@ use App\Services\Infrastructure\Embeddings\Cohere;
 use App\Services\Infrastructure\Embeddings\Jina;
 use App\Services\Infrastructure\Embeddings\Qwen3;
 use App\Services\Infrastructure\LLM\Groq;
+use App\Services\Infrastructure\LLM\Mistral;
 use App\Services\Infrastructure\LLM\OpenRouter;
 use App\Services\Infrastructure\LLM\Scaleway;
 use App\Services\Teams\TeamService;
@@ -57,6 +58,7 @@ class AppServiceProvider extends ServiceProvider
 
             return match ($provider) {
                 'groq' => $app->make(Groq::class),
+                'mistral' => $app->make(Mistral::class),
                 'scaleway' => $app->make(Scaleway::class),
                 default => $app->make(OpenRouter::class),
             };
@@ -64,11 +66,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Bind the Embeddings provider interface based on configuration
         $this->app->bind(EmbeddingsProviderInterface::class, function ($app) {
-            $provider = config('ai.models.embedding', 'cohere');
+            $provider = config('ai.models.embedding', 'mistral');
 
             return match ($provider) {
                 'jina' => $app->make(Jina::class),
                 'qwen' => $app->make(Qwen3::class),
+                'mistral' => $app->make(\App\Services\Infrastructure\Embeddings\Mistral::class),
                 default => $app->make(Cohere::class),
             };
         });

@@ -20,10 +20,9 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
     public function stream(string $model, array $messages, array $settings = []): ResponseInterface
     {
         $json = [
-            'model' => $this->formatModel($model),
+            'model' => $model,
             'messages' => $messages,
             'stream' => true,
-            'max_tokens' => 1024,
         ];
 
         if (static::class === OpenRouter::class) {
@@ -32,11 +31,16 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
             ];
         }
 
+        if (static::class === Scaleway::class) {
+            $json['response_format'] = [
+                'type' => 'text',
+            ];
+        }
+
         return app(GuzzleClient::class)->post($this->getCompletionEndpoint(), [
             'headers' => $this->headers(),
             'json' => $json,
             'stream' => true,
-//            ...$settings,
         ]);
     }
 

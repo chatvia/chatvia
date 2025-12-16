@@ -2,10 +2,13 @@
 
 namespace App\Services\Search;
 
+use App\Contracts\EmbeddingsProviderInterface;
 use App\Jobs\UpdateRetrievalStatsJob;
 use App\Models\Agent;
 use App\Models\Chunk;
+use App\Services\Infrastructure\Embeddings\Cohere;
 use App\Services\Infrastructure\LLM\Operations\SearchDecision;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -18,8 +21,6 @@ class KnowledgeBase
 
     private string $cacheStore;
 
-    private int $candidateLimit;
-
     private array $vectorChordConfig;
 
     public function __construct()
@@ -27,18 +28,17 @@ class KnowledgeBase
         $this->cacheTtl = config('vector.cache.ttl', 3600);
         $this->cachePrefix = config('vector.cache.prefix', 'rag_search:');
         $this->cacheStore = config('vector.cache.store', 'redis');
-        $this->candidateLimit = config('vector.search.candidate_limit', 100);
         $this->vectorChordConfig = config('vector', []);
     }
 
-    public function search(int|Agent $agent, string $query, int $limit = 3): array
+    public function search(int|Agent $agent, string $query, int $limit = 4): array
     {
         if ($agent instanceof Agent) {
             $agent = $agent->id;
         }
 
         // Cache the embedding for 24 hours to speed up repeated queries
-        $embeddingProvider = app(\App\Contracts\EmbeddingsProviderInterface::class);
+        $embeddingProvider = app(EmbeddingsProviderInterface::class);
         $embedding = Cache::store($this->cacheStore)->remember(
             'search_embedding:'.md5($query).':'.$embeddingProvider->getModelName(),
             3600 * 24,
@@ -54,16 +54,24 @@ class KnowledgeBase
         $chunkBuilder = Chunk::query();
         $chunkBuilder->configureSearchAccuracy($accuracyLevel, $this->vectorChordConfig);
 
-        $candidateLimit = $this->getOptimalCandidateLimit($limit);
+        // If reranking is enabled, fetch more candidates for better filtering
+        // Since we filter by threshold (not limit), fetch enough candidates to ensure quality options
+        $maxChunks = config('vector.search.max_chunks', 3);
+        $candidateLimit = config('vector.search.rerank', false) ? 12 : ($maxChunks * 2); // Fetch extra for filtering
         $results = $chunkBuilder->hybridSearchForAgent($agent, $query, $vectorString, $candidateLimit, $quantize);
+
+        ray($results);
 
         if ($results) {
             // Dispatch stats update to background job for better performance
             UpdateRetrievalStatsJob::dispatch($results, $agent);
 
             // Only rerank if we have multiple results and reranking is enabled in config
-            if (count($results) > 1 && config('vector.search.rerank', false)) {
+            if (count($results) > 1 && config('vector.search.rerank', true)) {
                 $results = $this->rerank($query, $results);
+            } else {
+                // When reranking is disabled, use DB confidence score to filter and limit
+                $results = $this->filterByDbConfidence($results);
             }
 
             $results = $this->processResults($results);
@@ -72,35 +80,47 @@ class KnowledgeBase
         return $results;
     }
 
+    private function filterByDbConfidence(array $results): array
+    {
+        // Database already orders by score and returns best matches
+        // BM25 scores are negative (higher = better), vector distances are positive (lower = better)
+        // Both are already sorted correctly by the DB query
+        // Simply take the top N results without additional filtering
+        $maxChunks = config('vector.search.max_chunks', 3);
+
+        return collect($results)
+            ->take($maxChunks)
+            ->values()
+            ->toArray();
+    }
+
     private function rerank(string $query, array $results): array
     {
-        $cacheKey = $this->cachePrefix.'rerank:'.md5($query.serialize($results));
+        try {
+            $chunks = collect($results)->pluck('chunk')->toArray();
+            $rerankedResults = app(Cohere::class)->rerank($query, $chunks);
 
-        return Cache::store($this->cacheStore)->remember($cacheKey, $this->cacheTtl, function () use ($query, $results) {
-            try {
-                $embeddings = app(\App\Contracts\EmbeddingsProviderInterface::class);
+            // Get relevance threshold from config (default: 0.5)
+            $relevanceThreshold = config('vector.search.relevance_threshold');
+            $maxChunks = config('vector.search.max_chunks');
 
-                // Only rerank if provider supports it
-                if (! $embeddings->supportsReranking()) {
-                    return $results;
-                }
+            // Map reranked results with relevance scores and filter by threshold
+            // Then limit to max chunks
+            return collect($rerankedResults)
+                ->filter(fn ($item) => $item['relevance_score'] >= $relevanceThreshold)
+                ->take($maxChunks)
+                ->map(function ($item) use ($results) {
+                    $result = $results[$item['index']];
+                    $result->rerank_score = $item['relevance_score'];
 
-                $chunks = collect($results)->pluck('chunk')->toArray();
-                $rerankedDocumentsIds = $embeddings->rerank($query, $chunks);
-
-                return collect($results)
-                    ->filter(function ($result, $index) use ($rerankedDocumentsIds) {
-                        return in_array($index, $rerankedDocumentsIds, true);
-                    })
-                    ->sortBy(function ($result, $index) use ($rerankedDocumentsIds) {
-                        return array_search($index, $rerankedDocumentsIds, true);
-                    })
-                    ->values()
-                    ->toArray();
-            } catch (\Exception $e) {
-                return $results;
-            }
-        });
+                    return $result;
+                })
+                ->values()
+                ->toArray();
+        } catch (Exception $e) {
+            // On error, return original results
+            return $results;
+        }
     }
 
     private function processResults(array $results): array
@@ -141,26 +161,6 @@ class KnowledgeBase
         return round($confidence, 4);
     }
 
-    /**
-     * Calculate optimal candidate limit for initial vector search
-     * Uses configuration with sensible fallbacks
-     */
-    private function getOptimalCandidateLimit(int $requestedLimit): int
-    {
-        // Use a multiplier to get more candidates for better results
-        $multiplier = $this->vectorChordConfig['performance']['candidate_multiplier'] ?? 10;
-        $calculated = $requestedLimit * $multiplier;
-
-        // Apply reasonable limits
-        $maxCandidates = min(
-            $this->vectorChordConfig['performance']['max_candidates'] ?? 5000,
-            $this->candidateLimit,
-            10000 // Absolute maximum to prevent excessive memory usage
-        );
-
-        return min($calculated, $maxCandidates);
-    }
-
     private function removeXmlTags(string $text): string
     {
         // Remove XML tags and their content using regex
@@ -177,7 +177,7 @@ class KnowledgeBase
         return trim($text);
     }
 
-    public function chunks(int|Agent $agent, string $query, int $limit = 3): Collection
+    public function chunks(int|Agent $agent, string $query, int $limit = 4): Collection
     {
         if ($agent instanceof Agent) {
             $agent = $agent->id;

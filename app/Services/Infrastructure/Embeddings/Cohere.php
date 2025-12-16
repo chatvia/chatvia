@@ -2,10 +2,6 @@
 
 namespace App\Services\Infrastructure\Embeddings;
 
-use App\Data\Chunk;
-use Exception;
-use Illuminate\Http\Client\Pool;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 class Cohere extends AbstractEmbeddingsProvider
@@ -29,19 +25,24 @@ class Cohere extends AbstractEmbeddingsProvider
         return $embedding;
     }
 
-    public function rerank(string $query, array $documents, int $topN = 6): ?array
+    public function rerank(string $query, array $documents): ?array
     {
         $rerank = Http::withToken($this->getApiKey())
             ->throw()
             ->post($this->endpoint('/rerank'), [
-                'model' => 'rerank-v3.5',
+                'model' => 'rerank-v4.0-pro',
                 'query' => $query,
                 'max_tokens_per_doc' => 1000,
                 'documents' => $documents,
-                'top_n' => $topN,
             ])->json('results');
 
-        return collect($rerank)->pluck('index')->toArray();
+        // Return array with index and relevance_score for each result
+        return collect($rerank)
+            ->map(fn ($item) => [
+                'index' => $item['index'],
+                'relevance_score' => $item['relevance_score'],
+            ])
+            ->toArray();
     }
 
     public function supportsReranking(): bool

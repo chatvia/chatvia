@@ -91,6 +91,13 @@ class LibreOffice
         return $this->convert($inputPath, 'pdf');
     }
 
+    public function text2Pdf(string $text)
+    {
+        $filePath = create_temp_file('file.txt', $text);
+
+        return $this->convert($filePath, 'pdf');
+    }
+
     public function supportsFormat(string $format): bool
     {
         return in_array(strtolower($format), $this->allowedFormats, true);

@@ -8,14 +8,11 @@ class TitleGenerator
 {
     public function __construct(
         public LLMProviderInterface $provider
-    )
-    {
-    }
-
+    ) {}
 
     public function generate(string $messages): string
     {
-        return $this->provider->completion([
+        $response = $this->provider->completion([
             'model' => config('ai.models.title'),
             'max_tokens' => 50,
             'messages' => [
@@ -32,6 +29,17 @@ class TitleGenerator
                     'content' => 'The text is: '.$messages,
                 ],
             ],
-        ])->throw()->json('choices.0.message.content');
+        ])->throw();
+
+        // Handle both direct string response and nested JSON structure
+        $result = $response->json('choices.0.message.content') ?? $response->json('content');
+
+        // If still null, try to get the full response and extract content
+        if ($result === null) {
+            $json = $response->json();
+            $result = $json['choices'][0]['message']['content'] ?? $json['content'] ?? '';
+        }
+
+        return is_array($result) ? ($result['content'] ?? '') : (string) $result;
     }
 }

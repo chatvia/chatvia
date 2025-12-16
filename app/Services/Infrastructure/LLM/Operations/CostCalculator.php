@@ -16,5 +16,4 @@ class CostCalculator
 
         return round($inputCost + $outputCost, 2);
     }
-
 }

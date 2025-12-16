@@ -57,21 +57,31 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'document_classification' => $contentAnalysis['document_type'] ?? null,
         ]);
 
-        $chunk = app(Summarize::class)->summarize($this->content);
+        $summary = app(Summarize::class)->summarize($this->content);
 
+        // Extract questions separately
+        $questions = null;
         if (isset($contentAnalysis['questions'])) {
             $questions = is_array($contentAnalysis['questions'])
-                ? implode("\n", $contentAnalysis['questions'])
-                : $contentAnalysis['questions'];
-            $chunk .= PHP_EOL.'<Questions>'.$questions.'</Questions>';
+                ? $contentAnalysis['questions']
+                : [$contentAnalysis['questions']];
         }
 
+        // Use summary as the chunk content for cleaner embeddings
+        $chunkContent = $summary;
+
+        // Calculate LLM cost for summarization and analysis
         $costInCents = app(CostCalculator::class)->calculateCostInCents(
             inputText: $this->content,
-            outputText: PromptLoader::load('file/describe').strip_tags($chunk),
+            outputText: PromptLoader::load('file/describe').strip_tags($chunkContent),
             pricePerInputMilToken: 2.0,
             pricePerOutputMilToken: 8.0,
         );
+
+        // Add embedding cost
+        $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
+        $costInCents += app(CostCalculator::class)
+            ->calculateCostInCents(strip_tags($chunkContent), '', $embeddingPrice, 0.0);
 
         //        $agent = Agent::find($this->source->agent_id);
 
@@ -81,15 +91,17 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'chunkable_id' => $this->source->id,
             'type' => 'text',
             'chunk_index' => 0,
-            'chunk' => $chunk,
+            'chunk' => $chunkContent,
+            'questions' => $questions,
+            'summary' => $summary,
             'chunked_using_model' => config('ai.models.chunker'),
             'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
             'cost_in_cents' => $costInCents,
-            'tokens' => TikToken::countTokens($chunk),
-            'embedding' => embed(strip_tags($chunk), true),
-            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($chunk)).", 'llmlingua2')"),
+            'tokens' => TikToken::countTokens($chunkContent),
+            'embedding' => embed(strip_tags($chunkContent), true),
+            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($chunkContent)).", 'llmlingua2')"),
             'metadata' => $contentAnalysis['metadata'],
-            'checksum' => md5($chunk),
+            'checksum' => md5($chunkContent),
             'retrieval_count' => 0,
         ]);
     }

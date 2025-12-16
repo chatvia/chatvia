@@ -200,7 +200,7 @@ class MessageManager
     /**
      * Get messages formatted for LLM consumption.
      */
-    public function getLlmMessages(string $conversationId, bool $asText = false): array|string
+    public function getLlmMessages(string $conversationId, bool $asText = false, int $limit = 2): array|string
     {
         $cacheKey = $this->cache->generateConversationKey($conversationId);
         $messages = $this->cache->get($cacheKey, []);
@@ -209,8 +209,8 @@ class MessageManager
             return $asText ? '' : [];
         }
 
-        // Get last 5 messages for context window
-        $messages = array_slice($messages, -5);
+        // Get last N messages for context window
+        $messages = array_slice($messages, -$limit);
 
         $formattedMessages = collect($messages)
             ->map(fn ($message) => [
@@ -228,7 +228,7 @@ class MessageManager
 
     public function getLastMessages(string $conversationId, int $number = 3): array
     {
-        $llmMessages = $this->getLlmMessages($conversationId);
+        $llmMessages = $this->getLlmMessages($conversationId, false, $number);
 
         return array_reverse(array_slice($llmMessages, -$number));
     }

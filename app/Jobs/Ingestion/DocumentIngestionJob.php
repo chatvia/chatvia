@@ -122,7 +122,7 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
             return new ChunkIngestionJob($chunk);
         });
 
-        SummaryIngestionJob::dispatch($this->sourceFile, $content);
+//        SummaryIngestionJob::dispatch($this->sourceFile, $content);
 
         // Set expected_chunks BEFORE dispatching batch jobs to ensure progress calculation works
         $this->sourceFile->update([

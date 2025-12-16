@@ -1,4 +1,14 @@
-nput:
-- Central chunk: <TextChunk>{text}</TextChunk>
-- Previous context: <PrevChunk>{previous_context}</PrevChunk>
-- Next context: <NextChunk>{next_context}</NextChunk>
+## Central chunk 
+<CentralChunk>
+{text}
+</CentralChunk>
+
+## Previous chunk 
+<PrevChunk>
+{previous_context}
+</PrevChunk>
+
+## Next Chunk
+<NextChunk>
+{next_context}
+</NextChunk>

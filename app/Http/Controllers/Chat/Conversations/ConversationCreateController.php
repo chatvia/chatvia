@@ -24,7 +24,8 @@ final class ConversationCreateController
 
         abort_if(boolean: ! $agent, code: 404);
 
-        ['lang' => $lang, 'query' => $query] = app(QueryRewriter::class)->rewrite($request->input('message'));
+        ['lang' => $lang, 'query' => $query] = app(QueryRewriter::class)
+            ->rewrite($request->input('message'));
 
         $sessionId = $session->firstOrCreateChatSession();
 

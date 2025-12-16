@@ -41,9 +41,9 @@ class Vision
             ],
         ])->json();
 
-        $result = $response['choices'][0]['message']['content'] ?? '0';
+        $result = $response['choices'][0]['message']['content'] ?? 'no_info';
 
-        if (str_contains($response, 'no_info')) {
+        if (str_contains($result, 'no_info')) {
             return false;
         }
 

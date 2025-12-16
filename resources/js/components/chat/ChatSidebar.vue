@@ -486,12 +486,12 @@ const switchToSelectedAgent = () => {
             </nav>
 
             <!-- Chats Section -->
-            <div class="flex-1 overflow-hidden flex flex-col">
-                <div class="px-3 py-2">
+            <div class="flex-1 flex flex-col min-h-0">
+                <div class="px-3 py-2 flex-shrink-0">
                     <span class="text-xs text-muted-foreground font-medium">Your chats</span>
                 </div>
 
-                <ScrollArea class="flex-1">
+                <ScrollArea class="flex-1 h-full">
                     <!-- Loading indicator -->
                     <div v-if="isLoadingConversations" class="py-8 flex justify-center">
                         <div class="h-5 w-5 border-2 border-muted-foreground/20 border-t-muted-foreground rounded-full animate-spin"></div>
@@ -608,7 +608,7 @@ const switchToSelectedAgent = () => {
             </div>
 
             <!-- Sidebar footer -->
-            <div class="mt-auto pt-2 space-y-2">
+            <div class="flex-shrink-0 border-t border-sidebar-border bg-sidebar/50 backdrop-blur-sm -mx-3 -mb-3 px-3 py-3 space-y-2">
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <button class="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-destructive hover:bg-accent rounded-lg transition-colors cursor-pointer">

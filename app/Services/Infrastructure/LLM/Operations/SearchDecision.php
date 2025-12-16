@@ -18,7 +18,7 @@ class SearchDecision
     public function shouldSearch(array $chunks, string $userQuery): bool
     {
         $response = $this->provider->completion([
-            'model' => 'llama-3.1-8b-instruct',
+            'model' => config('ai.models.search_decision'),
             'temperature' => 0,
             'max_tokens' => 10,
             'messages' => [

@@ -28,7 +28,7 @@ class ChatContext
         public readonly array $llmMessages,
         public readonly ?string $userMessageId,
         public readonly string $assistantMessageId,
-        public readonly string $queryLanguage,
+        public readonly ?string $queryLanguage = null,
         ?float $startTime = null,
     ) {
         $this->sources = collect();

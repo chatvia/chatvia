@@ -94,7 +94,7 @@ class ChatMemory implements ChatMemoryInterface
         $this->ensureInitialized();
 
         if (empty($messages)) {
-            $messages = $this->messageManager->getLlmMessages($this->conversationId, true);
+            $messages = $this->messageManager->getLlmMessages($this->conversationId, true, 2);
         }
 
         $this->conversationManager->updateConversationTitleFromMessages($this->conversationId, $messages);
@@ -262,12 +262,12 @@ class ChatMemory implements ChatMemoryInterface
     /**
      * Get messages formatted for LLM consumption.
      */
-    public function getLlmMessages(bool $asText = false): array|string
+    public function getLlmMessages(bool $asText = false, int $limit = 2): array|string
     {
         $this->requireConversationId();
         $this->ensureInitialized();
 
-        return $this->messageManager->getLlmMessages($this->conversationId, $asText);
+        return $this->messageManager->getLlmMessages($this->conversationId, $asText, $limit);
     }
 
     /**

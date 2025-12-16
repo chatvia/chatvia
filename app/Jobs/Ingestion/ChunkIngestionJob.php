@@ -14,7 +14,6 @@ use App\Models\Chunk;
 use App\Models\ChunkReference;
 use App\Models\SourceFile;
 use App\Models\SourceText;
-use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Infrastructure\LLM\Operations\Chunker;
 use App\Services\Infrastructure\LLM\Operations\CostCalculator;
 use App\Services\Infrastructure\LLM\Operations\Vision;
@@ -64,7 +63,12 @@ class ChunkIngestionJob implements ShouldQueue
             return;
         }
 
-        $userPrompt = PromptLoader::load('chunking/user');
+        $agent = Agent::find($this->chunk->agent_id);
+        $agentExternalId = $agent->external_id;
+
+        if (!$agent) {
+            return ;
+        }
 
         foreach ($this->chunk->chunk_images as $imagePath) {
             $imageUrl = Storage::disk('public')->url($imagePath);
@@ -87,20 +91,48 @@ class ChunkIngestionJob implements ShouldQueue
             )
             ->toString();
 
+        $userPrompt = PromptLoader::load('chunking/user');
         $userPrompt = template($userPrompt, [
             'text' => $chunkText,
             'previous_context' => $this->chunk->prev_chunk,
             'next_context' => $this->chunk->next_chunk,
-        ]).$this->appendUserPrompt;
+        ]) . $this->appendUserPrompt;
 
-        $chunk = app(Chunker::class)->chunk($userPrompt);
+        $rawChunk = app(Chunker::class)->chunk($userPrompt);
 
-        $tokens = TikToken::countTokens($chunk);
+        // Extract summary and questions from XML tags
+        $extractedData = $this->extractSummaryAndQuestions($rawChunk);
 
-        $costInCents = app(CostCalculator::class)->calculateCostInCents($systemPrompt.$userPrompt, $chunk);
 
-        $agent = Agent::find($this->chunk->agent_id);
-        $agentExternalId = $agent->external_id;
+        $cleanChunk = $extractedData['chunk'];
+        $summary = $extractedData['summary'];
+        $questions = $extractedData['questions'];
+
+        $tokens = TikToken::countTokens($cleanChunk);
+
+        // Calculate LLM cost for chunking
+        $costInCents = app(CostCalculator::class)
+            ->calculateCostInCents($systemPrompt.$userPrompt, $rawChunk);
+
+        $costInCents += app(CostCalculator::class)
+            ->calculateCostInCents($rawChunk, '', 0.90, 0.0);
+
+
+        // Build embedding content with summary and questions
+        $embeddingContent = $cleanChunk;
+
+        if ($summary) {
+            $embeddingContent .= "\n".$summary;
+        }
+
+        if ($questions) {
+            $embeddingContent .= "\n".implode("\n", $questions);
+        }
+
+        // Add embedding cost
+        $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
+        $costInCents += app(CostCalculator::class)
+            ->calculateCostInCents($embeddingContent, '', $embeddingPrice, 0.0);
 
         $createdChunk = Chunk::query()->create([
             'user_id' => $agent->user_id,
@@ -108,13 +140,15 @@ class ChunkIngestionJob implements ShouldQueue
             'chunkable_id' => $this->chunk->chunkable_id,
             'type' => 'text',
             'chunk_index' => $this->chunk->chunk_index,
-            'chunk' => $chunk,
+            'chunk' => $cleanChunk,
+            'questions' => $questions,
+            'summary' => $summary,
             'chunked_using_model' => config('ai.models.chunker'),
             'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
             'cost_in_cents' => $costInCents,
             'tokens' => $tokens,
-            'embedding' => embed($chunk, true),
-            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($chunk).", 'llmlingua2')"),
+            'embedding' => embed($embeddingContent, true),
+            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($embeddingContent).", 'llmlingua2')"),
             'metadata' => array_merge($this->metadata, [
                 'images' => $describedImages,
             ]),
@@ -161,5 +195,49 @@ class ChunkIngestionJob implements ShouldQueue
                 $agentExternalId
             );
         }
+    }
+
+    /**
+     * Extract <Chunk>, <Summary>, and <Questions> XML tags and return clean chunk
+     */
+    private function extractSummaryAndQuestions(string $rawContent): array
+    {
+        $cleanChunk = null;
+        $summary = null;
+        $questions = null;
+
+        // Extract <Chunk> tag (the actual chunk content)
+        if (preg_match('/<Chunk>(.*?)<\/Chunk>/s', $rawContent, $chunkMatches)) {
+            $cleanChunk = trim($chunkMatches[1]);
+        }
+
+        // Extract <Summary> tag
+        if (preg_match('/<Summary>(.*?)<\/Summary>/s', $rawContent, $summaryMatches)) {
+            $summary = trim($summaryMatches[1]);
+        }
+
+        // Extract <Questions> tag
+        if (preg_match('/<Questions>(.*?)<\/Questions>/s', $rawContent, $questionsMatches)) {
+            $questionsText = trim($questionsMatches[1]);
+            // Split questions by newlines and filter out empty lines
+            $questions = array_values(array_filter(
+                array_map('trim', explode("\n", $questionsText)),
+                fn ($q) => ! empty($q)
+            ));
+        }
+
+        // Fallback: if no <Chunk> tag found, use the raw content with tags removed
+        if (! $cleanChunk) {
+            $cleanChunk = $rawContent;
+            $cleanChunk = preg_replace('/<Summary>.*?<\/Summary>\s*/s', '', $cleanChunk);
+            $cleanChunk = preg_replace('/<Questions>.*?<\/Questions>\s*/s', '', $cleanChunk);
+            $cleanChunk = trim($cleanChunk);
+        }
+
+        return [
+            'chunk' => $cleanChunk,
+            'summary' => $summary,
+            'questions' => $questions,
+        ];
     }
 }

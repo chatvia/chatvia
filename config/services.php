@@ -38,9 +38,6 @@ return [
         'redirect' => env('SLACK_REDIRECT_URI'),
     ],
 
-    'llm_provider' => env('LLM_PROVIDER', 'scaleway'), // openrouter or groq
-    'embeddings_provider' => env('EMBEDDINGS_PROVIDER', 'qwen'), // cohere or jina
-
     'openrouter' => [
         'api_key' => env('OPENROUTER_API_KEY'),
         'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
@@ -139,5 +136,10 @@ return [
 
     'scalewayai' => [
         'api_key' => env('SCALEWAYAI_API_KEY'),
-    ]
+    ],
+
+    'mistral' => [
+        'api_key' => env('MISTRAL_API_KEY'),
+        'base_url' => env('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1'),
+    ],
 ];

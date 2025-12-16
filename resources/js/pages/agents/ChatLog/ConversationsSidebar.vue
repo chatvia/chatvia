@@ -84,9 +84,9 @@ import { ref } from 'vue';
 </script>
 
 <template>
-  <div class="w-[300px] flex-shrink-0 flex flex-col h-full overflow-hidden bg-muted/30 border-r">
-    <div class="p-0 flex-1 overflow-y-auto min-h-0">
-      <div class="px-4 pb-3 pt-4 flex-shrink-0 border-b border-border/50 sticky top-0 bg-muted/30 backdrop-blur-sm z-10">
+  <div class="w-[300px] flex-shrink-0 flex flex-col h-full bg-muted/30 border-r">
+    <!-- Header Section -->
+    <div class="px-4 pb-3 pt-4 flex-shrink-0 border-b border-border/50 bg-muted/30">
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-1">
             <!-- Online Only Toggle -->
@@ -111,7 +111,6 @@ import { ref } from 'vue';
             </TooltipProvider>
           </div>
           <div class="flex items-center gap-1">
-
             <!-- Filters Button -->
             <Button 
               variant="ghost" 
@@ -225,11 +224,13 @@ import { ref } from 'vue';
           </Badge>
         </div>
         
-        <div class="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{{ totalConversations }} conversations</span>
-        </div>
+      <div class="flex items-center justify-between text-xs text-muted-foreground">
+        <span>{{ totalConversations }} conversations</span>
       </div>
-      
+    </div>
+    
+    <!-- Scrollable Conversations Area -->
+    <div class="flex-1 overflow-y-auto min-h-0">
       <!-- Loading State for Conversations -->
       <div v-if="isLoadingConversations" class="flex items-center justify-center py-12">
         <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />

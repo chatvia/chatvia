@@ -2,8 +2,6 @@
 
 namespace App\Contracts;
 
-use Illuminate\Support\Collection;
-
 interface EmbeddingsProviderInterface
 {
     /**
@@ -21,10 +19,9 @@ interface EmbeddingsProviderInterface
      *
      * @param  string  $query  The search query
      * @param  array  $documents  Array of documents to rerank
-     * @param  int  $topN  Number of top results to return
-     * @return array|null Array of reranked document indices or null if not supported
+     * @return array|null Array of reranked documents with relevance scores or null if not supported
      */
-    public function rerank(string $query, array $documents, int $topN = 6): ?array;
+    public function rerank(string $query, array $documents): ?array;
 
     /**
      * Check if the provider supports reranking.

@@ -11,10 +11,9 @@ abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
      *
      * @param  string  $query  The search query
      * @param  array  $documents  Array of documents to rerank
-     * @param  int  $topN  Number of top results to return
      * @return array|null Always returns null
      */
-    public function rerank(string $query, array $documents, int $topN = 6): ?array
+    public function rerank(string $query, array $documents): ?array
     {
         return null;
     }

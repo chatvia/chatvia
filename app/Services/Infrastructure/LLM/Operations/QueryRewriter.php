@@ -13,8 +13,15 @@ class QueryRewriter
 
     public function rewrite(string $userQuery, $previousQuery = null): array
     {
+        if (config('ai.query.rewriter.enabled') === false) {
+            return [
+                'lang' => null,
+                'query' => $userQuery,
+            ];
+        }
+
         $response = $this->provider->completion([
-            'model' => 'llama-3.1-8b-instruct',
+            'model' => config('ai.query.rewriter.model'),
             'temperature' => 0.0,
             'messages' => [
                 [
@@ -35,7 +42,7 @@ class QueryRewriter
 
         return [
             'lang' => $lang ?? 'en',
-            'query' => config('ai.query.rewriter_enabled') ? $query : $userQuery,
+            'query' => $query,
         ];
     }
 }

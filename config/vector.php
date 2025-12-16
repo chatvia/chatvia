@@ -23,6 +23,14 @@ return [
         // Enable Cohere reranking for better relevance
         'rerank' => env('VECTOR_SEARCH_RERANK', false),
 
+        // Relevance score threshold for reranking (0.0 to 1.0)
+        // Only chunks with relevance_score >= threshold are included
+        // Lower = more permissive, Higher = more strict
+        'relevance_threshold' => env('VECTOR_SEARCH_RELEVANCE_THRESHOLD', 0.55),
+
+        // Maximum number of chunks to return (default: 3)
+        'max_chunks' => env('VECTOR_SEARCH_MAX_CHUNKS', 3),
+
         // Maximum number of initial candidates before filtering
         'candidate_limit' => env('VECTOR_SEARCH_CANDIDATE_LIMIT', 100),
 

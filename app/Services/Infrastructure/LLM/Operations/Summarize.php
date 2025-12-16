@@ -4,6 +4,7 @@ namespace App\Services\Infrastructure\LLM\Operations;
 
 use App\Contracts\LLMProviderInterface;
 use App\Services\Prompts\PromptLoader;
+use function Livewire\off;
 
 class Summarize
 {
@@ -13,6 +14,8 @@ class Summarize
 
     public function summarize(string $content): string
     {
+        office()->toPdf();
+
         $response = $this->provider->completion([
             'model' => 'qwen3-235b-a22b-instruct-2507',
             'temperature' => 0.0,

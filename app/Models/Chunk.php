@@ -27,6 +27,7 @@ class Chunk extends Model
             'embedding' => Vector::class,
             'keywords' => 'json',
             'metadata' => 'json',
+            'questions' => 'json',
         ];
     }
 

@@ -5,17 +5,23 @@ return [
 
     'models' => [
         'vision' => 'gemma-3-27b-it',
-        'embedding' => env('EMBEDDINGS_PROVIDER', 'qwen'),
-        'chunker' => 'qwen3-235b-a22b-instruct-2507',
-
-        // Generate title for conversations
+        'embedding' => 'qwen',
+        'chunker' => 'llama-3.3-70b-instruct',
         'title' => 'gemma-3-27b-it',
-
         'tone' => 'gemma-3-27b-it',
+        'search_decision' => 'gemma-3-27b-it',
     ],
 
     'query' => [
-        'rewriter_enabled' => env('QUERY_REWRITER_ENABLED', false),
+        'rewriter' => [
+            'enabled' => env('QUERY_REWRITER_ENABLED', false),
+            'model' => 'gemma-3-27b-it',
+        ]
+    ],
+
+    'pricing' => [
+        'chunker_per_million_tokens' => 0.90,
+        'embedding_per_million_tokens' => 0.90,
     ],
 
 ];

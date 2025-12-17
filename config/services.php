@@ -136,6 +136,7 @@ return [
 
     'scalewayai' => [
         'api_key' => env('SCALEWAYAI_API_KEY'),
+        'endpoint' => env('SCALEWAYAI_API_ENDPOINT', 'https://api.scaleway.ai/ce82c941-d642-4fe0-94d7-b89bee83dd9d/v1'),
     ],
 
     'mistral' => [

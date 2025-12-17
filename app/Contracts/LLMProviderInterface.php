@@ -2,6 +2,7 @@
 
 namespace App\Contracts;
 
+use Illuminate\Http\Client\PendingRequest;
 use Psr\Http\Message\ResponseInterface;
 
 interface LLMProviderInterface
@@ -15,6 +16,8 @@ interface LLMProviderInterface
      * @return ResponseInterface The streaming response
      */
     public function stream(string $model, array $messages, array $settings = []): ResponseInterface;
+
+    public function client(): PendingRequest;
 
     /**
      * Execute a completion request.

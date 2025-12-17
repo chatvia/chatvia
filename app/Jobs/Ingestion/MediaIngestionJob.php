@@ -6,6 +6,7 @@ use App\Data\Ingestion\ChunkIngestionData;
 use App\Models\SourceFile;
 use App\Services\Chunking\Chunker;
 use App\Services\Infrastructure\LLM\OpenAI;
+use App\Services\Infrastructure\LLM\Operations\Transcription;
 use App\Services\Media\AudioCompressor;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
@@ -64,7 +65,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         } else {
             $file = $this->agentFile->readFile();
             $compressedFilePath = $audioCompressor->process($file->getPathname());
-            $transcription = OpenAI::transcribe($compressedFilePath);
+            $transcription = app(Transcription::class)->transcribe($compressedFilePath);
         }
 
         if (empty($transcription)) {

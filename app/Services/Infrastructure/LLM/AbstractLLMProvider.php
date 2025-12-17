@@ -4,6 +4,7 @@ namespace App\Services\Infrastructure\LLM;
 
 use App\Contracts\LLMProviderInterface;
 use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Psr\Http\Message\ResponseInterface;
 
@@ -58,12 +59,7 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
             ->throw();
     }
 
-    /**
-     * Get a configured HTTP client instance.
-     *
-     * @return \Illuminate\Http\Client\PendingRequest The HTTP client
-     */
-    public function client()
+    public function client(): PendingRequest
     {
         return Http::withHeaders($this->headers());
     }

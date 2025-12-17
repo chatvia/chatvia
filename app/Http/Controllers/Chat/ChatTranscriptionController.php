@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Chat;
 
 use App\Http\Controllers\Controller;
 use App\Services\Infrastructure\LLM\OpenAI;
+use App\Services\Infrastructure\LLM\Operations\Transcription;
 use App\Services\Media\AudioCompressor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,6 @@ class ChatTranscriptionController extends Controller
         $file = $request->file('audio');
         $tempPath = temp_dir('/transcription').'/'.Str::uuid().'.'.$file->getClientOriginalExtension();
 
-        // Move uploaded file to temp location
         $file->move(dirname($tempPath), basename($tempPath));
 
         try {
@@ -29,12 +29,13 @@ class ChatTranscriptionController extends Controller
             $compressedPath = $audioCompressor->process($tempPath);
 
             // Transcribe using OpenAI Whisper
-            $transcription = OpenAI::transcribe($compressedPath);
+            $transcription = app(Transcription::class)->transcribe($tempPath);
 
             // Clean up temp files
             if (file_exists($tempPath)) {
                 unlink($tempPath);
             }
+//
             if (file_exists($compressedPath)) {
                 unlink($compressedPath);
             }
@@ -48,9 +49,9 @@ class ChatTranscriptionController extends Controller
             ]);
 
             // Clean up on error
-            if (file_exists($tempPath)) {
-                unlink($tempPath);
-            }
+//            if (file_exists($tempPath)) {
+//                unlink($tempPath);
+//            }
 
             return response()->json([
                 'error' => 'Transcription failed. Please try again.',

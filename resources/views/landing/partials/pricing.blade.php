@@ -12,7 +12,7 @@
                 <!-- Section header -->
                 <div class="max-w-3xl mx-auto text-center pb-12">
                     <h2 class="h2 font-display text-slate-100">
-                        AI Chatbots don't need to cost a fortune
+                        Pricing
                     </h2>
                 </div>
 

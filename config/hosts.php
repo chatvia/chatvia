@@ -305,7 +305,23 @@ return [
                 ],
                 [
                     'question' => 'How does ChatVIA work?',
-                    'answer' => 'Upload your documents (PDFs, Word docs, spreadsheets, etc.) and ChatVIA processes them using advanced AI. The system creates AI chatbots that can answer questions about your content, provide insights, and help users find information quickly.',
+                    'answer' => 'Upload your documents (PDFs, Word docs, Audio, Video, etc.) and ChatVIA processes them using advanced AI. The system creates AI chatbots that can answer questions about your content, provide insights, and help users find information quickly.',
+                ],
+                [
+                    'question' => 'Can I crawl my website?',
+                    'answer' => 'Yes, You can crawl your website and make a chabot that is traind on your website content, so your customers can get instant answer on repetivie questions such as contact info, opening hours, etc...',
+                ],
+                [
+                    'question' => 'What does training mean?',
+                    'answer' => 'Training means that we take your data, feed it to advanced AI pipeline to understand it and make a chatbot based on the train data. This allows you to have your own Chatbot',
+                ],
+                [
+                    'question' => 'What type of training you use?',
+                    'answer' => 'We use RAG technology to reterive and ingest your data, we will never train your data or use any 3rd party to do so, this makes your data 100% safe.',
+                ],
+                [
+                    'question' => 'Does it support Audio and Video files?',
+                    'answer' => 'Yes, ChatVia support both audio and video files using advanced transcripton techonoligy.',
                 ],
                 [
                     'question' => 'What types of files can I upload?',
@@ -317,7 +333,7 @@ return [
                 ],
                 [
                     'question' => 'What AI models does ChatVIA use?',
-                    'answer' => 'ChatVIA supports multiple leading AI models including GPT, Claude, Gemini, Mistral, Cohere, LLaMA, and more. You can choose the best model for your needs and switch between them anytime.',
+                    'answer' => 'ChatVIA supports multiple cutting edge Open Source AI models including GPT OSS, LLama, Qwen, DeepSeek, Gemma, Mistral, Holo2. You can choose the best model for your needs and switch between them anytime.',
                 ],
                 [
                     'question' => 'Is my data secure and private?',

@@ -56,8 +56,8 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
         $chunks = $splitter->splitText($text);
         $chunks = collect($chunks)->map(fn ($item) => ['text' => $item])->toArray();
         $chunks = new Chunker(
-            agentId: $this->agentId,
-            chunkableType: AgentWebsiteUrl::class,
+            agent: $this->agentId,
+            chunkable: AgentWebsiteUrl::class,
             chunkableId: $this->websiteUrl->id,
         )->createChunks($chunks);
 

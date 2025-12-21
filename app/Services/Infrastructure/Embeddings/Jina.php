@@ -2,10 +2,6 @@
 
 namespace App\Services\Infrastructure\Embeddings;
 
-use App\Data\Chunk;
-use Exception;
-use Illuminate\Http\Client\Pool;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 class Jina extends AbstractEmbeddingsProvider

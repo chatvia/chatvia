@@ -25,8 +25,7 @@ class AgentManagerController
         'agent.chat.view' => 'agents.logs',
 
         // Sources (any training permission)
-        'agent.sources.train.pdf' => 'agents.sources.pdf',
-        'agent.sources.train.word' => 'agents.sources.word',
+        'agent.sources.train.files' => 'agents.sources.files',
         'agent.sources.train.text' => 'agents.sources.text',
         'agent.sources.train.qa' => 'agents.sources.text',
         'agent.sources.train.web' => 'agents.sources.web',

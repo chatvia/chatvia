@@ -3,9 +3,7 @@
 namespace App\Services\Infrastructure\LLM\Operations;
 
 use App\Contracts\LLMProviderInterface;
-use App\Services\Infrastructure\LLM\Scaleway;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
 
 class Transcription
 {
@@ -25,8 +23,8 @@ class Transcription
             )
             ->post($transcriptionEndpoint, [
                 'model' => 'whisper-large-v3',
-//                'prompt' => 'You are a helpful assistant',
-//                'language' => 'en',
+                //                'prompt' => 'You are a helpful assistant',
+                //                'language' => 'en',
             ])->json();
 
         return str($response['text'])->trim()->toString();

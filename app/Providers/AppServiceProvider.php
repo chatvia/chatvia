@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\DocumentOCRInterface;
 use App\Contracts\EmbeddingsProviderInterface;
 use App\Contracts\LLMProviderInterface;
 use App\Models\Agent;
@@ -27,6 +28,7 @@ use App\Services\Infrastructure\LLM\Groq;
 use App\Services\Infrastructure\LLM\Mistral;
 use App\Services\Infrastructure\LLM\OpenRouter;
 use App\Services\Infrastructure\LLM\Scaleway;
+use App\Services\Ingestion\Clients\MistralOCR;
 use App\Services\Teams\TeamService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -74,6 +76,10 @@ class AppServiceProvider extends ServiceProvider
                 'mistral' => $app->make(\App\Services\Infrastructure\Embeddings\Mistral::class),
                 default => $app->make(Cohere::class),
             };
+        });
+
+        $this->app->bind(DocumentOCRInterface::class, function ($app) {
+            return $app->make(MistralOCR::class);
         });
 
         Request::macro('subdomain', function () {

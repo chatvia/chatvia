@@ -4,14 +4,12 @@ namespace App\Jobs\Ingestion;
 
 use App\Contracts\ChunkableContract;
 use App\Contracts\EmbeddingsProviderInterface;
-use App\Models\Agent;
 use App\Models\Chunk;
 use App\Services\Infrastructure\LLM\Operations\ContentAnalyzer;
 use App\Services\Infrastructure\LLM\Operations\CostCalculator;
-use App\Services\Infrastructure\LLM\Operations\Summarize;
+use App\Services\Infrastructure\LLM\Operations\Summarizer;
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
-use Exception;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,7 +23,12 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public bool $deleteWhenMissingModels = true;
 
-    public function __construct(public ChunkableContract $source, public string $content) {}
+    public int $timeout = 1800;
+    
+    public function __construct(public ChunkableContract $source, public string $publicUrl)
+    {
+        $this->onQueue('ingestion-heavy');
+    }
 
     public function handle(): void
     {
@@ -37,27 +40,14 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        // Skip if content is too short or empty
-        $contentLength = str_word_count($this->content);
-        if ($contentLength < 50) {
-            return;
-        }
-
-        try {
-            $contentAnalysis = app(ContentAnalyzer::class)->analyze($this->content);
-        } catch (Exception $e) {
-            // If analysis fails, skip summary generation
-            report($e);
-
-            return;
-        }
+        $contentAnalysis = app(ContentAnalyzer::class)->fromUrl($this->publicUrl);
 
         $this->source->update([
             'language' => $contentAnalysis['language'] ?? null,
             'document_classification' => $contentAnalysis['document_type'] ?? null,
         ]);
 
-        $summary = app(Summarize::class)->summarize($this->content);
+        $summary = app(Summarizer::class)->fromUrl($this->publicUrl);
 
         // Extract questions separately
         $questions = null;
@@ -67,13 +57,10 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
                 : [$contentAnalysis['questions']];
         }
 
-        // Use summary as the chunk content for cleaner embeddings
-        $chunkContent = $summary;
-
         // Calculate LLM cost for summarization and analysis
         $costInCents = app(CostCalculator::class)->calculateCostInCents(
-            inputText: $this->content,
-            outputText: PromptLoader::load('file/describe').strip_tags($chunkContent),
+            inputText: $this->publicUrl,
+            outputText: PromptLoader::load('file/describe').strip_tags($summary),
             pricePerInputMilToken: 2.0,
             pricePerOutputMilToken: 8.0,
         );
@@ -81,9 +68,7 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
         // Add embedding cost
         $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents += app(CostCalculator::class)
-            ->calculateCostInCents(strip_tags($chunkContent), '', $embeddingPrice, 0.0);
-
-        //        $agent = Agent::find($this->source->agent_id);
+            ->calculateCostInCents(strip_tags($summary), '', $embeddingPrice, 0.0);
 
         Chunk::query()->create([
             'user_id' => $this->source->user_id,
@@ -91,17 +76,17 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'chunkable_id' => $this->source->id,
             'type' => 'text',
             'chunk_index' => 0,
-            'chunk' => $chunkContent,
+            'chunk' => $summary,
             'questions' => $questions,
             'summary' => $summary,
             'chunked_using_model' => config('ai.models.chunker'),
             'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
             'cost_in_cents' => $costInCents,
-            'tokens' => TikToken::countTokens($chunkContent),
-            'embedding' => embed(strip_tags($chunkContent), true),
-            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($chunkContent)).", 'llmlingua2')"),
+            'tokens' => TikToken::countTokens($summary),
+            'embedding' => embed(strip_tags($summary), true),
+            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($summary)).", 'llmlingua2')"),
             'metadata' => $contentAnalysis['metadata'],
-            'checksum' => md5($chunkContent),
+            'checksum' => md5($summary),
             'retrieval_count' => 0,
         ]);
     }

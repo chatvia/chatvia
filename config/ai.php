@@ -16,12 +16,13 @@ return [
         'rewriter' => [
             'enabled' => env('QUERY_REWRITER_ENABLED', false),
             'model' => 'gemma-3-27b-it',
-        ]
+        ],
     ],
 
     'pricing' => [
-        'chunker_per_million_tokens' => 0.90,
-        'embedding_per_million_tokens' => 0.90,
+        'chunker_input_per_million_tokens' => 0.90,
+        'chunker_output_per_million_tokens' => 0.90,
+        'embedding_output_per_million_tokens' => 0.90,
     ],
 
 ];

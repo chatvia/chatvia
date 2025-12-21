@@ -43,6 +43,8 @@ return new class extends Migration
             $table->text('page_url')->nullable();
             $table->string('locale', 50)->nullable();
 
+            $table->boolean('answer_found')->default(true)->index()->after('is_direct_response');
+
             $table->timestamp('last_activity_at')->nullable()->index();
             $table->timestamps();
 

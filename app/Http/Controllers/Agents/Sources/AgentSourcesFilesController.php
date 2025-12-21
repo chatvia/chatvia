@@ -17,18 +17,24 @@ class AgentSourcesFilesController
         );
 
         $request->validate([
-            'file_type' => ['required', 'in:pdf,word,audio,video'],
+            'file_type' => ['nullable', 'in:pdf,word,audio,video'],
         ]);
 
         $fileType = $request->input('file_type');
 
-        $files = match ($fileType) {
-            'pdf' => $agent->pdfFiles()->withCount('agents')->get(),
-            'word' => $agent->wordFiles()->withCount('agents')->get(),
-            'audio' => $agent->audioFiles()->withCount('agents')->get(),
-            'video' => $agent->videoFiles()->withCount('agents')->get(),
-            default => throw new Exception('Invalid file type'),
-        };
+        if ($fileType) {
+            // Filter by specific file type
+            $files = match ($fileType) {
+                'pdf' => $agent->pdfFiles()->withCount('agents')->get(),
+                'word' => $agent->wordFiles()->withCount('agents')->get(),
+                'audio' => $agent->audioFiles()->withCount('agents')->get(),
+                'video' => $agent->videoFiles()->withCount('agents')->get(),
+                default => throw new Exception('Invalid file type'),
+            };
+        } else {
+            // Return all file types for the unified Files page
+            $files = $agent->files()->withCount('agents')->get();
+        }
 
         return SourceFileDataResource::fromFiles($files);
     }

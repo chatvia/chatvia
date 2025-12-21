@@ -2,7 +2,10 @@
 
 namespace App\Jobs\Ingestion;
 
+use App\Contracts\DocumentOCRInterface;
 use App\Data\Ingestion\ChunkIngestionData;
+use App\Data\Ingestion\OCR\PageData;
+use App\Models\Agent;
 use App\Models\SourceFile;
 use App\Services\Chunking\Chunker;
 use App\Services\Ingestion\Clients\LlamaParse;
@@ -14,11 +17,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use RuntimeException;
 use Symfony\Component\HttpFoundation\File\File;
 use Throwable;
 
@@ -36,7 +37,7 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public $uniqueFor = 3600;
 
-    public function __construct(public SourceFile $sourceFile, public int $agentId)
+    public function __construct(public SourceFile $sourceFile, public Agent $agent)
     {
         if ($sourceFile->isWordFile()) {
             $this->onQueue('ingestion.word');
@@ -45,7 +46,7 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
         }
     }
 
-    public function handle(LlamaParse $llamaParse): void
+    public function handle(LlamaParse $llamaParse, DocumentOCRInterface $documentOCR): void
     {
         if ($this->batch()?->cancelled()) {
             return;
@@ -55,42 +56,31 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $externalJobId = $this->sourceFile->external_parsing_job_id;
-
         $internalJobId = $this->job->getJobId();
 
         $updateValues = [
             'internal_ingestion_job_id' => $internalJobId,
-            'parser' => $this->sourceFile->isAudioFile() ? 'whisper' : 'llamaparse',
+            'parser' => $this->sourceFile->isAudioFile() ? 'whisper' : 'mistral-ocr',
         ];
 
         // Get the file once and reuse it
-        $file = $this->sourceFile->isWordFile() ? $this->sourceFile->convertToPdf() : $this->sourceFile->readFile();
+        $file = $this->sourceFile->readFile();
+        $filePath = $file->getPathname();
 
         // Calculate file checksum for caching
-        $fileChecksum = md5_file($file->getPathname());
-        $cacheKey = "llamaparse:file:{$fileChecksum}";
-
-        if (! $externalJobId) {
-            $externalJobId = $llamaParse->parse($file);
-            $updateValues['external_parsing_job_id'] = $externalJobId;
-        }
+        $fileChecksum = md5_file($filePath);
 
         if ($this->sourceFile->parser_filepath) {
             $pages = Storage::get($this->sourceFile->parser_filepath);
-            $pages = json_decode($pages, true, 512, JSON_THROW_ON_ERROR);
+            $pages = PageData::fromJson($pages);
         } else {
-            // Check cache first (24 hours)
-            $pages = Cache::remember($cacheKey, 86400, function () use ($llamaParse, $externalJobId) {
-                return $llamaParse->getPagesWithImages($externalJobId);
-            });
-
+            $pages = $documentOCR->fromFile($filePath);
             $fileName = Str::uuid()->toString().'.json';
 
             $updateValues['parser_filepath'] = Storage::putFileAs(
-                path: 'users/'.$this->sourceFile->user_id.'/agents/'.$this->sourceFile->id,
-                file: new File(create_temp_file($fileName, json_encode($pages, JSON_THROW_ON_ERROR))),
-                name: 'parser.json',
+                path: 'users/'.$this->sourceFile->user_id.'/agents/'.$this->agent->id,
+                file: new File(create_temp_file($fileName, $pages->toJson())),
+                name: $fileChecksum.'.json',
             );
         }
 
@@ -98,37 +88,26 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $this->sourceFile->refresh();
 
-        // Validate pages data before chunking
-        if (! is_array($pages) || empty($pages)) {
-            throw new RuntimeException('No valid pages data available for chunking');
-        }
-
-        $chunker = new Chunker(
-            agentId: $this->agentId,
-            chunkableType: SourceFile::class,
-            chunkableId: $this->sourceFile->id,
-        );
-        $chunks = $chunker->createChunks($pages);
-
-        $parsedContent = Storage::get($this->sourceFile->parser_filepath);
-
-        $content = collect(json_decode($parsedContent, true, 512, JSON_THROW_ON_ERROR))
-            ->pluck('text')
-            ->join("\n");
-
-        $agentFileId = $this->sourceFile->id;
+        $chunks = new Chunker(
+            agent: $this->agent,
+            chunkable: $this->sourceFile,
+        )->createChunks($pages);
 
         $jobs = $chunks->map(function (ChunkIngestionData $chunk) {
             return new ChunkIngestionJob($chunk);
         });
 
-//        SummaryIngestionJob::dispatch($this->sourceFile, $content);
+        SummaryIngestionJob::dispatch(
+            $this->sourceFile,
+            Storage::temporaryUrl($filePath, now()->addDay()),
+        );
 
-        // Set expected_chunks BEFORE dispatching batch jobs to ensure progress calculation works
         $this->sourceFile->update([
             'status' => 'ingesting',
             'expected_chunks' => $chunks->count(),
         ]);
+
+        $agentFileId = $this->sourceFile->id;
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent File ID: '.$agentFileId)
@@ -138,7 +117,6 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
             })
             ->dispatch();
 
-        // Update batch ID after dispatch
         $this->sourceFile->update([
             'internal_chunking_batch_id' => $batch->id,
         ]);

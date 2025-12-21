@@ -38,6 +38,7 @@ class SearchDecision
 
         $response = strtolower(trim($response ?? ''));
         ray($response);
+
         return str_contains($response, 'search');
     }
 }

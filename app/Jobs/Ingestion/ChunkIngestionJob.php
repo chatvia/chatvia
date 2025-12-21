@@ -66,22 +66,23 @@ class ChunkIngestionJob implements ShouldQueue
         $agent = Agent::find($this->chunk->agent_id);
         $agentExternalId = $agent->external_id;
 
-        if (!$agent) {
-            return ;
+        if (! $agent) {
+            return;
         }
 
         foreach ($this->chunk->chunk_images as $imagePath) {
-            $imageUrl = Storage::disk('public')->url($imagePath);
-            $imageDescription = app(Vision::class)->describeImage(image: $imageUrl);
+            // Download image content and convert to data URI to avoid URL access issues
+            $imageContent = Storage::get($imagePath);
+            $imageDescription = app(Vision::class)->fromDataUrl($imageContent);
 
             logger()->info(
-                'image description: '.$imageDescription.PHP_EOL.'image url: '.$imageUrl.PHP_EOL.'image path: '.$imagePath.PHP_EOL,
+                'image description: '.$imageDescription.PHP_EOL.'image path: '.$imagePath.PHP_EOL,
             );
 
             if ($imageDescription !== false) {
                 $describedImages[$imagePath] = $imageDescription;
             } else {
-                Storage::disk('public')->delete($imagePath);
+                Storage::delete($imagePath);
             }
         }
 
@@ -96,13 +97,12 @@ class ChunkIngestionJob implements ShouldQueue
             'text' => $chunkText,
             'previous_context' => $this->chunk->prev_chunk,
             'next_context' => $this->chunk->next_chunk,
-        ]) . $this->appendUserPrompt;
+        ]).$this->appendUserPrompt;
 
         $rawChunk = app(Chunker::class)->chunk($userPrompt);
 
         // Extract summary and questions from XML tags
         $extractedData = $this->extractSummaryAndQuestions($rawChunk);
-
 
         $cleanChunk = $extractedData['chunk'];
         $summary = $extractedData['summary'];
@@ -112,11 +112,19 @@ class ChunkIngestionJob implements ShouldQueue
 
         // Calculate LLM cost for chunking
         $costInCents = app(CostCalculator::class)
-            ->calculateCostInCents($systemPrompt.$userPrompt, $rawChunk);
+            ->calculateCostInCents(
+                inputText: $systemPrompt.$userPrompt,
+                outputText: $rawChunk,
+                pricePerInputMilToken: config('ai.pricing.chunker_input_per_million_tokens'),
+                pricePerOutputMilToken: config('ai.pricing.chunker_output_per_million_tokens'),
+            );
 
         $costInCents += app(CostCalculator::class)
-            ->calculateCostInCents($rawChunk, '', 0.90, 0.0);
-
+            ->calculateCostInCents(
+                inputText: $rawChunk,
+                pricePerInputMilToken: config('ai.pricing.embedding_output_per_million_tokens'),
+                pricePerOutputMilToken: 0.0,
+            );
 
         // Build embedding content with summary and questions
         $embeddingContent = $cleanChunk;

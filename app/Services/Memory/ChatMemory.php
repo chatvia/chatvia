@@ -254,6 +254,7 @@ class ChatMemory implements ChatMemoryInterface
     public function getMessagesForConversation(bool $includeLlmMessages = false): array
     {
         $this->requireConversationId();
+
         $this->ensureInitialized();
 
         return $this->messageManager->getMessagesForConversation($this->conversationId, $includeLlmMessages);
@@ -265,6 +266,7 @@ class ChatMemory implements ChatMemoryInterface
     public function getLlmMessages(bool $asText = false, int $limit = 2): array|string
     {
         $this->requireConversationId();
+
         $this->ensureInitialized();
 
         return $this->messageManager->getLlmMessages($this->conversationId, $asText, $limit);
@@ -276,6 +278,7 @@ class ChatMemory implements ChatMemoryInterface
     public function getLastMessages(int $number = 3): array
     {
         $this->requireConversationId();
+
         $this->ensureInitialized();
 
         return $this->messageManager->getLastMessages($this->conversationId, $number);
@@ -287,7 +290,9 @@ class ChatMemory implements ChatMemoryInterface
     public function feedback(string $messageId, bool $satisfied): void
     {
         $this->requireConversationId();
+
         $this->ensureInitialized();
+
         $this->messageManager->addFeedback($this->conversationId, $messageId, $satisfied);
     }
 
@@ -297,7 +302,9 @@ class ChatMemory implements ChatMemoryInterface
     public function storeSourcesForMessage(string $messageId, array $sources): void
     {
         $this->requireConversationId();
+
         $this->ensureInitialized();
+
         $this->sourceManager->storeSourcesForMessage($this->conversationId, $messageId, $sources);
     }
 

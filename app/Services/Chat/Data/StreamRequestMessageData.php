@@ -11,8 +11,5 @@ class StreamRequestMessageData extends Data
         public Llm $model,
         public string $message,
         public ?string $createdAt = null,
-    )
-    {
-
-    }
+    ) {}
 }

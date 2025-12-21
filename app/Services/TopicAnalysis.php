@@ -5,16 +5,12 @@ namespace App\Services;
 use App\Contracts\LLMProviderInterface;
 use App\Models\Agent;
 use App\Models\ChatTopic;
-use App\Services\Infrastructure\LLM\OpenAI;
 
 class TopicAnalysis
 {
     public function __construct(
         public LLMProviderInterface $provider
-    )
-    {
-    }
-
+    ) {}
 
     public function analyze(string $text, ?Agent $agent = null): ?ChatTopic
     {

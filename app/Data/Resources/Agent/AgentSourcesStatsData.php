@@ -12,8 +12,7 @@ class AgentSourcesStatsData extends Data
     public function __construct(
         public int $websites,
         public int $texts,
-        public int $pdf,
-        public int $word,
+        public int $files,
         public int $markdown,
         public int $audio,
         public int $video,
@@ -22,11 +21,13 @@ class AgentSourcesStatsData extends Data
 
     public static function fromAgent(Agent $agent): self
     {
+        $pdfCount = $agent->files()->ingested()->pdf()->count();
+        $wordCount = $agent->files()->ingested()->word()->count();
+
         return new self(
             websites: $agent->websites()->where('source_websites.status', 'ingested')->count(),
             texts: $agent->texts()->where('source_texts.status', 'ingested')->count(),
-            pdf: $agent->files()->ingested()->pdf()->count(),
-            word: $agent->files()->ingested()->word()->count(),
+            files: $pdfCount + $wordCount,
             markdown: $agent->files()->ingested()->markdown()->count(),
             audio: $agent->files()->ingested()->audio()->count(),
             video: $agent->files()->ingested()->video()->count(),

@@ -4,7 +4,6 @@ namespace App\Services\Infrastructure\LLM\Operations;
 
 use App\Contracts\LLMProviderInterface;
 use App\Services\Prompts\PromptLoader;
-use Illuminate\Support\Facades\Log;
 
 class Chunker
 {
@@ -32,5 +31,4 @@ class Chunker
         // Try to get content from standard field
         return $res->json('choices.0.message.content');
     }
-
 }

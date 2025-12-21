@@ -22,6 +22,7 @@ class ChatMessage extends Model
             'confidence_score' => 'float',
             'metadata' => 'array',
             'read_at' => 'datetime',
+            'answer_found' => 'boolean',
         ];
     }
 

@@ -335,8 +335,8 @@ return [
     | Currency Settings
     |--------------------------------------------------------------------------
     */
-    'currency' => env('CASHIER_CURRENCY', 'usd'),
-    'currency_symbol' => env('BILLING_CURRENCY_SYMBOL', '$'),
+    'currency' => env('CASHIER_CURRENCY', 'eur'),
+    'currency_symbol' => env('BILLING_CURRENCY_SYMBOL', '€'),
 
     /*
     |--------------------------------------------------------------------------

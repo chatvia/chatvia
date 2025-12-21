@@ -53,15 +53,14 @@ use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
 use App\Http\Controllers\Agents\Models\AgentModelsToggleController;
 use App\Http\Controllers\Agents\Persona\AgentShowPersonaController;
 use App\Http\Controllers\Agents\Security\AgentSecurityUpdateController;
+use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesProcessController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFileUploadController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeMarkdownController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgePdfController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesStatsController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeUploadedFilesDeleteController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeWordController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeYoutubeController;
 use App\Http\Controllers\Agents\Sources\AgentSourcesFilesController;
 use App\Http\Controllers\Agents\Sources\Audio\AgentSourceAudioController;
@@ -163,8 +162,8 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         // Knowledge
         Route::get('sources', AgentKnowledgeSourcesController::class)->name('sources');
         Route::get('sources/stats', AgentKnowledgeSourcesStatsController::class)->name('sources.stats');
-        Route::get('sources/pdf', AgentKnowledgePdfController::class)->name('sources.pdf');
-        Route::get('sources/word', AgentKnowledgeWordController::class)->name('sources.word');
+        Route::get('sources/files', AgentKnowledgeFilesController::class)->name('sources.files');
+        Route::get('sources/files/data', AgentSourcesFilesController::class)->name('sources.files.data');
         Route::get('sources/markdown', AgentKnowledgeMarkdownController::class)->name('sources.markdown');
         Route::get('sources/audio', AgentSourceAudioController::class)->name('sources.audio');
         Route::get('sources/video', AgentSourceVideoController::class)->name('sources.video');
@@ -190,7 +189,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::delete('sources/qa/{id}', AgentKnowledgeQaDestroyController::class)->name('sources.qa.destroy');
         Route::post('sources/qa/{id}/unlink', AgentKnowledgeQaUnlinkController::class)->name('sources.qa.unlink');
 
-        Route::get('sources/files', AgentSourcesFilesController::class)->name('sources.files');
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
         Route::delete('sources/text/{id}', AgentKnowledgeTextDestroyController::class)->name('sources.text.destroy');
         Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->name('sources.files.delete');

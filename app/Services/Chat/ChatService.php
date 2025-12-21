@@ -201,6 +201,12 @@ readonly class ChatService
 
         $message = str_replace($strip, '', $context->streamedMessage);
 
+        // Check if the response contains the answer_not_found tag
+        $answerFound = ! str_contains($message, '<answer_not_found>');
+
+        // Remove the answer_not_found tags from the final message
+        $message = str_replace(['<answer_not_found>', '</answer_not_found>'], '', $message);
+
         $this
             ->memory
             ->setAgent($context->requestData->agent)
@@ -221,6 +227,7 @@ readonly class ChatService
                     is_direct_response: $context->hasQAMatch(),
                     agent_question_answer_id: $context->qaMatch?->id,
                     source: $context->requestData->source,
+                    answer_found: $answerFound,
                 )
             );
     }

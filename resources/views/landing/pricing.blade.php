@@ -12,7 +12,7 @@
                 <div class="max-w-6xl mx-auto px-4 sm:px-6">
                     <div class="py-12 md:py-20 border-t border-slate-200">
 
-                        <!-- Section header -->
+                        <!-- Section header --
                         <div class="max-w-3xl mx-auto text-center pb-12 md:pb-20">
                             <h2 class="h2 font-display text-slate-800 mb-4">
                                 Frequently Asked Questions

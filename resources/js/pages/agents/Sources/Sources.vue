@@ -32,28 +32,12 @@ const isLoadingStats = ref(true);
 // Knowledge base content types
 const contentTypes = [
     {
-        id: 'pdf',
-        label: 'PDF',
-        icon: 'pi-file-pdf',
-        description: 'Upload and manage PDF documents',
-        route: 'agents.sources.pdf',
-        statsKey: 'pdf'
-    },
-    {
-        id: 'word',
-        label: 'Word',
-        icon: 'pi-file-word',
-        description: 'Upload and manage Word documents',
-        route: 'agents.sources.word',
-        statsKey: 'word'
-    },
-    {
-        id: 'markdown',
-        label: 'Markdown',
-        icon: 'pi-file-edit',
-        description: 'Upload and manage Markdown files',
-        route: 'agents.sources.markdown',
-        statsKey: 'markdown'
+        id: 'files',
+        label: 'Files',
+        icon: 'pi-file',
+        description: 'Upload and manage documents (PDF, Word, etc.)',
+        route: 'agents.sources.files',
+        statsKey: 'files'
     },
     {
         id: 'text',

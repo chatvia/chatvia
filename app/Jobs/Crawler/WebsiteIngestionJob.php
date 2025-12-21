@@ -10,7 +10,7 @@ use App\Jobs\Ingestion\SummaryIngestionJob;
 use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
 use App\Models\SourceWebsite;
-use App\Services\Ingestion\Sources\WebsiteIngestion;
+use App\Services\Ingestion\Sources\WebsiteChunker;
 use App\Services\Prompts\PromptLoader;
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use App\Services\Tidy\HTMLCleaner;
@@ -22,6 +22,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class WebsiteIngestionJob implements ShouldQueue
 {
@@ -34,7 +36,7 @@ class WebsiteIngestionJob implements ShouldQueue
         $this->onQueue('ingestion.website');
     }
 
-    public function handle(RecursiveCharacterTextSplitter $splitter, HTMLCleaner $parser): void
+    public function handle(HTMLCleaner $parser): void
     {
         $this->website->update(['status' => 'ingesting']);
 
@@ -42,16 +44,17 @@ class WebsiteIngestionJob implements ShouldQueue
 
         WebsiteCrawlerEvent::dispatch($this->website, $this->agent);
 
-        /** @var WebsiteIngestion $websiteIngestion */
-        $websiteIngestion = app(WebsiteIngestion::class, ['website' => $this->website, 'agentId' => $this->agent->id]);
+        /** @var WebsiteChunker $websiteChunker */
+        $urlsWithChunks = app(WebsiteChunker::class, [
+            'website' => $this->website,
+            'agent' => $this->agent
+        ])->chunkUrls();
 
         /** @var AgentWebsiteUrl<array> $urls */
         $urls = $this->website->untrainedUrls;
 
         // Create a mapping of URL to Url ID
         $urlToId = $urls->pluck('id', 'url')->toArray();
-
-        $urlsWithChunks = $websiteIngestion->chunkUrls();
 
         $jobs = [];
 
@@ -71,15 +74,16 @@ class WebsiteIngestionJob implements ShouldQueue
         $websiteId = $this->website->id;
 
         $agentId = $this->agent->id;
+        $agentExternalId = $this->agent->external_id;
+        $agent = $this->agent;
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent WebSite ID: '.$websiteId)
-            ->then(function (Batch $batch) use ($websiteId, $agentId) {
+            ->then(function (Batch $batch) use ($websiteId, $agentId, $agentExternalId, $agent) {
                 $website = SourceWebsite::find($websiteId);
 
                 if ($website) {
-                    $agent = Agent::find($agentId);
-
+                    /** @var Agent $agent */
                     // Get URLs that are still in 'ingesting' status and update them
                     $urlsToUpdate = $website->urls()
                         ->where('status', 'ingesting')
@@ -87,12 +91,12 @@ class WebsiteIngestionJob implements ShouldQueue
 
                     foreach ($urlsToUpdate as $url) {
                         $url->update(['status' => 'ingested', 'crawled_at' => now()]);
-                        UrlIngestionEvent::dispatch($url, $agent->external_id);
+                        UrlIngestionEvent::dispatch($url, $agentExternalId);
                     }
 
                     // Update website status and dispatch final progress event
                     $website->update(['status' => 'ingested']);
-                    WebsiteIngestionProgressEvent::dispatch($website, $agent->external_id);
+                    WebsiteIngestionProgressEvent::dispatch($website, $agentExternalId);
                     WebsiteCrawlerEvent::dispatch($website, $agent);
                 }
             })
@@ -101,7 +105,16 @@ class WebsiteIngestionJob implements ShouldQueue
         $websiteHome = Http::get($this->website->url);
         $text = $parser->getTextFromHtml($websiteHome->body());
 
-        dispatch(new SummaryIngestionJob($this->website, $text));
+        $storagePath = 'users/'.$this->agent->user_id.'/agents/'.$this->agent->id.'/'.Str::uuid()->toString().'.txt';
+
+        Storage::disk('scaleway')->put($storagePath, $text);
+
+        dispatch(
+            new SummaryIngestionJob(
+                $this->website,
+                Storage::temporaryUrl($storagePath, now()->addHour()),
+            )
+        );
 
         $totalChunks = $urlsWithChunks->sum(fn ($data) => count($data['chunks']));
 

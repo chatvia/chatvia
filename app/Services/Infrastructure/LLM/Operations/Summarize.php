@@ -4,7 +4,6 @@ namespace App\Services\Infrastructure\LLM\Operations;
 
 use App\Contracts\LLMProviderInterface;
 use App\Services\Prompts\PromptLoader;
-use function Livewire\off;
 
 class Summarize
 {
@@ -30,7 +29,7 @@ class Summarize
                     'content' => template(PromptLoader::load('summarization/user'), ['content' => $content]),
                 ],
             ],
-        ])->json();
+        ])->json('choices.0.message.content');
 
         return $response['choices'][0]['message']['content'] ?? '';
     }

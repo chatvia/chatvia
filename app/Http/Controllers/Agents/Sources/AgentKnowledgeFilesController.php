@@ -8,13 +8,17 @@ use App\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class AgentKnowledgeWordController extends Controller
+class AgentKnowledgeFilesController extends Controller
 {
     public function __invoke(Request $request, Agent $agent)
     {
-        return Inertia::render('agents/Sources/Word', [
+        abort_if(
+            boolean: $request->user()->cannot('view', $agent),
+            code: 404,
+        );
+
+        return Inertia::render('agents/Sources/FilesSource', [
             'agent' => AgentResourceData::fromModel($agent),
-            'fileType' => 'word',
         ]);
     }
 }

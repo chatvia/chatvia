@@ -20,6 +20,7 @@
         "filament/filament": "^3.3",
         "firebase/php-jwt": "^6.11",
         "google/cloud-document-ai": "^2.2",
+        "graham-campbell/markdown": "^16.0",
         "inertiajs/inertia-laravel": "^2.0",
         "intervention/image": "^3.11",
         "intervention/image-laravel": "^1.5",
@@ -67,7 +68,8 @@
         "laravel/pint": "^1.18",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "pestphp/pest": "^4.0"
+        "pestphp/pest": "^4.0",
+        "spatie/laravel-horizon-watcher": "^1.1"
     },
     "autoload": {
         "psr-4": {

@@ -43,8 +43,8 @@ class TextIngestionJob implements ShouldQueue
         }
 
         $chunks = new Chunker(
-            agentId: $this->agentId,
-            chunkableType: SourceText::class,
+            agent: $this->agentId,
+            chunkable: SourceText::class,
             chunkableId: $this->agentText->id,
         )->createChunks($texts);
 

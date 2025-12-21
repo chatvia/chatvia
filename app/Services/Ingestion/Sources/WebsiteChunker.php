@@ -2,6 +2,8 @@
 
 namespace App\Services\Ingestion\Sources;
 
+use App\Data\Ingestion\ChunkIngestionData;
+use App\Data\Ingestion\OCR\PageData;
 use App\Events\UrlIngestionEvent;
 use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
@@ -9,18 +11,19 @@ use App\Models\SourceWebsite;
 use App\Services\Chunking\Chunker;
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use App\Services\Tidy\HTMLCleaner;
+use App\Services\TikToken;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
-class WebsiteIngestion
+class WebsiteChunker
 {
-    public function __construct(private SourceWebsite $website, private int $agentId) {}
+    public function __construct(private SourceWebsite $website, private Agent $agent) {}
 
-    public function getResponses()
+    public function getResponses(): array
     {
-        /** @var AgentWebsiteUrl<array> $urls */
+        /** @var array<int, AgentWebsiteUrl> $urls */
         $urls = $this->website->untrainedUrls;
 
         // Get all the responses for the given $urls
@@ -47,7 +50,7 @@ class WebsiteIngestion
                 }
 
                 // Then filter out failed responses
-                return ! $response->ok() || $response->noContent() || ! str_contains($response->header('content-type'), 'text/html');
+                return ! $response->ok() || $response->noContent();
             })
             ->mapWithKeys(function (Response $response, string $url) use ($splitter, $parser, $urls) {
                 $text = $parser->getTextFromHtml($response->body());
@@ -57,18 +60,30 @@ class WebsiteIngestion
 
                 $status = 'ingesting';
 
-                if ($urlModel->checksum === $checksum) {
-                    $chunks = collect();
-                    $status = 'ingested';
-                } else {
-                    $chunks = $splitter->splitText($text);
-                    $chunks = collect($chunks)->map(fn ($item) => ['text' => $item])->toArray();
-                    $chunks = new Chunker(
-                        agentId: $this->agentId,
-                        chunkableType: SourceWebsite::class,
-                        chunkableId: $this->website->id,
-                    )->createChunks($chunks);
-                }
+                //                if ($urlModel->checksum === $checksum.'x') {
+                //                    $chunks = collect();
+                //                    $status = 'ingested';
+                //                } else {
+                $chunks = $splitter->splitText($text);
+                $chunks = collect($chunks)
+                    ->map(function ($textChunk) {
+                        return new PageData(
+                            pageNumber: 0,
+                            content: $textChunk,
+                        );
+                    });
+
+                $chunks = new Chunker(
+                    agent: $this->agent,
+                    chunkable: $this->website,
+                )->createChunks($chunks);
+
+                // Filter out chunks below 128 tokens
+                $chunks = $chunks->reject(function (ChunkIngestionData $chunk) {
+                    return TikToken::countTokens($chunk->chunk_text) < 128;
+                });
+
+                //                }
 
                 $urlModel->update([
                     'checksum' => $checksum,
@@ -76,10 +91,9 @@ class WebsiteIngestion
                     'status' => $status,
                 ]);
 
-                if ($status === 'ingested') {
-                    $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
-                    UrlIngestionEvent::dispatch($urlModel, $agentExternalId);
-                }
+                //                if ($status === 'ingested') {
+                //                    UrlIngestionEvent::dispatch($urlModel, $this->agent->external_id);
+                //                }
 
                 return [
                     $url => [

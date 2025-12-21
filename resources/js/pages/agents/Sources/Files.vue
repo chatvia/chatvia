@@ -99,18 +99,13 @@ const isLoadingUsage = ref(false);
 
 // Description for file uploader based on file type
 const fileUploaderDescription = computed(() => {
-    if (props.fileType === 'pdf') {
-        return 'Add PDF documents to your agent\'s knowledge base.';
-    } else if (props.fileType === 'word') {
-        return 'Add Word documents to your agent\'s knowledge base.';
-    } else if (props.fileType === 'markdown') {
-        return 'Add Markdown files to your agent\'s knowledge base.';
-    } else     if (props.fileType === 'audio') {
+
+    if (props.fileType === 'audio') {
         return 'Upload audio files for transcription. Supported formats: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR, and 3GP. File size limit: 200 MB.';
     } else if (props.fileType === 'video') {
         return 'Upload video files for transcription. Supported formats: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime, and 3GPP. File size limit: 200 MB.';
     }
-    return 'Add documents to your agent\'s knowledge base. Supported formats: PDF, Word, Markdown, Audio, and Video';
+    return 'Supported formats: PDF (.pdf), Word (.docx), PowerPoint (.pptx), Text Files (.txt), EPUB (.epub), RTF (.rtf), OpenDocument Text (.odt)';
 });
 
 // File uploader configuration for Knowledge page - dynamic based on file type
@@ -670,7 +665,6 @@ const processAllFiles = async () => {
         // Send single request to process all files
         const processUrl = route('agents.sources.files.process', {
             agent: props.agent.external_id,
-            file_type: props.fileType,
         });
 
         console.log(`PROCESS URL: ${processUrl}`);
@@ -863,7 +857,7 @@ const fetchKnowledgeFiles = async () => {
 
     try {
         const response = await axios.get(
-            route('agents.sources.files', { agent: props.agent.external_id, file_type: props.fileType })
+            route('agents.sources.files.data', { agent: props.agent.external_id })
         );
 
         const allFiles = response.data as KnowledgeFile[];

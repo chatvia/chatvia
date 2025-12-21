@@ -22,7 +22,7 @@ test('chunks are from different sizes', function () {
     $splitter = new RecursiveCharacterTextSplitter(chunkSize: 700, chunkOverlap: 0);
     $chunks = $splitter->splitText($this->fileContent);
 
-    expect($chunks)->toHaveCount(65);
+    expect($chunks)->toHaveCount(67);
 });
 
 test('split preserves all content', function () {

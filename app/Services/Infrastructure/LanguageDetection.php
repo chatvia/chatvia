@@ -9,9 +9,7 @@ class LanguageDetection
 {
     public function __construct(
         public LLMProviderInterface $provider
-    )
-    {
-    }
+    ) {}
 
     public function detect(string $text): ?Language
     {

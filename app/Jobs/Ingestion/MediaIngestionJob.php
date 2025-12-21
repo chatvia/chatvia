@@ -3,9 +3,9 @@
 namespace App\Jobs\Ingestion;
 
 use App\Data\Ingestion\ChunkIngestionData;
+use App\Models\Agent;
 use App\Models\SourceFile;
 use App\Services\Chunking\Chunker;
-use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Infrastructure\LLM\Operations\Transcription;
 use App\Services\Media\AudioCompressor;
 use Illuminate\Bus\Batch;
@@ -17,6 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
@@ -34,12 +35,12 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public $uniqueFor = 3600;
 
-    public function __construct(public SourceFile $agentFile, public int $agentId)
+    public function __construct(public SourceFile $sourceFile, public Agent $agent)
     {
         // Assign to appropriate queue based on file type
-        if ($agentFile->isVideoFile()) {
+        if ($sourceFile->isVideoFile()) {
             $this->onQueue('ingestion.video');
-        } elseif ($agentFile->isAudioFile()) {
+        } elseif ($sourceFile->isAudioFile()) {
             $this->onQueue('ingestion.audio');
         }
     }
@@ -50,7 +51,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        if ($this->agentFile->status === 'ingested') {
+        if ($this->sourceFile->status === 'ingested') {
             return;
         }
 
@@ -59,11 +60,11 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
             'parser' => 'whisper',
         ];
 
-        if ($this->agentFile->parser_filepath) {
-            $file = $this->agentFile->readFile();
+        if ($this->sourceFile->parser_filepath) {
+            $file = $this->sourceFile->readFile();
             $transcription = $file->getContent();
         } else {
-            $file = $this->agentFile->readFile();
+            $file = $this->sourceFile->readFile();
             $compressedFilePath = $audioCompressor->process($file->getPathname());
             $transcription = app(Transcription::class)->transcribe($compressedFilePath);
         }
@@ -73,9 +74,9 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         }
 
         $chunker = new Chunker(
-            agentId: $this->agentId,
-            chunkableType: SourceFile::class,
-            chunkableId: $this->agentFile->id,
+            agent: $this->agent->id,
+            chunkable: SourceFile::class,
+            chunkableId: $this->sourceFile->id,
         );
 
         $pages = [
@@ -86,13 +87,15 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $updateValues['expected_chunks'] = $chunks->count();
 
-        $this->agentFile->update($updateValues);
+        $this->sourceFile->update($updateValues);
 
-        $this->agentFile->refresh();
+        $this->sourceFile->refresh();
 
-        dispatch(new SummaryIngestionJob($this->agentFile, $transcription));
+        $filePath = 'users/'.$this->agent->user_id.'/agent/'.$this->agent->id.'/'.Str::uuid()->toString().'.txt';
+        // TODO: fix it
+        dispatch(new SummaryIngestionJob($this->sourceFile, $transcription));
 
-        $agentFileId = $this->agentFile->id;
+        $agentFileId = $this->sourceFile->id;
 
         $jobs = $chunks->map(function (ChunkIngestionData $chunk) {
             return new ChunkIngestionJob($chunk);
@@ -114,14 +117,14 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
             ->dispatch();
 
         // Update batch ID after dispatch
-        $this->agentFile->update([
+        $this->sourceFile->update([
             'internal_chunking_batch_id' => $batch->id,
         ]);
     }
 
     public function uniqueId(): string
     {
-        return 'ingestion:media:'.$this->agentFile->id;
+        return 'ingestion:media:'.$this->sourceFile->id;
     }
 
     public function uniqueFor(): int
@@ -132,7 +135,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
     public function tags(): array
     {
         return [
-            'source_file:'.$this->agentFile->id,
+            'source_file:'.$this->sourceFile->id,
             'ingestion_job',
             'media',
         ];
@@ -144,13 +147,13 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         $jobId = $this->job->getJobId();
 
         Log::error('IngestionJob failed', [
-            'source_file_id' => $this->agentFile->id,
+            'source_file_id' => $this->sourceFile->id,
             'job_id' => $jobId,
             'error' => $exception->getMessage(),
             'trace' => $exception->getTraceAsString(),
         ]);
 
-        $this->agentFile->update([
+        $this->sourceFile->update([
             'status' => 'failed',
             'failure_reason' => $exception->getMessage(),
         ]);
@@ -162,11 +165,11 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         $jobId = $this->job?->getJobId() ?? $this->job?->uuid() ?? 'unknown';
 
         Log::warning('IngestionJob timed out', [
-            'source_file_id' => $this->agentFile->id,
+            'source_file_id' => $this->sourceFile->id,
             'job_id' => $jobId,
         ]);
 
-        $this->agentFile->update([
+        $this->sourceFile->update([
             'status' => 'failed',
             'failure_reason' => 'Job timed out after '.$this->timeout.' seconds',
         ]);

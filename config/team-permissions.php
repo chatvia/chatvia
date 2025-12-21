@@ -33,13 +33,9 @@ return [
         ],
 
         // Sources - Training by type
-        'agent.sources.train.pdf' => [
-            'label' => 'Train PDF',
-            'description' => 'Upload and process PDF documents',
-        ],
-        'agent.sources.train.word' => [
-            'label' => 'Train Word',
-            'description' => 'Upload and process Word documents',
+        'agent.sources.train.files' => [
+            'label' => 'Train Files',
+            'description' => 'Upload and process documents (PDF, Word, etc.)',
         ],
         'agent.sources.train.text' => [
             'label' => 'Train Text',
@@ -168,8 +164,7 @@ return [
             'label' => 'Sources',
             'description' => 'Training management',
             'permissions' => [
-                'agent.sources.train.pdf',
-                'agent.sources.train.word',
+                'agent.sources.train.files',
                 'agent.sources.train.text',
                 'agent.sources.train.qa',
                 'agent.sources.train.web',

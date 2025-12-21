@@ -114,8 +114,7 @@ total_members: number | null;
 export type AgentSourcesStatsData = {
 websites: number;
 texts: number;
-pdf: number;
-word: number;
+files: number;
 markdown: number;
 audio: number;
 video: number;

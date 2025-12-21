@@ -7,9 +7,7 @@ use App\Services\Prompts\PromptLoader;
 
 class QueryRewriter
 {
-    public function __construct(public LLMProviderInterface $provider)
-    {
-    }
+    public function __construct(public LLMProviderInterface $provider) {}
 
     public function rewrite(string $userQuery, $previousQuery = null): array
     {

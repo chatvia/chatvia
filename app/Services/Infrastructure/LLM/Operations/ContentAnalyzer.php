@@ -2,32 +2,34 @@
 
 namespace App\Services\Infrastructure\LLM\Operations;
 
-use App\Contracts\LLMProviderInterface;
+use App\Services\Infrastructure\LLM\Mistral;
 use App\Services\Prompts\PromptLoader;
 use Exception;
 
 class ContentAnalyzer
 {
     public function __construct(
-        public LLMProviderInterface $provider
-    )
-    {
-    }
+        public Mistral $provider
+    ) {}
 
-    public function analyze(string $content): array
+    public function fromUrl(string $documentUrl)
     {
-        $prompt = PromptLoader::load('file/describe', ['text' => $content]);
-
         $response = $this->provider->completion([
-            'model' => 'llama-3.1-8b-instruct',
+            'model' => 'mistral-large-latest',
+            'max_tokens' => 1024,
             'messages' => [
                 [
-                    'role' => 'system',
-                    'content' => 'You are a document analysis assistant that provides comprehensive structured analysis of documents.',
-                ],
-                [
                     'role' => 'user',
-                    'content' => $prompt,
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => PromptLoader::load('summarization/system'),
+                        ],
+                        [
+                            'type' => 'document_url',
+                            'document_url' => $documentUrl,
+                        ],
+                    ],
                 ],
             ],
             'response_format' => [
@@ -49,6 +51,7 @@ class ContentAnalyzer
         return is_string($content)
             ? json_decode($content, true, 512, JSON_THROW_ON_ERROR)
             : $content;
+
     }
 
     private function fileAnalysisSchema(): array
@@ -187,5 +190,4 @@ class ContentAnalyzer
         ];
 
     }
-
 }

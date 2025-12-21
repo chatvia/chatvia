@@ -22,5 +22,6 @@ class ChatOutputPayload extends Data
         public bool $is_direct_response = false,
         public ?int $agent_question_answer_id = null,
         public ?string $source = null,
+        public bool $answer_found = true,
     ) {}
 }

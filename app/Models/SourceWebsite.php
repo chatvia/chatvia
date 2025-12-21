@@ -79,6 +79,7 @@ class SourceWebsite extends Model implements ChunkableContract
 
     public function untrainedUrls(): HasMany
     {
-        return $this->hasMany(AgentWebsiteUrl::class, 'source_website_id')->where('status', 'pending');
+        return $this->hasMany(AgentWebsiteUrl::class, 'source_website_id')
+            ->where('status', 'pending');
     }
 }

@@ -103,6 +103,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'is_direct_response' => ! $isUserMessage ? $this->payload->is_direct_response : false,
             'agent_question_answer_id' => ! $isUserMessage ? $this->payload->agent_question_answer_id : null,
             'source' => $this->payload->source,
+            'answer_found' => ! $isUserMessage ? ($this->payload->answer_found ?? true) : true,
         ];
 
         if ($this->payload->sent_at) {

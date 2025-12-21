@@ -39,10 +39,10 @@ return [
         ],
 
         'public' => [
-            'driver' => env('FILESYSTEM_PUBLIC_DISK', 'public'),
-//            'root' => storage_path('app/public'),
-//            'url' => env('APP_URL').'/storage',
-//            'visibility' => 'public',
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
             'throw' => true,
             'report' => true,
         ],
@@ -71,6 +71,20 @@ return [
             'use_path_style_endpoint' => env('SCALEWAY_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => true,
             'report' => true,
+        ],
+
+        'scaleway-public' => [
+            'driver' => 's3',
+            'key' => env('SCALEWAY_ACCESS_KEY_ID'),
+            'secret' => env('SCALEWAY_SECRET_ACCESS_KEY'),
+            'region' => env('SCALEWAY_DEFAULT_REGION'),
+            'bucket' => env('SCALEWAY_BUCKET_PUBLIC', 'chatvia-public'),
+            'url' => env('SCALEWAY_URL'),
+            'endpoint' => env('SCALEWAY_ENDPOINT'),
+            'use_path_style_endpoint' => env('SCALEWAY_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => true,
+            'report' => true,
+            'visibility' => 'public',
         ],
 
         'bunnycdn' => [

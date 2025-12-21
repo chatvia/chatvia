@@ -35,7 +35,7 @@ class ChatTranscriptionController extends Controller
             if (file_exists($tempPath)) {
                 unlink($tempPath);
             }
-//
+            //
             if (file_exists($compressedPath)) {
                 unlink($compressedPath);
             }
@@ -49,9 +49,9 @@ class ChatTranscriptionController extends Controller
             ]);
 
             // Clean up on error
-//            if (file_exists($tempPath)) {
-//                unlink($tempPath);
-//            }
+            //            if (file_exists($tempPath)) {
+            //                unlink($tempPath);
+            //            }
 
             return response()->json([
                 'error' => 'Transcription failed. Please try again.',

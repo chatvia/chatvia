@@ -2,7 +2,6 @@
 
 namespace App\Services\Memory;
 
-use App\Contracts\LLMProviderInterface;
 use App\Models\ChatConversation;
 use App\Models\Member;
 use App\Services\Infrastructure\LLM\Operations\TitleGenerator;

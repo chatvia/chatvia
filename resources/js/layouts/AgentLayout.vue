@@ -186,8 +186,7 @@ const hasAnyPermission = (permissions: string[]): boolean => {
 const hasAnySourcePermission = computed(() => {
     if (isOwner.value) return true;
     return hasAnyPermission([
-        'agent.sources.train.pdf',
-        'agent.sources.train.word',
+        'agent.sources.train.files',
         'agent.sources.train.text',
         'agent.sources.train.qa',
         'agent.sources.train.web',
@@ -388,10 +387,8 @@ const isActiveRoute = (routeName: string) => {
         componentName = 'Sources/Web';  // Maps to Sources/Web component file
     } else if (routeName === 'agents.sources.text') {
         componentName = 'Sources/Text';  // Maps to Sources/Text component file
-    } else if (routeName === 'agents.sources.pdf') {
-        componentName = 'Sources/Pdf';  // Maps to Sources/Pdf component file
-    } else if (routeName === 'agents.sources.word') {
-        componentName = 'Sources/Word';  // Maps to Sources/Word component file
+    } else if (routeName === 'agents.sources.files') {
+        componentName = 'Sources/FilesSource';  // Maps to Sources/FilesSource component file
     } else if (routeName === 'agents.sources.video') {
         componentName = 'Sources/Video';  // Maps to Sources/Video component file
     } else if (routeName === 'agents.sources.audio') {
@@ -441,8 +438,7 @@ const sourcesSubmenuOpen = ref(
     isActiveRoute('agents.sources') ||
     isActiveRoute('agents.sources.web') ||
     isActiveRoute('agents.sources.text') ||
-    isActiveRoute('agents.sources.pdf') ||
-    isActiveRoute('agents.sources.word') ||
+    isActiveRoute('agents.sources.files') ||
     isActiveRoute('agents.sources.video') ||
     isActiveRoute('agents.sources.audio') ||
     isActiveRoute('agents.sources.youtube') ||

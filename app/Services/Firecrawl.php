@@ -22,7 +22,7 @@ class Firecrawl
     {
         return $this->client()->post('crawl', [
             'url' => $url,
-            'limit' => $limit
+            'limit' => $limit,
         ])->json();
     }
 
@@ -35,7 +35,7 @@ class Firecrawl
     {
         return $this->client()->post('map', [
             'url' => $url,
-            'limit' => $limit
+            'limit' => $limit,
         ])->json();
     }
 }

@@ -14,7 +14,7 @@ class StreamRequestData extends Data
         public string $conversationId,
         // In Chat, when the user creates a new conversation, their message will be saved with the conversation ID.
         public bool $saveUserMessageImmediately = false,
-        public bool $streamSources = true,
+        public bool $streamSources = false,
         public bool $streamLanguage = false,
         public bool $canCollectLead = true,
         public bool $leadAlreadyCollected = false,

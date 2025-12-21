@@ -10,7 +10,8 @@ defineProps<Props>();
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Word">
-        <Files :agent="agent" file-type="word" />
+    <AgentLayout :agent="agent" title="Files">
+        <Files :agent="agent" />
     </AgentLayout>
 </template>
+

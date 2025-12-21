@@ -44,18 +44,12 @@ const getSourceCount = (statsKey: string, stats: any): string => {
 // Define the menu items in the desired order
 const menuItems = [
     {
-        id: 'pdf',
-        label: 'PDF',
+        id: 'files',
+        label: 'Files',
         icon: File,
-        route: 'agents.sources.pdf',
-        statsKey: 'pdf',
-    },
-    {
-        id: 'word',
-        label: 'Word',
-        icon: File,
-        route: 'agents.sources.word',
-        statsKey: 'word',
+        route: 'agents.sources.files',
+        statsKey: 'files',
+        permission: 'agent.sources.train.files',
     },
     {
         id: 'text',
@@ -63,6 +57,7 @@ const menuItems = [
         icon: FileText,
         route: 'agents.sources.text',
         statsKey: 'texts',
+        permission: 'agent.sources.train.text',
     },
     {
         id: 'qa',
@@ -70,20 +65,15 @@ const menuItems = [
         icon: HelpCircle,
         route: 'agents.sources.qa',
         statsKey: 'qa',
+        permission: 'agent.sources.train.qa',
     },
-    // {
-    //     id: 'markdown',
-    //     label: 'Markdown',
-    //     icon: FileCode,
-    //     route: 'agents.sources.markdown',
-    //     statsKey: 'markdown',
-    // },
     {
         id: 'web',
         label: 'Web',
         icon: Globe,
         route: 'agents.sources.web',
         statsKey: 'websites',
+        permission: 'agent.sources.train.web',
     },
     {
         id: 'audio',
@@ -91,6 +81,7 @@ const menuItems = [
         icon: FileAudio,
         route: 'agents.sources.audio',
         statsKey: 'audio',
+        permission: 'agent.sources.train.audio',
     },
     {
         id: 'video',
@@ -98,14 +89,8 @@ const menuItems = [
         icon: Video,
         route: 'agents.sources.video',
         statsKey: 'video',
+        permission: 'agent.sources.train.video',
     },
-    // {
-    //     id: 'youtube',
-    //     label: 'YouTube',
-    //     icon: Youtube,
-    //     route: 'agents.sources.youtube',
-    //     statsKey: 'youtube',
-    // },
 ];
 </script>
 

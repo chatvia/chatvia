@@ -68,6 +68,9 @@ class MessageManager
             if ($payload->source === 'handoff') {
                 $append['read_at'] = null;
             }
+        } else {
+            // For output messages, set answer_found flag
+            $append['answer_found'] = $payload->answer_found ?? true;
         }
 
         $role = $isInputMessage ? 'user' : 'assistant';
@@ -102,6 +105,13 @@ class MessageManager
                     if ($key === 'read_at') {
                         ChatMessage::where('id', $message['id'])->update([
                             'read_at' => $value,
+                        ]);
+                    }
+
+                    // Handle answer_found persistence to database
+                    if ($key === 'answer_found') {
+                        ChatMessage::where('id', $message['id'])->update([
+                            'answer_found' => $value,
                         ]);
                     }
                 }
@@ -199,6 +209,7 @@ class MessageManager
 
     /**
      * Get messages formatted for LLM consumption.
+     * Filters out assistant messages where answer_found is false and their preceding user messages.
      */
     public function getLlmMessages(string $conversationId, bool $asText = false, int $limit = 2): array|string
     {
@@ -209,8 +220,36 @@ class MessageManager
             return $asText ? '' : [];
         }
 
+        // Filter out assistant messages where answer_found is false and their preceding user messages
+        $messagesToExclude = [];
+        $previousUserMessage = null;
+
+        foreach ($messages as $index => $message) {
+            if ($message['role'] === 'user') {
+                $previousUserMessage = $index;
+            } elseif ($message['role'] === 'assistant') {
+                if (($message['answer_found'] ?? true) === false) {
+                    // Exclude this assistant message
+                    $messagesToExclude[] = $index;
+                    // Also exclude the previous user message if it exists
+                    if ($previousUserMessage !== null) {
+                        $messagesToExclude[] = $previousUserMessage;
+                    }
+                }
+                // Reset previous user message after processing assistant message
+                $previousUserMessage = null;
+            }
+        }
+
+        $filteredMessages = collect($messages)
+            ->reject(function ($message, $index) use ($messagesToExclude) {
+                return in_array($index, $messagesToExclude);
+            })
+            ->values()
+            ->toArray();
+
         // Get last N messages for context window
-        $messages = array_slice($messages, -$limit);
+        $messages = array_slice($filteredMessages, -$limit);
 
         $formattedMessages = collect($messages)
             ->map(fn ($message) => [

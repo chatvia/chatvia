@@ -2,33 +2,42 @@
 
 namespace App\Services\Chunking;
 
+use App\Contracts\ChunkableContract;
 use App\Data\Ingestion\ChunkIngestionData;
+use App\Data\Ingestion\OCR\PageData;
 use App\Models\Agent;
 use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use App\Services\TikToken;
 use Illuminate\Http\File;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Interfaces\EncodedImageInterface;
+use Intervention\Image\Laravel\Facades\Image;
 
 readonly class Chunker
 {
     public function __construct(
-        private int $agentId,
-        private string $chunkableType,
-        private int $chunkableId,
+        private Agent $agent,
+        private ChunkableContract $chunkable,
         private int $maxTokensPerChunk = 800,
+        private int $minTokensPerChunk = 128,
     ) {}
 
-    public function createChunks(array $parsedData): Collection
+    /**
+     * @param  Collection<int, PageData>  $pages
+     * @return Collection<int, ChunkIngestionData>
+     */
+    public function createChunks(Collection $pages): Collection
     {
         $chunks = collect();
         $chunkIndex = 1;
         $textBuffer = '';
         $imageBuffer = [];
 
-        foreach ($parsedData as $pageIndex => $page) {
-            $pageText = $page['text'] ?? '';
-            $pageImages = $page['images'] ?? [];
+        foreach ($pages as $page) {
+            $pageText = $page->content;
+            $pageImages = $page->images;
 
             // Skip empty pages
             if (empty(trim($pageText))) {
@@ -59,6 +68,9 @@ readonly class Chunker
             $bufferChunks = $this->processBuffer($textBuffer, $imageBuffer, $chunkIndex);
             $chunks = $chunks->merge($bufferChunks);
         }
+
+        // Merge small chunks that are below the minimum token threshold
+        $chunks = $this->mergeSmallChunks($chunks);
 
         return $this->setChunkRelationships($chunks);
     }
@@ -91,9 +103,9 @@ readonly class Chunker
     private function createChunk(string $text, array $images, int $chunkIndex): ChunkIngestionData
     {
         return ChunkIngestionData::from([
-            'agent_id' => $this->agentId,
-            'chunkable_type' => $this->chunkableType,
-            'chunkable_id' => $this->chunkableId,
+            'agent_id' => $this->agent->id,
+            'chunkable_type' => $this->chunkable::class,
+            'chunkable_id' => $this->chunkable->id,
             'chunk_index' => $chunkIndex,
             'expected_chunks' => 0, // Will be set later
             'chunk_text' => trim($text),
@@ -103,21 +115,95 @@ readonly class Chunker
         ]);
     }
 
-    private function storePageImages(array $pageImages): array
+    /**
+     * @param  array<int, EncodedImageInterface>  $images
+     */
+    private function storePageImages(array $images): array
     {
         $imagePaths = [];
 
-        $userId = Agent::find($this->agentId)->user_id;
+        $userId = $this->agent->user_id;
 
-        foreach ($pageImages as $image) {
-            $imagePaths[] = Storage::disk('public')->putFileAs(
-                path: 'users/'.$userId.'/agents/'.$this->agentId.'/images',
-                file: new File($image['path']),
-                name: $image['name'],
+        foreach ($images as $imageBase64) {
+            $fileName = Str::uuid()->toString().'.png';
+            $filepath = create_temp_file(
+                $fileName,
+                Image::read($imageBase64)->toPng()->toString()
+            );
+            $imagePaths[] = Storage::putFileAs(
+                path: 'users/'.$userId.'/agents/'.$this->agent->id.'/images',
+                file: new File($filepath),
+                name: $fileName,
             );
         }
 
         return $imagePaths;
+    }
+
+    private function mergeSmallChunks(Collection $chunks): Collection
+    {
+        $mergedChunks = collect();
+        $totalChunks = $chunks->count();
+        $i = 0;
+
+        while ($i < $totalChunks) {
+            $chunk = $chunks->get($i);
+            $tokenCount = TikToken::countTokens($chunk->chunk_text);
+
+            if ($tokenCount >= $this->minTokensPerChunk) {
+                // Chunk is large enough, keep it
+                $mergedChunks->push($chunk);
+                $i++;
+            } else {
+                // Chunk is too small, try to merge with next chunk first
+                if ($i < $totalChunks - 1) {
+                    $nextChunk = $chunks->get($i + 1);
+                    $mergedChunk = $this->mergeChunks($chunk, $nextChunk);
+                    $mergedChunks->push($mergedChunk);
+                    $i += 2; // Skip the next chunk since it's been merged
+                } // If no next chunk, try to merge with previous
+                elseif ($mergedChunks->isNotEmpty()) {
+                    $prevChunk = $mergedChunks->pop();
+                    $mergedChunk = $this->mergeChunks($prevChunk, $chunk);
+                    $mergedChunks->push($mergedChunk);
+                    $i++;
+                } else {
+                    // Edge case: only one chunk and it's too small, keep it
+                    $mergedChunks->push($chunk);
+                    $i++;
+                }
+            }
+        }
+
+        // Recalculate chunk indices
+        return $mergedChunks->map(function (ChunkIngestionData $chunk, $newIndex) {
+            return ChunkIngestionData::from([
+                'agent_id' => $chunk->agent_id,
+                'chunkable_type' => $chunk->chunkable_type,
+                'chunkable_id' => $chunk->chunkable_id,
+                'chunk_index' => $newIndex + 1, // 1-based indexing
+                'expected_chunks' => 0, // Will be set in setChunkRelationships
+                'chunk_text' => $chunk->chunk_text,
+                'chunk_images' => $chunk->chunk_images,
+                'prev_chunk' => $chunk->prev_chunk,
+                'next_chunk' => $chunk->next_chunk,
+            ]);
+        });
+    }
+
+    private function mergeChunks(ChunkIngestionData $chunk1, ChunkIngestionData $chunk2): ChunkIngestionData
+    {
+        return ChunkIngestionData::from([
+            'agent_id' => $chunk1->agent_id,
+            'chunkable_type' => $chunk1->chunkable_type,
+            'chunkable_id' => $chunk1->chunkable_id,
+            'chunk_index' => min($chunk1->chunk_index, $chunk2->chunk_index), // Will be recalculated
+            'expected_chunks' => 0, // Will be set later
+            'chunk_text' => $chunk1->chunk_text."\n\n".$chunk2->chunk_text,
+            'chunk_images' => array_merge($chunk1->chunk_images, $chunk2->chunk_images),
+            'prev_chunk' => $chunk1->prev_chunk,
+            'next_chunk' => $chunk2->next_chunk,
+        ]);
     }
 
     private function setChunkRelationships(Collection $chunks): Collection

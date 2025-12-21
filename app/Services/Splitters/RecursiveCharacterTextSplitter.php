@@ -35,8 +35,8 @@ class RecursiveCharacterTextSplitter
                 $nextChunk = $chunks[$i + 1];
                 $nextTokens = TikToken::countTokens($nextChunk);
 
-                // If merging with next chunk won't exceed chunk size + 20%, merge them
-                if ($currentTokens + $nextTokens <= $this->chunkSize * 1.2) {
+                // If merging with next chunk won't exceed chunk size + 50%, merge them
+                if ($currentTokens + $nextTokens <= $this->chunkSize * 1.5) {
                     // Find the appropriate separator to use between chunks
                     $separator = $this->findAppropriateSeparator($currentChunk, $nextChunk);
                     $chunks[$i + 1] = $currentChunk.$separator.$nextChunk;
@@ -58,6 +58,14 @@ class RecursiveCharacterTextSplitter
         }
 
         return $mergedChunks;
+    }
+
+    /**
+     * Get the minimum chunk size in tokens.
+     */
+    public function getMinChunkSize(): int
+    {
+        return 128;
     }
 
     /**

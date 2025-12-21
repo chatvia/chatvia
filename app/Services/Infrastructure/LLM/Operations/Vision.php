@@ -49,4 +49,11 @@ class Vision
 
         return $result;
     }
+
+    public function fromDataUrl(string $imageContent): bool|string
+    {
+        $imageDataUri = Image::read($imageContent)->toJpeg()->toDataUri();
+
+        return $this->describeImage($imageDataUri);
+    }
 }

@@ -34,10 +34,10 @@ return [
             'description' => 'For individuals and small projects.',
             'features' => [
                 'monthly' => [
-                    'models' => 'Access to all models',
+                    'models' => 'Access to all models (GPT OSS, Llama, Qwen, DeepSeek, Gemma, Holo2)',
                     'messages' => '2,000 messages per month',
                     'agents' => '3 AI agents',
-                    'pages' => '500 pages (PDF, Word, Text)',
+                    'pages' => '1000 pages (PDF, Word, Text, etc...)',
                     'links' => '1,000 website links',
                     'minutes' => '300 minutes audio/video',
                     'teams' => '1 team',
@@ -48,9 +48,10 @@ return [
                     'subdomain' => 'Custom subdomain',
                 ],
                 'yearly' => [
+                    'models' => 'Access to all models (GPT OSS, Llama, Qwen, DeepSeek, Gemma, Holo2)',
                     'messages' => '25,000 messages per year',
                     'agents' => '3 AI agents',
-                    'pages' => '500 pages (PDF, Word, Text)',
+                    'pages' => '1000 pages (PDF, Word, Text, etc...)',
                     'links' => '1,000 website links',
                     'minutes' => '300 minutes audio/video',
                     'teams' => '1 team',
@@ -63,8 +64,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STARTER_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STARTER_YEARLY_PRICE_ID'),
-            'monthly_price' => 3000,
-            'yearly_price' => 21600,
+            'monthly_price' => 4900,
+            'yearly_price' => 46800,
             'is_popular' => false,
 
             'quota_limits' => [
@@ -76,7 +77,7 @@ return [
                 ],
                 'fixed' => [
                     'agents_limit' => 3,
-                    'pages_limit' => 500,
+                    'pages_limit' => 1000,
                     'minutes_limit' => 300,
                     'links_limit' => 1000,
                     'custom_domains_limit' => 0,
@@ -128,8 +129,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STANDARD_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STANDARD_YEARLY_PRICE_ID'),
-            'monthly_price' => 10000,
-            'yearly_price' => 72000,
+            'monthly_price' => 9900,
+            'yearly_price' => 94800,
             'is_popular' => true,
 
             'quota_limits' => [
@@ -162,7 +163,7 @@ return [
             'features' => [
                 'monthly' => [
                     'messages' => '50,000 messages per month',
-                    'agents' => '20 AI agents',
+                    'agents' => '10 AI agents',
                     'pages' => '5,000 pages (PDF, Word, Text)',
                     'links' => '10,000 website links',
                     'minutes' => '6,000 minutes audio/video',
@@ -171,15 +172,15 @@ return [
                     'pdf' => 'Advanced PDF with image understanding',
                     'ocr' => 'OCR for scanned documents',
                     'transcription' => 'Audio & video transcription',
-                    'analytics' => 'Full analytics (topics, sentiment, tone)',
-                    'domains' => 'Custom domains',
-                    'api' => 'API access',
+                    'analytics' => 'Full analytics (topics, sentiment, tone, metrics)',
+//                    'domains' => 'Custom domains',
+                    'api' => 'API access (coming Feb 2026)',
                     'integrations' => 'Custom integrations',
                     'collaboration' => 'Team collaboration',
                 ],
                 'yearly' => [
                     'messages' => '300,000 messages per year',
-                    'agents' => '20 AI agents',
+                    'agents' => '10 AI agents',
                     'pages' => '5,000 pages (PDF, Word, Text)',
                     'links' => '10,000 website links',
                     'minutes' => '6,000 minutes audio/video',
@@ -188,17 +189,17 @@ return [
                     'pdf' => 'Advanced PDF with image understanding',
                     'ocr' => 'OCR for scanned documents',
                     'transcription' => 'Audio & video transcription',
-                    'analytics' => 'Full analytics (topics, sentiment, tone)',
-                    'domains' => 'Custom domains',
-                    'api' => 'API access',
-                    'integrations' => 'Custom integrations',
+                    'analytics' => 'Full analytics (topics, sentiment, tone, metrics)',
+//                    'domains' => 'Custom domains',
+                    'api' => 'API access (coming Feb 2026)',
+                    'integrations' => '1 Free custom integration',
                     'collaboration' => 'Team collaboration',
                 ],
             ],
             'stripe_monthly_price_id' => env('STRIPE_PRO_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_PRO_YEARLY_PRICE_ID'),
-            'monthly_price' => 40000,
-            'yearly_price' => 288000,
+            'monthly_price' => 49900,
+            'yearly_price' => 478800,
             'is_popular' => false,
 
             'quota_limits' => [
@@ -344,8 +345,8 @@ return [
     |--------------------------------------------------------------------------
     */
     'ui' => [
-        'yearly_savings_percentage' => 40,
-        'yearly_savings_text' => 'Save 40%',
+        'yearly_savings_percentage' => 20,
+        'yearly_savings_text' => 'Save 20%',
         'most_popular_text' => 'Most Popular',
         'current_plan_text' => 'Current Plan',
         'popular_badge_text' => 'Most Popular',

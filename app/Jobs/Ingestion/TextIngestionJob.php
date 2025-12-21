@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Ingestion;
 
+use App\Data\Ingestion\OCR\PageData;
 use App\Events\TextIngestionEvent;
 use App\Models\Agent;
 use App\Models\SourceText;
@@ -16,6 +17,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Storage;
 
 class TextIngestionJob implements ShouldQueue
 {
@@ -23,7 +25,7 @@ class TextIngestionJob implements ShouldQueue
 
     public bool $deleteWhenMissingModels = true;
 
-    public function __construct(public SourceText $agentText, public int $agentId)
+    public function __construct(public SourceText $sourceText, public Agent $agent)
     {
         $this->onQueue('ingestion.text');
     }
@@ -32,42 +34,53 @@ class TextIngestionJob implements ShouldQueue
     {
         $startTime = microtime(true);
 
-        if (TikToken::countTokens($this->agentText->content) <= 1000) {
-            $texts = [
-                ['text' => $this->agentText->content],
-            ];
+        if (TikToken::countTokens($this->sourceText->content) <= 1000) {
+            $texts = collect([
+                new PageData(pageNumber: 0, content: $this->sourceText->content),
+            ]);
         } else {
-            $texts = collect($splitter->splitText($this->agentText->content))
-                ->map(fn ($text) => ['text' => $text])
-                ->toArray();
+            $texts = collect($splitter->splitText($this->sourceText->content))
+                ->map(function ($text) {
+                    return new PageData(
+                        pageNumber: 0,
+                        content: $text,
+                    );
+                });
         }
 
         $chunks = new Chunker(
-            agent: $this->agentId,
-            chunkable: SourceText::class,
-            chunkableId: $this->agentText->id,
+            agent: $this->agent,
+            chunkable: $this->sourceText,
         )->createChunks($texts);
 
-        $this->agentText->update(['status' => 'ingesting']);
+        $this->sourceText->update(['status' => 'ingesting']);
 
-        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
-
-        TextIngestionEvent::dispatch($this->agentText, $agentExternalId);
+        TextIngestionEvent::dispatch($this->sourceText, $this->agent);
 
         $jobs = collect($chunks)->map(fn ($chunk) => new ChunkIngestionJob($chunk));
 
-        $jobs->add(
-            new SummaryIngestionJob($this->agentText, $this->agentText->content)
+        $path = 'agents/'.$this->agent->id.'/texts/'.$this->sourceText->id.'.txt';
+
+        Storage::put(
+            path: $path,
+            contents: $this->sourceText->content
         );
 
-        $agentTextId = $this->agentText->id;
-        $externalId = $agentExternalId;
+        $tempUrl = Storage::temporaryUrl(
+            $path,
+            now()->addDay()
+        );
+
+        dispatch(new SummaryIngestionJob($this->sourceText, $tempUrl));
+
+        $agentTextId = $this->sourceText->id;
+        $agent = $this->agent;
 
         $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent Text ID: '.$this->agentText->id)
-            ->then(function (Batch $batch) use ($agentTextId, $externalId) {
+            ->name('Ingestion Agent Text ID: '.$this->sourceText->id)
+            ->then(function (Batch $batch) use ($agentTextId, $agent) {
                 SourceText::find($agentTextId)?->update(['status' => 'ingested']);
-                TextIngestionEvent::dispatch(SourceText::find($agentTextId), $externalId);
+                TextIngestionEvent::dispatch(SourceText::find($agentTextId), $agent);
             })
             ->dispatch();
 
@@ -75,12 +88,12 @@ class TextIngestionJob implements ShouldQueue
 
         $tookInSeconds = ceil($endTime - $startTime);
 
-        $this->agentText->update([
+        $this->sourceText->update([
             'expected_chunks' => $chunks[0]->expected_chunks,
             'internal_ingestion_job_id' => $batch->id,
             'took_in_seconds' => $tookInSeconds,
         ]);
 
-        $this->agentText->refresh();
+        $this->sourceText->refresh();
     }
 }

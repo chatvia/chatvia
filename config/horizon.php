@@ -229,7 +229,7 @@ return [
         ],
         'ingestion-light' => [
             'connection' => 'redis',
-            'queue' => ['ingestion.text', 'ingestion.markdown'],
+            'queue' => ['ingestion.text', 'ingestion.markdown', 'ingestion.summary'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,

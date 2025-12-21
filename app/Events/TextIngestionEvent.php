@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Agent;
 use App\Models\SourceText;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -13,13 +14,13 @@ class TextIngestionEvent implements ShouldBroadcastNow
 
     public function __construct(
         public SourceText $text,
-        public string $agentExternalId
+        public Agent $agent
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentExternalId.'.ingestion.text'),
+            new PrivateChannel('agents.'.$this->agent->external_id.'.ingestion.text'),
         ];
     }
 

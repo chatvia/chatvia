@@ -24,10 +24,10 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
     public bool $deleteWhenMissingModels = true;
 
     public int $timeout = 1800;
-    
+
     public function __construct(public ChunkableContract $source, public string $publicUrl)
     {
-        $this->onQueue('ingestion-heavy');
+        $this->onQueue('ingestion.summary');
     }
 
     public function handle(): void
@@ -78,7 +78,7 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'chunk_index' => 0,
             'chunk' => $summary,
             'questions' => $questions,
-            'summary' => $summary,
+            'summary' => '',
             'chunked_using_model' => config('ai.models.chunker'),
             'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
             'cost_in_cents' => $costInCents,

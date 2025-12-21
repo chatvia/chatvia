@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Chat;
 
 use App\Http\Controllers\Controller;
-use App\Services\Infrastructure\LLM\OpenAI;
 use App\Services\Infrastructure\LLM\Operations\Transcription;
 use App\Services\Media\AudioCompressor;
 use Illuminate\Http\JsonResponse;

@@ -3,11 +3,15 @@
 namespace App\Jobs\Ingestion;
 
 use App\Data\Ingestion\ChunkIngestionData;
+use App\Data\Ingestion\OCR\PageData;
+use App\Events\FileIngestionProgressEvent;
 use App\Models\Agent;
 use App\Models\SourceFile;
 use App\Services\Chunking\Chunker;
 use App\Services\Infrastructure\LLM\Operations\Transcription;
 use App\Services\Media\AudioCompressor;
+use App\Services\Splitters\RecursiveCharacterTextSplitter;
+use App\Services\TikToken;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -17,6 +21,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
@@ -27,13 +32,9 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public bool $deleteWhenMissingModels = true;
 
-    public $tries = 3;
+    public $tries = 2;
 
-    public $backoff = 10;
-
-    public $timeout = 1800;
-
-    public $uniqueFor = 3600;
+    public $timeout = 86000;
 
     public function __construct(public SourceFile $sourceFile, public Agent $agent)
     {
@@ -45,7 +46,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         }
     }
 
-    public function handle(AudioCompressor $audioCompressor): void
+    public function handle(AudioCompressor $audioCompressor, RecursiveCharacterTextSplitter $splitter): void
     {
         if ($this->batch()?->cancelled()) {
             return;
@@ -66,22 +67,43 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         } else {
             $file = $this->sourceFile->readFile();
             $compressedFilePath = $audioCompressor->process($file->getPathname());
+
             $transcription = app(Transcription::class)->transcribe($compressedFilePath);
+
+            $filePath = 'agents/'.$this->agent->id.'/audio/'.Str::uuid()->toString().'.txt';
+
+            Storage::put($filePath, $transcription);
+
+            $this->sourceFile->update([
+                'parser_filepath' => $filePath,
+            ]);
         }
+
+        $this->sourceFile->refresh();
 
         if (empty($transcription)) {
             throw new RuntimeException('No valid pages data available for chunking');
         }
 
-        $chunker = new Chunker(
-            agent: $this->agent->id,
-            chunkable: SourceFile::class,
-            chunkableId: $this->sourceFile->id,
-        );
+        // Split transcription if it's too large
+        if (TikToken::countTokens($transcription) <= 1000) {
+            $pages = collect([
+                new PageData(pageNumber: 0, content: $transcription),
+            ]);
+        } else {
+            $pages = collect($splitter->splitText($transcription))
+                ->map(function ($text) {
+                    return new PageData(
+                        pageNumber: 0,
+                        content: $text,
+                    );
+                });
+        }
 
-        $pages = [
-            ['text' => $transcription],
-        ];
+        $chunker = new Chunker(
+            agent: $this->agent,
+            chunkable: $this->sourceFile,
+        );
 
         $chunks = $chunker->createChunks($pages);
 
@@ -91,9 +113,11 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $this->sourceFile->refresh();
 
-        $filePath = 'users/'.$this->agent->user_id.'/agent/'.$this->agent->id.'/'.Str::uuid()->toString().'.txt';
-        // TODO: fix it
-        dispatch(new SummaryIngestionJob($this->sourceFile, $transcription));
+
+        dispatch(
+            new SummaryIngestionJob($this->sourceFile,
+            Storage::temporaryUrl($this->sourceFile->parser_filepath, now()->addDay()))
+        );
 
         $agentFileId = $this->sourceFile->id;
 
@@ -110,7 +134,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
                 // Dispatch final progress event for all agents using this file
                 if ($file) {
                     foreach ($file->agents as $agent) {
-                        \App\Events\FileIngestionProgressEvent::dispatch($file, $agent->external_id);
+                        FileIngestionProgressEvent::dispatch($file, $agent->external_id);
                     }
                 }
             })
@@ -125,11 +149,6 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
     public function uniqueId(): string
     {
         return 'ingestion:media:'.$this->sourceFile->id;
-    }
-
-    public function uniqueFor(): int
-    {
-        return $this->uniqueFor;
     }
 
     public function tags(): array

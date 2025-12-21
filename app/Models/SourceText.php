@@ -21,15 +21,15 @@ class SourceText extends Model implements ChunkableContract
             ->withTimestamps();
     }
 
-    public function startTraining(?int $agentId = null): void
+    public function startTraining(?Agent $agent = null): void
     {
         // If agentId is provided, train for that specific agent
         // Otherwise, train for all agents this text is attached to
-        if ($agentId) {
-            TextIngestionJob::dispatch($this, $agentId);
+        if ($agent) {
+            TextIngestionJob::dispatch($this, $agent);
         } else {
             $this->agents->each(function ($agent) {
-                TextIngestionJob::dispatch($this, $agent->id);
+                TextIngestionJob::dispatch($this, $agent);
             });
         }
     }

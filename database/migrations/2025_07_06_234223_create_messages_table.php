@@ -73,7 +73,6 @@ return new class extends Migration
             $table->timestamp('handoff_at')->nullable();
             $table->timestamp('last_activity_at')->nullable()->index();
             $table->timestamps();
-            $table->softDeletes();
 
             $table->index(['chat_session_id', 'created_at']);
             $table->index(['deleted_at', 'created_at']);
@@ -117,7 +116,6 @@ return new class extends Migration
             $table->boolean('is_usage_counted')->nullable()->index();
 
             $table->timestamps();
-            $table->softDeletes();
 
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('read_at')->nullable();

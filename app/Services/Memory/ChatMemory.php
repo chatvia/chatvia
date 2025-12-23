@@ -106,7 +106,9 @@ class ChatMemory implements ChatMemoryInterface
     public function deleteConversation(): void
     {
         $this->requireConversationId();
+
         $this->ensureInitialized();
+
         $this->conversationManager->deleteConversation($this->conversationId);
     }
 

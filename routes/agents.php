@@ -101,11 +101,8 @@ use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeRetrainCont
 use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeStoreController;
 use App\Http\Controllers\Agents\Starters\StarterDeleteController;
 use App\Http\Controllers\Agents\Starters\StartersStoreController;
-use App\Http\Controllers\Agents\Team\AgentMemberInvitationSendController;
 use App\Http\Controllers\Agents\Team\AgentMembersAccessGrantController;
 use App\Http\Controllers\Agents\Team\AgentMembersDeleteController;
-use App\Http\Controllers\Agents\Team\AgentMembersInvitationAcceptController;
-use App\Http\Controllers\Agents\Team\AgentMembersInvitationCreateAccountController;
 use App\Http\Controllers\Agents\Team\AgentMembersListController;
 use App\Http\Controllers\Agents\Team\AgentTeamController;
 use App\Http\Controllers\Agents\Topics\AgentTopicsDeleteController;
@@ -250,7 +247,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
 
         // Members
         Route::get('team', AgentTeamController::class)->name('team');
-        Route::post('team/invite', AgentMemberInvitationSendController::class)->name('team.invite');
+        // Route::post('team/invite', AgentMemberInvitationSendController::class)->name('team.invite'); // Removed - old member system
         Route::get('team/list', AgentMembersListController::class)->name('team.list');
         Route::delete('team/member', AgentMembersDeleteController::class)->name('team.member.delete');
         Route::post('team/member/grant', AgentMembersAccessGrantController::class)->name('team.member.grant');
@@ -286,8 +283,9 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
     Route::get('generate-random-subdomain', AgentsGenerateRandomSubDomainController::class)->name('generate-random-subdomain');
 });
 
-Route::get('agents/{agent}/invitations/{token}', AgentMembersInvitationCreateAccountController::class)
-    ->name('agents.invitations');
-
-Route::post('agents/{agent}/invitations/{token}/accept', AgentMembersInvitationAcceptController::class)
-    ->name('agents.invitations.accept');
+// Removed - old member invitation system
+// Route::get('agents/{agent}/invitations/{token}', AgentMembersInvitationCreateAccountController::class)
+//     ->name('agents.invitations');
+//
+// Route::post('agents/{agent}/invitations/{token}/accept', AgentMembersInvitationAcceptController::class)
+//     ->name('agents.invitations.accept');

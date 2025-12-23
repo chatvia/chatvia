@@ -29,9 +29,9 @@ class ChatSession extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function member(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(User::class);
     }
 
     public function country(): BelongsTo

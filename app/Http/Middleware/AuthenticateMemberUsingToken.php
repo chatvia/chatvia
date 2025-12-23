@@ -25,7 +25,7 @@ class AuthenticateMemberUsingToken
             $authToken = $request->input('auth_token');
 
             if ($cachedAuthToken = $this->authTokenService->getTokenData($authToken)) {
-                Auth::guard('member')->loginUsingId($cachedAuthToken['member_id']);
+                Auth::guard('web')->loginUsingId($cachedAuthToken['user_id']);
 
                 $this->authTokenService->invalidateToken($authToken);
 

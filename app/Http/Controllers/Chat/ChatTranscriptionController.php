@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class ChatTranscriptionController extends Controller
 {
-    public function __invoke(Request $request, AudioCompressor $audioCompressor): JsonResponse
+    public function __invoke(Request $request, AudioCompressor $audioCompressor, Transcription $transcription): JsonResponse
     {
         $request->validate([
             'audio' => ['required', 'file', 'max:25600'], // 25MB max (Whisper limit)
@@ -28,15 +28,11 @@ class ChatTranscriptionController extends Controller
             $compressedPath = $audioCompressor->process($tempPath);
 
             // Transcribe using OpenAI Whisper
-            $transcription = app(Transcription::class)->transcribe($tempPath);
+            $transcription = $transcription->transcribe($compressedPath);
 
             // Clean up temp files
             if (file_exists($tempPath)) {
                 unlink($tempPath);
-            }
-            //
-            if (file_exists($compressedPath)) {
-                unlink($compressedPath);
             }
 
             return response()->json([

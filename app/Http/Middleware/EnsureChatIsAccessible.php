@@ -33,9 +33,9 @@ class EnsureChatIsAccessible
 
         $currentRouteName = $request->route()?->getName();
 
-        $memberAuthenticated = Auth::guard('member')->check();
+        $userAuthenticated = Auth::guard('web')->check();
 
-        if ($agent->is_public === false && $memberAuthenticated === false) {
+        if ($agent->is_public === false && $userAuthenticated === false) {
             $isAuthLogin = str_starts_with($currentRouteName, 'chat.login');
 
             if ($isAuthLogin === false && ! in_array($currentRouteName, $allowedRoutesWithoutAuth, true)) {

@@ -25,7 +25,7 @@ class EmbedController
 
         if (! $agent->is_public) {
             $user = $request->user();
-            $authToken = $authTokenService->generateTokenFromUser($agent, $user);
+            $authToken = $authTokenService->generateToken($agent, $user);
         }
 
         return Inertia::render('agents/Embed', [

@@ -36,7 +36,7 @@ class ChatSession
 
     public function isMemberAuth(): bool
     {
-        return Auth::guard('member')->check();
+        return Auth::guard('web')->check();
     }
 
     private function isValidSession(string $sessionId): bool

@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Models\Agent;
 use App\Models\ChatSession;
 use App\Models\Country;
-use App\Models\Member;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,7 +24,7 @@ class ChatSessionFactory extends Factory
     {
         return [
             'agent_id' => Agent::factory(),
-            'member_id' => null,
+            'user_id' => null,
             'ip_address' => $this->faker->ipv4(),
             'country_id' => $this->faker->optional(0.8)->randomElement(
                 Country::pluck('id')->toArray() ?: [null]
@@ -34,12 +34,12 @@ class ChatSessionFactory extends Factory
     }
 
     /**
-     * Indicate that the session is for a member.
+     * Indicate that the session is for a user.
      */
-    public function forMember(): static
+    public function forUser(): static
     {
         return $this->state(fn (array $attributes) => [
-            'member_id' => Member::factory(),
+            'user_id' => User::factory(),
         ]);
     }
 
@@ -64,12 +64,12 @@ class ChatSessionFactory extends Factory
     }
 
     /**
-     * Indicate that the session is anonymous (no member).
+     * Indicate that the session is anonymous (no user).
      */
     public function anonymous(): static
     {
         return $this->state(fn (array $attributes) => [
-            'member_id' => null,
+            'user_id' => null,
         ]);
     }
 }

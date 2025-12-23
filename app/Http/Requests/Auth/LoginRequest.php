@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\Agent;
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -50,6 +52,42 @@ class LoginRequest extends FormRequest
         }
 
         Auth::user()->update([
+            'last_login_at' => now(),
+        ]);
+
+        RateLimiter::clear($this->throttleKey());
+    }
+
+    public function authenticateForCurrentAgent(Agent $agent): void
+    {
+        $this->ensureIsNotRateLimited();
+
+        // Find the user by email
+        $user = User::where('email', $this->input('email'))->first();
+
+        // Check if user exists and password is correct
+        if (! $user || ! Auth::guard('web')->validate($this->only('email', 'password'))) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+
+        // Check if user can access the agent
+        if (! $user->canAccessAgent($agent)) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'You do not have access to this agent.',
+            ]);
+        }
+
+        // Authenticate the user
+        Auth::guard('web')->login($user, $this->boolean('remember'));
+
+        // Update last login timestamp
+        $user->update([
             'last_login_at' => now(),
         ]);
 

@@ -49,7 +49,6 @@ import {
     Sparkles,
     Trash2,
     UserCheck,
-    Users,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -220,11 +219,6 @@ const controlPanelNavigationItems = computed(() => {
     // Chat/Logs - only show if user has chat view permission
     if (hasPermission('agent.chat.view')) {
         baseItems.push({ id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' });
-    }
-
-    // Members - only for non-widget agents and owners
-    if (props.agent.type !== 'widget' && isOwner.value) {
-        baseItems.push({ id: 'team', label: 'Members', icon: Users, route: 'agents.team', tooltip: 'Manage team members and permissions' });
     }
 
     // Rename - only show for team owners

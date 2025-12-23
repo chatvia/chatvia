@@ -16,7 +16,7 @@ class MemberGuestMiddleware
      */
     public function handle(Request $request, Closure $next, ...$guards): Response
     {
-        $guards = empty($guards) ? ['member'] : $guards;
+        $guards = empty($guards) ? ['web'] : $guards;
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {

@@ -22,7 +22,7 @@ class ChatHandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'member' => $request->user('member'),
+                'user' => $request->user(),
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),

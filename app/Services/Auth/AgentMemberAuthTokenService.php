@@ -3,63 +3,39 @@
 namespace App\Services\Auth;
 
 use App\Models\Agent;
-use App\Models\Member;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class AgentMemberAuthTokenService
 {
     /**
-     * Generate and cache an authentication token for a member to access an agent.
+     * Generate and cache an authentication token for a user to access an agent.
      */
-    public function generateToken(Agent $agent, Member $member, int $ttlMinutes = 60): string
+    public function generateToken(Agent $agent, User $user, int $ttlMinutes = 60): string
     {
-        $authToken = $this->createTokenString($agent, $member);
+        $authToken = $this->createTokenString($agent, $user);
 
-        $this->cacheToken($authToken, $member, $agent, $ttlMinutes);
+        $this->cacheToken($authToken, $user, $agent, $ttlMinutes);
 
         return $authToken;
     }
 
     /**
-     * Generate and cache an authentication token from a user (gets memberOwner).
-     */
-    public function generateTokenFromUser(Agent $agent, User $user, int $ttlMinutes = 60): string
-    {
-        // Use firstOrCreate within transaction for atomic operation
-        $member = Member::firstOrCreate(
-            [
-                'user_id' => $user->id,
-                'is_owner' => true,
-            ],
-            [
-                'name' => $user->name,
-                'email' => $user->email,
-                'password' => Hash::make(Str::random()),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        return $this->generateToken($agent, $member, $ttlMinutes);
-    }
-
-    /**
      * Create the token string format.
      */
-    private function createTokenString(Agent $agent, Member $member): string
+    private function createTokenString(Agent $agent, User $user): string
     {
-        return Str::uuid()->toString().'-'.$agent->id.'-'.$member->id;
+        return Str::uuid()->toString().'-'.$agent->id.'-'.$user->id;
     }
 
     /**
-     * Cache the token with member and agent data.
+     * Cache the token with user and agent data.
      */
-    private function cacheToken(string $token, Member $member, Agent $agent, int $ttlMinutes): void
+    private function cacheToken(string $token, User $user, Agent $agent, int $ttlMinutes): void
     {
         Cache::put($token, [
-            'member_id' => $member->id,
+            'user_id' => $user->id,
             'agent_id' => $agent->id,
         ], now()->addMinutes($ttlMinutes));
     }

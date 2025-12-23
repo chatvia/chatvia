@@ -20,7 +20,6 @@ class LlmModelData extends Data
         public string $location,
         public bool $reasoning,
         public int $credits = 1,
-        public bool $user_allowed_to_use = false,
         public bool $is_selected = true,
     ) {}
 

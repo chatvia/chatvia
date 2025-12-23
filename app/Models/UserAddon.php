@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Addon extends Model
+class UserAddon extends Model
 {
     protected $guarded = ['id'];
 

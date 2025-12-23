@@ -147,10 +147,7 @@ class Agent extends Model
     public function llmsFormatted()
     {
         return $this->llms()->get()->map(function (Llm $llm) {
-            $data = LlmModelData::fromLlmModel($llm);
-            $data->user_allowed_to_use = true;
-
-            return $data;
+            return LlmModelData::fromLlmModel($llm);
         });
     }
 

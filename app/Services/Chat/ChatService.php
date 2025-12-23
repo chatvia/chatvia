@@ -224,10 +224,10 @@ readonly class ChatService
                     response_time_ms: $context->getResponseTimeMs(),
                     language: $context->queryLanguage,
                     confidence_score: $context->confidenceScore,
-                    is_direct_response: $context->hasQAMatch(),
+                    is_response_from_qa: $context->hasQAMatch(),
                     agent_question_answer_id: $context->qaMatch?->id,
                     source: $context->requestData->source,
-                    answer_found: $answerFound,
+                    llm_found_answer: $answerFound,
                 )
             );
     }

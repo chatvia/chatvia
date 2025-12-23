@@ -4,9 +4,7 @@ namespace App\Models;
 
 use App\Data\Chat\LlmModelData;
 use App\Data\Resources\Billing\BillingPackageCapabilitiesData;
-use App\Enums\CapabilityEnum;
 use App\Services\Billing\Billing;
-use App\Services\Billing\UserCapabilities;
 use App\Services\Billing\UserCreditSystem;
 use App\Services\Teams\TeamService;
 use App\Traits\HasSettings;
@@ -23,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Billable;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -38,7 +37,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     protected $guarded = ['id'];
 
-    protected $appends = ['plan', 'is_paid'];
+    protected $appends = ['plan', 'is_paid', 'capabilities'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -119,30 +118,22 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->subscribed() || $this->onTrial();
     }
 
-    /**
-     * Get the capabilities DTO for this user's plan
-     */
-    public function capabilities(): BillingPackageCapabilitiesData
+    public function capabilities(): Attribute
     {
-        return BillingPackageCapabilitiesData::forPlan($this->plan);
+        if ($this->managed_by_user_id) {
+            $plan = $this->manager->plan;
+        } else {
+            $plan = $this->plan;
+        }
+
+        return Attribute::get(fn () => BillingPackageCapabilitiesData::forPlan($plan));
     }
 
-    /**
-     * Check if user has a specific capability
-     */
     public function hasCapability(string $capability): bool
     {
         $capabilities = $this->capabilities();
 
         return property_exists($capabilities, $capability) && $capabilities->{$capability} === true;
-    }
-
-    /**
-     * Get all capabilities for this user's plan as array
-     */
-    public function getAllCapabilities(): array
-    {
-        return $this->capabilities()->toArray();
     }
 
     public function cancelSubscription(): void
@@ -160,10 +151,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         $llms = Llm::all();
 
         return $llms->map(function (Llm $llm) {
-            $llmData = LlmModelData::fromLlmModel($llm);
-            $llmData->user_allowed_to_use = true;
-
-            return $llmData;
+            return LlmModelData::fromLlmModel($llm);
         });
     }
 
@@ -202,17 +190,17 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function credits(): HasMany
     {
-        return $this->hasMany(Credit::class);
+        return $this->hasMany(UserCredit::class);
     }
 
     public function credit(): HasOne
     {
-        return $this->hasOne(Credit::class)->latestOfMany('ends_at');
+        return $this->hasOne(UserCredit::class)->latestOfMany('ends_at');
     }
 
     public function addons(): HasMany
     {
-        return $this->hasMany(Addon::class);
+        return $this->hasMany(UserAddon::class);
     }
 
     public function syncPendingPlanChanges(): ?array
@@ -225,7 +213,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
         try {
             // Sync subscription data first
-            $subscription->syncStripeSubscription();
+            $subscription->syncStripeStatus();
 
             // Get fresh metadata from Stripe
             $stripeSubscription = $subscription->asStripeSubscription();
@@ -245,7 +233,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             return null;
 
         } catch (\Exception $e) {
-            \Log::warning('Failed to sync pending plan changes', [
+            Log::warning('Failed to sync pending plan changes', [
                 'user_id' => $this->id,
                 'error' => $e->getMessage(),
             ]);
@@ -257,8 +245,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function usage(): HasOneThrough
     {
         return $this->hasOneThrough(
-            Usage::class,           // Final model we want
-            Credit::class,          // Intermediate model
+            UserUsage::class,           // Final model we want
+            UserCredit::class,          // Intermediate model
             'user_id',             // Foreign key on credits table (credits.user_id)
             'credit_id',          // Foreign key on usages table (usages.credit_id)
             'id',                  // Local key on users table (users.id)
@@ -266,17 +254,12 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         )->latest('ends_at');
     }
 
-    public function canPerform(CapabilityEnum $capability): bool
-    {
-        return app(UserCapabilities::class)->setUser($this)->can($capability);
-    }
-
     public function creditSystem(): UserCreditSystem
     {
         return app(UserCreditSystem::class)->setUserId($this->id);
     }
 
-    public function addCredit($quota, Carbon $endsAt): Credit
+    public function addCredit($quota, Carbon $endsAt): UserCredit
     {
         return $this->creditSystem()->addCredit($quota, $endsAt);
     }

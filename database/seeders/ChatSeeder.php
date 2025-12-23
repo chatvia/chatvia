@@ -324,7 +324,7 @@ class ChatSeeder extends Seeder
                         'cost' => $messageData['role'] === 'assistant' ? fake()->randomFloat(6, 0.001, 0.02) : null,
                         'sentiment' => $messageData['sentiment'] ?? ($messageData['role'] === 'assistant' ? 'neutral' : fake()->randomElement(['positive', 'neutral', 'negative'])),
                         'tone' => $messageData['tone'] ?? null,
-                        'is_direct_response' => $messageData['role'] === 'assistant' ? fake()->boolean(85) : null,
+                        'is_response_from_qa' => $messageData['role'] === 'assistant' ? fake()->boolean(85) : null,
                         'feedback' => $messageData['feedback'] ?? null,
                         'created_at' => $messageTime,
                     ]);

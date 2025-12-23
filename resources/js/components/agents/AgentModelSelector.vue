@@ -19,19 +19,7 @@ import { Brain, Loader2, Save, ChevronDown, Search, Check, Info } from 'lucide-v
 import { toast } from 'vue-sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-interface AIModel {
-    id: string;
-    name: string;
-    context_window: number;
-    icon: string;
-    description: string;
-    features?: string[];
-    location: string;
-    reasoning: boolean;
-    credits: number;
-    user_allowed_to_use: boolean;
-    is_selected: boolean;
-}
+type AIModel = App.Data.Chat.LlmModelData;
 
 const props = withDefaults(defineProps<{
     agentId: number | string;
@@ -297,11 +285,9 @@ onMounted(() => {
                                         type="button"
                                         class="flex items-center gap-3 w-full px-2 py-2 rounded-md hover:bg-accent text-left transition-colors"
                                         :class="{
-                                            'opacity-50 cursor-not-allowed': !model.user_allowed_to_use,
                                             'bg-accent': isSelected(model.id)
                                         }"
-                                        :disabled="!model.user_allowed_to_use"
-                                        @click="model.user_allowed_to_use && selectModel(model.id)"
+                                        @click="selectModel(model.id)"
                                     >
                                         <!-- Checkmark for selection -->
                                         <div class="w-5 h-5 flex items-center justify-center">
@@ -321,10 +307,10 @@ onMounted(() => {
                                         <Brain v-else class="h-5 w-5 text-muted-foreground flex-shrink-0" />
 
                                         <!-- Model Name -->
-                                        <span class="flex-1 text-sm">{{ model.name }}</span>
-
-                                        <!-- Upgrade badge -->
-                                        <span v-if="!model.user_allowed_to_use" class="text-xs text-muted-foreground">(Upgrade)</span>
+                                        <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                                            <span class="text-sm">{{ model.name }}</span>
+                                            
+                                        </div>
                                     </button>
                                 </TooltipTrigger>
 
@@ -383,7 +369,7 @@ onMounted(() => {
 
                                         <!-- Reasoning badge -->
                                         <div v-if="model.reasoning" class="text-xs text-emerald-600">
-                                            ✓ Reasoning supported
+                                            ✓ Reasoning model
                                         </div>
                                     </div>
                                 </TooltipContent>

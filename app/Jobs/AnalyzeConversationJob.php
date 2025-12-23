@@ -35,13 +35,21 @@ class AnalyzeConversationJob implements ShouldQueue
             return;
         }
 
-        $allMessages = $messages->pluck('content')->implode("\n");
-        $userMessages = $messages->where('role', 'user')->pluck('content')->implode("\n");
+        $allMessages = $messages
+            ->pluck('content')
+            ->implode("\n");
+
+        $userMessages = $messages
+            ->where('role', 'user')
+            ->pluck('content')
+            ->implode("\n");
 
         $updates = [];
 
         $this->detectLanguage($allMessages, $languageDetection, $updates);
+
         $this->detectTopic($allMessages, $topicAnalysis, $updates);
+
         $this->detectToneAndSentiment($userMessages, $toneAnalysis, $updates);
 
         if (! empty($updates)) {

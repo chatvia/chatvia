@@ -157,9 +157,8 @@ const totalActivityMessages = computed(() => {
 });
 
 const messageUsagePercent = computed(() => {
-  const total = dashboardData.value.messages.total + dashboardData.value.messages.available;
-  if (total === 0) return 0;
-  return Math.round((dashboardData.value.messages.total / total) * 100);
+  if (dashboardData.value.messages.available === 0) return 0;
+  return Math.round((dashboardData.value.messages.total / dashboardData.value.messages.available) * 100);
 });
 
 onMounted(() => {
@@ -222,7 +221,7 @@ const formatNumber = (num: number): string => {
                                 <div class="text-2xl font-bold">{{ formatNumber(dashboardData.messages.total) }}</div>
                                 <div class="mt-2">
                                     <div class="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                                        <span>{{ dashboardData.messages.total }} / {{ dashboardData.messages.total + dashboardData.messages.available }}</span>
+                                        <span>{{ dashboardData.messages.total.toLocaleString() }} / {{ dashboardData.messages.available.toLocaleString() }}</span>
                                         <span>{{ messageUsagePercent }}% used</span>
                                     </div>
                                     <Progress :model-value="messageUsagePercent" class="h-1" />

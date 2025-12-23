@@ -1,10 +1,8 @@
 @if (app()->isProduction())
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RTCBL1ZT5C"></script>
+    <script async src="https://plausible.io/js/pa-R7cXBeGzl--EcHo0ooQpj.js"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-RTCBL1ZT5C');
+        window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+        plausible.init()
     </script>
+
 @endif

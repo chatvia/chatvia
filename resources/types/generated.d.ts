@@ -67,7 +67,6 @@ features: Array<any>;
 location: string;
 reasoning: boolean;
 credits: number;
-user_allowed_to_use: boolean;
 is_selected: boolean;
 };
 }
@@ -198,7 +197,7 @@ role: string;
 sentiment: string | null;
 tone: string | null;
 feedback: string | null;
-is_direct_response: boolean | null;
+is_response_from_qa: boolean | null;
 response_time_ms: number | null;
 prompt_tokens: number | null;
 completion_tokens: number | null;
@@ -301,13 +300,6 @@ accessed: number;
 };
 }
 declare namespace App.Data.Resources.Billing {
-export type AnalyticsCapabilitiesData = {
-topics: boolean;
-sentiment: boolean;
-tone: boolean;
-metrics: boolean;
-sources: boolean;
-};
 export type BillingCurrentPackageData = {
 id: string;
 name: string;
@@ -323,16 +315,14 @@ limits: App.Data.Resources.Billing.BillingQuotaLimitsData;
 capabilities: App.Data.Resources.Billing.BillingPackageCapabilitiesData;
 };
 export type BillingPackageCapabilitiesData = {
-custom_sub_domain: boolean;
-custom_domains: boolean;
 advanced_pdf: boolean;
 ocr: boolean;
-audio: boolean;
-video: boolean;
-api_access: boolean;
-custom_integrations: boolean;
-team_collaboration: boolean;
-analytics: App.Data.Resources.Billing.AnalyticsCapabilitiesData;
+sentiment: boolean;
+tone: boolean;
+topics: boolean;
+handoff: boolean;
+api: boolean;
+pulse: boolean;
 };
 export type BillingPackageFeaturesData = {
 monthly: { [key: number]: string } | Array<any>;

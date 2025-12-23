@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import LockedFeature from '@/components/LockedFeature.vue';
 import { ref, computed, onMounted, watch } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,6 +27,7 @@ import {
 } from 'lucide-vue-next';
 import axios from 'axios';
 import { toast } from 'vue-sonner';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 
 // Register Chart.js components
 ChartJS.register(
@@ -45,6 +47,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('topics'));
 
 const loading = ref(true);
 const topicsData = ref<App.Data.Agent.Topics.TopicsResourceData | null>(null);
@@ -389,7 +394,9 @@ watch(showTopicsDialog, (newValue) => {
 });
 
 onMounted(() => {
-    fetchTopicsData();
+    if (hasAccess.value) {
+        fetchTopicsData();
+    }
 });
 </script>
 
@@ -399,10 +406,16 @@ onMounted(() => {
             <MessageSquare class="h-5 w-5" />
         </template>
 
-        <!-- Loading State -->
-        <div v-if="loading" class="flex items-center justify-center py-12">
-            <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <LockedFeature 
+            v-if="!hasAccess"
+            description="Upgrade your plan to access topic analysis and automatically detect and categorize conversation topics."
+        />
+
+        <template v-else>
+            <!-- Loading State -->
+            <div v-if="loading" class="flex items-center justify-center py-12">
+                <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
 
         <!-- Error State -->
         <div v-else-if="error" class="flex items-center justify-center py-12">
@@ -746,6 +759,7 @@ onMounted(() => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        </template>
     </AgentLayout>
 </template>
 

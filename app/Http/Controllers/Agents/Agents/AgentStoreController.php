@@ -46,7 +46,7 @@ class AgentStoreController
                 'user_id' => $agentOwnerId,
                 'team_id' => $team->id,
                 'name' => $validatedData['name'],
-                'sub_domain' => $validatedData['type'] === 'knowledge_base' ? $subdomain->generateRandomSubdomain() : null,
+                'sub_domain' => $validatedData['type'] === 'knowledge_base' ? $externalId : null,
                 'system_instructions' => PromptLoader::load('knowledge/system'),
                 'is_public' => false,
                 'type' => $validatedData['type'],

@@ -12,6 +12,7 @@ class TitleGenerator
 
     public function generate(string $messages): string
     {
+
         $response = $this->provider->completion([
             'model' => config('ai.models.title'),
             'max_tokens' => 50,

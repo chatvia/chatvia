@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -6,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Filter, ThumbsUp, ThumbsDown } from 'lucide-vue-next';
 import DateRangePicker from '@/components/ui/DateRangePicker.vue';
 import { useChatLog } from './useChatLog';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 
 const {
   showFiltersDialog,
@@ -24,6 +26,11 @@ const {
   clearAllFilters,
   getFlagPath,
 } = useChatLog();
+
+const { hasCapability } = useCapabilityGuard();
+const hasToneAccess = computed(() => hasCapability('tone'));
+const hasSentimentAccess = computed(() => hasCapability('sentiment'));
+const hasTopicsAccess = computed(() => hasCapability('topics'));
 </script>
 
 <template>
@@ -132,10 +139,10 @@ const {
           
           <!-- Topic -->
           <div class="space-y-2">
-            <Label for="topic-filter" class="text-sm font-medium">Topic</Label>
-            <Select v-model="selectedTopic">
-              <SelectTrigger id="topic-filter" class="w-full">
-                <SelectValue placeholder="Select topic" />
+            <Label for="topic-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasTopicsAccess }">Topic</Label>
+            <Select v-model="selectedTopic" :disabled="!hasTopicsAccess">
+              <SelectTrigger id="topic-filter" class="w-full" :disabled="!hasTopicsAccess">
+                <SelectValue :placeholder="hasTopicsAccess ? 'Select topic' : 'Upgrade to unlock'" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All topics</SelectItem>
@@ -152,10 +159,10 @@ const {
           
           <!-- Sentiment -->
           <div class="space-y-2">
-            <Label for="sentiment-filter" class="text-sm font-medium">Sentiment</Label>
-            <Select v-model="selectedSentiment">
-              <SelectTrigger id="sentiment-filter" class="w-full">
-                <SelectValue placeholder="Select sentiment" />
+            <Label for="sentiment-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasSentimentAccess }">Sentiment</Label>
+            <Select v-model="selectedSentiment" :disabled="!hasSentimentAccess">
+              <SelectTrigger id="sentiment-filter" class="w-full" :disabled="!hasSentimentAccess">
+                <SelectValue :placeholder="hasSentimentAccess ? 'Select sentiment' : 'Upgrade to unlock'" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All sentiments</SelectItem>
@@ -168,10 +175,10 @@ const {
           
           <!-- Tone -->
           <div class="space-y-2">
-            <Label for="tone-filter" class="text-sm font-medium">Tone</Label>
-            <Select v-model="selectedTone">
-              <SelectTrigger id="tone-filter" class="w-full">
-                <SelectValue placeholder="Select tone" />
+            <Label for="tone-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasToneAccess }">Tone</Label>
+            <Select v-model="selectedTone" :disabled="!hasToneAccess">
+              <SelectTrigger id="tone-filter" class="w-full" :disabled="!hasToneAccess">
+                <SelectValue :placeholder="hasToneAccess ? 'Select tone' : 'Upgrade to unlock'" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All tones</SelectItem>

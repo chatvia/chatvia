@@ -9,18 +9,7 @@ import { vOnClickOutside } from '@vueuse/components'
 import isMobile from 'is-mobile'
 import { Head } from '@inertiajs/vue3'
 
-interface AIModel {
-    id: string;
-    name: string;
-    context_window: number;
-    icon: string;
-    description: string;
-    features?: string[];
-    location: string;
-    reasoning: boolean;
-    user_allowed_to_use: boolean;
-    is_selected: boolean;
-}
+type AIModel = App.Data.Chat.LlmModelData;
 
 interface ModelSettings {
     temperature: number;
@@ -83,7 +72,7 @@ const fetchModels = async () => {
     try {
         isLoadingModels.value = true;
         const response = await axios.get<ModelsResponse>(route('chat.models.index'));
-        availableModels.value = response.data.models.filter(model => model.user_allowed_to_use);
+        availableModels.value = response.data.models;
     } catch (error) {
         console.error('Failed to fetch models:', error);
     } finally {

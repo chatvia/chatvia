@@ -30,7 +30,7 @@ class TopicAnalysis
         }
 
         $topicId = $this->provider->completion([
-            'model' => 'llama-3.1-8b-instruct',
+            'model' => config('ai.models.tone'),
             'messages' => [
                 [
                     'role' => 'system',

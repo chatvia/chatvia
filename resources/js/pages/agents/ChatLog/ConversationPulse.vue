@@ -1,340 +1,337 @@
 <script lang="ts" setup>
-import { computed, watch, onMounted } from 'vue';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { LoaderCircle, MessageSquare, Activity, TrendingUp, TrendingDown, HelpCircle, RefreshCw } from 'lucide-vue-next';
-import { Button } from '@/components/ui/button';
 import LockedFeature from '@/components/LockedFeature.vue';
-import { Line } from 'vue-chartjs';
-import { 
-  Chart as ChartJS, 
-  CategoryScale, 
-  LinearScale, 
-  PointElement, 
-  LineElement,
-  Title, 
-  Tooltip as ChartTooltip, 
-  Legend,
-  Filler,
-  type ChartOptions
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
+import {
+    CategoryScale,
+    Chart as ChartJS,
+    Tooltip as ChartTooltip,
+    Filler,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Title,
+    type ChartOptions,
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { Activity, HelpCircle, LoaderCircle, MessageSquare, RefreshCw } from 'lucide-vue-next';
+import { computed, onMounted, watch } from 'vue';
+import { Line } from 'vue-chartjs';
 import { useChatLog } from './useChatLog';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 
 // Register Chart.js components
-ChartJS.register(
-  CategoryScale, LinearScale, PointElement, LineElement, 
-  Title, ChartTooltip, Legend, Filler, ChartDataLabels
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend, Filler, ChartDataLabels);
 
 const {
-  currentConversationId,
-  activeTab,
-  pulseData,
-  isLoadingPulse,
-  pulseError,
-  fetchPulseData,
-  getToneDisplayName,
-  getToneEmoji,
-  getToneBadgeColor,
-  getSentimentBadgeColor,
-  getPulsePointColor,
+    currentConversationId,
+    activeTab,
+    pulseData,
+    isLoadingPulse,
+    pulseError,
+    fetchPulseData,
+    getToneDisplayName,
+    getToneEmoji,
+    getToneBadgeColor,
+    getSentimentBadgeColor,
+    getPulsePointColor,
 } = useChatLog();
 
 const { hasCapability } = useCapabilityGuard();
 const hasAccess = computed(() => hasCapability('pulse'));
 
 // Load pulse data when tab becomes active
-watch(() => activeTab.value, (newTab) => {
-  if (newTab === 'pulse' && currentConversationId.value && !pulseData.value && hasAccess.value) {
-    fetchPulseData();
-  }
-});
+watch(
+    () => activeTab.value,
+    (newTab) => {
+        if (newTab === 'pulse' && currentConversationId.value && !pulseData.value && hasAccess.value) {
+            fetchPulseData();
+        }
+    },
+);
 
 // Reset and reload when conversation changes
-watch(() => currentConversationId.value, () => {
-  if (activeTab.value === 'pulse' && currentConversationId.value) {
-    fetchPulseData();
-  }
-});
+watch(
+    () => currentConversationId.value,
+    () => {
+        if (activeTab.value === 'pulse' && currentConversationId.value) {
+            fetchPulseData();
+        }
+    },
+);
 
 // Load on mount if already on pulse tab
 onMounted(() => {
-  if (activeTab.value === 'pulse' && currentConversationId.value && !pulseData.value) {
-    fetchPulseData();
-  }
+    if (activeTab.value === 'pulse' && currentConversationId.value && !pulseData.value) {
+        fetchPulseData();
+    }
 });
 
 function capitalize(str: string): string {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 // Chart data
 const pulseChartData = computed(() => {
-  if (!pulseData.value?.messages?.length) return null;
-  const messages = pulseData.value.messages;
-  
-  return {
-    labels: messages.map((_: any, i: number) => i + 1),
-    datasets: [{
-      label: 'Mood',
-      data: messages.map((m: any) => m.sentiment_score),
-      borderColor: 'rgb(99, 102, 241)',
-      backgroundColor: 'transparent',
-      fill: false,
-      tension: 0,
-      pointRadius: 6,
-      pointHoverRadius: 8,
-      pointBackgroundColor: messages.map((m: any) => getPulsePointColor(m.sentiment_score)),
-      pointBorderColor: '#fff',
-      pointBorderWidth: 2,
-      borderWidth: 2,
-    }],
-  };
+    if (!pulseData.value?.messages?.length) return null;
+    const messages = pulseData.value.messages;
+
+    return {
+        labels: messages.map((_: any, i: number) => i + 1),
+        datasets: [
+            {
+                label: 'Mood',
+                data: messages.map((m: any) => m.sentiment_score),
+                borderColor: 'rgb(99, 102, 241)',
+                backgroundColor: 'transparent',
+                fill: false,
+                tension: 0,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: messages.map((m: any) => getPulsePointColor(m.sentiment_score)),
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                borderWidth: 2,
+            },
+        ],
+    };
 });
 
 // Chart options
 const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  layout: { padding: { top: 10, right: 20 } },
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      titleColor: '#fff',
-      bodyColor: '#fff',
-      padding: 12,
-      cornerRadius: 8,
-      displayColors: false,
-      callbacks: {
-        title: (items) => {
-          const index = items[0]?.dataIndex;
-          if (index !== undefined && pulseData.value?.messages[index]) {
-            return `Message #${index + 1}`;
-          }
-          return '';
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { top: 10, right: 20 } },
+    plugins: {
+        legend: { display: false },
+        tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            padding: 12,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+                title: (items) => {
+                    const index = items[0]?.dataIndex;
+                    if (index !== undefined && pulseData.value?.messages[index]) {
+                        return `Message #${index + 1}`;
+                    }
+                    return '';
+                },
+                label: (item) => {
+                    const index = item.dataIndex;
+                    if (index !== undefined && pulseData.value?.messages[index]) {
+                        const msg = pulseData.value.messages[index];
+                        const lines = [];
+                        if (msg.tone) lines.push(`Tone: ${msg.tone}`);
+                        if (msg.sentiment) lines.push(`Sentiment: ${msg.sentiment}`);
+                        if (msg.content_preview) lines.push(`"${msg.content_preview}"`);
+                        return lines;
+                    }
+                    return '';
+                },
+            },
         },
-        label: (item) => {
-          const index = item.dataIndex;
-          if (index !== undefined && pulseData.value?.messages[index]) {
-            const msg = pulseData.value.messages[index];
-            const lines = [];
-            if (msg.tone) lines.push(`Tone: ${msg.tone}`);
-            if (msg.sentiment) lines.push(`Sentiment: ${msg.sentiment}`);
-            if (msg.content_preview) lines.push(`"${msg.content_preview}"`);
-            return lines;
-          }
-          return '';
-        },
-      },
+        datalabels: { display: false },
     },
-    datalabels: { display: false },
-  },
-  scales: {
-    x: { display: false },
-    y: {
-      min: -1.5,
-      max: 1.5,
-      grid: { color: 'rgba(156, 163, 175, 0.1)' },
-      border: { display: false },
-      ticks: {
-        color: 'rgb(156, 163, 175)',
-        font: { size: 11 },
-        callback: (value) => {
-          if (value === 1) return '😊 Good';
-          if (value === 0) return '😐 Neutral';
-          if (value === -1) return '😤 Bad';
-          return '';
+    scales: {
+        x: { display: false },
+        y: {
+            min: -1.5,
+            max: 1.5,
+            grid: { color: 'rgba(156, 163, 175, 0.1)' },
+            border: { display: false },
+            ticks: {
+                color: 'rgb(156, 163, 175)',
+                font: { size: 11 },
+                callback: (value) => {
+                    if (value === 1) return '😊 Good';
+                    if (value === 0) return '😐 Neutral';
+                    if (value === -1) return '😤 Bad';
+                    return '';
+                },
+                stepSize: 1,
+            },
         },
-        stepSize: 1,
-      },
     },
-  },
-  interaction: { intersect: false, mode: 'index' },
+    interaction: { intersect: false, mode: 'index' },
 }));
 </script>
 
 <template>
-  <!-- Locked Feature -->
-  <LockedFeature 
-    v-if="!hasAccess"
-    description="Unlock real-time conversation health metrics and sentiment tracking with our Pro plan." 
-  />
+    <!-- Locked Feature -->
+    <LockedFeature v-if="!hasAccess" description="Unlock real-time conversation health metrics and sentiment tracking with our Pro plan." />
 
-  <!-- No Conversation Selected -->
-  <div v-else-if="!currentConversationId" class="flex flex-col items-center justify-center py-20 text-muted-foreground">
-    <Activity class="h-10 w-10 mb-3 opacity-30" />
-    <p class="text-sm">Select a conversation</p>
-  </div>
-
-  <!-- Loading State -->
-  <div v-else-if="isLoadingPulse" class="flex items-center justify-center py-20">
-    <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
-  </div>
-
-  <!-- Error State -->
-  <div v-else-if="pulseError" class="flex flex-col items-center justify-center py-20 text-muted-foreground">
-    <p class="text-sm">{{ pulseError }}</p>
-  </div>
-
-  <!-- No Data State -->
-  <div v-else-if="!pulseData?.messages?.length" class="flex flex-col items-center justify-center py-20 text-muted-foreground">
-    <MessageSquare class="h-10 w-10 mb-3 opacity-30" />
-    <p class="text-sm">No user messages to analyze</p>
-    <p class="text-xs mt-1">The conversation needs user messages with sentiment data</p>
-  </div>
-
-  <!-- Pulse Content -->
-  <div v-else class="p-5 space-y-5">
-    <!-- Header with Refresh -->
-    <div class="flex items-center justify-between">
-      <h3 class="text-sm font-medium text-muted-foreground">Conversation Pulse</h3>
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        @click="fetchPulseData"
-        :disabled="isLoadingPulse"
-        class="h-8 gap-1.5"
-      >
-        <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isLoadingPulse }" />
-        Refresh
-      </Button>
+    <!-- No Conversation Selected -->
+    <div v-else-if="!currentConversationId" class="text-muted-foreground flex flex-col items-center justify-center py-20">
+        <Activity class="mb-3 h-10 w-10 opacity-30" />
+        <p class="text-sm">Select a conversation</p>
     </div>
 
-    <!-- Summary Table -->
-    <div class="rounded-lg border bg-card">
-      <table class="w-full text-sm">
-        <tbody class="divide-y">
-          <tr>
-            <td class="px-4 py-3 text-muted-foreground font-medium w-1/3">
-              <div class="flex items-center gap-1.5">
-                Trend
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <HelpCircle class="h-3.5 w-3.5 text-muted-foreground/50 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="right" class="max-w-[240px]">
-                      <p class="text-xs">Compares the user's mood from the <strong>first</strong> message to the <strong>last</strong> message.</p>
-                      <ul class="text-xs mt-1.5 space-y-0.5">
-                        <li><span class="text-green-500">↗ Improving</span> — ended happier</li>
-                        <li><span class="text-red-500">↘ Declining</span> — ended more frustrated</li>
-                        <li>Stable — mood stayed similar</li>
-                      </ul>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </td>
-            <td class="px-4 py-3">
-              <span 
-                class="capitalize"
-                :class="{
-                  'text-green-600 dark:text-green-400': pulseData.summary.trend === 'improving',
-                  'text-red-600 dark:text-red-400': pulseData.summary.trend === 'declining'
-                }"
-              >
-                <template v-if="pulseData.summary.trend === 'improving'">↗ </template>
-                <template v-else-if="pulseData.summary.trend === 'declining'">↘ </template>
-                {{ pulseData.summary.trend }}
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td class="px-4 py-3 text-muted-foreground font-medium">
-              <div class="flex items-center gap-1.5">
-                Resolution
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <HelpCircle class="h-3.5 w-3.5 text-muted-foreground/50 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="right" class="max-w-[240px]">
-                      <p class="text-xs">Checks if a frustrated user was successfully helped.</p>
-                      <ul class="text-xs mt-1.5 space-y-0.5">
-                        <li><span class="text-green-500">✓ Resolved</span> — started negative, ended positive/neutral</li>
-                        <li>Ongoing — issue not yet resolved or user wasn't frustrated</li>
-                      </ul>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </td>
-            <td class="px-4 py-3">
-              <span v-if="pulseData.summary.resolution" class="text-green-600 dark:text-green-400">✓ Resolved</span>
-              <span v-else class="text-muted-foreground">Ongoing</span>
-            </td>
-          </tr>
-          <tr>
-            <td class="px-4 py-3 text-muted-foreground font-medium">User Messages</td>
-            <td class="px-4 py-3">{{ pulseData.conversation.user_messages }}</td>
-          </tr>
-          <tr v-if="pulseData.summary.started_as?.tone || pulseData.summary.started_as?.sentiment">
-            <td class="px-4 py-3 text-muted-foreground font-medium">Started As</td>
-            <td class="px-4 py-3 capitalize">
-              {{ pulseData.summary.started_as?.tone || pulseData.summary.started_as?.sentiment || '—' }}
-            </td>
-          </tr>
-          <tr v-if="pulseData.summary.ended_as?.tone || pulseData.summary.ended_as?.sentiment">
-            <td class="px-4 py-3 text-muted-foreground font-medium">Ended As</td>
-            <td class="px-4 py-3 capitalize">
-              {{ pulseData.summary.ended_as?.tone || pulseData.summary.ended_as?.sentiment || '—' }}
-            </td>
-          </tr>
-          <tr v-if="pulseData.summary.peak_negative">
-            <td class="px-4 py-3 text-muted-foreground font-medium">Peak Negative</td>
-            <td class="px-4 py-3 capitalize">
-              {{ pulseData.summary.peak_negative.tone || pulseData.summary.peak_negative.sentiment }}
-              <span class="text-muted-foreground"> · Message #{{ pulseData.summary.peak_negative.index }}</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Loading State -->
+    <div v-else-if="isLoadingPulse" class="flex items-center justify-center py-20">
+        <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
     </div>
 
-    <!-- Chart -->
-    <div class="rounded-lg border bg-card p-4">
-      <div class="text-sm font-medium mb-4">Sentiment Timeline</div>
-      <div class="h-[240px]">
-        <Line v-if="pulseChartData" :data="pulseChartData" :options="pulseChartOptions" />
-      </div>
-      <!-- Legend -->
-      <div class="flex items-center justify-center gap-6 mt-4 pt-4 border-t text-xs text-muted-foreground">
-        <div class="flex items-center gap-1.5">
-          <span class="w-3 h-3 rounded-full bg-green-500"></span>
-          <span>😊 Good</span>
+    <!-- Error State -->
+    <div v-else-if="pulseError" class="text-muted-foreground flex flex-col items-center justify-center py-20">
+        <p class="text-sm">{{ pulseError }}</p>
+    </div>
+
+    <!-- No Data State -->
+    <div v-else-if="!pulseData?.messages?.length" class="text-muted-foreground flex flex-col items-center justify-center py-20">
+        <MessageSquare class="mb-3 h-10 w-10 opacity-30" />
+        <p class="text-sm">No user messages to analyze</p>
+        <p class="mt-1 text-xs">The conversation needs user messages with sentiment data</p>
+    </div>
+
+    <!-- Pulse Content -->
+    <div v-else class="space-y-5 p-5">
+        <!-- Header with Refresh -->
+        <div class="flex items-center justify-between">
+            <h3 class="text-muted-foreground text-sm font-medium">Conversation Pulse</h3>
+            <Button variant="ghost" size="sm" @click="fetchPulseData" :disabled="isLoadingPulse" class="h-8 gap-1.5">
+                <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isLoadingPulse }" />
+                Refresh
+            </Button>
         </div>
-        <div class="flex items-center gap-1.5">
-          <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
-          <span>😐 Neutral</span>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="w-3 h-3 rounded-full bg-red-500"></span>
-          <span>😤 Bad</span>
-        </div>
-      </div>
-    </div>
 
-    <!-- Message Timeline -->
-    <div class="rounded-lg border bg-card">
-      <div class="px-4 py-3 border-b">
-        <span class="text-sm font-medium">Message Details</span>
-      </div>
-      <table class="w-full text-sm">
-        <tbody class="divide-y">
-          <tr v-for="msg in pulseData.messages" :key="msg.index">
-            <td class="px-4 py-3 text-muted-foreground font-medium w-12 text-center">{{ msg.index }}</td>
-            <td class="px-4 py-3 truncate max-w-[200px]">{{ msg.content_preview }}</td>
-            <td class="px-4 py-3 capitalize text-right">
-              <template v-if="msg.tone || msg.sentiment">{{ msg.tone || msg.sentiment }}</template>
-              <span v-else class="text-muted-foreground italic">Waiting...</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <!-- Summary Table -->
+        <div class="bg-card rounded-lg border">
+            <table class="w-full text-sm">
+                <tbody class="divide-y">
+                    <tr>
+                        <td class="text-muted-foreground w-1/3 px-4 py-3 font-medium">
+                            <div class="flex items-center gap-1.5">
+                                Trend
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <HelpCircle class="text-muted-foreground/50 h-3.5 w-3.5 cursor-help" />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right" class="max-w-[240px]">
+                                            <p class="text-xs">
+                                                Compares the user's mood from the <strong>first</strong> message to the <strong>last</strong> message.
+                                            </p>
+                                            <ul class="mt-1.5 space-y-0.5 text-xs">
+                                                <li><span class="text-green-500">↗ Improving</span> — ended happier</li>
+                                                <li><span class="text-red-500">↘ Declining</span> — ended more frustrated</li>
+                                                <li>Stable — mood stayed similar</li>
+                                            </ul>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span
+                                class="capitalize"
+                                :class="{
+                                    'text-green-600 dark:text-green-400': pulseData.summary.trend === 'improving',
+                                    'text-red-600 dark:text-red-400': pulseData.summary.trend === 'declining',
+                                }"
+                            >
+                                <template v-if="pulseData.summary.trend === 'improving'">↗ </template>
+                                <template v-else-if="pulseData.summary.trend === 'declining'">↘ </template>
+                                {{ pulseData.summary.trend }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">
+                            <div class="flex items-center gap-1.5">
+                                Resolution
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <HelpCircle class="text-muted-foreground/50 h-3.5 w-3.5 cursor-help" />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right" class="max-w-[240px]">
+                                            <p class="text-xs">Checks if a frustrated user was successfully helped.</p>
+                                            <ul class="mt-1.5 space-y-0.5 text-xs">
+                                                <li><span class="text-green-500">✓ Resolved</span> — started negative, ended positive/neutral</li>
+                                                <li>Ongoing — issue not yet resolved or user wasn't frustrated</li>
+                                            </ul>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span v-if="pulseData.summary.resolution" class="text-green-600 dark:text-green-400">✓ Resolved</span>
+                            <span v-else class="text-muted-foreground">Ongoing</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">User Messages</td>
+                        <td class="px-4 py-3">{{ pulseData.conversation.user_messages }}</td>
+                    </tr>
+                    <tr v-if="pulseData.summary.started_as?.tone || pulseData.summary.started_as?.sentiment">
+                        <td class="text-muted-foreground px-4 py-3 font-medium">Started As</td>
+                        <td class="px-4 py-3 capitalize">
+                            {{ pulseData.summary.started_as?.tone || pulseData.summary.started_as?.sentiment || '—' }}
+                        </td>
+                    </tr>
+                    <tr v-if="pulseData.summary.ended_as?.tone || pulseData.summary.ended_as?.sentiment">
+                        <td class="text-muted-foreground px-4 py-3 font-medium">Ended As</td>
+                        <td class="px-4 py-3 capitalize">
+                            {{ pulseData.summary.ended_as?.tone || pulseData.summary.ended_as?.sentiment || '—' }}
+                        </td>
+                    </tr>
+                    <tr v-if="pulseData.summary.peak_negative">
+                        <td class="text-muted-foreground px-4 py-3 font-medium">Peak Negative</td>
+                        <td class="px-4 py-3 capitalize">
+                            {{ pulseData.summary.peak_negative.tone || pulseData.summary.peak_negative.sentiment }}
+                            <span class="text-muted-foreground"> · Message #{{ pulseData.summary.peak_negative.index }}</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-card rounded-lg border p-4">
+            <div class="mb-4 text-sm font-medium">Sentiment Timeline</div>
+            <div class="h-[240px]">
+                <Line v-if="pulseChartData" :data="pulseChartData" :options="pulseChartOptions" />
+            </div>
+            <!-- Legend -->
+            <div class="text-muted-foreground mt-4 flex items-center justify-center gap-6 border-t pt-4 text-xs">
+                <div class="flex items-center gap-1.5">
+                    <span class="h-3 w-3 rounded-full bg-green-500"></span>
+                    <span>😊 Good</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="h-3 w-3 rounded-full bg-yellow-500"></span>
+                    <span>😐 Neutral</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="h-3 w-3 rounded-full bg-red-500"></span>
+                    <span>😤 Bad</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Timeline -->
+        <div class="bg-card rounded-lg border">
+            <div class="border-b px-4 py-3">
+                <span class="text-sm font-medium">Message Details</span>
+            </div>
+            <table class="w-full text-sm">
+                <tbody class="divide-y">
+                    <tr v-for="msg in pulseData.messages" :key="msg.index">
+                        <td class="text-muted-foreground w-12 px-4 py-3 text-center font-medium">{{ msg.index }}</td>
+                        <td class="max-w-[200px] truncate px-4 py-3">{{ msg.content_preview }}</td>
+                        <td class="px-4 py-3 text-right capitalize">
+                            <template v-if="msg.tone || msg.sentiment">{{ msg.tone || msg.sentiment }}</template>
+                            <span v-else class="text-muted-foreground italic">Waiting...</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-  </div>
 </template>
-

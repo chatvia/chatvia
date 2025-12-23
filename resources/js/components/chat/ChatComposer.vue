@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { ref, nextTick, watch, onMounted, computed } from 'vue';
-import ModelSelector from "@/components/chat/ModelSelector.vue";
+import ModelSelector from '@/components/chat/ModelSelector.vue';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Square, ArrowUp, Mic, Loader2 } from 'lucide-vue-next';
 import { useVoiceRecorder } from '@/composables/useVoiceRecorder';
 import type { AIModel } from '@/types/chat';
+import { ArrowUp, Loader2, Mic, Square } from 'lucide-vue-next';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 interface Props {
-    isThinking?: boolean,
-    text?: string,
-    models?: AIModel[],
-    defaultModel?: AIModel | null,
-    isLoadingModels?: boolean,
-    placeholder?: string,
-    disabled?: boolean,
+    isThinking?: boolean;
+    text?: string;
+    models?: AIModel[];
+    defaultModel?: AIModel | null;
+    isLoadingModels?: boolean;
+    placeholder?: string;
+    disabled?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -25,14 +25,7 @@ const messageInput = ref<HTMLTextAreaElement>();
 const isFocused = ref(false);
 
 // Voice recording
-const { 
-    isRecording, 
-    isTranscribing, 
-    isSupported: isVoiceSupported, 
-    startRecording, 
-    stopRecording,
-    cancelRecording 
-} = useVoiceRecorder();
+const { isRecording, isTranscribing, isSupported: isVoiceSupported, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
 
 // Only show model selector if we have multiple models (hide while loading)
 const showModelSelector = computed(() => {
@@ -43,35 +36,47 @@ const showModelSelector = computed(() => {
 });
 
 // Auto-select single model when only one is available
-watch(() => props.models, (models) => {
-    if (models && models.length === 1) {
-        selectedModel.value = models[0];
-        emit('modelSelected', models[0]);
-    }
-}, { immediate: true });
+watch(
+    () => props.models,
+    (models) => {
+        if (models && models.length === 1) {
+            selectedModel.value = models[0];
+            emit('modelSelected', models[0]);
+        }
+    },
+    { immediate: true },
+);
 
-watch(() => props.text, (newText) => {
-    if (newText !== undefined && newText !== userInput.value) {
-        userInput.value = newText;
-        nextTick(() => {
-            if (messageInput.value) {
-                adjustTextareaHeight();
-            }
-        });
-    }
-}, { immediate: true });
+watch(
+    () => props.text,
+    (newText) => {
+        if (newText !== undefined && newText !== userInput.value) {
+            userInput.value = newText;
+            nextTick(() => {
+                if (messageInput.value) {
+                    adjustTextareaHeight();
+                }
+            });
+        }
+    },
+    { immediate: true },
+);
 
-watch(() => props.defaultModel, (newDefaultModel) => {
-    if (newDefaultModel && newDefaultModel !== selectedModel.value) {
-        selectedModel.value = newDefaultModel;
-        emit('modelSelected', newDefaultModel);
-    }
-}, { immediate: true });
+watch(
+    () => props.defaultModel,
+    (newDefaultModel) => {
+        if (newDefaultModel && newDefaultModel !== selectedModel.value) {
+            selectedModel.value = newDefaultModel;
+            emit('modelSelected', newDefaultModel);
+        }
+    },
+    { immediate: true },
+);
 
 const emit = defineEmits<{
-    messageAdded: [content: string, model: AIModel]
-    stopStreaming: []
-    modelSelected: [model: AIModel]
+    messageAdded: [content: string, model: AIModel];
+    stopStreaming: [];
+    modelSelected: [model: AIModel];
 }>();
 
 const handleEnterKey = (event: KeyboardEvent) => {
@@ -84,7 +89,7 @@ const handleEnterKey = (event: KeyboardEvent) => {
 };
 
 const adjustTextareaHeight = (event?: Event) => {
-    const textarea = event?.target as HTMLTextAreaElement || messageInput.value;
+    const textarea = (event?.target as HTMLTextAreaElement) || messageInput.value;
     if (!textarea || !textarea.style) return;
 
     textarea.style.height = 'auto';
@@ -99,7 +104,7 @@ watch(userInput, () => {
 
 const stopStreaming = () => {
     emit('stopStreaming');
-}
+};
 
 const handleModelChange = (model: AIModel) => {
     emit('modelSelected', model);
@@ -110,7 +115,7 @@ const handleModelChange = (model: AIModel) => {
             messageInput.value.focus();
         }
     });
-}
+};
 
 const sendMessage = () => {
     if (!userInput.value.trim() || !selectedModel.value) return;
@@ -121,7 +126,7 @@ const sendMessage = () => {
     if (messageInput.value && messageInput.value.style) {
         messageInput.value.style.height = 'auto';
     }
-}
+};
 
 const handleFocus = () => {
     isFocused.value = true;
@@ -147,10 +152,8 @@ const toggleRecording = async () => {
         const transcript = await stopRecording();
         if (transcript) {
             // Append transcript to existing input
-            userInput.value = userInput.value 
-                ? `${userInput.value} ${transcript}` 
-                : transcript;
-            
+            userInput.value = userInput.value ? `${userInput.value} ${transcript}` : transcript;
+
             nextTick(() => {
                 adjustTextareaHeight();
                 messageInput.value?.focus();
@@ -165,16 +168,18 @@ const toggleRecording = async () => {
 <template>
     <div class="w-full">
         <div
-            class="relative rounded-3xl border bg-card transition-all duration-200"
+            class="bg-card relative rounded-3xl border transition-all duration-200"
             :class="[
-                disabled ? 'opacity-50 cursor-not-allowed' : '',
-                isFocused && !disabled ? 'border-primary/40 shadow-lg ring-1 ring-primary/10' : 'border-gray-300 dark:border-gray-600 shadow-sm hover:border-gray-400 dark:hover:border-gray-500',
-                isThinking ? 'border-primary/40' : ''
+                disabled ? 'cursor-not-allowed opacity-50' : '',
+                isFocused && !disabled
+                    ? 'border-primary/40 ring-primary/10 shadow-lg ring-1'
+                    : 'border-gray-300 shadow-sm hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500',
+                isThinking ? 'border-primary/40' : '',
             ]"
         >
             <div class="flex items-center">
                 <!-- Left side: textarea -->
-                <div class="flex-1 min-w-0">
+                <div class="min-w-0 flex-1">
                     <Textarea
                         ref="messageInput"
                         v-model="userInput"
@@ -182,8 +187,8 @@ const toggleRecording = async () => {
                         @input="adjustTextareaHeight"
                         @focus="handleFocus"
                         @blur="handleBlur"
-                        :placeholder="disabled ? 'Chat disabled' : (placeholder || 'Message...')"
-                        class="w-full resize-none !border-0 !shadow-none !bg-transparent dark:!bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-0 focus-visible:!border-0 min-h-[28px] max-h-[160px] px-4 py-4"
+                        :placeholder="disabled ? 'Chat disabled' : placeholder || 'Message...'"
+                        class="text-foreground placeholder:text-muted-foreground/50 max-h-[160px] min-h-[28px] w-full resize-none !border-0 !bg-transparent px-4 py-4 text-sm !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
                         :disabled="isThinking || disabled"
                         rows="1"
                     />
@@ -207,11 +212,11 @@ const toggleRecording = async () => {
                         :disabled="isTranscribing"
                         size="icon"
                         variant="ghost"
-                        class="h-10 w-10 rounded-full shrink-0 transition-all duration-200"
+                        class="h-10 w-10 shrink-0 rounded-full transition-all duration-200"
                         :class="[
-                            isRecording 
-                                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
-                                : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                            isRecording
+                                ? 'animate-pulse bg-red-500 text-white hover:bg-red-600'
+                                : 'hover:bg-muted text-muted-foreground hover:text-foreground',
                         ]"
                         :title="isRecording ? 'Stop recording' : 'Start voice input'"
                     >
@@ -219,13 +224,7 @@ const toggleRecording = async () => {
                         <Mic v-else class="h-5 w-5" />
                     </Button>
 
-                    <Button
-                        v-if="isThinking"
-                        @click="stopStreaming"
-                        size="icon"
-                        variant="destructive"
-                        class="h-10 w-10 rounded-full shrink-0"
-                    >
+                    <Button v-if="isThinking" @click="stopStreaming" size="icon" variant="destructive" class="h-10 w-10 shrink-0 rounded-full">
                         <Square class="h-5 w-5" />
                     </Button>
 
@@ -234,12 +233,8 @@ const toggleRecording = async () => {
                         @click="sendMessage"
                         :disabled="!canSend()"
                         size="icon"
-                        class="h-10 w-10 rounded-full shrink-0 transition-all duration-200"
-                        :class="[
-                            canSend() 
-                                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md' 
-                                : 'bg-muted text-muted-foreground'
-                        ]"
+                        class="h-10 w-10 shrink-0 rounded-full transition-all duration-200"
+                        :class="[canSend() ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md' : 'bg-muted text-muted-foreground']"
                     >
                         <ArrowUp class="h-5 w-5" :class="{ 'stroke-[2.5px]': canSend() }" />
                     </Button>
@@ -248,4 +243,3 @@ const toggleRecording = async () => {
         </div>
     </div>
 </template>
-

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { usePage, router } from '@inertiajs/vue3';
+import { Card, CardContent } from '@/components/ui/card';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import Files from './Files.vue';
-import WebComponent from './WebComponent.vue';
-import TextComponent from './TextComponent.vue';
-import YoutubeComponent from './YoutubeComponent.vue';
-import QaComponent from './QaComponent.vue';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
+import { computed, onMounted, ref } from 'vue';
+import Files from './Files.vue';
+import QaComponent from './QaComponent.vue';
+import TextComponent from './TextComponent.vue';
+import WebComponent from './WebComponent.vue';
+import YoutubeComponent from './YoutubeComponent.vue';
 
 interface Props {
     agent: App.Data.Resources.Agent.AgentResourceData;
@@ -37,7 +37,7 @@ const contentTypes = [
         icon: 'pi-file',
         description: 'Upload and manage documents (PDF, Word, etc.)',
         route: 'agents.sources.files',
-        statsKey: 'files'
+        statsKey: 'files',
     },
     {
         id: 'text',
@@ -45,7 +45,7 @@ const contentTypes = [
         icon: 'pi-align-justify',
         description: 'Add custom text content and notes directly',
         route: 'agents.sources.text',
-        statsKey: 'texts'
+        statsKey: 'texts',
     },
     {
         id: 'web',
@@ -53,7 +53,7 @@ const contentTypes = [
         icon: 'pi-globe',
         description: 'Crawl websites and web pages for knowledge',
         route: 'agents.sources.web',
-        statsKey: 'websites'
+        statsKey: 'websites',
     },
     {
         id: 'audio',
@@ -61,7 +61,7 @@ const contentTypes = [
         icon: 'pi-volume-up',
         description: 'Upload audio files and podcasts for transcription',
         route: 'agents.sources.audio',
-        statsKey: 'audio'
+        statsKey: 'audio',
     },
     {
         id: 'video',
@@ -69,7 +69,7 @@ const contentTypes = [
         icon: 'pi-video',
         description: 'Upload video files for transcription and analysis',
         route: 'agents.sources.video',
-        statsKey: 'video'
+        statsKey: 'video',
     },
     {
         id: 'youtube',
@@ -77,7 +77,7 @@ const contentTypes = [
         icon: 'pi-youtube',
         description: 'Import YouTube videos and extract transcripts',
         route: 'agents.sources.youtube',
-        statsKey: 'youtube'
+        statsKey: 'youtube',
     },
     {
         id: 'qa',
@@ -85,7 +85,7 @@ const contentTypes = [
         icon: 'pi-question-circle',
         description: 'Craft responses for key questions',
         route: 'agents.sources.qa',
-        statsKey: 'qa'
+        statsKey: 'qa',
     },
 ];
 
@@ -149,7 +149,7 @@ const currentComponent = computed(() => {
 
 // Handle content type selection
 const selectContentType = (typeId: string) => {
-    const contentType = contentTypes.find(type => type.id === typeId);
+    const contentType = contentTypes.find((type) => type.id === typeId);
 
     if (contentType?.route) {
         // Navigate to the appropriate route
@@ -203,30 +203,35 @@ onMounted(() => {
 <template>
     <AgentLayout :agent="agent" title="Sources">
         <div class="flex justify-center">
-            <div class="w-full max-w-6xl min-h-[calc(100vh-220px)]">
+            <div class="min-h-[calc(100vh-220px)] w-full max-w-6xl">
                 <!-- Dynamic Component Based on Selection -->
                 <component
                     :is="currentComponent"
                     :agent="agent"
                     :file-type="selectedContentType"
-                    v-if="selectedContentType === 'pdf' || selectedContentType === 'word' || selectedContentType === 'markdown' || selectedContentType === 'audio' || selectedContentType === 'video' || selectedContentType === 'web' || selectedContentType === 'text' || selectedContentType === 'youtube' || selectedContentType === 'qa'"
+                    v-if="
+                        selectedContentType === 'pdf' ||
+                        selectedContentType === 'word' ||
+                        selectedContentType === 'markdown' ||
+                        selectedContentType === 'audio' ||
+                        selectedContentType === 'video' ||
+                        selectedContentType === 'web' ||
+                        selectedContentType === 'text' ||
+                        selectedContentType === 'youtube' ||
+                        selectedContentType === 'qa'
+                    "
                 />
 
                 <!-- Placeholder for other content types -->
-                <Card
-                    v-else
-                    class="h-full min-h-[400px]"
-                >
-                    <CardContent class="flex items-center justify-center h-full p-8">
+                <Card v-else class="h-full min-h-[400px]">
+                    <CardContent class="flex h-full items-center justify-center p-8">
                         <div class="text-center">
                             <i
-                                :class="`pi ${contentTypes.find(t => t.id === selectedContentType)?.icon} text-6xl mx-auto mb-4 text-muted-foreground`"
+                                :class="`pi ${contentTypes.find((t) => t.id === selectedContentType)?.icon} text-muted-foreground mx-auto mb-4 text-6xl`"
                             />
-                            <h3 class="text-lg font-medium mb-2">
-                                {{ contentTypes.find(t => t.id === selectedContentType)?.label }} Coming Soon
-                            </h3>
+                            <h3 class="mb-2 text-lg font-medium">{{ contentTypes.find((t) => t.id === selectedContentType)?.label }} Coming Soon</h3>
                             <p class="text-muted-foreground max-w-md">
-                                {{ contentTypes.find(t => t.id === selectedContentType)?.description }}
+                                {{ contentTypes.find((t) => t.id === selectedContentType)?.description }}
                                 This feature is currently under development.
                             </p>
                         </div>

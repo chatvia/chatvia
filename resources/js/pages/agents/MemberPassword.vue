@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle, User, Lock, Eye, EyeOff, Mail } from 'lucide-vue-next';
-import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
-import { ref, computed } from 'vue';
+import { Eye, EyeOff, LoaderCircle, Lock, Mail, User } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 const props = defineProps<{
     status?: string;
@@ -50,9 +50,9 @@ const toggleConfirmPasswordVisibility = () => {
         </div>
 
         <!-- Clean, spacious container -->
-        <div class="w-full max-w-lg mx-auto space-y-8">
+        <div class="mx-auto w-full max-w-lg space-y-8">
             <!-- Status ChatMessage -->
-            <div v-if="status" class="p-4 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg">
+            <div v-if="status" class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/50">
                 <p class="text-center text-sm font-medium text-green-600 dark:text-green-400">
                     {{ status }}
                 </p>
@@ -60,11 +60,10 @@ const toggleConfirmPasswordVisibility = () => {
 
             <!-- Password Form -->
             <form @submit.prevent="submit" class="space-y-6">
-
                 <div class="space-y-2">
                     <Label for="email" class="text-base font-medium">Email Address</Label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <Mail class="h-5 w-5" />
                         </div>
                         <Input
@@ -73,7 +72,7 @@ const toggleConfirmPasswordVisibility = () => {
                             v-model="props.member.email"
                             readonly
                             :tabindex="1"
-                            class="h-12 text-base pl-10 bg-muted/50 cursor-not-allowed disabled:opacity-10"
+                            class="bg-muted/50 h-12 cursor-not-allowed pl-10 text-base disabled:opacity-10"
                         />
                     </div>
                 </div>
@@ -82,7 +81,7 @@ const toggleConfirmPasswordVisibility = () => {
                 <div class="space-y-2">
                     <Label for="name" class="text-base font-medium">Name</Label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <User class="h-5 w-5" />
                         </div>
                         <Input
@@ -94,7 +93,7 @@ const toggleConfirmPasswordVisibility = () => {
                             autocomplete="name"
                             v-model="form.name"
                             :placeholder="props.member.name"
-                            class="h-12 text-base pl-10"
+                            class="h-12 pl-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.name" />
@@ -104,7 +103,7 @@ const toggleConfirmPasswordVisibility = () => {
                 <div class="space-y-2">
                     <Label for="password" class="text-base font-medium">Password</Label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <Lock class="h-5 w-5" />
                         </div>
                         <Input
@@ -115,12 +114,12 @@ const toggleConfirmPasswordVisibility = () => {
                             autocomplete="new-password"
                             v-model="form.password"
                             placeholder="Create a secure password"
-                            class="h-12 text-base pl-10 pr-10"
+                            class="h-12 pr-10 pl-10 text-base"
                         />
                         <button
                             type="button"
                             @click="togglePasswordVisibility"
-                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                            class="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3"
                             tabindex="-1"
                         >
                             <Eye v-if="!showPassword" class="h-5 w-5" />
@@ -134,7 +133,7 @@ const toggleConfirmPasswordVisibility = () => {
                 <div class="space-y-2">
                     <Label for="password_confirmation" class="text-base font-medium">Confirm Password</Label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <Lock class="h-5 w-5" />
                         </div>
                         <Input
@@ -145,12 +144,12 @@ const toggleConfirmPasswordVisibility = () => {
                             autocomplete="new-password"
                             v-model="form.password_confirmation"
                             placeholder="Confirm your password"
-                            class="h-12 text-base pl-10 pr-10"
+                            class="h-12 pr-10 pl-10 text-base"
                         />
                         <button
                             type="button"
                             @click="toggleConfirmPasswordVisibility"
-                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                            class="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3"
                             tabindex="-1"
                         >
                             <Eye v-if="!showConfirmPassword" class="h-5 w-5" />
@@ -161,29 +160,18 @@ const toggleConfirmPasswordVisibility = () => {
                 </div>
 
                 <!-- Submit Button -->
-                <Button
-                    type="submit"
-                    class="w-full h-12 text-base font-semibold"
-                    :tabindex="7"
-                    :disabled="form.processing"
-                >
-                    <LoaderCircle v-if="form.processing" class="h-5 w-5 animate-spin mr-2" />
+                <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="7" :disabled="form.processing">
+                    <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
                     <span v-if="!form.processing">Accept Invitation</span>
                     <span v-else>Accepting Invitation...</span>
                 </Button>
             </form>
 
             <!-- Back to Login Link -->
-            <div class="text-center pt-4">
-                <p class="text-base text-muted-foreground">
+            <div class="pt-4 text-center">
+                <p class="text-muted-foreground text-base">
                     Already have an account?
-                    <TextLink
-                        :href="route('login')"
-                        :tabindex="7"
-                        class="font-semibold text-primary hover:text-primary/80 ml-1"
-                    >
-                        Sign in
-                    </TextLink>
+                    <TextLink :href="route('login')" :tabindex="7" class="text-primary hover:text-primary/80 ml-1 font-semibold"> Sign in </TextLink>
                 </p>
             </div>
         </div>

@@ -1,4 +1,5 @@
 If the response contains mathematical expressions, use the following format:
+
 - Inline math: $E = mc^2$
 - Display/block math: $$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$
 - Do NOT use: \[...\] or [...] for math

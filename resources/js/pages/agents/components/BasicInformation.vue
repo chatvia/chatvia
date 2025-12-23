@@ -2,8 +2,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const props = defineProps<{
     form: {
@@ -55,29 +55,17 @@ const timezones = [
     <Card>
         <CardHeader>
             <CardTitle>Basic Information</CardTitle>
-            <CardDescription>
-                Provide the essential details about your agent
-            </CardDescription>
+            <CardDescription> Provide the essential details about your agent </CardDescription>
         </CardHeader>
         <CardContent class="space-y-6">
             <div class="grid gap-6 sm:grid-cols-2">
                 <div class="space-y-2">
                     <Label for="name">Agent Name</Label>
-                    <Input
-                        id="name"
-                        v-model="form.name"
-                        placeholder="e.g., Customer Support Assistant"
-                        required
-                    />
+                    <Input id="name" v-model="form.name" placeholder="e.g., Customer Support Assistant" required />
                 </div>
                 <div class="space-y-2">
                     <Label for="subdomain">Subdomain</Label>
-                    <Input
-                        id="subdomain"
-                        v-model="form.subdomain"
-                        placeholder="e.g., support"
-                        required
-                    />
+                    <Input id="subdomain" v-model="form.subdomain" placeholder="e.g., support" required />
                 </div>
             </div>
 
@@ -89,11 +77,7 @@ const timezones = [
                             <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="category in categories"
-                                :key="category.value"
-                                :value="category.value"
-                            >
+                            <SelectItem v-for="category in categories" :key="category.value" :value="category.value">
                                 {{ category.label }}
                             </SelectItem>
                         </SelectContent>
@@ -106,11 +90,7 @@ const timezones = [
                             <SelectValue placeholder="Select a language" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="language in languages"
-                                :key="language.value"
-                                :value="language.value"
-                            >
+                            <SelectItem v-for="language in languages" :key="language.value" :value="language.value">
                                 {{ language.label }}
                             </SelectItem>
                         </SelectContent>
@@ -120,13 +100,7 @@ const timezones = [
 
             <div class="space-y-2">
                 <Label for="description">Description</Label>
-                <Textarea
-                    id="description"
-                    v-model="form.description"
-                    placeholder="Describe what your agent does and its purpose"
-                    rows="3"
-                    required
-                />
+                <Textarea id="description" v-model="form.description" placeholder="Describe what your agent does and its purpose" rows="3" required />
             </div>
 
             <div class="space-y-2">
@@ -136,11 +110,7 @@ const timezones = [
                         <SelectValue placeholder="Select a timezone" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem
-                            v-for="timezone in timezones"
-                            :key="timezone.value"
-                            :value="timezone.value"
-                        >
+                        <SelectItem v-for="timezone in timezones" :key="timezone.value" :value="timezone.value">
                             {{ timezone.label }}
                         </SelectItem>
                     </SelectContent>
@@ -148,4 +118,4 @@ const timezones = [
             </div>
         </CardContent>
     </Card>
-</template> 
+</template>

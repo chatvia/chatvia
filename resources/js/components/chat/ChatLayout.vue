@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import {ref, onMounted, watch} from 'vue';
 import Sidebar from '@/components/chat/ChatSidebar.vue';
 import Header from '@/components/chat/Header.vue';
-import axios from "axios";
-import { router } from '@inertiajs/vue3';
-import { usePage } from '@inertiajs/vue3'
-import { vOnClickOutside } from '@vueuse/components'
-import isMobile from 'is-mobile'
-import { Head } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { vOnClickOutside } from '@vueuse/components';
+import axios from 'axios';
+import isMobile from 'is-mobile';
+import { onMounted, ref, watch } from 'vue';
 
 type AIModel = App.Data.Chat.LlmModelData;
 
@@ -21,33 +19,33 @@ interface ModelSettings {
 
 const props = defineProps({
     appearance: {
-        type: Object
+        type: Object,
     },
     removeSidebar: {
         type: Boolean,
-        default: false
+        default: false,
     },
     hideSidebarOnPageLoad: {
         type: Boolean,
-        default: false
+        default: false,
     },
     enableThemeSwitcher: {
         type: Boolean,
-        default: true
+        default: true,
     },
     defaultTheme: {
         type: String,
         default: 'auto',
-        validator: (value: string) => ['auto', 'light', 'dark'].includes(value)
+        validator: (value: string) => ['auto', 'light', 'dark'].includes(value),
     },
     enableChatExpand: {
         type: Boolean,
-        default: true
+        default: true,
     },
     newChatRoute: {
         type: String,
-        default: 'chat.home'
-    }
+        default: 'chat.home',
+    },
 });
 
 interface ModelsResponse {
@@ -56,7 +54,7 @@ interface ModelsResponse {
     default_settings: ModelSettings;
 }
 
-const isMobileDevice = isMobile()
+const isMobileDevice = isMobile();
 
 const isSidebarOpen = ref(false);
 
@@ -81,8 +79,8 @@ const fetchModels = async () => {
 };
 
 const findModelById = (modelId: string): AIModel | undefined => {
-    return availableModels.value.find(m => m.id === modelId);
-}
+    return availableModels.value.find((m) => m.id === modelId);
+};
 
 // Save sidebar state to localStorage when it changes
 watch(isSidebarOpen, (newValue) => {
@@ -90,7 +88,6 @@ watch(isSidebarOpen, (newValue) => {
         localStorage.setItem('sidebarOpen', String(newValue));
     }
 });
-
 
 function checkScreenSize() {
     const isDesktop = window.innerWidth >= 768;
@@ -124,9 +121,7 @@ onMounted(async () => {
     } else if (availableModels.value.length > 0) {
         selectedModel.value = availableModels.value[0];
         // Redirect to include model in URL
-        router.visit(
-            route(route().current()!, { model: selectedModel.value.id }),
-        );
+        router.visit(route(route().current()!, { model: selectedModel.value.id }));
     }
 
     // Initialize sidebar state from localStorage or hideSidebarOnPageLoad prop
@@ -155,22 +150,22 @@ const deleteConversation = (conversationId: string) => {
         if (availableModels.value.length > 0) {
             router.visit(route(props.newChatRoute, { model: availableModels.value[0].id }));
         }
-    })
-}
+    });
+};
 
 const closeSidebarOnMobile = () => {
     if (isMobileDevice) {
         isSidebarOpen.value = false;
     }
-}
+};
 
 const toggleSidebar = () => {
     isSidebarOpen.value = !isSidebarOpen.value;
-}
+};
 
 const handleToggleIncognito = (value: boolean) => {
     isIncognitoMode.value = value;
-}
+};
 </script>
 
 <template>
@@ -179,17 +174,17 @@ const handleToggleIncognito = (value: boolean) => {
     <div class="flex h-screen">
         <!-- Mobile overlay -->
         <Transition name="fade">
-        <div
-            v-if="!removeSidebar && isMobileDevice && isSidebarOpen"
+            <div
+                v-if="!removeSidebar && isMobileDevice && isSidebarOpen"
                 class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
-            @click="isSidebarOpen = false"
-        ></div>
+                @click="isSidebarOpen = false"
+            ></div>
         </Transition>
 
         <!-- Sidebar -->
         <div
             v-if="!removeSidebar"
-            class="fixed left-0 top-0 z-40 h-screen w-64 transition-transform duration-300 ease-in-out"
+            class="fixed top-0 left-0 z-40 h-screen w-64 transition-transform duration-300 ease-in-out"
             :class="{ '-translate-x-full': !isSidebarOpen }"
             v-on-click-outside="closeSidebarOnMobile"
         >
@@ -200,12 +195,12 @@ const handleToggleIncognito = (value: boolean) => {
                 :defaultModel="selectedModel || undefined"
                 :isLoadingModels="isLoadingModels"
                 :newChatRoute="newChatRoute"
-                class="h-full w-full bg-sidebar"
+                class="bg-sidebar h-full w-full"
             />
         </div>
 
         <div
-            class="flex flex-col flex-1 transition-all duration-300 ease-in-out h-screen overflow-hidden"
+            class="flex h-screen flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out"
             :class="{ 'md:ml-64': !removeSidebar && isSidebarOpen }"
         >
             <Header

@@ -25,6 +25,11 @@ return new class extends Migration
             $table->foreignIdFor(Member::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(Country::class)->nullable()->constrained()->nullOnDelete();
 
+            $table->string('name')->nullable();
+            $table->string('user_id')->nullable()->index();
+            $table->string('email')->nullable();
+            $table->string('phone')->nullable();
+
             $table->ipAddress()->nullable();
 
             $table->string('region')->nullable();
@@ -110,6 +115,8 @@ return new class extends Migration
             $table->unsignedInteger('prompt_tokens')->nullable();
             $table->unsignedInteger('completion_tokens')->nullable();
             $table->decimal('cost', 10, 6)->nullable()->index();
+
+            $table->boolean('is_usage_counted')->nullable()->index();
 
             $table->timestamps();
             $table->softDeletes();

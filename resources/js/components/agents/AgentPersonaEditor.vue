@@ -1,19 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
-import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Loader2, Save, RotateCcw } from 'lucide-vue-next';
+import axios from 'axios';
+import { Loader2, RotateCcw, Save } from 'lucide-vue-next';
+import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -163,9 +155,7 @@ const onInstructionsInput = () => {
     <div class="space-y-4">
         <div>
             <Label class="text-sm font-medium">Instructions (System prompt)</Label>
-            <p class="text-xs text-muted-foreground mt-1">
-                Define how your AI agent should behave and respond to users
-            </p>
+            <p class="text-muted-foreground mt-1 text-xs">Define how your AI agent should behave and respond to users</p>
         </div>
 
         <!-- Preset Selector -->
@@ -176,29 +166,22 @@ const onInstructionsInput = () => {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup>
-                        <SelectLabel class="text-xs font-normal text-muted-foreground">Base Instructions</SelectLabel>
+                        <SelectLabel class="text-muted-foreground text-xs font-normal">Base Instructions</SelectLabel>
                         <SelectItem value="base">Base Instructions</SelectItem>
                     </SelectGroup>
                     <SelectGroup>
-                        <SelectLabel class="text-xs font-normal text-muted-foreground">Examples</SelectLabel>
+                        <SelectLabel class="text-muted-foreground text-xs font-normal">Examples</SelectLabel>
                         <SelectItem value="general">General AI agent</SelectItem>
                         <SelectItem value="support">Customer support agent</SelectItem>
                         <SelectItem value="sales">Sales agent</SelectItem>
                     </SelectGroup>
                     <SelectGroup>
-                        <SelectLabel class="text-xs font-normal text-muted-foreground">Custom prompt</SelectLabel>
+                        <SelectLabel class="text-muted-foreground text-xs font-normal">Custom prompt</SelectLabel>
                         <SelectItem value="custom">Custom prompt</SelectItem>
                     </SelectGroup>
                 </SelectContent>
             </Select>
-            <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                @click="resetInstructions"
-                :disabled="!hasChanges"
-                title="Reset to saved"
-            >
+            <Button type="button" variant="outline" size="icon" @click="resetInstructions" :disabled="!hasChanges" title="Reset to saved">
                 <RotateCcw class="h-4 w-4" />
             </Button>
         </div>
@@ -214,16 +197,11 @@ const onInstructionsInput = () => {
 
         <!-- Save Button -->
         <div class="border-t pt-3">
-            <Button
-                @click="saveInstructions"
-                :disabled="!hasChanges || isSaving"
-                size="sm"
-            >
-                <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-                <Save v-else class="h-4 w-4 mr-2" />
+            <Button @click="saveInstructions" :disabled="!hasChanges || isSaving" size="sm">
+                <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
+                <Save v-else class="mr-2 h-4 w-4" />
                 Save
             </Button>
         </div>
     </div>
 </template>
-

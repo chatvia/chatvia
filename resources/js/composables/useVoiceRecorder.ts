@@ -1,12 +1,12 @@
-import { ref, computed } from 'vue';
 import axios from 'axios';
+import { computed, ref } from 'vue';
 
 export function useVoiceRecorder() {
     const isRecording = ref(false);
     const isTranscribing = ref(false);
     const error = ref<string | null>(null);
     const transcript = ref('');
-    
+
     let mediaRecorder: MediaRecorder | null = null;
     let audioChunks: Blob[] = [];
     let stream: MediaStream | null = null;
@@ -20,18 +20,16 @@ export function useVoiceRecorder() {
         audioChunks = [];
 
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ 
+            stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
                     sampleRate: 16000,
-                }
+                },
             });
 
             mediaRecorder = new MediaRecorder(stream, {
-                mimeType: MediaRecorder.isTypeSupported('audio/webm') 
-                    ? 'audio/webm' 
-                    : 'audio/mp4'
+                mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4',
             });
 
             mediaRecorder.ondataavailable = (event) => {
@@ -57,10 +55,10 @@ export function useVoiceRecorder() {
 
             mediaRecorder.onstop = async () => {
                 isRecording.value = false;
-                
+
                 // Stop all tracks
                 if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
+                    stream.getTracks().forEach((track) => track.stop());
                     stream = null;
                 }
 
@@ -69,8 +67,8 @@ export function useVoiceRecorder() {
                     return;
                 }
 
-                const audioBlob = new Blob(audioChunks, { 
-                    type: mediaRecorder?.mimeType || 'audio/webm' 
+                const audioBlob = new Blob(audioChunks, {
+                    type: mediaRecorder?.mimeType || 'audio/webm',
                 });
 
                 // Transcribe the audio
@@ -95,19 +93,19 @@ export function useVoiceRecorder() {
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
         }
-        
+
         if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+            stream.getTracks().forEach((track) => track.stop());
             stream = null;
         }
-        
+
         isRecording.value = false;
         audioChunks = [];
     };
 
     const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
         const formData = new FormData();
-        
+
         // Determine file extension based on mime type
         const extension = audioBlob.type.includes('webm') ? 'webm' : 'mp4';
         formData.append('audio', audioBlob, `recording.${extension}`);
@@ -132,4 +130,3 @@ export function useVoiceRecorder() {
         cancelRecording,
     };
 }
-

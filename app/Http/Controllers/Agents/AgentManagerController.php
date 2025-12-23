@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agents;
 
 use App\Models\Agent;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AgentManagerController
@@ -43,11 +44,12 @@ class AgentManagerController
 
     public function __invoke(Request $request, Agent $agent)
     {
+        /** @var User $user */
         $user = $request->user();
         $team = current_team();
 
         // If user is the agent owner or team owner, go to default page
-        if ($user->id === $agent->user_id || ($team && $user->ownsTeam($team))) {
+        if ($user->isCompany() || ($team && $user->ownsTeam($team))) {
             return $this->redirectToDefaultPage($agent);
         }
 
@@ -55,6 +57,14 @@ class AgentManagerController
         if ($team) {
             foreach ($this->permissionRoutes as $permission => $routeName) {
                 if ($user->hasTeamPermission($team, $permission)) {
+                    if ($permission === 'agent.setup') {
+                        if ($agent->isWidget()) {
+                            $routeName = 'agents.widget';
+                        } else {
+                            $routeName = 'agents.playground';
+                        }
+                    }
+
                     return redirect()->route($routeName, ['agent' => $agent]);
                 }
             }
@@ -66,7 +76,7 @@ class AgentManagerController
 
     private function redirectToDefaultPage(Agent $agent)
     {
-        if ($agent->type === 'widget') {
+        if ($agent->isWidget()) {
             return redirect()->route('agents.widget', ['agent' => $agent]);
         }
 

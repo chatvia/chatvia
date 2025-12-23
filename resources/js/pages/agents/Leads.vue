@@ -1,43 +1,18 @@
 <script lang="ts" setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import { router, Link, useForm } from '@inertiajs/vue3';
-import axios from 'axios';
-import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import InputError from '@/components/InputError.vue';
 import FormErrors from '@/components/FormErrors.vue';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
-} from '@/components/ui/dialog';
-import {
-    Users,
-    Search,
-    Trash2,
-    Download,
-    LoaderCircle,
-    AlertTriangle,
-    ExternalLink,
-    Eye,
-    Settings
-} from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
 import LeadDetailsSheet from '@/components/LeadDetailsSheet.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AgentLayout from '@/layouts/AgentLayout.vue';
+import { Link, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
+import { AlertTriangle, Download, ExternalLink, Eye, LoaderCircle, Search, Settings, Trash2, Users } from 'lucide-vue-next';
+import { computed, onMounted, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Props {
     agent: App.Data.Resources.Agent.AgentResourceData;
@@ -73,11 +48,11 @@ onMounted(() => {
 const getLeadFieldsFromSettings = (): Record<LeadFieldKey, LeadFieldConfig> => {
     const leadsSettings = props.settings?.fields; // This is settings('leads')
     const settingsFields = leadsSettings?.fields; // The fields within the leads settings
-    
+
     // If we have settings fields, use them
     if (settingsFields && typeof settingsFields === 'object') {
         const result: Record<LeadFieldKey, LeadFieldConfig> = {} as any;
-        
+
         leadFieldOrder.forEach((key) => {
             const settingValue = settingsFields[key];
             if (settingValue && typeof settingValue === 'object') {
@@ -91,10 +66,10 @@ const getLeadFieldsFromSettings = (): Record<LeadFieldKey, LeadFieldConfig> => {
                 result[key] = createDefaultLeadField(key);
             }
         });
-        
+
         return result;
     }
-    
+
     // Fallback to static defaults
     const result: Record<LeadFieldKey, LeadFieldConfig> = {} as any;
     leadFieldOrder.forEach((key) => {
@@ -142,69 +117,66 @@ const createDefaultLeadField = (key: LeadFieldKey): LeadFieldConfig => {
 const settingsForm = useForm({
     collect_leads: false as boolean,
     title: getFormTitleFromSettings(),
-    fields: getLeadFieldsFromSettings()
+    fields: getLeadFieldsFromSettings(),
 });
 
 // Watch for changes to collect_leads to automatically enable name and email
-watch(() => settingsForm.collect_leads, (newValue) => {
-    if (newValue) {
-        // When lead collection is enabled, name and email must be enabled and required
-        settingsForm.fields.name.required = true;
-        settingsForm.fields.name.enabled = true;
-        settingsForm.fields.email.required = true;
-        settingsForm.fields.email.enabled = true;
-    }
-});
+watch(
+    () => settingsForm.collect_leads,
+    (newValue) => {
+        if (newValue) {
+            // When lead collection is enabled, name and email must be enabled and required
+            settingsForm.fields.name.required = true;
+            settingsForm.fields.name.enabled = true;
+            settingsForm.fields.email.required = true;
+            settingsForm.fields.email.enabled = true;
+        }
+    },
+);
 
 // Computed properties
 const filteredLeads = computed(() => {
     if (!searchQuery.value.trim()) return leads.value;
 
     const query = searchQuery.value.toLowerCase();
-    return leads.value.filter(lead =>
-        (lead.name?.toLowerCase().includes(query)) ||
-        (lead.email?.toLowerCase().includes(query))
-    );
+    return leads.value.filter((lead) => lead.name?.toLowerCase().includes(query) || lead.email?.toLowerCase().includes(query));
 });
 
 const isAllSelected = computed(() => {
-    return filteredLeads.value.length > 0 &&
-           filteredLeads.value.every(lead => selectedLeads.value.includes(lead.id));
+    return filteredLeads.value.length > 0 && filteredLeads.value.every((lead) => selectedLeads.value.includes(lead.id));
 });
 
 const isIndeterminate = computed(() => {
-    const selectedCount = filteredLeads.value.filter(lead => selectedLeads.value.includes(lead.id)).length;
+    const selectedCount = filteredLeads.value.filter((lead) => selectedLeads.value.includes(lead.id)).length;
     return selectedCount > 0 && selectedCount < filteredLeads.value.length;
 });
 
 const hasSelectedLeads = computed(() => selectedLeads.value.length > 0);
 
 // Methods
-const toggleSelectAll = (checked: boolean | "indeterminate") => {
+const toggleSelectAll = (checked: boolean | 'indeterminate') => {
     const isChecked = checked === true;
-    
+
     if (isChecked) {
         // Select all visible leads
-        const visibleIds = filteredLeads.value.map(lead => lead.id);
+        const visibleIds = filteredLeads.value.map((lead) => lead.id);
         const newSelection = [...new Set([...selectedLeads.value, ...visibleIds])];
         selectedLeads.value = newSelection;
     } else {
         // Deselect all visible leads
-        selectedLeads.value = selectedLeads.value.filter(id =>
-            !filteredLeads.value.some(lead => lead.id === id)
-        );
+        selectedLeads.value = selectedLeads.value.filter((id) => !filteredLeads.value.some((lead) => lead.id === id));
     }
 };
 
-const toggleSelectLead = (leadId: number, checked: boolean | "indeterminate") => {
+const toggleSelectLead = (leadId: number, checked: boolean | 'indeterminate') => {
     const isChecked = checked === true;
-    
+
     if (isChecked) {
         if (!selectedLeads.value.includes(leadId)) {
             selectedLeads.value.push(leadId);
         }
     } else {
-        selectedLeads.value = selectedLeads.value.filter(id => id !== leadId);
+        selectedLeads.value = selectedLeads.value.filter((id) => id !== leadId);
     }
 };
 
@@ -234,10 +206,10 @@ const saveSettings = () => {
 const openSettings = () => {
     // Clear any previous errors when opening the dialog
     settingsForm.clearErrors();
-    
+
     // Initialize from props.agent
     settingsForm.collect_leads = Boolean(props.agent?.collect_leads);
-    
+
     // Get current settings from the dynamic functions
     settingsForm.title = getFormTitleFromSettings();
     settingsForm.fields = getLeadFieldsFromSettings();
@@ -259,7 +231,7 @@ const formatDate = (dateString: string) => {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
     });
 };
 
@@ -276,14 +248,14 @@ const deleteSelectedLeads = async () => {
     try {
         await axios.delete(route('agents.leads.delete', { agent: props.agent.external_id }), {
             data: {
-                lead_ids: selectedLeads.value
-            }
+                lead_ids: selectedLeads.value,
+            },
         });
-        
+
         showDeleteDialog.value = false;
         clearSelection();
         toast.success('Leads deleted successfully');
-        
+
         // Refresh leads data
         await fetchLeads();
     } catch (error) {
@@ -300,11 +272,15 @@ const exportSelectedLeads = async () => {
     isExporting.value = true;
 
     try {
-        const res = await axios.post(route('agents.leads.export', { agent: props.agent.external_id }), {
-            lead_ids: selectedLeads.value
-        }, { 
-            responseType: 'blob' 
-        });
+        const res = await axios.post(
+            route('agents.leads.export', { agent: props.agent.external_id }),
+            {
+                lead_ids: selectedLeads.value,
+            },
+            {
+                responseType: 'blob',
+            },
+        );
 
         const blob = new Blob([res.data], { type: res.headers['content-type'] ?? 'application/octet-stream' });
         const url = URL.createObjectURL(blob);
@@ -339,33 +315,22 @@ const cancelDelete = () => {
                         <Users class="h-5 w-5" />
                         Leads
                     </CardTitle>
-                    <CardDescription>
-                        Manage leads captured by your agent
-                    </CardDescription>
+                    <CardDescription> Manage leads captured by your agent </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div class="space-y-4">
                         <!-- Search and Actions Bar -->
-                        <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                        <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                             <!-- Search Input -->
                             <div class="relative w-full sm:w-64">
-                                <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    v-model="searchQuery"
-                                    placeholder="Search leads..."
-                                    class="pl-10"
-                                />
+                                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                                <Input v-model="searchQuery" placeholder="Search leads..." class="pl-10" />
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="flex gap-2 w-full sm:w-auto">
-                                <Button
-                                    @click="openSettings"
-                                    variant="outline"
-                                    size="sm"
-                                    class="flex-1 sm:flex-none"
-                                >
-                                    <Settings class="h-4 w-4 mr-2" />
+                            <div class="flex w-full gap-2 sm:w-auto">
+                                <Button @click="openSettings" variant="outline" size="sm" class="flex-1 sm:flex-none">
+                                    <Settings class="mr-2 h-4 w-4" />
                                     Settings
                                 </Button>
                                 <Button
@@ -375,8 +340,8 @@ const cancelDelete = () => {
                                     :disabled="!hasSelectedLeads || isExporting"
                                     class="flex-1 sm:flex-none"
                                 >
-                                    <LoaderCircle v-if="isExporting" class="h-4 w-4 mr-2 animate-spin" />
-                                    <Download v-else class="h-4 w-4 mr-2" />
+                                    <LoaderCircle v-if="isExporting" class="mr-2 h-4 w-4 animate-spin" />
+                                    <Download v-else class="mr-2 h-4 w-4" />
                                     {{ isExporting ? 'Exporting...' : 'Export CSV' }}
                                 </Button>
                                 <Button
@@ -386,19 +351,17 @@ const cancelDelete = () => {
                                     :disabled="!hasSelectedLeads"
                                     class="text-destructive hover:text-destructive flex-1 sm:flex-none"
                                 >
-                                    <Trash2 class="h-4 w-4 mr-2" />
+                                    <Trash2 class="mr-2 h-4 w-4" />
                                     Delete
                                 </Button>
                             </div>
                         </div>
 
                         <!-- Results Counter -->
-                        <div v-if="leads.length > 0" class="flex justify-between items-center text-sm text-muted-foreground">
+                        <div v-if="leads.length > 0" class="text-muted-foreground flex items-center justify-between text-sm">
                             <span>
                                 Showing {{ filteredLeads.length }} of {{ leads.length }} leads
-                                <span v-if="searchQuery.trim()">
-                                    (filtered)
-                                </span>
+                                <span v-if="searchQuery.trim()"> (filtered) </span>
                             </span>
                         </div>
 
@@ -406,84 +369,79 @@ const cancelDelete = () => {
                         <div class="rounded-md border">
                             <Table>
                                 <TableHeader>
-                    <TableRow>
-                        <TableHead class="w-12">
-                            <Checkbox
-                                id="select-all"
-                                :model-value="isAllSelected"
-                                :indeterminate="isIndeterminate"
-                                @update:model-value="toggleSelectAll"
-                            />
-                        </TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Conversation</TableHead>
-                        <TableHead>Created At</TableHead>
-                        <TableHead class="w-20">Actions</TableHead>
-                    </TableRow>
+                                    <TableRow>
+                                        <TableHead class="w-12">
+                                            <Checkbox
+                                                id="select-all"
+                                                :model-value="isAllSelected"
+                                                :indeterminate="isIndeterminate"
+                                                @update:model-value="toggleSelectAll"
+                                            />
+                                        </TableHead>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Conversation</TableHead>
+                                        <TableHead>Created At</TableHead>
+                                        <TableHead class="w-20">Actions</TableHead>
+                                    </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                    <TableRow v-if="isLoadingLeads">
-                        <TableCell colspan="6" class="text-center py-8">
-                            <LoaderCircle class="h-8 w-8 mx-auto animate-spin text-muted-foreground" />
-                        </TableCell>
-                    </TableRow>
-                    <TableRow v-else-if="filteredLeads.length === 0">
-                        <TableCell colspan="6" class="text-center py-8 text-muted-foreground">
-                            <div v-if="leads.length === 0">
-                                <Users class="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                                <p>No leads captured yet.</p>
-                                <p class="text-sm">Leads will appear here when visitors interact with your agent.</p>
-                            </div>
-                            <div v-else>
-                                <p>No leads found matching your search.</p>
-                                <p class="text-sm">Try adjusting your search terms.</p>
-                            </div>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow
-                        v-for="lead in filteredLeads"
-                        :key="lead.id"
-                        :class="{ 'bg-muted/50': selectedLeads.includes(lead.id) }"
-                    >
-                        <TableCell>
-                            <Checkbox
-                                :id="`lead-${lead.id}`"
-                                :model-value="selectedLeads.includes(lead.id)"
-                                @update:model-value="checked => toggleSelectLead(lead.id, checked)"
-                            />
-                        </TableCell>
-                        <TableCell class="font-medium">
-                            {{ lead.name || 'Anonymous' }}
-                        </TableCell>
-                        <TableCell>
-                            {{ lead.email || 'No email provided' }}
-                        </TableCell>
-                        <TableCell>
-                            <Link
-                                v-if="lead.conversation_id"
-                                :href="route('agents.logs', { agent: agent.external_id, conversation_id: lead.conversation_id })"
-                                class="inline-flex items-center gap-1 text-primary hover:underline text-sm"
-                            >
-                                View Chat
-                                <ExternalLink class="h-3 w-3" />
-                            </Link>
-                            <span v-else class="text-muted-foreground text-sm">No conversation</span>
-                        </TableCell>
-                        <TableCell>
-                            {{ formatDate(lead.created_at) }}
-                        </TableCell>
-                        <TableCell>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                @click="viewLead(lead)"
-                                class="h-8 w-8 p-0"
-                            >
-                                <Eye class="h-4 w-4" />
-                            </Button>
-                        </TableCell>
-                    </TableRow>
+                                    <TableRow v-if="isLoadingLeads">
+                                        <TableCell colspan="6" class="py-8 text-center">
+                                            <LoaderCircle class="text-muted-foreground mx-auto h-8 w-8 animate-spin" />
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow v-else-if="filteredLeads.length === 0">
+                                        <TableCell colspan="6" class="text-muted-foreground py-8 text-center">
+                                            <div v-if="leads.length === 0">
+                                                <Users class="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
+                                                <p>No leads captured yet.</p>
+                                                <p class="text-sm">Leads will appear here when visitors interact with your agent.</p>
+                                            </div>
+                                            <div v-else>
+                                                <p>No leads found matching your search.</p>
+                                                <p class="text-sm">Try adjusting your search terms.</p>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow
+                                        v-for="lead in filteredLeads"
+                                        :key="lead.id"
+                                        :class="{ 'bg-muted/50': selectedLeads.includes(lead.id) }"
+                                    >
+                                        <TableCell>
+                                            <Checkbox
+                                                :id="`lead-${lead.id}`"
+                                                :model-value="selectedLeads.includes(lead.id)"
+                                                @update:model-value="(checked) => toggleSelectLead(lead.id, checked)"
+                                            />
+                                        </TableCell>
+                                        <TableCell class="font-medium">
+                                            {{ lead.name || 'Anonymous' }}
+                                        </TableCell>
+                                        <TableCell>
+                                            {{ lead.email || 'No email provided' }}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Link
+                                                v-if="lead.conversation_id"
+                                                :href="route('agents.logs', { agent: agent.external_id, conversation_id: lead.conversation_id })"
+                                                class="text-primary inline-flex items-center gap-1 text-sm hover:underline"
+                                            >
+                                                View Chat
+                                                <ExternalLink class="h-3 w-3" />
+                                            </Link>
+                                            <span v-else class="text-muted-foreground text-sm">No conversation</span>
+                                        </TableCell>
+                                        <TableCell>
+                                            {{ formatDate(lead.created_at) }}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button variant="ghost" size="sm" @click="viewLead(lead)" class="h-8 w-8 p-0">
+                                                <Eye class="h-4 w-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
                                 </TableBody>
                             </Table>
                         </div>
@@ -497,25 +455,19 @@ const cancelDelete = () => {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
-                        <AlertTriangle class="h-5 w-5 text-destructive" />
+                        <AlertTriangle class="text-destructive h-5 w-5" />
                         Delete Selected Leads
                     </DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete {{ selectedLeads.length }} selected lead{{ selectedLeads.length === 1 ? '' : 's' }}?
-                        This action cannot be undone.
+                        Are you sure you want to delete {{ selectedLeads.length }} selected lead{{ selectedLeads.length === 1 ? '' : 's' }}? This
+                        action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" @click="cancelDelete" :disabled="isDeleting">
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="destructive"
-                        @click="deleteSelectedLeads"
-                        :disabled="isDeleting"
-                    >
-                        <LoaderCircle v-if="isDeleting" class="h-4 w-4 mr-2 animate-spin" />
-                        <Trash2 v-else class="h-4 w-4 mr-2" />
+                    <Button variant="outline" @click="cancelDelete" :disabled="isDeleting"> Cancel </Button>
+                    <Button variant="destructive" @click="deleteSelectedLeads" :disabled="isDeleting">
+                        <LoaderCircle v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
+                        <Trash2 v-else class="mr-2 h-4 w-4" />
                         {{ isDeleting ? 'Deleting...' : 'Delete Leads' }}
                     </Button>
                 </DialogFooter>
@@ -523,19 +475,14 @@ const cancelDelete = () => {
         </Dialog>
 
         <!-- Lead Details Sheet -->
-        <LeadDetailsSheet
-            v-model:open="showLeadDetails"
-            :lead="selectedLeadForView"
-        />
+        <LeadDetailsSheet v-model:open="showLeadDetails" :lead="selectedLeadForView" />
 
         <!-- Lead Settings Dialog -->
         <Dialog v-model:open="showSettingsDialog">
             <DialogContent class="sm:max-w-xl">
                 <DialogHeader>
                     <DialogTitle>Lead Settings</DialogTitle>
-                    <DialogDescription>
-                        Enable lead collection and customize field titles and required flags.
-                    </DialogDescription>
+                    <DialogDescription> Enable lead collection and customize field titles and required flags. </DialogDescription>
                 </DialogHeader>
 
                 <!-- Display form errors at the top -->
@@ -543,61 +490,61 @@ const cancelDelete = () => {
 
                 <div class="space-y-6">
                     <div class="flex items-center gap-3">
-                        <Checkbox 
-                            id="collect-leads"
-                            v-model="settingsForm.collect_leads" 
-                        />
-                        <label for="collect-leads" class="text-sm cursor-pointer">Enable lead collection</label>
+                        <Checkbox id="collect-leads" v-model="settingsForm.collect_leads" />
+                        <label for="collect-leads" class="cursor-pointer text-sm">Enable lead collection</label>
                     </div>
 
                     <div class="space-y-2">
                         <label class="text-sm font-medium">Form Title</label>
-                        <Input 
-                            v-model="settingsForm.title" 
-                            placeholder="e.g. Contact details" 
-                            :disabled="!settingsForm.collect_leads"
-                        />
+                        <Input v-model="settingsForm.title" placeholder="e.g. Contact details" :disabled="!settingsForm.collect_leads" />
                     </div>
 
                     <div class="space-y-4">
                         <div class="text-sm font-medium">Fields</div>
-                        <div class="border rounded-lg overflow-hidden" :class="{ 'opacity-50 pointer-events-none': !settingsForm.collect_leads }">
+                        <div class="overflow-hidden rounded-lg border" :class="{ 'pointer-events-none opacity-50': !settingsForm.collect_leads }">
                             <!-- Table Header -->
-                            <div class="bg-muted/50 px-4 py-3 border-b">
+                            <div class="bg-muted/50 border-b px-4 py-3">
                                 <div class="grid grid-cols-3 gap-4 text-sm font-medium">
                                     <div>Field</div>
                                     <div class="text-center">Enabled</div>
                                     <div class="text-center">Required</div>
                                 </div>
                             </div>
-                            
+
                             <!-- Table Rows -->
                             <div class="divide-y">
-                                <div v-for="key in leadFieldOrder" :key="key" 
-                                     class="px-4 py-4 grid grid-cols-3 gap-4 items-center hover:bg-muted/30 transition-colors"
-                                     :class="{ 'bg-blue-50/50 dark:bg-blue-950/20': settingsForm.collect_leads && (key === 'name' || key === 'email') }">
+                                <div
+                                    v-for="key in leadFieldOrder"
+                                    :key="key"
+                                    class="hover:bg-muted/30 grid grid-cols-3 items-center gap-4 px-4 py-4 transition-colors"
+                                    :class="{
+                                        'bg-blue-50/50 dark:bg-blue-950/20': settingsForm.collect_leads && (key === 'name' || key === 'email'),
+                                    }"
+                                >
                                     <!-- Field Name -->
                                     <div class="flex flex-col">
-                                        <span class="font-medium text-sm capitalize">
+                                        <span class="text-sm font-medium capitalize">
                                             {{ key.replace('_', ' ') }}
                                         </span>
                                     </div>
-                                    
+
                                     <!-- Enabled Checkbox -->
                                     <div class="flex justify-center">
-                                        <Checkbox 
+                                        <Checkbox
                                             :id="`field-${key}-enabled`"
-                                            v-model="settingsForm.fields[key].enabled" 
-                                            :disabled="!settingsForm.collect_leads || (key === 'name' || key === 'email')" 
+                                            v-model="settingsForm.fields[key].enabled"
+                                            :disabled="!settingsForm.collect_leads || key === 'name' || key === 'email'"
                                         />
                                     </div>
-                                    
+
                                     <!-- Required Checkbox -->
                                     <div class="flex justify-center">
-                                        <Checkbox 
+                                        <Checkbox
                                             :id="`field-${key}-required`"
-                                            v-model="settingsForm.fields[key].required" 
-                                            :disabled="!settingsForm.collect_leads || !settingsForm.fields[key].enabled || (key === 'name' || key === 'email')" 
+                                            v-model="settingsForm.fields[key].required"
+                                            :disabled="
+                                                !settingsForm.collect_leads || !settingsForm.fields[key].enabled || key === 'name' || key === 'email'
+                                            "
                                         />
                                     </div>
                                 </div>
@@ -607,15 +554,9 @@ const cancelDelete = () => {
                 </div>
 
                 <DialogFooter>
-                    <Button 
-                        variant="outline" 
-                        @click="showSettingsDialog = false" 
-                        :disabled="settingsForm.processing"
-                    >
-                        Cancel
-                    </Button>
+                    <Button variant="outline" @click="showSettingsDialog = false" :disabled="settingsForm.processing"> Cancel </Button>
                     <Button :disabled="settingsForm.processing" @click="saveSettings">
-                        <LoaderCircle v-if="settingsForm.processing" class="h-4 w-4 mr-2 animate-spin" />
+                        <LoaderCircle v-if="settingsForm.processing" class="mr-2 h-4 w-4 animate-spin" />
                         Save
                     </Button>
                 </DialogFooter>

@@ -1,5 +1,5 @@
-import { onMounted, ref } from 'vue';
 import axios from 'axios';
+import { onMounted, ref } from 'vue';
 
 type Appearance = 'light' | 'dark' | 'system';
 
@@ -109,15 +109,15 @@ export interface AppearanceData {
  */
 const applyThemeColors = (appearance: AppearanceData) => {
     if (!appearance.color_theme) return;
-    
+
     const theme = appearance.color_theme;
     const shade = appearance.color_shade || 500;
-    
+
     // Check if dark mode is active
     const isDarkMode = document.documentElement.classList.contains('dark');
     // In dark mode, use lighter borders for visibility; in light mode, use subtle borders
     const borderShade = isDarkMode ? '400' : '200';
-    
+
     document.documentElement.style.setProperty('--primary', `var(--${theme}-${shade})`);
     document.documentElement.style.setProperty('--color-border', `var(--${theme}-border)`);
     document.documentElement.style.setProperty('--border', `var(--${theme}-${borderShade})`);
@@ -134,15 +134,15 @@ export function useFetchAppearance() {
 
     const fetchAppearance = async () => {
         if (isLoading.value) return;
-        
+
         isLoading.value = true;
         error.value = null;
-        
+
         try {
             // You can modify this route based on your API endpoint
             const response = await axios.get(route('chat.appearance'));
             appearance.value = response.data;
-            
+
             // Apply theme colors if appearance data is available
             if (appearance.value) {
                 applyThemeColors(appearance.value);

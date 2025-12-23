@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import axios from 'axios';
 import jsVectorMap from 'jsvectormap';
 import 'jsvectormap/dist/maps/world.js';
-import axios from 'axios';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 interface CountryData {
     country_code: string;
@@ -22,7 +22,7 @@ let tooltipElement: HTMLElement | null = null;
 let isMapInitialized = false;
 const allCountries = ref<Record<string, string>>({});
 
-const maxCount = computed(() => Math.max(...props.countryData.map(c => c.count), 1));
+const maxCount = computed(() => Math.max(...props.countryData.map((c) => c.count), 1));
 
 // Fetch all country names
 const fetchCountryMappings = async () => {
@@ -66,13 +66,13 @@ const initMap = () => {
 
     // Prepare data for the map
     const values: Record<string, number> = {};
-    props.countryData.forEach(item => {
+    props.countryData.forEach((item) => {
         values[item.country_code.toUpperCase()] = item.count;
     });
 
     // Create a map for quick country lookup
     const countryMap: Record<string, CountryData> = {};
-    props.countryData.forEach(item => {
+    props.countryData.forEach((item) => {
         countryMap[item.country_code.toUpperCase()] = item;
     });
 
@@ -96,13 +96,15 @@ const initMap = () => {
             },
         },
         series: {
-            regions: [{
-                values: values,
-                scale: ['#dbeafe', '#3b82f6', '#2563eb', '#1e40af', '#1e3a8a'],
-                normalizeFunction: 'polynomial',
-                min: 0,
-                max: maxCount.value,
-            }],
+            regions: [
+                {
+                    values: values,
+                    scale: ['#dbeafe', '#3b82f6', '#2563eb', '#1e40af', '#1e3a8a'],
+                    normalizeFunction: 'polynomial',
+                    min: 0,
+                    max: maxCount.value,
+                },
+            ],
         },
         bindTouchEvents: false,
         onLoaded(map: any) {
@@ -187,23 +189,27 @@ onBeforeUnmount(() => {
     isMapInitialized = false;
 });
 
-watch(() => props.countryData, () => {
-    initMap();
-}, { deep: true });
+watch(
+    () => props.countryData,
+    () => {
+        initMap();
+    },
+    { deep: true },
+);
 </script>
 
 <template>
     <div class="relative overflow-hidden">
         <!-- Map Container -->
-        <div ref="mapContainer" style="height: 450px;" class="w-full bg-card overflow-hidden"></div>
+        <div ref="mapContainer" style="height: 450px" class="bg-card w-full overflow-hidden"></div>
 
         <!-- Color Legend (inside map, positioned left) -->
-        <div class="absolute left-4 bottom-4 bg-white dark:bg-gray-800 rounded-lg border shadow-sm p-3 z-10">
-            <div class="flex flex-col gap-2 text-xs text-muted-foreground">
+        <div class="absolute bottom-4 left-4 z-10 rounded-lg border bg-white p-3 shadow-sm dark:bg-gray-800">
+            <div class="text-muted-foreground flex flex-col gap-2 text-xs">
                 <span class="font-medium">Chat Volume</span>
                 <div class="flex items-center gap-2">
                     <span class="text-[10px]">0</span>
-                    <div class="flex h-2.5 w-32 rounded overflow-hidden border">
+                    <div class="flex h-2.5 w-32 overflow-hidden rounded border">
                         <div class="flex-1 bg-[#dbeafe]"></div>
                         <div class="flex-1 bg-[#93c5fd]"></div>
                         <div class="flex-1 bg-[#3b82f6]"></div>

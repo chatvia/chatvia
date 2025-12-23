@@ -14,4 +14,3 @@ defineProps<Props>();
         <QaComponent :agent="agent" />
     </AgentLayout>
 </template>
-

@@ -1,37 +1,19 @@
 <script lang="ts" setup>
-import { ref, onMounted, watch } from 'vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
-import { loadStripe, type Stripe, type StripeElements, type StripeCardElement } from '@stripe/stripe-js';
-import AppLayout from '@/layouts/AppLayout.vue';
+import ConfirmationDialog from '@/components/chat/ConfirmationDialog.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import CountriesSelect from '@/components/ui/countries-select.vue';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import CountriesSelect from '@/components/ui/countries-select.vue';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger
-} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
-import ConfirmationDialog from '@/components/chat/ConfirmationDialog.vue';
-import {
-    CreditCard,
-    Plus,
-    MoreVertical,
-    Trash2,
-    Star,
-    Check,
-    ArrowLeft,
-    Loader2,
-    CheckCircle,
-    AlertCircle,
-} from 'lucide-vue-next';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { loadStripe, type Stripe, type StripeCardElement, type StripeElements } from '@stripe/stripe-js';
+import { AlertCircle, ArrowLeft, Check, CheckCircle, CreditCard, Loader2, Plus, Star, Trash2 } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface PaymentMethod {
@@ -131,7 +113,7 @@ const billingForm = useForm({
         state: props.user?.billing_address?.state || '',
         postal_code: props.user?.billing_address?.postal_code || '',
         country: props.user?.billing_address?.country || 'US',
-    }
+    },
 });
 
 const removePaymentMethod = (paymentMethodId: string) => {
@@ -169,8 +151,8 @@ const initializeStripe = async () => {
                     fontFamily: 'Inter, system-ui, sans-serif',
                     spacingUnit: '4px',
                     borderRadius: '6px',
-                }
-            }
+                },
+            },
         });
 
         // Create card element
@@ -207,7 +189,6 @@ const initializeStripe = async () => {
                 });
             }
         }
-
     } catch (err) {
         console.error('Error initializing Stripe:', err);
         error.value = 'Failed to initialize payment system';
@@ -235,12 +216,9 @@ const handleAddPaymentMethod = async () => {
         }
 
         // Confirm setup intent
-        const { error: confirmError } = await stripe.value.confirmCardSetup(
-            props.intent.client_secret,
-            {
-                payment_method: paymentMethod!.id,
-            }
-        );
+        const { error: confirmError } = await stripe.value.confirmCardSetup(props.intent.client_secret, {
+            payment_method: paymentMethod!.id,
+        });
 
         if (confirmError) {
             throw new Error(confirmError.message);
@@ -256,7 +234,6 @@ const handleAddPaymentMethod = async () => {
             // Reload the page to show the new payment method
             window.location.reload();
         }, 1500);
-
     } catch (err: any) {
         error.value = err.message || 'An error occurred while adding your payment method';
         toast.error(error.value);
@@ -303,7 +280,7 @@ const updateBillingInformation = () => {
         },
         onError: () => {
             toast.error('Failed to update billing information');
-        }
+        },
     });
 };
 
@@ -332,25 +309,20 @@ const formatExpiry = (month: number, year: number) => {
                 <!-- Header -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold tracking-tight flex items-center gap-3">
-                            <CreditCard class="h-8 w-8 text-primary" />
+                        <h1 class="flex items-center gap-3 text-3xl font-bold tracking-tight">
+                            <CreditCard class="text-primary h-8 w-8" />
                             Payment Methods
                         </h1>
-                        <p class="text-muted-foreground mt-2">
-                            Manage your payment methods and billing information
-                        </p>
+                        <p class="text-muted-foreground mt-2">Manage your payment methods and billing information</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <Button variant="outline" as-child>
                             <Link :href="route('billing.index')">
-                                <ArrowLeft class="h-4 w-4 mr-2" />
+                                <ArrowLeft class="mr-2 h-4 w-4" />
                                 Back to Billing
                             </Link>
                         </Button>
-                        <Button
-                            @click="showAddPaymentDialog = true"
-                            class="gap-2"
-                        >
+                        <Button @click="showAddPaymentDialog = true" class="gap-2">
                             <Plus class="h-4 w-4" />
                             Add Payment Method
                         </Button>
@@ -371,10 +343,10 @@ const formatExpiry = (month: number, year: number) => {
                                 <div
                                     v-for="method in paymentMethods"
                                     :key="method.id"
-                                    class="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                                    class="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-4 transition-colors"
                                 >
                                     <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                                        <div class="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
                                             <CreditCard :class="getBrandIcon(method.card.brand)" class="h-6 w-6" />
                                         </div>
                                         <div>
@@ -383,18 +355,16 @@ const formatExpiry = (month: number, year: number) => {
                                                     {{ method.card.brand }}
                                                 </p>
                                                 <Badge v-if="method.is_default" variant="default" class="text-xs">
-                                                    <Star class="h-3 w-3 mr-1" />
+                                                    <Star class="mr-1 h-3 w-3" />
                                                     Default
                                                 </Badge>
                                             </div>
-                                            <p class="text-sm text-muted-foreground">
+                                            <p class="text-muted-foreground text-sm">
                                                 •••• •••• •••• {{ method.card.last4 }}
                                                 <span v-if="method.card">
                                                     • Expires {{ formatExpiry(method.card.exp_month, method.card.exp_year) }}
                                                 </span>
-                                                <span v-if="method.billing_details.name" class="ml-2">
-                                                    • {{ method.billing_details.name }}
-                                                </span>
+                                                <span v-if="method.billing_details.name" class="ml-2"> • {{ method.billing_details.name }} </span>
                                             </p>
                                         </div>
                                     </div>
@@ -407,7 +377,7 @@ const formatExpiry = (month: number, year: number) => {
                                             variant="outline"
                                             size="sm"
                                         >
-                                            <Check class="h-4 w-4 mr-2" />
+                                            <Check class="mr-2 h-4 w-4" />
                                             Set Default
                                         </Button>
 
@@ -433,16 +403,11 @@ const formatExpiry = (month: number, year: number) => {
                                 </div>
                             </div>
 
-                            <div v-else class="text-center py-12">
-                                <CreditCard class="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                                <h3 class="text-lg font-semibold mb-2">No payment methods</h3>
-                                <p class="text-muted-foreground mb-6">
-                                    Add a payment method to manage your subscriptions and make payments.
-                                </p>
-                                <Button
-                                    @click="showAddPaymentDialog = true"
-                                    class="gap-2"
-                                >
+                            <div v-else class="py-12 text-center">
+                                <CreditCard class="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+                                <h3 class="mb-2 text-lg font-semibold">No payment methods</h3>
+                                <p class="text-muted-foreground mb-6">Add a payment method to manage your subscriptions and make payments.</p>
+                                <Button @click="showAddPaymentDialog = true" class="gap-2">
                                     <Plus class="h-4 w-4" />
                                     Add Your First Payment Method
                                 </Button>
@@ -454,44 +419,39 @@ const formatExpiry = (month: number, year: number) => {
                     <Card>
                         <CardHeader>
                             <CardTitle>Billing Information</CardTitle>
-                            <CardDescription>
-                                Update your billing address and contact information
-                            </CardDescription>
+                            <CardDescription> Update your billing address and contact information </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-4">
                                 <div class="grid gap-4 md:grid-cols-2">
                                     <div>
                                         <label class="text-sm font-medium">Name</label>
-                                        <p class="text-sm text-muted-foreground mt-1">{{ user.name || 'Not set' }}</p>
+                                        <p class="text-muted-foreground mt-1 text-sm">{{ user.name || 'Not set' }}</p>
                                     </div>
                                     <div>
                                         <label class="text-sm font-medium">Email Address</label>
-                                        <p class="text-sm text-muted-foreground mt-1">{{ user.email || 'Not set' }}</p>
+                                        <p class="text-muted-foreground mt-1 text-sm">{{ user.email || 'Not set' }}</p>
                                     </div>
                                     <div>
                                         <label class="text-sm font-medium">Address</label>
-                                        <p class="text-sm text-muted-foreground mt-1">
+                                        <p class="text-muted-foreground mt-1 text-sm">
                                             {{ user.billing_address?.line1 || 'Not set' }}
-                                            <span v-if="user.billing_address?.line2">
-                                                <br>{{ user.billing_address.line2 }}
-                                            </span>
+                                            <span v-if="user.billing_address?.line2"> <br />{{ user.billing_address.line2 }} </span>
                                         </p>
                                     </div>
                                     <div>
                                         <label class="text-sm font-medium">City, State & Country</label>
-                                        <p class="text-sm text-muted-foreground mt-1">
-                                            {{ [user.billing_address?.city, user.billing_address?.state, user.billing_address?.country].filter(Boolean).join(', ') || 'Not set' }}
+                                        <p class="text-muted-foreground mt-1 text-sm">
+                                            {{
+                                                [user.billing_address?.city, user.billing_address?.state, user.billing_address?.country]
+                                                    .filter(Boolean)
+                                                    .join(', ') || 'Not set'
+                                            }}
                                         </p>
                                     </div>
                                 </div>
                                 <Separator />
-                                <Button
-                                    @click="showBillingDialog = true"
-                                    variant="outline"
-                                >
-                                    Update Billing Information
-                                </Button>
+                                <Button @click="showBillingDialog = true" variant="outline"> Update Billing Information </Button>
                             </div>
                         </CardContent>
                     </Card>
@@ -500,14 +460,14 @@ const formatExpiry = (month: number, year: number) => {
                     <Card>
                         <CardContent class="pt-6">
                             <div class="flex items-start gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
+                                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
                                     <CreditCard class="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div>
-                                    <h4 class="font-medium mb-1">Secure Payment Processing</h4>
-                                    <p class="text-sm text-muted-foreground">
-                                        Your payment information is encrypted and securely processed by Stripe.
-                                        We never store your complete card details on our servers.
+                                    <h4 class="mb-1 font-medium">Secure Payment Processing</h4>
+                                    <p class="text-muted-foreground text-sm">
+                                        Your payment information is encrypted and securely processed by Stripe. We never store your complete card
+                                        details on our servers.
                                     </p>
                                 </div>
                             </div>
@@ -525,9 +485,7 @@ const formatExpiry = (month: number, year: number) => {
                         <CreditCard class="h-5 w-5" />
                         Update Billing Information
                     </DialogTitle>
-                    <DialogDescription>
-                        Update your billing address and contact information for invoicing and payment processing.
-                    </DialogDescription>
+                    <DialogDescription> Update your billing address and contact information for invoicing and payment processing. </DialogDescription>
                 </DialogHeader>
 
                 <form @submit.prevent="updateBillingInformation" class="space-y-6">
@@ -536,22 +494,11 @@ const formatExpiry = (month: number, year: number) => {
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <Label for="billing-name" class="mb-2">Name</Label>
-                                <Input
-                                    id="billing-name"
-                                    v-model="billingForm.name"
-                                    placeholder="John Doe"
-                                    required
-                                />
+                                <Input id="billing-name" v-model="billingForm.name" placeholder="John Doe" required />
                             </div>
                             <div>
                                 <Label for="billing-email" class="mb-2">Email Address</Label>
-                                <Input
-                                    id="billing-email"
-                                    type="email"
-                                    v-model="billingForm.email"
-                                    placeholder="john@example.com"
-                                    required
-                                />
+                                <Input id="billing-email" type="email" v-model="billingForm.email" placeholder="john@example.com" required />
                             </div>
                         </div>
                     </div>
@@ -565,54 +512,30 @@ const formatExpiry = (month: number, year: number) => {
                         <div class="space-y-4">
                             <div>
                                 <Label for="billing-line1" class="mb-2">Address Line 1</Label>
-                                <Input
-                                    id="billing-line1"
-                                    v-model="billingForm.address.line1"
-                                    placeholder="123 Main Street"
-                                    required
-                                />
+                                <Input id="billing-line1" v-model="billingForm.address.line1" placeholder="123 Main Street" required />
                             </div>
 
                             <div>
                                 <Label for="billing-line2" class="mb-2">Address Line 2 (Optional)</Label>
-                                <Input
-                                    id="billing-line2"
-                                    v-model="billingForm.address.line2"
-                                    placeholder="Apt, suite, etc."
-                                />
+                                <Input id="billing-line2" v-model="billingForm.address.line2" placeholder="Apt, suite, etc." />
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <Label for="billing-city" class="mb-2">City</Label>
-                                    <Input
-                                        id="billing-city"
-                                        v-model="billingForm.address.city"
-                                        placeholder="New York"
-                                        required
-                                    />
+                                    <Input id="billing-city" v-model="billingForm.address.city" placeholder="New York" required />
                                 </div>
 
                                 <div>
                                     <Label for="billing-state" class="mb-2">State</Label>
-                                    <Input
-                                        id="billing-state"
-                                        v-model="billingForm.address.state"
-                                        placeholder="NY"
-                                        required
-                                    />
+                                    <Input id="billing-state" v-model="billingForm.address.state" placeholder="NY" required />
                                 </div>
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <Label for="billing-postal" class="mb-2">Postal Code</Label>
-                                    <Input
-                                        id="billing-postal"
-                                        v-model="billingForm.address.postal_code"
-                                        placeholder="10001"
-                                        required
-                                    />
+                                    <Input id="billing-postal" v-model="billingForm.address.postal_code" placeholder="10001" required />
                                 </div>
 
                                 <div>
@@ -629,9 +552,9 @@ const formatExpiry = (month: number, year: number) => {
                     </div>
 
                     <!-- Error Display -->
-                    <div v-if="billingForm.hasErrors" class="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                        <AlertCircle class="h-4 w-4 text-destructive" />
-                        <div class="text-sm text-destructive">
+                    <div v-if="billingForm.hasErrors" class="bg-destructive/10 border-destructive/20 flex items-center gap-2 rounded-md border p-3">
+                        <AlertCircle class="text-destructive h-4 w-4" />
+                        <div class="text-destructive text-sm">
                             <p v-for="error in Object.values(billingForm.errors)" :key="error" class="mb-1 last:mb-0">
                                 {{ error }}
                             </p>
@@ -640,19 +563,10 @@ const formatExpiry = (month: number, year: number) => {
 
                     <!-- Action Buttons -->
                     <div class="flex justify-end gap-3">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            @click="showBillingDialog = false"
-                            :disabled="billingForm.processing"
-                        >
+                        <Button type="button" variant="outline" @click="showBillingDialog = false" :disabled="billingForm.processing">
                             Cancel
                         </Button>
-                        <Button
-                            type="submit"
-                            :disabled="billingForm.processing"
-                            class="gap-2"
-                        >
+                        <Button type="submit" :disabled="billingForm.processing" class="gap-2">
                             <template v-if="billingForm.processing">
                                 <Loader2 class="h-4 w-4 animate-spin" />
                                 Updating...
@@ -669,56 +583,38 @@ const formatExpiry = (month: number, year: number) => {
 
         <!-- Add Payment Method Dialog -->
         <Dialog :open="showAddPaymentDialog" @update:open="handleDialogChange">
-            <DialogContent class="sm:max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <CreditCard class="h-5 w-5" />
                         Add Payment Method
                     </DialogTitle>
-                    <DialogDescription>
-                        Add a new payment method to your account. Your card information is secure and encrypted.
-                    </DialogDescription>
+                    <DialogDescription> Add a new payment method to your account. Your card information is secure and encrypted. </DialogDescription>
                 </DialogHeader>
 
                 <div v-if="success" class="flex flex-col items-center justify-center py-8 text-center">
-                    <CheckCircle class="h-12 w-12 text-green-500 mb-4" />
-                    <h3 class="text-lg font-semibold mb-2">Payment Method Added!</h3>
-                    <p class="text-sm text-muted-foreground">
-                        Your payment method has been successfully added to your account.
-                    </p>
+                    <CheckCircle class="mb-4 h-12 w-12 text-green-500" />
+                    <h3 class="mb-2 text-lg font-semibold">Payment Method Added!</h3>
+                    <p class="text-muted-foreground text-sm">Your payment method has been successfully added to your account.</p>
                 </div>
 
                 <form v-else @submit.prevent="handleAddPaymentMethod" class="space-y-6">
                     <!-- Card Information -->
                     <div class="space-y-4">
                         <label class="text-sm font-medium">Card Information</label>
-                        <div
-                            ref="cardElementContainer"
-                            class="p-3 border border-input rounded-md min-h-[40px] bg-background"
-                        ></div>
+                        <div ref="cardElementContainer" class="border-input bg-background min-h-[40px] rounded-md border p-3"></div>
                     </div>
 
                     <!-- Error Display -->
-                    <div v-if="error" class="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                        <AlertCircle class="h-4 w-4 text-destructive" />
-                        <p class="text-sm text-destructive">{{ error }}</p>
+                    <div v-if="error" class="bg-destructive/10 border-destructive/20 flex items-center gap-2 rounded-md border p-3">
+                        <AlertCircle class="text-destructive h-4 w-4" />
+                        <p class="text-destructive text-sm">{{ error }}</p>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="flex justify-end gap-3">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            @click="showAddPaymentDialog = false"
-                            :disabled="isProcessing"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            :disabled="isProcessing"
-                            class="gap-2"
-                        >
+                        <Button type="button" variant="outline" @click="showAddPaymentDialog = false" :disabled="isProcessing"> Cancel </Button>
+                        <Button type="submit" :disabled="isProcessing" class="gap-2">
                             <template v-if="isProcessing">
                                 <Loader2 class="h-4 w-4 animate-spin" />
                                 Processing...
@@ -732,18 +628,16 @@ const formatExpiry = (month: number, year: number) => {
                 </form>
 
                 <!-- Security Notice -->
-                <div class="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
-                    <CreditCard class="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div class="flex items-start gap-3 rounded-md border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/20">
+                    <CreditCard class="mt-0.5 h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <div>
                         <p class="text-xs text-blue-700 dark:text-blue-300">
-                            Your payment information is encrypted and securely processed by Stripe.
-                            We never store your complete card details.
+                            Your payment information is encrypted and securely processed by Stripe. We never store your complete card details.
                         </p>
                     </div>
                 </div>
             </DialogContent>
         </Dialog>
-
     </AppLayout>
 </template>
 

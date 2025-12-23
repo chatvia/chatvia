@@ -1,4 +1,4 @@
-import { ref, computed, onUnmounted } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 
 export interface RecordingData {
     blob: Blob;
@@ -12,7 +12,7 @@ export function useSourceVoiceRecorder() {
     const error = ref<string | null>(null);
     const recordingDuration = ref(0);
     const audioLevel = ref(0);
-    
+
     let mediaRecorder: MediaRecorder | null = null;
     let audioChunks: Blob[] = [];
     let stream: MediaStream | null = null;
@@ -36,14 +36,14 @@ export function useSourceVoiceRecorder() {
 
     const updateAudioLevel = () => {
         if (!analyser) return;
-        
+
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(dataArray);
-        
+
         // Calculate average level
         const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
         audioLevel.value = average / 255; // Normalize to 0-1
-        
+
         if (isRecording.value && !isPaused.value) {
             animationFrameId = requestAnimationFrame(updateAudioLevel);
         }
@@ -56,12 +56,12 @@ export function useSourceVoiceRecorder() {
         pausedDuration = 0;
 
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ 
+            stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
                     sampleRate: 44100,
-                }
+                },
             });
 
             // Set up audio analyzer for visualization
@@ -72,11 +72,11 @@ export function useSourceVoiceRecorder() {
             source.connect(analyser);
 
             // Determine best available mime type
-            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
                 ? 'audio/webm;codecs=opus'
-                : MediaRecorder.isTypeSupported('audio/webm') 
-                    ? 'audio/webm' 
-                    : 'audio/mp4';
+                : MediaRecorder.isTypeSupported('audio/webm')
+                  ? 'audio/webm'
+                  : 'audio/mp4';
 
             mediaRecorder = new MediaRecorder(stream, { mimeType });
 
@@ -141,7 +141,7 @@ export function useSourceVoiceRecorder() {
 
             mediaRecorder.onstop = () => {
                 const duration = recordingDuration.value;
-                
+
                 // Clean up
                 if (durationInterval) {
                     clearInterval(durationInterval);
@@ -156,10 +156,10 @@ export function useSourceVoiceRecorder() {
                     audioContext = null;
                 }
                 if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
+                    stream.getTracks().forEach((track) => track.stop());
                     stream = null;
                 }
-                
+
                 isRecording.value = false;
                 isPaused.value = false;
                 audioLevel.value = 0;
@@ -175,7 +175,7 @@ export function useSourceVoiceRecorder() {
                 resolve({
                     blob: audioBlob,
                     duration,
-                    mimeType
+                    mimeType,
                 });
             };
 
@@ -200,10 +200,10 @@ export function useSourceVoiceRecorder() {
             mediaRecorder.stop();
         }
         if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+            stream.getTracks().forEach((track) => track.stop());
             stream = null;
         }
-        
+
         isRecording.value = false;
         isPaused.value = false;
         recordingDuration.value = 0;
@@ -231,10 +231,3 @@ export function useSourceVoiceRecorder() {
         cancelRecording,
     };
 }
-
-
-
-
-
-
-

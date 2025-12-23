@@ -14,6 +14,11 @@ class AgentSourceWebsitesListController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.web'),
+            code: 403,
+        );
+
         $l = $agent
             ->websites()
             ->select(['source_websites.id', 'url', 'status', 'source_websites.created_at', 'options', 'expected_chunks'])

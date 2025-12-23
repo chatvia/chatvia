@@ -2,8 +2,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 
 const props = defineProps<{
     form: {
@@ -73,9 +73,7 @@ const userDataHandling = [
     <Card>
         <CardHeader>
             <CardTitle>Advanced Settings</CardTitle>
-            <CardDescription>
-                Configure advanced behavior and technical settings
-            </CardDescription>
+            <CardDescription> Configure advanced behavior and technical settings </CardDescription>
         </CardHeader>
         <CardContent class="space-y-6">
             <div class="grid gap-6 sm:grid-cols-2">
@@ -86,11 +84,7 @@ const userDataHandling = [
                             <SelectValue placeholder="Select response length" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="length in maxResponseLengths"
-                                :key="length.value"
-                                :value="length.value"
-                            >
+                            <SelectItem v-for="length in maxResponseLengths" :key="length.value" :value="length.value">
                                 {{ length.label }}
                             </SelectItem>
                         </SelectContent>
@@ -104,11 +98,7 @@ const userDataHandling = [
                             <SelectValue placeholder="Select context window" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="window in contextWindows"
-                                :key="window.value"
-                                :value="window.value"
-                            >
+                            <SelectItem v-for="window in contextWindows" :key="window.value" :value="window.value">
                                 {{ window.label }}
                             </SelectItem>
                         </SelectContent>
@@ -124,11 +114,7 @@ const userDataHandling = [
                             <SelectValue placeholder="Select fallback behavior" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="behavior in fallbackBehaviors"
-                                :key="behavior.value"
-                                :value="behavior.value"
-                            >
+                            <SelectItem v-for="behavior in fallbackBehaviors" :key="behavior.value" :value="behavior.value">
                                 {{ behavior.label }}
                             </SelectItem>
                         </SelectContent>
@@ -142,11 +128,7 @@ const userDataHandling = [
                             <SelectValue placeholder="Select error handling" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="handling in errorHandling"
-                                :key="handling.value"
-                                :value="handling.value"
-                            >
+                            <SelectItem v-for="handling in errorHandling" :key="handling.value" :value="handling.value">
                                 {{ handling.label }}
                             </SelectItem>
                         </SelectContent>
@@ -166,11 +148,7 @@ const userDataHandling = [
                                 <SelectValue placeholder="Select data retention period" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem
-                                    v-for="retention in dataRetention"
-                                    :key="retention.value"
-                                    :value="retention.value"
-                                >
+                                <SelectItem v-for="retention in dataRetention" :key="retention.value" :value="retention.value">
                                     {{ retention.label }}
                                 </SelectItem>
                             </SelectContent>
@@ -184,11 +162,7 @@ const userDataHandling = [
                                 <SelectValue placeholder="Select privacy level" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem
-                                    v-for="level in privacyLevels"
-                                    :key="level.value"
-                                    :value="level.value"
-                                >
+                                <SelectItem v-for="level in privacyLevels" :key="level.value" :value="level.value">
                                     {{ level.label }}
                                 </SelectItem>
                             </SelectContent>
@@ -203,11 +177,7 @@ const userDataHandling = [
                             <SelectValue placeholder="Select user data handling" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="handling in userDataHandling"
-                                :key="handling.value"
-                                :value="handling.value"
-                            >
+                            <SelectItem v-for="handling in userDataHandling" :key="handling.value" :value="handling.value">
                                 {{ handling.label }}
                             </SelectItem>
                         </SelectContent>
@@ -217,13 +187,11 @@ const userDataHandling = [
                 <div class="flex items-center justify-between space-x-2">
                     <div class="space-y-0.5">
                         <Label>Content Filtering</Label>
-                        <p class="text-sm text-muted-foreground">
-                            Enable automatic content filtering
-                        </p>
+                        <p class="text-muted-foreground text-sm">Enable automatic content filtering</p>
                     </div>
                     <Switch v-model="form.contentFiltering" />
                 </div>
             </div>
         </CardContent>
     </Card>
-</template> 
+</template>

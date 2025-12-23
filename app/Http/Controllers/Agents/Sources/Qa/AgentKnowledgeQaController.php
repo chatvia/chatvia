@@ -16,6 +16,11 @@ class AgentKnowledgeQaController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.qa'),
+            code: 403,
+        );
+
         return Inertia::render('agents/Sources/Qa', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);

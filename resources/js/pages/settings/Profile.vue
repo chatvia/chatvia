@@ -2,20 +2,19 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 import DeleteUser from '@/components/DeleteUser.vue';
-import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
+import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
-import { getInitials } from '@/composables/useInitials';
-import { CheckCircle, User as UserIcon, Mail, Save } from 'lucide-vue-next';
+import { CheckCircle, Mail, Save, User as UserIcon } from 'lucide-vue-next';
 
 interface Props {
     mustVerifyEmail: boolean;
@@ -53,21 +52,25 @@ const submit = () => {
         <SettingsLayout>
             <div class="flex flex-col space-y-8">
                 <!-- Profile Header with Avatar -->
-                <div class="flex flex-col items-center space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
-                    <Avatar class="size-24 border-4 border-background shadow-md">
+                <div class="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
+                    <Avatar class="border-background size-24 border-4 shadow-md">
                         <AvatarImage v-if="user.avatar" :src="user.avatar" :alt="user.name" />
-                        <AvatarFallback class="text-xl font-semibold bg-primary/10 text-primary">
+                        <AvatarFallback class="bg-primary/10 text-primary text-xl font-semibold">
                             {{ getInitials(user.name) }}
                         </AvatarFallback>
                     </Avatar>
                     <div class="space-y-1 text-center sm:text-left">
                         <h1 class="text-2xl font-bold tracking-tight">{{ user.name }}</h1>
                         <div class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                            <p class="text-sm text-muted-foreground flex items-center">
+                            <p class="text-muted-foreground flex items-center text-sm">
                                 <Mail class="mr-1 size-3.5" />
                                 {{ user.email }}
                             </p>
-                            <Badge v-if="user.email_verified_at" variant="outline" class="flex items-center gap-1 px-2 py-0.5 text-green-600 border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800">
+                            <Badge
+                                v-if="user.email_verified_at"
+                                variant="outline"
+                                class="flex items-center gap-1 border-green-200 bg-green-50 px-2 py-0.5 text-green-600 dark:border-green-800 dark:bg-green-950/30"
+                            >
                                 <CheckCircle class="size-3" />
                                 <span class="text-xs">Verified</span>
                             </Badge>
@@ -87,7 +90,7 @@ const submit = () => {
                         <form @submit.prevent="submit" class="space-y-6">
                             <div class="grid gap-2">
                                 <Label for="name" class="flex items-center gap-2">
-                                    <UserIcon class="size-4 text-muted-foreground" />
+                                    <UserIcon class="text-muted-foreground size-4" />
                                     Name
                                 </Label>
                                 <Input
@@ -96,14 +99,14 @@ const submit = () => {
                                     required
                                     autocomplete="name"
                                     placeholder="Full name"
-                                    class="transition-all duration-200 focus-visible:ring-primary/50"
+                                    class="focus-visible:ring-primary/50 transition-all duration-200"
                                 />
                                 <InputError :message="form.errors.name" />
                             </div>
 
                             <div class="grid gap-2">
                                 <Label for="email" class="flex items-center gap-2">
-                                    <Mail class="size-4 text-muted-foreground" />
+                                    <Mail class="text-muted-foreground size-4" />
                                     Email address
                                 </Label>
                                 <Input
@@ -113,7 +116,7 @@ const submit = () => {
                                     required
                                     autocomplete="username"
                                     placeholder="Email address"
-                                    class="transition-all duration-200 focus-visible:ring-primary/50"
+                                    class="focus-visible:ring-primary/50 transition-all duration-200"
                                 />
                                 <InputError :message="form.errors.email" />
                             </div>
@@ -137,11 +140,7 @@ const submit = () => {
                             </div>
 
                             <div class="flex items-center gap-4 pt-2">
-                                <Button
-                                    type="submit"
-                                    :disabled="form.processing"
-                                    class="transition-all duration-200"
-                                >
+                                <Button type="submit" :disabled="form.processing" class="transition-all duration-200">
                                     <Save class="mr-2 size-4" />
                                     Save changes
                                 </Button>

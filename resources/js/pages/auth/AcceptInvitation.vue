@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle, User, Lock, LockKeyhole, Users, Mail } from 'lucide-vue-next';
-import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
+import { LoaderCircle, Lock, LockKeyhole, Mail, User, Users } from 'lucide-vue-next';
 
 interface Props {
     invitation: {
@@ -46,8 +46,8 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthBase 
-        :title="userExists ? 'Login to accept invitation' : 'Create your account'" 
+    <AuthBase
+        :title="userExists ? 'Login to accept invitation' : 'Create your account'"
         :description="userExists ? 'Enter your password to join the team' : 'Fill in your details to join the team'"
     >
         <Head :title="userExists ? 'Accept Invitation' : 'Create Account & Join Team'" />
@@ -56,15 +56,15 @@ const submit = () => {
             <ThemeSwitcher />
         </div>
 
-        <div class="w-full max-w-lg mx-auto space-y-6">
+        <div class="mx-auto w-full max-w-lg space-y-6">
             <!-- Invitation Message -->
-            <div class="rounded-lg border bg-card p-6 text-center">
-                <div class="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Users class="h-7 w-7 text-primary" />
+            <div class="bg-card rounded-lg border p-6 text-center">
+                <div class="bg-primary/10 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+                    <Users class="text-primary h-7 w-7" />
                 </div>
-                <p class="text-base text-muted-foreground leading-relaxed">
-                    You've been invited to join <span class="font-semibold text-foreground">{{ team.name }}</span>
-                    as {{ role.name.match(/^[aeiou]/i) ? 'an' : 'a' }} <span class="font-semibold text-foreground">{{ role.name }}</span>
+                <p class="text-muted-foreground text-base leading-relaxed">
+                    You've been invited to join <span class="text-foreground font-semibold">{{ team.name }}</span> as
+                    {{ role.name.match(/^[aeiou]/i) ? 'an' : 'a' }} <span class="text-foreground font-semibold">{{ role.name }}</span>
                 </p>
             </div>
 
@@ -74,7 +74,7 @@ const submit = () => {
                 <div v-if="!userExists" class="space-y-2">
                     <Label for="name" class="text-base font-medium">Name</Label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <User class="h-5 w-5" />
                         </div>
                         <Input
@@ -86,7 +86,7 @@ const submit = () => {
                             autocomplete="name"
                             v-model="form.name"
                             placeholder="Your name"
-                            class="h-12 text-base pl-10"
+                            class="h-12 pl-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.name" />
@@ -96,17 +96,17 @@ const submit = () => {
                 <div class="space-y-2">
                     <Label class="text-base font-medium">Email address</Label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <Mail class="h-5 w-5" />
                         </div>
                         <input
                             type="email"
                             :value="invitation.email"
                             disabled
-                            class="flex h-12 w-full rounded-md border border-input bg-muted px-3 py-2 text-base pl-10 cursor-not-allowed ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+                            class="border-input bg-muted ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-12 w-full cursor-not-allowed rounded-md border px-3 py-2 pl-10 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
                         />
                     </div>
-                    <p class="text-xs text-muted-foreground">This is the email address the invitation was sent to</p>
+                    <p class="text-muted-foreground text-xs">This is the email address the invitation was sent to</p>
                 </div>
 
                 <!-- Password Field -->
@@ -115,7 +115,7 @@ const submit = () => {
                         {{ userExists ? 'Your password' : 'Create a password' }}
                     </Label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <Lock class="h-5 w-5" />
                         </div>
                         <Input
@@ -127,7 +127,7 @@ const submit = () => {
                             :autocomplete="userExists ? 'current-password' : 'new-password'"
                             v-model="form.password"
                             :placeholder="userExists ? 'Enter your password' : 'Create a password'"
-                            class="h-12 text-base pl-10"
+                            class="h-12 pl-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.password" />
@@ -137,7 +137,7 @@ const submit = () => {
                 <div v-if="!userExists" class="space-y-2">
                     <Label for="password_confirmation" class="text-base font-medium">Confirm password</Label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <LockKeyhole class="h-5 w-5" />
                         </div>
                         <Input
@@ -148,7 +148,7 @@ const submit = () => {
                             autocomplete="new-password"
                             v-model="form.password_confirmation"
                             placeholder="Confirm password"
-                            class="h-12 text-base pl-10"
+                            class="h-12 pl-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.password_confirmation" />
@@ -157,38 +157,42 @@ const submit = () => {
                 <!-- Terms and Conditions (only for new users) -->
                 <div v-if="!userExists" class="space-y-3">
                     <div class="flex items-start space-x-3">
-                        <div class="flex items-center h-5">
+                        <div class="flex h-5 items-center">
                             <input
                                 id="policy"
                                 type="checkbox"
                                 v-model="form.policy"
-                                class="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2 focus:ring-offset-0"
+                                class="text-primary bg-background border-border focus:ring-primary h-4 w-4 rounded focus:ring-2 focus:ring-offset-0"
                                 :tabindex="4"
                             />
                         </div>
                         <div class="text-sm">
                             <label for="policy" class="text-muted-foreground">
                                 I agree to the
-                                <a href="/privacy-policy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+                                <a href="/privacy-policy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
+                                    >Privacy Policy</a
+                                >
                             </label>
                             <InputError :message="form.errors.policy" />
                         </div>
                     </div>
 
                     <div class="flex items-start space-x-3">
-                        <div class="flex items-center h-5">
+                        <div class="flex h-5 items-center">
                             <input
                                 id="terms"
                                 type="checkbox"
                                 v-model="form.terms"
-                                class="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2 focus:ring-offset-0"
+                                class="text-primary bg-background border-border focus:ring-primary h-4 w-4 rounded focus:ring-2 focus:ring-offset-0"
                                 :tabindex="5"
                             />
                         </div>
                         <div class="text-sm">
                             <label for="terms" class="text-muted-foreground">
                                 I agree to the
-                                <a href="/terms-of-service" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+                                <a href="/terms-of-service" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
+                                    >Terms of Service</a
+                                >
                             </label>
                             <InputError :message="form.errors.terms" />
                         </div>
@@ -198,11 +202,11 @@ const submit = () => {
                 <!-- Submit Button -->
                 <Button
                     type="submit"
-                    class="w-full h-12 text-base font-semibold"
+                    class="h-12 w-full text-base font-semibold"
                     :tabindex="userExists ? 2 : 6"
                     :disabled="form.processing || (!userExists && (!form.policy || !form.terms))"
                 >
-                    <LoaderCircle v-if="form.processing" class="h-5 w-5 animate-spin mr-2" />
+                    <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
                     <span v-if="!form.processing">
                         {{ userExists ? 'Login & Join Team' : 'Create Account & Join Team' }}
                     </span>
@@ -216,4 +220,3 @@ const submit = () => {
         </div>
     </AuthBase>
 </template>
-

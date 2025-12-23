@@ -1,23 +1,10 @@
 <script setup lang="ts">
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { BarChart3, BookOpen, Brain, Code2, FileText, Globe, Languages, Search, Settings2, Shield, Sparkles, Zap } from 'lucide-vue-next';
 import { computed } from 'vue';
-import {
-    Code2,
-    BarChart3,
-    FileText,
-    Search,
-    Languages,
-    BookOpen,
-    Sparkles,
-    Settings2,
-    Globe,
-    Brain,
-    Zap,
-    Shield
-} from 'lucide-vue-next';
 
 const props = defineProps<{
     form: {
@@ -31,94 +18,94 @@ const props = defineProps<{
 }>();
 
 const capabilities = [
-    { 
-        id: 'code', 
-        label: 'Code Generation', 
+    {
+        id: 'code',
+        label: 'Code Generation',
         icon: Code2,
         description: 'Generate and explain code in various programming languages',
-        category: 'technical'
+        category: 'technical',
     },
-    { 
-        id: 'analysis', 
-        label: 'Data Analysis', 
+    {
+        id: 'analysis',
+        label: 'Data Analysis',
         icon: BarChart3,
         description: 'Analyze and interpret data, create visualizations',
-        category: 'technical'
+        category: 'technical',
     },
-    { 
-        id: 'writing', 
-        label: 'Content Writing', 
+    {
+        id: 'writing',
+        label: 'Content Writing',
         icon: FileText,
         description: 'Create and edit various types of content',
-        category: 'creative'
+        category: 'creative',
     },
-    { 
-        id: 'research', 
-        label: 'Research', 
+    {
+        id: 'research',
+        label: 'Research',
         icon: Search,
         description: 'Conduct thorough research and provide citations',
-        category: 'academic'
+        category: 'academic',
     },
-    { 
-        id: 'translation', 
-        label: 'Translation', 
+    {
+        id: 'translation',
+        label: 'Translation',
         icon: Languages,
         description: 'Translate between multiple languages',
-        category: 'language'
+        category: 'language',
     },
-    { 
-        id: 'summarization', 
-        label: 'Summarization', 
+    {
+        id: 'summarization',
+        label: 'Summarization',
         icon: BookOpen,
         description: 'Summarize long texts and documents',
-        category: 'content'
+        category: 'content',
     },
-    { 
-        id: 'creative', 
-        label: 'Creative Writing', 
+    {
+        id: 'creative',
+        label: 'Creative Writing',
         icon: Sparkles,
         description: 'Generate creative content and ideas',
-        category: 'creative'
+        category: 'creative',
     },
-    { 
-        id: 'technical', 
-        label: 'Technical Support', 
+    {
+        id: 'technical',
+        label: 'Technical Support',
         icon: Settings2,
         description: 'Provide technical assistance and troubleshooting',
-        category: 'technical'
+        category: 'technical',
     },
 ];
 
 const features = [
-    { 
-        id: 'multilingual', 
-        label: 'Multilingual Support', 
+    {
+        id: 'multilingual',
+        label: 'Multilingual Support',
         icon: Globe,
-        description: 'Support for multiple languages'
+        description: 'Support for multiple languages',
     },
-    { 
-        id: 'context_aware', 
-        label: 'Context Awareness', 
+    {
+        id: 'context_aware',
+        label: 'Context Awareness',
         icon: Brain,
-        description: 'Maintains conversation context'
+        description: 'Maintains conversation context',
     },
-    { 
-        id: 'real_time', 
-        label: 'Real-time Processing', 
+    {
+        id: 'real_time',
+        label: 'Real-time Processing',
         icon: Zap,
-        description: 'Fast response times'
+        description: 'Fast response times',
     },
-    { 
-        id: 'secure', 
-        label: 'Enhanced Security', 
+    {
+        id: 'secure',
+        label: 'Enhanced Security',
         icon: Shield,
-        description: 'Advanced security features'
+        description: 'Advanced security features',
     },
 ];
 
 const groupedCapabilities = computed(() => {
     const groups = {} as Record<string, typeof capabilities>;
-    capabilities.forEach(cap => {
+    capabilities.forEach((cap) => {
         if (!groups[cap.category]) {
             groups[cap.category] = [];
         }
@@ -144,36 +131,26 @@ const getCategoryLabel = (category: string) => {
         <Card>
             <CardHeader>
                 <CardTitle>Capabilities & Features</CardTitle>
-                <CardDescription>
-                    Select the capabilities and features your agent should have
-                </CardDescription>
+                <CardDescription> Select the capabilities and features your agent should have </CardDescription>
             </CardHeader>
             <CardContent class="space-y-8">
                 <!-- Capabilities -->
                 <div class="space-y-4">
                     <h3 class="text-lg font-medium">Core Capabilities</h3>
                     <div class="grid gap-6 sm:grid-cols-2">
-                        <div
-                            v-for="(group, category) in groupedCapabilities"
-                            :key="category"
-                            class="space-y-4"
-                        >
-                            <h4 class="text-sm font-medium text-muted-foreground">
+                        <div v-for="(group, category) in groupedCapabilities" :key="category" class="space-y-4">
+                            <h4 class="text-muted-foreground text-sm font-medium">
                                 {{ getCategoryLabel(category) }}
                             </h4>
                             <div class="space-y-3">
-                                <div
-                                    v-for="capability in group"
-                                    :key="capability.id"
-                                    class="flex items-start space-x-3"
-                                >
+                                <div v-for="capability in group" :key="capability.id" class="flex items-start space-x-3">
                                     <div class="flex h-5 items-center">
                                         <input
                                             type="checkbox"
                                             :id="capability.id"
                                             :value="capability.id"
                                             v-model="form.capabilities"
-                                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                            class="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
                                         />
                                     </div>
                                     <div class="space-y-1">
@@ -181,7 +158,7 @@ const getCategoryLabel = (category: string) => {
                                             <component :is="capability.icon" class="h-4 w-4" />
                                             {{ capability.label }}
                                         </Label>
-                                        <p class="text-sm text-muted-foreground">
+                                        <p class="text-muted-foreground text-sm">
                                             {{ capability.description }}
                                         </p>
                                     </div>
@@ -197,18 +174,14 @@ const getCategoryLabel = (category: string) => {
                 <div class="space-y-4">
                     <h3 class="text-lg font-medium">Additional Features</h3>
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <div
-                            v-for="feature in features"
-                            :key="feature.id"
-                            class="flex items-start space-x-3"
-                        >
+                        <div v-for="feature in features" :key="feature.id" class="flex items-start space-x-3">
                             <div class="flex h-5 items-center">
                                 <input
                                     type="checkbox"
                                     :id="feature.id"
                                     :value="feature.id"
                                     v-model="form.features"
-                                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    class="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
                                 />
                             </div>
                             <div class="space-y-1">
@@ -216,7 +189,7 @@ const getCategoryLabel = (category: string) => {
                                     <component :is="feature.icon" class="h-4 w-4" />
                                     {{ feature.label }}
                                 </Label>
-                                <p class="text-sm text-muted-foreground">
+                                <p class="text-muted-foreground text-sm">
                                     {{ feature.description }}
                                 </p>
                             </div>
@@ -230,9 +203,7 @@ const getCategoryLabel = (category: string) => {
         <Card>
             <CardHeader>
                 <CardTitle>Response Guidelines</CardTitle>
-                <CardDescription>
-                    Define how your agent should respond to different situations
-                </CardDescription>
+                <CardDescription> Define how your agent should respond to different situations </CardDescription>
             </CardHeader>
             <CardContent class="space-y-6">
                 <div class="space-y-2">
@@ -276,4 +247,4 @@ const getCategoryLabel = (category: string) => {
             </CardContent>
         </Card>
     </div>
-</template> 
+</template>

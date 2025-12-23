@@ -16,6 +16,11 @@ class AgentKnowledgeQaListController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.qa'),
+            code: 403,
+        );
+
         $qaEntries = AgentQuestionAnswer::where('agent_id', $agent->id)
             ->latest()
             ->get()

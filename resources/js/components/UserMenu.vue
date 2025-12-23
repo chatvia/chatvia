@@ -15,11 +15,7 @@ const auth = computed(() => page.props.auth as Auth);
 <template>
     <DropdownMenu>
         <DropdownMenuTrigger :as-child="true">
-            <Button
-                variant="ghost"
-                size="icon"
-                class="relative size-10 w-auto rounded-full p-1 focus-within:ring-2 focus-within:ring-primary"
-            >
+            <Button variant="ghost" size="icon" class="focus-within:ring-primary relative size-10 w-auto rounded-full p-1 focus-within:ring-2">
                 <Avatar class="size-8 overflow-hidden rounded-full">
                     <AvatarImage v-if="auth.user.avatar" :src="auth.user.avatar" :alt="auth.user.name" />
                     <AvatarFallback class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white">
@@ -32,11 +28,8 @@ const auth = computed(() => page.props.auth as Auth);
             <UserMenuContent :user="auth.user" />
         </DropdownMenuContent>
     </DropdownMenu>
-    
 </template>
 
 <style scoped>
 /* No additional styles */
 </style>
-
-

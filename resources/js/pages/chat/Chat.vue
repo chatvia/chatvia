@@ -1,15 +1,15 @@
 <script setup>
-import ChatLayout from '@/components/chat/ChatLayout.vue';
-import ChatComposer from '@/components/chat/ChatComposer.vue';
-import UserChatBubble from '@/components/chat/UserChatBubble.vue';
 import AssistantChatBubble from '@/components/chat/AssistantChatBubble.vue';
+import ChatComposer from '@/components/chat/ChatComposer.vue';
+import ChatLayout from '@/components/chat/ChatLayout.vue';
+import UserChatBubble from '@/components/chat/UserChatBubble.vue';
+import { useColorTheme } from '@/composables/useColorTheme';
 import { useSSE } from '@/composables/useSSE';
-import { router, usePage } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
 import { useScroll } from '@vueuse/core';
 import axios from 'axios';
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { ChevronDown } from 'lucide-vue-next';
-import { useColorTheme } from '@/composables/useColorTheme';
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const chatEventBus = inject('chatEventBus');
 
@@ -32,34 +32,34 @@ const props = defineProps({
             chat_window_title: null,
             chat_footer_text: null,
             avatar: null,
-            composer_placeholder: null
-        })
+            composer_placeholder: null,
+        }),
     },
     removeSidebar: {
         type: Boolean,
-        default: false
+        default: false,
     },
     hideSidebarOnPageLoad: {
         type: Boolean,
-        default: false
+        default: false,
     },
     enableThemeSwitcher: {
         type: Boolean,
-        default: true
+        default: true,
     },
     defaultTheme: {
         type: String,
         default: 'auto',
-        validator: (value) => ['auto', 'light', 'dark'].includes(value)
+        validator: (value) => ['auto', 'light', 'dark'].includes(value),
     },
     enableChatExpand: {
         type: Boolean,
-        default: true
+        default: true,
     },
     newChatRoute: {
         type: String,
-        default: 'chat.home'
-    }
+        default: 'chat.home',
+    },
 });
 
 const loadingMessages = ref(true);
@@ -98,12 +98,15 @@ const showScrollToBottom = computed(() => {
 });
 
 // Watch for when user reaches bottom
-watch(() => arrivedState.bottom, (isAtBottom) => {
-    if (isAtBottom) {
-        userHasScrolledUp.value = false;
-        isAutoScrollEnabled.value = true;
-    }
-});
+watch(
+    () => arrivedState.bottom,
+    (isAtBottom) => {
+        if (isAtBottom) {
+            userHasScrolledUp.value = false;
+            isAutoScrollEnabled.value = true;
+        }
+    },
+);
 
 const updateModel = (model) => {
     selectedModel.value = model;
@@ -128,7 +131,7 @@ const fetchModels = async () => {
         models.value = response.data.models;
 
         const urlModelId = getQueryParam('model');
-        
+
         // Validate model from URL - use first valid model if invalid
         if (urlModelId) {
             const urlModel = models.value.find((m) => m.id === urlModelId);
@@ -140,7 +143,7 @@ const fetchModels = async () => {
                         conversationId: props.conversation_id,
                         model: firstModel?.id,
                     }),
-                    { replace: true }
+                    { replace: true },
                 );
                 return;
             }
@@ -171,8 +174,6 @@ const loadSourcesAsync = async () => {
         console.error('Failed to load sources:', error);
     }
 };
-
-
 
 // Function to check usage status
 const checkUsage = async () => {
@@ -238,13 +239,13 @@ function scrollToBottom(smooth = false) {
                 // Use smooth scrolling for user interactions
                 messagesContainer.value.scrollTo({
                     top: messagesContainer.value.scrollHeight,
-                    behavior: 'smooth'
+                    behavior: 'smooth',
                 });
             } else {
                 // Use instant scroll to avoid scroll-linked effects
                 messagesContainer.value.scrollTo({
                     top: messagesContainer.value.scrollHeight,
-                    behavior: 'instant'
+                    behavior: 'instant',
                 });
             }
         }
@@ -403,7 +404,7 @@ function scrollWhileStreaming() {
                 // Use scrollTo with behavior: 'instant' to avoid scroll-linked effects
                 messagesContainer.value.scrollTo({
                     top: messagesContainer.value.scrollHeight,
-                    behavior: 'instant'
+                    behavior: 'instant',
                 });
             }
             scrollThrottleTimeout.value = null;
@@ -411,7 +412,14 @@ function scrollWhileStreaming() {
     }
 }
 
-function startSseStreaming(message, modelId, updatedMessageInfo = {}, isNewConversation = false, saveUserMessageImmediately = false, createdAt = null) {
+function startSseStreaming(
+    message,
+    modelId,
+    updatedMessageInfo = {},
+    isNewConversation = false,
+    saveUserMessageImmediately = false,
+    createdAt = null,
+) {
     const newMessage = {
         role: 'assistant',
         content: '',
@@ -535,7 +543,7 @@ const messageUpdated = (messageId, messageContent) => {
 };
 
 const messageDeleted = (messageId) => {
-    const messageIndex = messages.value.findIndex(m => m.id === messageId);
+    const messageIndex = messages.value.findIndex((m) => m.id === messageId);
 
     if (messageIndex === -1) return;
 
@@ -544,8 +552,7 @@ const messageDeleted = (messageId) => {
     if (message.role === 'user') {
         // If deleting a user message, also remove the subsequent assistant message
         const assistantMessageIndex = messageIndex + 1;
-        if (assistantMessageIndex < messages.value.length &&
-            messages.value[assistantMessageIndex].role === 'assistant') {
+        if (assistantMessageIndex < messages.value.length && messages.value[assistantMessageIndex].role === 'assistant') {
             // Remove both user and assistant messages
             messages.value.splice(messageIndex, 2);
             // Clear sources for the assistant message
@@ -577,8 +584,7 @@ const messageDeleted = (messageId) => {
     } else {
         // If deleting an assistant message, also remove the previous user message
         const userMessageIndex = messageIndex - 1;
-        if (userMessageIndex >= 0 &&
-            messages.value[userMessageIndex].role === 'user') {
+        if (userMessageIndex >= 0 && messages.value[userMessageIndex].role === 'user') {
             // Remove both user and assistant messages
             messages.value.splice(userMessageIndex, 2);
             // Clear sources for the assistant message
@@ -644,26 +650,26 @@ const handleMessageEdited = async (userMessageId, assistantMessageId, newContent
 
         if (response.data.success) {
             const createdAt = response.data.created_at;
-            
+
             // Find the indices of both messages
-            const userIndex = messages.value.findIndex(m => m.id === userMessageId);
-            const assistantIndex = messages.value.findIndex(m => m.id === assistantMessageId);
-            
+            const userIndex = messages.value.findIndex((m) => m.id === userMessageId);
+            const assistantIndex = messages.value.findIndex((m) => m.id === assistantMessageId);
+
             if (userIndex === -1 || assistantIndex === -1) {
                 console.error('Could not find messages to edit');
                 return;
             }
-            
+
             // Clear sources for the assistant message
             messageSources.value.delete(assistantIndex);
-            
+
             // Replace user message in-place with NEW content
             messages.value[userIndex] = {
                 role: 'user',
                 content: newContent,
                 id: 0,
             };
-            
+
             // Replace assistant message in-place with empty content
             messages.value[assistantIndex] = {
                 role: 'assistant',
@@ -671,14 +677,14 @@ const handleMessageEdited = async (userMessageId, assistantMessageId, newContent
                 model: model.id,
                 id: 0,
             };
-            
+
             // Set streaming index to the assistant message position
             streamingForMessageIndex.value = assistantIndex;
-            
+
             // Disable auto-scroll to bottom - we want to stay at the edited message
             userHasScrolledUp.value = true;
             isAutoScrollEnabled.value = false;
-            
+
             // Start streaming at the same position
             await nextTick(() => {
                 // Scroll to the message being edited
@@ -686,7 +692,7 @@ const handleMessageEdited = async (userMessageId, assistantMessageId, newContent
                 if (messageElement) {
                     messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-                
+
                 // Start stream with the NEW content
                 const stream = startStream(
                     route('chat.stream', { conversationId: props.conversation_id }),
@@ -701,17 +707,17 @@ const handleMessageEdited = async (userMessageId, assistantMessageId, newContent
                         onMessage: (content, messageId, userMessageId) => {
                             const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
                             messages.value[messageIndex].content += content;
-                            
+
                             // Set the assistant message ID if provided
                             if (messageId && messages.value[messageIndex]) {
                                 messages.value[messageIndex].id = messageId;
                             }
-                            
+
                             // Set the user message ID if provided
                             if (userMessageId && messages.value[userIndex]) {
                                 messages.value[userIndex].id = userMessageId;
                             }
-                            
+
                             scrollWhileStreaming();
                         },
                         onSources: (sources) => {
@@ -753,26 +759,26 @@ const handleRegenerate = async (userMessageId, assistantMessageId, model) => {
         if (response.data.success) {
             const userMessageContent = response.data.user_message_content;
             const createdAt = response.data.created_at;
-            
+
             // Find the indices of both messages
-            const userIndex = messages.value.findIndex(m => m.id === userMessageId);
-            const assistantIndex = messages.value.findIndex(m => m.id === assistantMessageId);
-            
+            const userIndex = messages.value.findIndex((m) => m.id === userMessageId);
+            const assistantIndex = messages.value.findIndex((m) => m.id === assistantMessageId);
+
             if (userIndex === -1 || assistantIndex === -1) {
                 console.error('Could not find messages to regenerate');
                 return;
             }
-            
+
             // Clear sources for the assistant message
             messageSources.value.delete(assistantIndex);
-            
+
             // Replace user message in-place (keep same index)
             messages.value[userIndex] = {
                 role: 'user',
                 content: userMessageContent,
                 id: 0,
             };
-            
+
             // Replace assistant message in-place with empty content (keep same index)
             messages.value[assistantIndex] = {
                 role: 'assistant',
@@ -780,14 +786,14 @@ const handleRegenerate = async (userMessageId, assistantMessageId, model) => {
                 model: model.id,
                 id: 0,
             };
-            
+
             // Set streaming index to the assistant message position
             streamingForMessageIndex.value = assistantIndex;
-            
+
             // Disable auto-scroll to bottom - we want to stay at the regenerated message
             userHasScrolledUp.value = true;
             isAutoScrollEnabled.value = false;
-            
+
             // Start streaming at the same position with saveUserMessageImmediately=true and original created_at
             await nextTick(() => {
                 // Scroll to the message being regenerated
@@ -809,17 +815,17 @@ const handleRegenerate = async (userMessageId, assistantMessageId, model) => {
                         onMessage: (content, messageId, userMessageId) => {
                             const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
                             messages.value[messageIndex].content += content;
-                            
+
                             // Set the assistant message ID if provided
                             if (messageId && messages.value[messageIndex]) {
                                 messages.value[messageIndex].id = messageId;
                             }
-                            
+
                             // Set the user message ID if provided
                             if (userMessageId && messages.value[userIndex]) {
                                 messages.value[userIndex].id = userMessageId;
                             }
-                            
+
                             scrollWhileStreaming();
                         },
                         onSources: (sources) => {
@@ -859,54 +865,57 @@ const handleScrollToBottomClick = () => {
 </script>
 
 <template>
-    <ChatLayout :appearance="props.appearance" :removeSidebar="props.removeSidebar" :hideSidebarOnPageLoad="props.hideSidebarOnPageLoad" :enableThemeSwitcher="props.enableThemeSwitcher" :defaultTheme="props.defaultTheme" :enableChatExpand="props.enableChatExpand" :newChatRoute="props.newChatRoute">
+    <ChatLayout
+        :appearance="props.appearance"
+        :removeSidebar="props.removeSidebar"
+        :hideSidebarOnPageLoad="props.hideSidebarOnPageLoad"
+        :enableThemeSwitcher="props.enableThemeSwitcher"
+        :defaultTheme="props.defaultTheme"
+        :enableChatExpand="props.enableChatExpand"
+        :newChatRoute="props.newChatRoute"
+    >
         <template #content>
-            <div class="flex h-full flex-col overflow-hidden relative">
+            <div class="relative flex h-full flex-col overflow-hidden">
                 <div
                     id="messages-container"
                     ref="messagesContainer"
-                    :class="[
-                        'flex-1 overflow-y-auto overflow-x-hidden',
-                        { 'flex flex-col justify-between': messages.length === 0 }
-                    ]"
+                    :class="['flex-1 overflow-x-hidden overflow-y-auto', { 'flex flex-col justify-between': messages.length === 0 }]"
                 >
                     <!-- Loading state -->
-                    <div v-if="loadingMessages" class="flex items-center justify-center h-full">
+                    <div v-if="loadingMessages" class="flex h-full items-center justify-center">
                         <div class="flex flex-col items-center gap-3">
                             <div class="flex gap-1">
-                                <div class="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:-0.3s]"></div>
-                                <div class="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:-0.15s]"></div>
-                                <div class="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce"></div>
-                                </div>
-                            <p class="text-xs text-muted-foreground">Loading conversation</p>
+                                <div class="bg-muted-foreground/40 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]"></div>
+                                <div class="bg-muted-foreground/40 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]"></div>
+                                <div class="bg-muted-foreground/40 h-2 w-2 animate-bounce rounded-full"></div>
+                            </div>
+                            <p class="text-muted-foreground text-xs">Loading conversation</p>
                         </div>
                     </div>
 
-
-
                     <!-- Messages -->
-                    <div
-                        v-else
-                        class="min-h-full"
-                    >
-                        <div v-for="(message, index) in messages"
-                             :id="`message-${index}`"
-                             :key="`message-${message.id || index}`"
-                             :class="[
-                                 'w-full',
-                                 message.role === 'assistant' ? '' : ''
-                             ]">
-                            <div :class="[
-                                'mx-auto px-4 sm:px-8 transition-all duration-300 ease-in-out',
-                                isChatExpanded ? 'max-w-6xl' : 'max-w-3xl',
-                                index === 0 ? 'pt-6' : '',
-                                index > 0 && messages[index - 1].role !== message.role ? 'pt-6' : 'pt-3',
-                                'pb-3'
-                            ]">
+                    <div v-else class="min-h-full">
+                        <div
+                            v-for="(message, index) in messages"
+                            :id="`message-${index}`"
+                            :key="`message-${message.id || index}`"
+                            :class="['w-full', message.role === 'assistant' ? '' : '']"
+                        >
+                            <div
+                                :class="[
+                                    'mx-auto px-4 transition-all duration-300 ease-in-out sm:px-8',
+                                    isChatExpanded ? 'max-w-6xl' : 'max-w-3xl',
+                                    index === 0 ? 'pt-6' : '',
+                                    index > 0 && messages[index - 1].role !== message.role ? 'pt-6' : 'pt-3',
+                                    'pb-3',
+                                ]"
+                            >
                                 <UserChatBubble
                                     v-if="message.role === 'user'"
                                     :message="message"
-                                    :assistantMessageId="index < messages.length - 1 && messages[index + 1]?.role === 'assistant' ? messages[index + 1].id : undefined"
+                                    :assistantMessageId="
+                                        index < messages.length - 1 && messages[index + 1]?.role === 'assistant' ? messages[index + 1].id : undefined
+                                    "
                                     :conversationId="conversation_id"
                                     :isRTL="isMessageRTL(message)"
                                     @messageUpdated="messageUpdated"
@@ -922,7 +931,9 @@ const handleScrollToBottomClick = () => {
                                     :sources="messageSources.get(index) || []"
                                     :conversationId="conversation_id"
                                     :hideFeedback="isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex)"
-                                    :isThinking="isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex) && !message.content"
+                                    :isThinking="
+                                        isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex) && !message.content
+                                    "
                                     :isStreaming="isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex)"
                                     :avatar="props.appearance?.avatar"
                                     :isRTL="isMessageRTL(message)"
@@ -940,17 +951,20 @@ const handleScrollToBottomClick = () => {
 
                 <!-- Auto-scroll paused indicator -->
                 <Transition name="fade">
-                    <div v-if="isStreaming && userHasScrolledUp" class="absolute bottom-28 left-1/2 -translate-x-1/2 bg-foreground/90 text-background px-3 py-1.5 rounded-full text-[11px] font-medium shadow-lg">
+                    <div
+                        v-if="isStreaming && userHasScrolledUp"
+                        class="bg-foreground/90 text-background absolute bottom-28 left-1/2 -translate-x-1/2 rounded-full px-3 py-1.5 text-[11px] font-medium shadow-lg"
+                    >
                         Scroll paused
-                </div>
+                    </div>
                 </Transition>
 
                 <!-- Scroll to bottom button -->
-                <div class="absolute bottom-32 left-0 right-0 flex justify-center z-10 pointer-events-none">
+                <div class="pointer-events-none absolute right-0 bottom-32 left-0 z-10 flex justify-center">
                     <Transition name="scale-fade">
                         <button
                             v-if="showScrollToBottom && messages.length > 0"
-                            class="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-foreground/90 text-background shadow-lg hover:bg-foreground transition-colors cursor-pointer"
+                            class="bg-foreground/90 text-background hover:bg-foreground pointer-events-auto flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg transition-colors"
                             @click="handleScrollToBottomClick"
                         >
                             <ChevronDown class="h-4 w-4" />
@@ -959,7 +973,7 @@ const handleScrollToBottomClick = () => {
                 </div>
 
                 <!-- Sticky composer area -->
-                <div class="shrink-0 bg-background pt-4 pb-6 px-4 sm:px-6">
+                <div class="bg-background shrink-0 px-4 pt-4 pb-6 sm:px-6">
                     <div class="mx-auto transition-all duration-300" :class="[isChatExpanded ? 'max-w-5xl' : 'max-w-3xl']">
                         <ChatComposer
                             :isThinking="isStreaming"
@@ -973,8 +987,8 @@ const handleScrollToBottomClick = () => {
                             @stopStreaming="stopStreaming"
                         />
 
-                        <div v-if="props.appearance?.chat_footer_text" class="text-center mt-3">
-                            <p class="text-[11px] text-muted-foreground/60">{{ props.appearance.chat_footer_text }}</p>
+                        <div v-if="props.appearance?.chat_footer_text" class="mt-3 text-center">
+                            <p class="text-muted-foreground/60 text-[11px]">{{ props.appearance.chat_footer_text }}</p>
                         </div>
                     </div>
                 </div>
@@ -1349,7 +1363,7 @@ body,
 /* Streaming stabilization removed */
 
 /* Optimize rendering for streaming messages */
-#messages-container [id^="message-"]:last-child {
+#messages-container [id^='message-']:last-child {
     /* Isolate the last message to prevent reflows affecting other messages */
     contain: layout style;
 }
@@ -1397,25 +1411,43 @@ body,
 }
 
 /* Arabic Font Support */
-[data-rtl="true"] {
-    font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+[data-rtl='true'] {
+    font-family:
+        'Noto Sans Arabic',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
 }
 
-[data-rtl="true"] .prose {
-    font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+[data-rtl='true'] .prose {
+    font-family:
+        'Noto Sans Arabic',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
 }
 
-[data-rtl="true"] .prose p,
-[data-rtl="true"] .prose h1,
-[data-rtl="true"] .prose h2,
-[data-rtl="true"] .prose h3,
-[data-rtl="true"] .prose h4,
-[data-rtl="true"] .prose h5,
-[data-rtl="true"] .prose h6,
-[data-rtl="true"] .prose li,
-[data-rtl="true"] .prose blockquote,
-[data-rtl="true"] .prose td,
-[data-rtl="true"] .prose th {
-    font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+[data-rtl='true'] .prose p,
+[data-rtl='true'] .prose h1,
+[data-rtl='true'] .prose h2,
+[data-rtl='true'] .prose h3,
+[data-rtl='true'] .prose h4,
+[data-rtl='true'] .prose h5,
+[data-rtl='true'] .prose h6,
+[data-rtl='true'] .prose li,
+[data-rtl='true'] .prose blockquote,
+[data-rtl='true'] .prose td,
+[data-rtl='true'] .prose th {
+    font-family:
+        'Noto Sans Arabic',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
 }
 </style>

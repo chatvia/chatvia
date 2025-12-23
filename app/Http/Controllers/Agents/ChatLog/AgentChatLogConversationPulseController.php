@@ -16,6 +16,8 @@ class AgentChatLogConversationPulseController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.chat.pulse'), 403);
+
         $messages = $conversation->messages()
             ->where('role', 'user')
             ->orderBy('created_at')

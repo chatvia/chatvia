@@ -1,9 +1,26 @@
 <script lang="ts" setup>
-import { Link, router, usePage, useForm } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import isMobile from 'is-mobile';
-import { Bot, Check, Download, FileText, FileDown, LogOut, MoreVertical, PanelLeft, Edit, Settings, Trash2, User, X, Eye, EyeOff, Mail, Lock, PlusCircle } from 'lucide-vue-next';
-import { inject, nextTick, onMounted, ref, watch, computed } from 'vue';
+import {
+    Bot,
+    Check,
+    Download,
+    Edit,
+    Eye,
+    EyeOff,
+    FileDown,
+    FileText,
+    Lock,
+    LogOut,
+    Mail,
+    MoreVertical,
+    PanelLeft,
+    Trash2,
+    User,
+    X,
+} from 'lucide-vue-next';
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue';
 
 import {
     AlertDialog,
@@ -19,15 +36,24 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';    // TODO: Implement agent switching functionality
+import { Separator } from '@/components/ui/separator'; // TODO: Implement agent switching functionality
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import InputError from '@/components/InputError.vue';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Conversation {
     id: string | number;
@@ -68,8 +94,8 @@ const props = defineProps({
     },
     newChatRoute: {
         type: String,
-        default: 'chat.home'
-    }
+        default: 'chat.home',
+    },
 });
 
 const isMobileDevice = isMobile();
@@ -91,7 +117,7 @@ const profileForm = useForm({
     email: '',
     current_password: '',
     password: '',
-    password_confirmation: ''
+    password_confirmation: '',
 });
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
@@ -106,11 +132,14 @@ const isLoadingAgents = ref(false);
 // Agent switching form
 const agentSwitchForm = useForm({});
 
-
 // Watch for prop changes
-watch(() => props.defaultModel, (newDefaultModel) => {
-    defaultModel.value = newDefaultModel;
-}, { immediate: true });
+watch(
+    () => props.defaultModel,
+    (newDefaultModel) => {
+        defaultModel.value = newDefaultModel;
+    },
+    { immediate: true },
+);
 
 const loadConversations = () => {
     isLoadingConversations.value = true;
@@ -168,7 +197,6 @@ onMounted(() => {
     }
 
     chatEventBus.onConversationCreated(loadConversations);
-
 
     // Update window width on resize
     const handleResize = () => {
@@ -262,12 +290,11 @@ const exportConversation = async (id: string | number, format: string) => {
         const url = route('conversations.export', {
             conversationId: id,
             type: format,
-        })
-        window.open(url, '_blank')
+        });
+        window.open(url, '_blank');
     } catch (error) {
-        console.error('Failed to export', error)
+        console.error('Failed to export', error);
     }
-
 };
 
 const openDeleteDialog = (id: string | number) => {
@@ -337,7 +364,7 @@ const saveProfile = () => {
         },
         onError: () => {
             // Inertia will handle validation errors automatically
-        }
+        },
     });
 };
 
@@ -365,7 +392,7 @@ const loadAgents = async () => {
 
             if (currentSubdomain) {
                 // Find agent matching current subdomain
-                const currentAgent = agents.value.find(agent => agent.sub_domain === currentSubdomain);
+                const currentAgent = agents.value.find((agent) => agent.sub_domain === currentSubdomain);
                 selectedAgent.value = currentAgent || agents.value[0];
             } else {
                 // Fallback to first agent if no subdomain
@@ -400,22 +427,25 @@ const switchToSelectedAgent = () => {
 
     console.log('Sending switch request for agent:', selectedAgent.value.id);
 
-    agentSwitchForm.post(route('chat.member.agents.switch', {
-        agent: selectedAgent.value.external_id
-    }), {
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: () => {
-            console.log('Successfully switched to agent:', selectedAgent.value?.name);
-            closeAgentsDialog();
+    agentSwitchForm.post(
+        route('chat.member.agents.switch', {
+            agent: selectedAgent.value.external_id,
+        }),
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                console.log('Successfully switched to agent:', selectedAgent.value?.name);
+                closeAgentsDialog();
+            },
+            onError: (errors) => {
+                console.error('Failed to switch agent:', errors);
+            },
+            onFinish: () => {
+                console.log('Agent switch request completed');
+            },
         },
-        onError: (errors) => {
-            console.error('Failed to switch agent:', errors);
-        },
-        onFinish: () => {
-            console.log('Agent switch request completed');
-        }
-    });
+    );
 };
 </script>
 
@@ -441,25 +471,22 @@ const switchToSelectedAgent = () => {
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
     >
-        <div
-            v-show="isSidebarOpen && isMobileDevice"
-            class="bg-background/80 fixed inset-0 z-40 backdrop-blur-sm"
-            @click="toggleSidebar"
-        ></div>
+        <div v-show="isSidebarOpen && isMobileDevice" class="bg-background/80 fixed inset-0 z-40 backdrop-blur-sm" @click="toggleSidebar"></div>
     </Transition>
 
     <div
         :class="[isMobileDevice ? 'sm:max-w-none' : 'relative', isSidebarOpen ? 'translate-x-0' : '-translate-x-full']"
-        class="bg-sidebar fixed top-0 left-0 z-40 h-screen w-64 border-r border-sidebar-border transition-transform duration-300 ease-out"
+        class="bg-sidebar border-sidebar-border fixed top-0 left-0 z-40 h-screen w-64 border-r transition-transform duration-300 ease-out"
     >
         <div class="flex h-full flex-col px-3 py-3">
             <!-- Header -->
-            <div class="flex items-center justify-between mb-2">
-                <Link :href="route('chat.home')" class="p-2 hover:bg-accent rounded-lg transition-colors">
-                    <img v-if="props.appearance?.logo"
-                         :src="props.appearance.logo"
-                         :alt="props.appearance?.chat_window_title || 'ChatVia'"
-                         class="h-8 object-contain"
+            <div class="mb-2 flex items-center justify-between">
+                <Link :href="route('chat.home')" class="hover:bg-accent rounded-lg p-2 transition-colors">
+                    <img
+                        v-if="props.appearance?.logo"
+                        :src="props.appearance.logo"
+                        :alt="props.appearance?.chat_window_title || 'ChatVia'"
+                        class="h-8 object-contain"
                     />
                     <AppLogoIcon v-else class="h-8 w-8" />
                 </Link>
@@ -467,7 +494,7 @@ const switchToSelectedAgent = () => {
                 <button
                     v-if="showMobileClose"
                     aria-label="Close sidebar"
-                    class="p-2 hover:bg-accent rounded-lg transition-colors"
+                    class="hover:bg-accent rounded-lg p-2 transition-colors"
                     @click="toggleSidebar"
                 >
                     <X class="h-5 w-5" />
@@ -475,10 +502,10 @@ const switchToSelectedAgent = () => {
             </div>
 
             <!-- Menu Items -->
-            <nav class="space-y-1 mb-4">
+            <nav class="mb-4 space-y-1">
                 <button
                     @click="newConversation"
-                    class="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors cursor-pointer"
+                    class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
                 >
                     <Edit class="h-5 w-5" />
                     <span>New chat</span>
@@ -486,19 +513,19 @@ const switchToSelectedAgent = () => {
             </nav>
 
             <!-- Chats Section -->
-            <div class="flex-1 flex flex-col min-h-0">
-                <div class="px-3 py-2 flex-shrink-0">
-                    <span class="text-xs text-muted-foreground font-medium">Your chats</span>
+            <div class="flex min-h-0 flex-1 flex-col">
+                <div class="flex-shrink-0 px-3 py-2">
+                    <span class="text-muted-foreground text-xs font-medium">Your chats</span>
                 </div>
 
-                <ScrollArea class="flex-1 h-full">
+                <ScrollArea class="h-full flex-1">
                     <!-- Loading indicator -->
-                    <div v-if="isLoadingConversations" class="py-8 flex justify-center">
-                        <div class="h-5 w-5 border-2 border-muted-foreground/20 border-t-muted-foreground rounded-full animate-spin"></div>
+                    <div v-if="isLoadingConversations" class="flex justify-center py-8">
+                        <div class="border-muted-foreground/20 border-t-muted-foreground h-5 w-5 animate-spin rounded-full border-2"></div>
                     </div>
 
                     <!-- No conversations message -->
-                    <div v-else-if="conversations.length === 0" class="py-8 px-3 text-center">
+                    <div v-else-if="conversations.length === 0" class="px-3 py-8 text-center">
                         <p class="text-muted-foreground/60 text-sm">No conversations yet</p>
                     </div>
 
@@ -510,15 +537,15 @@ const switchToSelectedAgent = () => {
                                     <Tooltip :disabled="chat.title.length < 30">
                                         <TooltipTrigger asChild>
                                             <Link
-:class="[
-                                                     'flex w-full items-center px-3 py-2.5 text-sm rounded-lg transition-colors',
-                                                     route().current('chat.show', { conversationId: chat.id })
-                                                         ? 'bg-gray-200 dark:bg-gray-700 text-foreground'
-                                                         : 'text-foreground/80 hover:bg-gray-100 dark:hover:bg-gray-800',
-                                                 ]"
+                                                :class="[
+                                                    'flex w-full items-center rounded-lg px-3 py-2.5 text-sm transition-colors',
+                                                    route().current('chat.show', { conversationId: chat.id })
+                                                        ? 'text-foreground bg-gray-200 dark:bg-gray-700'
+                                                        : 'text-foreground/80 hover:bg-gray-100 dark:hover:bg-gray-800',
+                                                ]"
                                                 :href="route('chat.show', { conversationId: chat.id, model: defaultModel?.id })"
                                             >
-                                                <span class="truncate flex-1">{{ chat.title }}</span>
+                                                <span class="flex-1 truncate">{{ chat.title }}</span>
                                             </Link>
                                         </TooltipTrigger>
                                         <TooltipContent v-if="chat.title.length >= 30" side="right" :sideOffset="10">
@@ -528,16 +555,12 @@ const switchToSelectedAgent = () => {
                                 </TooltipProvider>
 
                                 <!-- Hover actions -->
-                                <div class="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 bg-accent/80 rounded-md px-0.5">
+                                <div
+                                    class="bg-accent/80 absolute top-1/2 right-1 flex -translate-y-1/2 items-center gap-0.5 rounded-md px-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                                >
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button
-                                                aria-label="More options"
-                                                class="h-7 w-7"
-                                                size="icon"
-                                                variant="ghost"
-                                                @click.prevent.stop
-                                            >
+                                            <Button aria-label="More options" class="h-7 w-7" size="icon" variant="ghost" @click.prevent.stop>
                                                 <MoreVertical class="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
@@ -577,7 +600,7 @@ const switchToSelectedAgent = () => {
                             </div>
 
                             <!-- Editing mode -->
-                            <div v-else class="flex w-full items-center gap-2 rounded-lg bg-accent px-2 py-1.5">
+                            <div v-else class="bg-accent flex w-full items-center gap-2 rounded-lg px-2 py-1.5">
                                 <Input
                                     :id="`edit-conversation-${chat.id}`"
                                     v-model="editingTitle"
@@ -594,7 +617,7 @@ const switchToSelectedAgent = () => {
                                     <Check class="h-4 w-4" />
                                 </Button>
                                 <Button
-                                    class="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                    class="text-muted-foreground hover:text-foreground h-7 w-7"
                                     size="icon"
                                     variant="ghost"
                                     @click="cancelEditing"
@@ -608,10 +631,12 @@ const switchToSelectedAgent = () => {
             </div>
 
             <!-- Sidebar footer -->
-            <div class="flex-shrink-0 border-t border-sidebar-border bg-sidebar/50 backdrop-blur-sm -mx-3 -mb-3 px-3 py-3 space-y-2">
+            <div class="border-sidebar-border bg-sidebar/50 -mx-3 -mb-3 flex-shrink-0 space-y-2 border-t px-3 py-3 backdrop-blur-sm">
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <button class="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-destructive hover:bg-accent rounded-lg transition-colors cursor-pointer">
+                        <button
+                            class="text-muted-foreground hover:text-destructive hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
+                        >
                             <Trash2 class="h-5 w-5" />
                             <span>Clear all chats</span>
                         </button>
@@ -638,27 +663,29 @@ const switchToSelectedAgent = () => {
                 <template v-if="(page.props.auth as any)?.member">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button class="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors">
+                            <button
+                                class="text-foreground hover:bg-accent flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
+                            >
                                 <Avatar class="h-7 w-7">
-                                    <AvatarImage :src="(page.props.auth as any)?.member?.avatar || ''"/>
+                                    <AvatarImage :src="(page.props.auth as any)?.member?.avatar || ''" />
                                     <AvatarFallback class="text-xs">{{ (page.props.auth as any)?.member?.name?.charAt(0) || 'U' }}</AvatarFallback>
                                 </Avatar>
                                 <span class="flex-1 truncate text-left">{{ (page.props.auth as any)?.member?.name || 'User' }}</span>
-                                <MoreVertical class="h-4 w-4 text-muted-foreground" />
+                                <MoreVertical class="text-muted-foreground h-4 w-4" />
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" side="top" class="w-56">
                             <DropdownMenuItem @click="openProfileDialog">
-                                <User class="mr-2 h-4 w-4"/>
+                                <User class="mr-2 h-4 w-4" />
                                 <span>Profile</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem @click="openAgentsDialog">
-                                <Bot class="mr-2 h-4 w-4"/>
+                                <Bot class="mr-2 h-4 w-4" />
                                 <span>My Agents</span>
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator/>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem @click="handleLogout">
-                                <LogOut class="mr-2 h-4 w-4"/>
+                                <LogOut class="mr-2 h-4 w-4" />
                                 <span>Log out</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -673,16 +700,11 @@ const switchToSelectedAgent = () => {
         <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Are you sure you want to delete this conversation? This action cannot be undone.
-                </AlertDialogDescription>
+                <AlertDialogDescription> Are you sure you want to delete this conversation? This action cannot be undone. </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
                 <AlertDialogCancel @click="cancelDelete">Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                    class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    @click="deleteConversation"
-                >
+                <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="deleteConversation">
                     Delete
                 </AlertDialogAction>
             </AlertDialogFooter>
@@ -694,16 +716,14 @@ const switchToSelectedAgent = () => {
         <DialogContent class="sm:max-w-[600px]">
             <DialogHeader>
                 <DialogTitle>Profile Settings</DialogTitle>
-                <DialogDescription>
-                    Update your account information and password.
-                </DialogDescription>
+                <DialogDescription> Update your account information and password. </DialogDescription>
             </DialogHeader>
             <div class="grid gap-6 py-4">
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="name" class="text-right">Name</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
-                            <User class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <User class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                             <Input id="name" v-model="profileForm.name" class="pl-10" placeholder="Enter your name" />
                         </div>
                         <InputError :message="profileForm.errors.name" class="text-xs" />
@@ -711,13 +731,13 @@ const switchToSelectedAgent = () => {
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="email" class="text-right">Email</Label>
-                    <div class="col-span-3 relative">
-                        <Mail class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div class="relative col-span-3">
+                        <Mail class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                         <Input
                             id="email"
                             v-model="profileForm.email"
                             type="email"
-                            class="pl-10 bg-muted cursor-not-allowed"
+                            class="bg-muted cursor-not-allowed pl-10"
                             placeholder="Enter your email"
                             readonly
                             disabled
@@ -729,17 +749,17 @@ const switchToSelectedAgent = () => {
                     <Label for="current-password" class="text-right">Current Password</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
-                            <Lock class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                             <Input
                                 id="current-password"
                                 v-model="profileForm.current_password"
                                 :type="showCurrentPassword ? 'text' : 'password'"
-                                class="pl-10 pr-10"
+                                class="pr-10 pl-10"
                                 placeholder="Enter current password"
                             />
                             <button
                                 type="button"
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transform"
                                 @click="showCurrentPassword = !showCurrentPassword"
                             >
                                 <Eye v-if="!showCurrentPassword" class="h-4 w-4" />
@@ -753,17 +773,17 @@ const switchToSelectedAgent = () => {
                     <Label for="new-password" class="text-right">New Password</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
-                            <Lock class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                             <Input
                                 id="new-password"
                                 v-model="profileForm.password"
                                 :type="showNewPassword ? 'text' : 'password'"
-                                class="pl-10 pr-10"
+                                class="pr-10 pl-10"
                                 placeholder="Enter new password"
                             />
                             <button
                                 type="button"
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transform"
                                 @click="showNewPassword = !showNewPassword"
                             >
                                 <Eye v-if="!showNewPassword" class="h-4 w-4" />
@@ -777,17 +797,17 @@ const switchToSelectedAgent = () => {
                     <Label for="confirm-password" class="text-right">Confirm Password</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
-                            <Lock class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                             <Input
                                 id="confirm-password"
                                 v-model="profileForm.password_confirmation"
                                 :type="showConfirmPassword ? 'text' : 'password'"
-                                class="pl-10 pr-10"
+                                class="pr-10 pl-10"
                                 placeholder="Confirm new password"
                             />
                             <button
                                 type="button"
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transform"
                                 @click="showConfirmPassword = !showConfirmPassword"
                             >
                                 <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
@@ -812,38 +832,48 @@ const switchToSelectedAgent = () => {
         <DialogContent class="sm:max-w-[600px]">
             <DialogHeader>
                 <DialogTitle>My Agents</DialogTitle>
-                <DialogDescription>
-                    Manage your AI agents and their configurations.
-                </DialogDescription>
+                <DialogDescription> Manage your AI agents and their configurations. </DialogDescription>
             </DialogHeader>
             <ScrollArea class="max-h-[400px] py-4">
-                                <div class="space-y-4">
-                    <div v-if="isLoadingAgents" class="text-center py-8">
-                        <svg class="h-6 w-6 mx-auto animate-spin text-muted-foreground mb-4" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <div class="space-y-4">
+                    <div v-if="isLoadingAgents" class="py-8 text-center">
+                        <svg
+                            class="text-muted-foreground mx-auto mb-4 h-6 w-6 animate-spin"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+                            <path
+                                class="opacity-75"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                fill="currentColor"
+                            ></path>
                         </svg>
                         <p class="text-muted-foreground text-sm">Loading agents...</p>
                     </div>
-                    <div v-else-if="agents.length === 0" class="text-center py-8">
-                        <Bot class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <div v-else-if="agents.length === 0" class="py-8 text-center">
+                        <Bot class="text-muted-foreground mx-auto mb-4 h-12 w-12" />
                         <p class="text-muted-foreground">No agents found.</p>
                     </div>
                     <div v-else class="space-y-3">
-                        <div v-for="agent in agents" :key="agent.external_id"
-                             :class="[
-                                 'flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-colors',
-                                 selectedAgent?.id === agent.external_id ? 'border-primary bg-primary/5' : 'hover:bg-accent'
-                             ]"
-                             @click="selectAgent(agent)">
-                            <div class="flex items-center gap-3 flex-1">
-                                <div :class="[
-                                    'w-4 h-4 rounded-full border-2',
-                                    selectedAgent?.id === agent.external_id
-                                        ? 'border-primary bg-primary'
-                                        : 'border-muted-foreground'
-                                ]">
-                                    <div v-if="selectedAgent?.id === agent.external_id" class="w-2 h-2 bg-white rounded-full m-0.5"></div>
+                        <div
+                            v-for="agent in agents"
+                            :key="agent.external_id"
+                            :class="[
+                                'flex cursor-pointer items-center justify-between rounded-lg border p-4 transition-colors',
+                                selectedAgent?.id === agent.external_id ? 'border-primary bg-primary/5' : 'hover:bg-accent',
+                            ]"
+                            @click="selectAgent(agent)"
+                        >
+                            <div class="flex flex-1 items-center gap-3">
+                                <div
+                                    :class="[
+                                        'h-4 w-4 rounded-full border-2',
+                                        selectedAgent?.id === agent.external_id ? 'border-primary bg-primary' : 'border-muted-foreground',
+                                    ]"
+                                >
+                                    <div v-if="selectedAgent?.id === agent.external_id" class="m-0.5 h-2 w-2 rounded-full bg-white"></div>
                                 </div>
                                 <div class="flex-1">
                                     <h4 class="font-semibold">{{ agent.name }}</h4>
@@ -853,20 +883,27 @@ const switchToSelectedAgent = () => {
                     </div>
                 </div>
             </ScrollArea>
-                         <DialogFooter class="flex-col sm:flex-row gap-2">
-                                 <Button
-                    @click="switchToSelectedAgent"
-                    :disabled="!selectedAgent || agentSwitchForm.processing"
-                    class="w-full sm:w-auto">
-                    <svg v-if="agentSwitchForm.processing" class="h-4 w-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <DialogFooter class="flex-col gap-2 sm:flex-row">
+                <Button @click="switchToSelectedAgent" :disabled="!selectedAgent || agentSwitchForm.processing" class="w-full sm:w-auto">
+                    <svg
+                        v-if="agentSwitchForm.processing"
+                        class="mr-2 h-4 w-4 animate-spin"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+                        <path
+                            class="opacity-75"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            fill="currentColor"
+                        ></path>
                     </svg>
-                    <Bot v-else class="h-4 w-4 mr-2" />
+                    <Bot v-else class="mr-2 h-4 w-4" />
                     {{ agentSwitchForm.processing ? 'Switching...' : `Switch to ${selectedAgent?.name || 'Selected Agent'}` }}
                 </Button>
-                 <Button variant="outline" @click="closeAgentsDialog" class="w-full sm:w-auto">Close</Button>
-             </DialogFooter>
+                <Button variant="outline" @click="closeAgentsDialog" class="w-full sm:w-auto">Close</Button>
+            </DialogFooter>
         </DialogContent>
     </Dialog>
 </template>

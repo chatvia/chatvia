@@ -22,6 +22,11 @@ class AgentSourceCrawlerController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.web'),
+            code: 403,
+        );
+
         $validated = $request->validate([
             'url' => ['required', 'url'],
             'slow_crawling' => ['required', 'boolean'],

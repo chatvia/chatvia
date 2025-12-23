@@ -6,15 +6,16 @@ use App\Models\Agent;
 use App\Models\ChatConversation;
 use App\Services\Chat\HandoffService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 readonly class HandoffTakeOverController
 {
     public function __construct(private HandoffService $handoffService) {}
 
-    public function __invoke(Agent $agent, string $conversation): JsonResponse
+    public function __invoke(Request $request, Agent $agent, string $conversation): JsonResponse
     {
-        $user = auth()->user();
+        $user = $request->user();
 
         // Resolve conversation
         $conversation = ChatConversation::find($conversation);
@@ -32,6 +33,14 @@ readonly class HandoffTakeOverController
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to take over this conversation.',
+            ], 403);
+        }
+
+        // Check if user has takeover permission
+        if (! has_permission_to_agent($agent, 'agent.chat.takeover')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to take over conversations.',
             ], 403);
         }
 

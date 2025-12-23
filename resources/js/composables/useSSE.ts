@@ -1,16 +1,20 @@
-import { ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 export function useSSE() {
     const isStreaming = ref(false);
     let abortController: AbortController | null = null;
 
-    const startStream = (url: string, payload: string, callbacks: {
-        onMessage?: (content: string, messageId?: string, userMessageId?: string) => void,
-        onDone?: () => void,
-        onSources?: (sources: any[]) => void,
-        onLanguage?: (language: string) => void
-    }) => {
+    const startStream = (
+        url: string,
+        payload: string,
+        callbacks: {
+            onMessage?: (content: string, messageId?: string, userMessageId?: string) => void;
+            onDone?: () => void;
+            onSources?: (sources: any[]) => void;
+            onLanguage?: (language: string) => void;
+        },
+    ) => {
         return () => {
             // Abort any existing connection
             if (abortController) {
@@ -30,7 +34,7 @@ export function useSSE() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'text/event-stream',
+                    Accept: 'text/event-stream',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': csrfToken,
                 },
@@ -38,7 +42,7 @@ export function useSSE() {
                 credentials: 'same-origin',
                 signal: abortController.signal,
             })
-                .then(response => {
+                .then((response) => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
@@ -107,7 +111,7 @@ export function useSSE() {
 
                     return reader.read().then(processChunk);
                 })
-                .catch(error => {
+                .catch((error) => {
                     if (error.name !== 'AbortError') {
                         console.error('SSE connection error:', error);
                     }
@@ -127,6 +131,6 @@ export function useSSE() {
     return {
         isStreaming,
         startStream,
-        stopStream
+        stopStream,
     };
 }

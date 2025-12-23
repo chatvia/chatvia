@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
+import { Link } from '@inertiajs/vue3';
 import { Lock, Zap } from 'lucide-vue-next';
 
 interface Props {
@@ -11,26 +11,22 @@ defineProps<Props>();
 </script>
 
 <template>
-    <div class="flex items-center justify-center min-h-[calc(100vh-20rem)]">
-        <div class="max-w-md w-full text-center space-y-8">
+    <div class="flex min-h-[calc(100vh-20rem)] items-center justify-center">
+        <div class="w-full max-w-md space-y-8 text-center">
             <!-- Lock Icon -->
-            <div class="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                <Lock class="h-10 w-10 text-primary" />
+            <div class="from-primary/10 to-primary/5 mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br">
+                <Lock class="text-primary h-10 w-10" />
             </div>
 
             <!-- Description -->
             <div class="space-y-3">
-                <p class="text-lg text-muted-foreground">
+                <p class="text-muted-foreground text-lg">
                     {{ description }}
                 </p>
             </div>
 
             <!-- Upgrade Button -->
-            <Button
-                as-child
-                size="lg"
-                class="gap-2 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
+            <Button as-child size="lg" class="gap-2 shadow-lg transition-all duration-300 hover:shadow-xl">
                 <Link :href="route('billing.packages')">
                     <Zap class="h-5 w-5" />
                     Upgrade Now
@@ -39,4 +35,3 @@ defineProps<Props>();
         </div>
     </div>
 </template>
-

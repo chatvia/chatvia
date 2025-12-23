@@ -15,6 +15,8 @@ class AgentChatLogConversationsController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
+
         return ChatLogConversationsResourceData::fromAgent(
             agent: $agent,
             page: $request->integer('page', 1),

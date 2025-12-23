@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 
 const props = defineProps<{
     form: {
@@ -47,9 +47,7 @@ const responseStyles = [
     <Card>
         <CardHeader>
             <CardTitle>Personality & Communication</CardTitle>
-            <CardDescription>
-                Define how your agent should communicate and behave
-            </CardDescription>
+            <CardDescription> Define how your agent should communicate and behave </CardDescription>
         </CardHeader>
         <CardContent class="space-y-6">
             <div class="space-y-2">
@@ -71,14 +69,10 @@ const responseStyles = [
                             <SelectValue placeholder="Select a tone" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="tone in tones"
-                                :key="tone.value"
-                                :value="tone.value"
-                            >
+                            <SelectItem v-for="tone in tones" :key="tone.value" :value="tone.value">
                                 <div class="flex flex-col">
                                     <span>{{ tone.label }}</span>
-                                    <span class="text-xs text-muted-foreground">
+                                    <span class="text-muted-foreground text-xs">
                                         {{ tone.description }}
                                     </span>
                                 </div>
@@ -94,11 +88,7 @@ const responseStyles = [
                             <SelectValue placeholder="Select formality level" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="level in formalityLevels"
-                                :key="level.value"
-                                :value="level.value"
-                            >
+                            <SelectItem v-for="level in formalityLevels" :key="level.value" :value="level.value">
                                 {{ level.label }}
                             </SelectItem>
                         </SelectContent>
@@ -113,14 +103,10 @@ const responseStyles = [
                         <SelectValue placeholder="Select response style" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem
-                            v-for="style in responseStyles"
-                            :key="style.value"
-                            :value="style.value"
-                        >
+                        <SelectItem v-for="style in responseStyles" :key="style.value" :value="style.value">
                             <div class="flex flex-col">
                                 <span>{{ style.label }}</span>
-                                <span class="text-xs text-muted-foreground">
+                                <span class="text-muted-foreground text-xs">
                                     {{ style.description }}
                                 </span>
                             </div>
@@ -132,9 +118,7 @@ const responseStyles = [
             <div class="flex items-center justify-between space-x-2">
                 <div class="space-y-0.5">
                     <Label>Use Emojis</Label>
-                    <p class="text-sm text-muted-foreground">
-                        Allow the agent to use emojis in responses
-                    </p>
+                    <p class="text-muted-foreground text-sm">Allow the agent to use emojis in responses</p>
                 </div>
                 <Switch v-model="form.useEmojis" />
             </div>
@@ -142,12 +126,10 @@ const responseStyles = [
             <div class="flex items-center justify-between space-x-2">
                 <div class="space-y-0.5">
                     <Label>Use Markdown</Label>
-                    <p class="text-sm text-muted-foreground">
-                        Enable markdown formatting in responses
-                    </p>
+                    <p class="text-muted-foreground text-sm">Enable markdown formatting in responses</p>
                 </div>
                 <Switch v-model="form.useMarkdown" />
             </div>
         </CardContent>
     </Card>
-</template> 
+</template>

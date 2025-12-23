@@ -113,10 +113,9 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $this->sourceFile->refresh();
 
-
         dispatch(
             new SummaryIngestionJob($this->sourceFile,
-            Storage::temporaryUrl($this->sourceFile->parser_filepath, now()->addDay()))
+                Storage::temporaryUrl($this->sourceFile->parser_filepath, now()->addDay()))
         );
 
         $agentFileId = $this->sourceFile->id;

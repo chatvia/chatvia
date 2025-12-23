@@ -17,6 +17,8 @@ class AgentChatLogReviseAnswerController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
+
         $validated = $request->validate([
             'message_id' => ['required', 'string'],
             'user_message' => ['required', 'string', 'max:5000'],

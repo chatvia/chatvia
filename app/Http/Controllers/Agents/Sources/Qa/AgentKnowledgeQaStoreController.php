@@ -20,6 +20,11 @@ class AgentKnowledgeQaStoreController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.qa'),
+            code: 403,
+        );
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'questions' => ['required', 'array', 'min:1'],

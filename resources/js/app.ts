@@ -1,22 +1,21 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
+import { configureEcho } from '@laravel/echo-vue';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import 'primeicons/primeicons.css';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
-import { ZiggyVue } from 'ziggy-js';
-import { initializeTheme } from './composables/useAppearance';
-import { createChatEventBus } from './utils/eventBus'
-import Vue3ColorPicker from "vue3-colorpicker";
-import "vue3-colorpicker/style.css";
+import { createGtag } from 'vue-gtag';
 import { toast } from 'vue-sonner';
 import 'vue-sonner/style.css';
-import { router } from '@inertiajs/vue3';
+import Vue3ColorPicker from 'vue3-colorpicker';
+import 'vue3-colorpicker/style.css';
+import { ZiggyVue } from 'ziggy-js';
+import { initializeTheme } from './composables/useAppearance';
+import { createChatEventBus } from './utils/eventBus';
 
-const chatEventBus = createChatEventBus()
-import { createGtag } from "vue-gtag";
-import { configureEcho } from '@laravel/echo-vue';
-import 'primeicons/primeicons.css'
+const chatEventBus = createChatEventBus();
 
 configureEcho({
     broadcaster: 'reverb',
@@ -28,7 +27,7 @@ configureEcho({
     enabledTransports: ['ws', 'wss'],
 });
 
-const vueTag = createGtag({ tagId: "G-RTCBL1ZT5C"})
+const vueTag = createGtag({ tagId: 'G-RTCBL1ZT5C' });
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {

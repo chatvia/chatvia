@@ -14,4 +14,3 @@ const props = defineProps<Props>();
         <YoutubeComponent :agent="agent" />
     </AgentLayout>
 </template>
-

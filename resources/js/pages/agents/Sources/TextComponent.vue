@@ -1,33 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import InputError from '@/components/InputError.vue';
+import AttachTextDialog from '@/components/ui/AttachTextDialog.vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import InputError from '@/components/InputError.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useEcho } from "@laravel/echo-vue";
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
+import { useForm } from '@inertiajs/vue3';
+import { useEcho } from '@laravel/echo-vue';
+import axios from 'axios';
+import { AlertCircle, CheckCircle, ChevronDown, Edit3, FileText, Link2, LoaderCircle, Plus, Save, Trash2, Type, Unlink } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
-import axios from "axios";
-import {
-    Type,
-    Plus,
-    Save,
-    Trash2,
-    LoaderCircle,
-    AlertCircle,
-    CheckCircle,
-    FileText,
-    Edit3,
-    Link2,
-    ChevronDown,
-    Unlink
-} from 'lucide-vue-next';
-import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
-import AttachTextDialog from '@/components/ui/AttachTextDialog.vue';
 
 interface Props {
     agent: App.Data.Resources.Agent.AgentResourceData;
@@ -47,23 +35,20 @@ interface TextEntry {
 
 const props = defineProps<Props>();
 
+const { hasPermission } = useTeamPermissions();
+
+// Check if user can delete sources
+const canDeleteSources = computed(() => hasPermission('agent.sources.delete'));
+
 // WebSocket event listener for text ingestion status updates
-useEcho(
-    `agents.${props.agent.external_id}.ingestion.text`,
-    "TextIngestionEvent",
-    (e) => {
-        handleIngestionUpdate(e);
-    },
-);
+useEcho(`agents.${props.agent.external_id}.ingestion.text`, 'TextIngestionEvent', (e) => {
+    handleIngestionUpdate(e);
+});
 
 // WebSocket event listener for text ingestion progress updates
-useEcho(
-    `agents.${props.agent.external_id}.texts.progress`,
-    "TextIngestionProgressEvent",
-    (e) => {
-        handleTextIngestionProgress(e);
-    },
-);
+useEcho(`agents.${props.agent.external_id}.texts.progress`, 'TextIngestionProgressEvent', (e) => {
+    handleTextIngestionProgress(e);
+});
 
 // State
 const textEntries = ref<TextEntry[]>([]);
@@ -83,13 +68,16 @@ const attachTextDialogOpen = ref(false);
 
 // Form for creating/editing text entries
 const form = useForm({
-    content: ''
+    content: '',
 });
 
 // Computed
 const wordCount = computed(() => {
     if (!form.content) return 0;
-    return form.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+    return form.content
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length;
 });
 
 const charCount = computed(() => {
@@ -106,10 +94,12 @@ const openCreateForm = () => {
 const openEditForm = async (entry: TextEntry) => {
     try {
         isLoading.value = true;
-        const response = await axios.get(route('agents.sources.text.show', {
-            agent: props.agent.external_id,
-            id: entry.id
-        }));
+        const response = await axios.get(
+            route('agents.sources.text.show', {
+                agent: props.agent.external_id,
+                id: entry.id,
+            }),
+        );
 
         editingEntry.value = entry;
         form.content = response.data.content;
@@ -151,23 +141,34 @@ const saveTextEntry = () => {
 
     if (editingEntry.value) {
         // Update existing entry
-        form.patch(route('agents.sources.text.update', {
-            agent: props.agent.external_id,
-            id: editingEntry.value.id
-        }), {
-            onSuccess,
-            onError
-        });
+        form.patch(
+            route('agents.sources.text.update', {
+                agent: props.agent.external_id,
+                id: editingEntry.value.id,
+            }),
+            {
+                onSuccess,
+                onError,
+            },
+        );
     } else {
         // Create new entry
         form.post(route('agents.sources.text.store', { agent: props.agent.external_id }), {
             onSuccess,
-            onError
+            onError,
         });
     }
 };
 
 const confirmDelete = (entry: TextEntry) => {
+    // Check permission first
+    if (!canDeleteSources.value) {
+        toast.error('Permission denied', {
+            description: 'You do not have permission to delete sources.',
+        });
+        return;
+    }
+
     entryToDelete.value = entry;
     deleteDialogOpen.value = true;
 };
@@ -183,10 +184,12 @@ const unlinkTextEntry = async () => {
     isUnlinking.value = true;
 
     try {
-        await axios.post(route('agents.sources.text.unlink', {
-            agent: props.agent.external_id,
-            id: textToUnlink.id
-        }));
+        await axios.post(
+            route('agents.sources.text.unlink', {
+                agent: props.agent.external_id,
+                id: textToUnlink.id,
+            }),
+        );
 
         toast.success('Text unlinked from agent successfully!');
 
@@ -211,10 +214,12 @@ const deleteTextEntry = async () => {
     isDeleting.value = true;
 
     try {
-        await axios.delete(route('agents.sources.text.destroy', {
-            agent: props.agent.external_id,
-            id: textToDelete.id
-        }));
+        await axios.delete(
+            route('agents.sources.text.destroy', {
+                agent: props.agent.external_id,
+                id: textToDelete.id,
+            }),
+        );
 
         toast.success('Text deleted successfully!');
 
@@ -267,7 +272,7 @@ const handleIngestionUpdate = async (event: any) => {
     const { status, id: entry_id } = event;
 
     // Find the entry by ID
-    const entryIndex = textEntries.value.findIndex(entry => entry.id === entry_id);
+    const entryIndex = textEntries.value.findIndex((entry) => entry.id === entry_id);
 
     if (entryIndex === -1) {
         // If entry not found, refresh the list to ensure we have the latest data
@@ -280,7 +285,7 @@ const handleIngestionUpdate = async (event: any) => {
     // Update the entry status
     textEntries.value[entryIndex] = {
         ...entry,
-        status: status
+        status: status,
     };
 
     // Show toast notifications based on status
@@ -312,7 +317,7 @@ const handleTextIngestionProgress = (event: any) => {
     }
 
     // Find the text entry and update its progress
-    const entryIndex = textEntries.value.findIndex(entry => entry.id === text_id);
+    const entryIndex = textEntries.value.findIndex((entry) => entry.id === text_id);
 
     if (entryIndex !== -1) {
         // Create a new array with the updated entry for reactivity
@@ -321,7 +326,7 @@ const handleTextIngestionProgress = (event: any) => {
         updatedEntries[entryIndex] = {
             ...updatedEntries[entryIndex],
             progress: progress,
-            status: progress >= 100 ? 'ingested' : 'ingesting'
+            status: progress >= 100 ? 'ingested' : 'ingesting',
         };
         textEntries.value = updatedEntries;
 
@@ -384,7 +389,7 @@ const formatDate = (dateString: string) => {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
     });
 };
 
@@ -395,269 +400,237 @@ fetchTextEntries();
 <template>
     <div class="flex justify-center">
         <div class="w-full max-w-6xl space-y-6">
-        <Card>
-            <CardHeader>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <CardTitle class="flex items-center gap-2">
-                            <Type class="h-5 w-5" />
-                            Text Knowledge
-                        </CardTitle>
-                        <CardDescription>
-                            Add custom text content directly to your agent's knowledge base. Perfect for FAQs, policies, and structured information.
-                        </CardDescription>
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button class="flex items-center gap-2">
-                                <Plus class="h-4 w-4" />
-                                Add Text
-                                <ChevronDown class="h-4 w-4 ml-1" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" class="w-64">
-                            <DropdownMenuGroup>
-                                <DropdownMenuItem @click="openCreateForm" class="cursor-pointer">
-                                    <Plus class="mr-2 h-4 w-4" />
-                                    Create New Text
-                                </DropdownMenuItem>
-                                <DropdownMenuItem @click="openAttachTextDialog" class="cursor-pointer">
-                                    <Link2 class="mr-2 h-4 w-4" />
-                                    Already Trained Texts
-                                </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </CardHeader>
-        </Card>
-
-        <!-- Create/Edit Form -->
-        <Card v-if="showCreateForm">
-            <CardHeader>
-                <CardTitle class="flex items-center gap-2">
-                    <Edit3 class="h-5 w-5" />
-                    {{ editingEntry ? 'Edit Text Entry' : 'Create New Text Entry' }}
-                </CardTitle>
-                <CardDescription>
-                    {{ editingEntry ? 'Update your text content' : 'Add structured text content to your knowledge base' }}
-                </CardDescription>
-            </CardHeader>
-            <CardContent class="space-y-6">
-                <!-- Content Textarea -->
-                <div class="space-y-2">
+            <Card>
+                <CardHeader>
                     <div class="flex items-center justify-between">
-                        <Label for="content">Content *</Label>
-                        <div class="text-sm text-muted-foreground space-x-4">
-                            <span>{{ wordCount }} words</span>
-                            <span>{{ charCount }} characters</span>
+                        <div>
+                            <CardTitle class="flex items-center gap-2">
+                                <Type class="h-5 w-5" />
+                                Text Knowledge
+                            </CardTitle>
+                            <CardDescription>
+                                Add custom text content directly to your agent's knowledge base. Perfect for FAQs, policies, and structured
+                                information.
+                            </CardDescription>
                         </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger as-child>
+                                <Button class="flex items-center gap-2">
+                                    <Plus class="h-4 w-4" />
+                                    Add Text
+                                    <ChevronDown class="ml-1 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" class="w-64">
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem @click="openCreateForm" class="cursor-pointer">
+                                        <Plus class="mr-2 h-4 w-4" />
+                                        Create New Text
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem @click="openAttachTextDialog" class="cursor-pointer">
+                                        <Link2 class="mr-2 h-4 w-4" />
+                                        Already Trained Texts
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
-                    <Textarea
-                        id="content"
-                        v-model="form.content"
-                        :disabled="isSubmitting"
-                        placeholder="Enter your text content here. This can include FAQs, policies, instructions, or any structured information you want your agent to know about..."
-                        rows="12"
-                        :class="{ 'border-red-500': form.errors.content }"
-                        class="resize-none"
-                    />
-                    <InputError :message="form.errors.content" />
-                    <p v-if="!form.errors.content" class="text-sm text-muted-foreground">
-                        Minimum 250 words required. Use clear, structured text for best results.
-                    </p>
-                </div>
+                </CardHeader>
+            </Card>
 
-                <!-- Action Buttons -->
-                <div class="flex items-center justify-between pt-4 border-t">
-                    <Button variant="outline" @click="cancelForm" :disabled="isSubmitting">
-                        Cancel
-                    </Button>
-                    <Button
-                        @click="saveTextEntry"
-                        :disabled="isSubmitting"
-                        class="flex items-center gap-2"
-                    >
-                        <LoaderCircle v-if="isSubmitting" class="h-4 w-4 animate-spin" />
-                        <Save v-else class="h-4 w-4" />
-                        {{ isSubmitting ? 'Saving...' : (editingEntry ? 'Update Entry' : 'Save Entry') }}
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
+            <!-- Create/Edit Form -->
+            <Card v-if="showCreateForm">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <Edit3 class="h-5 w-5" />
+                        {{ editingEntry ? 'Edit Text Entry' : 'Create New Text Entry' }}
+                    </CardTitle>
+                    <CardDescription>
+                        {{ editingEntry ? 'Update your text content' : 'Add structured text content to your knowledge base' }}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent class="space-y-6">
+                    <!-- Content Textarea -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <Label for="content">Content *</Label>
+                            <div class="text-muted-foreground space-x-4 text-sm">
+                                <span>{{ wordCount }} words</span>
+                                <span>{{ charCount }} characters</span>
+                            </div>
+                        </div>
+                        <Textarea
+                            id="content"
+                            v-model="form.content"
+                            :disabled="isSubmitting"
+                            placeholder="Enter your text content here. This can include FAQs, policies, instructions, or any structured information you want your agent to know about..."
+                            rows="12"
+                            :class="{ 'border-red-500': form.errors.content }"
+                            class="resize-none"
+                        />
+                        <InputError :message="form.errors.content" />
+                        <p v-if="!form.errors.content" class="text-muted-foreground text-sm">
+                            Minimum 250 words required. Use clear, structured text for best results.
+                        </p>
+                    </div>
 
-        <!-- Text Entries List -->
-        <Card v-if="!isLoading && textEntries.length > 0">
-            <CardHeader>
-                <CardTitle class="flex items-center gap-2">
-                    <FileText class="h-5 w-5" />
-                    Your Text Entries ({{ textEntries.length }})
-                </CardTitle>
-                <CardDescription>
-                    Manage your custom text content
-                </CardDescription>
-            </CardHeader>
-            <CardContent class="space-y-4">
-                <div
-                    v-for="entry in textEntries"
-                    :key="entry.id"
-                    class="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start gap-2 mb-2">
-                                <p class="text-sm text-muted-foreground line-clamp-2 flex-1">
-                                    {{ entry.excerpt }}
-                                </p>
+                    <!-- Action Buttons -->
+                    <div class="flex items-center justify-between border-t pt-4">
+                        <Button variant="outline" @click="cancelForm" :disabled="isSubmitting"> Cancel </Button>
+                        <Button @click="saveTextEntry" :disabled="isSubmitting" class="flex items-center gap-2">
+                            <LoaderCircle v-if="isSubmitting" class="h-4 w-4 animate-spin" />
+                            <Save v-else class="h-4 w-4" />
+                            {{ isSubmitting ? 'Saving...' : editingEntry ? 'Update Entry' : 'Save Entry' }}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <!-- Text Entries List -->
+            <Card v-if="!isLoading && textEntries.length > 0">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <FileText class="h-5 w-5" />
+                        Your Text Entries ({{ textEntries.length }})
+                    </CardTitle>
+                    <CardDescription> Manage your custom text content </CardDescription>
+                </CardHeader>
+                <CardContent class="space-y-4">
+                    <div v-for="entry in textEntries" :key="entry.id" class="hover:bg-muted/50 rounded-lg border p-4 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="min-w-0 flex-1">
+                                <div class="mb-2 flex items-start gap-2">
+                                    <p class="text-muted-foreground line-clamp-2 flex-1 text-sm">
+                                        {{ entry.excerpt }}
+                                    </p>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div class="flex items-center">
+                                                    <component
+                                                        :is="getStatusIcon(entry.status)"
+                                                        :class="`h-4 w-4 flex-shrink-0 ${getStatusColor(entry.status)} ${entry.status === 'pending' || entry.status === 'ingesting' ? 'animate-spin' : ''}`"
+                                                    />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{{ getStatusLabel(entry.status) }}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                                <div class="text-muted-foreground flex items-center gap-4 text-xs">
+                                    <span>{{ formatDate(entry.created_at) }}</span>
+                                </div>
+                                <!-- Progress bar for processing text entries -->
+                                <IngestionProgressBar v-if="entry.status === 'ingesting'" :progress="entry.progress ?? 0" />
+                            </div>
+                            <div class="ml-4 flex items-center gap-2">
+                                <TooltipProvider v-if="entry.status !== 'pending' && entry.status !== 'ingesting'">
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="outline" size="sm" @click="openEditForm(entry)" class="h-8 w-8 p-0">
+                                                <Edit3 class="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Edit entry</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <div class="flex items-center">
-                                                <component
-                                                    :is="getStatusIcon(entry.status)"
-                                                    :class="`h-4 w-4 flex-shrink-0 ${getStatusColor(entry.status)} ${(entry.status === 'pending' || entry.status === 'ingesting') ? 'animate-spin' : ''}`"
-                                                />
-                                            </div>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                @click="confirmDelete(entry)"
+                                                class="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                            >
+                                                <Trash2 class="h-4 w-4" />
+                                            </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>{{ getStatusLabel(entry.status) }}</p>
+                                            <div class="text-xs">
+                                                <p v-if="isTextShared(entry)">
+                                                    Remove from agent<br />
+                                                    <span class="text-muted-foreground">(Used in {{ entry.agents_count }} agents)</span>
+                                                </p>
+                                                <p v-else>Delete from knowledge base</p>
+                                            </div>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
                             </div>
-                            <div class="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span>{{ formatDate(entry.created_at) }}</span>
-                            </div>
-                            <!-- Progress bar for processing text entries -->
-                            <IngestionProgressBar
-                                v-if="entry.status === 'ingesting'"
-                                :progress="entry.progress ?? 0"
-                            />
-                        </div>
-                        <div class="flex items-center gap-2 ml-4">
-                            <TooltipProvider v-if="entry.status !== 'pending' && entry.status !== 'ingesting'">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            @click="openEditForm(entry)"
-                                            class="h-8 w-8 p-0"
-                                        >
-                                            <Edit3 class="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Edit entry</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            @click="confirmDelete(entry)"
-                                            class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                            <Trash2 class="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <div class="text-xs">
-                                            <p v-if="isTextShared(entry)">
-                                                Remove from agent<br>
-                                                <span class="text-muted-foreground">(Used in {{ entry.agents_count }} agents)</span>
-                                            </p>
-                                            <p v-else>Delete from knowledge base</p>
-                                        </div>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
                         </div>
                     </div>
-                </div>
-            </CardContent>
-        </Card>
+                </CardContent>
+            </Card>
 
-        <!-- Empty State -->
-        <Card v-else-if="!isLoading && textEntries.length === 0 && !showCreateForm">
-            <CardContent class="flex flex-col items-center justify-center py-12">
-                <Type class="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 class="text-lg font-medium mb-2">No text entries yet</h3>
-                <p class="text-muted-foreground text-center max-w-md mb-6">
-                    Start by adding your first text entry. You can include FAQs, policies, instructions, or any structured information for your agent.
-                </p>
-                <Button @click="openCreateForm" class="flex items-center gap-2">
-                    <Plus class="h-4 w-4" />
-                    Create Your First Text Entry
-                </Button>
-            </CardContent>
-        </Card>
-
-        <!-- Loading State -->
-        <Card v-if="isLoading">
-            <CardContent class="flex items-center justify-center py-12">
-                <LoaderCircle class="h-8 w-8 animate-spin text-primary" />
-                <span class="ml-2 text-lg">Loading text entries...</span>
-            </CardContent>
-        </Card>
-
-        <!-- Delete/Unlink Confirmation Dialog -->
-        <Dialog v-model:open="deleteDialogOpen">
-            <DialogContent v-if="entryToDelete" class="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle>{{ entryToDelete.excerpt.substring(0, 100) }}...</DialogTitle>
-                    <DialogDescription>
-                        <span v-if="isTextShared(entryToDelete)">
-                            This text is used in <strong>{{ entryToDelete.agents_count }} agents</strong>.
-                            You can unlink it from this agent or permanently delete it from all agents.
-                        </span>
-                        <span v-else>
-                            This will permanently remove this text entry from your agent's knowledge base. This action cannot be undone.
-                        </span>
-                    </DialogDescription>
-                </DialogHeader>
-                <div class="flex items-center justify-end gap-2 mt-4">
-                    <Button
-                        variant="outline"
-                        @click="deleteDialogOpen = false"
-                        :disabled="isUnlinking || isDeleting"
-                    >
-                        Cancel
+            <!-- Empty State -->
+            <Card v-else-if="!isLoading && textEntries.length === 0 && !showCreateForm">
+                <CardContent class="flex flex-col items-center justify-center py-12">
+                    <Type class="text-muted-foreground mb-4 h-16 w-16" />
+                    <h3 class="mb-2 text-lg font-medium">No text entries yet</h3>
+                    <p class="text-muted-foreground mb-6 max-w-md text-center">
+                        Start by adding your first text entry. You can include FAQs, policies, instructions, or any structured information for your
+                        agent.
+                    </p>
+                    <Button @click="openCreateForm" class="flex items-center gap-2">
+                        <Plus class="h-4 w-4" />
+                        Create Your First Text Entry
                     </Button>
-                    <Button
-                        v-if="isTextShared(entryToDelete)"
-                        variant="secondary"
-                        @click="unlinkTextEntry"
-                        :disabled="isUnlinking || isDeleting"
-                        class="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
-                    >
-                        <LoaderCircle v-if="isUnlinking" class="h-4 w-4 mr-2 animate-spin" />
-                        <Unlink v-else class="h-4 w-4 mr-2" />
-                        {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
-                    </Button>
-                    <Button
-                        variant="destructive"
-                        @click="deleteTextEntry"
-                        :disabled="isUnlinking || isDeleting"
-                    >
-                        <LoaderCircle v-if="isDeleting" class="h-4 w-4 mr-2 animate-spin" />
-                        <Trash2 v-else class="h-4 w-4 mr-2" />
-                        <span v-if="isDeleting">Deleting...</span>
-                        <span v-else>{{ isTextShared(entryToDelete) ? 'Delete permanently' : 'Delete' }}</span>
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </CardContent>
+            </Card>
 
-        <!-- Attach Text Dialog -->
-        <AttachTextDialog
-            v-model:open="attachTextDialogOpen"
-            :agent-id="agent.external_id"
-            @textAttached="handleTextAttached"
-        />
+            <!-- Loading State -->
+            <Card v-if="isLoading">
+                <CardContent class="flex items-center justify-center py-12">
+                    <LoaderCircle class="text-primary h-8 w-8 animate-spin" />
+                    <span class="ml-2 text-lg">Loading text entries...</span>
+                </CardContent>
+            </Card>
+
+            <!-- Delete/Unlink Confirmation Dialog -->
+            <Dialog v-model:open="deleteDialogOpen">
+                <DialogContent v-if="entryToDelete" class="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>{{ entryToDelete.excerpt.substring(0, 100) }}...</DialogTitle>
+                        <DialogDescription>
+                            <span v-if="isTextShared(entryToDelete)">
+                                This text is used in <strong>{{ entryToDelete.agents_count }} agents</strong>. You can unlink it from this agent or
+                                permanently delete it from all agents.
+                            </span>
+                            <span v-else>
+                                This will permanently remove this text entry from your agent's knowledge base. This action cannot be undone.
+                            </span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div class="mt-4 flex items-center justify-end gap-2">
+                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeleting"> Cancel </Button>
+                        <Button
+                            v-if="isTextShared(entryToDelete)"
+                            variant="secondary"
+                            @click="unlinkTextEntry"
+                            :disabled="isUnlinking || isDeleting"
+                            class="bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50"
+                        >
+                            <LoaderCircle v-if="isUnlinking" class="mr-2 h-4 w-4 animate-spin" />
+                            <Unlink v-else class="mr-2 h-4 w-4" />
+                            {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
+                        </Button>
+                        <Button variant="destructive" @click="deleteTextEntry" :disabled="isUnlinking || isDeleting">
+                            <LoaderCircle v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
+                            <Trash2 v-else class="mr-2 h-4 w-4" />
+                            <span v-if="isDeleting">Deleting...</span>
+                            <span v-else>{{ isTextShared(entryToDelete) ? 'Delete permanently' : 'Delete' }}</span>
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <!-- Attach Text Dialog -->
+            <AttachTextDialog v-model:open="attachTextDialogOpen" :agent-id="agent.external_id" @textAttached="handleTextAttached" />
         </div>
     </div>
 </template>

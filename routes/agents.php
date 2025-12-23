@@ -33,6 +33,7 @@ use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogConversationPulseController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogConversationsController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogCountriesController;
+use App\Http\Controllers\Agents\ChatLog\AgentChatLogDeleteConversationController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogMessagesController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogReviseAnswerController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogTopicsController;
@@ -129,7 +130,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
     Route::get('countries/list', CountriesListController::class)->name('countries.list');
 
     Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function () {
-        Route::get('manager', AgentManagerController::class)->name('manager');
+        Route::get('home', AgentManagerController::class)->name('manager');
         Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
         Route::get('analytics/data', AgentAnalyticsDataController::class)->name('analytics.data');
         Route::get('analytics/chart-data', AgentChartDataController::class)->name('analytics.chart-data');
@@ -222,6 +223,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::get('logs/topics', AgentChatLogTopicsController::class)->name('logs.topics');
         Route::get('logs/countries', AgentChatLogCountriesController::class)->name('logs.countries');
         Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->name('logs.revise-answer');
+        Route::delete('logs/conversations/{conversation}', AgentChatLogDeleteConversationController::class)->name('logs.delete-conversation');
 
         // Handoff (Admin Takeover) Routes
         Route::get('handoff/pending', HandoffPendingListController::class)->name('handoff.pending');

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('system_instructions')->nullable();
             $table->boolean('is_public')->default(false);
             $table->boolean('collect_leads')->default(true);
+            $table->string('jwt_secret')->nullable();
             $table->timestamps();
         });
     }

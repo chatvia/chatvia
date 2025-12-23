@@ -5,15 +5,14 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-import HeadingSmall from '@/components/HeadingSmall.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { type BreadcrumbItem } from '@/types';
-import { CheckCircle, Lock, KeyRound, Shield, Save, AlertTriangle } from 'lucide-vue-next';
+import { AlertTriangle, CheckCircle, KeyRound, Lock, Save, Shield } from 'lucide-vue-next';
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -63,24 +62,22 @@ const updatePassword = () => {
                 <!-- Password Security Header -->
                 <div class="flex flex-col space-y-4">
                     <div class="flex items-center space-x-3">
-                        <div class="rounded-full bg-primary/10 p-2">
-                            <Shield class="size-6 text-primary" />
+                        <div class="bg-primary/10 rounded-full p-2">
+                            <Shield class="text-primary size-6" />
                         </div>
                         <h1 class="text-2xl font-bold tracking-tight">Password Security</h1>
                     </div>
-                    <p class="text-muted-foreground">
-                        Manage your account's password to ensure your account remains secure.
-                    </p>
+                    <p class="text-muted-foreground">Manage your account's password to ensure your account remains secure.</p>
                 </div>
 
                 <Separator />
 
                 <!-- Password Tips Alert -->
-                <Alert variant="default" class="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                <Alert variant="default" class="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
                     <AlertTriangle class="size-4 text-blue-600 dark:text-blue-400" />
                     <AlertTitle class="text-blue-800 dark:text-blue-300">Password best practices</AlertTitle>
                     <AlertDescription class="text-blue-700 dark:text-blue-300">
-                        <ul class="ml-4 mt-2 list-disc space-y-1 text-sm">
+                        <ul class="mt-2 ml-4 list-disc space-y-1 text-sm">
                             <li>Use at least 8 characters</li>
                             <li>Include uppercase and lowercase letters</li>
                             <li>Add numbers and special characters</li>
@@ -93,15 +90,13 @@ const updatePassword = () => {
                 <Card>
                     <CardHeader>
                         <CardTitle>Update Password</CardTitle>
-                        <CardDescription>
-                            Ensure your account is using a strong, secure password to protect your account.
-                        </CardDescription>
+                        <CardDescription> Ensure your account is using a strong, secure password to protect your account. </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form @submit.prevent="updatePassword" class="space-y-6">
                             <div class="grid gap-2">
                                 <Label for="current_password" class="flex items-center gap-2">
-                                    <KeyRound class="size-4 text-muted-foreground" />
+                                    <KeyRound class="text-muted-foreground size-4" />
                                     Current password
                                 </Label>
                                 <Input
@@ -109,7 +104,7 @@ const updatePassword = () => {
                                     ref="currentPasswordInput"
                                     v-model="form.current_password"
                                     type="password"
-                                    class="transition-all duration-200 focus-visible:ring-primary/50"
+                                    class="focus-visible:ring-primary/50 transition-all duration-200"
                                     autocomplete="current-password"
                                     placeholder="Enter your current password"
                                 />
@@ -118,7 +113,7 @@ const updatePassword = () => {
 
                             <div class="grid gap-2">
                                 <Label for="password" class="flex items-center gap-2">
-                                    <Lock class="size-4 text-muted-foreground" />
+                                    <Lock class="text-muted-foreground size-4" />
                                     New password
                                 </Label>
                                 <Input
@@ -126,7 +121,7 @@ const updatePassword = () => {
                                     ref="passwordInput"
                                     v-model="form.password"
                                     type="password"
-                                    class="transition-all duration-200 focus-visible:ring-primary/50"
+                                    class="focus-visible:ring-primary/50 transition-all duration-200"
                                     autocomplete="new-password"
                                     placeholder="Enter your new password"
                                 />
@@ -135,14 +130,14 @@ const updatePassword = () => {
 
                             <div class="grid gap-2">
                                 <Label for="password_confirmation" class="flex items-center gap-2">
-                                    <Lock class="size-4 text-muted-foreground" />
+                                    <Lock class="text-muted-foreground size-4" />
                                     Confirm password
                                 </Label>
                                 <Input
                                     id="password_confirmation"
                                     v-model="form.password_confirmation"
                                     type="password"
-                                    class="transition-all duration-200 focus-visible:ring-primary/50"
+                                    class="focus-visible:ring-primary/50 transition-all duration-200"
                                     autocomplete="new-password"
                                     placeholder="Confirm your new password"
                                 />

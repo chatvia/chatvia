@@ -3,8 +3,8 @@ import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
+import axios from 'axios';
 import { LogOut, Settings } from 'lucide-vue-next';
-import axios from "axios";
 
 interface Props {
     user: User;
@@ -14,7 +14,7 @@ const handleLogout = () => {
     router.flushAll();
     axios.post(route('logout')).then(() => {
         window.location.href = route('home');
-    })
+    });
 };
 
 defineProps<Props>();
@@ -29,7 +29,7 @@ defineProps<Props>();
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
-            <Link class="cursor-pointer block w-full" :href="route('profile.edit')" prefetch as="button">
+            <Link class="block w-full cursor-pointer" :href="route('profile.edit')" prefetch as="button">
                 <Settings class="mr-2 h-4 w-4" />
                 Settings
             </Link>
@@ -37,7 +37,7 @@ defineProps<Props>();
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
-        <a class="block w-full cursor-pointer"  @click="handleLogout" as="button">
+        <a class="block w-full cursor-pointer" @click="handleLogout" as="button">
             <LogOut class="mr-2 h-4 w-4" />
             Log out
         </a>

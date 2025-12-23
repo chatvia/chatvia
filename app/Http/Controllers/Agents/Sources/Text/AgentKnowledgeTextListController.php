@@ -14,6 +14,11 @@ class AgentKnowledgeTextListController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.text'),
+            code: 403,
+        );
+
         $texts = $agent
             ->texts()
             ->select('source_texts.id', 'length', 'status', 'source_texts.created_at', 'source_texts.updated_at', 'expected_chunks', 'content')

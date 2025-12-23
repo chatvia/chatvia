@@ -1,21 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue';
-import { useSourceVoiceRecorder, type RecordingData } from '@/composables/useSourceVoiceRecorder';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-    Mic, 
-    Square, 
-    Pause, 
-    Play, 
-    Trash2, 
-    Upload, 
-    AlertCircle,
-    CheckCircle
-} from 'lucide-vue-next';
+import { useSourceVoiceRecorder, type RecordingData } from '@/composables/useSourceVoiceRecorder';
+import { AlertCircle, CheckCircle, Mic, Pause, Play, Square, Trash2, Upload } from 'lucide-vue-next';
+import { computed, onUnmounted, ref, watch } from 'vue';
 
 interface Props {
     title?: string;
@@ -48,7 +39,7 @@ const {
     resumeRecording,
     stopRecording,
     cancelRecording,
-    recordingDuration
+    recordingDuration,
 } = useSourceVoiceRecorder();
 
 // States
@@ -83,10 +74,8 @@ const waveformBars = computed(() => {
     const bars = [];
     const numBars = 12;
     for (let i = 0; i < numBars; i++) {
-        const baseHeight = isRecording.value && !isPaused.value
-            ? 0.2 + (audioLevel.value * 0.8 * Math.sin((Date.now() / 100) + i * 0.5))
-            : 0.15;
-        const height = Math.max(0.1, Math.min(1, baseHeight + (Math.random() * 0.1)));
+        const baseHeight = isRecording.value && !isPaused.value ? 0.2 + audioLevel.value * 0.8 * Math.sin(Date.now() / 100 + i * 0.5) : 0.15;
+        const height = Math.max(0.1, Math.min(1, baseHeight + Math.random() * 0.1));
         bars.push(height);
     }
     return bars;
@@ -104,7 +93,7 @@ const handleStopRecording = async () => {
     if (data) {
         recordingData.value = data;
         audioUrl.value = URL.createObjectURL(data.blob);
-        
+
         const now = new Date();
         const timestamp = now.toISOString().slice(0, 19).replace(/[T:]/g, '-');
         recordingName.value = `voice-recording-${timestamp}`;
@@ -141,16 +130,16 @@ const handleDiscard = () => {
 
 const handleSave = () => {
     if (!recordingData.value) return;
-    
+
     const extension = recordingData.value.mimeType.includes('webm') ? 'webm' : 'm4a';
     const fileName = recordingName.value.trim() || 'voice-recording';
-    
+
     emit('recorded', {
         blob: recordingData.value.blob,
         name: `${fileName}.${extension}`,
-        duration: recordingData.value.duration
+        duration: recordingData.value.duration,
     });
-    
+
     recordingData.value = null;
     if (audioUrl.value) {
         URL.revokeObjectURL(audioUrl.value);
@@ -161,7 +150,7 @@ const handleSave = () => {
 
 const togglePlayback = async () => {
     if (!audioElement.value) return;
-    
+
     if (isPlaying.value) {
         audioElement.value.pause();
     } else {
@@ -209,17 +198,17 @@ const handleAudioTimeUpdate = () => {
 
 const handleSeek = (event: MouseEvent) => {
     if (!audioElement.value || !progressBarRef.value) return;
-    
+
     const duration = audioElement.value.duration;
     if (!duration || !Number.isFinite(duration) || duration <= 0) return;
-    
+
     const rect = progressBarRef.value.getBoundingClientRect();
     if (rect.width <= 0) return;
-    
+
     const clickX = event.clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, clickX / rect.width));
     const newTime = percentage * duration;
-    
+
     if (Number.isFinite(newTime)) {
         audioElement.value.currentTime = newTime;
         playbackProgress.value = percentage * 100;
@@ -251,7 +240,7 @@ onUnmounted(() => {
                 {{ description }}
             </CardDescription>
         </CardHeader>
-        
+
         <CardContent class="space-y-6">
             <!-- Not Supported Alert -->
             <Alert v-if="!isSupported" variant="destructive">
@@ -260,125 +249,100 @@ onUnmounted(() => {
                     Your browser doesn't support audio recording. Please use a modern browser like Chrome, Firefox, or Safari.
                 </AlertDescription>
             </Alert>
-            
+
             <!-- Error Alert -->
             <Alert v-if="error" variant="destructive">
                 <AlertCircle class="h-4 w-4" />
                 <AlertDescription>{{ error }}</AlertDescription>
             </Alert>
-            
+
             <!-- Recording Interface -->
             <div v-if="isSupported && !recordingData" class="space-y-6">
                 <!-- Waveform Visualization -->
-                <div class="relative h-24 rounded-lg border bg-muted/50 flex items-center justify-center">
+                <div class="bg-muted/50 relative flex h-24 items-center justify-center rounded-lg border">
                     <!-- Waveform Bars -->
                     <div class="flex items-center justify-center gap-1">
-                        <div 
-                            v-for="(height, index) in waveformBars" 
+                        <div
+                            v-for="(height, index) in waveformBars"
                             :key="index"
                             class="w-1.5 rounded-full transition-all duration-75"
                             :class="isRecording && !isPaused ? 'bg-primary' : 'bg-muted-foreground/30'"
                             :style="{ height: `${Math.max(6, height * 60)}px` }"
                         />
                     </div>
-                    
+
                     <!-- Recording Indicator -->
-                    <div 
+                    <div
                         v-if="isRecording"
-                        class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1 rounded-full bg-background border text-sm"
+                        class="bg-background absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border px-3 py-1 text-sm"
                     >
-                        <div 
-                            class="w-2 h-2 rounded-full"
-                            :class="isPaused ? 'bg-amber-500' : 'bg-red-500 animate-pulse'"
-                        />
+                        <div class="h-2 w-2 rounded-full" :class="isPaused ? 'bg-amber-500' : 'animate-pulse bg-red-500'" />
                         <span class="font-mono tabular-nums">{{ formattedDuration }}</span>
                     </div>
-                    
                 </div>
-                
+
                 <!-- Progress Bar -->
                 <div v-if="isRecording" class="space-y-1">
-                    <div class="flex justify-between text-xs text-muted-foreground">
+                    <div class="text-muted-foreground flex justify-between text-xs">
                         <span>Recording</span>
                         <span>{{ remainingTime }} remaining</span>
                     </div>
-                    <div class="h-1 bg-muted rounded-full overflow-hidden">
-                        <div 
-                            class="h-full bg-primary transition-all duration-300"
-                            :style="{ width: `${recordingProgress}%` }"
-                        />
+                    <div class="bg-muted h-1 overflow-hidden rounded-full">
+                        <div class="bg-primary h-full transition-all duration-300" :style="{ width: `${recordingProgress}%` }" />
                     </div>
                 </div>
-                
+
                 <!-- Recording Controls -->
                 <div class="flex items-center justify-center gap-3">
                     <template v-if="!isRecording">
-                        <Button
-                            @click="handleStartRecording"
-                            :disabled="disabled"
-                        >
-                            <Mic class="h-4 w-4 mr-2" />
+                        <Button @click="handleStartRecording" :disabled="disabled">
+                            <Mic class="mr-2 h-4 w-4" />
                             Start Recording
                         </Button>
                     </template>
-                    
+
                     <template v-else>
-                        <Button
-                            @click="handlePauseResume"
-                            variant="outline"
-                            size="icon"
-                        >
+                        <Button @click="handlePauseResume" variant="outline" size="icon">
                             <Play v-if="isPaused" class="h-4 w-4" />
                             <Pause v-else class="h-4 w-4" />
                         </Button>
-                        
+
                         <Button @click="handleStopRecording">
-                            <Square class="h-4 w-4 mr-2" />
+                            <Square class="mr-2 h-4 w-4" />
                             Stop
                         </Button>
-                        
-                        <Button
-                            @click="handleCancel"
-                            variant="outline"
-                            size="icon"
-                        >
+
+                        <Button @click="handleCancel" variant="outline" size="icon">
                             <Trash2 class="h-4 w-4" />
                         </Button>
                     </template>
                 </div>
             </div>
-            
+
             <!-- Preview & Save Interface -->
             <div v-if="recordingData && audioUrl" class="space-y-4">
                 <!-- Audio Preview -->
-                <div class="rounded-lg border bg-muted/50 p-4">
+                <div class="bg-muted/50 rounded-lg border p-4">
                     <div class="flex items-center gap-4">
-                        <Button
-                            @click="togglePlayback"
-                            variant="outline"
-                            size="icon"
-                        >
+                        <Button @click="togglePlayback" variant="outline" size="icon">
                             <Pause v-if="isPlaying" class="h-4 w-4" />
                             <Play v-else class="h-4 w-4" />
                         </Button>
-                        
+
                         <div class="flex-1 space-y-1">
-                            <div 
+                            <div
                                 ref="progressBarRef"
-                                class="h-2 bg-muted rounded-full overflow-hidden cursor-pointer relative group"
+                                class="bg-muted group relative h-2 cursor-pointer overflow-hidden rounded-full"
                                 @click="handleSeek"
                             >
-                                <div 
-                                    class="h-full bg-primary transition-all duration-100"
-                                    :style="{ width: `${playbackProgress}%` }"
-                                />
+                                <div class="bg-primary h-full transition-all duration-100" :style="{ width: `${playbackProgress}%` }" />
                                 <!-- Seek indicator -->
-                                <div 
-                                    class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                <div
+                                    class="bg-primary absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
                                     :style="{ left: `calc(${playbackProgress}% - 6px)` }"
                                 />
                             </div>
-                            <div class="flex justify-between text-xs text-muted-foreground">
+                            <div class="text-muted-foreground flex justify-between text-xs">
                                 <span class="font-mono">
                                     {{ audioElement ? formatPlaybackTime(audioElement.currentTime) : '0:00' }}
                                 </span>
@@ -387,14 +351,14 @@ onUnmounted(() => {
                                 </span>
                             </div>
                         </div>
-                        
-                        <div class="flex items-center gap-1.5 text-sm text-muted-foreground">
+
+                        <div class="text-muted-foreground flex items-center gap-1.5 text-sm">
                             <CheckCircle class="h-4 w-4 text-green-600" />
                             <span>Recorded</span>
                         </div>
                     </div>
-                    
-                    <audio 
+
+                    <audio
                         ref="audioElement"
                         :src="audioUrl"
                         preload="metadata"
@@ -405,44 +369,30 @@ onUnmounted(() => {
                         @timeupdate="handleAudioTimeUpdate"
                     />
                 </div>
-                
+
                 <!-- Name Input -->
                 <div class="space-y-2">
                     <Label for="recording-name">Recording Name</Label>
-                    <Input
-                        id="recording-name"
-                        v-model="recordingName"
-                        placeholder="Enter a name for your recording"
-                    />
+                    <Input id="recording-name" v-model="recordingName" placeholder="Enter a name for your recording" />
                 </div>
-                
+
                 <!-- Action Buttons -->
                 <div class="flex items-center gap-3">
-                    <Button
-                        @click="handleDiscard"
-                        variant="outline"
-                        class="flex-1"
-                    >
-                        <Trash2 class="h-4 w-4 mr-2" />
+                    <Button @click="handleDiscard" variant="outline" class="flex-1">
+                        <Trash2 class="mr-2 h-4 w-4" />
                         Discard
                     </Button>
-                    <Button
-                        @click="handleSave"
-                        class="flex-1"
-                    >
-                        <Upload class="h-4 w-4 mr-2" />
+                    <Button @click="handleSave" class="flex-1">
+                        <Upload class="mr-2 h-4 w-4" />
                         Save Recording
                     </Button>
                 </div>
             </div>
-            
+
             <!-- Tips -->
-            <div 
-                v-if="!isRecording && !recordingData"
-                class="text-sm text-muted-foreground"
-            >
-                <p class="font-medium mb-1">Tips:</p>
-                <ul class="list-disc list-inside space-y-0.5">
+            <div v-if="!isRecording && !recordingData" class="text-muted-foreground text-sm">
+                <p class="mb-1 font-medium">Tips:</p>
+                <ul class="list-inside list-disc space-y-0.5">
                     <li>Speak clearly and at a steady pace</li>
                     <li>Use a quiet environment for best results</li>
                     <li>Maximum recording length: {{ Math.floor(maxDuration / 60) }} minutes</li>

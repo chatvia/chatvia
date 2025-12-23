@@ -65,9 +65,20 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         ];
     }
 
+    /**
+     * Get the effective user (manager if managed, otherwise self).
+     * Used for resource access like quota, agents, credits, etc.
+     */
+    protected function effectiveUser(): self
+    {
+        return $this->managed_by_user_id ? $this->manager : $this;
+    }
+
     public function agents(): HasMany
     {
-        return $this->hasMany(Agent::class);
+        $effectiveUser = $this->effectiveUser();
+
+        return $effectiveUser->hasMany(Agent::class);
     }
 
     public function messages()
@@ -80,7 +91,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function getCurrentPackage(): array
     {
-        $stripePrice = $this->subscription()?->stripe_price;
+        $effectiveUser = $this->effectiveUser();
+        $stripePrice = $effectiveUser->subscription()?->stripe_price;
 
         $billing = app(Billing::class);
 
@@ -108,14 +120,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function hasActiveSubscription(): bool
     {
-        if ($this->isStaff()) {
-            /** @var User $user */
-            $user = $this->manager;
+        $effectiveUser = $this->effectiveUser();
 
-            return $user->subscribed() || $this->onTrial();
-        }
-
-        return $this->subscribed() || $this->onTrial();
+        return $effectiveUser->subscribed() || $effectiveUser->onTrial();
     }
 
     public function capabilities(): Attribute
@@ -138,7 +145,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function cancelSubscription(): void
     {
-        $this->subscription()?->cancel();
+        $effectiveUser = $this->effectiveUser();
+        $effectiveUser->subscription()?->cancel();
     }
 
     public function canUploadPages(int $amount): bool
@@ -167,13 +175,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function agentFiles()
     {
+        $effectiveUserId = $this->effectiveUser()->id;
+
         return SourceFile::query()
             ->join('agent_sources', function ($join) {
                 $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
                     ->where('agent_sources.sourceable_type', '=', SourceFile::class);
             })
             ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
-            ->where('agents.user_id', $this->id)
+            ->where('agents.user_id', $effectiveUserId)
             ->select('source_files.*');
     }
 
@@ -190,22 +200,29 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function credits(): HasMany
     {
-        return $this->hasMany(UserCredit::class);
+        $effectiveUser = $this->effectiveUser();
+
+        return $effectiveUser->hasMany(UserCredit::class);
     }
 
     public function credit(): HasOne
     {
-        return $this->hasOne(UserCredit::class)->latestOfMany('ends_at');
+        $effectiveUser = $this->effectiveUser();
+
+        return $effectiveUser->hasOne(UserCredit::class)->latestOfMany('ends_at');
     }
 
     public function addons(): HasMany
     {
-        return $this->hasMany(UserAddon::class);
+        $effectiveUser = $this->effectiveUser();
+
+        return $effectiveUser->hasMany(UserAddon::class);
     }
 
     public function syncPendingPlanChanges(): ?array
     {
-        $subscription = $this->subscription();
+        $effectiveUser = $this->effectiveUser();
+        $subscription = $effectiveUser->subscription();
 
         if (! $subscription) {
             return null;
@@ -244,7 +261,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function usage(): HasOneThrough
     {
-        return $this->hasOneThrough(
+        $effectiveUser = $this->effectiveUser();
+
+        return $effectiveUser->hasOneThrough(
             UserUsage::class,           // Final model we want
             UserCredit::class,          // Intermediate model
             'user_id',             // Foreign key on credits table (credits.user_id)
@@ -256,12 +275,16 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function creditSystem(): UserCreditSystem
     {
-        return app(UserCreditSystem::class)->setUserId($this->id);
+        $effectiveUserId = $this->effectiveUser()->id;
+
+        return app(UserCreditSystem::class)->setUserId($effectiveUserId);
     }
 
     public function addCredit($quota, Carbon $endsAt): UserCredit
     {
-        return $this->creditSystem()->addCredit($quota, $endsAt);
+        $effectiveUser = $this->effectiveUser();
+
+        return $effectiveUser->creditSystem()->addCredit($quota, $endsAt);
     }
 
     public function getUserId()
@@ -326,14 +349,20 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasOne(Member::class)->where('is_owner', true)->latestOfMany();
     }
 
+    public function managerQuota() {}
+
     public function quota(): HasOne
     {
-        return $this->hasOne(UserQuota::class);
+        $effectiveUser = $this->effectiveUser();
+
+        return $effectiveUser->hasOne(UserQuota::class);
     }
 
     public function sourceFiles()
     {
-        return $this->hasMany(SourceFile::class);
+        $effectiveUser = $this->effectiveUser();
+
+        return $effectiveUser->hasMany(SourceFile::class);
     }
 
     /**

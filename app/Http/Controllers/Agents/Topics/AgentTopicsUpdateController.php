@@ -15,6 +15,8 @@ class AgentTopicsUpdateController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
+
         // Check if the topic belongs to this agent
         if (! $agent->topics()->where('chat_topics.id', $topic->id)->exists()) {
             abort(404, 'Topic not found for this agent');

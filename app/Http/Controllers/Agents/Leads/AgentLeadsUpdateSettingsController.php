@@ -9,6 +9,13 @@ class AgentLeadsUpdateSettingsController
 {
     public function __invoke(Request $request, Agent $agent)
     {
+        abort_if(
+            boolean: $request->user()->cannot('update', $agent),
+            code: 404,
+        );
+
+        abort_if(! has_permission_to_agent($agent, 'agent.leads.settings'), 403);
+
         $request->validate([
             'collect_leads' => ['required', 'boolean'],
             'title' => ['required_if:collect_leads,true', 'string'],

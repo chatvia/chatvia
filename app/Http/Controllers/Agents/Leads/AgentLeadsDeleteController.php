@@ -14,6 +14,8 @@ class AgentLeadsDeleteController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.leads.view'), 403);
+
         $request->validate([
             'lead_ids' => ['required', 'array', 'min:1'],
             'lead_ids.*' => ['integer', 'exists:leads,id'],

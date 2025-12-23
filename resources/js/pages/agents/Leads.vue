@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -22,6 +23,11 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Permission checks
+const { hasPermission } = useTeamPermissions();
+const canManageLeadSettings = computed(() => hasPermission('agent.leads.settings'));
+const canExportLeads = computed(() => hasPermission('agent.leads.export'));
 
 // Leads data loaded via Axios
 const leads = ref<App.Data.Resources.Agent.LeadResourceData[]>([]);
@@ -204,6 +210,13 @@ const saveSettings = () => {
 };
 
 const openSettings = () => {
+    if (!canManageLeadSettings.value) {
+        toast.error('Permission denied', {
+            description: 'You do not have permission to manage lead settings.',
+        });
+        return;
+    }
+
     // Clear any previous errors when opening the dialog
     settingsForm.clearErrors();
 
@@ -267,6 +280,13 @@ const deleteSelectedLeads = async () => {
 };
 
 const exportSelectedLeads = async () => {
+    if (!canExportLeads.value) {
+        toast.error('Permission denied', {
+            description: 'You do not have permission to export leads.',
+        });
+        return;
+    }
+
     if (!hasSelectedLeads.value) return;
 
     isExporting.value = true;

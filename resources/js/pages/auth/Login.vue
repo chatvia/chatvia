@@ -44,7 +44,9 @@ const loginWithSlack = () => {
         <div class="absolute top-4 right-4">
             <ThemeSwitcher />
         </div>
+
         <LoginLink v-if="$page.props.environment === 'local'" label="Login" class="pb-3 text-red-500" :redirect-url="route('dashboard')" />
+
         <!-- Clean, spacious container -->
         <div class="mx-auto w-full max-w-lg space-y-8">
             <!-- Header Section -->

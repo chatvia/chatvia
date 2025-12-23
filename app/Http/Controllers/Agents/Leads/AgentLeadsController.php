@@ -17,6 +17,8 @@ class AgentLeadsController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.leads.view'), 403);
+
         return Inertia::render('agents/Leads', [
             'agent' => AgentResourceData::fromModel($agent),
             'settings' => [

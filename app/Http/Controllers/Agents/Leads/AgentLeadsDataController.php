@@ -15,6 +15,8 @@ class AgentLeadsDataController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.leads.view'), 403);
+
         $leads = $agent->leads()
             ->orderBy('created_at', 'desc')
             ->get()

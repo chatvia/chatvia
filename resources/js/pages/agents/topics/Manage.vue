@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
 import { LoaderCircle, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
@@ -17,6 +18,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Permission checks
+const { hasPermission } = useTeamPermissions();
+const canManageTopics = computed(() => hasPermission('agent.topics.manage'));
 
 const loading = ref(true);
 const topics = ref<any[]>([]);
@@ -56,6 +61,13 @@ const fetchTopics = async () => {
 };
 
 const openAddDialog = () => {
+    if (!canManageTopics.value) {
+        toast.error('Permission denied', {
+            description: 'You do not have permission to manage topics.',
+        });
+        return;
+    }
+
     form.value = {
         topic: '',
         description: '',
@@ -64,6 +76,13 @@ const openAddDialog = () => {
 };
 
 const openEditDialog = (topic: any) => {
+    if (!canManageTopics.value) {
+        toast.error('Permission denied', {
+            description: 'You do not have permission to manage topics.',
+        });
+        return;
+    }
+
     currentTopic.value = topic;
     form.value = {
         topic: topic.topic,
@@ -73,6 +92,13 @@ const openEditDialog = (topic: any) => {
 };
 
 const openDeleteDialog = (topic: any) => {
+    if (!canManageTopics.value) {
+        toast.error('Permission denied', {
+            description: 'You do not have permission to manage topics.',
+        });
+        return;
+    }
+
     currentTopic.value = topic;
     isDeleteDialogOpen.value = true;
 };

@@ -20,7 +20,7 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { Auth, BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BarChart3, BotMessageSquare, CreditCard, HelpCircle, LayoutGrid, Menu, Zap } from 'lucide-vue-next';
+import { BarChart3, BotMessageSquare, CreditCard, HelpCircle, LayoutGrid, Menu, Users, Zap } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {
@@ -139,6 +139,15 @@ const rightNavItems: NavItem[] = [];
                                     >
                                         <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
                                         {{ item.title }}
+                                    </Link>
+                                    <!-- Teams Link -->
+                                    <Link
+                                        :href="route('teams.index')"
+                                        class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
+                                        :class="activeItemStyles(route('teams.index'))"
+                                    >
+                                        <Users class="h-5 w-5" />
+                                        Teams
                                     </Link>
                                 </nav>
                                 <div class="flex flex-col space-y-4">

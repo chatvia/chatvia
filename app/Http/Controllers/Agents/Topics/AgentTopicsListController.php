@@ -15,6 +15,8 @@ class AgentTopicsListController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
+
         $search = $request->input('search');
         $all = $request->input('all', false);
 

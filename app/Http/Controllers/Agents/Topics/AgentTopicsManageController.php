@@ -16,6 +16,8 @@ class AgentTopicsManageController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
+
         return Inertia::render('agents/topics/Manage', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);

@@ -2,30 +2,27 @@
     <AgentLayout :agent="agent" title="Widget Configuration" hide-header no-padding full-height>
         <div class="flex h-full">
             <!-- Left Column - Navigation Menu -->
-            <div class="w-[180px] flex-shrink-0 flex flex-col h-full bg-muted/30 border-r">
+            <div class="bg-muted/30 flex h-full w-[180px] flex-shrink-0 flex-col border-r">
                 <nav class="flex flex-col gap-0.5 p-2">
                     <button
                         v-for="item in menuItems"
                         :key="item.value"
                         @click="activeTab = item.value"
-                        class="w-full h-9 flex items-center gap-2.5 px-3 text-sm rounded-md transition-colors cursor-pointer"
+                        class="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-md px-3 text-sm transition-colors"
                         :class="[
                             activeTab === item.value
-                                ? 'bg-background shadow-sm text-foreground font-medium'
-                                : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'
+                                ? 'bg-background text-foreground font-medium shadow-sm'
+                                : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
                         ]"
                     >
-                        <component
-                            :is="item.icon"
-                            class="h-4 w-4 flex-shrink-0"
-                        />
+                        <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
                         <span>{{ item.label }}</span>
                     </button>
                 </nav>
             </div>
 
             <!-- Middle Column - Configuration Content -->
-            <div class="flex-1 flex flex-col h-full overflow-hidden border-r">
+            <div class="flex h-full flex-1 flex-col overflow-hidden border-r">
                 <!-- Permission Warning Banner -->
                 <Alert v-if="!canEdit" variant="destructive" class="rounded-none border-x-0 border-t-0">
                     <Shield class="h-4 w-4" />
@@ -35,43 +32,31 @@
                     </AlertDescription>
                 </Alert>
 
-                <div class="flex-1 overflow-y-auto" :class="{ 'opacity-60 pointer-events-none select-none': !canEdit }">
+                <div class="flex-1 overflow-y-auto" :class="{ 'pointer-events-none opacity-60 select-none': !canEdit }">
                     <!-- Text Panel -->
-                    <div v-if="activeTab === 'text'" class="p-6 space-y-6">
+                    <div v-if="activeTab === 'text'" class="space-y-6 p-6">
                         <form @submit.prevent="updateWidgetSettings" class="space-y-6">
                             <div class="space-y-2">
                                 <Label for="chat_window_title">Chat Title</Label>
-                                <Input
-                                    id="chat_window_title"
-                                    v-model="appearanceForm.chat_window_title"
-                                    placeholder="Chat with us"
-                                />
-                                <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
+                                <Input id="chat_window_title" v-model="appearanceForm.chat_window_title" placeholder="Chat with us" />
+                                <p v-if="appearanceForm.errors.chat_window_title" class="text-destructive text-sm">
                                     {{ appearanceForm.errors.chat_window_title }}
                                 </p>
-                                <p class="text-xs text-muted-foreground">
-                                    This title appears at the top of the chat window
-                                </p>
+                                <p class="text-muted-foreground text-xs">This title appears at the top of the chat window</p>
                             </div>
 
                             <div class="space-y-2">
                                 <Label for="welcome_message">Welcome Message</Label>
-                                <Input
-                                    id="welcome_message"
-                                    v-model="appearanceForm.welcome_message"
-                                    placeholder="Hello! How can I help you today?"
-                                />
-                                <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
+                                <Input id="welcome_message" v-model="appearanceForm.welcome_message" placeholder="Hello! How can I help you today?" />
+                                <p v-if="appearanceForm.errors.welcome_message" class="text-destructive text-sm">
                                     {{ appearanceForm.errors.welcome_message }}
                                 </p>
-                                <p class="text-xs text-muted-foreground">
-                                    First message users see when opening the widget
-                                </p>
+                                <p class="text-muted-foreground text-xs">First message users see when opening the widget</p>
                             </div>
 
                             <div class="space-y-2">
                                 <Label>Chat Bubbles</Label>
-                                <p class="text-xs text-muted-foreground mb-2">Quick message prompts to help users start conversations</p>
+                                <p class="text-muted-foreground mb-2 text-xs">Quick message prompts to help users start conversations</p>
 
                                 <TagsInput v-model="widgetForm.bubbles" class="w-full">
                                     <TagsInputItem v-for="(bubble, index) in widgetForm.bubbles" :key="index" :value="bubble">
@@ -81,41 +66,33 @@
                                     <TagsInputInput placeholder="e.g., How can I help you?" />
                                 </TagsInput>
 
-                                <p v-if="widgetForm.errors.bubbles" class="text-sm text-destructive">
+                                <p v-if="widgetForm.errors.bubbles" class="text-destructive text-sm">
                                     {{ widgetForm.errors.bubbles }}
                                 </p>
                             </div>
 
                             <!-- Save Button -->
-                            <div class="pt-4 border-t">
+                            <div class="border-t pt-4">
                                 <Button type="submit" :disabled="!canEdit || isSubmitting || !hasUnsavedChanges" size="sm">
-                                    <Save class="h-4 w-4 mr-2" />
+                                    <Save class="mr-2 h-4 w-4" />
                                     {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
                                 </Button>
-                                <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2">
-                                    Settings saved successfully
-                                </p>
+                                <p v-if="showSuccessMessage" class="mt-2 text-sm text-green-600">Settings saved successfully</p>
                             </div>
                         </form>
                     </div>
 
                     <!-- Persona Panel -->
                     <div v-if="activeTab === 'persona'" class="p-6">
-                        <AgentPersonaEditor
-                            :agent-id="agent.external_id"
-                            :initial-instructions="agent.system_instructions"
-                            @saved="refreshPreview"
-                        />
+                        <AgentPersonaEditor :agent-id="agent.external_id" :initial-instructions="agent.system_instructions" @saved="refreshPreview" />
                     </div>
 
                     <!-- Starters Panel -->
-                    <div v-if="activeTab === 'starters'" class="p-6 space-y-4">
-                        <div class="flex justify-between items-center">
+                    <div v-if="activeTab === 'starters'" class="space-y-4 p-6">
+                        <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-sm font-medium">Conversation Starters</h3>
-                                <p class="text-xs text-muted-foreground mt-1">
-                                    Suggest questions to help users start conversations
-                                </p>
+                                <p class="text-muted-foreground mt-1 text-xs">Suggest questions to help users start conversations</p>
                             </div>
                             <Button type="button" variant="outline" size="sm" @click="showAddStarterDialog = true" :disabled="!canEdit">
                                 <PlusCircle class="mr-2 h-4 w-4" />
@@ -124,21 +101,15 @@
                         </div>
 
                         <div class="rounded-md border">
-                            <div v-if="starters.length === 0" class="p-4 text-center text-muted-foreground text-sm">
-                                No starter messages yet
-                            </div>
-                            <div
-                                v-for="starter in starters"
-                                :key="starter.id"
-                                class="flex items-center justify-between border-b p-3 last:border-0"
-                            >
+                            <div v-if="starters.length === 0" class="text-muted-foreground p-4 text-center text-sm">No starter messages yet</div>
+                            <div v-for="starter in starters" :key="starter.id" class="flex items-center justify-between border-b p-3 last:border-0">
                                 <div class="flex items-center gap-3">
-                                    <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                                    <MessageSquare class="text-muted-foreground h-4 w-4" />
                                     <div class="text-sm">{{ starter.text }}</div>
                                 </div>
                                 <Button
                                     type="button"
-                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
+                                    class="text-destructive hover:text-destructive/80 h-8 w-8 p-0"
                                     size="sm"
                                     variant="ghost"
                                     :disabled="!canEdit"
@@ -167,31 +138,34 @@
                     </div>
 
                     <!-- Colors Panel -->
-                    <div v-if="activeTab === 'colors'" class="p-6 space-y-2">
+                    <div v-if="activeTab === 'colors'" class="space-y-2 p-6">
                         <Label>Widget Color</Label>
-                        <p class="text-xs text-muted-foreground mb-3">Choose the primary color for your widget</p>
+                        <p class="text-muted-foreground mb-3 text-xs">Choose the primary color for your widget</p>
 
-                        <div class="relative cursor-pointer inline-block" @click="showColorPicker = true">
+                        <div class="relative inline-block cursor-pointer" @click="showColorPicker = true">
                             <div
-                                class="h-20 w-20 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                                class="border-border h-20 w-20 rounded-lg border-2 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md"
                                 :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"
                             >
                                 <div class="flex h-full items-center justify-center">
-                                    <div class="h-10 w-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
-                                        <div class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-lg">
+                                        <div
+                                            class="h-6 w-6 rounded-full"
+                                            :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"
+                                        ></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
+                        <p v-if="appearanceForm.errors.color_theme" class="text-destructive text-sm">
                             {{ appearanceForm.errors.color_theme }}
                         </p>
                     </div>
 
                     <!-- Behavior Panel -->
-                    <div v-if="activeTab === 'behavior'" class="p-6 space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div v-if="activeTab === 'behavior'" class="space-y-6 p-6">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div class="space-y-2">
                                 <Label for="position">Position</Label>
                                 <Select v-model="widgetForm.position" @update:model-value="saveBehaviorSettings">
@@ -203,7 +177,7 @@
                                         <SelectItem value="bottom-left">Bottom Left</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p class="text-xs text-muted-foreground">Where the widget appears on the page</p>
+                                <p class="text-muted-foreground text-xs">Where the widget appears on the page</p>
                             </div>
 
                             <div class="space-y-2">
@@ -218,7 +192,7 @@
                                         <SelectItem value="large">Large</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p class="text-xs text-muted-foreground">Chat window dimensions</p>
+                                <p class="text-muted-foreground text-xs">Chat window dimensions</p>
                             </div>
                         </div>
 
@@ -228,12 +202,17 @@
                             <div class="flex items-center justify-between">
                                 <div class="space-y-0.5">
                                     <Label for="show_on_load">Auto-open Widget</Label>
-                                    <p class="text-xs text-muted-foreground">Automatically show widget when page loads</p>
+                                    <p class="text-muted-foreground text-xs">Automatically show widget when page loads</p>
                                 </div>
                                 <Switch
                                     id="show_on_load"
                                     :model-value="widgetForm.show_on_load"
-                                    @update:model-value="(value: any) => { widgetForm.show_on_load = value; saveBehaviorSettings(); }"
+                                    @update:model-value="
+                                        (value: any) => {
+                                            widgetForm.show_on_load = value;
+                                            saveBehaviorSettings();
+                                        }
+                                    "
                                 />
                             </div>
 
@@ -248,33 +227,29 @@
                                     placeholder="500"
                                     @blur="saveBehaviorSettings"
                                 />
-                                <p class="text-xs text-muted-foreground">Time to wait before showing the widget</p>
+                                <p class="text-muted-foreground text-xs">Time to wait before showing the widget</p>
                             </div>
                         </div>
 
                         <Alert>
                             <Info class="h-4 w-4" />
-                            <AlertDescription>
-                                Position, window size, and chat bubbles are visible in preview mode
-                            </AlertDescription>
+                            <AlertDescription> Position, window size, and chat bubbles are visible in preview mode </AlertDescription>
                         </Alert>
                     </div>
 
                     <!-- Embed Panel -->
-                    <div v-if="activeTab === 'embed'" class="p-6 space-y-6">
+                    <div v-if="activeTab === 'embed'" class="space-y-6 p-6">
                         <!-- Allowed Websites Section -->
                         <form @submit.prevent="saveSecuritySettings">
                             <Alert v-if="!widgetForm.sites || widgetForm.sites.length === 0" variant="destructive" class="mb-4">
                                 <Shield class="h-4 w-4" />
                                 <AlertTitle>Important</AlertTitle>
-                                <AlertDescription>
-                                    You must specify allowed websites below, otherwise your widget will not work.
-                                </AlertDescription>
+                                <AlertDescription> You must specify allowed websites below, otherwise your widget will not work. </AlertDescription>
                             </Alert>
 
                             <div class="space-y-2">
                                 <Label>Allowed Websites</Label>
-                                <p class="text-xs text-muted-foreground mb-2">
+                                <p class="text-muted-foreground mb-2 text-xs">
                                     Enter domains that can use this widget (without https://). Press Enter to add.
                                 </p>
 
@@ -286,25 +261,23 @@
                                     <TagsInputInput placeholder="example.com" />
                                 </TagsInput>
 
-                                <p v-if="widgetForm.errors.sites" class="text-sm text-destructive">
+                                <p v-if="widgetForm.errors.sites" class="text-destructive text-sm">
                                     {{ widgetForm.errors.sites }}
                                 </p>
 
-                                <p class="text-xs text-muted-foreground">
-                                    Examples: example.com, www.example.com, *.example.com
-                                </p>
+                                <p class="text-muted-foreground text-xs">Examples: example.com, www.example.com, *.example.com</p>
                             </div>
 
                             <div class="pt-3">
                                 <Button type="submit" :disabled="!canEdit || !hasSecurityChanges" size="sm">
-                                    <Save class="h-4 w-4 mr-2" />
+                                    <Save class="mr-2 h-4 w-4" />
                                     Save Domains
                                 </Button>
                             </div>
                         </form>
 
                         <!-- Language Selection Section -->
-                        <div class="pt-4 border-t space-y-2">
+                        <div class="space-y-2 border-t pt-4">
                             <Label for="widget-language">Widget Language</Label>
                             <Select v-model="selectedLanguage">
                                 <SelectTrigger id="widget-language" class="w-full">
@@ -316,21 +289,22 @@
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p class="text-xs text-muted-foreground">
+                            <p class="text-muted-foreground text-xs">
                                 Select the language for the widget interface. Auto-detect will use the visitor's browser language.
                             </p>
                         </div>
 
                         <!-- Embed Code Section -->
-                        <div class="pt-4 border-t space-y-4">
+                        <div class="space-y-4 border-t pt-4">
                             <div>
-                                <h3 class="text-sm font-medium mb-1">Installation Code</h3>
-                                <p class="text-xs text-muted-foreground">
-                                    Copy and paste this code into your website's <code class="bg-muted px-1 py-0.5 rounded text-xs">&lt;head&gt;</code> section
+                                <h3 class="mb-1 text-sm font-medium">Installation Code</h3>
+                                <p class="text-muted-foreground text-xs">
+                                    Copy and paste this code into your website's
+                                    <code class="bg-muted rounded px-1 py-0.5 text-xs">&lt;head&gt;</code> section
                                 </p>
                             </div>
 
-                            <div class="bg-muted rounded-lg p-4 space-y-3">
+                            <div class="bg-muted space-y-3 rounded-lg p-4">
                                 <div class="flex items-center justify-end gap-2">
                                     <Button type="button" variant="outline" size="sm" @click="copyEmbedSnippet" class="gap-2">
                                         <Copy class="h-4 w-4" />
@@ -341,18 +315,13 @@
                                         Full Preview
                                     </Button>
                                 </div>
-                                <div class="bg-background border rounded p-3">
-                                    <pre class="text-xs text-foreground overflow-x-auto"><code v-text="embedSnippet"></code></pre>
+                                <div class="bg-background rounded border p-3">
+                                    <pre class="text-foreground overflow-x-auto text-xs"><code v-text="embedSnippet"></code></pre>
                                 </div>
                             </div>
 
                             <!-- JavaScript API Button -->
-                            <Button
-                                type="button"
-                                variant="outline"
-                                class="w-full justify-start gap-2"
-                                @click="showApiDocsDialog = true"
-                            >
+                            <Button type="button" variant="outline" class="w-full justify-start gap-2" @click="showApiDocsDialog = true">
                                 <Terminal class="h-4 w-4" />
                                 JavaScript API Documentation
                             </Button>
@@ -362,28 +331,16 @@
             </div>
 
             <!-- Right Column - Live Preview -->
-            <div class="w-[420px] flex-shrink-0 flex flex-col h-full bg-background">
+            <div class="bg-background flex h-full w-[420px] flex-shrink-0 flex-col">
                 <!-- Preview Header -->
-                <div class="px-4 py-3 border-b flex items-center justify-between flex-shrink-0">
-                    <span class="text-sm font-medium text-muted-foreground">Live Preview</span>
+                <div class="flex flex-shrink-0 items-center justify-between border-b px-4 py-3">
+                    <span class="text-muted-foreground text-sm font-medium">Live Preview</span>
                     <div class="flex items-center gap-1">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            class="h-8 gap-1.5"
-                            @click="refreshPreview"
-                        >
+                        <Button type="button" variant="ghost" size="sm" class="h-8 gap-1.5" @click="refreshPreview">
                             <RotateCcw class="h-3.5 w-3.5" />
                             <span class="text-xs">Refresh</span>
                         </Button>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            class="h-8 gap-1.5"
-                            @click="openFullPreview"
-                        >
+                        <Button type="button" variant="ghost" size="sm" class="h-8 gap-1.5" @click="openFullPreview">
                             <Eye class="h-3.5 w-3.5" />
                             <span class="text-xs">Preview</span>
                         </Button>
@@ -395,7 +352,7 @@
                     <iframe
                         :key="previewKey"
                         :src="previewUrl"
-                        class="w-full h-full border-0"
+                        class="h-full w-full border-0"
                         title="Widget Live Preview"
                         sandbox="allow-scripts allow-same-origin allow-forms"
                     />
@@ -404,12 +361,7 @@
         </div>
 
         <!-- Widget Preview Modal -->
-        <PreviewModal
-            v-model="showPreviewModal"
-            preview-type="widget"
-            :preview-url="fullPreviewUrl"
-            iframe-title="Widget Preview"
-        />
+        <PreviewModal v-model="showPreviewModal" preview-type="widget" :preview-url="fullPreviewUrl" iframe-title="Widget Preview" />
 
         <!-- Color Picker Dialog -->
         <Dialog v-model:open="showColorPicker">
@@ -419,49 +371,82 @@
                         <Palette class="h-5 w-5" />
                         Choose Widget Color
                     </DialogTitle>
-                    <DialogDescription>
-                        Select a color and shade for your widget's primary theme
-                    </DialogDescription>
+                    <DialogDescription> Select a color and shade for your widget's primary theme </DialogDescription>
                 </DialogHeader>
 
                 <div class="space-y-6">
                     <!-- Color Grid -->
                     <div class="grid grid-cols-8 gap-2">
                         <div
-                            v-for="theme in ['black', 'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose', 'slate', 'gray', 'zinc', 'neutral', 'stone']"
+                            v-for="theme in [
+                                'black',
+                                'red',
+                                'orange',
+                                'amber',
+                                'yellow',
+                                'lime',
+                                'green',
+                                'emerald',
+                                'teal',
+                                'cyan',
+                                'sky',
+                                'blue',
+                                'indigo',
+                                'violet',
+                                'purple',
+                                'fuchsia',
+                                'pink',
+                                'rose',
+                                'slate',
+                                'gray',
+                                'zinc',
+                                'neutral',
+                                'stone',
+                            ]"
                             :key="theme"
-                            class="relative cursor-pointer group"
+                            class="group relative cursor-pointer"
                             @click="appearanceForm.color_theme = theme"
                         >
                             <div
-                                class="h-12 w-full rounded-lg border-2 transition-all duration-200 shadow-sm"
+                                class="h-12 w-full rounded-lg border-2 shadow-sm transition-all duration-200"
                                 :class="{
-                                    'border-primary ring-2 ring-primary/20': appearanceForm.color_theme === theme,
-                                    'border-border hover:border-primary/50 hover:shadow-md': appearanceForm.color_theme !== theme
+                                    'border-primary ring-primary/20 ring-2': appearanceForm.color_theme === theme,
+                                    'border-border hover:border-primary/50 hover:shadow-md': appearanceForm.color_theme !== theme,
                                 }"
                                 :style="{
-                                    backgroundColor: `var(--${theme}-${appearanceForm.color_shade})`
+                                    backgroundColor: `var(--${theme}-${appearanceForm.color_shade})`,
                                 }"
                             >
                                 <div class="flex h-full items-center justify-center">
                                     <div
                                         v-if="appearanceForm.color_theme === theme"
-                                        class="h-6 w-6 rounded-full bg-white shadow-lg flex items-center justify-center transform scale-100 transition-transform duration-200"
+                                        class="flex h-6 w-6 scale-100 transform items-center justify-center rounded-full bg-white shadow-lg transition-transform duration-200"
                                     >
-                                        <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"></div>
+                                        <div
+                                            class="h-3 w-3 rounded-full"
+                                            :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"
+                                        ></div>
                                     </div>
                                     <div
                                         v-else
-                                        class="h-6 w-6 rounded-full bg-white/80 shadow-sm flex items-center justify-center transform scale-75 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200"
+                                        class="flex h-6 w-6 scale-75 transform items-center justify-center rounded-full bg-white/80 opacity-0 shadow-sm transition-all duration-200 group-hover:scale-100 group-hover:opacity-100"
                                     >
-                                        <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"></div>
+                                        <div
+                                            class="h-3 w-3 rounded-full"
+                                            :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"
+                                        ></div>
                                     </div>
                                 </div>
                             </div>
-                            <p class="mt-1 text-center text-xs font-medium capitalize transition-colors duration-200" :class="{
-                                'text-primary': appearanceForm.color_theme === theme,
-                                'text-muted-foreground': appearanceForm.color_theme !== theme
-                            }">{{ theme }}</p>
+                            <p
+                                class="mt-1 text-center text-xs font-medium capitalize transition-colors duration-200"
+                                :class="{
+                                    'text-primary': appearanceForm.color_theme === theme,
+                                    'text-muted-foreground': appearanceForm.color_theme !== theme,
+                                }"
+                            >
+                                {{ theme }}
+                            </p>
                         </div>
                     </div>
 
@@ -475,22 +460,24 @@
                                 max="950"
                                 step="50"
                                 v-model="appearanceForm.color_shade"
-                                class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                                class="slider h-3 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
                                 :style="{
-                                    background: `linear-gradient(to right, var(--${appearanceForm.color_theme}-50), var(--${appearanceForm.color_theme}-950))`
+                                    background: `linear-gradient(to right, var(--${appearanceForm.color_theme}-50), var(--${appearanceForm.color_theme}-950))`,
                                 }"
-                                @input="(e: Event) => {
-                                    const target = e.target as HTMLInputElement;
-                                    const value = parseInt(target.value);
-                                    const validShades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-                                    const closest = validShades.reduce((prev, curr) =>
-                                        Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-                                    );
-                                    appearanceForm.color_shade = closest;
-                                }"
+                                @input="
+                                    (e: Event) => {
+                                        const target = e.target as HTMLInputElement;
+                                        const value = parseInt(target.value);
+                                        const validShades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+                                        const closest = validShades.reduce((prev, curr) =>
+                                            Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev,
+                                        );
+                                        appearanceForm.color_shade = closest;
+                                    }
+                                "
                             />
                         </div>
-                        <div class="flex justify-between text-xs text-muted-foreground">
+                        <div class="text-muted-foreground flex justify-between text-xs">
                             <span>Light</span>
                             <span class="font-medium">{{ appearanceForm.color_shade }}</span>
                             <span>Dark</span>
@@ -499,7 +486,15 @@
                 </div>
 
                 <DialogFooter>
-                    <Button @click="() => { saveColorSettings(); showColorPicker = false; }" :disabled="!canEdit">
+                    <Button
+                        @click="
+                            () => {
+                                saveColorSettings();
+                                showColorPicker = false;
+                            }
+                        "
+                        :disabled="!canEdit"
+                    >
                         Apply & Save
                     </Button>
                 </DialogFooter>
@@ -511,27 +506,15 @@
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Add Starter Message</DialogTitle>
-                    <DialogDescription>
-                        Create a new conversation starter for your users
-                    </DialogDescription>
+                    <DialogDescription> Create a new conversation starter for your users </DialogDescription>
                 </DialogHeader>
                 <div class="py-4">
                     <Label class="mb-2" for="starter-message">Message Text</Label>
-                    <Textarea
-                        id="starter-message"
-                        v-model="starterMessageForm.text"
-                        placeholder="E.g., How can I track my order?"
-                        rows="3"
-                    />
+                    <Textarea id="starter-message" v-model="starterMessageForm.text" placeholder="E.g., How can I track my order?" rows="3" />
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" @click="showAddStarterDialog = false">
-                        Cancel
-                    </Button>
-                    <Button
-                        :disabled="!canEdit || !starterMessageForm.text.trim()"
-                        @click="addStarterMessage"
-                    >
+                    <Button variant="outline" @click="showAddStarterDialog = false"> Cancel </Button>
+                    <Button :disabled="!canEdit || !starterMessageForm.text.trim()" @click="addStarterMessage">
                         <PlusCircle class="mr-2 h-4 w-4" />
                         Add Message
                     </Button>
@@ -541,38 +524,36 @@
 
         <!-- JavaScript API Documentation Dialog -->
         <Dialog v-model:open="showApiDocsDialog">
-            <DialogContent class="sm:max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+            <DialogContent class="flex max-h-[85vh] flex-col overflow-hidden sm:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <Terminal class="h-5 w-5" />
                         JavaScript API
                     </DialogTitle>
-                    <DialogDescription>
-                        Control the chat widget programmatically using these methods and events
-                    </DialogDescription>
+                    <DialogDescription> Control the chat widget programmatically using these methods and events </DialogDescription>
                 </DialogHeader>
 
-                <div class="flex-1 overflow-y-auto space-y-6 pr-2">
+                <div class="flex-1 space-y-6 overflow-y-auto pr-2">
                     <!-- Methods Table -->
                     <div class="space-y-3">
                         <div class="flex items-center gap-2">
                             <Zap class="h-4 w-4 text-amber-500" />
                             <h5 class="text-sm font-medium">Methods</h5>
                         </div>
-                        <div class="rounded-lg border overflow-hidden">
+                        <div class="overflow-hidden rounded-lg border">
                             <table class="w-full text-sm">
                                 <thead class="bg-muted/50">
                                     <tr>
-                                        <th class="text-left px-3 py-2 font-medium text-muted-foreground">Method</th>
-                                        <th class="text-left px-3 py-2 font-medium text-muted-foreground">Description</th>
+                                        <th class="text-muted-foreground px-3 py-2 text-left font-medium">Method</th>
+                                        <th class="text-muted-foreground px-3 py-2 text-left font-medium">Description</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
                                     <tr v-for="item in apiMethods" :key="item.method" class="hover:bg-muted/30 transition-colors">
                                         <td class="px-3 py-2">
-                                            <code class="text-xs bg-muted px-1.5 py-0.5 rounded font-mono text-primary">{{ item.method }}</code>
+                                            <code class="bg-muted text-primary rounded px-1.5 py-0.5 font-mono text-xs">{{ item.method }}</code>
                                         </td>
-                                        <td class="px-3 py-2 text-muted-foreground">{{ item.description }}</td>
+                                        <td class="text-muted-foreground px-3 py-2">{{ item.description }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -585,25 +566,28 @@
                             <Zap class="h-4 w-4 text-emerald-500" />
                             <h5 class="text-sm font-medium">Events</h5>
                         </div>
-                        <p class="text-sm text-muted-foreground">
-                            Subscribe to widget events using <code class="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">window.chatvia.on(event, callback)</code>
+                        <p class="text-muted-foreground text-sm">
+                            Subscribe to widget events using
+                            <code class="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">window.chatvia.on(event, callback)</code>
                         </p>
                         <div class="relative">
-                            <div class="bg-zinc-950 rounded-lg overflow-hidden">
-                                <div class="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-800">
-                                    <span class="text-xs text-zinc-400 font-medium">JavaScript</span>
+                            <div class="overflow-hidden rounded-lg bg-zinc-950">
+                                <div class="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-4 py-2">
+                                    <span class="text-xs font-medium text-zinc-400">JavaScript</span>
                                     <Button
                                         type="button"
                                         variant="ghost"
                                         size="sm"
-                                        class="h-7 px-2 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                                        class="h-7 px-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
                                         @click="copyApiCode(eventsCodeExample)"
                                     >
-                                        <Copy class="h-3.5 w-3.5 mr-1.5" />
+                                        <Copy class="mr-1.5 h-3.5 w-3.5" />
                                         <span class="text-xs">Copy</span>
                                     </Button>
                                 </div>
-                                <pre class="p-4 overflow-x-auto text-sm"><code class="text-zinc-300 font-mono leading-relaxed"><span class="text-zinc-500">// When chat window opens</span>
+                                <pre
+                                    class="overflow-x-auto p-4 text-sm"
+                                ><code class="text-zinc-300 font-mono leading-relaxed"><span class="text-zinc-500">// When chat window opens</span>
 <span class="text-sky-400">window</span>.<span class="text-amber-300">chatvia</span>.<span class="text-emerald-400">on</span>(<span class="text-orange-300">'open'</span>, () =&gt; {
   <span class="text-sky-400">console</span>.<span class="text-emerald-400">log</span>(<span class="text-orange-300">'Chat opened'</span>);
 });
@@ -631,10 +615,10 @@
 
                     <!-- Quick Example -->
                     <Alert class="bg-primary/5 border-primary/20">
-                        <Info class="h-4 w-4 text-primary" />
+                        <Info class="text-primary h-4 w-4" />
                         <AlertDescription class="text-sm">
                             <strong>Quick example:</strong> Open the chat when a button is clicked:
-                            <code class="block mt-2 bg-muted px-2 py-1 rounded text-xs font-mono">
+                            <code class="bg-muted mt-2 block rounded px-2 py-1 font-mono text-xs">
                                 document.getElementById('help-btn').onclick = () =&gt; window.chatvia.open();
                             </code>
                         </AlertDescription>
@@ -642,37 +626,52 @@
                 </div>
 
                 <DialogFooter class="mt-4">
-                    <Button variant="outline" @click="showApiDocsDialog = false">
-                        Close
-                    </Button>
+                    <Button variant="outline" @click="showApiDocsDialog = false"> Close </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     </AgentLayout>
 </template>
 
-
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { route } from 'ziggy-js';
-import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
-import { Separator } from '@/components/ui/separator';
-import { Type, Save, RotateCcw, Eye, Copy, Palette, Shield, Info, Settings, Code, MessageSquare, PlusCircle, Trash2, Brain, Bot, Terminal, Zap } from 'lucide-vue-next';
 import AgentModelSelector from '@/components/agents/AgentModelSelector.vue';
 import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
-import { toast } from 'vue-sonner';
-import axios from 'axios';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PreviewModal from '@/components/PreviewModal.vue';
-import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
+import { Textarea } from '@/components/ui/textarea';
+import AgentLayout from '@/layouts/AgentLayout.vue';
+import { useForm } from '@inertiajs/vue3';
+import axios from 'axios';
+import {
+    Bot,
+    Brain,
+    Code,
+    Copy,
+    Eye,
+    Info,
+    MessageSquare,
+    Palette,
+    PlusCircle,
+    RotateCcw,
+    Save,
+    Settings,
+    Shield,
+    Terminal,
+    Trash2,
+    Type,
+    Zap,
+} from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
+import { route } from 'ziggy-js';
 
 interface Props {
     agent: App.Data.Resources.Agent.AgentResourceData;
@@ -779,21 +778,19 @@ const copyApiCode = async (code: string) => {
 // Computed properties for header button states
 const hasUnsavedChanges = computed(() => {
     // Check if any form data has changed from initial values
-    const appearanceChanged = (
-        appearanceForm.welcome_message !== (props.appearanceSettings.welcome_message) ||
-        appearanceForm.chat_window_title !== (props.appearanceSettings.chat_window_title) ||
-        appearanceForm.color_theme !== (props.appearanceSettings.color_theme) ||
-        appearanceForm.color_shade !== (props.appearanceSettings.color_shade)
-    );
+    const appearanceChanged =
+        appearanceForm.welcome_message !== props.appearanceSettings.welcome_message ||
+        appearanceForm.chat_window_title !== props.appearanceSettings.chat_window_title ||
+        appearanceForm.color_theme !== props.appearanceSettings.color_theme ||
+        appearanceForm.color_shade !== props.appearanceSettings.color_shade;
 
-    const widgetChanged = (
+    const widgetChanged =
         widgetForm.position !== props.widgetSettings.position ||
         widgetForm.show_on_load !== props.widgetSettings.show_on_load ||
         widgetForm.show_on_load_delay !== props.widgetSettings.show_on_load_delay ||
         widgetForm.window_size !== props.widgetSettings.window_size ||
         JSON.stringify(widgetForm.bubbles) !== JSON.stringify(props.widgetSettings.bubbles || []) ||
-        JSON.stringify(widgetForm.sites) !== JSON.stringify(props.widgetSettings.sites || [])
-    );
+        JSON.stringify(widgetForm.sites) !== JSON.stringify(props.widgetSettings.sites || []);
 
     return appearanceChanged || widgetChanged;
 });
@@ -816,7 +813,7 @@ const updateWidgetSettings = async () => {
             appearanceForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
                 preserveScroll: true,
                 onSuccess: () => resolve(true),
-                onError: () => reject(new Error('Appearance settings failed'))
+                onError: () => reject(new Error('Appearance settings failed')),
             });
         });
 
@@ -829,7 +826,7 @@ const updateWidgetSettings = async () => {
             textForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
                 preserveScroll: true,
                 onSuccess: () => resolve(true),
-                onError: () => reject(new Error('Widget settings failed'))
+                onError: () => reject(new Error('Widget settings failed')),
             });
         });
 
@@ -843,7 +840,6 @@ const updateWidgetSettings = async () => {
         setTimeout(() => {
             showSuccessMessage.value = false;
         }, 3000);
-
     } catch (error) {
         isSubmitting.value = false;
         console.error('Failed to save settings:', error);
@@ -863,7 +859,7 @@ const saveSecuritySettings = () => {
         },
         onError: () => {
             toast.error('Failed to update security settings');
-        }
+        },
     });
 };
 
@@ -881,7 +877,7 @@ const saveColorSettings = () => {
         },
         onError: () => {
             toast.error('Failed to update color');
-        }
+        },
     });
 };
 
@@ -900,15 +896,13 @@ const saveBehaviorSettings = () => {
         },
         onError: () => {
             toast.error('Failed to update behavior settings');
-        }
+        },
     });
 };
 
 const openPreview = () => {
     showPreviewModal.value = true;
 };
-
-
 
 const embedSnippet = computed(() => {
     const scriptLines = [
@@ -955,12 +949,13 @@ const openFullPreview = () => {
 
 // Starters functionality
 const addStarterMessage = () => {
-    axios.post(route('agents.starters.store', props.agent.external_id), { text: starterMessageForm.value.text })
+    axios
+        .post(route('agents.starters.store', props.agent.external_id), { text: starterMessageForm.value.text })
         .then((response) => {
             showAddStarterDialog.value = false;
             starters.value.push({
                 id: response.data.id,
-                text: response.data.text
+                text: response.data.text,
             });
             starterMessageForm.value.text = '';
             toast.success('Starter message added');
@@ -972,9 +967,10 @@ const addStarterMessage = () => {
 };
 
 const removeStarter = (id: number) => {
-    axios.delete(route('agents.starters.delete', { agent: props.agent.external_id, id }))
+    axios
+        .delete(route('agents.starters.delete', { agent: props.agent.external_id, id }))
         .then(() => {
-            starters.value = starters.value.filter(starter => starter.id !== id);
+            starters.value = starters.value.filter((starter) => starter.id !== id);
             toast.success('Starter message removed');
             previewKey.value += 1;
         })
@@ -986,4 +982,3 @@ const removeStarter = (id: number) => {
 // Models functionality
 // Preview updates only when Save is clicked - removed auto-update watcher
 </script>
-

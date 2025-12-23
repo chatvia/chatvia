@@ -1,22 +1,42 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
 
-import { ref, computed, reactive, watch } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Palette, Upload, Trash2, Save, User, Image, Type, Code, Eye, Copy, Info, Shield, AlertTriangle, Share2, RotateCcw, MessageSquare, PlusCircle, Brain, Bot } from 'lucide-vue-next';
 import PreviewModal from '@/components/PreviewModal.vue';
 import AgentModelSelector from '@/components/agents/AgentModelSelector.vue';
 import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
-import { toast } from 'vue-sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
+import {
+    AlertTriangle,
+    Bot,
+    Brain,
+    Code,
+    Copy,
+    Eye,
+    Image,
+    Info,
+    MessageSquare,
+    Palette,
+    PlusCircle,
+    RotateCcw,
+    Save,
+    Share2,
+    Shield,
+    Trash2,
+    Type,
+    Upload,
+    User,
+} from 'lucide-vue-next';
+import { computed, reactive, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Props {
     agent: App.Data.Resources.Agent.AgentResourceData;
@@ -127,7 +147,7 @@ const updateAppearance = () => {
         },
         onError: () => {
             isSubmitting.value = false;
-        }
+        },
     });
 };
 
@@ -161,29 +181,32 @@ const handleAvatarUpload = (event: Event) => {
         },
         onError: () => {
             toast.error('Failed to update avatar');
-        }
+        },
     });
 };
 
 const removeAvatar = () => {
-    router.delete(route('agents.settings.delete', {
-        agent: props.agent.external_id,
-        group: 'appearance',
-        key: 'avatar'
-    }), {
-        preserveScroll: true,
-        onSuccess: () => {
-            avatarPreview.value = null;
-            if (avatarInputRef.value) {
-                avatarInputRef.value.value = '';
-            }
-            toast.success('Avatar removed successfully');
-            embedKey.value += 1;
+    router.delete(
+        route('agents.settings.delete', {
+            agent: props.agent.external_id,
+            group: 'appearance',
+            key: 'avatar',
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                avatarPreview.value = null;
+                if (avatarInputRef.value) {
+                    avatarInputRef.value.value = '';
+                }
+                toast.success('Avatar removed successfully');
+                embedKey.value += 1;
+            },
+            onError: () => {
+                toast.error('Failed to remove avatar');
+            },
         },
-        onError: () => {
-            toast.error('Failed to remove avatar');
-        }
-    });
+    );
 };
 
 const triggerLogoInput = () => {
@@ -216,29 +239,32 @@ const handleLogoUpload = (event: Event) => {
         },
         onError: () => {
             toast.error('Failed to update logo');
-        }
+        },
     });
 };
 
 const removeLogo = () => {
-    router.delete(route('agents.settings.delete', {
-        agent: props.agent.external_id,
-        group: 'appearance',
-        key: 'logo'
-    }), {
-        preserveScroll: true,
-        onSuccess: () => {
-            logoPreview.value = null;
-            if (logoInputRef.value) {
-                logoInputRef.value.value = '';
-            }
-            toast.success('Logo removed successfully');
-            embedKey.value += 1;
+    router.delete(
+        route('agents.settings.delete', {
+            agent: props.agent.external_id,
+            group: 'appearance',
+            key: 'logo',
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                logoPreview.value = null;
+                if (logoInputRef.value) {
+                    logoInputRef.value.value = '';
+                }
+                toast.success('Logo removed successfully');
+                embedKey.value += 1;
+            },
+            onError: () => {
+                toast.error('Failed to remove logo');
+            },
         },
-        onError: () => {
-            toast.error('Failed to remove logo');
-        }
-    });
+    );
 };
 
 const updateSetting = (key: string, value: any) => {
@@ -251,19 +277,23 @@ const updateSetting = (key: string, value: any) => {
         dataToSend.hide_sidebar_on_page_load = false;
     }
 
-    router.post(route('agents.settings.update', {
-        agent: props.agent.external_id,
-        group: 'embed'
-    }), dataToSend, {
-        preserveScroll: true,
-        onSuccess: () => {
-            toast.success('Setting updated successfully');
-            embedKey.value += 1;
+    router.post(
+        route('agents.settings.update', {
+            agent: props.agent.external_id,
+            group: 'embed',
+        }),
+        dataToSend,
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Setting updated successfully');
+                embedKey.value += 1;
+            },
+            onError: () => {
+                toast.error('Failed to update setting');
+            },
         },
-        onError: () => {
-            toast.error('Failed to update setting');
-        }
-    });
+    );
 };
 
 const buildIframeUrl = (baseUrl: string) => {
@@ -352,7 +382,7 @@ const updateSecuritySettings = () => {
         onError: () => {
             toast.error('Failed to update security settings');
             securityForm.is_public = !securityForm.is_public;
-        }
+        },
     });
 };
 
@@ -366,15 +396,18 @@ const cancelMakePublic = () => {
     securityForm.is_public = false;
 };
 
-watch(() => securityForm.is_public, (newValue, oldValue) => {
-    if (oldValue !== undefined && newValue !== oldValue) {
-        if (newValue === true) {
-            showSecurityConfirmDialog.value = true;
-        } else {
-            updateSecuritySettings();
+watch(
+    () => securityForm.is_public,
+    (newValue, oldValue) => {
+        if (oldValue !== undefined && newValue !== oldValue) {
+            if (newValue === true) {
+                showSecurityConfirmDialog.value = true;
+            } else {
+                updateSecuritySettings();
+            }
         }
-    }
-});
+    },
+);
 
 const saveColorSettings = () => {
     const colorForm = useForm({
@@ -390,17 +423,18 @@ const saveColorSettings = () => {
         },
         onError: () => {
             toast.error('Failed to update color');
-        }
+        },
     });
 };
 
 const addStarterMessage = () => {
-    axios.post(route('agents.starters.store', props.agent.external_id), { text: starterMessageForm.value.text })
+    axios
+        .post(route('agents.starters.store', props.agent.external_id), { text: starterMessageForm.value.text })
         .then((response: any) => {
             showAddStarterDialog.value = false;
             starters.value.push({
                 id: response.data.id,
-                text: response.data.text
+                text: response.data.text,
             });
             starterMessageForm.value.text = '';
             toast.success('Starter message added');
@@ -412,9 +446,10 @@ const addStarterMessage = () => {
 };
 
 const removeStarter = (id: number) => {
-    axios.delete(route('agents.starters.delete', { agent: props.agent.external_id, id }))
+    axios
+        .delete(route('agents.starters.delete', { agent: props.agent.external_id, id }))
         .then(() => {
-            starters.value = starters.value.filter(starter => starter.id !== id);
+            starters.value = starters.value.filter((starter) => starter.id !== id);
             toast.success('Starter message removed');
             embedKey.value += 1;
         })
@@ -422,24 +457,23 @@ const removeStarter = (id: number) => {
             toast.error('Failed to remove starter message');
         });
 };
-
 </script>
 
 <template>
     <AgentLayout :agent="agent" title="Embed" hide-header no-padding full-height>
         <div class="flex h-full">
             <!-- Left Column - Navigation Menu -->
-            <div class="w-[180px] flex-shrink-0 flex flex-col h-full bg-muted/30 border-r">
+            <div class="bg-muted/30 flex h-full w-[180px] flex-shrink-0 flex-col border-r">
                 <nav class="flex flex-col gap-0.5 p-2">
                     <button
                         v-for="item in menuItems"
                         :key="item.value"
                         @click="activeTab = item.value"
-                        class="w-full h-9 flex items-center gap-2.5 px-3 text-sm rounded-md transition-colors cursor-pointer"
+                        class="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-md px-3 text-sm transition-colors"
                         :class="[
                             activeTab === item.value
-                                ? 'bg-background shadow-sm text-foreground font-medium'
-                                : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'
+                                ? 'bg-background text-foreground font-medium shadow-sm'
+                                : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
                         ]"
                     >
                         <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
@@ -449,10 +483,10 @@ const removeStarter = (id: number) => {
             </div>
 
             <!-- Middle Column - Configuration Content -->
-            <div class="flex-1 flex flex-col h-full overflow-hidden border-r">
+            <div class="flex h-full flex-1 flex-col overflow-hidden border-r">
                 <div class="flex-1 overflow-y-auto">
                     <!-- Text Panel -->
-                    <div v-if="activeTab === 'text'" class="p-6 space-y-6">
+                    <div v-if="activeTab === 'text'" class="space-y-6 p-6">
                         <form @submit.prevent="updateAppearance" class="space-y-6">
                             <div class="space-y-2">
                                 <Label for="welcome_message">Welcome Message</Label>
@@ -462,20 +496,16 @@ const removeStarter = (id: number) => {
                                     placeholder="Hi there! How can I help you today?"
                                     rows="3"
                                 />
-                                <p v-if="appearanceForm.errors.welcome_message" class="text-sm text-destructive">
+                                <p v-if="appearanceForm.errors.welcome_message" class="text-destructive text-sm">
                                     {{ appearanceForm.errors.welcome_message }}
                                 </p>
-                                <p class="text-xs text-muted-foreground">First message shown to users</p>
+                                <p class="text-muted-foreground text-xs">First message shown to users</p>
                             </div>
 
                             <div class="space-y-2">
                                 <Label for="chat_window_title">Chat Window Title</Label>
-                                <Input
-                                    id="chat_window_title"
-                                    v-model="appearanceForm.chat_window_title"
-                                    placeholder="Chat with our AI Assistant"
-                                />
-                                <p v-if="appearanceForm.errors.chat_window_title" class="text-sm text-destructive">
+                                <Input id="chat_window_title" v-model="appearanceForm.chat_window_title" placeholder="Chat with our AI Assistant" />
+                                <p v-if="appearanceForm.errors.chat_window_title" class="text-destructive text-sm">
                                     {{ appearanceForm.errors.chat_window_title }}
                                 </p>
                             </div>
@@ -487,53 +517,41 @@ const removeStarter = (id: number) => {
                                     v-model="appearanceForm.chat_footer_text"
                                     placeholder="Consider checking important information"
                                 />
-                                <p v-if="appearanceForm.errors.chat_footer_text" class="text-sm text-destructive">
+                                <p v-if="appearanceForm.errors.chat_footer_text" class="text-destructive text-sm">
                                     {{ appearanceForm.errors.chat_footer_text }}
                                 </p>
                             </div>
 
                             <div class="space-y-2">
                                 <Label for="composer_placeholder">Composer Placeholder</Label>
-                                <Input
-                                    id="composer_placeholder"
-                                    v-model="appearanceForm.composer_placeholder"
-                                    placeholder="Ask anything..."
-                                />
-                                <p v-if="appearanceForm.errors.composer_placeholder" class="text-sm text-destructive">
+                                <Input id="composer_placeholder" v-model="appearanceForm.composer_placeholder" placeholder="Ask anything..." />
+                                <p v-if="appearanceForm.errors.composer_placeholder" class="text-destructive text-sm">
                                     {{ appearanceForm.errors.composer_placeholder }}
                                 </p>
-                                <p class="text-xs text-muted-foreground">Placeholder text in the chat input field</p>
+                                <p class="text-muted-foreground text-xs">Placeholder text in the chat input field</p>
                             </div>
 
-                            <div class="pt-4 border-t">
+                            <div class="border-t pt-4">
                                 <Button type="submit" :disabled="isSubmitting || !hasUnsavedChanges" size="sm">
-                                    <Save class="h-4 w-4 mr-2" />
+                                    <Save class="mr-2 h-4 w-4" />
                                     {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
                                 </Button>
-                                <p v-if="showSuccessMessage" class="text-sm text-green-600 mt-2">
-                                    Settings saved successfully
-                                </p>
+                                <p v-if="showSuccessMessage" class="mt-2 text-sm text-green-600">Settings saved successfully</p>
                             </div>
                         </form>
                     </div>
 
                     <!-- Persona Panel -->
                     <div v-if="activeTab === 'persona'" class="p-6">
-                        <AgentPersonaEditor
-                            :agent-id="agent.external_id"
-                            :initial-instructions="agent.system_instructions"
-                            @saved="refreshPreview"
-                        />
+                        <AgentPersonaEditor :agent-id="agent.external_id" :initial-instructions="agent.system_instructions" @saved="refreshPreview" />
                     </div>
 
                     <!-- Starters Panel -->
-                    <div v-if="activeTab === 'starters'" class="p-6 space-y-4">
-                        <div class="flex justify-between items-center">
+                    <div v-if="activeTab === 'starters'" class="space-y-4 p-6">
+                        <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-sm font-medium">Conversation Starters</h3>
-                                <p class="text-xs text-muted-foreground mt-1">
-                                    Suggest questions to help users start conversations
-                                </p>
+                                <p class="text-muted-foreground mt-1 text-xs">Suggest questions to help users start conversations</p>
                             </div>
                             <Button type="button" variant="outline" size="sm" @click="showAddStarterDialog = true">
                                 <PlusCircle class="mr-2 h-4 w-4" />
@@ -542,21 +560,15 @@ const removeStarter = (id: number) => {
                         </div>
 
                         <div class="rounded-md border">
-                            <div v-if="starters.length === 0" class="p-4 text-center text-muted-foreground text-sm">
-                                No starter messages yet
-                            </div>
-                            <div
-                                v-for="starter in starters"
-                                :key="starter.id"
-                                class="flex items-center justify-between border-b p-3 last:border-0"
-                            >
+                            <div v-if="starters.length === 0" class="text-muted-foreground p-4 text-center text-sm">No starter messages yet</div>
+                            <div v-for="starter in starters" :key="starter.id" class="flex items-center justify-between border-b p-3 last:border-0">
                                 <div class="flex items-center gap-3">
-                                    <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                                    <MessageSquare class="text-muted-foreground h-4 w-4" />
                                     <div class="text-sm">{{ starter.text }}</div>
                                 </div>
                                 <Button
                                     type="button"
-                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
+                                    class="text-destructive hover:text-destructive/80 h-8 w-8 p-0"
                                     size="sm"
                                     variant="ghost"
                                     @click="removeStarter(starter.id)"
@@ -585,38 +597,41 @@ const removeStarter = (id: number) => {
                     </div>
 
                     <!-- Colors Panel -->
-                    <div v-if="activeTab === 'colors'" class="p-6 space-y-2">
+                    <div v-if="activeTab === 'colors'" class="space-y-2 p-6">
                         <Label>Color Theme</Label>
-                        <p class="text-xs text-muted-foreground mb-3">Click the color swatch to choose your primary color</p>
+                        <p class="text-muted-foreground mb-3 text-xs">Click the color swatch to choose your primary color</p>
 
-                        <div class="relative cursor-pointer inline-block" @click="showColorPicker = true">
+                        <div class="relative inline-block cursor-pointer" @click="showColorPicker = true">
                             <div
-                                class="h-20 w-20 rounded-lg border-2 border-border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                                class="border-border h-20 w-20 rounded-lg border-2 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md"
                                 :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"
                             >
                                 <div class="flex h-full items-center justify-center">
-                                    <div class="h-10 w-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
-                                        <div class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"></div>
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-lg">
+                                        <div
+                                            class="h-6 w-6 rounded-full"
+                                            :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"
+                                        ></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <p v-if="appearanceForm.errors.color_theme" class="text-sm text-destructive">
+                        <p v-if="appearanceForm.errors.color_theme" class="text-destructive text-sm">
                             {{ appearanceForm.errors.color_theme }}
                         </p>
                     </div>
 
                     <!-- Branding Panel -->
-                    <div v-if="activeTab === 'branding'" class="p-6 space-y-6">
+                    <div v-if="activeTab === 'branding'" class="space-y-6 p-6">
                         <div class="space-y-2">
                             <Label>Agent Avatar</Label>
-                            <p class="text-xs text-muted-foreground mb-3">Upload an avatar for your agent (256x256px recommended)</p>
+                            <p class="text-muted-foreground mb-3 text-xs">Upload an avatar for your agent (256x256px recommended)</p>
 
                             <div class="flex items-center gap-4">
-                                <div class="h-20 w-20 overflow-hidden rounded-full border bg-muted">
+                                <div class="bg-muted h-20 w-20 overflow-hidden rounded-full border">
                                     <img v-if="avatarPreview" :src="avatarPreview" alt="Agent avatar" class="h-full w-full object-cover" />
-                                    <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
+                                    <div v-else class="text-muted-foreground flex h-full w-full items-center justify-center">
                                         <User class="h-10 w-10" />
                                     </div>
                                 </div>
@@ -643,12 +658,12 @@ const removeStarter = (id: number) => {
 
                         <div class="space-y-2">
                             <Label>Logo Image</Label>
-                            <p class="text-xs text-muted-foreground mb-3">Upload a logo for your agent (256x256px recommended)</p>
+                            <p class="text-muted-foreground mb-3 text-xs">Upload a logo for your agent (256x256px recommended)</p>
 
                             <div class="flex items-center gap-4">
-                                <div class="h-20 w-20 overflow-hidden rounded-full border bg-muted">
+                                <div class="bg-muted h-20 w-20 overflow-hidden rounded-full border">
                                     <img v-if="logoPreview" :src="logoPreview" alt="Logo" class="h-full w-full object-cover" />
-                                    <div v-else class="flex h-full w-full items-center justify-center text-muted-foreground">
+                                    <div v-else class="text-muted-foreground flex h-full w-full items-center justify-center">
                                         <Image class="h-10 w-10" />
                                     </div>
                                 </div>
@@ -675,7 +690,7 @@ const removeStarter = (id: number) => {
                     </div>
 
                     <!-- Embed Panel -->
-                    <div v-if="activeTab === 'embed'" class="p-6 space-y-4">
+                    <div v-if="activeTab === 'embed'" class="space-y-4 p-6">
                         <div class="space-y-3">
                             <Label class="text-sm font-medium">Embed Configuration</Label>
                             <div class="grid grid-cols-2 gap-4">
@@ -690,29 +705,25 @@ const removeStarter = (id: number) => {
                             </div>
 
                             <div class="grid grid-cols-2 gap-2">
-                                <Button type="button" variant="outline" size="sm" @click="setPresetSize('full')" class="text-xs">
-                                    Full Width
-                                </Button>
-                                <Button type="button" variant="outline" size="sm" @click="setPresetSize('large')" class="text-xs">
-                                    Large
-                                </Button>
+                                <Button type="button" variant="outline" size="sm" @click="setPresetSize('full')" class="text-xs"> Full Width </Button>
+                                <Button type="button" variant="outline" size="sm" @click="setPresetSize('large')" class="text-xs"> Large </Button>
                             </div>
                         </div>
 
                         <div class="bg-muted rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-3">
-                                <p class="text-sm text-muted-foreground">HTML Embed Code</p>
+                            <div class="mb-3 flex items-center justify-between">
+                                <p class="text-muted-foreground text-sm">HTML Embed Code</p>
                                 <Button type="button" variant="outline" size="sm" @click="copyEmbedCode" class="gap-2">
                                     <Copy class="h-4 w-4" />
                                     Copy
                                 </Button>
                             </div>
-                            <div class="bg-background border rounded p-3">
-                                <pre class="text-xs text-foreground overflow-x-auto whitespace-pre-wrap"><code v-text="embedCode"></code></pre>
+                            <div class="bg-background rounded border p-3">
+                                <pre class="text-foreground overflow-x-auto text-xs whitespace-pre-wrap"><code v-text="embedCode"></code></pre>
                             </div>
                         </div>
 
-                        <div class="space-y-4 pt-4 border-t">
+                        <div class="space-y-4 border-t pt-4">
                             <h4 class="text-sm font-medium">Interface Options</h4>
 
                             <div class="space-y-3">
@@ -764,20 +775,18 @@ const removeStarter = (id: number) => {
                     </div>
 
                     <!-- Share Panel -->
-                    <div v-if="activeTab === 'share'" class="p-6 space-y-4">
+                    <div v-if="activeTab === 'share'" class="space-y-4 p-6">
                         <div>
                             <Label class="text-base">Agent URL</Label>
-                            <p class="text-sm text-muted-foreground mt-1 mb-3">
-                                Share this URL to give others access to your agent
-                            </p>
+                            <p class="text-muted-foreground mt-1 mb-3 text-sm">Share this URL to give others access to your agent</p>
                         </div>
 
                         <div class="bg-muted rounded-lg p-4">
                             <div class="flex items-center justify-between gap-3">
-                                <code class="text-sm text-foreground break-all">
+                                <code class="text-foreground text-sm break-all">
                                     {{ agent.public_url || agent.url }}
                                 </code>
-                                <Button type="button" variant="outline" size="sm" @click="copyAgentUrl" class="gap-2 shrink-0">
+                                <Button type="button" variant="outline" size="sm" @click="copyAgentUrl" class="shrink-0 gap-2">
                                     <Copy class="h-4 w-4" />
                                     Copy
                                 </Button>
@@ -793,13 +802,11 @@ const removeStarter = (id: number) => {
                     </div>
 
                     <!-- Security Panel -->
-                    <div v-if="activeTab === 'security'" class="p-6 space-y-4">
+                    <div v-if="activeTab === 'security'" class="space-y-4 p-6">
                         <div class="flex items-center justify-between space-x-2">
                             <div class="flex-1">
                                 <Label class="text-base" for="is_public">Make this agent public</Label>
-                                <p class="text-sm text-muted-foreground mt-1">
-                                    Public agents can be accessed by anyone with the link
-                                </p>
+                                <p class="text-muted-foreground mt-1 text-sm">Public agents can be accessed by anyone with the link</p>
                             </div>
                             <Switch id="is_public" v-model="securityForm.is_public" />
                         </div>
@@ -808,10 +815,10 @@ const removeStarter = (id: number) => {
             </div>
 
             <!-- Right Column - Live Preview -->
-            <div class="w-[420px] flex-shrink-0 flex flex-col h-full bg-background">
+            <div class="bg-background flex h-full w-[420px] flex-shrink-0 flex-col">
                 <!-- Preview Header -->
-                <div class="px-4 py-3 border-b flex items-center justify-between flex-shrink-0">
-                    <span class="text-sm font-medium text-muted-foreground">Live Preview</span>
+                <div class="flex flex-shrink-0 items-center justify-between border-b px-4 py-3">
+                    <span class="text-muted-foreground text-sm font-medium">Live Preview</span>
                     <div class="flex items-center gap-1">
                         <Button type="button" variant="ghost" size="sm" class="h-8 gap-1.5" @click="refreshPreview">
                             <RotateCcw class="h-3.5 w-3.5" />
@@ -829,7 +836,7 @@ const removeStarter = (id: number) => {
                     <iframe
                         :key="embedKey"
                         :src="buildIframeUrl(agent.chat_embed_url)"
-                        class="w-full h-full border-0"
+                        class="h-full w-full border-0"
                         title="Chat Preview"
                         sandbox="allow-scripts allow-same-origin allow-forms"
                     />
@@ -853,40 +860,70 @@ const removeStarter = (id: number) => {
                         <Palette class="h-5 w-5" />
                         Choose Color Theme
                     </DialogTitle>
-                    <DialogDescription>
-                        Select a color and shade for your agent's primary theme
-                    </DialogDescription>
+                    <DialogDescription> Select a color and shade for your agent's primary theme </DialogDescription>
                 </DialogHeader>
 
                 <div class="space-y-6">
                     <div class="grid grid-cols-8 gap-2">
                         <div
-                            v-for="theme in ['black', 'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose', 'slate', 'gray', 'zinc', 'neutral', 'stone']"
+                            v-for="theme in [
+                                'black',
+                                'red',
+                                'orange',
+                                'amber',
+                                'yellow',
+                                'lime',
+                                'green',
+                                'emerald',
+                                'teal',
+                                'cyan',
+                                'sky',
+                                'blue',
+                                'indigo',
+                                'violet',
+                                'purple',
+                                'fuchsia',
+                                'pink',
+                                'rose',
+                                'slate',
+                                'gray',
+                                'zinc',
+                                'neutral',
+                                'stone',
+                            ]"
                             :key="theme"
-                            class="relative cursor-pointer group"
+                            class="group relative cursor-pointer"
                             @click="appearanceForm.color_theme = theme"
                         >
                             <div
-                                class="h-12 w-full rounded-lg border-2 transition-all duration-200 shadow-sm"
+                                class="h-12 w-full rounded-lg border-2 shadow-sm transition-all duration-200"
                                 :class="{
-                                    'border-primary ring-2 ring-primary/20': appearanceForm.color_theme === theme,
-                                    'border-border hover:border-primary/50 hover:shadow-md': appearanceForm.color_theme !== theme
+                                    'border-primary ring-primary/20 ring-2': appearanceForm.color_theme === theme,
+                                    'border-border hover:border-primary/50 hover:shadow-md': appearanceForm.color_theme !== theme,
                                 }"
                                 :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"
                             >
                                 <div class="flex h-full items-center justify-center">
                                     <div
                                         v-if="appearanceForm.color_theme === theme"
-                                        class="h-6 w-6 rounded-full bg-white shadow-lg flex items-center justify-center"
+                                        class="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-lg"
                                     >
-                                        <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"></div>
+                                        <div
+                                            class="h-3 w-3 rounded-full"
+                                            :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"
+                                        ></div>
                                     </div>
                                 </div>
                             </div>
-                            <p class="mt-1 text-center text-xs font-medium capitalize" :class="{
-                                'text-primary': appearanceForm.color_theme === theme,
-                                'text-muted-foreground': appearanceForm.color_theme !== theme
-                            }">{{ theme }}</p>
+                            <p
+                                class="mt-1 text-center text-xs font-medium capitalize"
+                                :class="{
+                                    'text-primary': appearanceForm.color_theme === theme,
+                                    'text-muted-foreground': appearanceForm.color_theme !== theme,
+                                }"
+                            >
+                                {{ theme }}
+                            </p>
                         </div>
                     </div>
 
@@ -899,11 +936,13 @@ const removeStarter = (id: number) => {
                                 max="950"
                                 step="50"
                                 v-model="appearanceForm.color_shade"
-                                class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                                :style="{ background: `linear-gradient(to right, var(--${appearanceForm.color_theme}-50), var(--${appearanceForm.color_theme}-950))` }"
+                                class="slider h-3 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
+                                :style="{
+                                    background: `linear-gradient(to right, var(--${appearanceForm.color_theme}-50), var(--${appearanceForm.color_theme}-950))`,
+                                }"
                             />
                         </div>
-                        <div class="flex justify-between text-xs text-muted-foreground">
+                        <div class="text-muted-foreground flex justify-between text-xs">
                             <span>Light</span>
                             <span class="font-medium">{{ appearanceForm.color_shade }}</span>
                             <span>Dark</span>
@@ -912,7 +951,14 @@ const removeStarter = (id: number) => {
                 </div>
 
                 <DialogFooter>
-                    <Button @click="() => { saveColorSettings(); showColorPicker = false; }">
+                    <Button
+                        @click="
+                            () => {
+                                saveColorSettings();
+                                showColorPicker = false;
+                            }
+                        "
+                    >
                         Apply & Save
                     </Button>
                 </DialogFooter>
@@ -932,12 +978,8 @@ const removeStarter = (id: number) => {
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" @click="cancelMakePublic">
-                        Cancel
-                    </Button>
-                    <Button @click="confirmMakePublic">
-                        Make Public
-                    </Button>
+                    <Button variant="outline" @click="cancelMakePublic"> Cancel </Button>
+                    <Button @click="confirmMakePublic"> Make Public </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -947,23 +989,14 @@ const removeStarter = (id: number) => {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Add Starter Message</DialogTitle>
-                    <DialogDescription>
-                        Create a new conversation starter for your users
-                    </DialogDescription>
+                    <DialogDescription> Create a new conversation starter for your users </DialogDescription>
                 </DialogHeader>
                 <div class="py-4">
                     <Label class="mb-2" for="starter-message">Message Text</Label>
-                    <Textarea
-                        id="starter-message"
-                        v-model="starterMessageForm.text"
-                        placeholder="E.g., How can I track my order?"
-                        rows="3"
-                    />
+                    <Textarea id="starter-message" v-model="starterMessageForm.text" placeholder="E.g., How can I track my order?" rows="3" />
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" @click="showAddStarterDialog = false">
-                        Cancel
-                    </Button>
+                    <Button variant="outline" @click="showAddStarterDialog = false"> Cancel </Button>
                     <Button :disabled="!starterMessageForm.text.trim()" @click="addStarterMessage">
                         <PlusCircle class="mr-2 h-4 w-4" />
                         Add Message

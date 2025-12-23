@@ -1,70 +1,51 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
-import { type BreadcrumbItem, type SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ref, onMounted, computed } from 'vue';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import {
-  Bot,
-  Plus,
-  MessageSquare,
-  ArrowRight,
-  MessagesSquare,
-  UserPlus
-} from 'lucide-vue-next';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, usePage } from '@inertiajs/vue3';
+import { Bot, MessageSquare, MessagesSquare, Plus, UserPlus } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 
 // Types for the dashboard data
 interface ActivityData {
-  label: string;
-  value: number;
+    label: string;
+    value: number;
 }
 
 interface DashboardData {
-  agents: {
-    total: number;
-    widget_count: number;
-    knowledge_base_count: number;
-  };
-  messages: {
-    total: number;
-    available: number;
-    trend: {
-      this_month: number;
-      last_month: number;
-      percent_change: number;
+    agents: {
+        total: number;
+        widget_count: number;
+        knowledge_base_count: number;
     };
-  };
-  conversations: number;
-  leads: number;
-  active_sessions: number;
-  knowledge_sources: {
-    files: number;
-    websites: number;
-    crawled_pages: number;
-    total: number;
-  };
-  team: {
-    members: number;
-  };
-  weekly_usage: ActivityData[];
-  monthly_usage: ActivityData[];
+    messages: {
+        total: number;
+        available: number;
+        trend: {
+            this_month: number;
+            last_month: number;
+            percent_change: number;
+        };
+    };
+    conversations: number;
+    leads: number;
+    active_sessions: number;
+    knowledge_sources: {
+        files: number;
+        websites: number;
+        crawled_pages: number;
+        total: number;
+    };
+    team: {
+        members: number;
+    };
+    weekly_usage: ActivityData[];
+    monthly_usage: ActivityData[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -76,34 +57,34 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // Real data from API
 const dashboardData = ref<DashboardData>({
-  agents: {
-    total: 0,
-    widget_count: 0,
-    knowledge_base_count: 0,
-  },
-  messages: {
-    total: 0,
-    available: 0,
-    trend: {
-      this_month: 0,
-      last_month: 0,
-      percent_change: 0
-    }
-  },
-  conversations: 0,
-  leads: 0,
-  active_sessions: 0,
-  knowledge_sources: {
-    files: 0,
-    websites: 0,
-    crawled_pages: 0,
-    total: 0
-  },
-  team: {
-    members: 0
-  },
-  weekly_usage: [],
-  monthly_usage: []
+    agents: {
+        total: 0,
+        widget_count: 0,
+        knowledge_base_count: 0,
+    },
+    messages: {
+        total: 0,
+        available: 0,
+        trend: {
+            this_month: 0,
+            last_month: 0,
+            percent_change: 0,
+        },
+    },
+    conversations: 0,
+    leads: 0,
+    active_sessions: 0,
+    knowledge_sources: {
+        files: 0,
+        websites: 0,
+        crawled_pages: 0,
+        total: 0,
+    },
+    team: {
+        members: 0,
+    },
+    weekly_usage: [],
+    monthly_usage: [],
 });
 
 // Activity period tab
@@ -119,56 +100,54 @@ const showCreateAgentModal = ref(false);
 const canCreateAgent = computed(() => {
     const currentTeam = page.props.currentTeam;
     if (!currentTeam) return false;
-    
+
     return currentTeam.is_owner;
 });
 
 // Fetch dashboard data from API
 const fetchDashboardData = async () => {
-  try {
-    const response = await fetch(route('dashboard.stats'));
-    const data: DashboardData = await response.json();
-    dashboardData.value = data;
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-  } finally {
-    loading.value = false;
-  }
+    try {
+        const response = await fetch(route('dashboard.stats'));
+        const data: DashboardData = await response.json();
+        dashboardData.value = data;
+    } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+    } finally {
+        loading.value = false;
+    }
 };
 
 // Function to refresh dashboard data after agent creation
 const refreshDashboardData = () => {
-  fetchDashboardData();
+    fetchDashboardData();
 };
 
 const currentActivityData = computed(() => {
-  return activityPeriod.value === 'week'
-    ? dashboardData.value.weekly_usage
-    : dashboardData.value.monthly_usage;
+    return activityPeriod.value === 'week' ? dashboardData.value.weekly_usage : dashboardData.value.monthly_usage;
 });
 
 const maxUsage = computed(() => {
-  if (currentActivityData.value.length === 0) return 1;
-  return Math.max(...currentActivityData.value.map(item => item.value), 1);
+    if (currentActivityData.value.length === 0) return 1;
+    return Math.max(...currentActivityData.value.map((item) => item.value), 1);
 });
 
 const totalActivityMessages = computed(() => {
-  return currentActivityData.value.reduce((sum, item) => sum + item.value, 0);
+    return currentActivityData.value.reduce((sum, item) => sum + item.value, 0);
 });
 
 const messageUsagePercent = computed(() => {
-  if (dashboardData.value.messages.available === 0) return 0;
-  return Math.round((dashboardData.value.messages.total / dashboardData.value.messages.available) * 100);
+    if (dashboardData.value.messages.available === 0) return 0;
+    return Math.round((dashboardData.value.messages.total / dashboardData.value.messages.available) * 100);
 });
 
 onMounted(() => {
-  fetchDashboardData();
+    fetchDashboardData();
 });
 
 const formatNumber = (num: number): string => {
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-  return num.toString();
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
 };
 </script>
 
@@ -196,13 +175,13 @@ const formatNumber = (num: number): string => {
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle class="text-sm font-medium">Total Agents</CardTitle>
-                            <Bot class="h-4 w-4 text-muted-foreground" />
+                            <Bot class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div v-if="loading" class="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                            <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ dashboardData.agents.total }}</div>
-                                <p class="text-xs text-muted-foreground">
+                                <p class="text-muted-foreground text-xs">
                                     {{ dashboardData.agents.widget_count }} widgets · {{ dashboardData.agents.knowledge_base_count }} knowledge bases
                                 </p>
                             </div>
@@ -213,15 +192,18 @@ const formatNumber = (num: number): string => {
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle class="text-sm font-medium">Messages This Cycle</CardTitle>
-                            <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                            <MessageSquare class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div v-if="loading" class="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                            <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ formatNumber(dashboardData.messages.total) }}</div>
                                 <div class="mt-2">
-                                    <div class="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                                        <span>{{ dashboardData.messages.total.toLocaleString() }} / {{ dashboardData.messages.available.toLocaleString() }}</span>
+                                    <div class="text-muted-foreground mb-1 flex items-center justify-between text-xs">
+                                        <span
+                                            >{{ dashboardData.messages.total.toLocaleString() }} /
+                                            {{ dashboardData.messages.available.toLocaleString() }}</span
+                                        >
                                         <span>{{ messageUsagePercent }}% used</span>
                                     </div>
                                     <Progress :model-value="messageUsagePercent" class="h-1" />
@@ -234,15 +216,13 @@ const formatNumber = (num: number): string => {
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle class="text-sm font-medium">Total Conversations</CardTitle>
-                            <MessagesSquare class="h-4 w-4 text-muted-foreground" />
+                            <MessagesSquare class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div v-if="loading" class="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                            <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ formatNumber(dashboardData.conversations) }}</div>
-                                <p class="text-xs text-muted-foreground">
-                                    {{ dashboardData.active_sessions }} active today
-                                </p>
+                                <p class="text-muted-foreground text-xs">{{ dashboardData.active_sessions }} active today</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -251,15 +231,13 @@ const formatNumber = (num: number): string => {
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle class="text-sm font-medium">Leads Captured</CardTitle>
-                            <UserPlus class="h-4 w-4 text-muted-foreground" />
+                            <UserPlus class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div v-if="loading" class="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                            <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ formatNumber(dashboardData.leads) }}</div>
-                                <p class="text-xs text-muted-foreground">
-                                    From agent conversations
-                                </p>
+                                <p class="text-muted-foreground text-xs">From agent conversations</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -277,56 +255,47 @@ const formatNumber = (num: number): string => {
                         <div class="flex items-center gap-4">
                             <Tabs v-model="activityPeriod" class="w-auto">
                                 <TabsList class="h-8">
-                                    <TabsTrigger value="week" class="text-xs px-3">Last Week</TabsTrigger>
-                                    <TabsTrigger value="month" class="text-xs px-3">Last Month</TabsTrigger>
+                                    <TabsTrigger value="week" class="px-3 text-xs">Last Week</TabsTrigger>
+                                    <TabsTrigger value="month" class="px-3 text-xs">Last Month</TabsTrigger>
                                 </TabsList>
                             </Tabs>
                             <div class="text-right">
                                 <div class="text-2xl font-bold">{{ totalActivityMessages }}</div>
-                                <div class="text-xs text-muted-foreground">total messages</div>
+                                <div class="text-muted-foreground text-xs">total messages</div>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="loading" class="flex items-end justify-center gap-3 h-40 px-2">
-                            <div v-for="i in 7" :key="i" class="flex flex-col items-center gap-2 w-full max-w-16">
-                                <div class="w-full bg-muted rounded-lg animate-pulse h-20"></div>
-                                <div class="h-3 w-6 bg-muted rounded animate-pulse"></div>
+                        <div v-if="loading" class="flex h-40 items-end justify-center gap-3 px-2">
+                            <div v-for="i in 7" :key="i" class="flex w-full max-w-16 flex-col items-center gap-2">
+                                <div class="bg-muted h-20 w-full animate-pulse rounded-lg"></div>
+                                <div class="bg-muted h-3 w-6 animate-pulse rounded"></div>
                             </div>
                         </div>
-                        <div v-else class="flex items-end justify-center gap-3 h-40 px-2">
-                            <div
-                                v-for="item in currentActivityData"
-                                :key="item.label"
-                                class="flex flex-col items-center gap-2 w-full max-w-16"
-                            >
+                        <div v-else class="flex h-40 items-end justify-center gap-3 px-2">
+                            <div v-for="item in currentActivityData" :key="item.label" class="flex w-full max-w-16 flex-col items-center gap-2">
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <div
-                                                class="w-full rounded-lg bg-gradient-to-t from-primary to-primary/90 transition-all duration-300 hover:from-primary hover:to-primary/70 hover:scale-105 cursor-pointer shadow-sm hover:shadow-md"
+                                                class="from-primary to-primary/90 hover:from-primary hover:to-primary/70 w-full cursor-pointer rounded-lg bg-gradient-to-t shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-md"
                                                 :style="{ height: `${Math.max((item.value / maxUsage) * 160, 6)}px` }"
-                                            >
-                                            </div>
+                                            ></div>
                                         </TooltipTrigger>
                                         <TooltipContent>
                                             <p class="font-medium">{{ item.value }} messages</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                                <span class="text-[10px] text-muted-foreground font-medium">{{ item.label }}</span>
+                                <span class="text-muted-foreground text-[10px] font-medium">{{ item.label }}</span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-
             </div>
         </div>
 
         <!-- Create Agent Modal -->
-        <CreateAgentModal
-            v-model:open="showCreateAgentModal"
-            @agent-created="refreshDashboardData"
-        />
+        <CreateAgentModal v-model:open="showCreateAgentModal" @agent-created="refreshDashboardData" />
     </AppLayout>
 </template>

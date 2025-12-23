@@ -1,33 +1,27 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Brain, Loader2, Save, ChevronDown, Search, Check, Info } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import axios from 'axios';
+import { Brain, Check, ChevronDown, Info, Loader2, Save, Search } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 type AIModel = App.Data.Chat.LlmModelData;
 
-const props = withDefaults(defineProps<{
-    agentId: number | string;
-    description?: string;
-    multiple?: boolean;
-}>(), {
-    multiple: false,
-});
+const props = withDefaults(
+    defineProps<{
+        agentId: number | string;
+        description?: string;
+        multiple?: boolean;
+    }>(),
+    {
+        multiple: false,
+    },
+);
 
 const emit = defineEmits<{
     modelChanged: [model: AIModel];
@@ -65,20 +59,17 @@ const hasChanges = computed(() => {
 const filteredModels = computed(() => {
     if (!searchQuery.value) return models.value;
     const query = searchQuery.value.toLowerCase();
-    return models.value.filter(m =>
-        m.name.toLowerCase().includes(query) ||
-        m.description?.toLowerCase().includes(query)
-    );
+    return models.value.filter((m) => m.name.toLowerCase().includes(query) || m.description?.toLowerCase().includes(query));
 });
 
 const selectedModelsDisplay = computed(() => {
     if (props.multiple) {
-        const selected = models.value.filter(m => selectedModelIds.value.includes(m.id));
+        const selected = models.value.filter((m) => selectedModelIds.value.includes(m.id));
         if (selected.length === 0) return 'Select models...';
         if (selected.length === 1) return selected[0].name;
         return `${selected.length} models selected`;
     } else {
-        const selected = models.value.find(m => m.id === selectedModelId.value);
+        const selected = models.value.find((m) => m.id === selectedModelId.value);
         return selected?.name || 'Select a model...';
     }
 });
@@ -87,12 +78,12 @@ const selectedModelIcon = computed(() => {
     if (props.multiple) {
         // For multi-select, show icon only if one model is selected
         if (selectedModelIds.value.length === 1) {
-            const selected = models.value.find(m => m.id === selectedModelIds.value[0]);
+            const selected = models.value.find((m) => m.id === selectedModelIds.value[0]);
             return selected?.icon || null;
         }
         return null;
     } else {
-        const selected = models.value.find(m => m.id === selectedModelId.value);
+        const selected = models.value.find((m) => m.id === selectedModelId.value);
         return selected?.icon || null;
     }
 });
@@ -153,19 +144,19 @@ const saveSelection = async () => {
 
     try {
         if (props.multiple) {
-            const toEnable = selectedModelIds.value.filter(id => !originalSelectedIds.value.has(id));
-            const toDisable = [...originalSelectedIds.value].filter(id => !selectedModelIds.value.includes(id));
+            const toEnable = selectedModelIds.value.filter((id) => !originalSelectedIds.value.has(id));
+            const toDisable = [...originalSelectedIds.value].filter((id) => !selectedModelIds.value.includes(id));
 
             for (const modelId of toEnable) {
                 await axios.patch(route('agents.models.toggle', { agent: props.agentId }), {
                     model_id: modelId,
-                    status: true
+                    status: true,
                 });
             }
             for (const modelId of toDisable) {
                 await axios.patch(route('agents.models.toggle', { agent: props.agentId }), {
                     model_id: modelId,
-                    status: false
+                    status: false,
                 });
             }
 
@@ -180,14 +171,14 @@ const saveSelection = async () => {
             if (originalId && originalId !== selectedModelId.value) {
                 await axios.patch(route('agents.models.toggle', { agent: props.agentId }), {
                     model_id: originalId,
-                    status: false
+                    status: false,
                 });
             }
 
             if (selectedModelId.value) {
                 await axios.patch(route('agents.models.toggle', { agent: props.agentId }), {
                     model_id: selectedModelId.value,
-                    status: true
+                    status: true,
                 });
             }
 
@@ -224,32 +215,27 @@ onMounted(() => {
     <div class="space-y-4">
         <div>
             <Label class="text-sm font-medium">Model</Label>
-            <p v-if="description" class="text-xs text-muted-foreground mt-1">
+            <p v-if="description" class="text-muted-foreground mt-1 text-xs">
                 {{ description }}
             </p>
         </div>
 
         <!-- Loading State -->
-        <div v-if="isLoadingModels" class="flex items-center gap-2 text-sm text-muted-foreground">
+        <div v-if="isLoadingModels" class="text-muted-foreground flex items-center gap-2 text-sm">
             <Loader2 class="h-4 w-4 animate-spin" />
             <span>Loading models...</span>
         </div>
 
         <!-- Error State -->
-        <div v-else-if="modelsError" class="rounded-md border border-destructive/20 bg-destructive/10 p-3">
-            <p class="text-sm text-destructive">{{ modelsError }}</p>
+        <div v-else-if="modelsError" class="border-destructive/20 bg-destructive/10 rounded-md border p-3">
+            <p class="text-destructive text-sm">{{ modelsError }}</p>
         </div>
 
         <!-- Model Selection -->
         <div v-else class="space-y-3">
             <Popover v-model:open="isDropdownOpen">
                 <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        role="combobox"
-                        :aria-expanded="isDropdownOpen"
-                        class="w-full justify-between font-normal h-10"
-                    >
+                    <Button variant="outline" role="combobox" :aria-expanded="isDropdownOpen" class="h-10 w-full justify-between font-normal">
                         <div class="flex items-center gap-2 truncate">
                             <img
                                 v-if="selectedModelIcon"
@@ -257,7 +243,7 @@ onMounted(() => {
                                 :alt="selectedModelsDisplay"
                                 class="h-5 w-5 flex-shrink-0"
                             />
-                            <Brain v-else class="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                            <Brain v-else class="text-muted-foreground h-5 w-5 flex-shrink-0" />
                             <span class="truncate">{{ selectedModelsDisplay }}</span>
                         </div>
                         <ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -265,14 +251,10 @@ onMounted(() => {
                 </PopoverTrigger>
                 <PopoverContent class="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                     <!-- Search -->
-                    <div class="p-2 border-b">
+                    <div class="border-b p-2">
                         <div class="relative">
-                            <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                v-model="searchQuery"
-                                placeholder="Search Models..."
-                                class="pl-8 h-8"
-                            />
+                            <Search class="text-muted-foreground absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2" />
+                            <Input v-model="searchQuery" placeholder="Search Models..." class="h-8 pl-8" />
                         </div>
                     </div>
 
@@ -283,33 +265,24 @@ onMounted(() => {
                                 <TooltipTrigger asChild>
                                     <button
                                         type="button"
-                                        class="flex items-center gap-3 w-full px-2 py-2 rounded-md hover:bg-accent text-left transition-colors"
+                                        class="hover:bg-accent flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors"
                                         :class="{
-                                            'bg-accent': isSelected(model.id)
+                                            'bg-accent': isSelected(model.id),
                                         }"
                                         @click="selectModel(model.id)"
                                     >
                                         <!-- Checkmark for selection -->
-                                        <div class="w-5 h-5 flex items-center justify-center">
-                                            <Check
-                                                v-if="isSelected(model.id)"
-                                                class="h-4 w-4 text-primary"
-                                            />
+                                        <div class="flex h-5 w-5 items-center justify-center">
+                                            <Check v-if="isSelected(model.id)" class="text-primary h-4 w-4" />
                                         </div>
 
                                         <!-- Model Icon -->
-                                        <img
-                                            v-if="model.icon"
-                                            :src="`/images/llms/${model.icon}`"
-                                            :alt="model.name"
-                                            class="h-5 w-5 flex-shrink-0"
-                                        />
-                                        <Brain v-else class="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                        <img v-if="model.icon" :src="`/images/llms/${model.icon}`" :alt="model.name" class="h-5 w-5 flex-shrink-0" />
+                                        <Brain v-else class="text-muted-foreground h-5 w-5 flex-shrink-0" />
 
                                         <!-- Model Name -->
-                                        <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                                        <div class="flex min-w-0 flex-1 items-center gap-1.5">
                                             <span class="text-sm">{{ model.name }}</span>
-                                            
                                         </div>
                                     </button>
                                 </TooltipTrigger>
@@ -319,19 +292,14 @@ onMounted(() => {
                                     side="right"
                                     :side-offset="10"
                                     :hide-arrow="true"
-                                    class="w-72 bg-popover text-popover-foreground border shadow-md p-4"
+                                    class="bg-popover text-popover-foreground w-72 border p-4 shadow-md"
                                 >
                                     <div class="space-y-3">
                                         <!-- Model Name -->
                                         <div class="flex items-center gap-2">
-                                            <img
-                                                v-if="model.icon"
-                                                :src="`/images/llms/${model.icon}`"
-                                                :alt="model.name"
-                                                class="h-5 w-5"
-                                            />
-                                            <Brain v-else class="h-5 w-5 text-muted-foreground" />
-                                            <span class="font-medium text-sm">{{ model.name }}</span>
+                                            <img v-if="model.icon" :src="`/images/llms/${model.icon}`" :alt="model.name" class="h-5 w-5" />
+                                            <Brain v-else class="text-muted-foreground h-5 w-5" />
+                                            <span class="text-sm font-medium">{{ model.name }}</span>
                                         </div>
 
                                         <!-- Credits Cost -->
@@ -352,33 +320,25 @@ onMounted(() => {
                                         </div>
 
                                         <!-- Description -->
-                                        <p v-if="model.description" class="text-sm text-muted-foreground leading-relaxed">
+                                        <p v-if="model.description" class="text-muted-foreground text-sm leading-relaxed">
                                             {{ model.description }}
                                         </p>
 
                                         <!-- Features -->
                                         <div v-if="model.features && model.features.length > 0" class="flex flex-wrap gap-1">
-                                            <span
-                                                v-for="feature in model.features"
-                                                :key="feature"
-                                                class="text-xs bg-muted px-2 py-0.5 rounded"
-                                            >
+                                            <span v-for="feature in model.features" :key="feature" class="bg-muted rounded px-2 py-0.5 text-xs">
                                                 {{ feature }}
                                             </span>
                                         </div>
 
                                         <!-- Reasoning badge -->
-                                        <div v-if="model.reasoning" class="text-xs text-emerald-600">
-                                            ✓ Reasoning model
-                                        </div>
+                                        <div v-if="model.reasoning" class="text-xs text-emerald-600">✓ Reasoning model</div>
                                     </div>
                                 </TooltipContent>
                             </Tooltip>
 
                             <!-- No results -->
-                            <div v-if="filteredModels.length === 0" class="px-2 py-4 text-center text-sm text-muted-foreground">
-                                No models found
-                            </div>
+                            <div v-if="filteredModels.length === 0" class="text-muted-foreground px-2 py-4 text-center text-sm">No models found</div>
                         </div>
                     </TooltipProvider>
                 </PopoverContent>
@@ -386,13 +346,9 @@ onMounted(() => {
 
             <!-- Divider and Save Button -->
             <div class="border-t pt-3">
-                <Button
-                    @click="saveSelection"
-                    :disabled="!hasChanges || isSaving"
-                    size="sm"
-                >
-                    <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-                    <Save v-else class="h-4 w-4 mr-2" />
+                <Button @click="saveSelection" :disabled="!hasChanges || isSaving" size="sm">
+                    <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
+                    <Save v-else class="mr-2 h-4 w-4" />
                     Save
                 </Button>
             </div>
@@ -400,9 +356,7 @@ onMounted(() => {
             <div class="space-y-2">
                 <Alert>
                     <Info class="h-4 w-4" />
-                    <AlertDescription>
-                        <strong>Recommended:</strong> Mistral is an excellent choice for most use cases.
-                    </AlertDescription>
+                    <AlertDescription> <strong>Recommended:</strong> Mistral is an excellent choice for most use cases. </AlertDescription>
                 </Alert>
 
                 <Alert>

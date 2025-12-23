@@ -2,35 +2,17 @@
     <AgentLayout :agent="agent" title="Playground">
         <template #header-actions>
             <div class="flex items-center gap-2">
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    @click="showPreviewModal = true"
-                    class="gap-2"
-                >
+                <Button type="button" variant="outline" size="sm" @click="showPreviewModal = true" class="gap-2">
                     <BotIcon class="h-4 w-4" />
                     <span class="hidden sm:inline">Preview</span>
                 </Button>
 
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    @click="openFullPreview"
-                    class="gap-2"
-                >
+                <Button type="button" variant="outline" size="sm" @click="openFullPreview" class="gap-2">
                     <ExternalLink class="h-4 w-4" />
                     <span class="hidden sm:inline">Open</span>
                 </Button>
 
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    @click="copyUrl"
-                    class="gap-2"
-                >
+                <Button type="button" variant="outline" size="sm" @click="copyUrl" class="gap-2">
                     <Copy class="h-4 w-4" />
                     <span class="hidden sm:inline">Copy</span>
                 </Button>
@@ -38,15 +20,14 @@
         </template>
         <div class="space-y-6">
             <Card>
-
                 <CardContent>
                     <!-- Preview Container -->
                     <div class="bg-muted rounded-lg p-6">
                         <div class="flex justify-center">
-                            <div class="w-full h-[800px] border rounded-lg overflow-hidden bg-white shadow-lg">
+                            <div class="h-[800px] w-full overflow-hidden rounded-lg border bg-white shadow-lg">
                                 <iframe
                                     :src="buildIframeUrl(props.agent.chat_url)"
-                                    class="w-full h-full border-0"
+                                    class="h-full w-full border-0"
                                     title="Chat Preview"
                                     loading="lazy"
                                     sandbox="allow-scripts allow-same-origin allow-forms"
@@ -69,18 +50,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import PreviewModal from '@/components/PreviewModal.vue';
-import { BotIcon, ExternalLink, Copy, MoreHorizontal } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import AgentLayout from '@/layouts/AgentLayout.vue';
+import { BotIcon, Copy, ExternalLink } from 'lucide-vue-next';
+import { ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {

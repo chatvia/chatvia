@@ -1,26 +1,19 @@
 <script lang="ts" setup>
-import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ref, computed, onMounted, watch } from 'vue';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { toast } from 'vue-sonner';
-import { Plus, Search, Pencil, Trash2, LoaderCircle, Info } from 'lucide-vue-next';
+import { Textarea } from '@/components/ui/textarea';
+import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
+import { LoaderCircle, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 const props = defineProps<Props>();
@@ -42,9 +35,7 @@ const form = ref({
 
 const filteredTopics = computed(() => {
     if (!searchQuery.value) return topics.value;
-    return topics.value.filter((topic: any) =>
-        topic.topic.toLowerCase().includes(searchQuery.value.toLowerCase())
-    );
+    return topics.value.filter((topic: any) => topic.topic.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
 const fetchTopics = async () => {
@@ -166,30 +157,26 @@ onMounted(() => {
 
         <div class="space-y-6">
             <!-- Search and Add -->
-            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div class="relative w-full sm:w-96">
-                    <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        v-model="searchQuery"
-                        placeholder="Search"
-                        class="pl-9"
-                    />
+                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                    <Input v-model="searchQuery" placeholder="Search" class="pl-9" />
                 </div>
                 <Button @click="openAddDialog">
-                    <Plus class="h-4 w-4 mr-2" />
+                    <Plus class="mr-2 h-4 w-4" />
                     Add topic
                 </Button>
             </div>
 
             <!-- Loading State -->
             <div v-if="loading" class="flex items-center justify-center py-12">
-                <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
+                <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
             </div>
 
             <!-- Topics List -->
             <Card v-else>
                 <CardContent class="!p-0">
-                    <div v-if="filteredTopics.length === 0" class="p-8 text-center text-muted-foreground">
+                    <div v-if="filteredTopics.length === 0" class="text-muted-foreground p-8 text-center">
                         <p v-if="searchQuery">No topics found matching "{{ searchQuery }}"</p>
                         <p v-else>No topics yet. Click "Add topic" to create one.</p>
                     </div>
@@ -197,25 +184,17 @@ onMounted(() => {
                         <div
                             v-for="topic in filteredTopics"
                             :key="topic.id"
-                            class="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+                            class="hover:bg-muted/50 flex items-center justify-between p-4 transition-colors"
                         >
-                            <div class="flex-1 min-w-0">
+                            <div class="min-w-0 flex-1">
                                 <p class="font-medium">{{ topic.topic }}</p>
                             </div>
-                            <div class="flex items-center gap-2 ml-4">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    @click="openEditDialog(topic)"
-                                >
+                            <div class="ml-4 flex items-center gap-2">
+                                <Button variant="ghost" size="icon" @click="openEditDialog(topic)">
                                     <Pencil class="h-4 w-4" />
                                 </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    @click="openDeleteDialog(topic)"
-                                >
-                                    <Trash2 class="h-4 w-4 text-destructive" />
+                                <Button variant="ghost" size="icon" @click="openDeleteDialog(topic)">
+                                    <Trash2 class="text-destructive h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
@@ -228,21 +207,14 @@ onMounted(() => {
                 <CardContent class="!p-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <Switch
-                                :checked="isFrozen"
-                                @update:checked="handleToggleFreeze"
-                            />
+                            <Switch :checked="isFrozen" @update:checked="handleToggleFreeze" />
                             <div>
                                 <Label class="cursor-pointer">Freeze Topics</Label>
-                                <p class="text-sm text-muted-foreground">
-                                    Prevent topics from being automatically updated
-                                </p>
+                                <p class="text-muted-foreground text-sm">Prevent topics from being automatically updated</p>
                             </div>
                         </div>
                         <Button variant="outline" size="sm" as-child>
-                            <a :href="route('agents.analytics.topics', props.agent.external_id)">
-                                Done
-                            </a>
+                            <a :href="route('agents.analytics.topics', props.agent.external_id)"> Done </a>
                         </Button>
                     </div>
                 </CardContent>
@@ -254,19 +226,12 @@ onMounted(() => {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Add Topic</DialogTitle>
-                    <DialogDescription>
-                        Create a new conversation topic for this agent
-                    </DialogDescription>
+                    <DialogDescription> Create a new conversation topic for this agent </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4">
                     <div>
                         <Label for="add-topic">Topic Name</Label>
-                        <Input
-                            id="add-topic"
-                            v-model="form.topic"
-                            placeholder="e.g., Account Subscription"
-                            @keydown.enter="handleAdd"
-                        />
+                        <Input id="add-topic" v-model="form.topic" placeholder="e.g., Account Subscription" @keydown.enter="handleAdd" />
                     </div>
                     <div>
                         <Label for="add-description">Description</Label>
@@ -279,15 +244,9 @@ onMounted(() => {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button
-                        variant="outline"
-                        @click="isAddDialogOpen = false"
-                        :disabled="isSubmitting"
-                    >
-                        Cancel
-                    </Button>
+                    <Button variant="outline" @click="isAddDialogOpen = false" :disabled="isSubmitting"> Cancel </Button>
                     <Button @click="handleAdd" :disabled="isSubmitting">
-                        <LoaderCircle v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
+                        <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
                         Add Topic
                     </Button>
                 </DialogFooter>
@@ -299,19 +258,12 @@ onMounted(() => {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Edit Topic</DialogTitle>
-                    <DialogDescription>
-                        Update the conversation topic
-                    </DialogDescription>
+                    <DialogDescription> Update the conversation topic </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4">
                     <div>
                         <Label for="edit-topic">Topic Name</Label>
-                        <Input
-                            id="edit-topic"
-                            v-model="form.topic"
-                            placeholder="e.g., Account Subscription"
-                            @keydown.enter="handleEdit"
-                        />
+                        <Input id="edit-topic" v-model="form.topic" placeholder="e.g., Account Subscription" @keydown.enter="handleEdit" />
                     </div>
                     <div>
                         <Label for="edit-description">Description</Label>
@@ -324,15 +276,9 @@ onMounted(() => {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button
-                        variant="outline"
-                        @click="isEditDialogOpen = false"
-                        :disabled="isSubmitting"
-                    >
-                        Cancel
-                    </Button>
+                    <Button variant="outline" @click="isEditDialogOpen = false" :disabled="isSubmitting"> Cancel </Button>
                     <Button @click="handleEdit" :disabled="isSubmitting">
-                        <LoaderCircle v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
+                        <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
                         Save Changes
                     </Button>
                 </DialogFooter>
@@ -349,19 +295,9 @@ onMounted(() => {
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button
-                        variant="outline"
-                        @click="isDeleteDialogOpen = false"
-                        :disabled="isSubmitting"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="destructive"
-                        @click="handleDelete"
-                        :disabled="isSubmitting"
-                    >
-                        <LoaderCircle v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
+                    <Button variant="outline" @click="isDeleteDialogOpen = false" :disabled="isSubmitting"> Cancel </Button>
+                    <Button variant="destructive" @click="handleDelete" :disabled="isSubmitting">
+                        <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
                         Delete
                     </Button>
                 </DialogFooter>
@@ -369,4 +305,3 @@ onMounted(() => {
         </Dialog>
     </AgentLayout>
 </template>
-

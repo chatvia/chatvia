@@ -1,8 +1,5 @@
 export const useColorTheme = () => {
-    const applyColorTheme = (appearance?: {
-        color_theme?: string;
-        color_shade?: number;
-    }) => {
+    const applyColorTheme = (appearance?: { color_theme?: string; color_shade?: number }) => {
         if (appearance?.color_theme) {
             const theme = appearance.color_theme;
             const shade = appearance.color_shade || 500;
@@ -13,6 +10,6 @@ export const useColorTheme = () => {
     };
 
     return {
-        applyColorTheme
+        applyColorTheme,
     };
-}; 
+};

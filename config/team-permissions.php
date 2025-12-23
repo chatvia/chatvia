@@ -67,6 +67,11 @@ return [
             'label' => 'View conversations',
             'description' => 'Read chat history and conversation logs',
         ],
+        'agent.chat.pulse' => [
+            'label' => 'Conversation Pulse',
+            'description' => 'View real-time conversation health metrics and sentiment tracking',
+            'requires' => ['agent.chat.view'],
+        ],
         'agent.chat.takeover' => [
             'label' => 'Take over',
             'description' => 'Take control of a live conversation from the AI',
@@ -178,6 +183,7 @@ return [
             'description' => 'Conversation management',
             'permissions' => [
                 'agent.chat.view',
+                'agent.chat.pulse',
                 'agent.chat.takeover',
                 'agent.chat.delete',
                 'agent.chat.export',

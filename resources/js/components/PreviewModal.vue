@@ -1,9 +1,9 @@
 <template>
     <Dialog v-model:open="isOpen">
-        <DialogContent class="!w-screen !h-screen !max-w-none !max-h-none !rounded-none !p-0 [&>button]:hidden">
-            <div class="relative w-full h-full flex flex-col">
+        <DialogContent class="!h-screen !max-h-none !w-screen !max-w-none !rounded-none !p-0 [&>button]:hidden">
+            <div class="relative flex h-full w-full flex-col">
                 <!-- Top Controls Bar -->
-                <div class="flex items-center justify-between p-4 border-b bg-background">
+                <div class="bg-background flex items-center justify-between border-b p-4">
                     <!-- Device Controls -->
                     <div class="flex items-center gap-2">
                         <Button
@@ -39,49 +39,36 @@
                     </div>
 
                     <!-- Close Button -->
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        @click="closeModal"
-                        class="gap-2"
-                    >
+                    <Button type="button" variant="secondary" size="sm" @click="closeModal" class="gap-2">
                         <X class="h-4 w-4" />
                         Close Preview
                     </Button>
                 </div>
 
                 <!-- Preview Content -->
-                <div class="flex-1 flex items-center justify-center overflow-hidden">
+                <div class="flex flex-1 items-center justify-center overflow-hidden">
                     <div
                         v-if="previewType === 'widget'"
                         :class="[
                             'relative overflow-hidden transition-all duration-300',
-                            selectedDevice === 'desktop' ? 'w-full h-full' : 
-                            selectedDevice === 'tablet' ? 'w-[768px] h-[calc(100vh-8rem)] max-h-[800px] border rounded-xl shadow-lg' :
-                            'w-[414px] h-[calc(100vh-8rem)] max-h-[700px] border rounded-xl shadow-lg'
+                            selectedDevice === 'desktop'
+                                ? 'h-full w-full'
+                                : selectedDevice === 'tablet'
+                                  ? 'h-[calc(100vh-8rem)] max-h-[800px] w-[768px] rounded-xl border shadow-lg'
+                                  : 'h-[calc(100vh-8rem)] max-h-[700px] w-[414px] rounded-xl border shadow-lg',
                         ]"
                     >
-                        <iframe
-                            :key="iframeKey"
-                            :src="previewUrl"
-                            class="w-full h-full border-0"
-                            title="Widget Preview"
-                            loading="lazy"
-                        ></iframe>
+                        <iframe :key="iframeKey" :src="previewUrl" class="h-full w-full border-0" title="Widget Preview" loading="lazy"></iframe>
                     </div>
 
-                    <div
-                        v-else-if="previewType === 'embed'"
-                        class="flex justify-center items-center w-full h-full p-4"
-                    >
+                    <div v-else-if="previewType === 'embed'" class="flex h-full w-full items-center justify-center p-4">
                         <div :class="getEmbedContainerClass">
                             <iframe
                                 :key="iframeKey"
                                 :src="previewUrl"
                                 :title="iframeTitle"
                                 frameborder="0"
-                                class="w-full h-full border rounded-lg shadow-lg transition-all duration-300"
+                                class="h-full w-full rounded-lg border shadow-lg transition-all duration-300"
                             ></iframe>
                         </div>
                     </div>
@@ -92,10 +79,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Monitor, Smartphone, Tablet, X } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface Props {
     modelValue: boolean;
@@ -106,7 +93,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    iframeTitle: 'Preview'
+    iframeTitle: 'Preview',
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -116,14 +103,14 @@ const iframeKey = ref(0);
 
 const isOpen = computed({
     get: () => props.modelValue,
-    set: (value) => emit('update:modelValue', value)
+    set: (value) => emit('update:modelValue', value),
 });
 
 // Device classes for embed preview
 const deviceClasses: Record<string, string> = {
     desktop: 'w-full max-w-4xl h-[600px]',
     tablet: 'w-[768px] h-[500px]',
-    mobile: 'w-[375px] h-[600px]'
+    mobile: 'w-[375px] h-[600px]',
 };
 
 const switchDevice = (device: string) => {
@@ -140,11 +127,11 @@ const getEmbedContainerClass = computed(() => {
     if (selectedDevice.value === 'mobile') {
         return 'w-[375px] h-[600px] flex-shrink-0';
     }
-    
+
     if (selectedDevice.value === 'tablet') {
         return 'w-[768px] h-[600px] flex-shrink-0';
     }
-    
+
     // Desktop - full height and width
     return 'w-full h-full';
 });

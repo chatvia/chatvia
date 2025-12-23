@@ -18,6 +18,8 @@ class AgentChatLogMessagesController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
+
         $messages = ChatMessage::query()
             ->with('llm')
             ->forAgentConversation($agent->id, $conversationId)

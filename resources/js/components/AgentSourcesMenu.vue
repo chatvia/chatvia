@@ -1,19 +1,10 @@
 <script lang="ts" setup>
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { Link } from '@inertiajs/vue3';
-import {
-    Globe,
-    Youtube,
-    FileText,
-    FileCode,
-    File,
-    Video,
-    Music,
-    FileAudio,
-    WholeWord,
-    HelpCircle,
-} from 'lucide-vue-next';
+import { File, FileAudio, FileText, Globe, HelpCircle, Video } from 'lucide-vue-next';
+import { computed } from 'vue';
 
-defineProps({
+const props = defineProps({
     agentId: {
         type: String,
         required: true,
@@ -32,6 +23,8 @@ defineProps({
     },
 });
 
+const { hasPermission } = useTeamPermissions();
+
 // Helper function to get source count
 const getSourceCount = (statsKey: string, stats: any): string => {
     if (!stats || !(statsKey in stats)) {
@@ -41,8 +34,8 @@ const getSourceCount = (statsKey: string, stats: any): string => {
     return count > 0 ? ` (${count})` : '';
 };
 
-// Define the menu items in the desired order
-const menuItems = [
+// Define all menu items
+const allMenuItems = [
     {
         id: 'files',
         label: 'Files',
@@ -92,24 +85,21 @@ const menuItems = [
         permission: 'agent.sources.train.video',
     },
 ];
+
+// Filter menu items based on user permissions
+const menuItems = computed(() => {
+    return allMenuItems.filter((item) => hasPermission(item.permission));
+});
 </script>
 
 <template>
     <!-- Dropdown variant -->
-    <template v-if="variant === 'dropdown'">
-        <slot
-            v-for="item in menuItems"
-            :key="item.id"
-            :item="item"
-            :label="item.label + getSourceCount(item.statsKey, sourceStats)"
-        >
+    <template v-if="props.variant === 'dropdown'">
+        <slot v-for="item in menuItems" :key="item.id" :item="item" :label="item.label + getSourceCount(item.statsKey, props.sourceStats)">
             <!-- Default slot content if parent doesn't provide one -->
-            <Link
-                :href="route(item.route, { agent: agentId })"
-                class="flex items-center gap-2"
-            >
+            <Link :href="route(item.route, { agent: props.agentId })" class="flex items-center gap-2">
                 <component :is="item.icon" class="h-4 w-4" />
-                <span>{{ item.label }}{{ getSourceCount(item.statsKey, sourceStats) }}</span>
+                <span>{{ item.label }}{{ getSourceCount(item.statsKey, props.sourceStats) }}</span>
             </Link>
         </slot>
     </template>
@@ -120,15 +110,14 @@ const menuItems = [
             v-for="item in menuItems"
             :key="item.id"
             :item="item"
-            :label="item.label + getSourceCount(item.statsKey, sourceStats)"
-            :is-active="isActiveRoute(item.route)"
+            :label="item.label + getSourceCount(item.statsKey, props.sourceStats)"
+            :is-active="props.isActiveRoute(item.route)"
         >
             <!-- Default slot content if parent doesn't provide one -->
-            <Link :href="route(item.route, { agent: agentId })">
+            <Link :href="route(item.route, { agent: props.agentId })">
                 <component :is="item.icon" class="h-4 w-4" />
-                <span>{{ item.label }}{{ getSourceCount(item.statsKey, sourceStats) }}</span>
+                <span>{{ item.label }}{{ getSourceCount(item.statsKey, props.sourceStats) }}</span>
             </Link>
         </slot>
     </template>
 </template>
-

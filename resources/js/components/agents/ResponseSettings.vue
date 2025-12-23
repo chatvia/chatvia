@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Settings, Thermometer } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 interface ModelSettings {
     temperature: number;
@@ -28,13 +28,13 @@ const emit = defineEmits<{
 
 const settings = computed({
     get: () => props.modelValue,
-    set: (value) => emit('update:modelValue', value)
+    set: (value) => emit('update:modelValue', value),
 });
 
 const updateSetting = (key: keyof ModelSettings, value: number) => {
     emit('update:modelValue', {
         ...settings.value,
-        [key]: value
+        [key]: value,
     });
 };
 
@@ -97,32 +97,30 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
 
 <template>
     <Card class="overflow-hidden">
-        <CardHeader class="bg-gradient-to-r from-secondary/5 to-secondary/10">
+        <CardHeader class="from-secondary/5 to-secondary/10 bg-gradient-to-r">
             <CardTitle class="flex items-center gap-3">
-                <Settings class="h-6 w-6 text-secondary-foreground" />
+                <Settings class="text-secondary-foreground h-6 w-6" />
                 Response Settings
             </CardTitle>
-            <CardDescription class="text-base text-foreground/80">
-                Control how your AI agent responds. These settings will be applied to {{ agentType === 'widget' ? 'the selected model' : 'all selected models' }} and affect the style and creativity of all responses.
+            <CardDescription class="text-foreground/80 text-base">
+                Control how your AI agent responds. These settings will be applied to
+                {{ agentType === 'widget' ? 'the selected model' : 'all selected models' }} and affect the style and creativity of all responses.
             </CardDescription>
         </CardHeader>
         <CardContent class="p-6">
             <div class="space-y-8">
                 <!-- Section Header -->
                 <div class="flex items-center gap-2">
-                    <Thermometer class="h-5 w-5 text-primary" />
+                    <Thermometer class="text-primary h-5 w-5" />
                     <h3 class="text-lg font-semibold">Response Parameters</h3>
                 </div>
 
                 <!-- Temperature -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <Label class="text-base font-medium">Creativity Level <span class="text-sm text-muted-foreground">(Temperature)</span></Label>
+                        <Label class="text-base font-medium">Creativity Level <span class="text-muted-foreground text-sm">(Temperature)</span></Label>
                         <div class="flex items-center gap-2">
-                            <span
-                                class="text-sm font-medium px-2 py-1 rounded"
-                                :class="getTemperatureColor(settings.temperature)"
-                            >
+                            <span class="rounded px-2 py-1 text-sm font-medium" :class="getTemperatureColor(settings.temperature)">
                                 {{ getTemperatureLabel(settings.temperature) }}
                             </span>
                             <Badge variant="outline">{{ settings.temperature }}</Badge>
@@ -136,32 +134,27 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             :min="0"
                             :max="2"
                             :step="0.1"
-                            class="w-full h-2 rounded-lg appearance-none cursor-pointer range-slider"
+                            class="range-slider h-2 w-full cursor-pointer appearance-none rounded-lg"
                             :class="{ 'border-destructive': errors?.temperature }"
                         />
-                        <p v-if="errors?.temperature" class="text-sm text-destructive mt-1">
+                        <p v-if="errors?.temperature" class="text-destructive mt-1 text-sm">
                             {{ errors.temperature }}
                         </p>
-                        <div class="flex justify-between text-xs text-muted-foreground mt-1">
+                        <div class="text-muted-foreground mt-1 flex justify-between text-xs">
                             <span>Focused</span>
                             <span>Balanced</span>
                             <span>Creative</span>
                         </div>
                     </div>
-                    <p class="text-sm text-muted-foreground">
-                        Low = predictable, consistent responses. High = more creative, varied answers.
-                    </p>
+                    <p class="text-muted-foreground text-sm">Low = predictable, consistent responses. High = more creative, varied answers.</p>
                 </div>
 
                 <!-- Top-K -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <Label class="text-base font-medium">Word Choice Variety <span class="text-sm text-muted-foreground">(Top-K)</span></Label>
+                        <Label class="text-base font-medium">Word Choice Variety <span class="text-muted-foreground text-sm">(Top-K)</span></Label>
                         <div class="flex items-center gap-2">
-                            <span
-                                class="text-sm font-medium px-2 py-1 rounded"
-                                :class="getTopKColor(settings.top_k)"
-                            >
+                            <span class="rounded px-2 py-1 text-sm font-medium" :class="getTopKColor(settings.top_k)">
                                 {{ getTopKLabel(settings.top_k) }}
                             </span>
                             <Badge variant="outline">{{ settings.top_k }}</Badge>
@@ -175,33 +168,28 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             :min="0"
                             :max="100"
                             :step="1"
-                            class="w-full range-slider"
+                            class="range-slider w-full"
                             :class="{ 'border-destructive': errors?.top_k }"
                         />
-                        <div class="flex justify-between text-xs text-muted-foreground mt-1">
+                        <div class="text-muted-foreground mt-1 flex justify-between text-xs">
                             <span>Disabled</span>
                             <span>Focused</span>
                             <span>Balanced</span>
                             <span>Diverse</span>
                         </div>
                     </div>
-                    <p v-if="errors?.top_k" class="text-sm text-destructive mt-1">
+                    <p v-if="errors?.top_k" class="text-destructive mt-1 text-sm">
                         {{ errors.top_k }}
                     </p>
-                    <p class="text-sm text-muted-foreground">
-                        0 = disabled. Lower = uses more common words. Higher = considers more word options.
-                    </p>
+                    <p class="text-muted-foreground text-sm">0 = disabled. Lower = uses more common words. Higher = considers more word options.</p>
                 </div>
 
                 <!-- Top-P -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <Label class="text-base font-medium">Response Focus <span class="text-sm text-muted-foreground">(Top-P)</span></Label>
+                        <Label class="text-base font-medium">Response Focus <span class="text-muted-foreground text-sm">(Top-P)</span></Label>
                         <div class="flex items-center gap-2">
-                            <span
-                                class="text-sm font-medium px-2 py-1 rounded"
-                                :class="getTopPColor(settings.top_p)"
-                            >
+                            <span class="rounded px-2 py-1 text-sm font-medium" :class="getTopPColor(settings.top_p)">
                                 {{ getTopPLabel(settings.top_p) }}
                             </span>
                             <Badge variant="outline">{{ settings.top_p }}</Badge>
@@ -215,32 +203,29 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             :min="0.1"
                             :max="1"
                             :step="0.05"
-                            class="w-full range-slider"
+                            class="range-slider w-full"
                             :class="{ 'border-destructive': errors?.top_p }"
                         />
-                        <div class="flex justify-between text-xs text-muted-foreground mt-1">
+                        <div class="text-muted-foreground mt-1 flex justify-between text-xs">
                             <span>Focused</span>
                             <span>Balanced</span>
                             <span>Broad</span>
                         </div>
                     </div>
-                    <p v-if="errors?.top_p" class="text-sm text-destructive mt-1">
+                    <p v-if="errors?.top_p" class="text-destructive mt-1 text-sm">
                         {{ errors.top_p }}
                     </p>
-                    <p class="text-sm text-muted-foreground">
-                        Lower = more focused responses. Higher = broader, more diverse responses.
-                    </p>
+                    <p class="text-muted-foreground text-sm">Lower = more focused responses. Higher = broader, more diverse responses.</p>
                 </div>
 
                 <!-- Presence Penalty -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <Label class="text-base font-medium">Avoid Repeating Topics <span class="text-sm text-muted-foreground">(Presence Penalty)</span></Label>
+                        <Label class="text-base font-medium"
+                            >Avoid Repeating Topics <span class="text-muted-foreground text-sm">(Presence Penalty)</span></Label
+                        >
                         <div class="flex items-center gap-2">
-                            <span
-                                class="text-sm font-medium px-2 py-1 rounded"
-                                :class="getPenaltyColor(settings.presence_penalty)"
-                            >
+                            <span class="rounded px-2 py-1 text-sm font-medium" :class="getPenaltyColor(settings.presence_penalty)">
                                 {{ getPresencePenaltyLabel(settings.presence_penalty) }}
                             </span>
                             <Badge variant="outline">{{ settings.presence_penalty }}</Badge>
@@ -254,32 +239,29 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             :min="-2"
                             :max="2"
                             :step="0.1"
-                            class="w-full range-slider"
+                            class="range-slider w-full"
                             :class="{ 'border-destructive': errors?.presence_penalty }"
                         />
-                        <div class="flex justify-between text-xs text-muted-foreground mt-1">
+                        <div class="text-muted-foreground mt-1 flex justify-between text-xs">
                             <span>Repetitive</span>
                             <span>Neutral</span>
                             <span>Diverse</span>
                         </div>
                     </div>
-                    <p v-if="errors?.presence_penalty" class="text-sm text-destructive mt-1">
+                    <p v-if="errors?.presence_penalty" class="text-destructive mt-1 text-sm">
                         {{ errors.presence_penalty }}
                     </p>
-                    <p class="text-sm text-muted-foreground">
-                        Higher values discourage repeating the same topics or ideas.
-                    </p>
+                    <p class="text-muted-foreground text-sm">Higher values discourage repeating the same topics or ideas.</p>
                 </div>
 
                 <!-- Frequency Penalty -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <Label class="text-base font-medium">Avoid Repeating Words <span class="text-sm text-muted-foreground">(Frequency Penalty)</span></Label>
+                        <Label class="text-base font-medium"
+                            >Avoid Repeating Words <span class="text-muted-foreground text-sm">(Frequency Penalty)</span></Label
+                        >
                         <div class="flex items-center gap-2">
-                            <span
-                                class="text-sm font-medium px-2 py-1 rounded"
-                                :class="getPenaltyColor(settings.frequency_penalty)"
-                            >
+                            <span class="rounded px-2 py-1 text-sm font-medium" :class="getPenaltyColor(settings.frequency_penalty)">
                                 {{ getFrequencyPenaltyLabel(settings.frequency_penalty) }}
                             </span>
                             <Badge variant="outline">{{ settings.frequency_penalty }}</Badge>
@@ -293,21 +275,19 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             :min="-2"
                             :max="2"
                             :step="0.1"
-                            class="w-full range-slider"
+                            class="range-slider w-full"
                             :class="{ 'border-destructive': errors?.frequency_penalty }"
                         />
-                        <div class="flex justify-between text-xs text-muted-foreground mt-1">
+                        <div class="text-muted-foreground mt-1 flex justify-between text-xs">
                             <span>Repetitive</span>
                             <span>Neutral</span>
                             <span>Varied</span>
                         </div>
                     </div>
-                    <p v-if="errors?.frequency_penalty" class="text-sm text-destructive mt-1">
+                    <p v-if="errors?.frequency_penalty" class="text-destructive mt-1 text-sm">
                         {{ errors.frequency_penalty }}
                     </p>
-                    <p class="text-sm text-muted-foreground">
-                        Higher values discourage using the same words multiple times.
-                    </p>
+                    <p class="text-muted-foreground text-sm">Higher values discourage using the same words multiple times.</p>
                 </div>
             </div>
         </CardContent>
@@ -364,4 +344,3 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
     cursor: pointer;
 }
 </style>
-

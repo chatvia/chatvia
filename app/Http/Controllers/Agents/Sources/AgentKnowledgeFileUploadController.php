@@ -15,6 +15,11 @@ class AgentKnowledgeFileUploadController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.files'),
+            code: 403,
+        );
+
         $uploadedFile = $request->file('file');
 
         abort_if(

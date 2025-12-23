@@ -16,6 +16,11 @@ class AgentSourcesFilesController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.files'),
+            code: 403,
+        );
+
         $request->validate([
             'file_type' => ['nullable', 'in:pdf,word,audio,video'],
         ]);
@@ -32,8 +37,14 @@ class AgentSourcesFilesController
                 default => throw new Exception('Invalid file type'),
             };
         } else {
-            // Return all file types for the unified Files page
-            $files = $agent->files()->withCount('agents')->get();
+            // Return only PDF and Word files for the unified Files page (excluding audio/video)
+            $files = $agent->files()
+                ->whereIn('mime_type', array_merge(
+                    config('mimes.pdf'),
+                    config('mimes.word')
+                ))
+                ->withCount('agents')
+                ->get();
         }
 
         return SourceFileDataResource::fromFiles($files);

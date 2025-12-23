@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useForm } from '@inertiajs/vue3';
 import { Loader2 } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 interface Model {
     id: string;
@@ -67,7 +67,7 @@ const toggleModel = (modelId: string) => {
 };
 
 const getModelDetails = (modelId: string) => {
-    return props.availableModels.find(model => model.id === modelId);
+    return props.availableModels.find((model) => model.id === modelId);
 };
 </script>
 
@@ -77,8 +77,8 @@ const getModelDetails = (modelId: string) => {
             <CardHeader>
                 <CardTitle>Agent Models</CardTitle>
                 <CardDescription>
-                    Select the AI models that your agent can use. You can choose multiple models, and your agent will
-                    automatically select the most appropriate one based on the context and requirements.
+                    Select the AI models that your agent can use. You can choose multiple models, and your agent will automatically select the most
+                    appropriate one based on the context and requirements.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -92,8 +92,7 @@ const getModelDetails = (modelId: string) => {
 
                 <!-- Models List -->
                 <div class="space-y-4">
-                    <div v-for="model in availableModels" :key="model.id"
-                         class="flex items-start space-x-4 p-4 rounded-lg border">
+                    <div v-for="model in availableModels" :key="model.id" class="flex items-start space-x-4 rounded-lg border p-4">
                         <Checkbox
                             :id="model.id"
                             :checked="form.models.includes(model.id)"
@@ -103,10 +102,10 @@ const getModelDetails = (modelId: string) => {
                         <div class="flex-1 space-y-1">
                             <Label :for="model.id" class="text-base font-medium">
                                 {{ model.name }}
-                                <span class="text-sm text-muted-foreground ml-2">({{ model.provider }})</span>
+                                <span class="text-muted-foreground ml-2 text-sm">({{ model.provider }})</span>
                             </Label>
-                            <p class="text-sm text-muted-foreground">{{ model.description }}</p>
-                            <div class="flex gap-4 text-sm text-muted-foreground">
+                            <p class="text-muted-foreground text-sm">{{ model.description }}</p>
+                            <div class="text-muted-foreground flex gap-4 text-sm">
                                 <span>Context: {{ model.context_length.toLocaleString() }} tokens</span>
                                 <span>Max Output: {{ model.max_tokens.toLocaleString() }} tokens</span>
                                 <span>Pricing: ${{ model.pricing.input }}/1K input, ${{ model.pricing.output }}/1K output</span>
@@ -117,11 +116,7 @@ const getModelDetails = (modelId: string) => {
 
                 <!-- Submit Button -->
                 <div class="mt-6 flex justify-end">
-                    <Button
-                        @click="handleSubmit"
-                        :disabled="isLoading || !form.isDirty"
-                        class="gap-2"
-                    >
+                    <Button @click="handleSubmit" :disabled="isLoading || !form.isDirty" class="gap-2">
                         <Loader2 v-if="isLoading" class="h-4 w-4 animate-spin" />
                         {{ isLoading ? 'Saving...' : 'Save Changes' }}
                     </Button>

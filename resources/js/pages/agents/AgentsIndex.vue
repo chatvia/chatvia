@@ -1,29 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import type { SharedData } from '@/types';
-import AppLayout from '@/layouts/AppLayout.vue';
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-    Bot,
-    Plus,
-    Search,
-    ExternalLink,
-    Loader2,
-    MessageSquare,
-    Code
-} from 'lucide-vue-next';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
+import { Bot, Code, Loader2, MessageSquare, Plus, Search } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 
 const page = usePage<SharedData>();
 
@@ -70,10 +55,11 @@ const filteredAgents = computed(() => {
     if (!searchQuery.value) return agents.value;
 
     const query = searchQuery.value.toLowerCase();
-    return agents.value.filter(agent =>
-        agent.name.toLowerCase().includes(query) ||
-        agent.type.toLowerCase().includes(query) ||
-        (agent.sub_domain && agent.sub_domain.toLowerCase().includes(query))
+    return agents.value.filter(
+        (agent) =>
+            agent.name.toLowerCase().includes(query) ||
+            agent.type.toLowerCase().includes(query) ||
+            (agent.sub_domain && agent.sub_domain.toLowerCase().includes(query)),
     );
 });
 
@@ -81,7 +67,7 @@ const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
     });
 };
 
@@ -116,9 +102,7 @@ const getAgentTypeIcon = (type: string) => {
             <div class="mb-8 flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold tracking-tight">My Agents</h1>
-                    <p class="mt-1 text-muted-foreground">
-                        Create and manage your AI agents
-                    </p>
+                    <p class="text-muted-foreground mt-1">Create and manage your AI agents</p>
                 </div>
                 <Button v-if="canCreateAgent" size="lg" @click="showCreateAgentModal = true" class="flex items-center gap-2">
                     <Plus class="h-4 w-4" />
@@ -129,31 +113,25 @@ const getAgentTypeIcon = (type: string) => {
             <!-- Search and filters -->
             <div class="mb-6 flex items-center">
                 <div class="relative flex-1">
-                    <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        v-model="searchQuery"
-                        class="pl-10"
-                        placeholder="Search agents..."
-                    />
+                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                    <Input v-model="searchQuery" class="pl-10" placeholder="Search agents..." />
                 </div>
             </div>
 
             <!-- Loading state -->
             <div v-if="isLoading" class="flex h-64 items-center justify-center">
-                <Loader2 class="h-8 w-8 animate-spin text-primary" />
+                <Loader2 class="text-primary h-8 w-8 animate-spin" />
                 <span class="ml-2 text-lg">Loading agents...</span>
             </div>
 
             <!-- Empty state -->
             <Card v-else-if="agents.length === 0" class="flex h-64 flex-col items-center justify-center">
-                <Bot class="h-12 w-12 text-muted-foreground opacity-50" />
+                <Bot class="text-muted-foreground h-12 w-12 opacity-50" />
                 <h3 class="mt-4 text-xl font-medium">No agents yet</h3>
-                <p v-if="canCreateAgent" class="mt-2 text-center text-muted-foreground">
+                <p v-if="canCreateAgent" class="text-muted-foreground mt-2 text-center">
                     Create your first AI agent to start building conversational experiences
                 </p>
-                <p v-else class="mt-2 text-center text-muted-foreground">
-                    Only team owners can create agents. Contact your team owner.
-                </p>
+                <p v-else class="text-muted-foreground mt-2 text-center">Only team owners can create agents. Contact your team owner.</p>
                 <Button v-if="canCreateAgent" size="lg" @click="showCreateAgentModal = true" class="flex items-center gap-2">
                     <Plus class="h-4 w-4" />
                     Create Agent
@@ -162,14 +140,10 @@ const getAgentTypeIcon = (type: string) => {
 
             <!-- No search results -->
             <Card v-else-if="filteredAgents.length === 0" class="flex h-64 flex-col items-center justify-center">
-                <Search class="h-12 w-12 text-muted-foreground opacity-50" />
+                <Search class="text-muted-foreground h-12 w-12 opacity-50" />
                 <h3 class="mt-4 text-xl font-medium">No matching agents</h3>
-                <p class="mt-2 text-center text-muted-foreground">
-                    No agents found matching "{{ searchQuery }}"
-                </p>
-                <Button variant="outline" class="mt-6" @click="searchQuery = ''">
-                    Clear Search
-                </Button>
+                <p class="text-muted-foreground mt-2 text-center">No agents found matching "{{ searchQuery }}"</p>
+                <Button variant="outline" class="mt-6" @click="searchQuery = ''"> Clear Search </Button>
             </Card>
 
             <!-- Agents grid -->
@@ -180,14 +154,13 @@ const getAgentTypeIcon = (type: string) => {
                             <CardTitle class="flex items-center gap-2 text-xl">
                                 <Bot class="h-5 w-5 flex-shrink-0" />
                                 <span class="truncate">
-                                    <Link :href="route('agents.manager', { agent: agent.external_id})">{{ agent.name }}</Link>
+                                    <Link :href="route('agents.manager', { agent: agent.external_id })">{{ agent.name }}</Link>
                                 </span>
                             </CardTitle>
                             <div :class="getAgentTypeBadgeClass(agent.type)">
                                 <component :is="getAgentTypeIcon(agent.type)" class="h-4 w-4" />
                             </div>
                         </div>
-
                     </CardHeader>
 
                     <CardContent>
@@ -209,9 +182,7 @@ const getAgentTypeIcon = (type: string) => {
 
                     <CardFooter class="flex justify-end border-t p-4">
                         <Button as-child size="sm">
-                            <Link :href="route('agents.manager', {agent: agent.external_id})" class="gap-1">
-                                Manage
-                            </Link>
+                            <Link :href="route('agents.manager', { agent: agent.external_id })" class="gap-1"> Manage </Link>
                         </Button>
                     </CardFooter>
                 </Card>
@@ -219,20 +190,21 @@ const getAgentTypeIcon = (type: string) => {
         </div>
 
         <!-- Create Agent Modal -->
-        <CreateAgentModal
-            v-model:open="showCreateAgentModal"
-            @agent-created="refreshAgents"
-        />
+        <CreateAgentModal v-model:open="showCreateAgentModal" @agent-created="refreshAgents" />
     </AppLayout>
 </template>
 
 <style scoped>
 .card-hover-effect {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .card-hover-effect:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    box-shadow:
+        0 10px 25px -5px rgba(0, 0, 0, 0.1),
+        0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 </style>

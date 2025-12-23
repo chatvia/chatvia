@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { computed, onMounted, watch, ref } from 'vue';
-import { Head, Link, usePage, router, useForm } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
+import AgentSourcesMenu from '@/components/AgentSourcesMenu.vue';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
     Sidebar,
     SidebarContent,
-    SidebarFooter,
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
@@ -16,67 +18,39 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
     SidebarProvider,
-    SidebarTrigger
+    SidebarTrigger,
 } from '@/components/ui/sidebar';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
-} from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { toast } from 'vue-sonner';
 import { Toaster } from '@/components/ui/sonner';
-import type { Features, SharedData } from '@/types';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import UserMenu from '@/components/UserMenu.vue';
-import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import UpgradeButton from '@/components/UpgradeButton.vue';
-import AgentSourcesMenu from '@/components/AgentSourcesMenu.vue';
+import UserMenu from '@/components/UserMenu.vue';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
+import type { Features, SharedData } from '@/types';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, onMounted, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 
-import {
-    Bot,
-    ChevronRight,
-    Database,
-    LoaderCircle,
-    MessageSquare,
-    Palette,
-    Trash2,
-    Users,
-    BarChart3,
-    Globe,
-    Lock,
-    Eye,
-    BotIcon,
-    Workflow,
-    Zap,
-    Code,
-    FileText,
-    Settings,
-    Menu,
-    UserCheck,
-    Edit,
-    ChevronDown,
-    File,
-    Video,
-    Music,
-    Youtube,
-    FileCode,
-    Pencil,
-    AlertTriangle,
-    Sparkles,
-    SmilePlus,
-    Heart,
-} from 'lucide-vue-next';
-import { cn } from '@/lib/utils';
 import axios from 'axios';
+import {
+    BarChart3,
+    BotIcon,
+    ChevronDown,
+    ChevronRight,
+    Code,
+    Database,
+    Eye,
+    FileText,
+    Globe,
+    Heart,
+    LoaderCircle,
+    Lock,
+    MessageSquare,
+    Pencil,
+    SmilePlus,
+    Sparkles,
+    Trash2,
+    UserCheck,
+    Users,
+} from 'lucide-vue-next';
 
 const props = defineProps({
     agent: {
@@ -103,8 +77,8 @@ const props = defineProps({
     fullHeight: {
         type: Boolean,
         default: false,
-    }
-})
+    },
+});
 
 const page = usePage<SharedData>();
 const currentRoute = computed(() => page.component);
@@ -112,14 +86,8 @@ const currentRoute = computed(() => page.component);
 // Get features from page props
 const features = page.props.features as Features;
 
-// Permission checking helper
-const hasPermission = (permission: string): boolean => {
-    const currentTeam = page.props.currentTeam;
-    if (!currentTeam) return false;
-
-    const teamPermissions = page.props.permissions[currentTeam.id] || [];
-    return teamPermissions.includes(permission);
-};
+// Use team permissions composable
+const { hasPermission, hasAnyPermission, isOwner } = useTeamPermissions();
 
 // Load sidebar state from localStorage
 const getSidebarStateFromStorage = (): boolean => {
@@ -139,74 +107,59 @@ const toggleSidebar = () => {
     sidebarOpen.value = !sidebarOpen.value;
 };
 
-
 // Remove breadcrumbs as we're creating a knowledge_base layout
 
 const uiNavigationItems = computed(() => {
     const baseItems = [];
 
     // Only show Playground for non-widget agents (owners only, or users with setup permission)
-    if (props.agent.type !== 'widget' && (isOwner.value || hasPermission('agent.setup'))) {
+    if (props.agent.type !== 'widget' && hasPermission('agent.setup')) {
         baseItems.push({
             id: 'playground',
             label: 'Playground',
             icon: BotIcon,
             route: 'agents.playground',
-            tooltip: 'Test your agent in the playground'
+            tooltip: 'Test your agent in the playground',
         });
     }
 
     // Show Widget or Embed based on agent type - only if user has setup permission
-    if (isOwner.value || hasPermission('agent.setup')) {
+    if (hasPermission('agent.setup')) {
         baseItems.push({
             id: 'embed',
             label: 'Setup',
             icon: props.agent.type === 'widget' ? Globe : Code,
             route: props.agent.type === 'widget' ? 'agents.widget' : 'agents.embed',
-            tooltip: props.agent.type === 'widget' ? 'Configure and preview chat widget' : 'Generate embed code for your website'
+            tooltip: props.agent.type === 'widget' ? 'Configure and preview chat widget' : 'Generate embed code for your website',
         });
     }
 
     return baseItems;
 });
 
-// Check if user is owner (has all permissions)
-const isOwner = computed(() => {
-    const currentTeam = page.props.currentTeam;
-    return !currentTeam || currentTeam.is_owner;
-});
-
-// Check if user has any of the given permissions
-const hasAnyPermission = (permissions: string[]): boolean => {
-    if (isOwner.value) return true;
-    return permissions.some(p => hasPermission(p));
-};
-
 // Check if user has any source training permission
-const hasAnySourcePermission = computed(() => {
-    if (isOwner.value) return true;
-    return hasAnyPermission([
+const hasAnySourcePermission = computed(() =>
+    hasAnyPermission([
         'agent.sources.train.files',
         'agent.sources.train.text',
         'agent.sources.train.qa',
         'agent.sources.train.web',
         'agent.sources.train.audio',
         'agent.sources.train.video',
-    ]);
-});
+    ]),
+);
 
 // Check if user has any analytics permission
-const hasAnyAnalyticsPermission = computed(() => {
-    if (isOwner.value) return true;
-    return hasAnyPermission([
+const hasAnyAnalyticsPermission = computed(() =>
+    hasAnyPermission([
         'agent.analytics.chats',
         'agent.analytics.metrics',
         'agent.analytics.sentiment',
         'agent.analytics.tone',
         'agent.analytics.topics',
         'agent.analytics.sources',
-    ]);
-});
+    ]),
+);
 
 const controlPanelNavigationItems = computed(() => {
     const baseItems: any[] = [];
@@ -215,22 +168,24 @@ const controlPanelNavigationItems = computed(() => {
     if (hasAnyAnalyticsPermission.value) {
         const analyticsSubItems = [];
 
-        if (isOwner.value || hasPermission('agent.analytics.chats')) {
+        if (hasPermission('agent.analytics.chats')) {
             analyticsSubItems.push({ id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' });
         }
-        if (isOwner.value || hasPermission('agent.analytics.metrics')) {
+
+        if (hasPermission('agent.analytics.metrics')) {
             analyticsSubItems.push({ id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' });
         }
-        if (isOwner.value || hasPermission('agent.analytics.sentiment')) {
+
+        if (hasPermission('agent.analytics.sentiment')) {
             analyticsSubItems.push({ id: 'analytics-sentiment', label: 'Sentiment', icon: SmilePlus, route: 'agents.analytics.sentiment' });
         }
-        if (isOwner.value || hasPermission('agent.analytics.tone')) {
+        if (hasPermission('agent.analytics.tone')) {
             analyticsSubItems.push({ id: 'analytics-tone', label: 'Tone', icon: Heart, route: 'agents.analytics.tone' });
         }
-        if (isOwner.value || hasPermission('agent.analytics.topics')) {
+        if (hasPermission('agent.analytics.topics')) {
             analyticsSubItems.push({ id: 'analytics-topics', label: 'Topics', icon: MessageSquare, route: 'agents.analytics.topics' });
         }
-        if (isOwner.value || hasPermission('agent.analytics.sources')) {
+        if (hasPermission('agent.analytics.sources')) {
             analyticsSubItems.push({ id: 'analytics-sources', label: 'Sources', icon: FileText, route: 'agents.analytics.sources' });
         }
 
@@ -241,31 +196,30 @@ const controlPanelNavigationItems = computed(() => {
                 icon: BarChart3,
                 route: analyticsSubItems[0].route,
                 tooltip: 'View usage analytics and insights',
-                subItems: analyticsSubItems
+                subItems: analyticsSubItems,
             });
         }
     }
 
     // Sources - only show if user has any source training permission
     if (hasAnySourcePermission.value) {
-        baseItems.push(
-            { id: 'knowledge', label: 'Sources', icon: Database, route: 'agents.sources', tooltip: 'Manage agent knowledge and training data' },
-        );
+        baseItems.push({
+            id: 'knowledge',
+            label: 'Sources',
+            icon: Database,
+            route: 'agents.sources',
+            tooltip: 'Manage agent knowledge and training data',
+        });
     }
 
-
     // Leads - only show if user has leads permission
-    if (isOwner.value || hasPermission('agent.leads.view')) {
-        baseItems.push(
-            { id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads', tooltip: 'Manage leads captured by your agent' },
-        );
+    if (hasPermission('agent.leads.view')) {
+        baseItems.push({ id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads', tooltip: 'Manage leads captured by your agent' });
     }
 
     // Chat/Logs - only show if user has chat view permission
-    if (isOwner.value || hasPermission('agent.chat.view')) {
-        baseItems.push(
-            { id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' },
-        );
+    if (hasPermission('agent.chat.view')) {
+        baseItems.push({ id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' });
     }
 
     // Members - only for non-widget agents and owners
@@ -286,9 +240,7 @@ const dangerZoneNavigationItems = computed(() => {
     if (!isOwner.value) {
         return [];
     }
-    return [
-        { id: 'delete', label: 'Delete Agent', icon: Trash2, action: 'delete', tooltip: 'Permanently delete this agent' }
-    ];
+    return [{ id: 'delete', label: 'Delete Agent', icon: Trash2, action: 'delete', tooltip: 'Permanently delete this agent' }];
 });
 
 // Removed Sources submenu - now handled within the component
@@ -321,7 +273,7 @@ const deleteAgent = () => {
         onError: (errors) => {
             isDeleting.value = false;
             toast.error('Failed to delete agent. Please try again.');
-        }
+        },
     });
 };
 
@@ -380,29 +332,29 @@ const isActiveRoute = (routeName: string) => {
     } else if (routeName === 'agents.playground') {
         componentName = 'Playground';
     } else if (routeName === 'agents.settings') {
-        componentName = 'Persona';  // Now maps to Persona component file
+        componentName = 'Persona'; // Now maps to Persona component file
     } else if (routeName === 'agents.sources') {
-        componentName = 'Sources';  // Maps to Sources component file
+        componentName = 'Sources'; // Maps to Sources component file
     } else if (routeName === 'agents.sources.web') {
-        componentName = 'Sources/Web';  // Maps to Sources/Web component file
+        componentName = 'Sources/Web'; // Maps to Sources/Web component file
     } else if (routeName === 'agents.sources.text') {
-        componentName = 'Sources/Text';  // Maps to Sources/Text component file
+        componentName = 'Sources/Text'; // Maps to Sources/Text component file
     } else if (routeName === 'agents.sources.files') {
-        componentName = 'Sources/FilesSource';  // Maps to Sources/FilesSource component file
+        componentName = 'Sources/FilesSource'; // Maps to Sources/FilesSource component file
     } else if (routeName === 'agents.sources.video') {
-        componentName = 'Sources/Video';  // Maps to Sources/Video component file
+        componentName = 'Sources/Video'; // Maps to Sources/Video component file
     } else if (routeName === 'agents.sources.audio') {
-        componentName = 'Sources/Audio';  // Maps to Sources/Audio component file
+        componentName = 'Sources/Audio'; // Maps to Sources/Audio component file
     } else if (routeName === 'agents.sources.youtube') {
-        componentName = 'Sources/Youtube';  // Maps to Sources/Youtube component file
+        componentName = 'Sources/Youtube'; // Maps to Sources/Youtube component file
     } else if (routeName === 'agents.sources.markdown') {
-        componentName = 'Sources/Markdown';  // Maps to Sources/Markdown component file
+        componentName = 'Sources/Markdown'; // Maps to Sources/Markdown component file
     } else if (routeName === 'agents.workflow') {
-        componentName = 'Workflow';  // Maps to Workflow component file
+        componentName = 'Workflow'; // Maps to Workflow component file
     } else if (routeName === 'agents.actions') {
-        componentName = 'Sentiment';  // Maps to Sentiment component file
+        componentName = 'Sentiment'; // Maps to Sentiment component file
     } else if (routeName === 'agents.leads') {
-        componentName = 'Leads';  // Maps to Leads component file
+        componentName = 'Leads'; // Maps to Leads component file
     } else if (routeName === 'agents.logs') {
         componentName = 'ChatLog'; // Maps to ChatLog folder with index.vue
     } else {
@@ -418,31 +370,31 @@ const isActiveRoute = (routeName: string) => {
 // Note: 'agents/Sources' (exact match) is the analytics sources page
 const analyticsSubmenuOpen = ref(
     currentRoute.value.startsWith('agents/Analytics') ||
-    currentRoute.value.startsWith('agents/Metrics') ||
-    currentRoute.value.startsWith('agents/Sentiment') ||
-    currentRoute.value.startsWith('agents/Tone') ||
-    currentRoute.value.startsWith('agents/Topics') ||
-    currentRoute.value === 'agents/Sources' ||
-    isActiveRoute('agents.analytics') ||
-    isActiveRoute('agents.analytics.metrics') ||
-    isActiveRoute('agents.analytics.sentiment') ||
-    isActiveRoute('agents.analytics.tone') ||
-    isActiveRoute('agents.analytics.topics') ||
-    isActiveRoute('agents.analytics.sources')
+        currentRoute.value.startsWith('agents/Metrics') ||
+        currentRoute.value.startsWith('agents/Sentiment') ||
+        currentRoute.value.startsWith('agents/Tone') ||
+        currentRoute.value.startsWith('agents/Topics') ||
+        currentRoute.value === 'agents/Sources' ||
+        isActiveRoute('agents.analytics') ||
+        isActiveRoute('agents.analytics.metrics') ||
+        isActiveRoute('agents.analytics.sentiment') ||
+        isActiveRoute('agents.analytics.tone') ||
+        isActiveRoute('agents.analytics.topics') ||
+        isActiveRoute('agents.analytics.sources'),
 );
 
 // Sources submenu state - auto-open if on knowledge sources page
 // Note: 'agents/Sources/' prefix (with slash) matches knowledge pages like Sources/Web
 const sourcesSubmenuOpen = ref(
     currentRoute.value.startsWith('agents/Sources/') ||
-    isActiveRoute('agents.sources') ||
-    isActiveRoute('agents.sources.web') ||
-    isActiveRoute('agents.sources.text') ||
-    isActiveRoute('agents.sources.files') ||
-    isActiveRoute('agents.sources.video') ||
-    isActiveRoute('agents.sources.audio') ||
-    isActiveRoute('agents.sources.youtube') ||
-    isActiveRoute('agents.sources.markdown')
+        isActiveRoute('agents.sources') ||
+        isActiveRoute('agents.sources.web') ||
+        isActiveRoute('agents.sources.text') ||
+        isActiveRoute('agents.sources.files') ||
+        isActiveRoute('agents.sources.video') ||
+        isActiveRoute('agents.sources.audio') ||
+        isActiveRoute('agents.sources.youtube') ||
+        isActiveRoute('agents.sources.markdown'),
 );
 
 // Source stats
@@ -474,7 +426,6 @@ onMounted(() => {
 
 // Sources dropdown state for collapsed sidebar (click-based)
 // No need for state management - DropdownMenu handles it internally
-
 </script>
 
 <template>
@@ -482,36 +433,44 @@ onMounted(() => {
     <Head :title="title" />
 
     <SidebarProvider v-model:open="sidebarOpen">
-        <div class="flex min-h-screen w-full bg-background">
+        <div class="bg-background flex min-h-screen w-full">
             <!-- Left Sidebar - Full Height -->
             <Sidebar collapsible="icon" class="border-r">
                 <!-- Sidebar Header with Logo and Toggle -->
-                <div class="border-b border-border">
+                <div class="border-border border-b">
                     <!-- Expanded State -->
-                    <div class="flex items-center justify-between h-16 px-4 group-data-[collapsible=icon]:hidden">
-                        <Link
-                            :href="route('dashboard')"
-                            class="flex items-center gap-2 min-w-0 overflow-hidden"
-                        >
-                            <div class="h-8 w-8 flex items-center justify-center flex-shrink-0">
+                    <div class="flex h-16 items-center justify-between px-4 group-data-[collapsible=icon]:hidden">
+                        <Link :href="route('dashboard')" class="flex min-w-0 items-center gap-2 overflow-hidden">
+                            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center">
                                 <AppLogoIcon class="h-8 w-8" />
                             </div>
                         </Link>
 
                         <!-- Expanded state: Show trigger button on the right -->
-                        <SidebarTrigger class="hidden md:flex flex-shrink-0" />
+                        <SidebarTrigger class="hidden flex-shrink-0 md:flex" />
                     </div>
 
                     <!-- Collapsed State - Full clickable area -->
                     <button
                         @click="toggleSidebar"
-                        class="hidden group-data-[collapsible=icon]:flex items-center justify-center w-full h-16 hover:bg-accent transition-colors cursor-pointer"
+                        class="hover:bg-accent hidden h-16 w-full cursor-pointer items-center justify-center transition-colors group-data-[collapsible=icon]:flex"
                         aria-label="Expand sidebar"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
-                            <rect width="18" height="18" x="3" y="3" rx="2"/>
-                            <path d="M9 3v18"/>
-                            <path d="m14 9 3 3-3 3"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="h-4 w-4"
+                        >
+                            <rect width="18" height="18" x="3" y="3" rx="2" />
+                            <path d="M9 3v18" />
+                            <path d="m14 9 3 3-3 3" />
                         </svg>
                     </button>
                 </div>
@@ -526,7 +485,7 @@ onMounted(() => {
                                     as-child
                                     :is-active="isActiveRoute(item.route)"
                                     :tooltip="item.tooltip"
-                                    class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                    class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
                                 >
                                     <Link :href="route(item.route, { agent: agent.external_id })">
                                         <component :is="item.icon" />
@@ -548,31 +507,15 @@ onMounted(() => {
                                     <DropdownMenu>
                                         <DropdownMenuTrigger as-child>
                                             <div class="hidden group-data-[collapsible=icon]:block">
-                                                <SidebarMenuButton
-                                                    :tooltip="item.tooltip"
-                                                    class="cursor-pointer"
-                                                >
+                                                <SidebarMenuButton :tooltip="item.tooltip" class="cursor-pointer">
                                                     <component :is="item.icon" />
                                                     <span>{{ item.label }}</span>
                                                 </SidebarMenuButton>
                                             </div>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent
-                                            side="right"
-                                            align="start"
-                                            :side-offset="5"
-                                            :align-offset="0"
-                                            class="w-56"
-                                        >
-                                            <DropdownMenuItem
-                                                v-for="subItem in item.subItems"
-                                                :key="subItem.id"
-                                                as-child
-                                            >
-                                                <Link
-                                                    :href="route(subItem.route, { agent: agent.external_id })"
-                                                    class="flex items-center gap-2"
-                                                >
+                                        <DropdownMenuContent side="right" align="start" :side-offset="5" :align-offset="0" class="w-56">
+                                            <DropdownMenuItem v-for="subItem in item.subItems" :key="subItem.id" as-child>
+                                                <Link :href="route(subItem.route, { agent: agent.external_id })" class="flex items-center gap-2">
                                                     <component :is="subItem.icon" class="h-4 w-4" />
                                                     <span>{{ subItem.label }}</span>
                                                 </Link>
@@ -600,7 +543,7 @@ onMounted(() => {
                                             <SidebarMenuSubButton
                                                 as-child
                                                 :is-active="isActiveRoute(subItem.route)"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
                                             >
                                                 <Link :href="route(subItem.route, { agent: agent.external_id })">
                                                     <component :is="subItem.icon" class="h-4 w-4" />
@@ -617,22 +560,13 @@ onMounted(() => {
                                     <DropdownMenu>
                                         <DropdownMenuTrigger as-child>
                                             <div class="hidden group-data-[collapsible=icon]:block">
-                                                <SidebarMenuButton
-                                                    :tooltip="item.tooltip"
-                                                    class="cursor-pointer"
-                                                >
+                                                <SidebarMenuButton :tooltip="item.tooltip" class="cursor-pointer">
                                                     <component :is="item.icon" />
                                                     <span>{{ item.label }}</span>
                                                 </SidebarMenuButton>
                                             </div>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent
-                                            side="right"
-                                            align="start"
-                                            :side-offset="5"
-                                            :align-offset="0"
-                                            class="w-56"
-                                        >
+                                        <DropdownMenuContent side="right" align="start" :side-offset="5" :align-offset="0" class="w-56">
                                             <AgentSourcesMenu
                                                 :agent-id="agent.external_id"
                                                 :source-stats="sourceStats"
@@ -641,10 +575,7 @@ onMounted(() => {
                                             >
                                                 <template #default="{ item, label }">
                                                     <DropdownMenuItem as-child>
-                                                        <Link
-                                                            :href="route(item.route, { agent: agent.external_id })"
-                                                            class="flex items-center gap-2"
-                                                        >
+                                                        <Link :href="route(item.route, { agent: agent.external_id })" class="flex items-center gap-2">
                                                             <component :is="item.icon" class="h-4 w-4" />
                                                             <span>{{ label }}</span>
                                                         </Link>
@@ -681,7 +612,7 @@ onMounted(() => {
                                                     <SidebarMenuSubButton
                                                         as-child
                                                         :is-active="isActive"
-                                                        class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                                        class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
                                                     >
                                                         <Link :href="route(item.route, { agent: agent.external_id })">
                                                             <component :is="item.icon" class="h-4 w-4" />
@@ -711,7 +642,7 @@ onMounted(() => {
                                         as-child
                                         :is-active="isActiveRoute(item.route)"
                                         :tooltip="item.tooltip"
-                                        class="data-[active=true]:bg-neutral-900 data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 data-[active=true]:font-semibold [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                        class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
                                     >
                                         <Link :href="route(item.route, { agent: agent.external_id })">
                                             <component :is="item.icon" />
@@ -725,18 +656,18 @@ onMounted(() => {
 
                     <!-- Separator before Danger Zone -->
                     <div class="px-2 py-2">
-                        <div class="border-t border-border"></div>
+                        <div class="border-border border-t"></div>
                     </div>
 
                     <!-- Danger Zone Section -->
                     <SidebarGroup class="py-0">
-                        <SidebarGroupLabel class="mb-2 px-2 text-destructive">Danger Zone</SidebarGroupLabel>
+                        <SidebarGroupLabel class="text-destructive mb-2 px-2">Danger Zone</SidebarGroupLabel>
                         <SidebarMenu class="space-y-1">
                             <SidebarMenuItem v-for="item in dangerZoneNavigationItems" :key="item.id">
                                 <SidebarMenuButton
                                     @click="showDeleteDialog = true"
                                     :tooltip="item.tooltip"
-                                    class="cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    class="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                                 >
                                     <component :is="item.icon" />
                                     <span>{{ item.label }}</span>
@@ -748,11 +679,11 @@ onMounted(() => {
             </Sidebar>
 
             <!-- Main Content Area - Full Height with Header Inside -->
-            <div class="flex flex-1 flex-col min-w-0 overflow-x-hidden">
+            <div class="flex min-w-0 flex-1 flex-col overflow-x-hidden">
                 <!-- Top Navigation Bar -->
-                <header class="bg-background border-b border-border sticky top-0 z-40">
+                <header class="bg-background border-border sticky top-0 z-40 border-b">
                     <div class="px-4 lg:px-6">
-                        <div class="flex items-center justify-between h-16">
+                        <div class="flex h-16 items-center justify-between">
                             <!-- Left side - Breadcrumbs -->
                             <div class="flex items-center gap-4">
                                 <!-- Mobile sidebar toggle -->
@@ -760,14 +691,20 @@ onMounted(() => {
 
                                 <!-- Breadcrumbs -->
                                 <div class="flex items-center gap-2 text-sm">
-                                    <Link :href="route('dashboard')" class="text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
+                                    <Link
+                                        :href="route('dashboard')"
+                                        class="text-muted-foreground hover:text-foreground hidden transition-colors md:inline"
+                                    >
                                         Dashboard
                                     </Link>
-                                    <ChevronRight class="h-4 w-4 text-muted-foreground hidden md:block" />
-                                    <Link :href="route('agents.index')" class="text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
+                                    <ChevronRight class="text-muted-foreground hidden h-4 w-4 md:block" />
+                                    <Link
+                                        :href="route('agents.index')"
+                                        class="text-muted-foreground hover:text-foreground hidden transition-colors md:inline"
+                                    >
                                         Agents
                                     </Link>
-                                    <ChevronRight class="h-4 w-4 text-muted-foreground hidden md:block" />
+                                    <ChevronRight class="text-muted-foreground hidden h-4 w-4 md:block" />
                                     <span class="text-foreground font-medium">{{ agent.name }}</span>
                                 </div>
                             </div>
@@ -775,7 +712,7 @@ onMounted(() => {
                             <!-- Right side - Actions and user menu -->
                             <div class="flex items-center gap-3">
                                 <!-- Utilities: Upgrade, Theme, User -->
-                                <div class="hidden lg:flex items-center gap-2">
+                                <div class="hidden items-center gap-2 lg:flex">
                                     <UpgradeButton />
                                     <ThemeSwitcher />
                                     <UserMenu />
@@ -786,21 +723,21 @@ onMounted(() => {
                 </header>
 
                 <!-- Page Content Wrapper -->
-                <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+                <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
                     <!-- Page Header -->
-                    <div v-if="!hideHeader" class="bg-background border-b border-border px-4 lg:px-6 py-4">
+                    <div v-if="!hideHeader" class="bg-background border-border border-b px-4 py-4 lg:px-6">
                         <div class="flex items-center justify-between">
                             <div class="min-w-0 flex-1">
-                                <h1 class="text-lg lg:text-xl font-semibold text-foreground truncate flex items-center gap-2">
+                                <h1 class="text-foreground flex items-center gap-2 truncate text-lg font-semibold lg:text-xl">
                                     <slot name="header-icon" />
                                     {{ title }}
                                 </h1>
-                                <p v-if="description" class="text-xs lg:text-sm text-muted-foreground mt-1 hidden sm:block">
+                                <p v-if="description" class="text-muted-foreground mt-1 hidden text-xs sm:block lg:text-sm">
                                     {{ description }}
                                 </p>
                             </div>
 
-                            <div class="flex gap-2 lg:gap-4 flex-shrink-0">
+                            <div class="flex flex-shrink-0 gap-2 lg:gap-4">
                                 <div class="flex items-center gap-2">
                                     <slot name="header-actions" />
                                 </div>
@@ -810,40 +747,26 @@ onMounted(() => {
                                     :variant="agent.is_public ? 'destructive' : 'secondary'"
                                     :class="[
                                         'text-xs',
-                                        !agent.is_public ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' : ''
+                                        !agent.is_public
+                                            ? 'border-green-200 bg-green-100 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                            : '',
                                     ]"
                                 >
-                                    <component
-                                        :is="agent.is_public ? Eye : Lock"
-                                        class="h-3 w-3"
-                                    />
+                                    <component :is="agent.is_public ? Eye : Lock" class="h-3 w-3" />
                                 </Badge>
                             </div>
                         </div>
                     </div>
 
                     <!-- Page Content -->
-                    <div
-                        class="flex-1 min-w-0"
-                        :class="[
-                            fullHeight ? 'overflow-hidden' : 'overflow-auto',
-                            noPadding ? '' : 'bg-muted/30'
-                        ]"
-                    >
-                        <div
-                            :class="[
-                                'min-w-0 max-w-full',
-                                noPadding ? 'h-full' : 'p-3 sm:p-4 lg:p-6',
-                                fullHeight ? 'h-full' : ''
-                            ]"
-                        >
+                    <div class="min-w-0 flex-1" :class="[fullHeight ? 'overflow-hidden' : 'overflow-auto', noPadding ? '' : 'bg-muted/30']">
+                        <div :class="['max-w-full min-w-0', noPadding ? 'h-full' : 'p-3 sm:p-4 lg:p-6', fullHeight ? 'h-full' : '']">
                             <slot />
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
 
         <!-- Delete Agent Dialog -->
         <Dialog v-model:open="showDeleteDialog">
@@ -858,35 +781,27 @@ onMounted(() => {
 
                 <div class="space-y-4">
                     <div>
-                        <label for="agent-name-confirmation" class="block text-sm font-medium text-foreground mb-2">
+                        <label for="agent-name-confirmation" class="text-foreground mb-2 block text-sm font-medium">
                             Please type <strong>{{ agent.name }}</strong> to confirm
                         </label>
                         <input
                             id="agent-name-confirmation"
                             v-model="agentNameConfirmation"
                             type="text"
-                            class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                            class="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 focus:border-transparent focus:ring-2 focus:outline-none"
                             placeholder="Enter agent name to confirm"
                             :class="{
                                 'border-red-500 focus:ring-red-500': agentNameConfirmation && !canDelete,
-                                'border-green-500 focus:ring-green-500': canDelete
+                                'border-green-500 focus:ring-green-500': canDelete,
                             }"
                         />
-                        <p v-if="agentNameConfirmation && !canDelete" class="mt-1 text-sm text-red-500">
-                            Agent name does not match
-                        </p>
+                        <p v-if="agentNameConfirmation && !canDelete" class="mt-1 text-sm text-red-500">Agent name does not match</p>
                     </div>
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" @click="showDeleteDialog = false">
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="destructive"
-                        @click="deleteAgent"
-                        :disabled="isDeleting || !canDelete"
-                    >
+                    <Button variant="outline" @click="showDeleteDialog = false"> Cancel </Button>
+                    <Button variant="destructive" @click="deleteAgent" :disabled="isDeleting || !canDelete">
                         <LoaderCircle v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
                         Delete Agent
                     </Button>
@@ -900,67 +815,66 @@ onMounted(() => {
                 <DialogHeader>
                     <DialogTitle>Rename Agent</DialogTitle>
                     <DialogDescription>
-                        Enter a new name for your agent <strong>{{ agent.name }}</strong>.
+                        Enter a new name for your agent <strong>{{ agent.name }}</strong
+                        >.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div class="space-y-4">
                     <div>
-                        <label for="new-agent-name" class="block text-sm font-medium text-foreground mb-2">
-                            Agent name
-                        </label>
+                        <label for="new-agent-name" class="text-foreground mb-2 block text-sm font-medium"> Agent name </label>
                         <input
                             id="new-agent-name"
                             v-model="renameForm.name"
                             type="text"
-                            class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                            class="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 focus:border-transparent focus:ring-2 focus:outline-none"
                             :class="{ 'border-red-500': renameForm.errors.name }"
                             placeholder="Enter new agent name"
                             @keyup.enter="renameAgent"
                         />
-                        <p v-if="renameForm.errors.name" class="text-xs text-red-500 mt-1">
+                        <p v-if="renameForm.errors.name" class="mt-1 text-xs text-red-500">
                             {{ renameForm.errors.name }}
                         </p>
                     </div>
 
                     <!-- Subdomain field for knowledge_base only -->
                     <div v-if="agent.type === 'knowledge_base'">
-                        <label for="subdomain" class="block text-sm font-medium text-foreground mb-2">
-                            Subdomain
-                        </label>
+                        <label for="subdomain" class="text-foreground mb-2 block text-sm font-medium"> Subdomain </label>
                         <div class="flex">
-                            <span class="inline-flex items-center px-3 py-2 bg-muted border border-r-0 border-input rounded-l-md text-sm text-muted-foreground">
+                            <span
+                                class="bg-muted border-input text-muted-foreground inline-flex items-center rounded-l-md border border-r-0 px-3 py-2 text-sm"
+                            >
                                 https://
                             </span>
                             <input
                                 id="subdomain"
                                 v-model="renameForm.sub_domain"
                                 type="text"
-                                class="flex-1 px-3 py-2 border-y border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:z-10"
+                                class="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring flex-1 border-y px-3 py-2 text-sm focus:z-10 focus:ring-2 focus:outline-none"
                                 :class="{ 'border-red-500': renameForm.errors.sub_domain }"
                                 placeholder="your-subdomain"
                                 @keyup.enter="renameAgent"
                             />
-                            <span class="inline-flex items-center px-3 py-2 bg-muted border border-l-0 border-input rounded-r-md text-sm text-muted-foreground">
+                            <span
+                                class="bg-muted border-input text-muted-foreground inline-flex items-center rounded-r-md border border-l-0 px-3 py-2 text-sm"
+                            >
                                 .chatvia.ai
                             </span>
                         </div>
-                        <p v-if="renameForm.errors.sub_domain" class="text-xs text-red-500 mt-1">
+                        <p v-if="renameForm.errors.sub_domain" class="mt-1 text-xs text-red-500">
                             {{ renameForm.errors.sub_domain }}
                         </p>
-                        <p v-else class="text-xs text-muted-foreground mt-1">
-                            Only lowercase letters, numbers, and hyphens allowed.
-                        </p>
+                        <p v-else class="text-muted-foreground mt-1 text-xs">Only lowercase letters, numbers, and hyphens allowed.</p>
                     </div>
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" @click="showRenameDialog = false">
-                        Cancel
-                    </Button>
+                    <Button variant="outline" @click="showRenameDialog = false"> Cancel </Button>
                     <Button
                         @click="renameAgent"
-                        :disabled="renameForm.processing || !renameForm.name.trim() || (agent.type === 'knowledge_base' && !renameForm.sub_domain.trim())"
+                        :disabled="
+                            renameForm.processing || !renameForm.name.trim() || (agent.type === 'knowledge_base' && !renameForm.sub_domain.trim())
+                        "
                     >
                         <LoaderCircle v-if="renameForm.processing" class="mr-2 h-4 w-4 animate-spin" />
                         Save
@@ -990,5 +904,3 @@ nav::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.7);
 }
 </style>
-
-

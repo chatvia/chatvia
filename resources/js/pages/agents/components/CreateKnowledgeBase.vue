@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Database, FileText, Upload, X, LoaderCircle } from 'lucide-vue-next';
 import type { InertiaForm } from '@inertiajs/vue3';
+import { Database, FileText, Upload, X } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 export interface FormData {
     name: string;
@@ -26,7 +26,7 @@ export interface FormData {
 }
 
 interface Props {
-    form: InertiaForm<FormData>
+    form: InertiaForm<FormData>;
 }
 
 const props = defineProps<Props>();
@@ -71,9 +71,7 @@ const removeFile = (index: number) => {
                 <Database class="h-5 w-5" />
                 Knowledge Base
             </CardTitle>
-            <CardDescription>
-                Upload documents, PDFs, or text files to create an agent with specific knowledge
-            </CardDescription>
+            <CardDescription> Upload documents, PDFs, or text files to create an agent with specific knowledge </CardDescription>
         </CardHeader>
         <CardContent>
             <div class="grid gap-6">
@@ -81,31 +79,19 @@ const removeFile = (index: number) => {
                 <div class="space-y-4">
                     <div>
                         <Label for="name" required>Agent Name</Label>
-                        <Input
-                            id="name"
-                            v-model="form.name"
-                            placeholder="e.g., Customer Support Assistant"
-                            :error="form.errors.name"
-                        />
-                        <p v-if="form.errors.name" class="text-destructive text-sm mt-1">
+                        <Input id="name" v-model="form.name" placeholder="e.g., Customer Support Assistant" :error="form.errors.name" />
+                        <p v-if="form.errors.name" class="text-destructive mt-1 text-sm">
                             {{ form.errors.name }}
                         </p>
                     </div>
 
                     <div>
                         <Label for="subdomain" required>Subdomain</Label>
-                        <Input
-                            id="subdomain"
-                            v-model="form.subdomain"
-                            placeholder="e.g., support"
-                            :error="form.errors.subdomain"
-                        />
-                        <p v-if="form.errors.subdomain" class="text-destructive text-sm mt-1">
+                        <Input id="subdomain" v-model="form.subdomain" placeholder="e.g., support" :error="form.errors.subdomain" />
+                        <p v-if="form.errors.subdomain" class="text-destructive mt-1 text-sm">
                             {{ form.errors.subdomain }}
                         </p>
-                        <p class="text-muted-foreground text-sm mt-1">
-                            This will be used as your agent's URL: support.chatvia.ai
-                        </p>
+                        <p class="text-muted-foreground mt-1 text-sm">This will be used as your agent's URL: support.chatvia.ai</p>
                     </div>
 
                     <div>
@@ -116,7 +102,7 @@ const removeFile = (index: number) => {
                             placeholder="Describe what your agent does"
                             :error="form.errors.description"
                         />
-                        <p v-if="form.errors.description" class="text-destructive text-sm mt-1">
+                        <p v-if="form.errors.description" class="text-destructive mt-1 text-sm">
                             {{ form.errors.description }}
                         </p>
                     </div>
@@ -124,15 +110,8 @@ const removeFile = (index: number) => {
 
                 <!-- Upload files -->
                 <div>
-                    <h3 class="text-lg font-medium mb-3">Upload Knowledge Files</h3>
-                    <input
-                        ref="fileInputRef"
-                        accept=".pdf,.doc,.docx,.txt,.md"
-                        class="hidden"
-                        multiple
-                        type="file"
-                        @change="handleFileUpload"
-                    />
+                    <h3 class="mb-3 text-lg font-medium">Upload Knowledge Files</h3>
+                    <input ref="fileInputRef" accept=".pdf,.doc,.docx,.txt,.md" class="hidden" multiple type="file" @change="handleFileUpload" />
 
                     <div
                         class="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-neutral-300 p-8 text-center hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800/50"
@@ -140,9 +119,7 @@ const removeFile = (index: number) => {
                     >
                         <Upload class="mb-3 h-8 w-8 text-neutral-400" />
                         <div class="mb-1 text-base font-medium">Upload files</div>
-                        <p class="text-sm text-muted-foreground">
-                            Drag and drop or click to upload PDF, Word, Text, or Markdown files
-                        </p>
+                        <p class="text-muted-foreground text-sm">Drag and drop or click to upload PDF, Word, Text, or Markdown files</p>
                     </div>
                 </div>
 
@@ -159,17 +136,10 @@ const removeFile = (index: number) => {
                                 <FileText class="h-5 w-5 text-neutral-400" />
                                 <div>
                                     <div class="font-medium">{{ file.name }}</div>
-                                    <div class="text-xs text-muted-foreground">
-                                        {{ (file.size / 1024).toFixed(1) }} KB
-                                    </div>
+                                    <div class="text-muted-foreground text-xs">{{ (file.size / 1024).toFixed(1) }} KB</div>
                                 </div>
                             </div>
-                            <Button
-                                class="h-8 w-8 p-0"
-                                size="sm"
-                                variant="ghost"
-                                @click="removeFile(index)"
-                            >
+                            <Button class="h-8 w-8 p-0" size="sm" variant="ghost" @click="removeFile(index)">
                                 <span class="sr-only">Remove file</span>
                                 <X class="h-4 w-4" />
                             </Button>
@@ -179,4 +149,4 @@ const removeFile = (index: number) => {
             </div>
         </CardContent>
     </Card>
-</template> 
+</template>

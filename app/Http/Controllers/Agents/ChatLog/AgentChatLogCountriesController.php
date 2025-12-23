@@ -17,6 +17,8 @@ class AgentChatLogCountriesController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
+
         // Get country IDs that have conversations for this agent
         $countryIds = ChatSession::query()
             ->where('agent_id', $agent->id)

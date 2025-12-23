@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ref, onMounted } from 'vue';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, LoaderCircle } from 'lucide-vue-next';
+import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
+import { FileText, LoaderCircle } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 const props = defineProps<Props>();
@@ -18,7 +18,7 @@ const error = ref<string | null>(null);
 const fetchSources = async () => {
     loading.value = true;
     error.value = null;
-    
+
     try {
         const response = await axios.get(route('agents.analytics.sources.data', props.agent.external_id));
         sources.value = response.data;
@@ -75,21 +75,16 @@ onMounted(() => {
             <div class="w-full max-w-6xl">
                 <!-- Loading State -->
                 <div v-if="loading" class="flex items-center justify-center py-12">
-                    <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
+                    <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
                 </div>
 
                 <!-- Error State -->
                 <div v-else-if="error" class="flex items-center justify-center py-12">
                     <Card class="max-w-md">
                         <CardContent class="pt-6">
-                            <div class="text-center space-y-2">
+                            <div class="space-y-2 text-center">
                                 <p class="text-destructive font-medium">{{ error }}</p>
-                                <button
-                                    @click="fetchSources"
-                                    class="text-sm text-muted-foreground hover:text-foreground underline"
-                                >
-                                    Try again
-                                </button>
+                                <button @click="fetchSources" class="text-muted-foreground hover:text-foreground text-sm underline">Try again</button>
                             </div>
                         </CardContent>
                     </Card>
@@ -99,36 +94,34 @@ onMounted(() => {
                 <div v-else>
                     <Card>
                         <CardContent class="pt-6">
-                            <div v-if="!sources.length" class="text-center py-12 text-muted-foreground">
-                                <FileText class="h-12 w-12 mx-auto mb-4 opacity-50" />
+                            <div v-if="!sources.length" class="text-muted-foreground py-12 text-center">
+                                <FileText class="mx-auto mb-4 h-12 w-12 opacity-50" />
                                 <p>No knowledge sources accessed yet</p>
                             </div>
                             <div v-else class="space-y-3">
-                                <div 
-                                    v-for="(item, index) in sources" 
-                                    :key="index" 
-                                    class="group p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                                <div
+                                    v-for="(item, index) in sources"
+                                    :key="index"
+                                    class="group bg-card hover:bg-accent/50 rounded-lg border p-4 transition-colors"
                                 >
                                     <div class="flex items-start gap-4">
                                         <!-- Rank Badge -->
-                                        <div 
-                                            class="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0 text-sm font-bold text-foreground"
+                                        <div
+                                            class="bg-muted text-foreground flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold"
                                         >
                                             {{ index + 1 }}
                                         </div>
 
-                                        <div class="flex-1 min-w-0">
+                                        <div class="min-w-0 flex-1">
                                             <!-- File Name and Metadata -->
                                             <div>
-                                                <p class="font-semibold text-base truncate">{{ item.name }}</p>
-                                                <div class="flex items-center gap-3 mt-1.5 flex-wrap">
-                                                    <span class="text-sm font-medium text-foreground">
+                                                <p class="truncate text-base font-semibold">{{ item.name }}</p>
+                                                <div class="mt-1.5 flex flex-wrap items-center gap-3">
+                                                    <span class="text-foreground text-sm font-medium">
                                                         {{ item.accessed }} access{{ item.accessed !== 1 ? 'es' : '' }}
                                                     </span>
-                                                    <span class="text-xs text-muted-foreground" v-if="item.mime_type">
-                                                        • {{ item.mime_type }}
-                                                    </span>
-                                                    <span class="text-xs text-muted-foreground" v-if="item.last_retrieved_at">
+                                                    <span class="text-muted-foreground text-xs" v-if="item.mime_type"> • {{ item.mime_type }} </span>
+                                                    <span class="text-muted-foreground text-xs" v-if="item.last_retrieved_at">
                                                         • Last accessed {{ formatDate(item.last_retrieved_at) }}
                                                     </span>
                                                 </div>
@@ -144,4 +137,3 @@ onMounted(() => {
         </div>
     </AgentLayout>
 </template>
-

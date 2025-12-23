@@ -3,7 +3,6 @@
 namespace App\Data\Ingestion\OCR;
 
 use Illuminate\Support\Collection;
-use Intervention\Image\Interfaces\EncodedImageInterface;
 use Spatie\LaravelData\Data;
 
 class PageData extends Data

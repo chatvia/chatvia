@@ -1,15 +1,11 @@
 <script lang="ts" setup>
-import FormErrors from '@/components/FormErrors.vue';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import type { BreadcrumbItem } from '@/types';
-import { useForm, router } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertCircle, Bot, MessageSquare, Globe, LoaderCircle, AlertTriangle } from 'lucide-vue-next';
+import { AlertTriangle, Bot, Globe, LoaderCircle, MessageSquare } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -99,7 +95,6 @@ const namePlaceholder = computed(() => {
     }
 });
 
-
 // Fetch usage data
 const fetchUsageData = async () => {
     try {
@@ -123,13 +118,11 @@ const autoSwitchToAvailableAgentType = (showNotification = false) => {
     return;
 };
 
-
-
 const submit = () => {
     // Check quota before submitting
     if (!canCreateAnyAgent.value) {
         toast.error('Agent limit reached', {
-            description: 'You\'ve reached your agent limit.',
+            description: "You've reached your agent limit.",
             duration: 5000,
         });
         return;
@@ -162,13 +155,16 @@ const closeModal = () => {
 };
 
 // Watch for modal open state to fetch usage data
-watch(() => props.open, (newValue) => {
-    if (newValue) {
-        fetchUsageData();
-        // Clear any previous errors when opening modal
-        form.clearErrors();
-    }
-});
+watch(
+    () => props.open,
+    (newValue) => {
+        if (newValue) {
+            fetchUsageData();
+            // Clear any previous errors when opening modal
+            form.clearErrors();
+        }
+    },
+);
 
 onMounted(() => {
     if (props.open) {
@@ -179,27 +175,23 @@ onMounted(() => {
 
 <template>
     <Dialog :open="open" @update:open="(value) => emit('update:open', value)">
-        <DialogContent class="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent class="max-h-[90vh] max-w-4xl overflow-y-auto">
             <DialogHeader>
                 <DialogTitle class="flex items-center gap-2">
                     <Bot class="h-5 w-5" />
                     Create Agent
                 </DialogTitle>
-                <DialogDescription>
-                    Create an AI agent that learns from your data and knowledge
-                </DialogDescription>
+                <DialogDescription> Create an AI agent that learns from your data and knowledge </DialogDescription>
             </DialogHeader>
 
             <!-- Usage Quota Alert -->
             <div v-if="usageData && currentAgentQuota">
                 <div v-if="!canCreateAnyAgent" class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/20">
                     <div class="flex items-start gap-3">
-                        <AlertTriangle class="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                        <AlertTriangle class="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
                         <div class="flex-1">
                             <h3 class="text-sm font-medium text-red-800 dark:text-red-200">Agent Limit Reached</h3>
-                            <p class="mt-1 text-sm text-red-700 dark:text-red-300">
-                                You've reached your agent limit.
-                            </p>
+                            <p class="mt-1 text-sm text-red-700 dark:text-red-300">You've reached your agent limit.</p>
                             <div class="mt-3">
                                 <Button
                                     size="sm"
@@ -216,7 +208,7 @@ onMounted(() => {
 
             <form @submit.prevent="submit">
                 <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress>
-                <div class="space-y-6" :class="{ 'opacity-50 pointer-events-none': !canCreateAnyAgent }">
+                <div class="space-y-6" :class="{ 'pointer-events-none opacity-50': !canCreateAnyAgent }">
                     <!-- Agent Name -->
                     <div class="space-y-2">
                         <Label for="name" required>Agent Name</Label>
@@ -240,48 +232,42 @@ onMounted(() => {
                                 v-for="option in agentTypeOptions"
                                 :key="option.value"
                                 :class="[
-                                    'relative flex items-start gap-4 p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:shadow-md',
+                                    'relative flex cursor-pointer items-start gap-4 rounded-lg border-2 p-4 transition-all duration-200 hover:shadow-md',
                                     form.type === option.value
                                         ? `${option.borderColor} ${option.bgColor}`
                                         : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600',
-                                    !canCreateAnyAgent && 'opacity-50 cursor-not-allowed'
+                                    !canCreateAnyAgent && 'cursor-not-allowed opacity-50',
                                 ]"
-                                @click="!canCreateAnyAgent ? null : form.type = option.value"
+                                @click="!canCreateAnyAgent ? null : (form.type = option.value)"
                             >
-                                <div :class="[
-                                    'p-3 rounded-lg shrink-0',
-                                    form.type === option.value
-                                        ? option.bgColor
-                                        : 'bg-gray-100 dark:bg-gray-800'
-                                ]">
+                                <div
+                                    :class="['shrink-0 rounded-lg p-3', form.type === option.value ? option.bgColor : 'bg-gray-100 dark:bg-gray-800']"
+                                >
                                     <component
                                         :is="option.icon"
-                                        :class="[
-                                            'h-6 w-6',
-                                            form.type === option.value
-                                                ? option.iconColor
-                                                : 'text-gray-600 dark:text-gray-400'
-                                        ]"
+                                        :class="['h-6 w-6', form.type === option.value ? option.iconColor : 'text-gray-600 dark:text-gray-400']"
                                     />
                                 </div>
-                                
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="font-semibold text-base">
+
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="text-base font-semibold">
                                         {{ option.label }}
                                     </h3>
-                                    <p class="text-sm text-muted-foreground mt-1">
+                                    <p class="text-muted-foreground mt-1 text-sm">
                                         {{ option.description }}
                                     </p>
                                 </div>
 
                                 <!-- Checkmark for selected state -->
                                 <div v-if="form.type === option.value" class="shrink-0">
-                                    <div :class="[
-                                        'w-6 h-6 rounded-full flex items-center justify-center',
-                                        option.value === AgentType.WIDGET && 'bg-blue-500',
-                                        option.value === AgentType.CHATGPT_STYLE && 'bg-emerald-500'
-                                    ]">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div
+                                        :class="[
+                                            'flex h-6 w-6 items-center justify-center rounded-full',
+                                            option.value === AgentType.WIDGET && 'bg-blue-500',
+                                            option.value === AgentType.CHATGPT_STYLE && 'bg-emerald-500',
+                                        ]"
+                                    >
+                                        <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                         </svg>
                                     </div>
@@ -294,12 +280,10 @@ onMounted(() => {
                 </div>
             </form>
 
-            <div class="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+            <div class="my-4 border-t border-gray-200 dark:border-gray-700"></div>
 
             <DialogFooter class="flex justify-between">
-                <Button variant="outline" size="lg" @click="closeModal">
-                    Cancel
-                </Button>
+                <Button variant="outline" size="lg" @click="closeModal"> Cancel </Button>
                 <Button :disabled="isSubmitting || !canCreateAnyAgent" size="lg" @click="submit">
                     <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
                     Create Agent
@@ -308,4 +292,3 @@ onMounted(() => {
         </DialogContent>
     </Dialog>
 </template>
-

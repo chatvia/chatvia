@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import AgentLayout from '@/layouts/AgentLayout.vue';
 import Sources from './Sources.vue';
 
 interface Props {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
-import { BotMessageSquare } from 'lucide-vue-next';
 defineOptions({
     inheritAttrs: false,
 });
@@ -14,12 +13,7 @@ defineProps<Props>();
 </script>
 
 <template>
-    <img
-        src="/images/logo.png"
-        :class="[className]"
-        v-bind="$attrs"
-        alt="ChatVIA"
-    />
+    <img src="/images/logo.png" :class="[className]" v-bind="$attrs" alt="ChatVIA" />
 </template>
 
 <style scoped>

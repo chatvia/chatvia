@@ -15,6 +15,11 @@ class AgentKnowledgeUploadedFilesDeleteController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.delete'),
+            code: 403,
+        );
+
         $fileIds = $agent->files()
             ->where('source_files.status', 'uploaded')
             ->pluck('source_files.id');

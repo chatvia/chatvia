@@ -1,14 +1,17 @@
-## Central chunk 
+## Central chunk
+
 <CentralChunk>
 {text}
 </CentralChunk>
 
-## Previous chunk 
+## Previous chunk
+
 <PrevChunk>
 {previous_context}
 </PrevChunk>
 
 ## Next Chunk
+
 <NextChunk>
 {next_context}
 </NextChunk>

@@ -15,6 +15,8 @@ class AgentChatLogTopicsController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
+
         // Get topics assigned to this agent
         $topics = $agent->topics()
             ->orderBy('chat_topics.topic')

@@ -16,6 +16,8 @@ class AgentChatLogController
             code: 404,
         );
 
+        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
+
         $conversationId = $request->query('conversation_id');
 
         return Inertia::render('agents/ChatLog/index', [

@@ -5,4 +5,3 @@ Context:
 
 User query:
 <UserQuery>{user_query}</UserQuery>
-

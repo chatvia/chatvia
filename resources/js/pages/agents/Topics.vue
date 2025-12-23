@@ -1,49 +1,37 @@
 <script lang="ts" setup>
-import AgentLayout from '@/layouts/AgentLayout.vue';
 import LockedFeature from '@/components/LockedFeature.vue';
-import { ref, computed, onMounted, watch } from 'vue';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Line, Pie } from 'vue-chartjs';
-import { 
-    Chart as ChartJS, 
-    CategoryScale, 
-    LinearScale, 
-    PointElement, 
-    LineElement,
-    ArcElement,
-    Title, 
-    Tooltip as ChartTooltip, 
-    Legend,
-    Filler,
-    type ChartOptions
-} from 'chart.js';
-import { 
-    MessageSquare, LoaderCircle, Info, Maximize2, Search, Plus, X, Check, ChevronLeft, ChevronRight
-} from 'lucide-vue-next';
-import axios from 'axios';
-import { toast } from 'vue-sonner';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
+import AgentLayout from '@/layouts/AgentLayout.vue';
+import axios from 'axios';
+import {
+    ArcElement,
+    CategoryScale,
+    Chart as ChartJS,
+    Tooltip as ChartTooltip,
+    Filler,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Title,
+    type ChartOptions,
+} from 'chart.js';
+import { ChevronLeft, ChevronRight, Info, LoaderCircle, Maximize2, MessageSquare, Plus, Search, X } from 'lucide-vue-next';
+import { computed, onMounted, ref, watch } from 'vue';
+import { Line, Pie } from 'vue-chartjs';
+import { toast } from 'vue-sonner';
 
 // Register Chart.js components
-ChartJS.register(
-    CategoryScale, 
-    LinearScale, 
-    PointElement, 
-    LineElement, 
-    ArcElement,
-    Title, 
-    ChartTooltip, 
-    Legend,
-    Filler
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, ChartTooltip, Legend, Filler);
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 const props = defineProps<Props>();
@@ -74,13 +62,13 @@ const itemsPerPage = 10;
 
 // Predefined color palette for topics
 const colors = [
-    'rgb(139, 92, 246)',  // Purple
-    'rgb(59, 130, 246)',  // Blue
-    'rgb(16, 185, 129)',  // Green
-    'rgb(236, 72, 153)',  // Pink
-    'rgb(251, 146, 60)',  // Orange
-    'rgb(234, 179, 8)',   // Yellow
-    'rgb(239, 68, 68)',   // Red
+    'rgb(139, 92, 246)', // Purple
+    'rgb(59, 130, 246)', // Blue
+    'rgb(16, 185, 129)', // Green
+    'rgb(236, 72, 153)', // Pink
+    'rgb(251, 146, 60)', // Orange
+    'rgb(234, 179, 8)', // Yellow
+    'rgb(239, 68, 68)', // Red
     'rgb(107, 114, 128)', // Gray
 ];
 
@@ -111,10 +99,10 @@ const lineChartData = computed(() => {
 
     const datasets = topicsData.value.topics_by_date.map((topic, index) => {
         const color = colors[index % colors.length];
-        
+
         return {
             label: topic.topic_name,
-            data: topic.counts.map(d => d.count),
+            data: topic.counts.map((d) => d.count),
             borderColor: color,
             backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
             fill: true,
@@ -127,7 +115,7 @@ const lineChartData = computed(() => {
     });
 
     const firstTopic = topicsData.value.topics_by_date[0];
-    const labels = firstTopic ? firstTopic.counts.map(d => formatDate(d.date)) : [];
+    const labels = firstTopic ? firstTopic.counts.map((d) => formatDate(d.date)) : [];
 
     return {
         labels,
@@ -167,11 +155,11 @@ const lineChartOptions: ChartOptions<'line'> = {
             },
             displayColors: true,
             callbacks: {
-                label: function(context) {
+                label: function (context) {
                     return `${context.dataset.label}: ${context.parsed.y}`;
-                }
-            }
-        }
+                },
+            },
+        },
     },
     scales: {
         x: {
@@ -182,8 +170,8 @@ const lineChartOptions: ChartOptions<'line'> = {
             ticks: {
                 font: {
                     size: 11,
-                }
-            }
+                },
+            },
         },
         y: {
             beginAtZero: true,
@@ -196,9 +184,9 @@ const lineChartOptions: ChartOptions<'line'> = {
                     size: 11,
                 },
                 precision: 0,
-            }
-        }
-    }
+            },
+        },
+    },
 };
 
 // Pie chart data
@@ -208,13 +196,15 @@ const pieChartData = computed(() => {
     const totals = topicsData.value.total_topics;
 
     return {
-        labels: totals.map(t => t.name),
-        datasets: [{
-            data: totals.map(t => t.count),
-            backgroundColor: colors,
-            borderColor: '#fff',
-            borderWidth: 2,
-        }]
+        labels: totals.map((t) => t.name),
+        datasets: [
+            {
+                data: totals.map((t) => t.count),
+                backgroundColor: colors,
+                borderColor: '#fff',
+                borderWidth: 2,
+            },
+        ],
     };
 });
 
@@ -233,7 +223,7 @@ const pieChartOptions: ChartOptions<'pie'> = {
                 },
                 boxWidth: 8,
                 boxHeight: 8,
-            }
+            },
         },
         tooltip: {
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -245,16 +235,16 @@ const pieChartOptions: ChartOptions<'pie'> = {
                 size: 13,
             },
             callbacks: {
-                label: function(context) {
+                label: function (context) {
                     const label = context.label || '';
                     const value = context.parsed || 0;
                     const total = topicsData.value?.total_topics.reduce((sum, t) => sum + t.count, 0) ?? 0;
                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                     return `${label}: ${value} (${percentage}%)`;
-                }
-            }
-        }
-    }
+                },
+            },
+        },
+    },
 };
 
 // Fetch all topics and agent topics
@@ -263,10 +253,10 @@ const fetchAllTopics = async () => {
     try {
         const response = await axios.get(route('agents.topics.list', props.agent.external_id));
         agentTopics.value = response.data;
-        
+
         // Get all topics from the database
         const allTopicsResponse = await axios.get(route('agents.topics.list', props.agent.external_id), {
-            params: { all: true }
+            params: { all: true },
         });
         allTopics.value = allTopicsResponse.data;
     } catch (err: any) {
@@ -280,12 +270,9 @@ const fetchAllTopics = async () => {
 // Filtered topics based on search
 const filteredTopics = computed(() => {
     if (!searchQuery.value) return allTopics.value;
-    
+
     const query = searchQuery.value.toLowerCase();
-    return allTopics.value.filter(topic => 
-        topic.topic.toLowerCase().includes(query) || 
-        topic.description.toLowerCase().includes(query)
-    );
+    return allTopics.value.filter((topic) => topic.topic.toLowerCase().includes(query) || topic.description.toLowerCase().includes(query));
 });
 
 // Paginated topics
@@ -307,20 +294,20 @@ watch(searchQuery, () => {
 
 // Check if a topic is associated with the agent
 const isTopicAssociated = (topicId: number) => {
-    return agentTopics.value.some(t => t.id === topicId);
+    return agentTopics.value.some((t) => t.id === topicId);
 };
 
 // Add topic to agent
 const addTopicToAgent = async (topicId: number) => {
     try {
         await axios.post(route('agents.topics.store', props.agent.external_id), {
-            topic_id: topicId
+            topic_id: topicId,
         });
-        
+
         // Refresh topics
         await fetchAllTopics();
         await fetchTopicsData();
-        
+
         toast.success('Topic added successfully');
     } catch (err: any) {
         console.error('Error adding topic:', err);
@@ -332,11 +319,11 @@ const addTopicToAgent = async (topicId: number) => {
 const removeTopicFromAgent = async (topicId: number) => {
     try {
         await axios.delete(route('agents.topics.delete', { agent: props.agent.external_id, topic: topicId }));
-        
+
         // Refresh topics
         await fetchAllTopics();
         await fetchTopicsData();
-        
+
         toast.success('Topic removed successfully');
     } catch (err: any) {
         console.error('Error removing topic:', err);
@@ -350,23 +337,23 @@ const createNewTopic = async () => {
         toast.error('Please fill in all fields');
         return;
     }
-    
+
     isAddingTopic.value = true;
     try {
         await axios.post(route('agents.topics.store', props.agent.external_id), {
             topic: newTopicName.value.trim(),
-            description: newTopicDescription.value.trim()
+            description: newTopicDescription.value.trim(),
         });
-        
+
         // Reset form
         newTopicName.value = '';
         newTopicDescription.value = '';
         showAddForm.value = false;
-        
+
         // Refresh topics
         await fetchAllTopics();
         await fetchTopicsData();
-        
+
         toast.success('Topic created and added successfully');
     } catch (err: any) {
         console.error('Error creating topic:', err);
@@ -406,7 +393,7 @@ onMounted(() => {
             <MessageSquare class="h-5 w-5" />
         </template>
 
-        <LockedFeature 
+        <LockedFeature
             v-if="!hasAccess"
             description="Upgrade your plan to access topic analysis and automatically detect and categorize conversation topics."
         />
@@ -414,352 +401,278 @@ onMounted(() => {
         <template v-else>
             <!-- Loading State -->
             <div v-if="loading" class="flex items-center justify-center py-12">
-                <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
+                <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
             </div>
 
-        <!-- Error State -->
-        <div v-else-if="error" class="flex items-center justify-center py-12">
-            <Card class="max-w-md">
-                <CardContent class="pt-6">
-                    <div class="text-center space-y-2">
-                        <p class="text-destructive font-medium">{{ error }}</p>
-                        <button
-                            @click="fetchTopicsData"
-                            class="text-sm text-muted-foreground hover:text-foreground underline"
-                        >
-                            Try again
-                        </button>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-
-        <!-- Content -->
-        <div v-else-if="topicsData">
-            <!-- Topics Chart with Sidebar -->
-            <Card>
-                <CardHeader>
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-center gap-2">
-                            <CardTitle>Topics</CardTitle>
-                            <button
-                                @click="showInfoDialog = true"
-                                class="text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                                <Info class="h-4 w-4 cursor-pointer" />
-                            </button>
+            <!-- Error State -->
+            <div v-else-if="error" class="flex items-center justify-center py-12">
+                <Card class="max-w-md">
+                    <CardContent class="pt-6">
+                        <div class="space-y-2 text-center">
+                            <p class="text-destructive font-medium">{{ error }}</p>
+                            <button @click="fetchTopicsData" class="text-muted-foreground hover:text-foreground text-sm underline">Try again</button>
                         </div>
-                        <Tabs v-model="activeView" class="w-auto">
-                            <TabsList>
-                                <TabsTrigger value="graph" @click="activeView = 'graph'">
-                                    Graph
-                                </TabsTrigger>
-                                <TabsTrigger value="pie" @click="activeView = 'pie'">
-                                    Pie Chart
-                                </TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div class="flex flex-col lg:flex-row gap-6">
-                        <!-- Chart Area -->
-                        <div class="flex-1">
-                            <!-- Line Chart -->
-                            <div v-if="activeView === 'graph'" class="h-96">
-                                <Line
-                                    v-if="lineChartData"
-                                    :data="lineChartData"
-                                    :options="lineChartOptions"
-                                />
-                            </div>
+                    </CardContent>
+                </Card>
+            </div>
 
-                            <!-- Pie Chart -->
-                            <div v-else class="h-96 flex items-center justify-center">
-                                <div class="w-full max-w-md">
-                                    <Pie
-                                        v-if="pieChartData"
-                                        :data="pieChartData"
-                                        :options="pieChartOptions"
-                                    />
-                                </div>
+            <!-- Content -->
+            <div v-else-if="topicsData">
+                <!-- Topics Chart with Sidebar -->
+                <Card>
+                    <CardHeader>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-2">
+                                <CardTitle>Topics</CardTitle>
+                                <button @click="showInfoDialog = true" class="text-muted-foreground hover:text-foreground transition-colors">
+                                    <Info class="h-4 w-4 cursor-pointer" />
+                                </button>
                             </div>
+                            <Tabs v-model="activeView" class="w-auto">
+                                <TabsList>
+                                    <TabsTrigger value="graph" @click="activeView = 'graph'"> Graph </TabsTrigger>
+                                    <TabsTrigger value="pie" @click="activeView = 'pie'"> Pie Chart </TabsTrigger>
+                                </TabsList>
+                            </Tabs>
                         </div>
-
-                        <!-- Topics Sidebar -->
-                        <div class="w-full lg:w-80 border-t lg:border-t-0 lg:border-l pt-6 lg:pt-0 lg:pl-6">
-                            <div class="flex flex-col h-96 space-y-4">
-                                <!-- Total Topics -->
-                                <div>
-                                    <div class="text-3xl font-bold">{{ topicsData.total_count }}</div>
-                                    <div class="text-sm text-muted-foreground">Total topics</div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="flex flex-col gap-6 lg:flex-row">
+                            <!-- Chart Area -->
+                            <div class="flex-1">
+                                <!-- Line Chart -->
+                                <div v-if="activeView === 'graph'" class="h-96">
+                                    <Line v-if="lineChartData" :data="lineChartData" :options="lineChartOptions" />
                                 </div>
 
-                                <!-- Topics List -->
-                                <div v-if="topicsData.total_topics.length === 0" class="flex-1 flex items-center justify-center text-muted-foreground">
-                                    <p>No topics data available</p>
-                                </div>
-                                <div v-else class="flex-1 overflow-y-auto space-y-3">
-                                    <div
-                                        v-for="(topic, index) in topicsData.total_topics"
-                                        :key="topic.id"
-                                        class="flex items-center justify-between"
-                                    >
-                                        <div class="flex items-center gap-3 flex-1 min-w-0">
-                                            <div
-                                                class="h-3 w-3 rounded-full flex-shrink-0"
-                                                :style="{ backgroundColor: colors[index % colors.length] }"
-                                            ></div>
-                                            <span class="text-sm font-medium truncate">{{ topic.name }}</span>
-                                        </div>
-                                        <span class="text-sm font-semibold ml-2">{{ topic.count }}</span>
+                                <!-- Pie Chart -->
+                                <div v-else class="flex h-96 items-center justify-center">
+                                    <div class="w-full max-w-md">
+                                        <Pie v-if="pieChartData" :data="pieChartData" :options="pieChartOptions" />
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- View All Button at Bottom -->
-                                <div class="pt-2 border-t">
-                                    <Button variant="outline" size="sm" class="w-full" @click="openTopicsDialog">
-                                        <span class="flex items-center justify-center gap-2">
-                                            View All
-                                            <Maximize2 class="h-4 w-4" />
-                                        </span>
-                                    </Button>
+                            <!-- Topics Sidebar -->
+                            <div class="w-full border-t pt-6 lg:w-80 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
+                                <div class="flex h-96 flex-col space-y-4">
+                                    <!-- Total Topics -->
+                                    <div>
+                                        <div class="text-3xl font-bold">{{ topicsData.total_count }}</div>
+                                        <div class="text-muted-foreground text-sm">Total topics</div>
+                                    </div>
+
+                                    <!-- Topics List -->
+                                    <div
+                                        v-if="topicsData.total_topics.length === 0"
+                                        class="text-muted-foreground flex flex-1 items-center justify-center"
+                                    >
+                                        <p>No topics data available</p>
+                                    </div>
+                                    <div v-else class="flex-1 space-y-3 overflow-y-auto">
+                                        <div
+                                            v-for="(topic, index) in topicsData.total_topics"
+                                            :key="topic.id"
+                                            class="flex items-center justify-between"
+                                        >
+                                            <div class="flex min-w-0 flex-1 items-center gap-3">
+                                                <div
+                                                    class="h-3 w-3 flex-shrink-0 rounded-full"
+                                                    :style="{ backgroundColor: colors[index % colors.length] }"
+                                                ></div>
+                                                <span class="truncate text-sm font-medium">{{ topic.name }}</span>
+                                            </div>
+                                            <span class="ml-2 text-sm font-semibold">{{ topic.count }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- View All Button at Bottom -->
+                                    <div class="border-t pt-2">
+                                        <Button variant="outline" size="sm" class="w-full" @click="openTopicsDialog">
+                                            <span class="flex items-center justify-center gap-2">
+                                                View All
+                                                <Maximize2 class="h-4 w-4" />
+                                            </span>
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+                    </CardContent>
+                </Card>
+            </div>
 
-        <!-- Topics Management Dialog -->
-        <Dialog v-model:open="showTopicsDialog">
-            <DialogContent class="max-w-2xl max-h-[80vh] flex flex-col">
-                <DialogHeader>
-                    <DialogTitle>Manage Topics</DialogTitle>
-                    <DialogDescription>
-                        Add or remove topics for this agent. Topics help categorize conversations.
-                    </DialogDescription>
-                </DialogHeader>
+            <!-- Topics Management Dialog -->
+            <Dialog v-model:open="showTopicsDialog">
+                <DialogContent class="flex max-h-[80vh] max-w-2xl flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Manage Topics</DialogTitle>
+                        <DialogDescription> Add or remove topics for this agent. Topics help categorize conversations. </DialogDescription>
+                    </DialogHeader>
 
-                <div class="flex-1 overflow-hidden flex flex-col space-y-4">
-                    <!-- Search Bar -->
-                    <div class="relative">
-                        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            v-model="searchQuery"
-                            placeholder="Search topics..."
-                            class="pl-10"
-                        />
-                    </div>
+                    <div class="flex flex-1 flex-col space-y-4 overflow-hidden">
+                        <!-- Search Bar -->
+                        <div class="relative">
+                            <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                            <Input v-model="searchQuery" placeholder="Search topics..." class="pl-10" />
+                        </div>
 
-                    <!-- Add New Topic Button/Form -->
-                    <div class="space-y-3">
-                        <Button
-                            v-if="!showAddForm"
-                            @click="showAddForm = true"
-                            variant="outline"
-                            size="sm"
-                            class="w-full"
-                        >
-                            <Plus class="h-4 w-4 mr-2" />
-                            Add New Topic
-                        </Button>
+                        <!-- Add New Topic Button/Form -->
+                        <div class="space-y-3">
+                            <Button v-if="!showAddForm" @click="showAddForm = true" variant="outline" size="sm" class="w-full">
+                                <Plus class="mr-2 h-4 w-4" />
+                                Add New Topic
+                            </Button>
 
-                        <!-- Add Topic Form -->
-                        <div v-else class="border rounded-lg p-4 space-y-3">
-                            <div class="space-y-2">
-                                <label class="text-sm font-medium">Topic Name</label>
-                                <Input
-                                    v-model="newTopicName"
-                                    placeholder="e.g., Technical Support"
-                                />
+                            <!-- Add Topic Form -->
+                            <div v-else class="space-y-3 rounded-lg border p-4">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium">Topic Name</label>
+                                    <Input v-model="newTopicName" placeholder="e.g., Technical Support" />
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium">Description</label>
+                                    <Input v-model="newTopicDescription" placeholder="e.g., Technical issues and troubleshooting" />
+                                </div>
+                                <div class="flex gap-2">
+                                    <Button
+                                        @click="createNewTopic"
+                                        :disabled="isAddingTopic || !newTopicName.trim() || !newTopicDescription.trim()"
+                                        size="sm"
+                                        class="flex-1"
+                                    >
+                                        <LoaderCircle v-if="isAddingTopic" class="mr-2 h-4 w-4 animate-spin" />
+                                        Create & Add
+                                    </Button>
+                                    <Button @click="showAddForm = false" variant="outline" size="sm"> Cancel </Button>
+                                </div>
                             </div>
-                            <div class="space-y-2">
-                                <label class="text-sm font-medium">Description</label>
-                                <Input
-                                    v-model="newTopicDescription"
-                                    placeholder="e.g., Technical issues and troubleshooting"
-                                />
+                        </div>
+
+                        <!-- Topics List -->
+                        <div class="flex-1 overflow-y-auto rounded-lg border">
+                            <div v-if="loadingTopics" class="flex items-center justify-center py-12">
+                                <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
+                            </div>
+
+                            <div v-else-if="filteredTopics.length === 0" class="text-muted-foreground py-12 text-center">
+                                <p>No topics found</p>
+                            </div>
+
+                            <div v-else class="divide-y">
+                                <div v-for="topic in paginatedTopics" :key="topic.id" class="hover:bg-muted/50 p-4 transition-colors">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="text-sm font-medium">{{ topic.topic }}</h4>
+                                                <Badge v-if="isTopicAssociated(topic.id)" variant="secondary" class="text-xs"> Active </Badge>
+                                            </div>
+                                            <p class="text-muted-foreground mt-1 text-sm">{{ topic.description }}</p>
+                                        </div>
+
+                                        <!-- Add/Remove Button -->
+                                        <Button
+                                            v-if="isTopicAssociated(topic.id)"
+                                            @click="removeTopicFromAgent(topic.id)"
+                                            variant="outline"
+                                            size="sm"
+                                            class="flex-shrink-0"
+                                        >
+                                            <X class="mr-1 h-4 w-4" />
+                                            Remove
+                                        </Button>
+                                        <Button v-else @click="addTopicToAgent(topic.id)" variant="default" size="sm" class="flex-shrink-0">
+                                            <Plus class="mr-1 h-4 w-4" />
+                                            Add
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div v-if="totalPages > 1" class="flex items-center justify-between border-t px-4 py-3">
+                            <div class="text-muted-foreground text-sm">
+                                Page {{ currentPage }} of {{ totalPages }} ({{ filteredTopics.length }} topics)
                             </div>
                             <div class="flex gap-2">
-                                <Button
-                                    @click="createNewTopic"
-                                    :disabled="isAddingTopic || !newTopicName.trim() || !newTopicDescription.trim()"
-                                    size="sm"
-                                    class="flex-1"
-                                >
-                                    <LoaderCircle v-if="isAddingTopic" class="h-4 w-4 mr-2 animate-spin" />
-                                    Create & Add
+                                <Button @click="currentPage--" :disabled="currentPage === 1" variant="outline" size="sm">
+                                    <ChevronLeft class="h-4 w-4" />
                                 </Button>
-                                <Button
-                                    @click="showAddForm = false"
-                                    variant="outline"
-                                    size="sm"
-                                >
-                                    Cancel
+                                <Button @click="currentPage++" :disabled="currentPage === totalPages" variant="outline" size="sm">
+                                    <ChevronRight class="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Topics List -->
-                    <div class="flex-1 overflow-y-auto border rounded-lg">
-                        <div v-if="loadingTopics" class="flex items-center justify-center py-12">
-                            <LoaderCircle class="h-6 w-6 animate-spin text-muted-foreground" />
+                    <DialogFooter>
+                        <Button @click="showTopicsDialog = false" variant="outline"> Close </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <!-- Info Dialog - What is Topics? -->
+            <Dialog v-model:open="showInfoDialog">
+                <DialogContent class="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>What are Topics?</DialogTitle>
+                        <DialogDescription> Learn how topics help organize and analyze your conversations </DialogDescription>
+                    </DialogHeader>
+
+                    <div class="space-y-4 text-sm">
+                        <div>
+                            <h3 class="mb-2 font-semibold">📊 Overview</h3>
+                            <p class="text-muted-foreground">
+                                Topics are categories that help you understand what your users are talking about. Each conversation is automatically
+                                assigned one topic based on its content.
+                            </p>
                         </div>
 
-                        <div v-else-if="filteredTopics.length === 0" class="text-center py-12 text-muted-foreground">
-                            <p>No topics found</p>
+                        <div>
+                            <h3 class="mb-2 font-semibold">🎯 How it works</h3>
+                            <ul class="text-muted-foreground list-inside list-disc space-y-2">
+                                <li>Conversations are analyzed and categorized into topics</li>
+                                <li>You can customize which topics are available for your agent</li>
+                                <li>Topics help you identify trends and common issues</li>
+                                <li>Each conversation belongs to exactly one topic</li>
+                            </ul>
                         </div>
 
-                        <div v-else class="divide-y">
-                            <div
-                                v-for="topic in paginatedTopics"
-                                :key="topic.id"
-                                class="p-4 hover:bg-muted/50 transition-colors"
-                            >
-                                <div class="flex items-start justify-between gap-4">
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-center gap-2">
-                                            <h4 class="font-medium text-sm">{{ topic.topic }}</h4>
-                                            <Badge
-                                                v-if="isTopicAssociated(topic.id)"
-                                                variant="secondary"
-                                                class="text-xs"
-                                            >
-                                                Active
-                                            </Badge>
-                                        </div>
-                                        <p class="text-sm text-muted-foreground mt-1">{{ topic.description }}</p>
-                                    </div>
-
-                                    <!-- Add/Remove Button -->
-                                    <Button
-                                        v-if="isTopicAssociated(topic.id)"
-                                        @click="removeTopicFromAgent(topic.id)"
-                                        variant="outline"
-                                        size="sm"
-                                        class="flex-shrink-0"
-                                    >
-                                        <X class="h-4 w-4 mr-1" />
-                                        Remove
-                                    </Button>
-                                    <Button
-                                        v-else
-                                        @click="addTopicToAgent(topic.id)"
-                                        variant="default"
-                                        size="sm"
-                                        class="flex-shrink-0"
-                                    >
-                                        <Plus class="h-4 w-4 mr-1" />
-                                        Add
-                                    </Button>
+                        <div>
+                            <h3 class="mb-2 font-semibold">💡 Examples</h3>
+                            <div class="text-muted-foreground space-y-2">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-primary">•</span>
+                                    <span><strong>Technical Support:</strong> Users asking for help with bugs or errors</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-primary">•</span>
+                                    <span><strong>Billing & Payments:</strong> Questions about invoices, refunds, subscriptions</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-primary">•</span>
+                                    <span><strong>Product Information:</strong> Inquiries about features and specifications</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Pagination -->
-                    <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 border-t">
-                        <div class="text-sm text-muted-foreground">
-                            Page {{ currentPage }} of {{ totalPages }} ({{ filteredTopics.length }} topics)
-                        </div>
-                        <div class="flex gap-2">
-                            <Button
-                                @click="currentPage--"
-                                :disabled="currentPage === 1"
-                                variant="outline"
-                                size="sm"
-                            >
-                                <ChevronLeft class="h-4 w-4" />
-                            </Button>
-                            <Button
-                                @click="currentPage++"
-                                :disabled="currentPage === totalPages"
-                                variant="outline"
-                                size="sm"
-                            >
-                                <ChevronRight class="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button @click="showTopicsDialog = false" variant="outline">
-                        Close
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        <!-- Info Dialog - What is Topics? -->
-        <Dialog v-model:open="showInfoDialog">
-            <DialogContent class="max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>What are Topics?</DialogTitle>
-                    <DialogDescription>
-                        Learn how topics help organize and analyze your conversations
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div class="space-y-4 text-sm">
-                    <div>
-                        <h3 class="font-semibold mb-2">📊 Overview</h3>
-                        <p class="text-muted-foreground">
-                            Topics are categories that help you understand what your users are talking about. 
-                            Each conversation is automatically assigned one topic based on its content.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h3 class="font-semibold mb-2">🎯 How it works</h3>
-                        <ul class="space-y-2 text-muted-foreground list-disc list-inside">
-                            <li>Conversations are analyzed and categorized into topics</li>
-                            <li>You can customize which topics are available for your agent</li>
-                            <li>Topics help you identify trends and common issues</li>
-                            <li>Each conversation belongs to exactly one topic</li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 class="font-semibold mb-2">💡 Examples</h3>
-                        <div class="space-y-2 text-muted-foreground">
-                            <div class="flex items-start gap-2">
-                                <span class="text-primary">•</span>
-                                <span><strong>Technical Support:</strong> Users asking for help with bugs or errors</span>
-                            </div>
-                            <div class="flex items-start gap-2">
-                                <span class="text-primary">•</span>
-                                <span><strong>Billing & Payments:</strong> Questions about invoices, refunds, subscriptions</span>
-                            </div>
-                            <div class="flex items-start gap-2">
-                                <span class="text-primary">•</span>
-                                <span><strong>Product Information:</strong> Inquiries about features and specifications</span>
-                            </div>
+                        <div>
+                            <h3 class="mb-2 font-semibold">✨ Benefits</h3>
+                            <ul class="text-muted-foreground list-inside list-disc space-y-2">
+                                <li>Track which topics are most popular</li>
+                                <li>Identify areas that need more attention</li>
+                                <li>Measure conversation volume by category</li>
+                                <li>Improve your agent's knowledge base</li>
+                            </ul>
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="font-semibold mb-2">✨ Benefits</h3>
-                        <ul class="space-y-2 text-muted-foreground list-disc list-inside">
-                            <li>Track which topics are most popular</li>
-                            <li>Identify areas that need more attention</li>
-                            <li>Measure conversation volume by category</li>
-                            <li>Improve your agent's knowledge base</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button @click="showInfoDialog = false">
-                        Got it
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                    <DialogFooter>
+                        <Button @click="showInfoDialog = false"> Got it </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </template>
     </AgentLayout>
 </template>
-

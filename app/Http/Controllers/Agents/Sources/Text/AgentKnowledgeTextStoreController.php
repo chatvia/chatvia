@@ -17,6 +17,11 @@ class AgentKnowledgeTextStoreController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.text'),
+            code: 403,
+        );
+
         $request->validate([
             'content' => ['required', 'min:500'],
         ]);

@@ -1,20 +1,8 @@
 <script setup lang="ts">
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -26,17 +14,14 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import {
-    Users,
-    Plus,
-    LogOut,
-    Trash2,
-    Loader2,
-    Search,
-    Bot,
-} from 'lucide-vue-next';
+import { Loader2, LogOut, Plus, Search, Trash2, Users } from 'lucide-vue-next';
 
 type Team = App.Data.Resources.Team.TeamListItemData;
 
@@ -69,13 +54,10 @@ const filteredTeams = computed(() => {
     if (!searchQuery.value) return props.teams || [];
 
     const query = searchQuery.value.toLowerCase();
-    return (props.teams || []).filter(team =>
-        team.name.toLowerCase().includes(query) ||
-        team.role.toLowerCase().includes(query)
-    );
+    return (props.teams || []).filter((team) => team.name.toLowerCase().includes(query) || team.role.toLowerCase().includes(query));
 });
 
-const ownedTeamsCount = computed(() => (props.teams || []).filter(t => t.is_owner).length);
+const ownedTeamsCount = computed(() => (props.teams || []).filter((t) => t.is_owner).length);
 const canDeleteTeam = (team: Team) => team.is_owner && !team.is_primary && ownedTeamsCount.value > 1;
 
 const createTeam = () => {
@@ -105,7 +87,7 @@ const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
     });
 };
 </script>
@@ -119,9 +101,7 @@ const formatDate = (dateString: string) => {
             <div class="mb-8 flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold tracking-tight">Teams</h1>
-                    <p class="mt-1 text-muted-foreground">
-                        Manage your teams and collaborate with others
-                    </p>
+                    <p class="text-muted-foreground mt-1">Manage your teams and collaborate with others</p>
                 </div>
                 <Button size="lg" @click="isCreateDialogOpen = true" class="flex items-center gap-2">
                     <Plus class="h-4 w-4" />
@@ -132,22 +112,16 @@ const formatDate = (dateString: string) => {
             <!-- Search -->
             <div class="mb-6 flex items-center">
                 <div class="relative flex-1">
-                    <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        v-model="searchQuery"
-                        class="pl-10"
-                        placeholder="Search teams..."
-                    />
+                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                    <Input v-model="searchQuery" class="pl-10" placeholder="Search teams..." />
                 </div>
             </div>
 
             <!-- Empty state -->
             <Card v-if="!teams || teams.length === 0" class="flex h-64 flex-col items-center justify-center">
-                <Users class="h-12 w-12 text-muted-foreground opacity-50" />
+                <Users class="text-muted-foreground h-12 w-12 opacity-50" />
                 <h3 class="mt-4 text-xl font-medium">No teams yet</h3>
-                <p class="mt-2 text-center text-muted-foreground">
-                    Create your first team to start collaborating with others
-                </p>
+                <p class="text-muted-foreground mt-2 text-center">Create your first team to start collaborating with others</p>
                 <Button size="lg" class="mt-6 flex items-center gap-2" @click="isCreateDialogOpen = true">
                     <Plus class="h-4 w-4" />
                     Create Team
@@ -156,14 +130,10 @@ const formatDate = (dateString: string) => {
 
             <!-- No search results -->
             <Card v-else-if="filteredTeams.length === 0" class="flex h-64 flex-col items-center justify-center">
-                <Search class="h-12 w-12 text-muted-foreground opacity-50" />
+                <Search class="text-muted-foreground h-12 w-12 opacity-50" />
                 <h3 class="mt-4 text-xl font-medium">No matching teams</h3>
-                <p class="mt-2 text-center text-muted-foreground">
-                    No teams found matching "{{ searchQuery }}"
-                </p>
-                <Button variant="outline" class="mt-6" @click="searchQuery = ''">
-                    Clear Search
-                </Button>
+                <p class="text-muted-foreground mt-2 text-center">No teams found matching "{{ searchQuery }}"</p>
+                <Button variant="outline" class="mt-6" @click="searchQuery = ''"> Clear Search </Button>
             </Card>
 
             <!-- Teams Grid -->
@@ -177,9 +147,7 @@ const formatDate = (dateString: string) => {
                                     <Link :href="route('teams.show', team.id)">{{ team.name }}</Link>
                                 </span>
                             </CardTitle>
-                            <div v-if="team.is_primary" class="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                                Primary
-                            </div>
+                            <div v-if="team.is_primary" class="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-medium">Primary</div>
                         </div>
                     </CardHeader>
 
@@ -202,16 +170,14 @@ const formatDate = (dateString: string) => {
                             <AlertDialog v-if="!team.is_owner">
                                 <AlertDialogTrigger as-child>
                                     <Button variant="ghost" size="sm" class="text-muted-foreground hover:text-destructive">
-                                        <LogOut class="h-4 w-4 mr-1" />
+                                        <LogOut class="mr-1 h-4 w-4" />
                                         Leave
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Leave Team</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Are you sure you want to leave "{{ team.name }}"?
-                                        </AlertDialogDescription>
+                                        <AlertDialogDescription> Are you sure you want to leave "{{ team.name }}"? </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -232,17 +198,18 @@ const formatDate = (dateString: string) => {
                                 variant="ghost"
                                 size="sm"
                                 class="text-muted-foreground hover:text-destructive"
-                                @click.prevent="teamToDelete = team; deleteForm.clearErrors()"
+                                @click.prevent="
+                                    teamToDelete = team;
+                                    deleteForm.clearErrors();
+                                "
                             >
-                                <Trash2 class="h-4 w-4 mr-1" />
+                                <Trash2 class="mr-1 h-4 w-4" />
                                 Delete
                             </Button>
                         </div>
 
                         <Button as-child size="sm">
-                            <Link :href="route('teams.show', team.id)">
-                                Manage
-                            </Link>
+                            <Link :href="route('teams.show', team.id)"> Manage </Link>
                         </Button>
                     </CardFooter>
                 </Card>
@@ -258,16 +225,12 @@ const formatDate = (dateString: string) => {
                         Are you sure you want to delete "{{ teamToDelete?.name }}"? This cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <div v-if="deleteForm.errors.team" class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                <div v-if="deleteForm.errors.team" class="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
                     {{ deleteForm.errors.team }}
                 </div>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <Button
-                        variant="destructive"
-                        @click="deleteTeam"
-                        :disabled="deleteForm.processing"
-                    >
+                    <Button variant="destructive" @click="deleteTeam" :disabled="deleteForm.processing">
                         <Loader2 v-if="deleteForm.processing" class="mr-2 size-4 animate-spin" />
                         Delete
                     </Button>
@@ -280,27 +243,18 @@ const formatDate = (dateString: string) => {
             <DialogContent class="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create New Team</DialogTitle>
-                    <DialogDescription>
-                        Create a team to collaborate with others.
-                    </DialogDescription>
+                    <DialogDescription> Create a team to collaborate with others. </DialogDescription>
                 </DialogHeader>
                 <form @submit.prevent="createTeam">
                     <div class="grid gap-4 py-4">
                         <div class="grid gap-2">
                             <Label for="team-name">Team Name</Label>
-                            <Input
-                                id="team-name"
-                                v-model="createForm.name"
-                                placeholder="Enter team name"
-                                required
-                            />
+                            <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" required />
                             <InputError :message="createForm.errors.name" />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" @click="isCreateDialogOpen = false">
-                            Cancel
-                        </Button>
+                        <Button type="button" variant="outline" @click="isCreateDialogOpen = false"> Cancel </Button>
                         <Button type="submit" :disabled="createForm.processing">
                             <Loader2 v-if="createForm.processing" class="mr-2 size-4 animate-spin" />
                             Create Team

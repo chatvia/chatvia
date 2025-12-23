@@ -1,10 +1,8 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import Table from '@/components/ui/table/Table.vue';
 import TableBody from '@/components/ui/table/TableBody.vue';
@@ -12,31 +10,27 @@ import TableCell from '@/components/ui/table/TableCell.vue';
 import TableHead from '@/components/ui/table/TableHead.vue';
 import TableHeader from '@/components/ui/table/TableHeader.vue';
 import TableRow from '@/components/ui/table/TableRow.vue';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import {
-    Check,
-    Star,
-    Zap,
-    Package,
     ArrowLeft,
-    Crown,
-    Sparkles,
-    X,
-    CreditCard,
-    MessageCircle,
     Bot,
-    Globe,
+    Building,
+    Check,
+    CreditCard,
+    Crown,
     EyeOff,
     Gift,
-    Building,
+    Globe,
+    MessageCircle,
+    Package,
+    Sparkles,
+    Star,
+    X,
+    Zap,
 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 import { usePage } from '@inertiajs/vue3';
 
@@ -133,8 +127,10 @@ const currentLLMs = ref<LLM[]>([]);
 
 // Discount functionality
 const isDiscountActive = computed(() => {
-    return props.billingConfig.discount.percentage > 0 &&
-           (!props.billingConfig.discount.ends_at || new Date(props.billingConfig.discount.ends_at) > new Date());
+    return (
+        props.billingConfig.discount.percentage > 0 &&
+        (!props.billingConfig.discount.ends_at || new Date(props.billingConfig.discount.ends_at) > new Date())
+    );
 });
 
 const discountEndsAt = computed(() => {
@@ -149,7 +145,7 @@ const formatDiscountEndDate = computed(() => {
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
     });
 });
 
@@ -239,14 +235,14 @@ const changeSubscription = (packageId: string) => {
 
     const form = useForm({
         package: packageId,
-        is_yearly: isYearly.value
+        is_yearly: isYearly.value,
     });
 
     form.post(route('billing.subscription.change'), {
         onFinish: () => {
             isSubscribing.value = false;
             subscribingPackage.value = '';
-        }
+        },
     });
 };
 
@@ -257,10 +253,10 @@ const getPackageAction = (packageId: string) => {
     }
 
     // Convert to array to ensure we have array methods
-    const packagesArray = Array.isArray(props.packages) ? props.packages : Object.values(props.packages) as Package[];
+    const packagesArray = Array.isArray(props.packages) ? props.packages : (Object.values(props.packages) as Package[]);
 
-    const currentPkg = packagesArray.find(pkg => pkg.id === props.currentPackage);
-    const targetPkg = packagesArray.find(pkg => pkg.id === packageId);
+    const currentPkg = packagesArray.find((pkg) => pkg.id === props.currentPackage);
+    const targetPkg = packagesArray.find((pkg) => pkg.id === packageId);
 
     if (!currentPkg || !targetPkg) {
         return packageId === 'free' ? 'downgrade' : 'upgrade';
@@ -317,7 +313,7 @@ const isCurrentPackage = (packageId: string) => {
 };
 
 const getPackageIcon = (packageId: string) => {
-    const iconMap: Record<string, { icon: any, color: string }> = {
+    const iconMap: Record<string, { icon: any; color: string }> = {
         gift: { icon: Gift, color: 'text-green-500' },
         zap: { icon: Zap, color: 'text-blue-500' },
         star: { icon: Star, color: 'text-yellow-500' },
@@ -361,7 +357,7 @@ const getAddonIcon = (iconName: string) => {
 
 const getFeatureHeader = (packageId: string, packages: Package[]) => {
     // Convert to array to ensure we have array methods
-    const packagesArray = Array.isArray(packages) ? packages : Object.values(packages) as Package[];
+    const packagesArray = Array.isArray(packages) ? packages : (Object.values(packages) as Package[]);
     const packageIndex = packagesArray.findIndex((pkg: Package) => pkg.id === packageId);
 
     if (packageIndex === 0 || packageIndex === -1) {
@@ -394,7 +390,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
     if (index === 0 && (packageKey === 'free' || packageKey === 'starter')) {
         if (feature.includes('fast')) {
             // Free package: show only free models
-            currentLLMs.value = (props.llms || []).filter(llm => !llm.paid);
+            currentLLMs.value = (props.llms || []).filter((llm) => !llm.paid);
         } else {
             // Starter package: show ALL models (both paid and free)
             currentLLMs.value = props.llms || [];
@@ -402,8 +398,6 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
         showLLMsModal.value = true;
     }
 };
-
-
 </script>
 
 <template>
@@ -415,17 +409,15 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                 <!-- Header -->
                 <div class="flex items-center justify-between">
                     <div class="space-y-2">
-                        <h1 class="text-3xl font-bold tracking-tight flex items-center gap-3">
-                            <Sparkles class="h-8 w-8 text-primary" />
+                        <h1 class="flex items-center gap-3 text-3xl font-bold tracking-tight">
+                            <Sparkles class="text-primary h-8 w-8" />
                             Choose Your Plan
                         </h1>
-                        <p class="text-muted-foreground">
-                            Select the perfect plan for your needs. You can change or cancel anytime.
-                        </p>
+                        <p class="text-muted-foreground">Select the perfect plan for your needs. You can change or cancel anytime.</p>
                     </div>
                     <Button variant="outline" as-child>
                         <Link :href="route('billing.index')">
-                            <ArrowLeft class="h-4 w-4 mr-2" />
+                            <ArrowLeft class="mr-2 h-4 w-4" />
                             Back to Billing
                         </Link>
                     </Button>
@@ -433,21 +425,29 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
 
                 <!-- Billing Toggle -->
                 <div class="flex items-center justify-center">
-                    <div class="flex items-center gap-3 p-1 bg-muted rounded-lg">
+                    <div class="bg-muted flex items-center gap-3 rounded-lg p-1">
                         <Label
                             for="billing-toggle"
-                            class="text-sm font-medium cursor-pointer px-3 py-2 rounded-md transition-colors"
+                            class="cursor-pointer rounded-md px-3 py-2 text-sm font-medium transition-colors"
                             :class="{ 'bg-background shadow-sm': !isYearly }"
-                            @click="() => { isYearly = false }"
+                            @click="
+                                () => {
+                                    isYearly = false;
+                                }
+                            "
                         >
                             Monthly
                         </Label>
 
                         <Label
                             for="billing-toggle"
-                            class="text-sm font-medium cursor-pointer px-3 py-2 rounded-md transition-colors flex items-center gap-2"
+                            class="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors"
                             :class="{ 'bg-background shadow-sm': isYearly }"
-                            @click="() => { isYearly = true }"
+                            @click="
+                                () => {
+                                    isYearly = true;
+                                }
+                            "
                         >
                             Yearly
                             <Badge variant="secondary" class="text-xs">{{ billingConfig.ui.yearly_savings_text }}</Badge>
@@ -456,197 +456,177 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                 </div>
 
                 <!-- Discount Banner -->
-                <div v-if="isDiscountActive" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-4 text-center">
-                    <div class="flex items-center justify-center gap-2 mb-2">
+                <div v-if="isDiscountActive" class="rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-center text-white">
+                    <div class="mb-2 flex items-center justify-center gap-2">
                         <Sparkles class="h-5 w-5" />
-                        <span class="font-bold text-lg">{{ billingConfig.discount.percentage }}% OFF Limited Time Offer!</span>
+                        <span class="text-lg font-bold">{{ billingConfig.discount.percentage }}% OFF Limited Time Offer!</span>
                         <Sparkles class="h-5 w-5" />
                     </div>
                     <p class="text-green-100">
-                        <template v-if="billingConfig.discount.ends_at">
-                            Offer ends {{ formatDiscountEndDate }} - Don't miss out!
-                        </template>
-                        <template v-else>
-                            Limited time discount on all paid plans!
-                        </template>
+                        <template v-if="billingConfig.discount.ends_at"> Offer ends {{ formatDiscountEndDate }} - Don't miss out! </template>
+                        <template v-else> Limited time discount on all paid plans! </template>
                     </p>
                 </div>
 
                 <!-- Packages Grid -->
                 <div class="flex flex-wrap justify-center gap-8">
-                    <div
-                        v-for="(pkg, packageKey) in packages"
-                        :key="pkg.id"
-                        class="group relative w-full max-w-xs"
-                    >
-                            <!-- Popular Badge -->
-                            <div
-                                v-if="pkg.is_popular"
-                                class="absolute -top-3 left-1/2 -translate-x-1/2 z-10"
-                            >
-                                <Badge class="bg-primary text-primary-foreground px-3 py-1 text-xs">
-                                    <Star class="h-3 w-3 mr-1" />
-                                    {{ billingConfig.ui.popular_badge_text }}
+                    <div v-for="(pkg, packageKey) in packages" :key="pkg.id" class="group relative w-full max-w-xs">
+                        <!-- Popular Badge -->
+                        <div v-if="pkg.is_popular" class="absolute -top-3 left-1/2 z-10 -translate-x-1/2">
+                            <Badge class="bg-primary text-primary-foreground px-3 py-1 text-xs">
+                                <Star class="mr-1 h-3 w-3" />
+                                {{ billingConfig.ui.popular_badge_text }}
+                            </Badge>
+                        </div>
+
+                        <!-- Package Card -->
+                        <Card
+                            class="relative flex h-full flex-col transition-all duration-200"
+                            :class="[
+                                subscribingPackage === pkg.id ? 'ring-primary scale-105 shadow-lg ring-2' : 'hover:scale-102 hover:shadow-lg',
+                                pkg.is_popular ? 'border-primary/50' : '',
+                                isCurrentPackage(pkg.id) ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20' : '',
+                            ]"
+                        >
+                            <!-- Current Plan Indicator -->
+                            <div v-if="isCurrentPackage(pkg.id)" class="absolute top-4 right-4">
+                                <Badge variant="secondary" class="text-xs">
+                                    {{ billingConfig.ui.current_plan_text }}
                                 </Badge>
                             </div>
 
-                            <!-- Package Card -->
-                            <Card
-                                class="h-full transition-all duration-200 relative flex flex-col"
-                                :class="[
-                                    subscribingPackage === pkg.id
-                                        ? 'ring-2 ring-primary shadow-lg scale-105'
-                                        : 'hover:shadow-lg hover:scale-102',
-                                    pkg.is_popular ? 'border-primary/50' : '',
-                                    isCurrentPackage(pkg.id) ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : ''
-                                ]"
-                            >
-                                <!-- Current Plan Indicator -->
+                            <CardHeader class="pb-4 text-center">
                                 <div
-                                    v-if="isCurrentPackage(pkg.id)"
-                                    class="absolute top-4 right-4"
+                                    class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg"
+                                    :class="getPackageIconBackground(pkg.id)"
                                 >
-                                    <Badge variant="secondary" class="text-xs">
-                                        {{ billingConfig.ui.current_plan_text }}
-                                    </Badge>
+                                    <component :is="getPackageIcon(pkg.id).icon" class="h-6 w-6" :class="getPackageIcon(pkg.id).color" />
+                                </div>
+                                <CardTitle class="text-xl">{{ pkg.name }}</CardTitle>
+                            </CardHeader>
+
+                            <CardContent class="flex flex-1 flex-col">
+                                <!-- Pricing -->
+                                <div class="mb-6 text-center">
+                                    <div class="space-y-1">
+                                        <!-- Original price (strikethrough) when discount is active -->
+                                        <div v-if="isDiscountActive && getOriginalPrice(pkg)" class="text-muted-foreground text-lg line-through">
+                                            {{ getOriginalPrice(pkg) }}
+                                        </div>
+                                        <!-- Current price (discounted or regular) -->
+                                        <div class="text-3xl font-bold" :class="{ 'text-green-600': isDiscountActive && pkg.id !== 'free' }">
+                                            {{ getPackagePrice(pkg) }}
+                                        </div>
+                                        <!-- Discount badge -->
+                                        <div
+                                            v-if="isDiscountActive && pkg.id !== 'free'"
+                                            class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800"
+                                        >
+                                            <Sparkles class="h-3 w-3" />
+                                            {{ billingConfig.discount.percentage }}% OFF
+                                        </div>
+                                    </div>
+                                    <div class="text-muted-foreground mt-2 text-sm">{{ getPackagePeriod() }}</div>
+                                    <div v-if="getSavingsText(pkg)" class="mt-1 text-xs font-medium text-green-600">
+                                        {{ getSavingsText(pkg) }}
+                                    </div>
+                                    <div v-if="getYearlyTotal(pkg)" class="text-muted-foreground mt-1 text-xs">
+                                        Billed yearly at {{ getYearlyTotal(pkg) }}
+                                    </div>
                                 </div>
 
-                                <CardHeader class="text-center pb-4">
-                                    <div class="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4" :class="getPackageIconBackground(pkg.id)">
-                                        <component :is="getPackageIcon(pkg.id).icon" class="h-6 w-6" :class="getPackageIcon(pkg.id).color" />
-                                    </div>
-                                    <CardTitle class="text-xl">{{ pkg.name }}</CardTitle>
-
-                                </CardHeader>
-
-                                <CardContent class="flex-1 flex flex-col">
-                                    <!-- Pricing -->
-                                    <div class="text-center mb-6">
-                                        <div class="space-y-1">
-                                            <!-- Original price (strikethrough) when discount is active -->
-                                            <div v-if="isDiscountActive && getOriginalPrice(pkg)" class="text-lg text-muted-foreground line-through">
-                                                {{ getOriginalPrice(pkg) }}
-                                            </div>
-                                            <!-- Current price (discounted or regular) -->
-                                            <div class="text-3xl font-bold" :class="{ 'text-green-600': isDiscountActive && pkg.id !== 'free' }">
-                                                {{ getPackagePrice(pkg) }}
-                                            </div>
-                                            <!-- Discount badge -->
-                                            <div v-if="isDiscountActive && pkg.id !== 'free'" class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                                <Sparkles class="h-3 w-3" />
-                                                {{ billingConfig.discount.percentage }}% OFF
-                                            </div>
-                                        </div>
-                                        <div class="text-sm text-muted-foreground mt-2">{{ getPackagePeriod() }}</div>
-                                        <div v-if="getSavingsText(pkg)" class="text-xs text-green-600 font-medium mt-1">
-                                            {{ getSavingsText(pkg) }}
-                                        </div>
-                                        <div v-if="getYearlyTotal(pkg)" class="text-xs text-muted-foreground mt-1">
-                                            Billed yearly at {{ getYearlyTotal(pkg) }}
-                                        </div>
-                                    </div>
-
-                                    <!-- Action Button - Below price, above features -->
-                                    <div class="mb-6">
-                                        <Button
-                                            v-if="pkg.id === 'free'"
-                                            :disabled="isCurrentPackage(pkg.id) || isSubscribing"
-                                            class="w-full h-10"
-                                            variant="outline"
-                                            @click.stop="handlePackageSelection(pkg.id)"
-                                        >
-                                            <template v-if="isSubscribing && subscribingPackage === pkg.id">
-                                                <div class="h-4 w-4 rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground animate-spin mr-2" />
-                                                Processing...
-                                            </template>
-                                            <template v-else>
-                                                {{ getButtonText(pkg.id) }}
-                                            </template>
-                                        </Button>
-
-                                        <Button
-                                            v-else
-                                            :disabled="isCurrentPackage(pkg.id) || isSubscribing"
-                                            class="w-full h-10 gap-2"
-                                            :variant="pkg.is_popular ? 'default' : 'outline'"
-                                            @click.stop="handlePackageSelection(pkg.id)"
-                                        >
-                                            <template v-if="isSubscribing && subscribingPackage === pkg.id">
-                                                <div class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                                                Processing...
-                                            </template>
-                                            <template v-else>
-                                                {{ getButtonText(pkg.id) }}
-                                            </template>
-                                        </Button>
-                                    </div>
-
-                                    <!-- Features -->
-                                    <div class="space-y-3 flex-1">
-                                        <h4 class="font-semibold text-sm">{{ getFeatureHeader(pkg.id, packages) }}</h4>
-                                        <div class="space-y-2">
+                                <!-- Action Button - Below price, above features -->
+                                <div class="mb-6">
+                                    <Button
+                                        v-if="pkg.id === 'free'"
+                                        :disabled="isCurrentPackage(pkg.id) || isSubscribing"
+                                        class="h-10 w-full"
+                                        variant="outline"
+                                        @click.stop="handlePackageSelection(pkg.id)"
+                                    >
+                                        <template v-if="isSubscribing && subscribingPackage === pkg.id">
                                             <div
-                                                v-for="(feature, index) in getPackageFeatures(pkg)"
-                                                :key="feature"
-                                                class="flex items-start gap-2"
+                                                class="border-muted-foreground/30 border-t-muted-foreground mr-2 h-4 w-4 animate-spin rounded-full border-2"
+                                            />
+                                            Processing...
+                                        </template>
+                                        <template v-else>
+                                            {{ getButtonText(pkg.id) }}
+                                        </template>
+                                    </Button>
+
+                                    <Button
+                                        v-else
+                                        :disabled="isCurrentPackage(pkg.id) || isSubscribing"
+                                        class="h-10 w-full gap-2"
+                                        :variant="pkg.is_popular ? 'default' : 'outline'"
+                                        @click.stop="handlePackageSelection(pkg.id)"
+                                    >
+                                        <template v-if="isSubscribing && subscribingPackage === pkg.id">
+                                            <div class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                            Processing...
+                                        </template>
+                                        <template v-else>
+                                            {{ getButtonText(pkg.id) }}
+                                        </template>
+                                    </Button>
+                                </div>
+
+                                <!-- Features -->
+                                <div class="flex-1 space-y-3">
+                                    <h4 class="text-sm font-semibold">{{ getFeatureHeader(pkg.id, packages) }}</h4>
+                                    <div class="space-y-2">
+                                        <div v-for="(feature, index) in getPackageFeatures(pkg)" :key="feature" class="flex items-start gap-2">
+                                            <Check class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" />
+                                            <span
+                                                :class="[
+                                                    'text-sm leading-relaxed',
+                                                    index === 0 && (String(packageKey) === 'free' || String(packageKey) === 'starter')
+                                                        ? 'cursor-pointer text-blue-600 underline decoration-dotted underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+                                                        : '',
+                                                ]"
+                                                @click="handleFeatureClick(feature, index, String(packageKey))"
                                             >
-                                                <Check class="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                                                <span
-                                                    :class="[
-                                                        'text-sm leading-relaxed',
-                                                        (index === 0 && (String(packageKey) === 'free' || String(packageKey) === 'starter'))
-                                                            ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer underline decoration-dotted underline-offset-2'
-                                                            : ''
-                                                    ]"
-                                                    @click="handleFeatureClick(feature, index, String(packageKey))"
-                                                >
-                                                    {{ feature }}
-                                                </span>
-                                            </div>
+                                                {{ feature }}
+                                            </span>
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
 
                 <!-- Add-ons Section -->
                 <div v-if="addons && addons.length > 0" class="space-y-6">
                     <div class="text-center">
-                        <h2 class="text-2xl font-bold tracking-tight mb-2">Add-ons</h2>
-                        <p class="text-muted-foreground">
-                            Enhance your plan with additional features and capabilities
-                        </p>
+                        <h2 class="mb-2 text-2xl font-bold tracking-tight">Add-ons</h2>
+                        <p class="text-muted-foreground">Enhance your plan with additional features and capabilities</p>
                     </div>
 
-                    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-1 max-w-4xl mx-auto">
+                    <div class="mx-auto grid max-w-4xl gap-4 md:grid-cols-2 lg:grid-cols-1">
                         <div
                             v-for="addon in addons"
                             :key="addon.id"
-                            class="flex items-center justify-between p-6 bg-background border rounded-lg hover:shadow-md transition-shadow"
+                            class="bg-background flex items-center justify-between rounded-lg border p-6 transition-shadow hover:shadow-md"
                         >
-                            <div class="flex items-start gap-4 flex-1">
-                                <div class="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                    <component
-                                        :is="getAddonIcon(addon.icon)"
-                                        class="h-6 w-6 text-muted-foreground"
-                                    />
+                            <div class="flex flex-1 items-start gap-4">
+                                <div class="bg-muted flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full">
+                                    <component :is="getAddonIcon(addon.icon)" class="text-muted-foreground h-6 w-6" />
                                 </div>
                                 <div class="flex-1">
-                                    <h3 class="font-semibold text-lg mb-1">{{ addon.name }}</h3>
-                                    <p class="text-sm text-muted-foreground mb-2">{{ addon.description }}</p>
-                                    <p class="text-xs text-muted-foreground">{{ addon.billing_unit }}</p>
+                                    <h3 class="mb-1 text-lg font-semibold">{{ addon.name }}</h3>
+                                    <p class="text-muted-foreground mb-2 text-sm">{{ addon.description }}</p>
+                                    <p class="text-muted-foreground text-xs">{{ addon.billing_unit }}</p>
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-4 flex-shrink-0">
+                            <div class="flex flex-shrink-0 items-center gap-4">
                                 <div class="text-right">
                                     <div class="text-2xl font-bold">{{ addon.price_formatted }}</div>
-                                    <div class="text-xs text-muted-foreground">Total {{ addon.billing_unit }}</div>
+                                    <div class="text-muted-foreground text-xs">Total {{ addon.billing_unit }}</div>
                                 </div>
-                                <Button variant="outline" class="whitespace-nowrap">
-                                    Get Add-on
-                                </Button>
+                                <Button variant="outline" class="whitespace-nowrap"> Get Add-on </Button>
                             </div>
                         </div>
                     </div>
@@ -656,9 +636,9 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                 <!-- Removing the old enterprise section since we moved it to a banner -->
 
                 <!-- Comparison Table -->
-                <div class="bg-muted/50 rounded-lg p-6 space-y-6">
-                    <h3 class="text-xl font-semibold flex items-center gap-2">
-                        <Package class="h-5 w-5 text-primary" />
+                <div class="bg-muted/50 space-y-6 rounded-lg p-6">
+                    <h3 class="flex items-center gap-2 text-xl font-semibold">
+                        <Package class="text-primary h-5 w-5" />
                         Feature Comparison
                     </h3>
 
@@ -677,11 +657,11 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                     <TableCell class="font-medium">
                                         <div>
                                             <div class="font-semibold">{{ feature.name }}</div>
-                                            <div class="text-xs text-muted-foreground">{{ feature.description }}</div>
+                                            <div class="text-muted-foreground text-xs">{{ feature.description }}</div>
                                         </div>
                                     </TableCell>
                                     <TableCell v-for="pkg in packages" :key="pkg.id" class="text-center">
-                                        <div class="flex justify-center items-center">
+                                        <div class="flex items-center justify-center">
                                             <template v-if="typeof pkg.capabilities?.[feature.capability_key] === 'boolean'">
                                                 <Check v-if="pkg.capabilities[feature.capability_key]" class="h-4 w-4 text-green-500" />
                                                 <X v-else class="h-4 w-4 text-red-500" />
@@ -700,17 +680,13 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                 </div>
 
                 <!-- Additional Information -->
-                <div class="bg-muted/50 rounded-lg p-6 space-y-4">
-                    <h3 class="font-semibold flex items-center gap-2">
-                        <Package class="h-5 w-5 text-primary" />
+                <div class="bg-muted/50 space-y-4 rounded-lg p-6">
+                    <h3 class="flex items-center gap-2 font-semibold">
+                        <Package class="text-primary h-5 w-5" />
                         What's included with all plans
                     </h3>
                     <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                        <div
-                            v-for="feature in billingConfig.commonFeatures"
-                            :key="feature"
-                            class="flex items-center gap-2"
-                        >
+                        <div v-for="feature in billingConfig.commonFeatures" :key="feature" class="flex items-center gap-2">
                             <Check class="h-4 w-4 text-green-500" />
                             <span class="text-sm">{{ feature }}</span>
                         </div>
@@ -724,35 +700,28 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
             <DialogContent class="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
-                        <Bot class="h-5 w-5 text-primary" />
+                        <Bot class="text-primary h-5 w-5" />
                         Available AI Models
                     </DialogTitle>
-                    <DialogDescription>
-                        Choose from our comprehensive selection of state-of-the-art language models
-                    </DialogDescription>
+                    <DialogDescription> Choose from our comprehensive selection of state-of-the-art language models </DialogDescription>
                 </DialogHeader>
 
-                <div class="grid gap-3 mt-4 max-h-96 overflow-y-auto">
+                <div class="mt-4 grid max-h-96 gap-3 overflow-y-auto">
                     <div
                         v-for="llm in currentLLMs"
                         :key="llm.name"
-                        class="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                        class="hover:bg-muted/50 flex items-center gap-3 rounded-lg border p-3 transition-colors"
                     >
-                        <div class="w-8 h-8 flex-shrink-0">
-                            <img
-                                :src="`/images/llms/${llm.icon}`"
-                                :alt="llm.name"
-                                class="w-full h-full object-contain"
-                                loading="lazy"
-                            />
+                        <div class="h-8 w-8 flex-shrink-0">
+                            <img :src="`/images/llms/${llm.icon}`" :alt="llm.name" class="h-full w-full object-contain" loading="lazy" />
                         </div>
                         <div class="flex-1">
-                            <div class="font-medium text-sm">{{ llm.name }}</div>
+                            <div class="text-sm font-medium">{{ llm.name }}</div>
                         </div>
                     </div>
 
-                    <div v-if="currentLLMs.length === 0" class="text-center py-8 text-muted-foreground">
-                        <Bot class="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <div v-if="currentLLMs.length === 0" class="text-muted-foreground py-8 text-center">
+                        <Bot class="mx-auto mb-2 h-12 w-12 opacity-50" />
                         <p>No models available</p>
                     </div>
                 </div>

@@ -15,6 +15,11 @@ class AgentSourceFileDeleteController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.delete'),
+            code: 403,
+        );
+
         if ($file->status === 'ingesting') {
             $file->cancelIngestionJob();
         }

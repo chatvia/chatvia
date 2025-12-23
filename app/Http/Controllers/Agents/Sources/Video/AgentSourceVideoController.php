@@ -16,6 +16,11 @@ class AgentSourceVideoController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.video'),
+            code: 403,
+        );
+
         return Inertia::render('agents/Sources/Video', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);

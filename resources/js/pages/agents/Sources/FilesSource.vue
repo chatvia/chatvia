@@ -14,4 +14,3 @@ defineProps<Props>();
         <Files :agent="agent" />
     </AgentLayout>
 </template>
-

@@ -1,31 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/InputError.vue';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useEcho } from "@laravel/echo-vue";
-import { toast } from 'vue-sonner';
-import axios from "axios";
-import {
-    Plus,
-    Save,
-    Trash2,
-    LoaderCircle,
-    AlertCircle,
-    CheckCircle,
-    Edit3,
-    ChevronDown,
-    Unlink,
-    HelpCircle
-} from 'lucide-vue-next';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
+import { useForm } from '@inertiajs/vue3';
+import { useEcho } from '@laravel/echo-vue';
+import axios from 'axios';
+import { AlertCircle, CheckCircle, ChevronDown, Edit3, HelpCircle, LoaderCircle, Plus, Save, Trash2, Unlink } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Props {
     agent: App.Data.Resources.Agent.AgentResourceData;
@@ -50,23 +40,20 @@ interface QAEntry {
 
 const props = defineProps<Props>();
 
+const { hasPermission } = useTeamPermissions();
+
+// Check if user can delete sources
+const canDeleteSources = computed(() => hasPermission('agent.sources.delete'));
+
 // WebSocket event listener for QA ingestion status updates
-useEcho(
-    `agents.${props.agent.external_id}.ingestion.qa`,
-    "QAIngestionEvent",
-    (e) => {
-        handleIngestionUpdate(e);
-    },
-);
+useEcho(`agents.${props.agent.external_id}.ingestion.qa`, 'QAIngestionEvent', (e) => {
+    handleIngestionUpdate(e);
+});
 
 // WebSocket event listener for QA ingestion progress updates
-useEcho(
-    `agents.${props.agent.external_id}.qa.progress`,
-    "QAIngestionProgressEvent",
-    (e) => {
-        handleQAIngestionProgress(e);
-    },
-);
+useEcho(`agents.${props.agent.external_id}.qa.progress`, 'QAIngestionProgressEvent', (e) => {
+    handleQAIngestionProgress(e);
+});
 
 // State
 const qaEntries = ref<QAEntry[]>([]);
@@ -85,7 +72,7 @@ const isDeleting = ref(false);
 const form = useForm({
     title: '',
     questions: [{ id: crypto.randomUUID(), question: '' }] as Question[],
-    answer: ''
+    answer: '',
 });
 
 // Methods
@@ -109,7 +96,7 @@ const addQuestion = () => {
 
 const removeQuestion = (questionId: string) => {
     if (form.questions.length > 1) {
-        form.questions = form.questions.filter(q => q.id !== questionId);
+        form.questions = form.questions.filter((q) => q.id !== questionId);
     }
 };
 
@@ -137,17 +124,19 @@ const createEntry = () => {
         },
         onFinish: () => {
             isSubmitting.value = false;
-        }
+        },
     });
 };
 
 const editEntry = async (entry: QAEntry) => {
     try {
         isLoading.value = true;
-        const response = await axios.get(route('agents.sources.qa.show', {
-            agent: props.agent.external_id,
-            id: entry.id
-        }));
+        const response = await axios.get(
+            route('agents.sources.qa.show', {
+                agent: props.agent.external_id,
+                id: entry.id,
+            }),
+        );
 
         const data = response.data;
 
@@ -170,27 +159,38 @@ const updateEntry = () => {
 
     isSubmitting.value = true;
 
-    form.patch(route('agents.sources.qa.update', {
-        agent: props.agent.external_id,
-        id: editingEntry.value.id
-    }), {
-        preserveScroll: true,
-        onSuccess: () => {
-            closeCreateForm();
-            fetchQAEntries();
-            toast.success('Q&A entry updated successfully');
+    form.patch(
+        route('agents.sources.qa.update', {
+            agent: props.agent.external_id,
+            id: editingEntry.value.id,
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                closeCreateForm();
+                fetchQAEntries();
+                toast.success('Q&A entry updated successfully');
+            },
+            onError: (errors) => {
+                console.error('Validation errors:', errors);
+                toast.error('Failed to update Q&A entry');
+            },
+            onFinish: () => {
+                isSubmitting.value = false;
+            },
         },
-        onError: (errors) => {
-            console.error('Validation errors:', errors);
-            toast.error('Failed to update Q&A entry');
-        },
-        onFinish: () => {
-            isSubmitting.value = false;
-        }
-    });
+    );
 };
 
 const confirmDelete = (entry: QAEntry) => {
+    // Check permission first
+    if (!canDeleteSources.value) {
+        toast.error('Permission denied', {
+            description: 'You do not have permission to delete sources.',
+        });
+        return;
+    }
+
     entryToDelete.value = entry;
     deleteDialogOpen.value = true;
 };
@@ -201,10 +201,12 @@ const deleteEntry = async () => {
     try {
         isDeleting.value = true;
 
-        await axios.delete(route('agents.sources.qa.destroy', {
-            agent: props.agent.external_id,
-            id: entryToDelete.value.id
-        }));
+        await axios.delete(
+            route('agents.sources.qa.destroy', {
+                agent: props.agent.external_id,
+                id: entryToDelete.value.id,
+            }),
+        );
 
         toast.success('Q&A entry deleted successfully');
         fetchQAEntries();
@@ -222,10 +224,12 @@ const unlinkEntry = async (entry: QAEntry) => {
     try {
         isUnlinking.value = true;
 
-        await axios.post(route('agents.sources.qa.unlink', {
-            agent: props.agent.external_id,
-            id: entry.id
-        }));
+        await axios.post(
+            route('agents.sources.qa.unlink', {
+                agent: props.agent.external_id,
+                id: entry.id,
+            }),
+        );
 
         toast.success('Q&A entry unlinked successfully');
         fetchQAEntries();
@@ -251,7 +255,7 @@ const fetchQAEntries = async () => {
 };
 
 const handleIngestionUpdate = (event: any) => {
-    const entry = qaEntries.value.find(e => e.id === event.qaId);
+    const entry = qaEntries.value.find((e) => e.id === event.qaId);
     if (entry) {
         entry.status = event.status;
         if (event.status === 'ingested') {
@@ -263,7 +267,7 @@ const handleIngestionUpdate = (event: any) => {
 };
 
 const handleQAIngestionProgress = (event: any) => {
-    const entry = qaEntries.value.find(e => e.id === event.qaId);
+    const entry = qaEntries.value.find((e) => e.id === event.qaId);
     if (entry) {
         entry.progress = event.progress;
     }
@@ -315,250 +319,210 @@ fetchQAEntries();
 <template>
     <div class="flex justify-center">
         <div class="w-full max-w-6xl space-y-6">
-        <!-- Header -->
-        <Card>
-            <CardHeader>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <CardTitle class="flex items-center gap-2">
-                            <HelpCircle class="w-5 h-5" />
-                            Q&A Knowledge Base
-                        </CardTitle>
-                        <CardDescription>
-                            Craft responses for key questions, ensuring your AI shares relevant info.
-                        </CardDescription>
-                    </div>
-                    <Button @click="openCreateForm" size="sm">
-                        <Plus class="w-4 h-4 mr-2" />
-                        Add Q&A
-                    </Button>
-                </div>
-            </CardHeader>
-        </Card>
-
-        <!-- Create/Edit Form -->
-        <Card v-if="showCreateForm">
-            <CardHeader>
-                <div class="flex items-center justify-between">
-                    <CardTitle>{{ editingEntry ? 'Edit Q&A' : 'Add Q&A' }}</CardTitle>
-                    <Button @click="closeCreateForm" variant="ghost" size="sm">
-                        Cancel
-                    </Button>
-                </div>
-            </CardHeader>
-            <CardContent class="space-y-4">
-                <!-- Title -->
-                <div class="space-y-2">
-                    <Label for="title">Title</Label>
-                    <Input
-                        id="title"
-                        v-model="form.title"
-                        placeholder="Ex: Refund requests"
-                        :disabled="isSubmitting"
-                    />
-                    <InputError :message="form.errors.title" />
-                </div>
-
-                <!-- Questions -->
-                <div class="space-y-2">
-                    <Label>Questions</Label>
-                    <div v-for="(question, index) in form.questions" :key="question.id" class="flex gap-2">
-                        <Input
-                            v-model="question.question"
-                            :placeholder="`Ex: How do I request a refund?`"
-                            :disabled="isSubmitting"
-                            class="flex-1"
-                        />
-                        <Button
-                            v-if="form.questions.length > 1"
-                            @click="removeQuestion(question.id)"
-                            variant="ghost"
-                            size="sm"
-                            :disabled="isSubmitting"
-                        >
-                            <Trash2 class="w-4 h-4" />
+            <!-- Header -->
+            <Card>
+                <CardHeader>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <CardTitle class="flex items-center gap-2">
+                                <HelpCircle class="h-5 w-5" />
+                                Q&A Knowledge Base
+                            </CardTitle>
+                            <CardDescription> Craft responses for key questions, ensuring your AI shares relevant info. </CardDescription>
+                        </div>
+                        <Button @click="openCreateForm" size="sm">
+                            <Plus class="mr-2 h-4 w-4" />
+                            Add Q&A
                         </Button>
                     </div>
-                    <Button
-                        @click="addQuestion"
-                        variant="outline"
-                        size="sm"
-                        :disabled="isSubmitting"
-                    >
-                        <Plus class="w-4 h-4 mr-2" />
-                        Add question
-                    </Button>
-                    <InputError :message="form.errors.questions" />
-                </div>
+                </CardHeader>
+            </Card>
 
-                <!-- Answer -->
-                <div class="space-y-2">
-                    <Label for="answer">Answer</Label>
-                    <Textarea
-                        id="answer"
-                        v-model="form.answer"
-                        placeholder="Enter your answer..."
-                        rows="8"
-                        :disabled="isSubmitting"
-                    />
-                    <div class="text-sm text-muted-foreground">
-                        {{ form.answer.length }} characters
-                    </div>
-                    <InputError :message="form.errors.answer" />
-                </div>
-
-                <!-- Actions -->
-                <div class="flex justify-end">
-                    <Button
-                        @click="submitForm"
-                        :disabled="isSubmitting || !form.title || !form.answer || form.questions.every(q => !q.question)"
-                    >
-                        <LoaderCircle v-if="isSubmitting" class="w-4 h-4 mr-2 animate-spin" />
-                        <Save v-else class="w-4 h-4 mr-2" />
-                        {{ editingEntry ? 'Update Q&A' : 'Add Q&A' }}
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
-
-        <!-- Q&A Entries List -->
-        <Card v-if="isLoading && qaEntries.length === 0">
-            <CardContent class="flex items-center justify-center py-12">
-                <LoaderCircle class="w-8 h-8 animate-spin text-muted-foreground" />
-            </CardContent>
-        </Card>
-
-        <Card v-else-if="qaEntries.length === 0 && !showCreateForm">
-            <CardContent class="flex flex-col items-center justify-center py-12 text-center">
-                <HelpCircle class="w-12 h-12 mb-4 text-muted-foreground" />
-                <h3 class="text-lg font-medium mb-2">No Q&A entries yet</h3>
-                <p class="text-muted-foreground mb-4 max-w-sm">
-                    Start building your knowledge base by adding frequently asked questions and their answers.
-                </p>
-                <Button @click="openCreateForm">
-                    <Plus class="w-4 h-4 mr-2" />
-                    Add your first Q&A
-                </Button>
-            </CardContent>
-        </Card>
-
-        <!-- Q&A Entries -->
-        <div v-else class="space-y-4">
-            <Card v-for="entry in qaEntries" :key="entry.id">
+            <!-- Create/Edit Form -->
+            <Card v-if="showCreateForm">
                 <CardHeader>
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <CardTitle class="text-lg">{{ entry.title }}</CardTitle>
-                            <div class="mt-2 space-y-1">
-                                <p v-for="(question, index) in entry.questions" :key="index" class="text-sm text-muted-foreground">
-                                    Q{{ index + 1 }}: {{ question.question }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <!-- Status -->
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <component
-                                            :is="getStatusIcon(entry.status)"
-                                            :class="['w-5 h-5', getStatusColor(entry.status), { 'animate-spin': entry.status === 'ingesting' }]"
-                                        />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        {{ getStatusText(entry.status) }}
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-
-                            <!-- Actions Dropdown -->
-                            <DropdownMenu>
-                                <DropdownMenuTrigger as-child>
-                                    <Button variant="ghost" size="sm">
-                                        <ChevronDown class="w-4 h-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem @click="editEntry(entry)">
-                                            <Edit3 class="w-4 h-4 mr-2" />
-                                            Edit
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            v-if="entry.agents_count && entry.agents_count > 1"
-                                            @click="unlinkEntry(entry)"
-                                            :disabled="isUnlinking"
-                                        >
-                                            <Unlink class="w-4 h-4 mr-2" />
-                                            Unlink
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            @click="confirmDelete(entry)"
-                                            class="text-red-600"
-                                        >
-                                            <Trash2 class="w-4 h-4 mr-2" />
-                                            Delete
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
+                    <div class="flex items-center justify-between">
+                        <CardTitle>{{ editingEntry ? 'Edit Q&A' : 'Add Q&A' }}</CardTitle>
+                        <Button @click="closeCreateForm" variant="ghost" size="sm"> Cancel </Button>
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <!-- Progress Bar -->
-                    <IngestionProgressBar
-                        v-if="entry.status === 'ingesting' && entry.progress !== undefined"
-                        :progress="entry.progress"
-                        class="mb-4"
-                    />
-
-                    <!-- Answer Preview -->
-                    <div class="text-sm text-muted-foreground">
-                        <p class="line-clamp-3">{{ entry.answer }}</p>
+                <CardContent class="space-y-4">
+                    <!-- Title -->
+                    <div class="space-y-2">
+                        <Label for="title">Title</Label>
+                        <Input id="title" v-model="form.title" placeholder="Ex: Refund requests" :disabled="isSubmitting" />
+                        <InputError :message="form.errors.title" />
                     </div>
 
-                    <!-- Meta Info -->
-                    <div class="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>Created {{ new Date(entry.created_at).toLocaleDateString() }}</span>
-                        <span v-if="entry.agents_count && entry.agents_count > 1">
-                            Used by {{ entry.agents_count }} agents
-                        </span>
+                    <!-- Questions -->
+                    <div class="space-y-2">
+                        <Label>Questions</Label>
+                        <div v-for="(question, index) in form.questions" :key="question.id" class="flex gap-2">
+                            <Input
+                                v-model="question.question"
+                                :placeholder="`Ex: How do I request a refund?`"
+                                :disabled="isSubmitting"
+                                class="flex-1"
+                            />
+                            <Button
+                                v-if="form.questions.length > 1"
+                                @click="removeQuestion(question.id)"
+                                variant="ghost"
+                                size="sm"
+                                :disabled="isSubmitting"
+                            >
+                                <Trash2 class="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <Button @click="addQuestion" variant="outline" size="sm" :disabled="isSubmitting">
+                            <Plus class="mr-2 h-4 w-4" />
+                            Add question
+                        </Button>
+                        <InputError :message="form.errors.questions" />
+                    </div>
+
+                    <!-- Answer -->
+                    <div class="space-y-2">
+                        <Label for="answer">Answer</Label>
+                        <Textarea id="answer" v-model="form.answer" placeholder="Enter your answer..." rows="8" :disabled="isSubmitting" />
+                        <div class="text-muted-foreground text-sm">{{ form.answer.length }} characters</div>
+                        <InputError :message="form.errors.answer" />
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex justify-end">
+                        <Button
+                            @click="submitForm"
+                            :disabled="isSubmitting || !form.title || !form.answer || form.questions.every((q) => !q.question)"
+                        >
+                            <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
+                            <Save v-else class="mr-2 h-4 w-4" />
+                            {{ editingEntry ? 'Update Q&A' : 'Add Q&A' }}
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
-        </div>
 
-        <!-- Delete Confirmation Dialog -->
-        <Dialog v-model:open="deleteDialogOpen">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Delete Q&A Entry</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to delete this Q&A entry? This action cannot be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                <div class="flex justify-end gap-2 mt-4">
-                    <Button
-                        @click="deleteDialogOpen = false"
-                        variant="outline"
-                        :disabled="isDeleting"
-                    >
-                        Cancel
+            <!-- Q&A Entries List -->
+            <Card v-if="isLoading && qaEntries.length === 0">
+                <CardContent class="flex items-center justify-center py-12">
+                    <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
+                </CardContent>
+            </Card>
+
+            <Card v-else-if="qaEntries.length === 0 && !showCreateForm">
+                <CardContent class="flex flex-col items-center justify-center py-12 text-center">
+                    <HelpCircle class="text-muted-foreground mb-4 h-12 w-12" />
+                    <h3 class="mb-2 text-lg font-medium">No Q&A entries yet</h3>
+                    <p class="text-muted-foreground mb-4 max-w-sm">
+                        Start building your knowledge base by adding frequently asked questions and their answers.
+                    </p>
+                    <Button @click="openCreateForm">
+                        <Plus class="mr-2 h-4 w-4" />
+                        Add your first Q&A
                     </Button>
-                    <Button
-                        @click="deleteEntry"
-                        variant="destructive"
-                        :disabled="isDeleting"
-                    >
-                        <LoaderCircle v-if="isDeleting" class="w-4 h-4 mr-2 animate-spin" />
-                        <Trash2 v-else class="w-4 h-4 mr-2" />
-                        Delete
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </CardContent>
+            </Card>
+
+            <!-- Q&A Entries -->
+            <div v-else class="space-y-4">
+                <Card v-for="entry in qaEntries" :key="entry.id">
+                    <CardHeader>
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <CardTitle class="text-lg">{{ entry.title }}</CardTitle>
+                                <div class="mt-2 space-y-1">
+                                    <p v-for="(question, index) in entry.questions" :key="index" class="text-muted-foreground text-sm">
+                                        Q{{ index + 1 }}: {{ question.question }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <!-- Status -->
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <component
+                                                :is="getStatusIcon(entry.status)"
+                                                :class="['h-5 w-5', getStatusColor(entry.status), { 'animate-spin': entry.status === 'ingesting' }]"
+                                            />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            {{ getStatusText(entry.status) }}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <!-- Actions Dropdown -->
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="sm">
+                                            <ChevronDown class="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem @click="editEntry(entry)">
+                                                <Edit3 class="mr-2 h-4 w-4" />
+                                                Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                v-if="entry.agents_count && entry.agents_count > 1"
+                                                @click="unlinkEntry(entry)"
+                                                :disabled="isUnlinking"
+                                            >
+                                                <Unlink class="mr-2 h-4 w-4" />
+                                                Unlink
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem @click="confirmDelete(entry)" class="text-red-600">
+                                                <Trash2 class="mr-2 h-4 w-4" />
+                                                Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <!-- Progress Bar -->
+                        <IngestionProgressBar
+                            v-if="entry.status === 'ingesting' && entry.progress !== undefined"
+                            :progress="entry.progress"
+                            class="mb-4"
+                        />
+
+                        <!-- Answer Preview -->
+                        <div class="text-muted-foreground text-sm">
+                            <p class="line-clamp-3">{{ entry.answer }}</p>
+                        </div>
+
+                        <!-- Meta Info -->
+                        <div class="text-muted-foreground mt-4 flex items-center gap-4 text-xs">
+                            <span>Created {{ new Date(entry.created_at).toLocaleDateString() }}</span>
+                            <span v-if="entry.agents_count && entry.agents_count > 1"> Used by {{ entry.agents_count }} agents </span>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <!-- Delete Confirmation Dialog -->
+            <Dialog v-model:open="deleteDialogOpen">
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Q&A Entry</DialogTitle>
+                        <DialogDescription> Are you sure you want to delete this Q&A entry? This action cannot be undone. </DialogDescription>
+                    </DialogHeader>
+                    <div class="mt-4 flex justify-end gap-2">
+                        <Button @click="deleteDialogOpen = false" variant="outline" :disabled="isDeleting"> Cancel </Button>
+                        <Button @click="deleteEntry" variant="destructive" :disabled="isDeleting">
+                            <LoaderCircle v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
+                            <Trash2 v-else class="mr-2 h-4 w-4" />
+                            Delete
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     </div>
 </template>
-

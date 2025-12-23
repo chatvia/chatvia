@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import AgentLayout from '@/layouts/AgentLayout.vue';
-import Files from './Files.vue';
 import VoiceRecorder from '@/components/VoiceRecorder.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Mic } from 'lucide-vue-next';
+import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
+import { Mic, Upload } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import Files from './Files.vue';
 
 interface Props {
     agent: App.Data.Resources.Agent.AgentResourceData;
@@ -49,31 +49,31 @@ onMounted(() => {
 
 const handleRecorded = async (data: { blob: Blob; name: string; duration: number }) => {
     isUploading.value = true;
-    
+
     try {
         // Create a File object from the Blob
         const file = new File([data.blob], data.name, { type: data.blob.type });
-        
+
         // Upload the file using FormData
         const formData = new FormData();
         formData.append('file', file);
-        
+
         await axios.post(route('agents.sources.files.upload', { agent: props.agent.external_id }), formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
         });
-        
+
         toast.success('Recording uploaded successfully!', {
             description: `"${data.name}" has been added to your audio sources.`,
         });
-        
+
         // Refresh the files list and usage data
         if (filesRef.value) {
             filesRef.value.refreshFiles?.();
         }
         await fetchUsageData();
-        
+
         // Switch to upload tab to see the file
         activeTab.value = 'upload';
     } catch (error: any) {
@@ -103,11 +103,11 @@ const handleRecorded = async (data: { blob: Blob; name: string; duration: number
                             Record Voice
                         </TabsTrigger>
                     </TabsList>
-                    
+
                     <TabsContent value="upload" class="mt-6">
                         <Files ref="filesRef" :agent="agent" file-type="audio" />
                     </TabsContent>
-                    
+
                     <TabsContent value="record" class="mt-6">
                         <VoiceRecorder
                             title="Record Voice Note"
@@ -122,4 +122,3 @@ const handleRecorded = async (data: { blob: Blob; name: string; duration: number
         </div>
     </AgentLayout>
 </template>
-

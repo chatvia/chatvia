@@ -1,21 +1,10 @@
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
-import { Head } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import {
-    MessageSquare,
-    FileText,
-    Bot,
-    Loader2,
-    BarChart3,
-    TrendingUp,
-    Clock,
-    Link2,
-    Users,
-    Layers
-} from 'lucide-vue-next';
+import { Head } from '@inertiajs/vue3';
+import { Bot, Clock, FileText, Layers, Link2, Loader2, MessageSquare, TrendingUp, Users } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
 
 type UsageData = App.Data.Resources.My.Usage.UsageResourceData;
 
@@ -39,7 +28,7 @@ const fetchUsageData = async () => {
         isLoadingUsage.value = true;
         const response = await fetch(route('usage'), {
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
             },
         });
@@ -80,13 +69,11 @@ onMounted(() => {
                 <!-- Usage Header -->
                 <div class="flex flex-col space-y-2">
                     <h1 class="text-2xl font-bold tracking-tight">Usage</h1>
-                    <p class="text-muted-foreground">
-                        Monitor your current usage across all services and features.
-                    </p>
+                    <p class="text-muted-foreground">Monitor your current usage across all services and features.</p>
                 </div>
 
                 <div v-if="isLoadingUsage" class="flex items-center justify-center py-12">
-                    <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+                    <Loader2 class="text-muted-foreground h-8 w-8 animate-spin" />
                 </div>
 
                 <div v-else-if="usageData" class="space-y-8">
@@ -94,12 +81,10 @@ onMounted(() => {
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <TrendingUp class="h-5 w-5 text-primary" />
+                                <TrendingUp class="text-primary h-5 w-5" />
                                 Current Plan
                             </CardTitle>
-                            <CardDescription>
-                                You are currently on the {{ usageData.subscription.plan }} plan
-                            </CardDescription>
+                            <CardDescription> You are currently on the {{ usageData.subscription.plan }} plan </CardDescription>
                         </CardHeader>
                     </Card>
 
@@ -112,18 +97,14 @@ onMounted(() => {
                                     <MessageSquare class="h-5 w-5 text-blue-500" />
                                     Messages
                                 </CardTitle>
-                                <CardDescription>
-                                    AI chat messages sent this billing period
-                                </CardDescription>
+                                <CardDescription> AI chat messages sent this billing period </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <span class="text-2xl font-bold">{{ usageData.messages.used.toLocaleString() }}</span>
-                                    <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.messages.limit.toLocaleString() }}
-                                    </span>
+                                    <span class="text-muted-foreground text-sm"> of {{ usageData.messages.limit.toLocaleString() }} </span>
                                 </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
                                         :class="getUsageColor(getUsagePercentage(usageData.messages.used, usageData.messages.limit))"
@@ -143,18 +124,14 @@ onMounted(() => {
                                     <FileText class="h-5 w-5 text-green-500" />
                                     Pages
                                 </CardTitle>
-                                <CardDescription>
-                                    Document pages processed for knowledge base
-                                </CardDescription>
+                                <CardDescription> Document pages processed for knowledge base </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <span class="text-2xl font-bold">{{ usageData.pages.used.toLocaleString() }}</span>
-                                    <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.pages.limit.toLocaleString() }}
-                                    </span>
+                                    <span class="text-muted-foreground text-sm"> of {{ usageData.pages.limit.toLocaleString() }} </span>
                                 </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
                                         :class="getUsageColor(getUsagePercentage(usageData.pages.used, usageData.pages.limit))"
@@ -174,18 +151,14 @@ onMounted(() => {
                                     <Clock class="h-5 w-5 text-orange-500" />
                                     Minutes
                                 </CardTitle>
-                                <CardDescription>
-                                    Audio transcription minutes used
-                                </CardDescription>
+                                <CardDescription> Audio transcription minutes used </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <span class="text-2xl font-bold">{{ usageData.minutes.used.toLocaleString() }}</span>
-                                    <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.minutes.limit.toLocaleString() }}
-                                    </span>
+                                    <span class="text-muted-foreground text-sm"> of {{ usageData.minutes.limit.toLocaleString() }} </span>
                                 </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
                                         :class="getUsageColor(getUsagePercentage(usageData.minutes.used, usageData.minutes.limit))"
@@ -205,18 +178,14 @@ onMounted(() => {
                                     <Link2 class="h-5 w-5 text-purple-500" />
                                     Links
                                 </CardTitle>
-                                <CardDescription>
-                                    Website links trained from crawler
-                                </CardDescription>
+                                <CardDescription> Website links trained from crawler </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <span class="text-2xl font-bold">{{ usageData.links.used.toLocaleString() }}</span>
-                                    <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.links.limit.toLocaleString() }}
-                                    </span>
+                                    <span class="text-muted-foreground text-sm"> of {{ usageData.links.limit.toLocaleString() }} </span>
                                 </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
                                         :class="getUsageColor(getUsagePercentage(usageData.links.used, usageData.links.limit))"
@@ -236,18 +205,14 @@ onMounted(() => {
                                     <Bot class="h-5 w-5 text-blue-500" />
                                     Total Agents
                                 </CardTitle>
-                                <CardDescription>
-                                    All AI agents
-                                </CardDescription>
+                                <CardDescription> All AI agents </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <span class="text-2xl font-bold">{{ usageData.agents.used }}</span>
-                                    <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.agents.limit }}
-                                    </span>
+                                    <span class="text-muted-foreground text-sm"> of {{ usageData.agents.limit }} </span>
                                 </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
                                         :class="getUsageColor(getUsagePercentage(usageData.agents.used, usageData.agents.limit))"
@@ -267,18 +232,14 @@ onMounted(() => {
                                     <Layers class="h-5 w-5 text-teal-500" />
                                     Teams
                                 </CardTitle>
-                                <CardDescription>
-                                    Teams created
-                                </CardDescription>
+                                <CardDescription> Teams created </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <span class="text-2xl font-bold">{{ usageData.teams.used }}</span>
-                                    <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.teams.limit }}
-                                    </span>
+                                    <span class="text-muted-foreground text-sm"> of {{ usageData.teams.limit }} </span>
                                 </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
                                         :class="getUsageColor(getUsagePercentage(usageData.teams.used, usageData.teams.limit))"
@@ -298,18 +259,14 @@ onMounted(() => {
                                     <Users class="h-5 w-5 text-pink-500" />
                                     Members
                                 </CardTitle>
-                                <CardDescription>
-                                    Team members invited
-                                </CardDescription>
+                                <CardDescription> Team members invited </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <span class="text-2xl font-bold">{{ usageData.members.used }}</span>
-                                    <span class="text-sm text-muted-foreground">
-                                        of {{ usageData.members.limit }}
-                                    </span>
+                                    <span class="text-muted-foreground text-sm"> of {{ usageData.members.limit }} </span>
                                 </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
                                         :class="getUsageColor(getUsagePercentage(usageData.members.used, usageData.members.limit))"
@@ -327,53 +284,64 @@ onMounted(() => {
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <TrendingUp class="h-5 w-5 text-primary" />
+                                <TrendingUp class="text-primary h-5 w-5" />
                                 Usage Summary
                             </CardTitle>
-                            <CardDescription>
-                                Overview of your current resource utilization across all services
-                            </CardDescription>
+                            <CardDescription> Overview of your current resource utilization across all services </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-6 text-center">
+                            <div class="grid grid-cols-2 gap-6 text-center sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
                                 <div class="space-y-1">
-                                    <div class="text-2xl font-bold text-blue-600">{{ getUsagePercentage(usageData.messages.used, usageData.messages.limit) }}%</div>
-                                    <div class="text-xs text-muted-foreground">Messages</div>
+                                    <div class="text-2xl font-bold text-blue-600">
+                                        {{ getUsagePercentage(usageData.messages.used, usageData.messages.limit) }}%
+                                    </div>
+                                    <div class="text-muted-foreground text-xs">Messages</div>
                                 </div>
                                 <div class="space-y-1">
-                                    <div class="text-2xl font-bold text-green-600">{{ getUsagePercentage(usageData.pages.used, usageData.pages.limit) }}%</div>
-                                    <div class="text-xs text-muted-foreground">Pages</div>
+                                    <div class="text-2xl font-bold text-green-600">
+                                        {{ getUsagePercentage(usageData.pages.used, usageData.pages.limit) }}%
+                                    </div>
+                                    <div class="text-muted-foreground text-xs">Pages</div>
                                 </div>
                                 <div class="space-y-1">
-                                    <div class="text-2xl font-bold text-orange-600">{{ getUsagePercentage(usageData.minutes.used, usageData.minutes.limit) }}%</div>
-                                    <div class="text-xs text-muted-foreground">Minutes</div>
+                                    <div class="text-2xl font-bold text-orange-600">
+                                        {{ getUsagePercentage(usageData.minutes.used, usageData.minutes.limit) }}%
+                                    </div>
+                                    <div class="text-muted-foreground text-xs">Minutes</div>
                                 </div>
                                 <div class="space-y-1">
-                                    <div class="text-2xl font-bold text-purple-600">{{ getUsagePercentage(usageData.links.used, usageData.links.limit) }}%</div>
-                                    <div class="text-xs text-muted-foreground">Links</div>
+                                    <div class="text-2xl font-bold text-purple-600">
+                                        {{ getUsagePercentage(usageData.links.used, usageData.links.limit) }}%
+                                    </div>
+                                    <div class="text-muted-foreground text-xs">Links</div>
                                 </div>
                                 <div class="space-y-1">
-                                    <div class="text-2xl font-bold text-indigo-600">{{ getUsagePercentage(usageData.agents.used, usageData.agents.limit) }}%</div>
-                                    <div class="text-xs text-muted-foreground">Agents</div>
+                                    <div class="text-2xl font-bold text-indigo-600">
+                                        {{ getUsagePercentage(usageData.agents.used, usageData.agents.limit) }}%
+                                    </div>
+                                    <div class="text-muted-foreground text-xs">Agents</div>
                                 </div>
                                 <div class="space-y-1">
-                                    <div class="text-2xl font-bold text-teal-600">{{ getUsagePercentage(usageData.teams.used, usageData.teams.limit) }}%</div>
-                                    <div class="text-xs text-muted-foreground">Teams</div>
+                                    <div class="text-2xl font-bold text-teal-600">
+                                        {{ getUsagePercentage(usageData.teams.used, usageData.teams.limit) }}%
+                                    </div>
+                                    <div class="text-muted-foreground text-xs">Teams</div>
                                 </div>
                                 <div class="space-y-1">
-                                    <div class="text-2xl font-bold text-pink-600">{{ getUsagePercentage(usageData.members.used, usageData.members.limit) }}%</div>
-                                    <div class="text-xs text-muted-foreground">Members</div>
+                                    <div class="text-2xl font-bold text-pink-600">
+                                        {{ getUsagePercentage(usageData.members.used, usageData.members.limit) }}%
+                                    </div>
+                                    <div class="text-muted-foreground text-xs">Members</div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                <div v-else class="text-center py-12">
+                <div v-else class="py-12 text-center">
                     <p class="text-muted-foreground">Unable to load usage data</p>
                 </div>
             </div>
         </div>
     </AppLayout>
 </template>
-

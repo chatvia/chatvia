@@ -1,5 +1,5 @@
-import { ref, computed, onUnmounted } from 'vue';
 import axios from 'axios';
+import { computed, onUnmounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 export type FileAnalyzedData = App.Data.Agent.KnowledgeAnalyzeResourceData;
@@ -90,11 +90,11 @@ export function useFileUploader(config: FileUploaderConfig) {
 
     // Computed properties
     const isAnyFileUploading = computed(() => {
-        return uploadingFiles.value.some(file => file.uploading);
+        return uploadingFiles.value.some((file) => file.uploading);
     });
 
     const hasFailedFiles = computed(() => {
-        return uploadingFiles.value.some(file => file.error);
+        return uploadingFiles.value.some((file) => file.error);
     });
 
     const totalFiles = computed(() => uploadingFiles.value.length);
@@ -157,10 +157,10 @@ export function useFileUploader(config: FileUploaderConfig) {
         // Check file size if maxFileSize is specified
         if (config.maxFileSize) {
             const maxSizeBytes = config.maxFileSize * 1024 * 1024; // Convert MB to bytes
-            const oversizedFiles = files.filter(file => file.size > maxSizeBytes);
-            
+            const oversizedFiles = files.filter((file) => file.size > maxSizeBytes);
+
             if (oversizedFiles.length > 0) {
-                const fileList = oversizedFiles.map(f => f.name).join(', ');
+                const fileList = oversizedFiles.map((f) => f.name).join(', ');
                 toast.error('File size limit exceeded', {
                     description: `The following file(s) exceed the ${config.maxFileSize} MB limit: ${fileList}`,
                     duration: 7000,
@@ -181,7 +181,7 @@ export function useFileUploader(config: FileUploaderConfig) {
                 progress: 0,
                 uploadSpeed: 0,
                 bytesLoaded: 0,
-                startTime: Date.now()
+                startTime: Date.now(),
             };
 
             uploadingFiles.value.push(fileData);
@@ -218,13 +218,13 @@ export function useFileUploader(config: FileUploaderConfig) {
                         const elapsed = (Date.now() - file.startTime) / 1000;
                         const uploadSpeed = elapsed > 0 ? progressEvent.loaded / elapsed : 0;
 
-                        const fileIndex = uploadingFiles.value.findIndex(f => f.id === file.id);
+                        const fileIndex = uploadingFiles.value.findIndex((f) => f.id === file.id);
                         if (fileIndex !== -1) {
                             uploadingFiles.value[fileIndex] = {
                                 ...uploadingFiles.value[fileIndex],
                                 progress: uploadPercent,
                                 bytesLoaded: bytesLoaded,
-                                uploadSpeed: uploadSpeed
+                                uploadSpeed: uploadSpeed,
                             };
                         }
                     }
@@ -232,7 +232,7 @@ export function useFileUploader(config: FileUploaderConfig) {
             });
 
             // Update file with analysis results
-            const fileIndex = uploadingFiles.value.findIndex(f => f.id === file.id);
+            const fileIndex = uploadingFiles.value.findIndex((f) => f.id === file.id);
             if (fileIndex !== -1) {
                 uploadingFiles.value[fileIndex] = {
                     ...uploadingFiles.value[fileIndex],
@@ -246,8 +246,8 @@ export function useFileUploader(config: FileUploaderConfig) {
                         length: response.data.length || 0,
                         is_audio_file: response.data.is_audio_file || false,
                         mime_type: response.data.mime_type || file.file.type,
-                        encrypted: response.data.encrypted || false
-                    }
+                        encrypted: response.data.encrypted || false,
+                    },
                 };
 
                 config.onFileAnalyzed?.(uploadingFiles.value[fileIndex], response.data);
@@ -268,14 +268,14 @@ export function useFileUploader(config: FileUploaderConfig) {
                 }
             }
 
-            const fileIndex = uploadingFiles.value.findIndex(f => f.id === file.id);
+            const fileIndex = uploadingFiles.value.findIndex((f) => f.id === file.id);
             if (fileIndex !== -1) {
                 uploadingFiles.value[fileIndex] = {
                     ...uploadingFiles.value[fileIndex],
                     uploading: false,
                     progress: 0,
                     phase: undefined,
-                    error: errorMessage
+                    error: errorMessage,
                 };
 
                 config.onFileError?.(uploadingFiles.value[fileIndex], errorMessage);
@@ -284,7 +284,7 @@ export function useFileUploader(config: FileUploaderConfig) {
     };
 
     const removeFile = (fileId: string) => {
-        uploadingFiles.value = uploadingFiles.value.filter(file => file.id !== fileId);
+        uploadingFiles.value = uploadingFiles.value.filter((file) => file.id !== fileId);
     };
 
     const clearAllFiles = () => {
@@ -292,13 +292,13 @@ export function useFileUploader(config: FileUploaderConfig) {
     };
 
     const clearFailedFiles = () => {
-        uploadingFiles.value = uploadingFiles.value.filter(file => !file.error);
+        uploadingFiles.value = uploadingFiles.value.filter((file) => !file.error);
     };
 
     // Cleanup
     onUnmounted(() => {
         // Clear any intervals or ongoing uploads
-        uploadingFiles.value.forEach(file => {
+        uploadingFiles.value.forEach((file) => {
             if (file.processingInterval) {
                 clearInterval(file.processingInterval);
             }
@@ -309,28 +309,28 @@ export function useFileUploader(config: FileUploaderConfig) {
         // State
         uploadingFiles,
         isDragOver,
-        
+
         // Computed
         isAnyFileUploading,
         hasFailedFiles,
         totalFiles,
         totalPages,
-        
+
         // Methods
         addFiles,
         removeFile,
         clearAllFiles,
         clearFailedFiles,
-        
+
         // Drag & Drop
         handleDragEnter,
         handleDragLeave,
         handleDragOver,
         handleDrop,
-        
+
         // Utilities
         formatFileType,
         formatFileSize,
         formatSpeed,
     };
-} 
+}

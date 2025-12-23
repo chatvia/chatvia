@@ -16,6 +16,11 @@ class AgentKnowledgeFilesProcessController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.files'),
+            code: 403,
+        );
+
         $agent
             ->files()
             ->where('source_files.status', 'uploaded')

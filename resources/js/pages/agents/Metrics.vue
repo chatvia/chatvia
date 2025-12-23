@@ -1,18 +1,14 @@
 <script lang="ts" setup>
-import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ref, computed, onMounted } from 'vue';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import {
-    Sparkles, Zap, Cpu, LoaderCircle, ThumbsUp, MessageSquare,
-    Timer, Activity, TrendingUp, TrendingDown, Target, Clock,
-    Coins, BarChart3, Award
-} from 'lucide-vue-next';
+import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
+import { Award, BarChart3, Coins, Cpu, LoaderCircle, MessageSquare, Sparkles, Target, ThumbsUp, Zap } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 const props = defineProps<Props>();
@@ -33,7 +29,7 @@ const qualityScore = computed(() => {
     // Calculate quality score based on satisfaction rate and avg messages per conversation
     const satisfaction = parseFloat(satisfactionRate.value);
     const engagementScore = Math.min((metrics.value.avgMessagesPerConversation ?? 0) * 10, 100);
-    return ((satisfaction * 0.7 + engagementScore * 0.3)).toFixed(1);
+    return (satisfaction * 0.7 + engagementScore * 0.3).toFixed(1);
 });
 
 const tokenEfficiency = computed(() => {
@@ -92,21 +88,16 @@ onMounted(() => {
 
         <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-12">
-            <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
+            <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
         </div>
 
         <!-- Error State -->
         <div v-else-if="error" class="flex items-center justify-center py-12">
             <Card class="max-w-md">
                 <CardContent class="pt-6">
-                    <div class="text-center space-y-2">
+                    <div class="space-y-2 text-center">
                         <p class="text-destructive font-medium">{{ error }}</p>
-                        <button
-                            @click="fetchMetrics"
-                            class="text-sm text-muted-foreground hover:text-foreground underline"
-                        >
-                            Try again
-                        </button>
+                        <button @click="fetchMetrics" class="text-muted-foreground hover:text-foreground text-sm underline">Try again</button>
                     </div>
                 </CardContent>
             </Card>
@@ -115,16 +106,16 @@ onMounted(() => {
         <!-- Metrics Content -->
         <div v-else-if="metrics" class="space-y-6">
             <!-- Key Performance Indicators -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <!-- Quality Score -->
                 <Card>
                     <CardContent class="!p-4">
                         <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                                <Award class="h-5 w-5 text-muted-foreground" />
+                            <div class="bg-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+                                <Award class="text-muted-foreground h-5 w-5" />
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs text-muted-foreground mb-0.5">Quality Score</p>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-muted-foreground mb-0.5 text-xs">Quality Score</p>
                                 <div class="flex items-center gap-2">
                                     <p class="text-xl font-bold">{{ qualityScore }}%</p>
                                     <Badge variant="secondary" class="text-xs">
@@ -140,11 +131,11 @@ onMounted(() => {
                 <Card>
                     <CardContent class="!p-4">
                         <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                                <ThumbsUp class="h-5 w-5 text-muted-foreground" />
+                            <div class="bg-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+                                <ThumbsUp class="text-muted-foreground h-5 w-5" />
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs text-muted-foreground mb-0.5">Satisfaction Rate</p>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-muted-foreground mb-0.5 text-xs">Satisfaction Rate</p>
                                 <p class="text-xl font-bold">{{ satisfactionRate }}%</p>
                             </div>
                         </div>
@@ -155,11 +146,11 @@ onMounted(() => {
                 <Card>
                     <CardContent class="!p-4">
                         <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                                <Zap class="h-5 w-5 text-muted-foreground" />
+                            <div class="bg-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+                                <Zap class="text-muted-foreground h-5 w-5" />
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs text-muted-foreground mb-0.5">Response Speed</p>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-muted-foreground mb-0.5 text-xs">Response Speed</p>
                                 <div class="flex items-center gap-2">
                                     <p class="text-xl font-bold">{{ metrics.avgResponseTime ?? 0 }}s</p>
                                     <Badge variant="secondary" class="text-xs">{{ performanceRating }}</Badge>
@@ -173,11 +164,11 @@ onMounted(() => {
                 <Card>
                     <CardContent class="!p-4">
                         <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                                <BarChart3 class="h-5 w-5 text-muted-foreground" />
+                            <div class="bg-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+                                <BarChart3 class="text-muted-foreground h-5 w-5" />
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs text-muted-foreground mb-0.5">Avg Depth</p>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-muted-foreground mb-0.5 text-xs">Avg Depth</p>
                                 <p class="text-xl font-bold">{{ Number(metrics.avgMessagesPerConversation ?? 0).toFixed(1) }} msgs</p>
                             </div>
                         </div>
@@ -195,30 +186,30 @@ onMounted(() => {
                     <CardDescription>Speed and response time analysis</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm text-muted-foreground">First Response Time</p>
+                                <p class="text-muted-foreground text-sm">First Response Time</p>
                                 <Badge variant="outline">{{ performanceRating }}</Badge>
                             </div>
                             <p class="text-3xl font-bold">{{ formatDuration(metrics.avgFirstResponseTime) }}</p>
-                            <p class="text-xs text-muted-foreground">Time to send first message</p>
+                            <p class="text-muted-foreground text-xs">Time to send first message</p>
                         </div>
 
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm text-muted-foreground">Avg Response Time</p>
+                                <p class="text-muted-foreground text-sm">Avg Response Time</p>
                             </div>
                             <p class="text-3xl font-bold">{{ metrics.avgResponseTime ?? 0 }}s</p>
-                            <p class="text-xs text-muted-foreground">Average per message</p>
+                            <p class="text-muted-foreground text-xs">Average per message</p>
                         </div>
 
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm text-muted-foreground">Avg Session Duration</p>
+                                <p class="text-muted-foreground text-sm">Avg Session Duration</p>
                             </div>
                             <p class="text-3xl font-bold">{{ formatDuration(metrics.avgConversationDuration) }}</p>
-                            <p class="text-xs text-muted-foreground">Total conversation time</p>
+                            <p class="text-muted-foreground text-xs">Total conversation time</p>
                         </div>
                     </div>
                 </CardContent>
@@ -237,29 +228,29 @@ onMounted(() => {
                     <div class="space-y-6">
                         <!-- Satisfaction Breakdown -->
                         <div>
-                            <div class="flex items-center justify-between mb-2">
+                            <div class="mb-2 flex items-center justify-between">
                                 <p class="text-sm font-medium">User Satisfaction</p>
                                 <span class="text-sm font-bold">{{ satisfactionRate }}%</span>
                             </div>
                             <Progress :model-value="parseFloat(satisfactionRate)" class="h-2" />
-                            <div class="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                            <div class="text-muted-foreground mt-2 flex items-center justify-between text-xs">
                                 <span>{{ metrics.totalPositiveFeedback ?? 0 }} positive</span>
                                 <span>{{ metrics.totalNegativeFeedback ?? 0 }} negative</span>
                             </div>
                         </div>
 
                         <!-- Engagement Stats -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+                        <div class="grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3">
                             <div>
-                                <p class="text-sm text-muted-foreground mb-1">Conversations with Feedback</p>
+                                <p class="text-muted-foreground mb-1 text-sm">Conversations with Feedback</p>
                                 <p class="text-2xl font-bold">{{ metrics.conversationsWithFeedback ?? 0 }}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-muted-foreground mb-1">Avg Messages per Chat</p>
+                                <p class="text-muted-foreground mb-1 text-sm">Avg Messages per Chat</p>
                                 <p class="text-2xl font-bold">{{ Number(metrics.avgMessagesPerConversation ?? 0).toFixed(1) }}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-muted-foreground mb-1">Unique Sessions</p>
+                                <p class="text-muted-foreground mb-1 text-sm">Unique Sessions</p>
                                 <p class="text-2xl font-bold">{{ (metrics.uniqueSessions ?? 0).toLocaleString() }}</p>
                             </div>
                         </div>
@@ -277,30 +268,30 @@ onMounted(() => {
                     <CardDescription>Token consumption and efficiency metrics</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm text-muted-foreground">Total Tokens Used</p>
+                                <p class="text-muted-foreground text-sm">Total Tokens Used</p>
                             </div>
                             <p class="text-3xl font-bold">{{ (metrics.totalTokens ?? 0).toLocaleString() }}</p>
-                            <p class="text-xs text-muted-foreground">Across all conversations</p>
+                            <p class="text-muted-foreground text-xs">Across all conversations</p>
                         </div>
 
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm text-muted-foreground">Avg Tokens per Message</p>
+                                <p class="text-muted-foreground text-sm">Avg Tokens per Message</p>
                                 <Badge variant="outline">{{ tokenEfficiency }}</Badge>
                             </div>
                             <p class="text-3xl font-bold">{{ Math.round(metrics.avgTokensPerMessage ?? 0).toLocaleString() }}</p>
-                            <p class="text-xs text-muted-foreground">Token efficiency rating</p>
+                            <p class="text-muted-foreground text-xs">Token efficiency rating</p>
                         </div>
 
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm text-muted-foreground">Total Messages</p>
+                                <p class="text-muted-foreground text-sm">Total Messages</p>
                             </div>
                             <p class="text-3xl font-bold">{{ (metrics.totalMessages ?? 0).toLocaleString() }}</p>
-                            <p class="text-xs text-muted-foreground">Assistant messages sent</p>
+                            <p class="text-muted-foreground text-xs">Assistant messages sent</p>
                         </div>
                     </div>
                 </CardContent>
@@ -316,21 +307,19 @@ onMounted(() => {
                     <CardDescription>AI model usage distribution and effectiveness</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="!metrics.modelUsage?.length" class="text-center py-8 text-muted-foreground">
-                        No model usage data available
-                    </div>
+                    <div v-if="!metrics.modelUsage?.length" class="text-muted-foreground py-8 text-center">No model usage data available</div>
                     <div v-else class="space-y-4">
-                        <div v-for="model in metrics.modelUsage" :key="model.name" class="flex items-center gap-4 p-3 rounded-lg border">
-                            <div class="h-12 w-12 rounded-full bg-muted/50 border flex items-center justify-center flex-shrink-0">
+                        <div v-for="model in metrics.modelUsage" :key="model.name" class="flex items-center gap-4 rounded-lg border p-3">
+                            <div class="bg-muted/50 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border">
                                 <img v-if="model.icon" :src="`/images/llms/${model.icon}`" :alt="model.name" class="h-7 w-7" />
-                                <Cpu v-else class="h-7 w-7 text-muted-foreground" />
+                                <Cpu v-else class="text-muted-foreground h-7 w-7" />
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <p class="font-medium truncate">{{ model.name }}</p>
+                            <div class="min-w-0 flex-1">
+                                <div class="mb-1 flex items-center gap-2">
+                                    <p class="truncate font-medium">{{ model.name }}</p>
                                     <Badge variant="secondary" class="ml-auto">{{ model.percentage }}%</Badge>
                                 </div>
-                                <div class="flex items-center gap-4 text-xs text-muted-foreground">
+                                <div class="text-muted-foreground flex items-center gap-4 text-xs">
                                     <span class="flex items-center gap-1">
                                         <MessageSquare class="h-3 w-3" />
                                         {{ model.count }} uses
@@ -340,7 +329,7 @@ onMounted(() => {
                                         {{ model.feedback.positive }} positive
                                     </span>
                                 </div>
-                                <Progress :model-value="parseFloat(model.percentage)" class="h-1.5 mt-2" />
+                                <Progress :model-value="parseFloat(model.percentage)" class="mt-2 h-1.5" />
                             </div>
                         </div>
                     </div>
@@ -349,4 +338,3 @@ onMounted(() => {
         </div>
     </AgentLayout>
 </template>
-

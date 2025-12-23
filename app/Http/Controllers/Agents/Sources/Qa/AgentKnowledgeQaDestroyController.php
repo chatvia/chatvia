@@ -15,6 +15,11 @@ class AgentKnowledgeQaDestroyController
             code: 404,
         );
 
+        abort_if(
+            boolean: ! has_permission_to_agent($agent, 'agent.sources.delete'),
+            code: 403,
+        );
+
         $qa = AgentQuestionAnswer::where('agent_id', $agent->id)
             ->findOrFail($id);
 

@@ -12,7 +12,6 @@ use App\Models\AgentWebsiteUrl;
 use App\Models\SourceWebsite;
 use App\Services\Ingestion\Sources\WebsiteChunker;
 use App\Services\Prompts\PromptLoader;
-use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use App\Services\Tidy\HTMLCleaner;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
@@ -47,7 +46,7 @@ class WebsiteIngestionJob implements ShouldQueue
         /** @var WebsiteChunker $websiteChunker */
         $urlsWithChunks = app(WebsiteChunker::class, [
             'website' => $this->website,
-            'agent' => $this->agent
+            'agent' => $this->agent,
         ])->chunkUrls();
 
         /** @var AgentWebsiteUrl<array> $urls */
@@ -79,7 +78,7 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent WebSite ID: '.$websiteId)
-            ->then(function (Batch $batch) use ($websiteId, $agentId, $agentExternalId, $agent) {
+            ->then(function (Batch $batch) use ($websiteId, $agentExternalId, $agent) {
                 $website = SourceWebsite::find($websiteId);
 
                 if ($website) {

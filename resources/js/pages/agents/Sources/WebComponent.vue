@@ -1,33 +1,52 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
-import axios from 'axios';
-import { toast } from 'vue-sonner';
-import { useForm, router } from '@inertiajs/vue3';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import InputError from '@/components/InputError.vue';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/InputError.vue';
-import { Globe, LoaderCircle, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, Play, Settings, ChevronDown, ChevronUp, ChevronRight, Database, NetworkIcon, BrainIcon, Link2, RefreshCw, CheckCircle2, Unlink } from 'lucide-vue-next';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { router, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
+import {
+    AlertCircle,
+    BrainIcon,
+    CheckCircle,
+    CheckCircle2,
+    ChevronDown,
+    ChevronRight,
+    ChevronUp,
+    Database,
+    ExternalLink,
+    Globe,
+    Link2,
+    LoaderCircle,
+    NetworkIcon,
+    Play,
+    RefreshCw,
+    Settings,
+    Trash2,
+    Unlink,
+} from 'lucide-vue-next';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
-import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Switch } from '@/components/ui/switch';
 
-import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
-import InfoBanner from '@/components/ui/InfoBanner.vue';
-import { useEcho } from "@laravel/echo-vue";
-import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
 import AttachWebsiteDialog from '@/components/ui/AttachWebsiteDialog.vue';
+import InfoBanner from '@/components/ui/InfoBanner.vue';
+import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
+import { useEcho } from '@laravel/echo-vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 interface WebSource {
@@ -58,36 +77,27 @@ interface DiscoveredLink {
     source_website_id?: number; // For WebSocket matching
 }
 
-
-
 const props = defineProps<Props>();
 
+const { hasPermission } = useTeamPermissions();
+
+// Check if user can delete sources
+const canDeleteSources = computed(() => hasPermission('agent.sources.delete'));
+
 // WebSocket event listener for crawling status updates
-useEcho(
-    `agents.${props.agent.external_id}.crawler`,
-    "WebsiteCrawlerEvent",
-    (e) => {
-        handleCrawlingUpdate(e);
-    },
-)
+useEcho(`agents.${props.agent.external_id}.crawler`, 'WebsiteCrawlerEvent', (e) => {
+    handleCrawlingUpdate(e);
+});
 
 // WebSocket event listener for URL ingestion status updates
-useEcho(
-    `agents.${props.agent.external_id}.web.ingestion.url`,
-    "UrlIngestionEvent",
-    (e) => {
-        handleUrlIngestionUpdate(e);
-    },
-)
+useEcho(`agents.${props.agent.external_id}.web.ingestion.url`, 'UrlIngestionEvent', (e) => {
+    handleUrlIngestionUpdate(e);
+});
 
 // WebSocket event listener for website ingestion progress updates
-useEcho(
-    `agents.${props.agent.external_id}.crawler.progress`,
-    "WebsiteIngestionProgressEvent",
-    (e) => {
-        handleWebsiteIngestionProgress(e);
-    },
-)
+useEcho(`agents.${props.agent.external_id}.crawler.progress`, 'WebsiteIngestionProgressEvent', (e) => {
+    handleWebsiteIngestionProgress(e);
+});
 
 // State
 const webSources = ref<WebSource[]>([]);
@@ -109,7 +119,7 @@ const websiteForm = useForm({
     robots: true as boolean,
     include_paths: '',
     exclude_paths: '',
-    slow_crawling: false as boolean
+    slow_crawling: false as boolean,
 });
 
 // Protocol selection state
@@ -126,13 +136,18 @@ const linkSearchQueries = ref<Map<number, string>>(new Map()); // sourceId -> se
 const searchDebounceTimers = ref<Map<number, number>>(new Map());
 
 // Pagination state for each website
-const linksPagination = ref<Map<number, {
-    currentPage: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-    totalLinks: number;
-    isLoading: boolean;
-}>>(new Map());
+const linksPagination = ref<
+    Map<
+        number,
+        {
+            currentPage: number;
+            hasNextPage: boolean;
+            hasPrevPage: boolean;
+            totalLinks: number;
+            isLoading: boolean;
+        }
+    >
+>(new Map());
 
 // Website selection for training
 const selectedWebsites = ref<Set<number>>(new Set()); // Set of selected website IDs
@@ -145,7 +160,7 @@ const settingsExpanded = ref(false);
 const crawlSettings = ref({
     slow_crawling: false,
     include_paths: '',
-    exclude_paths: ''
+    exclude_paths: '',
 });
 
 // Sync crawl settings with form data
@@ -155,10 +170,6 @@ const syncFormWithSettings = () => {
     websiteForm.include_paths = crawlSettings.value.include_paths;
     websiteForm.exclude_paths = crawlSettings.value.exclude_paths;
 };
-
-
-
-
 
 // Delete state
 const deleteDialogOpen = ref(false);
@@ -188,7 +199,7 @@ const dialogLinksPagination = ref({
     lastPage: 1,
     total: 0,
     hasNextPage: false,
-    hasPrevPage: false
+    hasPrevPage: false,
 });
 const dialogSearchQuery = ref('');
 const dialogSearchDebounceTimer = ref<number | null>(null);
@@ -200,32 +211,24 @@ const linkSuccessTimeouts = ref<Map<number, number>>(new Map()); // linkId -> ti
 
 // Separate sources by their processing stage
 const crawlingSources = computed(() => {
-    return webSources.value.filter(source =>
-        source.status === 'crawling' || source.status === 'pending'
-    );
+    return webSources.value.filter((source) => source.status === 'crawling' || source.status === 'pending');
 });
 
 const crawledSources = computed(() => {
-    return webSources.value.filter(source =>
-        source.status === 'crawled' || source.status === 'failed'
-    );
+    return webSources.value.filter((source) => source.status === 'crawled' || source.status === 'failed');
 });
 
 const trainingSources = computed(() => {
-    return webSources.value.filter(source =>
-        source.status === 'ingesting'
-    );
+    return webSources.value.filter((source) => source.status === 'ingesting');
 });
 
 const completedSources = computed(() => {
-    return webSources.value.filter(source =>
-        source.status === 'ingested'
-    );
+    return webSources.value.filter((source) => source.status === 'ingested');
 });
 
 // Computed properties
 const hasCrawlingSources = computed(() => {
-    return webSources.value.some(source => source.status === 'crawling');
+    return webSources.value.some((source) => source.status === 'crawling');
 });
 
 const isValidUrl = computed(() => {
@@ -272,7 +275,7 @@ const selectedWebsiteCount = computed(() => selectedWebsites.value.size);
 const selectedWebsitesTotalLinks = computed(() => {
     let total = 0;
     for (const websiteId of selectedWebsites.value) {
-        const source = webSources.value.find(s => s.id === websiteId);
+        const source = webSources.value.find((s) => s.id === websiteId);
         total += source?.urls_count || 0;
     }
     return total;
@@ -291,7 +294,7 @@ const canTrain = computed(() => {
 const canSelectWebsite = (websiteId: number): boolean => {
     if (!usageData.value) return true; // Allow selection if usage data not loaded yet
 
-    const source = webSources.value.find(s => s.id === websiteId);
+    const source = webSources.value.find((s) => s.id === websiteId);
     const websiteLinks = source?.urls_count || 0;
 
     // If already selected, always allow (for deselection)
@@ -300,17 +303,15 @@ const canSelectWebsite = (websiteId: number): boolean => {
     const remaining = usageData.value.links.remaining;
     const currentTotal = selectedWebsitesTotalLinks.value;
 
-    return (currentTotal + websiteLinks) <= remaining;
+    return currentTotal + websiteLinks <= remaining;
 };
 
 const allCrawledWebsitesSelected = computed(() => {
-    return crawledSources.value.length > 0 && crawledSources.value.every(source => selectedWebsites.value.has(source.id));
+    return crawledSources.value.length > 0 && crawledSources.value.every((source) => selectedWebsites.value.has(source.id));
 });
 const someCrawledWebsitesSelected = computed(() => {
-    return crawledSources.value.some(source => selectedWebsites.value.has(source.id)) && !allCrawledWebsitesSelected.value;
+    return crawledSources.value.some((source) => selectedWebsites.value.has(source.id)) && !allCrawledWebsitesSelected.value;
 });
-
-
 
 // Utility functions
 const formatDate = (dateString: string): string => {
@@ -324,7 +325,7 @@ const formatDate = (dateString: string): string => {
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         }).format(date);
     } catch (error) {
         return dateString;
@@ -425,17 +426,17 @@ const linkLimitWarning = computed(() => {
     if (remaining === 0) {
         return {
             type: 'critical',
-            message: `You've used all ${limit} links in your plan. Upgrade to train more links.`
+            message: `You've used all ${limit} links in your plan. Upgrade to train more links.`,
         };
     } else if (usagePercentage >= 95) {
         return {
             type: 'critical',
-            message: `You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). Only ${remaining} link${remaining !== 1 ? 's' : ''} remaining for training. Consider upgrading your plan.`
+            message: `You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). Only ${remaining} link${remaining !== 1 ? 's' : ''} remaining for training. Consider upgrading your plan.`,
         };
     } else if (usagePercentage >= 80) {
         return {
             type: 'warning',
-            message: `You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). ${remaining} link${remaining !== 1 ? 's' : ''} remaining for training.`
+            message: `You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). ${remaining} link${remaining !== 1 ? 's' : ''} remaining for training.`,
         };
     }
 
@@ -451,7 +452,7 @@ const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuer
             hasNextPage: false,
             hasPrevPage: false,
             totalLinks: 0,
-            isLoading: false
+            isLoading: false,
         };
         linksPagination.value.set(websiteId, { ...currentPagination, isLoading: true });
 
@@ -462,12 +463,15 @@ const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuer
         }
 
         // Fetch paginated links from API
-        const response = await axios.get(route('agents.sources.websites.links', {
-            agent: props.agent.external_id,
-            website: websiteId
-        }), {
-            params
-        });
+        const response = await axios.get(
+            route('agents.sources.websites.links', {
+                agent: props.agent.external_id,
+                website: websiteId,
+            }),
+            {
+                params,
+            },
+        );
 
         // Handle paginated response format
         const paginatedData = response.data;
@@ -485,7 +489,7 @@ const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuer
             found_on_url: linkObj.found_on_url || '',
             crawled_at: linkObj.crawled_at || linkObj.created_at || linkObj.updated_at || '',
             status: linkObj.status || 'ingested',
-            source_website_id: linkObj.source_website_id // Store for WebSocket matching
+            source_website_id: linkObj.source_website_id, // Store for WebSocket matching
         }));
 
         // Update pagination state
@@ -494,11 +498,10 @@ const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuer
             hasNextPage: !!paginatedData.next_page_url,
             hasPrevPage: !!paginatedData.prev_page_url,
             totalLinks: paginatedData.to || 0,
-            isLoading: false
+            isLoading: false,
         });
 
         return discoveredLinks;
-
     } catch (error) {
         console.error(`Failed to fetch links for website ${websiteId}:`, error);
 
@@ -523,7 +526,7 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
         // Transform the response data to match our WebSource interface
         webSources.value = response.data.map((website: any) => {
             // Find existing source to preserve discovered_links
-            const existingSource = webSources.value.find(s => s.id === website.id);
+            const existingSource = webSources.value.find((s) => s.id === website.id);
 
             const source = {
                 id: website.id,
@@ -536,7 +539,7 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
                 agents_count: website.agents_count || 0,
                 options: website.options || {},
                 // Preserve discovered_links if they exist
-                discovered_links: existingSource?.discovered_links
+                discovered_links: existingSource?.discovered_links,
             } as WebSource;
 
             return source;
@@ -592,68 +595,68 @@ const addWebsite = () => {
             onStart: () => {
                 console.log('Form submission started');
             },
-        onSuccess: (page: any) => {
-            // Only add to UI after successful server response
-            if (page.props?.website) {
-                                    const newSource: WebSource = {
+            onSuccess: (page: any) => {
+                // Only add to UI after successful server response
+                if (page.props?.website) {
+                    const newSource: WebSource = {
                         id: page.props.website.id,
                         url: page.props.website.url,
                         name: getDomainFromUrl(page.props.website.url),
                         status: page.props.website.status || 'pending',
-                        created_at: page.props.website.created_at || new Date().toISOString()
+                        created_at: page.props.website.created_at || new Date().toISOString(),
                     };
 
-                webSources.value.unshift(newSource);
-                toast.success('Website added and crawling will begin shortly!');
-            } else {
-                // Fallback: refresh the sources list from server
-                fetchWebSources();
-                toast.success('Website added successfully!');
-            }
-
-            // Reset just the URL field to empty (not the full URL)
-            websiteForm.url = '';
-        },
-        onError: (errors) => {
-            console.error('Form errors:', errors);
-
-            // Handle different types of errors
-            if (errors.url) {
-                // URL validation error
-                toast.error(`URL Error: ${errors.url}`);
-            } else if (errors.robots) {
-                // Robots setting error
-                toast.error(`Settings Error: ${errors.robots}`);
-            } else if (errors.include_paths) {
-                // Include paths error
-                toast.error(`Include Paths Error: ${errors.include_paths}`);
-            } else if (errors.exclude_paths) {
-                // Exclude paths error
-                toast.error(`Exclude Paths Error: ${errors.exclude_paths}`);
-            } else if (errors.slow_crawling) {
-                // Slow crawling error
-                toast.error(`Settings Error: ${errors.slow_crawling}`);
-            } else if (typeof errors === 'string') {
-                // General string error
-                toast.error(errors);
-            } else if (errors && typeof errors === 'object') {
-                // Handle other object errors
-                const errorMessages = Object.values(errors).filter(msg => typeof msg === 'string');
-                if (errorMessages.length > 0) {
-                    toast.error(errorMessages[0]);
+                    webSources.value.unshift(newSource);
+                    toast.success('Website added and crawling will begin shortly!');
                 } else {
-                    toast.error('Failed to add website. Please check your input.');
+                    // Fallback: refresh the sources list from server
+                    fetchWebSources();
+                    toast.success('Website added successfully!');
                 }
-            } else {
-                // Fallback error message
-                toast.error('Failed to add website. Please check your input and try again.');
-            }
-        },
-        onFinish: () => {
-            // Always called after success or error
-            console.log('Form submission finished');
-        }
-    });
+
+                // Reset just the URL field to empty (not the full URL)
+                websiteForm.url = '';
+            },
+            onError: (errors) => {
+                console.error('Form errors:', errors);
+
+                // Handle different types of errors
+                if (errors.url) {
+                    // URL validation error
+                    toast.error(`URL Error: ${errors.url}`);
+                } else if (errors.robots) {
+                    // Robots setting error
+                    toast.error(`Settings Error: ${errors.robots}`);
+                } else if (errors.include_paths) {
+                    // Include paths error
+                    toast.error(`Include Paths Error: ${errors.include_paths}`);
+                } else if (errors.exclude_paths) {
+                    // Exclude paths error
+                    toast.error(`Exclude Paths Error: ${errors.exclude_paths}`);
+                } else if (errors.slow_crawling) {
+                    // Slow crawling error
+                    toast.error(`Settings Error: ${errors.slow_crawling}`);
+                } else if (typeof errors === 'string') {
+                    // General string error
+                    toast.error(errors);
+                } else if (errors && typeof errors === 'object') {
+                    // Handle other object errors
+                    const errorMessages = Object.values(errors).filter((msg) => typeof msg === 'string');
+                    if (errorMessages.length > 0) {
+                        toast.error(errorMessages[0]);
+                    } else {
+                        toast.error('Failed to add website. Please check your input.');
+                    }
+                } else {
+                    // Fallback error message
+                    toast.error('Failed to add website. Please check your input and try again.');
+                }
+            },
+            onFinish: () => {
+                // Always called after success or error
+                console.log('Form submission finished');
+            },
+        });
     } catch (error) {
         console.error('Unexpected error during form submission:', error);
         toast.error('An unexpected error occurred. Please try again.');
@@ -661,6 +664,14 @@ const addWebsite = () => {
 };
 
 const confirmDeleteSource = (source: WebSource) => {
+    // Check permission first
+    if (!canDeleteSources.value) {
+        toast.error('Permission denied', {
+            description: 'You do not have permission to delete sources.',
+        });
+        return;
+    }
+
     sourceToDelete.value = source;
     deleteDialogOpen.value = true;
 };
@@ -676,10 +687,12 @@ const unlinkWebsite = async () => {
     isUnlinking.value = true;
 
     try {
-        await axios.post(route('agents.sources.websites.unlink', {
-            agent: props.agent.external_id,
-            websiteId: websiteToUnlink.id
-        }));
+        await axios.post(
+            route('agents.sources.websites.unlink', {
+                agent: props.agent.external_id,
+                websiteId: websiteToUnlink.id,
+            }),
+        );
 
         toast.success('Website unlinked from agent successfully!');
 
@@ -703,13 +716,15 @@ const deleteWebSource = async () => {
     isDeletingSource.value = true;
 
     try {
-        await axios.delete(route('agents.sources.websites.delete', {
-            agent: props.agent.external_id,
-            website: sourceToDelete.value.id
-        }));
+        await axios.delete(
+            route('agents.sources.websites.delete', {
+                agent: props.agent.external_id,
+                website: sourceToDelete.value.id,
+            }),
+        );
 
         // Remove from local state
-        webSources.value = webSources.value.filter(source => source.id !== sourceToDelete.value!.id);
+        webSources.value = webSources.value.filter((source) => source.id !== sourceToDelete.value!.id);
 
         // Also remove from selected websites if it was selected
         const newSelected = new Set(selectedWebsites.value);
@@ -731,15 +746,13 @@ const deleteWebSource = async () => {
     deleteDialogOpen.value = false;
 };
 
-
-
 // Load links for a specific website and update the source
 const loadLinksForWebsite = async (websiteId: number) => {
     try {
         const discoveredLinks = await fetchWebsiteLinks(websiteId);
 
         // Update the source with discovered links
-        const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
+        const sourceIndex = webSources.value.findIndex((s) => s.id === websiteId);
 
         if (sourceIndex !== -1) {
             webSources.value[sourceIndex].discovered_links = discoveredLinks;
@@ -767,12 +780,11 @@ const handleCrawlingUpdate = async (event: any) => {
     // Find the source by ID if provided, otherwise find by status
     let sourceIndex = -1;
     if (website_id) {
-        sourceIndex = webSources.value.findIndex(source => source.id === website_id);
+        sourceIndex = webSources.value.findIndex((source) => source.id === website_id);
     } else {
         // Fallback: find by current status
-        sourceIndex = webSources.value.findIndex(source =>
-            source.status === 'crawling' || source.status === 'pending' ||
-            source.status === 'crawled' || source.status === 'ingesting'
+        sourceIndex = webSources.value.findIndex(
+            (source) => source.status === 'crawling' || source.status === 'pending' || source.status === 'crawled' || source.status === 'ingesting',
         );
     }
 
@@ -787,7 +799,7 @@ const handleCrawlingUpdate = async (event: any) => {
         case 'started':
             webSources.value[sourceIndex] = {
                 ...source,
-                status: 'crawling'
+                status: 'crawling',
             };
             toast.success(`Crawling started for ${source.name}`);
             break;
@@ -796,7 +808,7 @@ const handleCrawlingUpdate = async (event: any) => {
             webSources.value[sourceIndex] = {
                 ...source,
                 status: 'crawled',
-                urls_count: 0 // We'll get the actual urls_count when we fetch the links
+                urls_count: 0, // We'll get the actual urls_count when we fetch the links
             };
             toast.success(`Crawling completed for ${source.name}! Fetching discovered links...`);
 
@@ -812,7 +824,7 @@ const handleCrawlingUpdate = async (event: any) => {
         case 'ingesting':
             webSources.value[sourceIndex] = {
                 ...source,
-                status: 'ingesting'
+                status: 'ingesting',
             };
             toast.info(`Training started for ${source.name}`);
             break;
@@ -821,7 +833,7 @@ const handleCrawlingUpdate = async (event: any) => {
             webSources.value[sourceIndex] = {
                 ...source,
                 status: 'ingested',
-                discovered_links: undefined // Remove links since they're now trained
+                discovered_links: undefined, // Remove links since they're now trained
             };
             toast.success(`Training completed for ${source.name}!`);
 
@@ -844,7 +856,7 @@ const handleCrawlingUpdate = async (event: any) => {
             webSources.value[sourceIndex] = {
                 ...source,
                 status: 'failed',
-                error_message: event.error_message || 'Operation failed'
+                error_message: event.error_message || 'Operation failed',
             };
             toast.error(`Operation failed for ${source.name}`);
             break;
@@ -869,7 +881,7 @@ const handleUrlIngestionUpdate = (event: any) => {
 
     // Update link status and crawled_at in dialog links if currently viewing them
     if (currentWebsite.value && dialogLinks.value.length > 0) {
-        const linkIndex = dialogLinks.value.findIndex(link => link.id === link_id);
+        const linkIndex = dialogLinks.value.findIndex((link) => link.id === link_id);
 
         if (linkIndex !== -1) {
             // Create a new array to trigger reactivity
@@ -877,7 +889,7 @@ const handleUrlIngestionUpdate = (event: any) => {
             updatedLinks[linkIndex] = {
                 ...updatedLinks[linkIndex],
                 status,
-                crawled_at
+                crawled_at,
             };
             dialogLinks.value = updatedLinks;
         }
@@ -891,7 +903,7 @@ const handleUrlIngestionUpdate = (event: any) => {
         const source = updatedSources[sourceIndex];
 
         if (source.discovered_links) {
-            const linkIndex = source.discovered_links.findIndex(link => link.id === link_id);
+            const linkIndex = source.discovered_links.findIndex((link) => link.id === link_id);
 
             if (linkIndex !== -1) {
                 // Found the link - update its status and crawled_at
@@ -899,12 +911,12 @@ const handleUrlIngestionUpdate = (event: any) => {
                 updatedLinks[linkIndex] = {
                     ...updatedLinks[linkIndex],
                     status,
-                    crawled_at
+                    crawled_at,
                 };
 
                 updatedSources[sourceIndex] = {
                     ...source,
-                    discovered_links: updatedLinks
+                    discovered_links: updatedLinks,
                 };
 
                 linkFound = true;
@@ -958,7 +970,7 @@ const handleWebsiteIngestionProgress = (event: any) => {
     }
 
     // Find the website and update its progress
-    const sourceIndex = webSources.value.findIndex(source => source.id === website_id);
+    const sourceIndex = webSources.value.findIndex((source) => source.id === website_id);
 
     console.log('Found source at index:', sourceIndex, 'Current sources:', webSources.value.length);
 
@@ -967,19 +979,18 @@ const handleWebsiteIngestionProgress = (event: any) => {
         const updatedSources = [...webSources.value];
         updatedSources[sourceIndex] = {
             ...updatedSources[sourceIndex],
-            progress
+            progress,
         };
         webSources.value = updatedSources;
         console.log('Updated source progress to:', progress);
     }
 };
 
-
 // Handle collapsible expansion with lazy loading of links
 const handleCollapsibleToggle = async (sourceId: number, isExpanding: boolean) => {
     if (!isExpanding) return; // Don't fetch when collapsing
 
-    const source = webSources.value.find(s => s.id === sourceId);
+    const source = webSources.value.find((s) => s.id === sourceId);
     if (!source) return;
 
     // If links are already loaded, don't fetch again
@@ -994,7 +1005,7 @@ const handleCollapsibleToggle = async (sourceId: number, isExpanding: boolean) =
         console.log(`Fetched ${discoveredLinks.length} links for website ${sourceId}`);
 
         // Update the source with discovered links
-        const sourceIndex = webSources.value.findIndex(s => s.id === sourceId);
+        const sourceIndex = webSources.value.findIndex((s) => s.id === sourceId);
         if (sourceIndex !== -1) {
             webSources.value[sourceIndex].discovered_links = discoveredLinks;
 
@@ -1010,7 +1021,7 @@ const handleCollapsibleToggle = async (sourceId: number, isExpanding: boolean) =
         toast.error(`Failed to load links for website. Please try again.`);
 
         // Still update the source to remove loading state by setting empty links
-        const sourceIndex = webSources.value.findIndex(s => s.id === sourceId);
+        const sourceIndex = webSources.value.findIndex((s) => s.id === sourceId);
         if (sourceIndex !== -1) {
             webSources.value[sourceIndex].discovered_links = [];
         }
@@ -1061,13 +1072,13 @@ const toggleSelectAllLinks = (sourceId: number, links: DiscoveredLink[], checked
         const filteredLinks = getFilteredLinks(sourceId, links);
 
         // Add filtered links to existing selection
-        filteredLinks.forEach(link => currentSelectedLinks.add(link.id));
+        filteredLinks.forEach((link) => currentSelectedLinks.add(link.id));
 
         selectedLinks.value.set(sourceId, currentSelectedLinks);
     } else {
         // Remove filtered links from selection
         const filteredLinks = getFilteredLinks(sourceId, links);
-        filteredLinks.forEach(link => currentSelectedLinks.delete(link.id));
+        filteredLinks.forEach((link) => currentSelectedLinks.delete(link.id));
 
         selectedLinks.value.set(sourceId, currentSelectedLinks);
     }
@@ -1087,7 +1098,7 @@ const getSelectionState = (sourceId: number, links: DiscoveredLink[]) => {
 
     if (filteredLinks.length === 0) return { allSelected: false, someSelected: false, selectedCount: 0 };
 
-    const selectedFilteredLinks = filteredLinks.filter(link => sourceLinks.has(link.id));
+    const selectedFilteredLinks = filteredLinks.filter((link) => sourceLinks.has(link.id));
     const allSelected = selectedFilteredLinks.length === filteredLinks.length;
     const someSelected = selectedFilteredLinks.length > 0 && selectedFilteredLinks.length < filteredLinks.length;
 
@@ -1110,7 +1121,7 @@ const updateSearchQuery = (sourceId: number, query: string) => {
         const discoveredLinks = await fetchWebsiteLinks(sourceId, 1, searchQuery);
 
         // Update the source with new links
-        const sourceIndex = webSources.value.findIndex(s => s.id === sourceId);
+        const sourceIndex = webSources.value.findIndex((s) => s.id === sourceId);
         if (sourceIndex !== -1) {
             webSources.value[sourceIndex].discovered_links = discoveredLinks;
         }
@@ -1132,7 +1143,7 @@ const loadNextPage = async (websiteId: number) => {
     const discoveredLinks = await fetchWebsiteLinks(websiteId, nextPage, searchQuery);
 
     // Update the source with new links
-    const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
+    const sourceIndex = webSources.value.findIndex((s) => s.id === websiteId);
     if (sourceIndex !== -1) {
         webSources.value[sourceIndex].discovered_links = discoveredLinks;
     }
@@ -1147,20 +1158,16 @@ const loadPrevPage = async (websiteId: number) => {
     const discoveredLinks = await fetchWebsiteLinks(websiteId, prevPage, searchQuery);
 
     // Update the source with new links
-    const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
+    const sourceIndex = webSources.value.findIndex((s) => s.id === websiteId);
     if (sourceIndex !== -1) {
         webSources.value[sourceIndex].discovered_links = discoveredLinks;
     }
 };
 
-
-
-
-
 // Get total links count for display
 const getTotalLinksCount = (sourceId: number): number => {
     // Get the source's urls_count from backend (most accurate)
-    const source = webSources.value.find(s => s.id === sourceId);
+    const source = webSources.value.find((s) => s.id === sourceId);
     if (source?.urls_count) {
         return source.urls_count;
     }
@@ -1172,7 +1179,7 @@ const getTotalLinksCount = (sourceId: number): number => {
 // Delete individual link
 const deleteLink = async (websiteId: number, linkId: number) => {
     // Check if this is the last link
-    const source = webSources.value.find(s => s.id === websiteId);
+    const source = webSources.value.find((s) => s.id === websiteId);
     const totalLinks = source?.urls_count || 0;
 
     if (totalLinks <= 1) {
@@ -1181,11 +1188,13 @@ const deleteLink = async (websiteId: number, linkId: number) => {
     }
 
     try {
-        await axios.delete(route('agents.sources.websites.links.delete', {
-            agent: props.agent.external_id,
-            website: websiteId,
-            link: linkId
-        }));
+        await axios.delete(
+            route('agents.sources.websites.links.delete', {
+                agent: props.agent.external_id,
+                website: websiteId,
+                link: linkId,
+            }),
+        );
 
         // Reload the current page of links
         const pagination = linksPagination.value.get(websiteId);
@@ -1194,7 +1203,7 @@ const deleteLink = async (websiteId: number, linkId: number) => {
         const discoveredLinks = await fetchWebsiteLinks(websiteId, currentPage, searchQuery);
 
         // Update the source with new links and decrement urls_count
-        const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
+        const sourceIndex = webSources.value.findIndex((s) => s.id === websiteId);
         if (sourceIndex !== -1) {
             webSources.value[sourceIndex].discovered_links = discoveredLinks;
             // Decrement the urls_count to reflect the deletion
@@ -1222,7 +1231,7 @@ const deleteSelectedLinks = async (websiteId: number) => {
     }
 
     // Check if trying to delete all links
-    const source = webSources.value.find(s => s.id === websiteId);
+    const source = webSources.value.find((s) => s.id === websiteId);
     const totalLinks = source?.urls_count || 0;
 
     if (totalLinks > 0 && selectedLinksForWebsite.size >= totalLinks) {
@@ -1231,12 +1240,15 @@ const deleteSelectedLinks = async (websiteId: number) => {
     }
 
     try {
-        await axios.post(route('agents.sources.websites.links.bulk-delete', {
-            agent: props.agent.external_id,
-            website: websiteId
-        }), {
-            link_ids: Array.from(selectedLinksForWebsite)
-        });
+        await axios.post(
+            route('agents.sources.websites.links.bulk-delete', {
+                agent: props.agent.external_id,
+                website: websiteId,
+            }),
+            {
+                link_ids: Array.from(selectedLinksForWebsite),
+            },
+        );
 
         // Store the count before clearing selection
         const deletedCount = selectedLinksForWebsite.size;
@@ -1249,7 +1261,7 @@ const deleteSelectedLinks = async (websiteId: number) => {
         const searchQuery = linkSearchQueries.value.get(websiteId) || '';
         const discoveredLinks = await fetchWebsiteLinks(websiteId, currentPage, searchQuery);
 
-        const sourceIndex = webSources.value.findIndex(s => s.id === websiteId);
+        const sourceIndex = webSources.value.findIndex((s) => s.id === websiteId);
         if (sourceIndex !== -1) {
             webSources.value[sourceIndex].discovered_links = discoveredLinks;
             // Decrement the urls_count to reflect the bulk deletion
@@ -1280,21 +1292,21 @@ const toggleWebsiteSelection = (websiteId: number, checked: boolean | string) =>
             selectedWebsites.value = newSelected;
         } else {
             // Show error message if selection would exceed quota
-            const source = webSources.value.find(s => s.id === websiteId);
+            const source = webSources.value.find((s) => s.id === websiteId);
             const websiteLinks = source?.urls_count || 0;
             const remaining = usageData.value?.links.remaining || 0;
 
             if (remaining <= 0) {
                 toast.error('No links remaining', {
                     description: 'Please upgrade your plan to train websites.',
-                    duration: 5000
+                    duration: 5000,
                 });
             } else {
                 const currentTotal = selectedWebsitesTotalLinks.value;
-                const exceedBy = (currentTotal + websiteLinks) - remaining;
+                const exceedBy = currentTotal + websiteLinks - remaining;
                 toast.error('Cannot select website', {
                     description: `${websiteLinks} links would exceed your quota by ${exceedBy}. Deselect other websites or upgrade.`,
-                    duration: 5000
+                    duration: 5000,
                 });
             }
             // Don't update selectedWebsites when selection fails
@@ -1327,7 +1339,7 @@ const toggleSelectAllWebsites = (checked: boolean | string | 'indeterminate') =>
         if (newSelected.size < crawledSources.value.length) {
             const skipped = crawledSources.value.length - newSelected.size;
             toast.info(`Selected ${newSelected.size} of ${crawledSources.value.length} websites`, {
-                description: `${skipped} website${skipped !== 1 ? 's were' : ' was'} skipped to stay within your ${remaining} link limit.`
+                description: `${skipped} website${skipped !== 1 ? 's were' : ' was'} skipped to stay within your ${remaining} link limit.`,
             });
         }
     }
@@ -1348,28 +1360,33 @@ const trainSelectedWebsites = async () => {
     // Process each website individually - train ALL links
     for (const websiteId of selectedIds) {
         try {
-            const websiteName = webSources.value.find(s => s.id === websiteId)?.name ||
-                              getDomainFromUrl(webSources.value.find(s => s.id === websiteId)?.url || '');
+            const websiteName =
+                webSources.value.find((s) => s.id === websiteId)?.name ||
+                getDomainFromUrl(webSources.value.find((s) => s.id === websiteId)?.url || '');
 
             // Send request to train all links from the website
             await new Promise<void>((resolve, reject) => {
-                router.post(route('agents.sources.website.train', {
-                    agent: props.agent.external_id,
-                    website: websiteId
-                }), {
-                    // Empty payload means train all links
-                }, {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        successCount++;
-                        resolve();
+                router.post(
+                    route('agents.sources.website.train', {
+                        agent: props.agent.external_id,
+                        website: websiteId,
+                    }),
+                    {
+                        // Empty payload means train all links
                     },
-                    onError: (errors) => {
-                        failedWebsites.push(websiteName);
-                        console.error(`Error training website ${websiteId}:`, errors);
-                        reject(errors);
-                    }
-                });
+                    {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            successCount++;
+                            resolve();
+                        },
+                        onError: (errors) => {
+                            failedWebsites.push(websiteName);
+                            console.error(`Error training website ${websiteId}:`, errors);
+                            reject(errors);
+                        },
+                    },
+                );
             });
         } catch (error) {
             console.error(`Failed to train website ${websiteId}:`, error);
@@ -1424,7 +1441,7 @@ const closeLinksDialog = () => {
         lastPage: 1,
         total: 0,
         hasNextPage: false,
-        hasPrevPage: false
+        hasPrevPage: false,
     };
 };
 
@@ -1436,12 +1453,15 @@ const fetchDialogLinks = async (websiteId: number, page: number = 1, searchQuery
             params.q = searchQuery.trim();
         }
 
-        const response = await axios.get(route('agents.sources.websites.links', {
-            agent: props.agent.external_id,
-            website: websiteId
-        }), {
-            params
-        });
+        const response = await axios.get(
+            route('agents.sources.websites.links', {
+                agent: props.agent.external_id,
+                website: websiteId,
+            }),
+            {
+                params,
+            },
+        );
 
         const paginatedData = response.data;
 
@@ -1457,7 +1477,7 @@ const fetchDialogLinks = async (websiteId: number, page: number = 1, searchQuery
             found_on_url: linkObj.found_on_url || '',
             crawled_at: linkObj.crawled_at || linkObj.created_at || linkObj.updated_at || '',
             status: linkObj.status || 'ingested',
-            source_website_id: linkObj.source_website_id // Store for WebSocket matching
+            source_website_id: linkObj.source_website_id, // Store for WebSocket matching
         }));
 
         dialogLinksPagination.value = {
@@ -1465,7 +1485,7 @@ const fetchDialogLinks = async (websiteId: number, page: number = 1, searchQuery
             lastPage: paginatedData.last_page || 1,
             total: paginatedData.total || 0,
             hasNextPage: !!paginatedData.next_page_url,
-            hasPrevPage: !!paginatedData.prev_page_url
+            hasPrevPage: !!paginatedData.prev_page_url,
         };
     } catch (error) {
         console.error('Failed to fetch links:', error);
@@ -1505,11 +1525,13 @@ const deleteDialogLink = async (linkId: number) => {
     if (!currentWebsite.value) return;
 
     try {
-        await axios.delete(route('agents.sources.websites.links.delete', {
-            agent: props.agent.external_id,
-            website: currentWebsite.value.id,
-            link: linkId
-        }));
+        await axios.delete(
+            route('agents.sources.websites.links.delete', {
+                agent: props.agent.external_id,
+                website: currentWebsite.value.id,
+                link: linkId,
+            }),
+        );
 
         toast.success('Link deleted successfully');
 
@@ -1527,12 +1549,12 @@ const deleteDialogLink = async (linkId: number) => {
 // Dialog link selection computed properties
 const dialogAllLinksSelected = computed(() => {
     if (dialogLinks.value.length === 0) return false;
-    return dialogLinks.value.every(link => dialogSelectedLinks.value.has(link.id));
+    return dialogLinks.value.every((link) => dialogSelectedLinks.value.has(link.id));
 });
 
 const dialogSomeLinksSelected = computed(() => {
     if (dialogLinks.value.length === 0) return false;
-    const selectedCount = dialogLinks.value.filter(link => dialogSelectedLinks.value.has(link.id)).length;
+    const selectedCount = dialogLinks.value.filter((link) => dialogSelectedLinks.value.has(link.id)).length;
     return selectedCount > 0 && selectedCount < dialogLinks.value.length;
 });
 
@@ -1552,12 +1574,12 @@ const toggleSelectAllDialogLinks = (checked: boolean | string | 'indeterminate')
 
     if (isChecked) {
         // Select all links on current page
-        dialogLinks.value.forEach(link => {
+        dialogLinks.value.forEach((link) => {
             dialogSelectedLinks.value.add(link.id);
         });
     } else {
         // Deselect all links on current page
-        dialogLinks.value.forEach(link => {
+        dialogLinks.value.forEach((link) => {
             dialogSelectedLinks.value.delete(link.id);
         });
     }
@@ -1570,12 +1592,15 @@ const deleteSelectedDialogLinks = async () => {
     }
 
     try {
-        await axios.post(route('agents.sources.websites.links.bulk-delete', {
-            agent: props.agent.external_id,
-            website: currentWebsite.value.id
-        }), {
-            link_ids: Array.from(dialogSelectedLinks.value)
-        });
+        await axios.post(
+            route('agents.sources.websites.links.bulk-delete', {
+                agent: props.agent.external_id,
+                website: currentWebsite.value.id,
+            }),
+            {
+                link_ids: Array.from(dialogSelectedLinks.value),
+            },
+        );
 
         const deletedCount = dialogSelectedLinks.value.size;
 
@@ -1601,44 +1626,46 @@ const retrainDialogLink = async (linkId: number) => {
 
     try {
         // Optimistically update the status to pending in the UI
-        const linkIndex = dialogLinks.value.findIndex(link => link.id === linkId);
+        const linkIndex = dialogLinks.value.findIndex((link) => link.id === linkId);
         if (linkIndex !== -1) {
             const updatedLinks = [...dialogLinks.value];
             updatedLinks[linkIndex] = {
                 ...updatedLinks[linkIndex],
-                status: 'pending'
+                status: 'pending',
             };
             dialogLinks.value = updatedLinks;
         }
 
         // Also update in discovered_links if present
-        const sourceIndex = webSources.value.findIndex(source => source.id === currentWebsite.value!.id);
+        const sourceIndex = webSources.value.findIndex((source) => source.id === currentWebsite.value!.id);
         if (sourceIndex !== -1 && webSources.value[sourceIndex].discovered_links) {
             const discoveredLinks = webSources.value[sourceIndex].discovered_links;
             if (discoveredLinks) {
-                const discLinkIndex = discoveredLinks.findIndex(link => link.id === linkId);
+                const discLinkIndex = discoveredLinks.findIndex((link) => link.id === linkId);
                 if (discLinkIndex !== -1) {
                     const updatedLinks = [...discoveredLinks];
                     updatedLinks[discLinkIndex] = {
                         ...updatedLinks[discLinkIndex],
-                        status: 'pending'
+                        status: 'pending',
                     };
 
                     const updatedSources = [...webSources.value];
                     updatedSources[sourceIndex] = {
                         ...updatedSources[sourceIndex],
-                        discovered_links: updatedLinks
+                        discovered_links: updatedLinks,
                     };
                     webSources.value = updatedSources;
                 }
             }
         }
 
-        await axios.post(route('agents.sources.websites.links.retrain', {
-            agent: props.agent.external_id,
-            website: currentWebsite.value.id,
-            link: linkId
-        }));
+        await axios.post(
+            route('agents.sources.websites.links.retrain', {
+                agent: props.agent.external_id,
+                website: currentWebsite.value.id,
+                link: linkId,
+            }),
+        );
 
         toast.success('Link retraining started successfully');
     } catch (error: any) {
@@ -1646,12 +1673,12 @@ const retrainDialogLink = async (linkId: number) => {
         toast.error(error.response?.data?.message || 'Failed to retrain link');
 
         // Revert status on error
-        const linkIndex = dialogLinks.value.findIndex(link => link.id === linkId);
+        const linkIndex = dialogLinks.value.findIndex((link) => link.id === linkId);
         if (linkIndex !== -1) {
             const updatedLinks = [...dialogLinks.value];
             updatedLinks[linkIndex] = {
                 ...updatedLinks[linkIndex],
-                status: 'ingested'
+                status: 'ingested',
             };
             dialogLinks.value = updatedLinks;
         }
@@ -1660,7 +1687,7 @@ const retrainDialogLink = async (linkId: number) => {
 
 // Open retrain dialog
 const openRetrainDialog = (websiteId: number) => {
-    const website = webSources.value.find(s => s.id === websiteId);
+    const website = webSources.value.find((s) => s.id === websiteId);
     if (website) {
         websiteToRetrain.value = website;
         reCrawlNewLinks.value = false;
@@ -1673,12 +1700,15 @@ const retrainEntireWebsite = async () => {
     if (!websiteToRetrain.value) return;
 
     try {
-        await axios.post(route('agents.sources.website.train', {
-            agent: props.agent.external_id,
-            website: websiteToRetrain.value.id
-        }), {
-            recrawl: reCrawlNewLinks.value
-        });
+        await axios.post(
+            route('agents.sources.website.train', {
+                agent: props.agent.external_id,
+                website: websiteToRetrain.value.id,
+            }),
+            {
+                recrawl: reCrawlNewLinks.value,
+            },
+        );
 
         toast.success('Website retraining started successfully');
 
@@ -1725,604 +1755,250 @@ onUnmounted(() => {
 <template>
     <div class="flex justify-center">
         <div class="w-full max-w-6xl space-y-6">
-        <!-- Smart Monitoring Info Banner -->
-        <InfoBanner
-            title="Smart Monitoring"
-            message="Your websites will be periodically checked for changes and automatically re-crawled when necessary to keep your agent's knowledge up-to-date."
-            storage-key="smart-monitoring-banner-dismissed"
-            variant="info"
-        />
+            <!-- Smart Monitoring Info Banner -->
+            <InfoBanner
+                title="Smart Monitoring"
+                message="Your websites will be periodically checked for changes and automatically re-crawled when necessary to keep your agent's knowledge up-to-date."
+                storage-key="smart-monitoring-banner-dismissed"
+                variant="info"
+            />
 
-        <!-- Link Limit Warning Banner -->
-        <Alert v-if="linkLimitWarning" :variant="linkLimitWarning.type === 'critical' ? 'destructive' : 'default'" class="mb-4">
-            <AlertCircle class="h-4 w-4" />
-            <AlertDescription>
-                {{ linkLimitWarning.message }}
-            </AlertDescription>
-        </Alert>
+            <!-- Link Limit Warning Banner -->
+            <Alert v-if="linkLimitWarning" :variant="linkLimitWarning.type === 'critical' ? 'destructive' : 'default'" class="mb-4">
+                <AlertCircle class="h-4 w-4" />
+                <AlertDescription>
+                    {{ linkLimitWarning.message }}
+                </AlertDescription>
+            </Alert>
 
-        <!-- Add Website Section -->
-        <Card>
-            <CardHeader>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <CardTitle class="flex items-center gap-2">
-                            <Globe class="h-5 w-5" />
-                            Crawler
-                        </CardTitle>
-                        <CardDescription>
-                            Fetch links from websites to crawl and include in your agent's knowledge base.
-                        </CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm" @click="settingsExpanded = !settingsExpanded">
-                        <Settings class="h-4 w-4 mr-2" />
-                        Settings
-                        <ChevronDown v-if="!settingsExpanded" class="h-4 w-4 ml-1" />
-                        <ChevronUp v-else class="h-4 w-4 ml-1" />
-                    </Button>
-                </div>
-            </CardHeader>
-            <CardContent>
-
-                <!-- Link Usage Info -->
-                <div v-if="usageData" class="mb-4 p-3 bg-muted/20 rounded-lg">
+            <!-- Add Website Section -->
+            <Card>
+                <CardHeader>
                     <div class="flex items-center justify-between">
-                        <span class="text-sm text-muted-foreground">
-                            {{ usageData.links.used }} / {{ usageData.links.limit }} links used
-                        </span>
-                        <span class="text-sm font-medium" :class="usageData.links.remaining <= 0 ? 'text-red-600' : 'text-green-600'">
-                            {{ usageData.links.remaining }} remaining
-                        </span>
-                    </div>
-                    <div class="flex items-center justify-between text-xs mt-1">
-                        <span v-if="usageData.links.remaining <= 0" class="text-red-600 font-medium">
-                            Upgrade required to train more links
-                        </span>
-                        <span v-else-if="(usageData.links.used / usageData.links.limit) >= 0.9" class="text-yellow-600 font-medium">
-                            Consider upgrading
-                        </span>
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="flex gap-2">
-                        <!-- URL Input with Integrated Protocol Dropdown -->
-                        <div class="flex-1 relative">
-                            <div class="flex">
-                                <!-- Protocol Dropdown integrated into input -->
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <button class="flex items-center px-3 py-1 bg-muted border border-input border-r-0 rounded-l-md text-sm font-mono hover:bg-muted/80 focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-0 h-9">
-                                            {{ selectedProtocol }}
-                                            <ChevronDown class="h-3 w-3 ml-1 text-muted-foreground" />
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="start">
-                                        <DropdownMenuItem @click="updateProtocol('https://')">
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-2 h-2 rounded-full bg-green-500"></div>
-                                                https://
-                                            </div>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem @click="updateProtocol('http://')">
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-2 h-2 rounded-full bg-orange-500"></div>
-                                                http://
-                                            </div>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-
-                                <!-- URL Input -->
-                                <Input
-                                    v-model="websiteForm.url"
-                                    placeholder="www.example.com"
-                                    @keyup.enter="addWebsite"
-                                    :disabled="websiteForm.processing"
-                                    :class="[
-                                        'rounded-l-none border-l-0 focus:border-l-0 focus:ring-offset-0',
-                                        { 'border-red-500': websiteForm.errors.url }
-                                    ]"
-                                    class="flex-1"
-                                />
-                            </div>
-                            <InputError :message="websiteForm.errors.url" />
+                        <div>
+                            <CardTitle class="flex items-center gap-2">
+                                <Globe class="h-5 w-5" />
+                                Crawler
+                            </CardTitle>
+                            <CardDescription> Fetch links from websites to crawl and include in your agent's knowledge base. </CardDescription>
                         </div>
-
-                        <!-- Add Button -->
-                        <Button
-                            @click="addWebsite"
-                            :disabled="!isValidUrl || websiteForm.processing"
-                        >
-                            <LoaderCircle v-if="websiteForm.processing" class="h-4 w-4 mr-2 animate-spin" />
-                            <Globe v-else class="h-4 w-4 mr-2" />
-                            {{ websiteForm.processing ? 'Fetching...' : 'Fetch Links' }}
+                        <Button variant="outline" size="sm" @click="settingsExpanded = !settingsExpanded">
+                            <Settings class="mr-2 h-4 w-4" />
+                            Settings
+                            <ChevronDown v-if="!settingsExpanded" class="ml-1 h-4 w-4" />
+                            <ChevronUp v-else class="ml-1 h-4 w-4" />
                         </Button>
                     </div>
-
-                    <!-- Collapsible Settings Section -->
-                    <Collapsible v-model:open="settingsExpanded">
-                        <CollapsibleContent>
-                            <div class="border rounded-lg p-4 bg-muted/20 space-y-4">
-                                <div class="mb-3">
-                                    <h3 class="text-sm font-semibold">Crawl Settings</h3>
-                                </div>
-
-                                <!-- Include Paths -->
-                                <div class="space-y-2">
-                                    <Label for="include-paths">Include only paths</Label>
-                                    <Input
-                                        id="include-paths"
-                                        type="text"
-                                        placeholder="Ex: blog/*, dev/*"
-                                        v-model="crawlSettings.include_paths"
-                                        :class="{ 'border-red-500': websiteForm.errors.include_paths }"
-                                        class="text-sm"
-                                    />
-                                    <InputError :message="websiteForm.errors.include_paths" />
-                                    <div class="text-xs text-muted-foreground">
-                                        Use wildcards (*) to match patterns. Leave empty to include all paths.
-                                    </div>
-                                </div>
-
-                                <!-- Exclude Paths -->
-                                <div class="space-y-2">
-                                    <Label for="exclude-paths">Exclude paths</Label>
-                                    <Input
-                                        id="exclude-paths"
-                                        type="text"
-                                        placeholder="Ex: blog/*, dev/*"
-                                        class="text-sm"
-                                        :class="{ 'border-red-500': websiteForm.errors.exclude_paths }"
-                                        v-model="crawlSettings.exclude_paths"
-                                    />
-                                    <InputError :message="websiteForm.errors.exclude_paths" />
-                                    <div class="text-xs text-muted-foreground">
-                                        Use wildcards (*) to match patterns. These paths will be skipped.
-                                    </div>
-                                </div>
-
-                                <!-- Switches -->
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between">
-                                        <div class="space-y-0.5">
-                                            <Label for="slow-crawling">Slow Crawling</Label>
-                                            <div class="text-xs text-muted-foreground">
-                                                Uses longer delays for more respectful crawling
-                                            </div>
-                                        </div>
-                                        <Switch
-                                            id="slow-crawling"
-                                            :model-value="crawlSettings.slow_crawling"
-                                            @update:model-value="(value) => { crawlSettings.slow_crawling = Boolean(value); }"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </CollapsibleContent>
-                    </Collapsible>
-
-                    <!-- General error message for any other form errors -->
-                    <div v-if="websiteForm.hasErrors && !websiteForm.errors.url && !websiteForm.errors.include_paths && !websiteForm.errors.exclude_paths" class="space-y-1">
-                        <div v-for="(error, field) in websiteForm.errors" :key="field" class="text-sm text-red-600">
-                            {{ Array.isArray(error) ? error[0] : error }}
+                </CardHeader>
+                <CardContent>
+                    <!-- Link Usage Info -->
+                    <div v-if="usageData" class="bg-muted/20 mb-4 rounded-lg p-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-muted-foreground text-sm"> {{ usageData.links.used }} / {{ usageData.links.limit }} links used </span>
+                            <span class="text-sm font-medium" :class="usageData.links.remaining <= 0 ? 'text-red-600' : 'text-green-600'">
+                                {{ usageData.links.remaining }} remaining
+                            </span>
+                        </div>
+                        <div class="mt-1 flex items-center justify-between text-xs">
+                            <span v-if="usageData.links.remaining <= 0" class="font-medium text-red-600"> Upgrade required to train more links </span>
+                            <span v-else-if="usageData.links.used / usageData.links.limit >= 0.9" class="font-medium text-yellow-600">
+                                Consider upgrading
+                            </span>
                         </div>
                     </div>
-                </div>
-            </CardContent>
-        </Card>
 
-        <!-- Crawling Websites -->
-        <Card v-if="crawlingSources.length > 0">
-            <CardHeader>
-                <CardTitle class="flex items-center gap-2">
-                    <NetworkIcon class="h-5 w-5" />
-                    Crawling...
-                </CardTitle>
-                <CardDescription>
-                    {{ crawlingSources.length }} website{{ crawlingSources.length !== 1 ? 's' : '' }} currently being crawled.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div class="space-y-2">
-                    <template v-for="source in crawlingSources" :key="source.id">
-                        <div class="flex items-center justify-between border rounded-lg p-3">
-                            <div class="flex items-center gap-3 min-w-0 flex-1">
-                                <Globe class="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div class="flex items-center">
-                                                        <component
-                                                            :is="getStatusIcon(source.status)"
-                                                            :class="`h-4 w-4 flex-shrink-0 ${getStatusColor(source.status)} ${source.status === 'crawling' ? 'animate-spin' : ''}`"
-                                                        />
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>{{ source.status === 'crawling' ? 'Currently crawling...' :
-                                                         source.status === 'pending' ? 'Ready to crawl' :
-                                                         'Processing' }}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </div>
-                                    <div class="text-xs text-muted-foreground">
-                                        <a :href="source.url" target="_blank" class="hover:underline flex items-center gap-1">
-                                            {{ source.url }}
-                                            <ExternalLink class="h-3 w-3" />
-                                        </a>
-                                        <!-- Crawl criteria message -->
-                                        <div v-if="getCrawlCriteriaMessage(source)" class="text-xs text-blue-600 font-medium mt-1">
-                                            {{ getCrawlCriteriaMessage(source) }}
-                                        </div>
-                                        <div class="mt-1">
-                                            <span>
-                                                Added {{ formatDate(source.created_at) }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
-                                                size="sm"
-                                                variant="ghost"
-                                                @click="confirmDeleteSource(source)"
+                    <div class="space-y-3">
+                        <div class="flex gap-2">
+                            <!-- URL Input with Integrated Protocol Dropdown -->
+                            <div class="relative flex-1">
+                                <div class="flex">
+                                    <!-- Protocol Dropdown integrated into input -->
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button
+                                                class="bg-muted border-input hover:bg-muted/80 focus:ring-ring flex h-9 items-center rounded-l-md border border-r-0 px-3 py-1 font-mono text-sm focus:ring-1 focus:ring-offset-0 focus:outline-none"
                                             >
-                                                <span class="sr-only">Remove source</span>
-                                                <Trash2 class="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Delete web source</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </CardContent>
-        </Card>
+                                                {{ selectedProtocol }}
+                                                <ChevronDown class="text-muted-foreground ml-1 h-3 w-3" />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="start">
+                                            <DropdownMenuItem @click="updateProtocol('https://')">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="h-2 w-2 rounded-full bg-green-500"></div>
+                                                    https://
+                                                </div>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem @click="updateProtocol('http://')">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="h-2 w-2 rounded-full bg-orange-500"></div>
+                                                    http://
+                                                </div>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
 
-        <!-- Crawled Websites - Ready for Training -->
-        <Card v-if="crawledSources.length > 0">
-            <CardHeader>
-                <CardTitle class="flex items-center gap-2">
-                    <NetworkIcon class="h-5 w-5" />
-                    Crawled
-                </CardTitle>
-                <CardDescription>
-                    {{ crawledSources.length }} website{{ crawledSources.length !== 1 ? 's' : '' }} crawled and ready for training.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <!-- Selection controls -->
-                <div class="flex items-center justify-between mb-4 p-3 bg-muted/30 rounded-lg">
-                    <div class="flex items-center gap-3">
-                        <Checkbox
-                            :model-value="allCrawledWebsitesSelected"
-                            :indeterminate="someCrawledWebsitesSelected"
-                            @update:model-value="toggleSelectAllWebsites"
-                            id="select-all-websites"
-                            class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                        />
-                        <Label for="select-all-websites" class="text-sm font-medium cursor-pointer select-none">
-                            Select All Websites ({{ crawledSources.length }})
-                        </Label>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-muted-foreground">
-                            <template v-if="selectedWebsiteCount > 0">
-                                {{ selectedWebsiteCount }} selected ({{ selectedWebsitesTotalLinks }} link{{ selectedWebsitesTotalLinks !== 1 ? 's' : '' }})
-                            </template>
-                            <template v-else>
-                                No websites selected
-                            </template>
-                        </span>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        @click="trainSelectedWebsites"
-                                        :disabled="!canTrain || isTraining"
-                                        size="sm"
-
-                                    >
-                                        <LoaderCircle v-if="isTraining" class="h-4 w-4 mr-2 animate-spin" />
-                                        <Database v-else class="h-4 w-4 mr-2" />
-                                        Train
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent v-if="!canTrain && selectedWebsiteCount > 0 && usageData">
-                                    <p>Selected links ({{ selectedWebsitesTotalLinks }}) exceed your remaining quota ({{ usageData.links.remaining }})</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                </div>
-
-
-                <div class="space-y-2">
-                    <template v-for="source in crawledSources" :key="source.id">
-                        <Collapsible v-if="source.urls_count && source.urls_count > 0" v-slot="{ open }" class="border rounded-lg" @update:open="(isOpen) => handleCollapsibleToggle(source.id, isOpen)">
-                            <div class="flex items-center justify-between p-3">
-                                <div class="flex items-center gap-3 min-w-0 flex-1" @click.stop>
-                                    <Checkbox
-                                        :model-value="selectedWebsites.has(source.id)"
-                                        @update:model-value="(checked) => toggleWebsiteSelection(source.id, checked)"
-                                        :id="`website-${source.id}`"
-                                        class="data-[state=checked]:bg-primary data-[state=checked]:border-primary flex-shrink-0"
+                                    <!-- URL Input -->
+                                    <Input
+                                        v-model="websiteForm.url"
+                                        placeholder="www.example.com"
+                                        @keyup.enter="addWebsite"
+                                        :disabled="websiteForm.processing"
+                                        :class="[
+                                            'rounded-l-none border-l-0 focus:border-l-0 focus:ring-offset-0',
+                                            { 'border-red-500': websiteForm.errors.url },
+                                        ]"
+                                        class="flex-1"
                                     />
-                                    <Globe class="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex items-center gap-2 mb-1">
-                                            <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
-
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Badge variant="secondary" class="text-xs">
-                                                            {{ source.urls_count }} links
-                                                        </Badge>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{{ getStatusLabel(source.status) }}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-
-                                            <!-- Show warning if website cannot be selected -->
-                                            <TooltipProvider v-if="!canSelectWebsite(source.id) && !selectedWebsites.has(source.id) && usageData">
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Badge variant="outline" class="text-xs border-yellow-500 text-yellow-700 dark:text-yellow-400">
-                                                            <AlertCircle class="h-3 w-3 mr-1" />
-                                                            {{ usageData.links.remaining <= 0 ? 'Upgrade required' : 'Exceeds quota' }}
-                                                        </Badge>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p v-if="usageData.links.remaining <= 0">
-                                                            You have no links remaining in your plan. Please upgrade to train this website.
-                                                        </p>
-                                                        <p v-else>
-                                                            This website has {{ source.urls_count }} links, which would exceed your remaining {{ usageData.links.remaining }} link{{ usageData.links.remaining !== 1 ? 's' : '' }}. Deselect other websites first or upgrade your plan.
-                                                        </p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </div>
-                                        <div class="text-xs text-muted-foreground">
-                                            <a :href="source.url" target="_blank" class="hover:underline flex items-center gap-1">
-                                                {{ source.url }}
-                                                <ExternalLink class="h-3 w-3" />
-                                            </a>
-                                            <!-- Crawl criteria message -->
-                                            <div v-if="getCrawlCriteriaMessage(source)" class="text-xs text-blue-600 font-medium mt-1">
-                                                {{ getCrawlCriteriaMessage(source) }}
-                                            </div>
-                                            <div class="mt-1">
-                                                <span>
-                                                    Added {{ formatDate(source.created_at) }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <!-- Collapsible Trigger for discovered links -->
-                                    <CollapsibleTrigger asChild>
-                                        <Button
-                                            class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
-                                            size="sm"
-                                            variant="ghost"
-                                        >
-                                            <span class="sr-only">{{ open ? 'Collapse' : 'Expand' }} discovered links</span>
-                                            <ChevronUp v-if="open" class="h-4 w-4" />
-                                            <ChevronDown v-else class="h-4 w-4" />
-                                        </Button>
-                                    </CollapsibleTrigger>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    @click="confirmDeleteSource(source)"
-                                                >
-                                                    <span class="sr-only">Remove source</span>
-                                                    <Trash2 class="h-4 w-4" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Delete web source</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </div>
+                                <InputError :message="websiteForm.errors.url" />
                             </div>
 
-                            <!-- Collapsible Content for discovered links -->
+                            <!-- Add Button -->
+                            <Button @click="addWebsite" :disabled="!isValidUrl || websiteForm.processing">
+                                <LoaderCircle v-if="websiteForm.processing" class="mr-2 h-4 w-4 animate-spin" />
+                                <Globe v-else class="mr-2 h-4 w-4" />
+                                {{ websiteForm.processing ? 'Fetching...' : 'Fetch Links' }}
+                            </Button>
+                        </div>
+
+                        <!-- Collapsible Settings Section -->
+                        <Collapsible v-model:open="settingsExpanded">
                             <CollapsibleContent>
-                                <div class="border-t bg-muted/20 p-3">
-                                    <!-- Header with search and controls -->
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="text-sm font-medium text-muted-foreground">
-                                            Discovered Links
-                                            <span v-if="linkSearchQueries.get(source.id)?.trim()" class="text-xs text-blue-600 ml-1">(filtered)</span>
-                                        </div>
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            @click="deleteSelectedLinks(source.id)"
-                                            :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
-                                            class="h-7 text-xs"
-                                        >
-                                            <Trash2 class="h-3 w-3 mr-1" />
-                                            Delete selected links
-                                        </Button>
+                                <div class="bg-muted/20 space-y-4 rounded-lg border p-4">
+                                    <div class="mb-3">
+                                        <h3 class="text-sm font-semibold">Crawl Settings</h3>
                                     </div>
 
-                                    <!-- Search box -->
-                                    <div v-if="source.discovered_links" class="mb-3">
+                                    <!-- Include Paths -->
+                                    <div class="space-y-2">
+                                        <Label for="include-paths">Include only paths</Label>
                                         <Input
-                                            :value="linkSearchQueries.get(source.id) || ''"
-                                            @input="(e: Event) => updateSearchQuery(source.id, (e.target as HTMLInputElement).value)"
-                                            placeholder="Search links..."
-                                            class="h-8 text-xs"
+                                            id="include-paths"
+                                            type="text"
+                                            placeholder="Ex: blog/*, dev/*"
+                                            v-model="crawlSettings.include_paths"
+                                            :class="{ 'border-red-500': websiteForm.errors.include_paths }"
+                                            class="text-sm"
                                         />
-                                    </div>
-
-                                    <!-- Select all checkbox -->
-                                    <div v-if="source.discovered_links" class="flex items-center gap-2 mb-3 p-2 bg-background rounded border">
-                                        <Checkbox
-                                            :model-value="getSelectionState(source.id, source.discovered_links).allSelected"
-                                            :indeterminate="getSelectionState(source.id, source.discovered_links).someSelected"
-                                            @update:model-value="(checked) => toggleSelectAllLinks(source.id, source.discovered_links || [], checked)"
-                                            :id="`select-all-${source.id}`"
-                                            class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                                        />
-                                        <Label :for="`select-all-${source.id}`" class="text-xs font-medium cursor-pointer select-none">
-                                            Select All on Page ({{ source.discovered_links.length }})
-                                        </Label>
-                                    </div>
-
-                                    <!-- Links list with infinite scroll -->
-                                    <ScrollArea class="h-72 w-full rounded-md border">
-                                        <div class="p-4">
-                                            <!-- Initial loading state -->
-                                            <div v-if="!source.discovered_links || linksPagination.get(source.id)?.isLoading" class="flex items-center justify-center py-8">
-                                                <LoaderCircle class="h-6 w-6 animate-spin text-muted-foreground" />
-                                                <span class="ml-2 text-sm text-muted-foreground">Loading links...</span>
-                                            </div>
-
-                                            <!-- Links loaded -->
-                                            <div v-else class="space-y-2">
-                                                <div
-                                                    v-for="link in getFilteredLinks(source.id, source.discovered_links)"
-                                                    :key="link.link"
-                                                    class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors group"
-                                                >
-                                                    <!-- Checkbox -->
-                                                    <Checkbox
-                                                        :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
-                                                        @update:model-value="(checked) => toggleLinkSelection(source.id, link.id, checked)"
-                                                        :id="`link-${source.id}-${link.id}`"
-                                                        class="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                                                    />
-                                                    <ExternalLink class="h-3 w-3 mt-0.5 text-muted-foreground flex-shrink-0" />
-                                                    <div class="min-w-0 flex-1">
-                                                        <a
-                                                            :href="link.link"
-                                                            target="_blank"
-                                                            class="text-foreground hover:text-primary hover:underline truncate block text-sm"
-                                                            @click.stop
-                                                        >
-                                                            {{ link.link }}
-                                                        </a>
-                                                    </div>
-                                                    <!-- Individual delete button -->
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        @click="deleteLink(source.id, link.id)"
-                                                        class="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
-                                                    >
-                                                        <Trash2 class="h-3 w-3" />
-                                                    </Button>
-                                                </div>
-
-                                                <!-- No results message -->
-                                                <div v-if="getFilteredLinks(source.id, source.discovered_links).length === 0" class="text-center py-4 text-muted-foreground text-xs">
-                                                    No links match your search
-                                                </div>
-                                            </div>
+                                        <InputError :message="websiteForm.errors.include_paths" />
+                                        <div class="text-muted-foreground text-xs">
+                                            Use wildcards (*) to match patterns. Leave empty to include all paths.
                                         </div>
-                                    </ScrollArea>
+                                    </div>
 
-                                    <!-- Pagination Controls -->
-                                    <div v-if="linksPagination.get(source.id)" class="flex items-center justify-between mt-3 px-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            @click="loadPrevPage(source.id)"
-                                            :disabled="!linksPagination.get(source.id)?.hasPrevPage || linksPagination.get(source.id)?.isLoading"
-                                            class="h-8"
-                                        >
-                                            <ChevronRight class="h-4 w-4 rotate-180 mr-1" />
-                                            Previous
-                                        </Button>
-                                        <span class="text-xs text-muted-foreground">
-                                            Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
-                                        </span>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            @click="loadNextPage(source.id)"
-                                            :disabled="!linksPagination.get(source.id)?.hasNextPage || linksPagination.get(source.id)?.isLoading"
-                                            class="h-8"
-                                        >
-                                            Next
-                                            <ChevronRight class="h-4 w-4 ml-1" />
-                                        </Button>
+                                    <!-- Exclude Paths -->
+                                    <div class="space-y-2">
+                                        <Label for="exclude-paths">Exclude paths</Label>
+                                        <Input
+                                            id="exclude-paths"
+                                            type="text"
+                                            placeholder="Ex: blog/*, dev/*"
+                                            class="text-sm"
+                                            :class="{ 'border-red-500': websiteForm.errors.exclude_paths }"
+                                            v-model="crawlSettings.exclude_paths"
+                                        />
+                                        <InputError :message="websiteForm.errors.exclude_paths" />
+                                        <div class="text-muted-foreground text-xs">
+                                            Use wildcards (*) to match patterns. These paths will be skipped.
+                                        </div>
+                                    </div>
+
+                                    <!-- Switches -->
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <div class="space-y-0.5">
+                                                <Label for="slow-crawling">Slow Crawling</Label>
+                                                <div class="text-muted-foreground text-xs">Uses longer delays for more respectful crawling</div>
+                                            </div>
+                                            <Switch
+                                                id="slow-crawling"
+                                                :model-value="crawlSettings.slow_crawling"
+                                                @update:model-value="
+                                                    (value) => {
+                                                        crawlSettings.slow_crawling = Boolean(value);
+                                                    }
+                                                "
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </CollapsibleContent>
                         </Collapsible>
 
-                        <!-- Sources without links (simplified display) -->
-                        <div v-else class="border rounded-lg p-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3 min-w-0 flex-1">
-                                    <Checkbox
-                                        :model-value="selectedWebsites.has(source.id)"
-                                        @update:model-value="(checked) => toggleWebsiteSelection(source.id, checked)"
-                                        :id="`website-simple-${source.id}`"
-                                        class="data-[state=checked]:bg-primary data-[state=checked]:border-primary flex-shrink-0"
-                                    />
-                                    <Globe class="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                        <!-- General error message for any other form errors -->
+                        <div
+                            v-if="
+                                websiteForm.hasErrors &&
+                                !websiteForm.errors.url &&
+                                !websiteForm.errors.include_paths &&
+                                !websiteForm.errors.exclude_paths
+                            "
+                            class="space-y-1"
+                        >
+                            <div v-for="(error, field) in websiteForm.errors" :key="field" class="text-sm text-red-600">
+                                {{ Array.isArray(error) ? error[0] : error }}
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <!-- Crawling Websites -->
+            <Card v-if="crawlingSources.length > 0">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <NetworkIcon class="h-5 w-5" />
+                        Crawling...
+                    </CardTitle>
+                    <CardDescription>
+                        {{ crawlingSources.length }} website{{ crawlingSources.length !== 1 ? 's' : '' }} currently being crawled.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div class="space-y-2">
+                        <template v-for="source in crawlingSources" :key="source.id">
+                            <div class="flex items-center justify-between rounded-lg border p-3">
+                                <div class="flex min-w-0 flex-1 items-center gap-3">
+                                    <Globe class="text-muted-foreground h-5 w-5 flex-shrink-0" />
                                     <div class="min-w-0 flex-1">
-                                        <div class="flex items-center gap-2 mb-1">
-                                            <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
+                                        <div class="mb-1 flex items-center gap-2">
+                                            <span class="truncate font-medium">{{ source.name || getDomainFromUrl(source.url) }}</span>
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div class="flex items-center">
                                                             <component
                                                                 :is="getStatusIcon(source.status)"
-                                                                :class="`h-4 w-4 flex-shrink-0 ${getStatusColor(source.status)}`"
+                                                                :class="`h-4 w-4 flex-shrink-0 ${getStatusColor(source.status)} ${source.status === 'crawling' ? 'animate-spin' : ''}`"
                                                             />
                                                         </div>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        <p>{{ getStatusLabel(source.status) }}</p>
+                                                        <p>
+                                                            {{
+                                                                source.status === 'crawling'
+                                                                    ? 'Currently crawling...'
+                                                                    : source.status === 'pending'
+                                                                      ? 'Ready to crawl'
+                                                                      : 'Processing'
+                                                            }}
+                                                        </p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
                                         </div>
-                                        <div class="text-xs text-muted-foreground">
-                                            <a :href="source.url" target="_blank" class="hover:underline flex items-center gap-1">
+                                        <div class="text-muted-foreground text-xs">
+                                            <a :href="source.url" target="_blank" class="flex items-center gap-1 hover:underline">
                                                 {{ source.url }}
                                                 <ExternalLink class="h-3 w-3" />
                                             </a>
                                             <!-- Crawl criteria message -->
-                                            <div v-if="getCrawlCriteriaMessage(source)" class="text-xs text-blue-600 font-medium mt-1">
+                                            <div v-if="getCrawlCriteriaMessage(source)" class="mt-1 text-xs font-medium text-blue-600">
                                                 {{ getCrawlCriteriaMessage(source) }}
                                             </div>
                                             <div class="mt-1">
-                                                <span>
-                                                    Added {{ formatDate(source.created_at) }}
-                                                </span>
+                                                <span> Added {{ formatDate(source.created_at) }} </span>
                                             </div>
                                         </div>
                                     </div>
@@ -2332,7 +2008,7 @@ onUnmounted(() => {
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button
-                                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
+                                                    class="text-destructive hover:text-destructive/80 h-8 w-8 flex-shrink-0 p-0"
                                                     size="sm"
                                                     variant="ghost"
                                                     @click="confirmDeleteSource(source)"
@@ -2348,135 +2024,506 @@ onUnmounted(() => {
                                     </TooltipProvider>
                                 </div>
                             </div>
-                        </div>
-                    </template>
-                </div>
-            </CardContent>
-        </Card>
+                        </template>
+                    </div>
+                </CardContent>
+            </Card>
 
-        <!-- Training Websites -->
-        <Card v-if="trainingSources.length > 0">
-            <CardHeader>
-                <CardTitle class="flex items-center gap-2">
-                    <BrainIcon class="h-5 w-5" />
-                    Training
-                </CardTitle>
-                <CardDescription>
-                    {{ trainingSources.length }} website{{ trainingSources.length !== 1 ? 's' : '' }} currently being trained.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div class="space-y-2">
-                    <template v-for="source in trainingSources" :key="source.id">
-                        <div class="flex items-center justify-between border rounded-lg p-3">
-                            <div class="flex items-center gap-3 min-w-0 flex-1">
-                                <Globe class="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
+            <!-- Crawled Websites - Ready for Training -->
+            <Card v-if="crawledSources.length > 0">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <NetworkIcon class="h-5 w-5" />
+                        Crawled
+                    </CardTitle>
+                    <CardDescription>
+                        {{ crawledSources.length }} website{{ crawledSources.length !== 1 ? 's' : '' }} crawled and ready for training.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <!-- Selection controls -->
+                    <div class="bg-muted/30 mb-4 flex items-center justify-between rounded-lg p-3">
+                        <div class="flex items-center gap-3">
+                            <Checkbox
+                                :model-value="allCrawledWebsitesSelected"
+                                :indeterminate="someCrawledWebsitesSelected"
+                                @update:model-value="toggleSelectAllWebsites"
+                                id="select-all-websites"
+                                class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                            />
+                            <Label for="select-all-websites" class="cursor-pointer text-sm font-medium select-none">
+                                Select All Websites ({{ crawledSources.length }})
+                            </Label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-muted-foreground text-sm">
+                                <template v-if="selectedWebsiteCount > 0">
+                                    {{ selectedWebsiteCount }} selected ({{ selectedWebsitesTotalLinks }} link{{
+                                        selectedWebsitesTotalLinks !== 1 ? 's' : ''
+                                    }})
+                                </template>
+                                <template v-else> No websites selected </template>
+                            </span>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button @click="trainSelectedWebsites" :disabled="!canTrain || isTraining" size="sm">
+                                            <LoaderCircle v-if="isTraining" class="mr-2 h-4 w-4 animate-spin" />
+                                            <Database v-else class="mr-2 h-4 w-4" />
+                                            Train
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent v-if="!canTrain && selectedWebsiteCount > 0 && usageData">
+                                        <p>
+                                            Selected links ({{ selectedWebsitesTotalLinks }}) exceed your remaining quota ({{
+                                                usageData.links.remaining
+                                            }})
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <template v-for="source in crawledSources" :key="source.id">
+                            <Collapsible
+                                v-if="source.urls_count && source.urls_count > 0"
+                                v-slot="{ open }"
+                                class="rounded-lg border"
+                                @update:open="(isOpen) => handleCollapsibleToggle(source.id, isOpen)"
+                            >
+                                <div class="flex items-center justify-between p-3">
+                                    <div class="flex min-w-0 flex-1 items-center gap-3" @click.stop>
+                                        <Checkbox
+                                            :model-value="selectedWebsites.has(source.id)"
+                                            @update:model-value="(checked) => toggleWebsiteSelection(source.id, checked)"
+                                            :id="`website-${source.id}`"
+                                            class="data-[state=checked]:bg-primary data-[state=checked]:border-primary flex-shrink-0"
+                                        />
+                                        <Globe class="text-muted-foreground h-5 w-5 flex-shrink-0" />
+                                        <div class="min-w-0 flex-1">
+                                            <div class="mb-1 flex items-center gap-2">
+                                                <span class="truncate font-medium">{{ source.name || getDomainFromUrl(source.url) }}</span>
+
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Badge variant="secondary" class="text-xs"> {{ source.urls_count }} links </Badge>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{{ getStatusLabel(source.status) }}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+
+                                                <!-- Show warning if website cannot be selected -->
+                                                <TooltipProvider v-if="!canSelectWebsite(source.id) && !selectedWebsites.has(source.id) && usageData">
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Badge
+                                                                variant="outline"
+                                                                class="border-yellow-500 text-xs text-yellow-700 dark:text-yellow-400"
+                                                            >
+                                                                <AlertCircle class="mr-1 h-3 w-3" />
+                                                                {{ usageData.links.remaining <= 0 ? 'Upgrade required' : 'Exceeds quota' }}
+                                                            </Badge>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p v-if="usageData.links.remaining <= 0">
+                                                                You have no links remaining in your plan. Please upgrade to train this website.
+                                                            </p>
+                                                            <p v-else>
+                                                                This website has {{ source.urls_count }} links, which would exceed your remaining
+                                                                {{ usageData.links.remaining }} link{{ usageData.links.remaining !== 1 ? 's' : '' }}.
+                                                                Deselect other websites first or upgrade your plan.
+                                                            </p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <div class="text-muted-foreground text-xs">
+                                                <a :href="source.url" target="_blank" class="flex items-center gap-1 hover:underline">
+                                                    {{ source.url }}
+                                                    <ExternalLink class="h-3 w-3" />
+                                                </a>
+                                                <!-- Crawl criteria message -->
+                                                <div v-if="getCrawlCriteriaMessage(source)" class="mt-1 text-xs font-medium text-blue-600">
+                                                    {{ getCrawlCriteriaMessage(source) }}
+                                                </div>
+                                                <div class="mt-1">
+                                                    <span> Added {{ formatDate(source.created_at) }} </span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="text-xs text-muted-foreground">
-                                        <a :href="source.url" target="_blank" class="hover:underline flex items-center gap-1">
-                                            {{ source.url }}
-                                            <ExternalLink class="h-3 w-3" />
-                                        </a>
-                                        <div class="mt-1">
-                                            <span>
-                                                Added {{ formatDate(source.created_at) }}
-                                            </span>
+                                    <div class="flex items-center gap-1">
+                                        <!-- Collapsible Trigger for discovered links -->
+                                        <CollapsibleTrigger asChild>
+                                            <Button
+                                                class="text-muted-foreground hover:text-foreground h-8 w-8 flex-shrink-0 p-0"
+                                                size="sm"
+                                                variant="ghost"
+                                            >
+                                                <span class="sr-only">{{ open ? 'Collapse' : 'Expand' }} discovered links</span>
+                                                <ChevronUp v-if="open" class="h-4 w-4" />
+                                                <ChevronDown v-else class="h-4 w-4" />
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        class="text-destructive hover:text-destructive/80 h-8 w-8 flex-shrink-0 p-0"
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        @click="confirmDeleteSource(source)"
+                                                    >
+                                                        <span class="sr-only">Remove source</span>
+                                                        <Trash2 class="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Delete web source</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </div>
+                                </div>
+
+                                <!-- Collapsible Content for discovered links -->
+                                <CollapsibleContent>
+                                    <div class="bg-muted/20 border-t p-3">
+                                        <!-- Header with search and controls -->
+                                        <div class="mb-3 flex items-center justify-between">
+                                            <div class="text-muted-foreground text-sm font-medium">
+                                                Discovered Links
+                                                <span v-if="linkSearchQueries.get(source.id)?.trim()" class="ml-1 text-xs text-blue-600"
+                                                    >(filtered)</span
+                                                >
+                                            </div>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                @click="deleteSelectedLinks(source.id)"
+                                                :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
+                                                class="h-7 text-xs"
+                                            >
+                                                <Trash2 class="mr-1 h-3 w-3" />
+                                                Delete selected links
+                                            </Button>
                                         </div>
 
-                                        <!-- Progress Bar -->
-                                        <IngestionProgressBar
-                                            v-if="source.status === 'ingesting'"
-                                            :progress="source.progress ?? 0"
+                                        <!-- Search box -->
+                                        <div v-if="source.discovered_links" class="mb-3">
+                                            <Input
+                                                :value="linkSearchQueries.get(source.id) || ''"
+                                                @input="(e: Event) => updateSearchQuery(source.id, (e.target as HTMLInputElement).value)"
+                                                placeholder="Search links..."
+                                                class="h-8 text-xs"
+                                            />
+                                        </div>
+
+                                        <!-- Select all checkbox -->
+                                        <div v-if="source.discovered_links" class="bg-background mb-3 flex items-center gap-2 rounded border p-2">
+                                            <Checkbox
+                                                :model-value="getSelectionState(source.id, source.discovered_links).allSelected"
+                                                :indeterminate="getSelectionState(source.id, source.discovered_links).someSelected"
+                                                @update:model-value="
+                                                    (checked) => toggleSelectAllLinks(source.id, source.discovered_links || [], checked)
+                                                "
+                                                :id="`select-all-${source.id}`"
+                                                class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                            />
+                                            <Label :for="`select-all-${source.id}`" class="cursor-pointer text-xs font-medium select-none">
+                                                Select All on Page ({{ source.discovered_links.length }})
+                                            </Label>
+                                        </div>
+
+                                        <!-- Links list with infinite scroll -->
+                                        <ScrollArea class="h-72 w-full rounded-md border">
+                                            <div class="p-4">
+                                                <!-- Initial loading state -->
+                                                <div
+                                                    v-if="!source.discovered_links || linksPagination.get(source.id)?.isLoading"
+                                                    class="flex items-center justify-center py-8"
+                                                >
+                                                    <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
+                                                    <span class="text-muted-foreground ml-2 text-sm">Loading links...</span>
+                                                </div>
+
+                                                <!-- Links loaded -->
+                                                <div v-else class="space-y-2">
+                                                    <div
+                                                        v-for="link in getFilteredLinks(source.id, source.discovered_links)"
+                                                        :key="link.link"
+                                                        class="bg-background hover:bg-muted/50 group flex items-start gap-2 rounded border p-2 text-xs transition-colors"
+                                                    >
+                                                        <!-- Checkbox -->
+                                                        <Checkbox
+                                                            :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
+                                                            @update:model-value="(checked) => toggleLinkSelection(source.id, link.id, checked)"
+                                                            :id="`link-${source.id}-${link.id}`"
+                                                            class="data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5"
+                                                        />
+                                                        <ExternalLink class="text-muted-foreground mt-0.5 h-3 w-3 flex-shrink-0" />
+                                                        <div class="min-w-0 flex-1">
+                                                            <a
+                                                                :href="link.link"
+                                                                target="_blank"
+                                                                class="text-foreground hover:text-primary block truncate text-sm hover:underline"
+                                                                @click.stop
+                                                            >
+                                                                {{ link.link }}
+                                                            </a>
+                                                        </div>
+                                                        <!-- Individual delete button -->
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            @click="deleteLink(source.id, link.id)"
+                                                            class="text-destructive hover:text-destructive/80 h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                                                        >
+                                                            <Trash2 class="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+
+                                                    <!-- No results message -->
+                                                    <div
+                                                        v-if="getFilteredLinks(source.id, source.discovered_links).length === 0"
+                                                        class="text-muted-foreground py-4 text-center text-xs"
+                                                    >
+                                                        No links match your search
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </ScrollArea>
+
+                                        <!-- Pagination Controls -->
+                                        <div v-if="linksPagination.get(source.id)" class="mt-3 flex items-center justify-between px-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                @click="loadPrevPage(source.id)"
+                                                :disabled="!linksPagination.get(source.id)?.hasPrevPage || linksPagination.get(source.id)?.isLoading"
+                                                class="h-8"
+                                            >
+                                                <ChevronRight class="mr-1 h-4 w-4 rotate-180" />
+                                                Previous
+                                            </Button>
+                                            <span class="text-muted-foreground text-xs">
+                                                Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
+                                            </span>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                @click="loadNextPage(source.id)"
+                                                :disabled="!linksPagination.get(source.id)?.hasNextPage || linksPagination.get(source.id)?.isLoading"
+                                                class="h-8"
+                                            >
+                                                Next
+                                                <ChevronRight class="ml-1 h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CollapsibleContent>
+                            </Collapsible>
+
+                            <!-- Sources without links (simplified display) -->
+                            <div v-else class="rounded-lg border p-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex min-w-0 flex-1 items-center gap-3">
+                                        <Checkbox
+                                            :model-value="selectedWebsites.has(source.id)"
+                                            @update:model-value="(checked) => toggleWebsiteSelection(source.id, checked)"
+                                            :id="`website-simple-${source.id}`"
+                                            class="data-[state=checked]:bg-primary data-[state=checked]:border-primary flex-shrink-0"
                                         />
+                                        <Globe class="text-muted-foreground h-5 w-5 flex-shrink-0" />
+                                        <div class="min-w-0 flex-1">
+                                            <div class="mb-1 flex items-center gap-2">
+                                                <span class="truncate font-medium">{{ source.name || getDomainFromUrl(source.url) }}</span>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div class="flex items-center">
+                                                                <component
+                                                                    :is="getStatusIcon(source.status)"
+                                                                    :class="`h-4 w-4 flex-shrink-0 ${getStatusColor(source.status)}`"
+                                                                />
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{{ getStatusLabel(source.status) }}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <div class="text-muted-foreground text-xs">
+                                                <a :href="source.url" target="_blank" class="flex items-center gap-1 hover:underline">
+                                                    {{ source.url }}
+                                                    <ExternalLink class="h-3 w-3" />
+                                                </a>
+                                                <!-- Crawl criteria message -->
+                                                <div v-if="getCrawlCriteriaMessage(source)" class="mt-1 text-xs font-medium text-blue-600">
+                                                    {{ getCrawlCriteriaMessage(source) }}
+                                                </div>
+                                                <div class="mt-1">
+                                                    <span> Added {{ formatDate(source.created_at) }} </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        class="text-destructive hover:text-destructive/80 h-8 w-8 flex-shrink-0 p-0"
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        @click="confirmDeleteSource(source)"
+                                                    >
+                                                        <span class="sr-only">Remove source</span>
+                                                        <Trash2 class="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Delete web source</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-1">
-                                <!-- View Links Button -->
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
-                                                size="sm"
-                                                variant="ghost"
-                                                @click="openLinksDialog(source)"
-                                            >
-                                                <Link2 class="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>View all links</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
-                                                size="sm"
-                                                variant="ghost"
-                                                @click="confirmDeleteSource(source)"
-                                            >
-                                                <span class="sr-only">Remove source</span>
-                                                <Trash2 class="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Delete website (will cancel training)</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </CardContent>
-        </Card>
+                        </template>
+                    </div>
+                </CardContent>
+            </Card>
 
-        <!-- Trained Knowledge Base -->
-        <Card>
-            <CardHeader>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <CardTitle class="flex items-center gap-2">
-                            <Database class="h-5 w-5" />
-                            Trained
-                        </CardTitle>
-                        <CardDescription>
-                            Websites trained and available to your agent. {{ completedSources.length }} website{{ completedSources.length !== 1 ? 's' : '' }} in total.
-                        </CardDescription>
+            <!-- Training Websites -->
+            <Card v-if="trainingSources.length > 0">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <BrainIcon class="h-5 w-5" />
+                        Training
+                    </CardTitle>
+                    <CardDescription>
+                        {{ trainingSources.length }} website{{ trainingSources.length !== 1 ? 's' : '' }} currently being trained.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div class="space-y-2">
+                        <template v-for="source in trainingSources" :key="source.id">
+                            <div class="flex items-center justify-between rounded-lg border p-3">
+                                <div class="flex min-w-0 flex-1 items-center gap-3">
+                                    <Globe class="text-muted-foreground h-5 w-5 flex-shrink-0" />
+                                    <div class="min-w-0 flex-1">
+                                        <div class="mb-1 flex items-center gap-2">
+                                            <span class="truncate font-medium">{{ source.name || getDomainFromUrl(source.url) }}</span>
+                                        </div>
+                                        <div class="text-muted-foreground text-xs">
+                                            <a :href="source.url" target="_blank" class="flex items-center gap-1 hover:underline">
+                                                {{ source.url }}
+                                                <ExternalLink class="h-3 w-3" />
+                                            </a>
+                                            <div class="mt-1">
+                                                <span> Added {{ formatDate(source.created_at) }} </span>
+                                            </div>
+
+                                            <!-- Progress Bar -->
+                                            <IngestionProgressBar v-if="source.status === 'ingesting'" :progress="source.progress ?? 0" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <!-- View Links Button -->
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    class="text-muted-foreground hover:text-foreground h-8 w-8 flex-shrink-0 p-0"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    @click="openLinksDialog(source)"
+                                                >
+                                                    <Link2 class="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>View all links</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    class="text-destructive hover:text-destructive/80 h-8 w-8 flex-shrink-0 p-0"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    @click="confirmDeleteSource(source)"
+                                                >
+                                                    <span class="sr-only">Remove source</span>
+                                                    <Trash2 class="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Delete website (will cancel training)</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                            </div>
+                        </template>
                     </div>
-                    <Button @click="openAttachWebsiteDialog" variant="outline" size="sm" class="flex items-center gap-2">
-                        <Link2 class="h-4 w-4" />
-                        Link Website
-                    </Button>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <div class="space-y-4">
-                    <div v-if="isLoadingSources && isInitialLoad" class="p-4 text-center text-muted-foreground">
-                        <LoaderCircle class="mx-auto h-6 w-6 animate-spin mb-2" />
-                        Loading web sources...
+                </CardContent>
+            </Card>
+
+            <!-- Trained Knowledge Base -->
+            <Card>
+                <CardHeader>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <CardTitle class="flex items-center gap-2">
+                                <Database class="h-5 w-5" />
+                                Trained
+                            </CardTitle>
+                            <CardDescription>
+                                Websites trained and available to your agent. {{ completedSources.length }} website{{
+                                    completedSources.length !== 1 ? 's' : ''
+                                }}
+                                in total.
+                            </CardDescription>
+                        </div>
+                        <Button @click="openAttachWebsiteDialog" variant="outline" size="sm" class="flex items-center gap-2">
+                            <Link2 class="h-4 w-4" />
+                            Link Website
+                        </Button>
                     </div>
-                    <div v-else-if="completedSources.length === 0" class="p-4 text-center text-muted-foreground">
-                        No websites in knowledge base yet
-                    </div>
-                    <template v-else>
-                        <ScrollArea v-if="completedSources.length > 5" class="h-[400px] pr-4">
-                            <div class="space-y-2">
-                                <template v-for="source in completedSources" :key="source.id">
-                                    <div class="border rounded-lg">
+                </CardHeader>
+                <CardContent>
+                    <div class="space-y-4">
+                        <div v-if="isLoadingSources && isInitialLoad" class="text-muted-foreground p-4 text-center">
+                            <LoaderCircle class="mx-auto mb-2 h-6 w-6 animate-spin" />
+                            Loading web sources...
+                        </div>
+                        <div v-else-if="completedSources.length === 0" class="text-muted-foreground p-4 text-center">
+                            No websites in knowledge base yet
+                        </div>
+                        <template v-else>
+                            <ScrollArea v-if="completedSources.length > 5" class="h-[400px] pr-4">
+                                <div class="space-y-2">
+                                    <template v-for="source in completedSources" :key="source.id">
+                                        <div class="rounded-lg border">
                                             <div class="flex items-center justify-between p-3">
-                                                <div class="flex items-center gap-3 min-w-0 flex-1">
-                                                    <Globe class="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                                <div class="flex min-w-0 flex-1 items-center gap-3">
+                                                    <Globe class="text-muted-foreground h-5 w-5 flex-shrink-0" />
                                                     <div class="min-w-0 flex-1">
-                                                        <div class="flex items-center gap-2 mb-1">
-                                                            <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
+                                                        <div class="mb-1 flex items-center gap-2">
+                                                            <span class="truncate font-medium">{{
+                                                                source.name || getDomainFromUrl(source.url)
+                                                            }}</span>
                                                             <TooltipProvider>
                                                                 <Tooltip>
                                                                     <TooltipTrigger asChild>
@@ -2493,16 +2540,13 @@ onUnmounted(() => {
                                                                 </Tooltip>
                                                             </TooltipProvider>
                                                         </div>
-                                                        <div class="text-xs text-muted-foreground">
-                                                            <a :href="source.url" target="_blank" class="hover:underline flex items-center gap-1">
+                                                        <div class="text-muted-foreground text-xs">
+                                                            <a :href="source.url" target="_blank" class="flex items-center gap-1 hover:underline">
                                                                 {{ source.url }}
                                                                 <ExternalLink class="h-3 w-3" />
                                                             </a>
                                                             <div class="mt-1">
-                                                                <span>
-                                                                    Added {{ formatDate(source.created_at) }}
-                                                                </span>
-
+                                                                <span> Added {{ formatDate(source.created_at) }} </span>
                                                             </div>
                                                         </div>
                                                         <!-- Error message for failed sources -->
@@ -2521,7 +2565,7 @@ onUnmounted(() => {
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <Button
-                                                                    class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                                                                    class="text-muted-foreground hover:text-foreground h-8 w-8 flex-shrink-0 p-0"
                                                                     size="sm"
                                                                     variant="ghost"
                                                                     @click="openLinksDialog(source)"
@@ -2539,7 +2583,7 @@ onUnmounted(() => {
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <Button
-                                                                    class="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 flex-shrink-0"
+                                                                    class="h-8 w-8 flex-shrink-0 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
                                                                     size="sm"
                                                                     variant="ghost"
                                                                     @click="openRetrainDialog(source.id)"
@@ -2555,12 +2599,14 @@ onUnmounted(() => {
                                                     <!-- Expand/Collapse button for completed sources with links -->
                                                     <Button
                                                         v-if="source.discovered_links && source.discovered_links.length > 0"
-                                                        class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                                                        class="text-muted-foreground hover:text-foreground h-8 w-8 flex-shrink-0 p-0"
                                                         size="sm"
                                                         variant="ghost"
                                                         @click="toggleSourceExpansion(source.id)"
                                                     >
-                                                        <span class="sr-only">{{ expandedSources.get(source.id) ? 'Collapse' : 'Expand' }} discovered links</span>
+                                                        <span class="sr-only"
+                                                            >{{ expandedSources.get(source.id) ? 'Collapse' : 'Expand' }} discovered links</span
+                                                        >
                                                         <ChevronDown v-if="expandedSources.get(source.id)" class="h-4 w-4" />
                                                         <ChevronRight v-else class="h-4 w-4" />
                                                     </Button>
@@ -2568,7 +2614,7 @@ onUnmounted(() => {
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <Button
-                                                                    class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
+                                                                    class="text-destructive hover:text-destructive/80 h-8 w-8 flex-shrink-0 p-0"
                                                                     size="sm"
                                                                     variant="ghost"
                                                                     @click="confirmDeleteSource(source)"
@@ -2586,14 +2632,21 @@ onUnmounted(() => {
                                             </div>
 
                                             <!-- Collapsible content for discovered links -->
-                                            <div v-if="source.discovered_links && source.discovered_links.length > 0 && expandedSources.get(source.id)" class="debug-collapsible">
-                                                <div class="border-t bg-muted/20">
+                                            <div
+                                                v-if="source.discovered_links && source.discovered_links.length > 0 && expandedSources.get(source.id)"
+                                                class="debug-collapsible"
+                                            >
+                                                <div class="bg-muted/20 border-t">
                                                     <div class="p-3">
                                                         <!-- Header with search and controls -->
-                                                        <div class="flex items-center justify-between mb-3">
-                                                            <div class="text-sm font-medium text-muted-foreground">
+                                                        <div class="mb-3 flex items-center justify-between">
+                                                            <div class="text-muted-foreground text-sm font-medium">
                                                                 Discovered Links
-                                                                <span v-if="linkSearchQueries.get(source.id)?.trim()" class="text-xs text-blue-600 ml-1">(filtered)</span>
+                                                                <span
+                                                                    v-if="linkSearchQueries.get(source.id)?.trim()"
+                                                                    class="ml-1 text-xs text-blue-600"
+                                                                    >(filtered)</span
+                                                                >
                                                             </div>
                                                             <Button
                                                                 variant="destructive"
@@ -2602,7 +2655,7 @@ onUnmounted(() => {
                                                                 :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
                                                                 class="h-7 text-xs"
                                                             >
-                                                                <Trash2 class="h-3 w-3 mr-1" />
+                                                                <Trash2 class="mr-1 h-3 w-3" />
                                                                 Delete selected links
                                                             </Button>
                                                         </div>
@@ -2611,22 +2664,30 @@ onUnmounted(() => {
                                                         <div class="mb-3">
                                                             <Input
                                                                 :value="linkSearchQueries.get(source.id) || ''"
-                                                                @input="(e: Event) => updateSearchQuery(source.id, (e.target as HTMLInputElement).value)"
+                                                                @input="
+                                                                    (e: Event) => updateSearchQuery(source.id, (e.target as HTMLInputElement).value)
+                                                                "
                                                                 placeholder="Search links..."
                                                                 class="h-8 text-xs"
                                                             />
                                                         </div>
 
                                                         <!-- Select all checkbox -->
-                                                        <div class="flex items-center gap-2 mb-3 p-2 bg-background rounded border">
+                                                        <div class="bg-background mb-3 flex items-center gap-2 rounded border p-2">
                                                             <Checkbox
                                                                 :model-value="getSelectionState(source.id, source.discovered_links).allSelected"
                                                                 :indeterminate="getSelectionState(source.id, source.discovered_links).someSelected"
-                                                                @update:model-value="(checked) => toggleSelectAllLinks(source.id, source.discovered_links || [], checked)"
+                                                                @update:model-value="
+                                                                    (checked) =>
+                                                                        toggleSelectAllLinks(source.id, source.discovered_links || [], checked)
+                                                                "
                                                                 id="`select-all-${source.id}`"
                                                                 class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                             />
-                                                            <Label :for="`select-all-${source.id}`" class="text-xs font-medium cursor-pointer select-none">
+                                                            <Label
+                                                                :for="`select-all-${source.id}`"
+                                                                class="cursor-pointer text-xs font-medium select-none"
+                                                            >
                                                                 Select All on Page ({{ source.discovered_links.length }})
                                                             </Label>
                                                         </div>
@@ -2635,29 +2696,34 @@ onUnmounted(() => {
                                                         <ScrollArea class="h-72 w-full rounded-md border">
                                                             <div class="p-4">
                                                                 <!-- Loading state -->
-                                                                <div v-if="linksPagination.get(source.id)?.isLoading" class="flex items-center justify-center py-8">
-                                                                    <LoaderCircle class="h-6 w-6 animate-spin text-muted-foreground" />
-                                                                    <span class="ml-2 text-sm text-muted-foreground">Loading links...</span>
+                                                                <div
+                                                                    v-if="linksPagination.get(source.id)?.isLoading"
+                                                                    class="flex items-center justify-center py-8"
+                                                                >
+                                                                    <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
+                                                                    <span class="text-muted-foreground ml-2 text-sm">Loading links...</span>
                                                                 </div>
 
                                                                 <div v-else class="space-y-2">
                                                                     <div
                                                                         v-for="link in getFilteredLinks(source.id, source.discovered_links)"
                                                                         :key="link.link"
-                                                                        class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors group"
+                                                                        class="bg-background hover:bg-muted/50 group flex items-start gap-2 rounded border p-2 text-xs transition-colors"
                                                                     >
                                                                         <Checkbox
                                                                             :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
-                                                                            @update:model-value="(checked) => toggleLinkSelection(source.id, link.id, checked)"
+                                                                            @update:model-value="
+                                                                                (checked) => toggleLinkSelection(source.id, link.id, checked)
+                                                                            "
                                                                             :id="`link-${source.id}-${link.id}`"
-                                                                            class="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                                            class="data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5"
                                                                         />
-                                                                        <ExternalLink class="h-3 w-3 mt-0.5 text-muted-foreground flex-shrink-0" />
+                                                                        <ExternalLink class="text-muted-foreground mt-0.5 h-3 w-3 flex-shrink-0" />
                                                                         <div class="min-w-0 flex-1">
                                                                             <a
                                                                                 :href="link.link"
                                                                                 target="_blank"
-                                                                                class="text-foreground hover:text-primary hover:underline truncate block text-sm"
+                                                                                class="text-foreground hover:text-primary block truncate text-sm hover:underline"
                                                                                 @click.stop
                                                                             >
                                                                                 {{ link.link }}
@@ -2668,14 +2734,17 @@ onUnmounted(() => {
                                                                             variant="ghost"
                                                                             size="sm"
                                                                             @click="deleteLink(source.id, link.id)"
-                                                                            class="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
+                                                                            class="text-destructive hover:text-destructive/80 h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
                                                                         >
                                                                             <Trash2 class="h-3 w-3" />
                                                                         </Button>
                                                                     </div>
 
                                                                     <!-- No results message -->
-                                                                    <div v-if="getFilteredLinks(source.id, source.discovered_links || []).length === 0" class="text-center py-4 text-muted-foreground text-xs">
+                                                                    <div
+                                                                        v-if="getFilteredLinks(source.id, source.discovered_links || []).length === 0"
+                                                                        class="text-muted-foreground py-4 text-center text-xs"
+                                                                    >
                                                                         No links match your search
                                                                     </div>
                                                                 </div>
@@ -2683,47 +2752,56 @@ onUnmounted(() => {
                                                         </ScrollArea>
 
                                                         <!-- Pagination Controls -->
-                                                        <div v-if="linksPagination.get(source.id)" class="flex items-center justify-between mt-3 px-2">
+                                                        <div
+                                                            v-if="linksPagination.get(source.id)"
+                                                            class="mt-3 flex items-center justify-between px-2"
+                                                        >
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
                                                                 @click="loadPrevPage(source.id)"
-                                                                :disabled="!linksPagination.get(source.id)?.hasPrevPage || linksPagination.get(source.id)?.isLoading"
+                                                                :disabled="
+                                                                    !linksPagination.get(source.id)?.hasPrevPage ||
+                                                                    linksPagination.get(source.id)?.isLoading
+                                                                "
                                                                 class="h-8"
                                                             >
-                                                                <ChevronRight class="h-4 w-4 rotate-180 mr-1" />
+                                                                <ChevronRight class="mr-1 h-4 w-4 rotate-180" />
                                                                 Previous
                                                             </Button>
-                                                            <span class="text-xs text-muted-foreground">
+                                                            <span class="text-muted-foreground text-xs">
                                                                 Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
                                                             </span>
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
                                                                 @click="loadNextPage(source.id)"
-                                                                :disabled="!linksPagination.get(source.id)?.hasNextPage || linksPagination.get(source.id)?.isLoading"
+                                                                :disabled="
+                                                                    !linksPagination.get(source.id)?.hasNextPage ||
+                                                                    linksPagination.get(source.id)?.isLoading
+                                                                "
                                                                 class="h-8"
                                                             >
                                                                 Next
-                                                                <ChevronRight class="h-4 w-4 ml-1" />
+                                                                <ChevronRight class="ml-1 h-4 w-4" />
                                                             </Button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                </template>
-                            </div>
-                        </ScrollArea>
-                        <div v-else class="space-y-2">
-                            <template v-for="source in completedSources" :key="source.id">
-                                <div class="border rounded-lg">
+                                    </template>
+                                </div>
+                            </ScrollArea>
+                            <div v-else class="space-y-2">
+                                <template v-for="source in completedSources" :key="source.id">
+                                    <div class="rounded-lg border">
                                         <div class="flex items-center justify-between p-3">
-                                            <div class="flex items-center gap-3 min-w-0 flex-1">
-                                                <Globe class="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                            <div class="flex min-w-0 flex-1 items-center gap-3">
+                                                <Globe class="text-muted-foreground h-5 w-5 flex-shrink-0" />
                                                 <div class="min-w-0 flex-1">
-                                                    <div class="flex items-center gap-2 mb-1">
-                                                        <span class="font-medium truncate">{{ source.name || getDomainFromUrl(source.url) }}</span>
+                                                    <div class="mb-1 flex items-center gap-2">
+                                                        <span class="truncate font-medium">{{ source.name || getDomainFromUrl(source.url) }}</span>
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
@@ -2740,15 +2818,13 @@ onUnmounted(() => {
                                                             </Tooltip>
                                                         </TooltipProvider>
                                                     </div>
-                                                    <div class="text-xs text-muted-foreground">
-                                                        <a :href="source.url" target="_blank" class="hover:underline flex items-center gap-1">
+                                                    <div class="text-muted-foreground text-xs">
+                                                        <a :href="source.url" target="_blank" class="flex items-center gap-1 hover:underline">
                                                             {{ source.url }}
                                                             <ExternalLink class="h-3 w-3" />
                                                         </a>
                                                         <div class="mt-1">
-                                                            <span>
-                                                                Added {{ formatDate(source.created_at) }}
-                                                            </span>
+                                                            <span> Added {{ formatDate(source.created_at) }} </span>
                                                         </div>
                                                     </div>
                                                     <!-- Error message for failed sources -->
@@ -2767,7 +2843,7 @@ onUnmounted(() => {
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button
-                                                                class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                                                                class="text-muted-foreground hover:text-foreground h-8 w-8 flex-shrink-0 p-0"
                                                                 size="sm"
                                                                 variant="ghost"
                                                                 @click="openLinksDialog(source)"
@@ -2785,7 +2861,7 @@ onUnmounted(() => {
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button
-                                                                class="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 flex-shrink-0"
+                                                                class="h-8 w-8 flex-shrink-0 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
                                                                 size="sm"
                                                                 variant="ghost"
                                                                 @click="openRetrainDialog(source.id)"
@@ -2801,12 +2877,14 @@ onUnmounted(() => {
                                                 <!-- Expand/Collapse button for completed sources with links -->
                                                 <Button
                                                     v-if="source.discovered_links && source.discovered_links.length > 0"
-                                                    class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                                                    class="text-muted-foreground hover:text-foreground h-8 w-8 flex-shrink-0 p-0"
                                                     size="sm"
                                                     variant="ghost"
                                                     @click="toggleSourceExpansion(source.id)"
                                                 >
-                                                    <span class="sr-only">{{ expandedSources.get(source.id) ? 'Collapse' : 'Expand' }} discovered links</span>
+                                                    <span class="sr-only"
+                                                        >{{ expandedSources.get(source.id) ? 'Collapse' : 'Expand' }} discovered links</span
+                                                    >
                                                     <ChevronDown v-if="expandedSources.get(source.id)" class="h-4 w-4" />
                                                     <ChevronRight v-else class="h-4 w-4" />
                                                 </Button>
@@ -2814,7 +2892,7 @@ onUnmounted(() => {
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button
-                                                                class="h-8 w-8 p-0 text-destructive hover:text-destructive/80 flex-shrink-0"
+                                                                class="text-destructive hover:text-destructive/80 h-8 w-8 flex-shrink-0 p-0"
                                                                 size="sm"
                                                                 variant="ghost"
                                                                 @click="confirmDeleteSource(source)"
@@ -2833,13 +2911,15 @@ onUnmounted(() => {
 
                                         <!-- Collapsible content for discovered links -->
                                         <div v-if="source.discovered_links && source.discovered_links.length > 0 && expandedSources.get(source.id)">
-                                            <div class="border-t bg-muted/20">
+                                            <div class="bg-muted/20 border-t">
                                                 <div class="p-3">
                                                     <!-- Header with search and controls -->
-                                                    <div class="flex items-center justify-between mb-3">
-                                                        <div class="text-sm font-medium text-muted-foreground">
+                                                    <div class="mb-3 flex items-center justify-between">
+                                                        <div class="text-muted-foreground text-sm font-medium">
                                                             Discovered Links
-                                                            <span v-if="linkSearchQueries.get(source.id)?.trim()" class="text-xs text-blue-600 ml-1">(filtered)</span>
+                                                            <span v-if="linkSearchQueries.get(source.id)?.trim()" class="ml-1 text-xs text-blue-600"
+                                                                >(filtered)</span
+                                                            >
                                                         </div>
                                                         <Button
                                                             variant="destructive"
@@ -2848,7 +2928,7 @@ onUnmounted(() => {
                                                             :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
                                                             class="h-7 text-xs"
                                                         >
-                                                            <Trash2 class="h-3 w-3 mr-1" />
+                                                            <Trash2 class="mr-1 h-3 w-3" />
                                                             Delete selected links
                                                         </Button>
                                                     </div>
@@ -2864,15 +2944,20 @@ onUnmounted(() => {
                                                     </div>
 
                                                     <!-- Select all checkbox -->
-                                                    <div class="flex items-center gap-2 mb-3 p-2 bg-background rounded border">
+                                                    <div class="bg-background mb-3 flex items-center gap-2 rounded border p-2">
                                                         <Checkbox
                                                             :model-value="getSelectionState(source.id, source.discovered_links).allSelected"
                                                             :indeterminate="getSelectionState(source.id, source.discovered_links).someSelected"
-                                                            @update:model-value="(checked) => toggleSelectAllLinks(source.id, source.discovered_links || [], checked)"
+                                                            @update:model-value="
+                                                                (checked) => toggleSelectAllLinks(source.id, source.discovered_links || [], checked)
+                                                            "
                                                             :id="`select-all-${source.id}`"
                                                             class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                         />
-                                                        <Label :for="`select-all-${source.id}`" class="text-xs font-medium cursor-pointer select-none">
+                                                        <Label
+                                                            :for="`select-all-${source.id}`"
+                                                            class="cursor-pointer text-xs font-medium select-none"
+                                                        >
                                                             Select All on Page ({{ source.discovered_links.length }})
                                                         </Label>
                                                     </div>
@@ -2881,29 +2966,34 @@ onUnmounted(() => {
                                                     <ScrollArea class="h-72 w-full rounded-md border">
                                                         <div class="p-4">
                                                             <!-- Loading state -->
-                                                            <div v-if="linksPagination.get(source.id)?.isLoading" class="flex items-center justify-center py-8">
-                                                                <LoaderCircle class="h-6 w-6 animate-spin text-muted-foreground" />
-                                                                <span class="ml-2 text-sm text-muted-foreground">Loading links...</span>
+                                                            <div
+                                                                v-if="linksPagination.get(source.id)?.isLoading"
+                                                                class="flex items-center justify-center py-8"
+                                                            >
+                                                                <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
+                                                                <span class="text-muted-foreground ml-2 text-sm">Loading links...</span>
                                                             </div>
 
                                                             <div v-else class="space-y-2">
                                                                 <div
                                                                     v-for="link in getFilteredLinks(source.id, source.discovered_links)"
                                                                     :key="link.link"
-                                                                    class="flex items-start gap-2 p-2 bg-background rounded border text-xs hover:bg-muted/50 transition-colors group"
+                                                                    class="bg-background hover:bg-muted/50 group flex items-start gap-2 rounded border p-2 text-xs transition-colors"
                                                                 >
                                                                     <Checkbox
                                                                         :model-value="(selectedLinks.get(source.id) || new Set()).has(link.id)"
-                                                                        @update:model-value="(checked) => toggleLinkSelection(source.id, link.id, checked)"
+                                                                        @update:model-value="
+                                                                            (checked) => toggleLinkSelection(source.id, link.id, checked)
+                                                                        "
                                                                         :id="`link-${source.id}-${link.id}`"
-                                                                        class="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                                        class="data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5"
                                                                     />
-                                                                    <ExternalLink class="h-3 w-3 mt-0.5 text-muted-foreground flex-shrink-0" />
+                                                                    <ExternalLink class="text-muted-foreground mt-0.5 h-3 w-3 flex-shrink-0" />
                                                                     <div class="min-w-0 flex-1">
                                                                         <a
                                                                             :href="link.link"
                                                                             target="_blank"
-                                                                            class="text-foreground hover:text-primary hover:underline truncate block text-sm"
+                                                                            class="text-foreground hover:text-primary block truncate text-sm hover:underline"
                                                                             @click.stop
                                                                         >
                                                                             {{ link.link }}
@@ -2914,14 +3004,17 @@ onUnmounted(() => {
                                                                         variant="ghost"
                                                                         size="sm"
                                                                         @click="deleteLink(source.id, link.id)"
-                                                                        class="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
+                                                                        class="text-destructive hover:text-destructive/80 h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
                                                                     >
                                                                         <Trash2 class="h-3 w-3" />
                                                                     </Button>
                                                                 </div>
 
                                                                 <!-- No results message -->
-                                                                <div v-if="getFilteredLinks(source.id, source.discovered_links).length === 0" class="text-center py-4 text-muted-foreground text-xs">
+                                                                <div
+                                                                    v-if="getFilteredLinks(source.id, source.discovered_links).length === 0"
+                                                                    class="text-muted-foreground py-4 text-center text-xs"
+                                                                >
                                                                     No links match your search
                                                                 </div>
                                                             </div>
@@ -2929,357 +3022,347 @@ onUnmounted(() => {
                                                     </ScrollArea>
 
                                                     <!-- Pagination Controls -->
-                                                    <div v-if="linksPagination.get(source.id)" class="flex items-center justify-between mt-3 px-2">
+                                                    <div v-if="linksPagination.get(source.id)" class="mt-3 flex items-center justify-between px-2">
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
                                                             @click="loadPrevPage(source.id)"
-                                                            :disabled="!linksPagination.get(source.id)?.hasPrevPage || linksPagination.get(source.id)?.isLoading"
+                                                            :disabled="
+                                                                !linksPagination.get(source.id)?.hasPrevPage ||
+                                                                linksPagination.get(source.id)?.isLoading
+                                                            "
                                                             class="h-8"
                                                         >
-                                                            <ChevronRight class="h-4 w-4 rotate-180 mr-1" />
+                                                            <ChevronRight class="mr-1 h-4 w-4 rotate-180" />
                                                             Previous
                                                         </Button>
-                                                        <span class="text-xs text-muted-foreground">
+                                                        <span class="text-muted-foreground text-xs">
                                                             Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
                                                         </span>
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
                                                             @click="loadNextPage(source.id)"
-                                                            :disabled="!linksPagination.get(source.id)?.hasNextPage || linksPagination.get(source.id)?.isLoading"
+                                                            :disabled="
+                                                                !linksPagination.get(source.id)?.hasNextPage ||
+                                                                linksPagination.get(source.id)?.isLoading
+                                                            "
                                                             class="h-8"
                                                         >
                                                             Next
-                                                            <ChevronRight class="h-4 w-4 ml-1" />
+                                                            <ChevronRight class="ml-1 h-4 w-4" />
                                                         </Button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                            </template>
-                        </div>
-                    </template>
-                </div>
-            </CardContent>
-        </Card>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </CardContent>
+            </Card>
 
-    <!-- Delete/Unlink Confirmation Dialog -->
-    <Dialog v-model:open="deleteDialogOpen">
-        <DialogContent v-if="sourceToDelete" class="max-w-2xl">
-            <DialogHeader>
-                <DialogTitle>{{ sourceToDelete.name || getDomainFromUrl(sourceToDelete.url) }}</DialogTitle>
-                <DialogDescription>
-                    <span v-if="isWebsiteShared(sourceToDelete)">
-                        This website is used in <strong>{{ sourceToDelete.agents_count }} agents</strong>.
-                        You can unlink it from this agent or permanently delete it from all agents.
-                    </span>
-                    <span v-else-if="sourceToDelete.status === 'ingesting' || sourceToDelete.status === 'crawling'">
-                        This website is currently being trained. The training process will be canceled and all data will be permanently removed from your agent's knowledge base. This action cannot be undone.
-                    </span>
-                    <span v-else>
-                        This will permanently remove this web source from your agent's knowledge base. All crawled pages will be deleted. This action cannot be undone.
-                    </span>
-                </DialogDescription>
-            </DialogHeader>
-            <div class="flex items-center justify-end gap-2 mt-4">
-                <Button
-                    variant="outline"
-                    @click="deleteDialogOpen = false"
-                    :disabled="isUnlinking || isDeletingSource"
-                >
-                    Cancel
-                </Button>
-                <Button
-                    v-if="isWebsiteShared(sourceToDelete)"
-                    variant="secondary"
-                    @click="unlinkWebsite"
-                    :disabled="isUnlinking || isDeletingSource"
-                    class="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
-                >
-                    <LoaderCircle v-if="isUnlinking" class="h-4 w-4 mr-2 animate-spin" />
-                    <Unlink v-else class="h-4 w-4 mr-2" />
-                    {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
-                </Button>
-                <Button
-                    variant="destructive"
-                    @click="deleteWebSource"
-                    :disabled="isUnlinking || isDeletingSource"
-                >
-                    <LoaderCircle v-if="isDeletingSource" class="h-4 w-4 mr-2 animate-spin" />
-                    <Trash2 v-else class="h-4 w-4 mr-2" />
-                    <span v-if="isDeletingSource">Deleting...</span>
-                    <span v-else>{{ isWebsiteShared(sourceToDelete) ? 'Delete permanently' : 'Delete' }}</span>
-                </Button>
-            </div>
-        </DialogContent>
-    </Dialog>
-
-    <!-- Retrain Website Dialog -->
-    <Dialog v-model:open="retrainDialogOpen">
-        <DialogContent class="sm:max-w-md">
-            <DialogHeader>
-                <DialogTitle>Retrain Website</DialogTitle>
-                <DialogDescription>
-                    Retrain {{ websiteToRetrain?.name || getDomainFromUrl(websiteToRetrain?.url || '') }} to update your agent's knowledge with the latest content.
-                </DialogDescription>
-            </DialogHeader>
-            <div class="space-y-4 py-4">
-                <div class="flex items-start gap-3 p-3 rounded-lg border bg-muted/50">
-                    <Checkbox
-                        :id="'recrawl-checkbox'"
-                        :checked="reCrawlNewLinks"
-                        @update:checked="(checked: boolean) => reCrawlNewLinks = checked"
-                    />
-                    <div class="grid gap-1.5 leading-none">
-                        <Label
-                            :for="'recrawl-checkbox'"
-                            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            <!-- Delete/Unlink Confirmation Dialog -->
+            <Dialog v-model:open="deleteDialogOpen">
+                <DialogContent v-if="sourceToDelete" class="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>{{ sourceToDelete.name || getDomainFromUrl(sourceToDelete.url) }}</DialogTitle>
+                        <DialogDescription>
+                            <span v-if="isWebsiteShared(sourceToDelete)">
+                                This website is used in <strong>{{ sourceToDelete.agents_count }} agents</strong>. You can unlink it from this agent
+                                or permanently delete it from all agents.
+                            </span>
+                            <span v-else-if="sourceToDelete.status === 'ingesting' || sourceToDelete.status === 'crawling'">
+                                This website is currently being trained. The training process will be canceled and all data will be permanently
+                                removed from your agent's knowledge base. This action cannot be undone.
+                            </span>
+                            <span v-else>
+                                This will permanently remove this web source from your agent's knowledge base. All crawled pages will be deleted. This
+                                action cannot be undone.
+                            </span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div class="mt-4 flex items-center justify-end gap-2">
+                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeletingSource"> Cancel </Button>
+                        <Button
+                            v-if="isWebsiteShared(sourceToDelete)"
+                            variant="secondary"
+                            @click="unlinkWebsite"
+                            :disabled="isUnlinking || isDeletingSource"
+                            class="bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50"
                         >
-                            Re-crawl and train new links
-                        </Label>
-                        <p class="text-sm text-muted-foreground">
-                            If checked, the website will be crawled again to discover and train any new pages that have been added since the last crawl.
-                        </p>
+                            <LoaderCircle v-if="isUnlinking" class="mr-2 h-4 w-4 animate-spin" />
+                            <Unlink v-else class="mr-2 h-4 w-4" />
+                            {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
+                        </Button>
+                        <Button variant="destructive" @click="deleteWebSource" :disabled="isUnlinking || isDeletingSource">
+                            <LoaderCircle v-if="isDeletingSource" class="mr-2 h-4 w-4 animate-spin" />
+                            <Trash2 v-else class="mr-2 h-4 w-4" />
+                            <span v-if="isDeletingSource">Deleting...</span>
+                            <span v-else>{{ isWebsiteShared(sourceToDelete) ? 'Delete permanently' : 'Delete' }}</span>
+                        </Button>
                     </div>
-                </div>
-            </div>
-            <div class="flex gap-2 justify-end">
-                <Button
-                    variant="outline"
-                    @click="retrainDialogOpen = false"
-                >
-                    Cancel
-                </Button>
-                <Button
-                    @click="retrainEntireWebsite"
-                >
-                    Start Retraining
-                </Button>
-            </div>
-        </DialogContent>
-    </Dialog>
+                </DialogContent>
+            </Dialog>
 
-    <!-- Links Dialog Modal -->
-    <Dialog v-model:open="linksDialogOpen" @update:open="(open) => !open && closeLinksDialog()">
-        <DialogContent class="max-w-4xl h-[80vh] flex flex-col">
-            <DialogHeader>
-                <DialogTitle>Website Links</DialogTitle>
-                <DialogDescription>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span v-if="currentWebsite">View and manage links from {{ currentWebsite.name || getDomainFromUrl(currentWebsite.url) }}</span>
-                        <span v-if="dialogLinksPagination.total > 0" class="font-medium text-foreground">
-                            • {{ dialogLinksPagination.total }} link{{ dialogLinksPagination.total !== 1 ? 's' : '' }} total
-                        </span>
-                    </div>
-                </DialogDescription>
-            </DialogHeader>
-
-            <!-- Search Box and Controls -->
-            <div class="space-y-3 mb-4">
-                <Input
-                    :value="dialogSearchQuery"
-                    @input="(e: Event) => updateDialogSearchQuery((e.target as HTMLInputElement).value)"
-                    placeholder="Search links..."
-                    class="h-9"
-                />
-                <p v-if="dialogSearchQuery.trim()" class="text-xs text-blue-600">
-                    Showing filtered results
-                </p>
-
-                <!-- Select All and Bulk Delete -->
-                <div v-if="dialogLinks.length > 0" class="flex items-center justify-between p-2 bg-muted/30 rounded border">
-                    <div class="flex items-center gap-2">
-                        <Checkbox
-                            :model-value="dialogAllLinksSelected"
-                            :indeterminate="dialogSomeLinksSelected"
-                            @update:model-value="toggleSelectAllDialogLinks"
-                            id="select-all-dialog-links"
-                            class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                        />
-                        <Label for="select-all-dialog-links" class="text-xs font-medium cursor-pointer select-none">
-                            Select All on Page ({{ dialogLinks.length }})
-                        </Label>
-                    </div>
-                    <Button
-                        variant="destructive"
-                        size="sm"
-                        @click="deleteSelectedDialogLinks"
-                        :disabled="dialogSelectedLinks.size === 0"
-                        class="h-7 text-xs"
-                    >
-                        <Trash2 class="h-3 w-3 mr-1" />
-                        Delete selected ({{ dialogSelectedLinks.size }})
-                    </Button>
-                </div>
-            </div>
-
-            <!-- Content Area (scrollable) -->
-            <div class="flex-1 overflow-hidden">
-                <!-- Loading State -->
-                <div v-if="dialogLinksLoading && dialogLinks.length === 0" class="flex items-center justify-center py-12">
-                    <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
-                    <span class="ml-2 text-sm text-muted-foreground">Loading links...</span>
-                </div>
-
-                <!-- Links List -->
-                <ScrollArea v-else-if="dialogLinks.length > 0" class="h-full pr-4">
-                    <div class="space-y-2">
-                        <div
-                            v-for="link in dialogLinks"
-                            :key="link.id"
-                            class="flex items-start gap-2 p-3 bg-background rounded border hover:bg-muted/50 transition-colors"
-                        >
+            <!-- Retrain Website Dialog -->
+            <Dialog v-model:open="retrainDialogOpen">
+                <DialogContent class="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Retrain Website</DialogTitle>
+                        <DialogDescription>
+                            Retrain {{ websiteToRetrain?.name || getDomainFromUrl(websiteToRetrain?.url || '') }} to update your agent's knowledge
+                            with the latest content.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div class="space-y-4 py-4">
+                        <div class="bg-muted/50 flex items-start gap-3 rounded-lg border p-3">
                             <Checkbox
-                                :model-value="dialogSelectedLinks.has(link.id)"
-                                @update:model-value="(checked) => toggleDialogLinkSelection(link.id, checked)"
-                                :id="`dialog-link-${link.id}`"
-                                class="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary flex-shrink-0"
+                                :id="'recrawl-checkbox'"
+                                :checked="reCrawlNewLinks"
+                                @update:checked="(checked: boolean) => (reCrawlNewLinks = checked)"
                             />
-                            <ExternalLink class="h-3 w-3 mt-0.5 text-muted-foreground flex-shrink-0" />
-                            <div class="min-w-0 flex-1">
-                                <a
-                                    :href="link.link"
-                                    target="_blank"
-                                    class="text-foreground hover:text-primary hover:underline block break-words text-sm"
-                                    @click.stop
+                            <div class="grid gap-1.5 leading-none">
+                                <Label
+                                    :for="'recrawl-checkbox'"
+                                    class="cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                    {{ link.link }}
-                                </a>
-                                <p v-if="link.crawled_at" class="text-xs text-muted-foreground mt-1">
-                                    Crawled {{ formatDate(link.crawled_at) }}
+                                    Re-crawl and train new links
+                                </Label>
+                                <p class="text-muted-foreground text-sm">
+                                    If checked, the website will be crawled again to discover and train any new pages that have been added since the
+                                    last crawl.
                                 </p>
                             </div>
-                            <div class="flex items-center gap-1 flex-shrink-0">
-                                <!-- Success animation for just-trained links -->
-                                <TooltipProvider v-if="linkSuccessStates.has(link.id)">
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div class="h-7 w-7 flex items-center justify-center">
-                                                <CheckCircle2 class="h-4 w-4 text-green-600 animate-in zoom-in-50 duration-300" />
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Training completed!</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                                <!-- Loading state for pending or ingesting -->
-                                <TooltipProvider v-else-if="link.status === 'pending' || link.status === 'ingesting'">
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div class="h-7 w-7 flex items-center justify-center">
-                                                <LoaderCircle class="h-3.5 w-3.5 animate-spin text-blue-600" />
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{{ link.status === 'pending' ? 'Training pending...' : 'Training in progress...' }}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                                <!-- Failed state -->
-                                <TooltipProvider v-else-if="link.status === 'failed'">
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                @click="retrainDialogLink(link.id)"
-                                                class="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                            >
-                                                <AlertCircle class="h-3.5 w-3.5" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Training failed. Click to retry</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                                <!-- Normal retrain button for ingested status -->
-                                <TooltipProvider v-else>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                @click="retrainDialogLink(link.id)"
-                                                class="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                            >
-                                                <RefreshCw class="h-3.5 w-3.5" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Retrain this link</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                @click="deleteDialogLink(link.id)"
-                                                class="h-7 w-7 p-0 text-destructive hover:text-destructive/80 hover:bg-red-50"
-                                            >
-                                                <Trash2 class="h-3.5 w-3.5" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Delete this link</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
                         </div>
                     </div>
-                </ScrollArea>
+                    <div class="flex justify-end gap-2">
+                        <Button variant="outline" @click="retrainDialogOpen = false"> Cancel </Button>
+                        <Button @click="retrainEntireWebsite"> Start Retraining </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
-                <!-- Empty State -->
-                <div v-else class="flex flex-col items-center justify-center py-12">
-                    <Globe class="h-12 w-12 text-muted-foreground mb-3" />
-                    <p class="text-sm text-muted-foreground">
-                        {{ dialogSearchQuery.trim() ? 'No links match your search' : 'No links found' }}
-                    </p>
-                </div>
-            </div>
+            <!-- Links Dialog Modal -->
+            <Dialog v-model:open="linksDialogOpen" @update:open="(open) => !open && closeLinksDialog()">
+                <DialogContent class="flex h-[80vh] max-w-4xl flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Website Links</DialogTitle>
+                        <DialogDescription>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span v-if="currentWebsite"
+                                    >View and manage links from {{ currentWebsite.name || getDomainFromUrl(currentWebsite.url) }}</span
+                                >
+                                <span v-if="dialogLinksPagination.total > 0" class="text-foreground font-medium">
+                                    • {{ dialogLinksPagination.total }} link{{ dialogLinksPagination.total !== 1 ? 's' : '' }} total
+                                </span>
+                            </div>
+                        </DialogDescription>
+                    </DialogHeader>
 
-            <!-- Pagination Controls -->
-            <div v-if="dialogLinks.length > 0 || dialogLinksPagination.total > 0" class="flex items-center justify-between pt-4 border-t mt-4 flex-shrink-0">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    @click="loadPrevDialogLinksPage"
-                    :disabled="!dialogLinksPagination.hasPrevPage || dialogLinksLoading"
-                    class="h-9"
-                >
-                    <ChevronRight class="h-4 w-4 rotate-180 mr-1" />
-                    Previous
-                </Button>
-                <span class="text-sm text-muted-foreground">
-                    Page {{ dialogLinksPagination.currentPage }} of {{ dialogLinksPagination.lastPage }}
-                </span>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    @click="loadNextDialogLinksPage"
-                    :disabled="!dialogLinksPagination.hasNextPage || dialogLinksLoading"
-                    class="h-9"
-                >
-                    Next
-                    <ChevronRight class="h-4 w-4 ml-1" />
-                </Button>
-            </div>
-        </DialogContent>
-    </Dialog>
+                    <!-- Search Box and Controls -->
+                    <div class="mb-4 space-y-3">
+                        <Input
+                            :value="dialogSearchQuery"
+                            @input="(e: Event) => updateDialogSearchQuery((e.target as HTMLInputElement).value)"
+                            placeholder="Search links..."
+                            class="h-9"
+                        />
+                        <p v-if="dialogSearchQuery.trim()" class="text-xs text-blue-600">Showing filtered results</p>
+
+                        <!-- Select All and Bulk Delete -->
+                        <div v-if="dialogLinks.length > 0" class="bg-muted/30 flex items-center justify-between rounded border p-2">
+                            <div class="flex items-center gap-2">
+                                <Checkbox
+                                    :model-value="dialogAllLinksSelected"
+                                    :indeterminate="dialogSomeLinksSelected"
+                                    @update:model-value="toggleSelectAllDialogLinks"
+                                    id="select-all-dialog-links"
+                                    class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                />
+                                <Label for="select-all-dialog-links" class="cursor-pointer text-xs font-medium select-none">
+                                    Select All on Page ({{ dialogLinks.length }})
+                                </Label>
+                            </div>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                @click="deleteSelectedDialogLinks"
+                                :disabled="dialogSelectedLinks.size === 0"
+                                class="h-7 text-xs"
+                            >
+                                <Trash2 class="mr-1 h-3 w-3" />
+                                Delete selected ({{ dialogSelectedLinks.size }})
+                            </Button>
+                        </div>
+                    </div>
+
+                    <!-- Content Area (scrollable) -->
+                    <div class="flex-1 overflow-hidden">
+                        <!-- Loading State -->
+                        <div v-if="dialogLinksLoading && dialogLinks.length === 0" class="flex items-center justify-center py-12">
+                            <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
+                            <span class="text-muted-foreground ml-2 text-sm">Loading links...</span>
+                        </div>
+
+                        <!-- Links List -->
+                        <ScrollArea v-else-if="dialogLinks.length > 0" class="h-full pr-4">
+                            <div class="space-y-2">
+                                <div
+                                    v-for="link in dialogLinks"
+                                    :key="link.id"
+                                    class="bg-background hover:bg-muted/50 flex items-start gap-2 rounded border p-3 transition-colors"
+                                >
+                                    <Checkbox
+                                        :model-value="dialogSelectedLinks.has(link.id)"
+                                        @update:model-value="(checked) => toggleDialogLinkSelection(link.id, checked)"
+                                        :id="`dialog-link-${link.id}`"
+                                        class="data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5 flex-shrink-0"
+                                    />
+                                    <ExternalLink class="text-muted-foreground mt-0.5 h-3 w-3 flex-shrink-0" />
+                                    <div class="min-w-0 flex-1">
+                                        <a
+                                            :href="link.link"
+                                            target="_blank"
+                                            class="text-foreground hover:text-primary block text-sm break-words hover:underline"
+                                            @click.stop
+                                        >
+                                            {{ link.link }}
+                                        </a>
+                                        <p v-if="link.crawled_at" class="text-muted-foreground mt-1 text-xs">
+                                            Crawled {{ formatDate(link.crawled_at) }}
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-shrink-0 items-center gap-1">
+                                        <!-- Success animation for just-trained links -->
+                                        <TooltipProvider v-if="linkSuccessStates.has(link.id)">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div class="flex h-7 w-7 items-center justify-center">
+                                                        <CheckCircle2 class="animate-in zoom-in-50 h-4 w-4 text-green-600 duration-300" />
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Training completed!</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        <!-- Loading state for pending or ingesting -->
+                                        <TooltipProvider v-else-if="link.status === 'pending' || link.status === 'ingesting'">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div class="flex h-7 w-7 items-center justify-center">
+                                                        <LoaderCircle class="h-3.5 w-3.5 animate-spin text-blue-600" />
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{{ link.status === 'pending' ? 'Training pending...' : 'Training in progress...' }}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        <!-- Failed state -->
+                                        <TooltipProvider v-else-if="link.status === 'failed'">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        @click="retrainDialogLink(link.id)"
+                                                        class="h-7 w-7 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                    >
+                                                        <AlertCircle class="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Training failed. Click to retry</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        <!-- Normal retrain button for ingested status -->
+                                        <TooltipProvider v-else>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        @click="retrainDialogLink(link.id)"
+                                                        class="h-7 w-7 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                                    >
+                                                        <RefreshCw class="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Retrain this link</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        @click="deleteDialogLink(link.id)"
+                                                        class="text-destructive hover:text-destructive/80 h-7 w-7 p-0 hover:bg-red-50"
+                                                    >
+                                                        <Trash2 class="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Delete this link</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </div>
+                                </div>
+                            </div>
+                        </ScrollArea>
+
+                        <!-- Empty State -->
+                        <div v-else class="flex flex-col items-center justify-center py-12">
+                            <Globe class="text-muted-foreground mb-3 h-12 w-12" />
+                            <p class="text-muted-foreground text-sm">
+                                {{ dialogSearchQuery.trim() ? 'No links match your search' : 'No links found' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div
+                        v-if="dialogLinks.length > 0 || dialogLinksPagination.total > 0"
+                        class="mt-4 flex flex-shrink-0 items-center justify-between border-t pt-4"
+                    >
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            @click="loadPrevDialogLinksPage"
+                            :disabled="!dialogLinksPagination.hasPrevPage || dialogLinksLoading"
+                            class="h-9"
+                        >
+                            <ChevronRight class="mr-1 h-4 w-4 rotate-180" />
+                            Previous
+                        </Button>
+                        <span class="text-muted-foreground text-sm">
+                            Page {{ dialogLinksPagination.currentPage }} of {{ dialogLinksPagination.lastPage }}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            @click="loadNextDialogLinksPage"
+                            :disabled="!dialogLinksPagination.hasNextPage || dialogLinksLoading"
+                            class="h-9"
+                        >
+                            Next
+                            <ChevronRight class="ml-1 h-4 w-4" />
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     </div>
 
     <!-- Attach Website Dialog -->
-    <AttachWebsiteDialog
-        v-model:open="attachWebsiteDialogOpen"
-        :agent-id="agent.external_id"
-        @websiteAttached="handleWebsiteAttached"
-    />
+    <AttachWebsiteDialog v-model:open="attachWebsiteDialogOpen" :agent-id="agent.external_id" @websiteAttached="handleWebsiteAttached" />
 </template>

@@ -9,6 +9,10 @@ class PromptLoader
 {
     public static function load(string $name, array $variables = []): string
     {
+        //        $name = str_replace('/', '.', $name);
+        //
+        //        return view('prompts.'.$name, ...$variables)->render();
+
         $path = resource_path("prompts/{$name}.md");
 
         if (! File::exists($path)) {

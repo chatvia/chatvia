@@ -64,7 +64,7 @@ function openReviseDialog(message: Message) {
     <div v-if="isLoadingMessages" class="h-full flex items-center justify-center py-20">
       <LoaderCircle class="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
-    
+
     <!-- Empty States -->
     <div v-else-if="!currentConversationId" class="h-full flex flex-col items-center justify-center text-muted-foreground py-20">
       <MessageSquare class="h-10 w-10 mb-3 opacity-30" />
@@ -81,23 +81,23 @@ function openReviseDialog(message: Message) {
         Clear search
       </Button>
     </div>
-    
+
     <!-- Messages List -->
     <div v-else class="px-6 py-5 space-y-5">
       <div v-for="m in messages" :key="m.id">
-        <div 
+        <div
           class="flex"
           :class="m.role === 'user' ? 'justify-end' : 'justify-start'"
         >
-          <div 
+          <div
             class="flex flex-col gap-2 max-w-[75%]"
             :class="m.role === 'user' ? 'items-end' : 'items-start'"
           >
             <!-- Message Bubble -->
-            <div 
+            <div
               class="rounded-2xl px-4 py-3"
-              :class="m.role === 'user' 
-                ? 'bg-primary text-primary-foreground rounded-br-md' 
+              :class="m.role === 'user'
+                ? 'bg-primary text-primary-foreground rounded-br-md'
                 : 'bg-muted/60 rounded-bl-md'"
             >
               <div v-if="search" v-html="highlightText(m.content, search)" class="prose dark:prose-invert max-w-none"></div>
@@ -108,7 +108,7 @@ function openReviseDialog(message: Message) {
             <!-- Meta Information -->
             <div class="flex items-center gap-2 text-xs text-muted-foreground px-1 flex-wrap">
               <!-- Tone (for user messages) -->
-              <span 
+              <span
                 v-if="m.role === 'user' && m.tone"
                 :class="getToneBadgeColor(m.tone)"
                 class="px-1.5 py-0.5 rounded text-[10px] font-medium"
@@ -119,7 +119,7 @@ function openReviseDialog(message: Message) {
               <span v-if="m.role === 'user' && m.tone && m.sentiment" class="text-muted-foreground/30">•</span>
 
               <!-- Sentiment (for user messages) -->
-              <span 
+              <span
                 v-if="m.role === 'user' && m.sentiment"
                 class="capitalize"
                 :class="{
@@ -135,7 +135,7 @@ function openReviseDialog(message: Message) {
 
               <!-- Confidence (for assistant) -->
               <template v-if="m.role === 'assistant'">
-                <span 
+                <span
                   class="group relative cursor-help tabular-nums"
                   :class="getConfidenceColor(getConfidenceScore(m))"
                 >
@@ -156,7 +156,7 @@ function openReviseDialog(message: Message) {
               <!-- Time -->
               <span class="group relative cursor-help">
                 {{ formatTimeAgo(m.created_at) }}
-                <span 
+                <span
                   class="absolute bottom-full mb-1.5 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg whitespace-nowrap"
                   :class="m.role === 'user' ? 'right-0' : 'left-0'"
                 >
@@ -168,8 +168,8 @@ function openReviseDialog(message: Message) {
               <template v-if="m.role === 'assistant' && m.llm_name">
                 <span class="text-muted-foreground/30">•</span>
                 <div class="group relative cursor-help">
-                  <img 
-                    :src="m.llm_icon ? `/images/llms/${m.llm_icon}` : '/images/llms/gpt.svg'" 
+                  <img
+                    :src="m.llm_icon ? `/images/llms/${m.llm_icon}` : '/images/llms/gpt.svg'"
                     :alt="m.llm_name"
                     class="w-3.5 h-3.5 rounded"
                   />
@@ -182,7 +182,7 @@ function openReviseDialog(message: Message) {
               <!-- Feedback (for assistant) -->
               <template v-if="m.role === 'assistant' && m.feedback">
                 <span class="text-muted-foreground/30">•</span>
-                <div 
+                <div
                   class="group relative cursor-help"
                   :class="getFeedbackInfo(m.feedback)?.color"
                 >
@@ -197,13 +197,13 @@ function openReviseDialog(message: Message) {
               <!-- Q&A Status (for assistant) -->
               <template v-if="m.role === 'assistant'">
                 <span class="text-muted-foreground/30">•</span>
-                <span 
-                  v-if="m.is_direct_response"
+                <span
+                  v-if="m.is_response_from_qa"
                   class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 font-medium"
                 >
                   ✓ Q&A Matched
                 </span>
-                <span 
+                <span
                   v-else-if="m.agent_question_answer_id"
                   class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 font-medium"
                 >

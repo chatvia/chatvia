@@ -5,10 +5,19 @@ return [
 
     'models' => [
         'vision' => 'gemma-3-27b-it',
+
         'embedding' => 'qwen',
+
         'chunker' => 'llama-3.3-70b-instruct',
-        'title' => 'gemma-3-27b-it',
-        'tone' => 'gemma-3-27b-it',
+
+        'title' => 'llama-3.1-8b-instruct',
+
+        'subdomain' => 'mistral-nemo-instruct-2407',
+
+        'tone' => 'llama-3.1-8b-instruct',
+
+        'topic' => 'llama-3.1-8b-instruct',
+
         'search_decision' => 'gemma-3-27b-it',
     ],
 
@@ -24,5 +33,4 @@ return [
         'chunker_output_per_million_tokens' => 0.90,
         'embedding_output_per_million_tokens' => 0.90,
     ],
-
 ];

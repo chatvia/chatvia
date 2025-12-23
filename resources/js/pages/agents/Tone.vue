@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import LockedFeature from '@/components/LockedFeature.vue';
 import { ref, computed, onMounted } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,6 +23,7 @@ import {
     MessageCircle, LoaderCircle, Info
 } from 'lucide-vue-next';
 import axios from 'axios';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 
 // Register Chart.js components
 ChartJS.register(
@@ -37,10 +39,13 @@ ChartJS.register(
 );
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData
+    agent: App.Data.Resources.Agent.AgentResourceData;
 }
 
 const props = defineProps<Props>();
+
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('tone'));
 
 const loading = ref(true);
 const toneData = ref<any>(null);
@@ -290,7 +295,9 @@ const summaryStats = computed(() => {
 });
 
 onMounted(() => {
-    fetchToneData();
+    if (hasAccess.value) {
+        fetchToneData();
+    }
 });
 </script>
 
@@ -300,18 +307,26 @@ onMounted(() => {
             <MessageCircle class="h-5 w-5" />
         </template>
 
-        <!-- Live Analytics Indicator -->
-        <div class="mb-6 flex justify-end">
-            <div class="flex items-center gap-2">
-                <div class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+        <!-- Show locked feature if user doesn't have access -->
+        <LockedFeature 
+            v-if="!hasAccess"
+            description="Upgrade your plan to access advanced tone analysis and understand the communication style in your conversations."
+        />
+
+        <!-- Show content if user has access -->
+        <template v-else>
+            <!-- Live Analytics Indicator -->
+            <div class="mb-6 flex justify-end">
+                <div class="flex items-center gap-2">
+                    <div class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </div>
+                    <p class="text-sm text-muted-foreground">
+                        Live analytics
+                    </p>
                 </div>
-                <p class="text-sm text-muted-foreground">
-                    Live analytics
-                </p>
             </div>
-        </div>
 
         <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-12">
@@ -439,6 +454,7 @@ onMounted(() => {
                 </CardContent>
             </Card>
         </div>
+        </template>
     </AgentLayout>
 </template>
 

@@ -9,18 +9,7 @@ export interface Message {
   sources?: any[]
 }
 
-export interface AIModel {
-  id: string;
-  name: string;
-  context_window: number;
-  icon: string;
-  description: string;
-  features?: string[];
-  location: string;
-  reasoning: boolean;
-  user_allowed_to_use: boolean;
-  is_selected: boolean;
-}
+export type AIModel = App.Data.Chat.LlmModelData;
 
 export interface Conversation {
   id: string

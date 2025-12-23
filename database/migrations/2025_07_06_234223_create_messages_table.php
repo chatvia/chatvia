@@ -43,8 +43,6 @@ return new class extends Migration
             $table->text('page_url')->nullable();
             $table->string('locale', 50)->nullable();
 
-            $table->boolean('answer_found')->default(true)->index()->after('is_direct_response');
-
             $table->timestamp('last_activity_at')->nullable()->index();
             $table->timestamps();
 
@@ -104,7 +102,9 @@ return new class extends Migration
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 
-            $table->boolean('is_direct_response')->nullable()->index();
+            $table->boolean('is_response_from_qa')->nullable()->index();
+
+            $table->boolean('llm_found_answer')->nullable()->index();
 
             $table->unsignedInteger('response_time_ms')->nullable();
             $table->unsignedInteger('prompt_tokens')->nullable();
@@ -113,6 +113,7 @@ return new class extends Migration
 
             $table->timestamps();
             $table->softDeletes();
+
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('read_at')->nullable();
 

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import LockedFeature from '@/components/LockedFeature.vue';
 import { 
   LoaderCircle, 
   Send, 
@@ -16,6 +17,7 @@ import {
 } from 'lucide-vue-next';
 import MessageCard from '@/components/chat/MessageCard.vue';
 import { useChatLog } from './useChatLog';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 
 const {
   currentConversationId,
@@ -26,6 +28,9 @@ const {
   appendMessage,
   formatTimeAgo,
 } = useChatLog();
+
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('handoff'));
 
 const messageInput = ref('');
 const messagesContainer = ref<any>(null);
@@ -135,7 +140,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <LockedFeature 
+    v-if="!hasAccess"
+    description="Upgrade your plan to access live chat handoff and take over conversations from AI to chat directly with users."
+  />
+
+  <div v-else class="flex flex-col h-full">
     <!-- Status Bar -->
     <div class="px-4 py-3 border-b bg-muted/30 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">

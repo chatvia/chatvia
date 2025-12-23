@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Cashier\Cashier;
@@ -50,7 +51,7 @@ class TrialCheckoutController extends Controller
                 'subscription_data' => [
                     'trial_period_days' => $trialDays,
                     'metadata' => [
-                        'registration_type' => 'trial_registration', // Changed from 'type' to avoid conflict
+                        'registration_type' => 'trial_registration',
                         'package' => strtolower($package),
                         'is_yearly' => $yearly ? 'true' : 'false',
                         'to_package' => strtolower($package),
@@ -60,7 +61,7 @@ class TrialCheckoutController extends Controller
                     ],
                 ],
                 'metadata' => [
-                    'registration_type' => 'trial_registration', // Changed from 'type' to avoid conflict
+                    'registration_type' => 'trial_registration',
                     'package' => strtolower($package),
                     'is_yearly' => $yearly ? 'true' : 'false',
                     'user_ip' => $userIp,
@@ -68,12 +69,8 @@ class TrialCheckoutController extends Controller
             ]);
 
             return redirect($checkoutSession->url);
-        } catch (\Exception $e) {
-            \Log::error('Trial checkout failed', [
-                'error' => $e->getMessage(),
-                'package' => $package,
-                'yearly' => $yearly,
-            ]);
+        } catch (Exception $e) {
+            report($e);
 
             return to_route('home')->with('error', 'Unable to create checkout session. Please try again.');
         }

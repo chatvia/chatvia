@@ -1,7 +1,11 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
+import { MessageSquare, Zap } from 'lucide-vue-next';
 import { useChatLog } from './useChatLog';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 
 const {
   currentConversationId,
@@ -15,6 +19,11 @@ const {
   getToneEmoji,
   getToneBadgeColor,
 } = useChatLog();
+
+const { hasCapability } = useCapabilityGuard();
+const hasSentimentAccess = computed(() => hasCapability('sentiment'));
+const hasToneAccess = computed(() => hasCapability('tone'));
+const hasTopicsAccess = computed(() => hasCapability('topics'));
 </script>
 
 <template>
@@ -39,16 +48,37 @@ const {
           </tr>
           
           <!-- Topic -->
-          <tr v-if="currentConversationData.topic">
+          <tr>
             <td class="px-4 py-3 text-muted-foreground font-medium">Topic</td>
-            <td class="px-4 py-3">{{ currentConversationData.topic }}</td>
+            <td class="px-4 py-3">
+              <template v-if="!hasTopicsAccess">
+                <Button as-child size="sm" class="h-7 text-xs gap-1">
+                  <Link :href="route('billing.packages')">
+                    <Zap class="h-3 w-3" />
+                    Upgrade to unlock
+                  </Link>
+                </Button>
+              </template>
+              <template v-else-if="currentConversationData.topic">
+                {{ currentConversationData.topic }}
+              </template>
+              <span v-else class="text-muted-foreground italic text-sm">Waiting...</span>
+            </td>
           </tr>
           
           <!-- Sentiment -->
           <tr>
             <td class="px-4 py-3 text-muted-foreground font-medium">Sentiment</td>
             <td class="px-4 py-3">
-              <template v-if="currentConversationData.sentiment">
+              <template v-if="!hasSentimentAccess">
+                <Button as-child size="sm" class="h-7 text-xs gap-1">
+                  <Link :href="route('billing.packages')">
+                    <Zap class="h-3 w-3" />
+                    Upgrade to unlock
+                  </Link>
+                </Button>
+              </template>
+              <template v-else-if="currentConversationData.sentiment">
                 <Badge :class="getSentimentBadgeColor(currentConversationData.sentiment)">
                   {{ getSentimentDisplayName(currentConversationData.sentiment) }}
                 </Badge>
@@ -61,7 +91,15 @@ const {
           <tr>
             <td class="px-4 py-3 text-muted-foreground font-medium">Tone</td>
             <td class="px-4 py-3">
-              <template v-if="currentConversationData.tone">
+              <template v-if="!hasToneAccess">
+                <Button as-child size="sm" class="h-7 text-xs gap-1">
+                  <Link :href="route('billing.packages')">
+                    <Zap class="h-3 w-3" />
+                    Upgrade to unlock
+                  </Link>
+                </Button>
+              </template>
+              <template v-else-if="currentConversationData.tone">
                 <Badge :class="getToneBadgeColor(currentConversationData.tone)">
                   {{ getToneEmoji(currentConversationData.tone) }}
                   {{ getToneDisplayName(currentConversationData.tone) }}

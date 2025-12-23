@@ -19,9 +19,9 @@ class ChatOutputPayload extends Data
         public array $sources = [],
         public ?string $language = null,
         public ?float $confidence_score = null,
-        public bool $is_direct_response = false,
+        public bool $is_response_from_qa = false,
         public ?int $agent_question_answer_id = null,
         public ?string $source = null,
-        public bool $answer_found = true,
+        public bool $llm_found_answer = true,
     ) {}
 }

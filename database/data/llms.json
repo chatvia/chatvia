@@ -49,7 +49,8 @@
         "credits": 3,
         "input_price_per_1m_tokens": 0.75,
         "output_price_per_1m_tokens": 2.25,
-        "is_default": false
+        "is_default": false,
+        "is_reasoning": true
     },
     {
         "internal_name": "deepseek-r1-distill-llama-70b",
@@ -62,7 +63,8 @@
         "credits": 3,
         "input_price_per_1m_tokens": 0.90,
         "output_price_per_1m_tokens": 0.90,
-        "is_default": false
+        "is_default": false,
+        "is_reasoning": true
     },
     {
         "internal_name": "gemma-3-27b-it",
@@ -83,7 +85,7 @@
         "descriptive_name": "Holo2 30B",
         "description": "Advanced open-source model with strong multilingual capabilities and reasoning.",
         "context_window": 100000,
-        "icon": "holo2.svg",
+        "icon": "holo.svg",
         "location": "eu",
         "credits": 1,
         "input_price_per_1m_tokens": 0.30,

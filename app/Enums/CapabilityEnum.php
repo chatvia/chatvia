@@ -6,15 +6,14 @@ use App\Data\Resources\Billing\BillingPackageCapabilitiesData;
 
 enum CapabilityEnum: string
 {
-    case CUSTOM_SUB_DOMAIN = 'custom_sub_domain';
-    case CUSTOM_DOMAINS = 'custom_domains';
     case ADVANCED_PDF = 'advanced_pdf';
     case OCR = 'ocr';
-    case AUDIO = 'audio';
-    case VIDEO = 'video';
-    case API_ACCESS = 'api_access';
-    case CUSTOM_INTEGRATIONS = 'custom_integrations';
-    case TEAM_COLLABORATION = 'team_collaboration';
+    case SENTIMENT = 'sentiment';
+    case TONE = 'tone';
+    case TOPICS = 'topics';
+    case HANDOFF = 'handoff';
+    case API = 'api';
+    case PULSE = 'pulse';
 
     /**
      * Get capabilities for a specific plan as an array
@@ -38,15 +37,14 @@ enum CapabilityEnum: string
     public function label(): string
     {
         return match ($this) {
-            self::CUSTOM_SUB_DOMAIN => 'Custom Subdomain',
-            self::CUSTOM_DOMAINS => 'Custom Domains',
             self::ADVANCED_PDF => 'Advanced PDF Processing',
             self::OCR => 'OCR Support',
-            self::AUDIO => 'Audio Processing',
-            self::VIDEO => 'Video Processing',
-            self::API_ACCESS => 'API Access',
-            self::CUSTOM_INTEGRATIONS => 'Custom Integrations',
-            self::TEAM_COLLABORATION => 'Team Collaboration',
+            self::SENTIMENT => 'Sentiment Analysis',
+            self::TONE => 'Tone Analysis',
+            self::TOPICS => 'Topic Analysis',
+            self::HANDOFF => 'Handoff Support',
+            self::API => 'API Access',
+            self::PULSE => 'Conversation Pulse',
         };
     }
 }

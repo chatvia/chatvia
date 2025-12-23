@@ -3,6 +3,7 @@ import { computed, watch, onMounted } from 'vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LoaderCircle, MessageSquare, Activity, TrendingUp, TrendingDown, HelpCircle, RefreshCw } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import LockedFeature from '@/components/LockedFeature.vue';
 import { Line } from 'vue-chartjs';
 import { 
   Chart as ChartJS, 
@@ -18,6 +19,7 @@ import {
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useChatLog } from './useChatLog';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 
 // Register Chart.js components
 ChartJS.register(
@@ -39,9 +41,12 @@ const {
   getPulsePointColor,
 } = useChatLog();
 
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('pulse'));
+
 // Load pulse data when tab becomes active
 watch(() => activeTab.value, (newTab) => {
-  if (newTab === 'pulse' && currentConversationId.value && !pulseData.value) {
+  if (newTab === 'pulse' && currentConversationId.value && !pulseData.value && hasAccess.value) {
     fetchPulseData();
   }
 });
@@ -152,8 +157,14 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
 </script>
 
 <template>
+  <!-- Locked Feature -->
+  <LockedFeature 
+    v-if="!hasAccess"
+    description="Unlock real-time conversation health metrics and sentiment tracking with our Pro plan." 
+  />
+
   <!-- No Conversation Selected -->
-  <div v-if="!currentConversationId" class="flex flex-col items-center justify-center py-20 text-muted-foreground">
+  <div v-else-if="!currentConversationId" class="flex flex-col items-center justify-center py-20 text-muted-foreground">
     <Activity class="h-10 w-10 mb-3 opacity-30" />
     <p class="text-sm">Select a conversation</p>
   </div>

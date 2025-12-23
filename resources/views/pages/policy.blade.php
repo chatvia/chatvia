@@ -109,9 +109,13 @@
                         <h3 class="text-xl font-medium text-gray-800">3.3 Improvement and Analytics</h3>
                         <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
                             <li>Improving our RAG system</li>
-                            <li>Analyzing usage patterns to enhance user experience</li>
+                            <li>Analyzing website usage patterns using privacy-focused analytics (Plausible)</li>
                             <li>Monitoring system performance and reliability</li>
                         </ul>
+                        <p class="text-gray-700 leading-relaxed mt-2">
+                            <em>Note: Our analytics tool (Plausible) does not collect personal data, use cookies, or track
+                                individuals across websites.</em>
+                        </p>
                     </section>
 
                     <!-- EU Infrastructure -->
@@ -137,21 +141,24 @@
                                     Policy</a></li>
                         </ul>
 
-                        <h3 class="text-xl font-medium text-gray-800">4.2 Document Parsing (EU)</h3>
+                        <h3 class="text-xl font-medium text-gray-800">4.2 Document Processing (France)</h3>
                         <p class="text-gray-700 leading-relaxed">
-                            Document parsing and extraction is handled by <strong>LlamaCloud EU</strong>, provided by
-                            LlamaIndex. This service processes your uploaded documents to extract text and structure.
+                            Document parsing and text extraction is handled using <strong>Mistral AI</strong>, a French
+                            company providing state-of-the-art AI models. Mistral processes your uploaded documents to
+                            extract and analyze their content.
                         </p>
                         <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
-                            <li><strong>Purpose:</strong> Document parsing, text extraction, and structure analysis</li>
-                            <li><strong>Provider:</strong> LlamaIndex (LlamaCloud EU)</li>
-                            <li><strong>Location:</strong> 🇪🇺 European Union</li>
-                            <li><strong>Privacy:</strong> EU-based infrastructure with GDPR compliance</li>
+                            <li><strong>Purpose:</strong> Document parsing, text extraction, and content analysis</li>
+                            <li><strong>Provider:</strong> Mistral AI</li>
+                            <li><strong>Location:</strong> 🇫🇷 France (EU)</li>
+                            <li><strong>Privacy Policy:</strong> <a href="https://mistral.ai/terms/#privacy-policy"
+                                    class="text-blue-600 hover:underline" target="_blank" rel="noopener">Mistral AI Privacy
+                                    Policy</a></li>
                         </ul>
 
                         <h3 class="text-xl font-medium text-gray-800">4.3 AI Processing (France)</h3>
                         <p class="text-gray-700 leading-relaxed">
-                            AI models and processing are provided by <strong>Scaleway</strong>, hosted exclusively in
+                            AI models and chat processing are provided by <strong>Scaleway</strong>, hosted exclusively in
                             France. We use state-of-the-art open-source AI models including Llama, DeepSeek, Qwen, Mistral,
                             and Gemma.
                         </p>
@@ -188,16 +195,20 @@
                             standards.
                         </p>
 
-                        <h3 class="text-xl font-medium text-gray-800">4.5 Content Delivery Network (Slovenia)</h3>
+                        <h3 class="text-xl font-medium text-gray-800">4.5 Website Analytics (EU)</h3>
                         <p class="text-gray-700 leading-relaxed">
-                            We use <strong>Bunny CDN</strong>, headquartered in Slovenia, to deliver static content like
-                            images and interface elements quickly to users worldwide. Bunny CDN is fully GDPR compliant.
+                            We use <strong>Plausible Analytics</strong>, a privacy-focused analytics tool, to understand how
+                            visitors use our website. Plausible is hosted in the EU and is fully GDPR compliant.
                         </p>
                         <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
-                            <li><strong>Purpose:</strong> Fast delivery of static assets only</li>
-                            <li><strong>Headquarters:</strong> 🇸🇮 Slovenia (EU)</li>
-                            <li><strong>GDPR Compliance:</strong> <a href="https://bunny.net/gdpr/"
-                                    class="text-blue-600 hover:underline" target="_blank" rel="noopener">Bunny CDN GDPR
+                            <li><strong>Purpose:</strong> Website traffic analysis and usage statistics</li>
+                            <li><strong>Provider:</strong> Plausible Analytics</li>
+                            <li><strong>Location:</strong> 🇪🇺 European Union</li>
+                            <li><strong>Privacy Features:</strong> No cookies, no personal data collection, no cross-site
+                                tracking</li>
+                            <li><strong>GDPR Compliant:</strong> <a
+                                    href="https://plausible.io/privacy-focused-web-analytics"
+                                    class="text-blue-600 hover:underline" target="_blank" rel="noopener">Plausible Privacy
                                     Information</a></li>
                         </ul>
 
@@ -230,18 +241,18 @@
                         <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
                             <li><strong>Data Storage:</strong> Hetzner data centers in Germany 🇩🇪</li>
                             <li><strong>Uploaded Files:</strong> Securely stored in Germany 🇩🇪</li>
-                            <li><strong>Document Parsing:</strong> LlamaCloud EU (European Union) 🇪🇺</li>
+                            <li><strong>Document Processing:</strong> Mistral AI in France 🇫🇷</li>
                             <li><strong>AI Processing:</strong> Scaleway infrastructure in France 🇫🇷</li>
                             <li><strong>Payment Processing:</strong> Stripe Technology Company, Limited (Ireland) 🇮🇪</li>
-                            <li><strong>Content Delivery:</strong> Bunny CDN (headquartered in Slovenia 🇸🇮)</li>
+                            <li><strong>Website Analytics:</strong> Plausible Analytics (European Union) 🇪🇺</li>
                         </ul>
 
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                             <h4 class="font-semibold text-green-800 mb-2">🇪🇺 EU Data Sovereignty</h4>
                             <p class="text-green-700 text-sm">
                                 Your data is protected by European data protection laws and never leaves EU borders. All our
-                                infrastructure partners (Hetzner, Scaleway, Bunny CDN) are EU-based companies committed to
-                                GDPR compliance.
+                                infrastructure partners (Hetzner, Mistral AI, Scaleway, Plausible Analytics) are EU-based
+                                companies committed to GDPR compliance.
                             </p>
                         </div>
 
@@ -327,8 +338,15 @@
                             <li>Maintain your login session</li>
                             <li>Remember your preferences</li>
                             <li>Ensure security and prevent fraud</li>
-                            <li>Analyze usage patterns (with your consent)</li>
                         </ul>
+
+                        <h3 class="text-xl font-medium text-gray-800 mt-4">8.1 Privacy-Focused Analytics</h3>
+                        <p class="text-gray-700 leading-relaxed">
+                            For website analytics, we use <strong>Plausible Analytics</strong>, which does not use cookies
+                            and does not collect any personal data. Plausible is fully GDPR compliant and respects user
+                            privacy by design. No consent is required for Plausible as it does not track individuals or
+                            store personal information.
+                        </p>
                     </section>
 
                     <!-- Children's Privacy -->

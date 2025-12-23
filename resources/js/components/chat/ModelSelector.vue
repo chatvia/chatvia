@@ -14,18 +14,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-interface AIModel {
-    id: string;
-    name: string;
-    context_window: number;
-    icon: string;
-    description: string;
-    features?: string[];
-    location: string;
-    reasoning: boolean;
-    user_allowed_to_use: boolean;
-    is_selected: boolean;
-}
+type AIModel = App.Data.Chat.LlmModelData;
 
 interface ModelSettings {
     temperature: number;
@@ -82,7 +71,7 @@ const fetchModels = async () => {
         error.value = null;
 
         const response = await axios.get<ModelsResponse>(route('chat.models.index'));
-        availableModels.value = response.data.models.filter(model => model.user_allowed_to_use);
+        availableModels.value = response.data.models;
     } catch (err) {
         console.error('Failed to fetch models:', err);
         error.value = 'Failed to load available models.';

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Credit extends Model
+class UserCredit extends Model
 {
     use HasFactory;
 
@@ -16,7 +16,7 @@ class Credit extends Model
 
     public function usage(): HasOne
     {
-        return $this->hasOne(Usage::class);
+        return $this->hasOne(UserUsage::class);
     }
 
     protected function casts(): array

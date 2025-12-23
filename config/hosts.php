@@ -309,31 +309,31 @@ return [
                 ],
                 [
                     'question' => 'Can I crawl my website?',
-                    'answer' => 'Yes, You can crawl your website and make a chabot that is traind on your website content, so your customers can get instant answer on repetivie questions such as contact info, opening hours, etc...',
+                    'answer' => 'Yes! You can crawl your website and create a chatbot that is trained on your website content, so your customers can get instant answers to repetitive questions such as contact information, opening hours, and more.',
                 ],
                 [
                     'question' => 'What does training mean?',
-                    'answer' => 'Training means that we take your data, feed it to advanced AI pipeline to understand it and make a chatbot based on the train data. This allows you to have your own Chatbot',
+                    'answer' => 'Training means we take your data and feed it through an advanced AI pipeline to understand it and create a chatbot based on the training data. This allows you to have your own custom chatbot that understands your specific business knowledge.',
                 ],
                 [
-                    'question' => 'What type of training you use?',
-                    'answer' => 'We use RAG technology to reterive and ingest your data, we will never train your data or use any 3rd party to do so, this makes your data 100% safe.',
+                    'question' => 'What training technology do you use?',
+                    'answer' => 'We use RAG (Retrieval-Augmented Generation) technology to retrieve and ingest your data. We will never train your data or use any third party to do so, which makes your data 100% safe and private.',
                 ],
                 [
                     'question' => 'Does it support Audio and Video files?',
-                    'answer' => 'Yes, ChatVia support both audio and video files using advanced transcripton techonoligy.',
+                    'answer' => 'Yes! ChatVIA supports both audio and video files using advanced transcription technology. The system automatically transcribes the content and makes it available for your chatbot to use.',
                 ],
                 [
                     'question' => 'What types of files can I upload?',
-                    'answer' => 'ChatVia supports PDF, Word, Text, Video, and Audio files. You can also crawl your website to add its content automatically.',
+                    'answer' => 'ChatVIA supports PDF, Word, Text, Video, and Audio files. You can also crawl your website to add its content automatically.',
                 ],
                 [
                     'question' => 'How many AI chatbots can I create?',
-                    'answer' => 'It depends on your plan. Please refer to the pricing section.',
+                    'answer' => 'The number of chatbots you can create depends on your plan. Please refer to the pricing section for details on chatbot limits for each plan.',
                 ],
                 [
                     'question' => 'What AI models does ChatVIA use?',
-                    'answer' => 'ChatVIA supports multiple cutting edge Open Source AI models including GPT OSS, LLama, Qwen, DeepSeek, Gemma, Mistral, Holo2. You can choose the best model for your needs and switch between them anytime.',
+                    'answer' => 'ChatVIA supports multiple cutting-edge AI models including GPT-4, Claude, Gemini, Llama, Qwen, DeepSeek, Gemma, Mistral, and more. You can choose the best model for your needs and switch between them anytime.',
                 ],
                 [
                     'question' => 'Is my data secure and private?',
@@ -341,7 +341,7 @@ return [
                 ],
                 [
                     'question' => 'Can I customize the AI chatbot\'s appearance?',
-                    'answer' => 'Yes! You can customize your agent\'s name, personality, and you can also add custom branding, logos, and even use your own domain for a white-label experience.',
+                    'answer' => 'Yes! You can customize your agent\'s name, personality, and add custom branding, logos, and even use your own domain for a white-label experience.',
                 ],
                 [
                     'question' => 'What payment methods do you accept?',
@@ -349,10 +349,10 @@ return [
                 ],
                 [
                     'question' => 'Do you offer team collaboration features?',
-                    'answer' => 'Yes! All the plans include team collaboration. You can invite team members and share agents.',
+                    'answer' => 'Yes! All plans include team collaboration features. You can invite team members and share agents with your team.',
                 ],
                 [
-                    'question' => 'How fast the document processing is?',
+                    'question' => 'How fast is document processing?',
                     'answer' => 'Document processing times vary based on file size and type. Most documents are processed within minutes, but larger files may take longer. You will be notified once processing is complete.',
                 ],
             ],

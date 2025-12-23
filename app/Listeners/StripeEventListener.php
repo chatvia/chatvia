@@ -2,12 +2,12 @@
 
 namespace App\Listeners;
 
-use App\Models\Member;
 use App\Models\User;
 use App\Notifications\TrialWelcomeNotification;
 use App\Services\Teams\TeamService;
 use Exception;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Events\WebhookReceived;
@@ -18,80 +18,132 @@ class StripeEventListener
     {
         $data = $event->payload['data']['object'];
 
-        if ($event->payload['type'] === 'invoice.payment_succeeded' && isset($data['subscription_details']['metadata'])) {
-            $this->handleInvoicePaymentSucceeded($data);
+        $type = $event->payload['type'];
+
+        Log::info(json_encode($event->payload));
+
+        // Detect if this is a trial registration event
+        $isTrial = $type === 'checkout.session.completed' &&
+            isset($data['metadata']['registration_type']) &&
+            $data['metadata']['registration_type'] === 'trial_registration';
+
+        // Handle trial registration via checkout.session.completed
+        if ($isTrial) {
+            $this->handleTrialRegistration($event);
 
             return;
         }
 
-        if ($event->payload['type'] === 'checkout.session.completed' && isset($data['metadata']['registration_type'])) {
-            $metadata = $data['metadata'];
+        // Handle subscription renewals and actual payments
+        if ($type === 'invoice.payment_succeeded' && isset($data['subscription_details']['metadata'])) {
+            $this->handleInvoicePaymentSucceeded($event);
 
-            if ($metadata['registration_type'] === 'trial_registration') {
-                $this->handleTrialRegistration($data);
-
-                return;
-            }
+            return;
         }
 
         // Handle addon purchases (using 'type' field for addons is fine since they don't create subscriptions)
-        if ($event->payload['type'] === 'checkout.session.completed' && isset($data['metadata']['type']) && $data['metadata']['type'] === 'addon') {
+        if ($type === 'checkout.session.completed' && isset($data['metadata']['type']) && $data['metadata']['type'] === 'addon') {
             $this->handleAddOns($data);
+        }
+
+        // Log customer.subscription.updated events specifically
+        if ($type === 'customer.subscription.updated') {
+            Log::info('Subscription status updated via webhook', [
+                'subscription_id' => $data['id'] ?? null,
+                'status' => $data['status'] ?? null,
+                'customer' => $data['customer'] ?? null,
+            ]);
         }
     }
 
     /**
-     * Handle invoice.payment_succeeded event (subscription renewals).
-     * Only grants credits for actual renewals (subscription_cycle), not initial charges.
-     * Initial charges from trial conversions are handled by handleTrialRegistration.
+     * Handle invoice.payment_succeeded event.
+     *
+     * This method handles:
+     * - Subscription renewals (billing_reason: 'subscription_cycle')
+     * - Trial-to-paid conversions when actual charge happens
+     *
+     * It SKIPS:
+     * - Trial start invoices (billing_reason: 'subscription_create')
+     *   Those are handled via checkout.session.completed event.
      */
-    private function handleInvoicePaymentSucceeded(array $data): void
+    private function handleInvoicePaymentSucceeded(WebhookReceived $event): void
     {
-        // Only process subscription renewals, not initial subscription creation
-        // This prevents double credits when trial converts to paid subscription
+        $data = $event->payload['data']['object'];
+
         $billingReason = $data['billing_reason'] ?? null;
 
-        if ($billingReason !== 'subscription_cycle') {
+        // Skip trial invoices (billing_reason: 'subscription_create')
+        // Trial registration is handled via checkout.session.completed event
+        if ($billingReason === 'subscription_create') {
+            Log::info('Skipping trial invoice - already handled via checkout.session.completed', [
+                'invoice_id' => $data['id'] ?? null,
+                'customer' => $data['customer'] ?? null,
+            ]);
+
             return;
         }
 
         $user = User::query()->where('stripe_id', $data['customer'])->first();
 
         if (! $user) {
+            Log::warning('User not found for invoice payment', ['customer' => $data['customer']]);
+
             return;
         }
 
-        $metadata = $data['subscription_details']['metadata'];
-        $isYearly = ($metadata['is_yearly'] ?? 'false') === 'true';
-        $package = $metadata['to_package'] ?? $metadata['package'] ?? 'starter';
+        // Handle subscription renewals
+        if ($billingReason === 'subscription_cycle') {
+            $metadata = $data['subscription_details']['metadata'];
+            $isYearly = ($metadata['is_yearly'] ?? 'false') === 'true';
+            $package = $metadata['to_package'] ?? $metadata['package'] ?? 'starter';
 
-        $this->grantSubscription($user, $package, $isYearly);
-
-        // Clean up the metadata if this was a scheduled change
-        if (isset($metadata['pending_change']) && $metadata['pending_change'] === 'true') {
             $subscription = $user->subscription();
-            $subscription?->updateStripeSubscription([
-                'metadata' => [
-                    'pending_change' => 'false',
-                    'applied_at' => now()->toISOString(),
-                    'from_package' => null,
-                    'to_package' => null,
-                    'new_price_id' => null,
-                    'is_yearly' => null,
-                    'scheduled_at' => null,
-                    'effective_date' => null,
-                ],
-            ]);
+
+            // End trial period if the subscription is still on trial
+            // This transitions the subscription from 'trialing' to 'active' status
+            if ($subscription && $subscription->onTrial()) {
+                $subscription->endTrial();
+                Log::info('Trial ended after first payment', [
+                    'user_id' => $user->id,
+                    'subscription_id' => $subscription->id,
+                ]);
+            }
+
+            // Grant subscription quotas and credits
+            $this->grantSubscription($user, $package, $isYearly);
+
+            // Clean up the metadata if this was a scheduled change
+            if ($subscription && isset($metadata['pending_change']) && $metadata['pending_change'] === 'true') {
+                $subscription->updateStripeSubscription([
+                    'metadata' => [
+                        'pending_change' => 'false',
+                        'applied_at' => now()->toISOString(),
+                        'from_package' => null,
+                        'to_package' => null,
+                        'new_price_id' => null,
+                        'is_yearly' => null,
+                        'scheduled_at' => null,
+                        'effective_date' => null,
+                    ],
+                ]);
+            }
+
         }
     }
 
-    private function handleTrialRegistration(array $data): void
+    private function handleTrialRegistration(WebhookReceived $event): void
     {
+        $data = $event->payload['data']['object'];
+
+        // Get metadata from checkout.session.completed event
+        $metadata = $data['metadata'] ?? [];
+
         // Check if user already exists by stripe_id
         $existingUser = User::query()->where('stripe_id', $data['customer'])->first();
 
         if ($existingUser) {
-            $this->grantSubscriptionFromMetadata($existingUser, $data['metadata']);
+            $this->grantSubscriptionFromMetadata($existingUser, $metadata);
 
             return;
         }
@@ -108,7 +160,7 @@ class StripeEventListener
 
             if ($existingUserByEmail) {
                 $existingUserByEmail->update(['stripe_id' => $data['customer']]);
-                $this->grantSubscriptionFromMetadata($existingUserByEmail, $data['metadata']);
+                $this->grantSubscriptionFromMetadata($existingUserByEmail, $metadata);
 
                 return;
             }
@@ -123,7 +175,7 @@ class StripeEventListener
             }
 
             // Get user IP from metadata (captured at checkout)
-            $userIp = $data['metadata']['user_ip'] ?? null;
+            $userIp = $metadata['user_ip'] ?? null;
 
             // Create new user
             $user = User::create([
@@ -139,21 +191,11 @@ class StripeEventListener
 
             app(TeamService::class)->createDefaultTeam($user);
 
-            // Create member record
-            Member::create([
-                'user_id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'password' => Hash::make($password),
-                'email_verified_at' => now(),
-                'is_owner' => true,
-            ]);
-
             // Grant subscription quotas
-            $this->grantSubscriptionFromMetadata($user, $data['metadata']);
+            $this->grantSubscriptionFromMetadata($user, $metadata);
 
             // Send welcome email with login instructions and temporary password
-            $package = $data['metadata']['package'] ?? 'starter';
+            $package = $metadata['package'] ?? 'starter';
             $user->notify(new TrialWelcomeNotification($password, $package));
 
         } catch (Exception $e) {
@@ -184,7 +226,7 @@ class StripeEventListener
         $fixedLimit = config('billing.packages.'.$package.'.quota_limits.fixed');
 
         if (! $quotaLimit || ! $fixedLimit) {
-            \Log::warning('Invalid package configuration', ['package' => $package, 'cycle' => $cycle]);
+            Log::warning('Invalid package configuration', ['package' => $package, 'cycle' => $cycle]);
 
             return;
         }

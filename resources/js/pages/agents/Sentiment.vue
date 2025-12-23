@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import LockedFeature from '@/components/LockedFeature.vue';
 import { ref, computed, watch, onMounted } from 'vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,6 +23,7 @@ import {
     SmilePlus, LoaderCircle, Info
 } from 'lucide-vue-next';
 import axios from 'axios';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 
 // Register Chart.js components
 ChartJS.register(
@@ -41,6 +43,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('sentiment'));
 
 const loading = ref(true);
 const sentimentData = ref<any>(null);
@@ -279,28 +284,37 @@ const summaryStats = computed(() => {
 });
 
 onMounted(() => {
-    fetchSentimentData();
+    if (hasAccess.value) {
+        fetchSentimentData();
+    }
 });
 </script>
 
 <template>
     <AgentLayout :agent="agent" title="Sentiment Analysis" description="Analyze user sentiment patterns and trends">
+        {{  hasAccess  }}
         <template #header-icon>
             <SmilePlus class="h-5 w-5" />
         </template>
 
-        <!-- Live Analytics Indicator -->
-        <div class="mb-6 flex justify-end">
-            <div class="flex items-center gap-2">
-                <div class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+        <LockedFeature 
+            v-if="!hasAccess"
+            description="Upgrade your plan to access sentiment analysis and understand the emotional tone in your conversations."
+        />
+
+        <template v-else>
+            <!-- Live Analytics Indicator -->
+            <div class="mb-6 flex justify-end">
+                <div class="flex items-center gap-2">
+                    <div class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </div>
+                    <p class="text-sm text-muted-foreground">
+                        Live analytics
+                    </p>
                 </div>
-                <p class="text-sm text-muted-foreground">
-                    Live analytics
-                </p>
             </div>
-        </div>
 
         <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-12">
@@ -429,5 +443,6 @@ onMounted(() => {
             </Card>
 
         </div>
+        </template>
     </AgentLayout>
 </template>

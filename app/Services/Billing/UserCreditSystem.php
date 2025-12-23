@@ -2,8 +2,8 @@
 
 namespace App\Services\Billing;
 
-use App\Models\Credit;
 use App\Models\User;
+use App\Models\UserCredit;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -26,23 +26,30 @@ class UserCreditSystem
         return $this;
     }
 
-    public function addCredit(array $quotaLimit, Carbon $endsAt): Credit
+    /**
+     * Add credits for a new billing cycle.
+     * This method RESETS all existing active credits before adding new ones.
+     * Each billing cycle starts fresh - credits do NOT accumulate.
+     */
+    public function addCredit(array $quotaLimit, Carbon $endsAt): UserCredit
     {
         $startedAt = now();
 
         /** @var User $user */
         $user = User::find($this->userId);
 
-        /** @var Credit $credit */
-        $credit = $user->credits()->updateOrCreate(
-            [
-                'started_at' => $startedAt,
-            ],
-            [
-                'messages' => $quotaLimit['messages_limit'],
-                'ends_at' => $endsAt,
-            ]
-        );
+        // Reset credits: Expire all existing active credits before adding new ones
+        // This ensures each billing cycle starts fresh (non-accumulative)
+        $user->credits()
+            ->where('ends_at', '>=', now())
+            ->update(['ends_at' => now()->subSecond()]);
+
+        /** @var UserCredit $credit */
+        $credit = $user->credits()->create([
+            'started_at' => $startedAt,
+            'messages' => $quotaLimit['messages_limit'],
+            'ends_at' => $endsAt,
+        ]);
 
         // Only create usage if it doesn't exist
         if (! $credit->usage()->exists()) {

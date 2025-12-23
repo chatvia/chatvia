@@ -1,8 +1,8 @@
 <?php
 
 use App\Console\Commands\UpdateFreeUsersQuotas;
-use App\Models\Credit;
 use App\Models\User;
+use App\Models\UserCredit;
 use Illuminate\Support\Facades\Event;
 
 beforeEach(function () {
@@ -15,7 +15,7 @@ test('updates credit for user with expiring credit', function () {
     $user = User::factory()->create();
 
     // Create an expiring credit (expires within a day)
-    $expiringCredit = Credit::factory()->create([
+    $expiringCredit = UserCredit::factory()->create([
         'user_id' => $user->id,
         'messages' => 30,
         'started_at' => now()->subDays(29),
@@ -56,7 +56,7 @@ test('does not update credit for user with valid credit', function () {
 
     $user = User::factory()->create();
 
-    $validCredit = Credit::factory()->create([
+    $validCredit = UserCredit::factory()->create([
         'user_id' => $user->id,
         'messages' => 70,
         'started_at' => now()->subDays(10),

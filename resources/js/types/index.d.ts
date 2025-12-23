@@ -56,6 +56,7 @@ export interface User {
     updated_at: string;
     is_paid: boolean;
     type: 'admin' | 'company' | 'staff';
+    capabilities?: App.Data.Resources.Billing.BillingPackageCapabilitiesData;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

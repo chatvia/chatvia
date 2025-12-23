@@ -100,10 +100,10 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'completion_tokens' => $completionTokens,
             'cost' => $cost,
             'confidence_score' => ! $isUserMessage ? $this->payload->confidence_score : null,
-            'is_direct_response' => ! $isUserMessage ? $this->payload->is_direct_response : false,
+            'is_response_from_qa' => ! $isUserMessage ? $this->payload->is_response_from_qa : false,
             'agent_question_answer_id' => ! $isUserMessage ? $this->payload->agent_question_answer_id : null,
             'source' => $this->payload->source,
-            'answer_found' => ! $isUserMessage ? ($this->payload->answer_found ?? true) : true,
+            'llm_found_answer' => ! $isUserMessage ? ($this->payload->llm_found_answer ?? true) : true,
         ];
 
         if ($this->payload->sent_at) {
@@ -115,8 +115,10 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         AnalyzeMessageJob::dispatchIf($isUserMessage, $this->payload->message_id);
 
+        $messagesCount = $conversation->messages()->count();
+
         AnalyzeConversationJob::dispatchIf(
-            $conversation->messages()->count() >= 5,
+            $messagesCount >= 5 && $messagesCount < 20,
             $conversation
         );
     }

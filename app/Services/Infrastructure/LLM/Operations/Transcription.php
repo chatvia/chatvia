@@ -24,7 +24,7 @@ class Transcription
             )
             ->post($transcriptionEndpoint, [
                 'model' => 'whisper-large-v3',
-            ])->json();
+            ])->throw()->json();
 
         return str($response['text'])->trim()->toString();
     }

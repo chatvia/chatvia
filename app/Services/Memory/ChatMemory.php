@@ -7,7 +7,7 @@ use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Jobs\StoreChatMessageJob;
 use App\Models\Agent;
-use App\Models\Member;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 
@@ -320,19 +320,19 @@ class ChatMemory implements ChatMemoryInterface
     }
 
     /**
-     * Get the currently authenticated member.
+     * Get the currently authenticated user.
      */
-    public function member(): ?Member
+    public function member(): ?User
     {
-        return Auth::guard('member')->user();
+        return Auth::guard('web')->user();
     }
 
     /**
-     * Check if a member is currently authenticated.
+     * Check if a user is currently authenticated.
      */
     public function isMemberAuth(): bool
     {
-        return Auth::guard('member')->check();
+        return Auth::guard('web')->check();
     }
 
     /**

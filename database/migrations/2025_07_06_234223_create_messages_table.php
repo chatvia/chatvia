@@ -7,7 +7,6 @@ use App\Models\ChatTopic;
 use App\Models\Country;
 use App\Models\Language;
 use App\Models\Llm;
-use App\Models\Member;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -22,11 +21,10 @@ return new class extends Migration
             $table->ulid('id')->unique()->primary();
 
             $table->foreignIdFor(Agent::class)->nullable()->constrained()->nullOnDelete();
-            $table->foreignIdFor(Member::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(Country::class)->nullable()->constrained()->nullOnDelete();
 
             $table->string('name')->nullable();
-            $table->string('user_id')->nullable()->index();
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
 
@@ -52,7 +50,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['agent_id', 'created_at']);
-            $table->index(['member_id', 'created_at']);
+            $table->index(['user_id', 'created_at']);
             $table->index(['country_id', 'city']);
             $table->index('created_at');
         });

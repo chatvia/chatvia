@@ -156,7 +156,9 @@ const toggleRecording = async () => {
 
             nextTick(() => {
                 adjustTextareaHeight();
-                messageInput.value?.focus();
+                if (messageInput.value && typeof messageInput.value.focus === 'function') {
+                    messageInput.value.focus();
+                }
             });
         }
     } else {

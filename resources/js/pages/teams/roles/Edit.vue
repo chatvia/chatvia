@@ -54,6 +54,11 @@ const form = useForm({
     agent_ids: [...(props.role.agent_ids || [])],
 });
 
+// Validation: Ensure either all_agents is true OR at least one agent is selected
+const isAgentSelectionValid = computed(() => {
+    return form.all_agents || form.agent_ids.length > 0;
+});
+
 const submit = () => {
     form.put(route('teams.update-role', { team: props.team.id, roleId: props.role.id }));
 };
@@ -262,7 +267,12 @@ const toggleAgentSelection = (agentId: string) => {
                     <Card>
                         <CardHeader>
                             <CardTitle>Permissions</CardTitle>
-                            <CardDescription> Choose what actions users with this role can perform on the selected agents. </CardDescription>
+                            <CardDescription>
+                                Choose what actions users with this role can perform on the selected agents.
+                                <br />
+                                <strong class="text-primary mt-2 inline-block">Tip:</strong> You can create a role with <em>no permissions</em> if you
+                                only want invited users to chat with the knowledge base (ChatGPT style).
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <TooltipProvider>
@@ -331,7 +341,7 @@ const toggleAgentSelection = (agentId: string) => {
                         <Link :href="route('teams.show', team.id)">
                             <Button type="button" variant="outline"> Cancel </Button>
                         </Link>
-                        <Button type="submit" :disabled="form.processing || form.permissions.length === 0">
+                        <Button type="submit" :disabled="form.processing || !isAgentSelectionValid">
                             <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                             Save Changes
                         </Button>

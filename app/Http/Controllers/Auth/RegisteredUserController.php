@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Member;
 use App\Models\User;
 use App\Services\IP2Country;
 use Illuminate\Auth\Events\Registered;
@@ -41,15 +40,6 @@ class RegisteredUserController extends Controller
             'domain' => $request->host(),
             'registered_ip' => $request->ip(),
             'registered_country_code' => IP2Country::getCountryByIP($request->ip()),
-        ]);
-
-        Member::create([
-            'user_id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'password' => $password,
-            'email_verified_at' => now(),
-            'is_owner' => true,
         ]);
 
         event(new Registered($user));

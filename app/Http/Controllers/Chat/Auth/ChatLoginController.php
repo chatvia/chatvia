@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
-use App\Http\Requests\Auth\MemberLoginRequest;
+use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 
 class ChatLoginController
 {
-    public function __invoke(MemberLoginRequest $request): RedirectResponse
+    public function __invoke(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $agent = current_agent();
+
+        $request->authenticateForCurrentAgent($agent);
 
         $request->session()->regenerate();
 

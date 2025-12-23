@@ -3,7 +3,7 @@
 namespace App\Services\Memory;
 
 use App\Models\ChatConversation;
-use App\Models\Member;
+use App\Models\User;
 use App\Services\Infrastructure\LLM\Operations\TitleGenerator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -118,8 +118,8 @@ class ConversationManager
     {
         $session = $this->cache->get($this->sessionId, []);
 
-        // Check if session belongs to current member for private agents
-        if (! empty($session['member_id']) && $this->getCurrentMember()?->id !== $session['member_id']) {
+        // Check if session belongs to current user for private agents
+        if (! empty($session['user_id']) && $this->getCurrentUser()?->id !== $session['user_id']) {
             return [];
         }
 
@@ -138,18 +138,18 @@ class ConversationManager
 
     public function isMemberAuthenticated(): bool
     {
-        return Auth::guard('member')->check();
+        return Auth::guard('web')->check();
     }
 
-    private function getCurrentMember(): ?Member
+    private function getCurrentUser(): ?User
     {
-        return Auth::guard('member')->user();
+        return Auth::guard('web')->user();
     }
 
     private function saveSessionData(array $conversations): void
     {
         $this->cache->put($this->sessionId, [
-            'member_id' => $this->getCurrentMember()?->id,
+            'user_id' => $this->getCurrentUser()?->id,
             'conversations' => $conversations,
         ]);
     }

@@ -14,13 +14,13 @@ class TeamRoleStoreController
     {
         $user = $request->user();
 
-        //        if (! $user->ownsTeam($team)) {
-        //            return back()->withErrors(['teams' => 'Only the team owner can create roles.']);
-        //        }
+        if (! $user->ownsTeam($team)) {
+            abort(403, 'Only the team owner can create roles.');
+        }
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'permissions' => ['required', 'array', 'min:1'],
+            'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string'],
             'all_agents' => ['boolean'],
             'agent_ids' => ['exclude_if:all_agents,true', 'required', 'array', 'min:1'],
@@ -51,19 +51,21 @@ class TeamRoleStoreController
         ]);
 
         // Handle permissions - include agents.access-all if all_agents is true
-        $permissions = $validated['permissions'];
+        $permissions = $validated['permissions'] ?? [];
         if ($allAgents) {
             $permissions[] = 'agents.access-all';
         }
 
-        $permissionModels = collect($permissions)->unique()->map(function ($permissionName) {
-            return Permission::firstOrCreate([
-                'name' => $permissionName,
-                'guard_name' => 'web',
-            ]);
-        });
+        if (! empty($permissions)) {
+            $permissionModels = collect($permissions)->unique()->map(function ($permissionName) {
+                return Permission::firstOrCreate([
+                    'name' => $permissionName,
+                    'guard_name' => 'web',
+                ]);
+            });
 
-        $role->syncPermissions($permissionModels);
+            $role->syncPermissions($permissionModels);
+        }
 
         // Sync agents only if not accessing all agents
         if (! $allAgents) {

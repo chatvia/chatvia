@@ -5,7 +5,7 @@ namespace App\Contracts;
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
 use App\Models\Agent;
-use App\Models\Member;
+use App\Models\User;
 
 /**
  * Interface for chat memory operations, defining the contract for conversation management,
@@ -76,7 +76,7 @@ interface ChatMemoryInterface
     /**
      * Authentication
      */
-    public function member(): ?Member;
+    public function member(): ?User;
 
     public function isMemberAuth(): bool;
 }

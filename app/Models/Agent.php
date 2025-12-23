@@ -197,11 +197,6 @@ class Agent extends Model
         return 360;
     }
 
-    public function members(): BelongsToMany
-    {
-        return $this->belongsToMany(Member::class);
-    }
-
     public function url(): Attribute
     {
         return Attribute::get(function () {

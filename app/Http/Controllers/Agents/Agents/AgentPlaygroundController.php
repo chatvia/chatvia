@@ -20,7 +20,7 @@ class AgentPlaygroundController
 
         if (! $agent->is_public && $agent->isStandalone()) {
             $user = $request->user();
-            $authToken = $authTokenService->generateTokenFromUser($agent, $user);
+            $authToken = $authTokenService->generateToken($agent, $user);
         }
 
         return Inertia::render('agents/Playground', [

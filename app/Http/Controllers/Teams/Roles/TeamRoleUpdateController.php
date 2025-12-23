@@ -25,7 +25,7 @@ class TeamRoleUpdateController
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'permissions' => ['required', 'array', 'min:1'],
+            'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string'],
             'all_agents' => ['boolean'],
             'agent_ids' => ['exclude_if:all_agents,true', 'required', 'array', 'min:1'],
@@ -47,19 +47,24 @@ class TeamRoleUpdateController
         ]);
 
         // Handle permissions - include agents.access-all if all_agents is true
-        $permissions = $validated['permissions'];
+        $permissions = $validated['permissions'] ?? [];
         if ($allAgents) {
             $permissions[] = 'agents.access-all';
         }
 
-        $permissionModels = collect($permissions)->unique()->map(function ($permissionName) {
-            return Permission::firstOrCreate([
-                'name' => $permissionName,
-                'guard_name' => 'web',
-            ]);
-        });
+        if (! empty($permissions)) {
+            $permissionModels = collect($permissions)->unique()->map(function ($permissionName) {
+                return Permission::firstOrCreate([
+                    'name' => $permissionName,
+                    'guard_name' => 'web',
+                ]);
+            });
 
-        $roleModel->syncPermissions($permissionModels);
+            $roleModel->syncPermissions($permissionModels);
+        } else {
+            // Clear all permissions if none provided
+            $roleModel->syncPermissions([]);
+        }
 
         // Sync agents based on all_agents flag
         if ($allAgents) {

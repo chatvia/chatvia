@@ -168,11 +168,6 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return Llm::all();
     }
 
-    public function members(): HasMany
-    {
-        return $this->hasMany(Member::class)->where('is_owner', false);
-    }
-
     public function agentFiles()
     {
         $effectiveUserId = $this->effectiveUser()->id;
@@ -342,11 +337,6 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class);
-    }
-
-    public function memberOwner()
-    {
-        return $this->hasOne(Member::class)->where('is_owner', true)->latestOfMany();
     }
 
     public function managerQuota() {}

@@ -14,7 +14,7 @@ class AuthenticateMember
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! Auth::guard('member')->check()) {
+        if (! Auth::guard('web')->check()) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }

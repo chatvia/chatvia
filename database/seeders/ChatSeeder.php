@@ -7,7 +7,6 @@ use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\Country;
-use App\Models\Member;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -264,10 +263,6 @@ class ChatSeeder extends Seeder
         // Get LLM IDs for assistant messages
         $llmIds = \App\Models\Llm::pluck('id')->toArray();
 
-        // Create a few members for the demo user
-        $this->command->info('Creating demo members...');
-        $members = $this->createDemoMembers($user);
-
         // Get countries for sessions
         $countries = Country::pluck('id')->toArray();
 
@@ -289,9 +284,9 @@ class ChatSeeder extends Seeder
                 // Create the session
                 $session = $this->createSession(
                     agent: $agent,
-                    members: $members,
+                    user: $user,
                     countries: $countries,
-                    withMember: $i < 5 // First 5 sessions have members
+                    withUser: $i < 5 // First 5 sessions have user
                 );
                 $sessionsCreated++;
 
@@ -343,50 +338,15 @@ class ChatSeeder extends Seeder
     }
 
     /**
-     * Create demo members for the user.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Member>
-     */
-    private function createDemoMembers(User $user): \Illuminate\Database\Eloquent\Collection
-    {
-        $memberNames = [
-            ['name' => 'John Smith', 'email' => 'john.smith@example.com'],
-            ['name' => 'Sarah Johnson', 'email' => 'sarah.j@techcorp.com'],
-            ['name' => 'Michael Chen', 'email' => 'm.chen@startup.io'],
-            ['name' => 'Emma Wilson', 'email' => 'emma.wilson@enterprise.com'],
-            ['name' => 'David Brown', 'email' => 'david.b@agency.co'],
-        ];
-
-        foreach ($memberNames as $memberData) {
-            if (! Member::where('email', $memberData['email'])->where('user_id', $user->id)->exists()) {
-                try {
-                    Member::factory()->create([
-                        'user_id' => $user->id,
-                        'name' => $memberData['name'],
-                        'email' => $memberData['email'],
-                        'is_owner' => false,
-                    ]);
-                } catch (\Exception $e) {
-                    // Skip if constraint violation
-                    continue;
-                }
-            }
-        }
-
-        return Member::where('user_id', $user->id)->get();
-    }
-
-    /**
      * Create a session.
      *
-     * @param  \Illuminate\Database\Eloquent\Collection<int, Member>  $members
      * @param  array<int>  $countries
      */
     private function createSession(
         Agent $agent,
-        $members,
+        User $user,
         array $countries,
-        bool $withMember = false
+        bool $withUser = false
     ): ChatSession {
         $cities = [
             'New York', 'San Francisco', 'Los Angeles', 'Chicago', 'Austin',
@@ -422,8 +382,8 @@ class ChatSeeder extends Seeder
             'created_at' => fake()->dateTimeBetween('-60 days', 'now'),
         ];
 
-        if ($withMember && $members->isNotEmpty()) {
-            $sessionData['member_id'] = $members->random()->id;
+        if ($withUser) {
+            $sessionData['user_id'] = $user->id;
         }
 
         return ChatSession::create($sessionData);

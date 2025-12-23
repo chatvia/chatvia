@@ -336,8 +336,8 @@ const cancelDelete = () => {
 // Profile dialog functions
 const openProfileDialog = () => {
     const auth = page.props.auth as any;
-    profileForm.name = auth?.member?.name || '';
-    profileForm.email = auth?.member?.email || '';
+    profileForm.name = auth?.user?.name || '';
+    profileForm.email = auth?.user?.email || '';
     profileForm.current_password = '';
     profileForm.password = '';
     profileForm.password_confirmation = '';
@@ -429,7 +429,7 @@ const switchToSelectedAgent = () => {
 
     agentSwitchForm.post(
         route('chat.member.agents.switch', {
-            agent: selectedAgent.value.external_id,
+            agent: selectedAgent.value.id,
         }),
         {
             preserveState: true,
@@ -538,7 +538,7 @@ const switchToSelectedAgent = () => {
                                         <TooltipTrigger asChild>
                                             <Link
                                                 :class="[
-                                                    'flex w-full items-center rounded-lg px-3 py-2.5 text-sm transition-colors',
+                                                    'flex w-full cursor-pointer items-center rounded-lg px-3 py-2.5 text-sm transition-colors',
                                                     route().current('chat.show', { conversationId: chat.id })
                                                         ? 'text-foreground bg-gray-200 dark:bg-gray-700'
                                                         : 'text-foreground/80 hover:bg-gray-100 dark:hover:bg-gray-800',
@@ -565,32 +565,32 @@ const switchToSelectedAgent = () => {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" class="w-40">
-                                            <DropdownMenuItem @click="editConversation(chat.id)">
+                                            <DropdownMenuItem class="cursor-pointer" @click="editConversation(chat.id)">
                                                 <Edit class="mr-2 h-4 w-4" />
                                                 <span>Rename</span>
                                             </DropdownMenuItem>
                                             <DropdownMenuSub>
-                                                <DropdownMenuSubTrigger>
+                                                <DropdownMenuSubTrigger class="cursor-pointer">
                                                     <Download class="mr-2 h-4 w-4" />
                                                     <span>Export</span>
                                                 </DropdownMenuSubTrigger>
                                                 <DropdownMenuSubContent>
-                                                    <DropdownMenuItem @click="exportConversation(chat.id, 'pdf')">
+                                                    <DropdownMenuItem class="cursor-pointer" @click="exportConversation(chat.id, 'pdf')">
                                                         <FileDown class="mr-2 h-4 w-4" />
                                                         <span>PDF</span>
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem @click="exportConversation(chat.id, 'md')">
+                                                    <DropdownMenuItem class="cursor-pointer" @click="exportConversation(chat.id, 'md')">
                                                         <FileText class="mr-2 h-4 w-4" />
                                                         <span>Markdown</span>
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem @click="exportConversation(chat.id, 'txt')">
+                                                    <DropdownMenuItem class="cursor-pointer" @click="exportConversation(chat.id, 'txt')">
                                                         <Download class="mr-2 h-4 w-4" />
                                                         <span>Text</span>
                                                     </DropdownMenuItem>
                                                 </DropdownMenuSubContent>
                                             </DropdownMenuSub>
                                             <DropdownMenuSeparator />
-                                            <DropdownMenuItem class="text-destructive focus:text-destructive" @click="openDeleteDialog(chat.id)">
+                                            <DropdownMenuItem class="text-destructive focus:text-destructive cursor-pointer" @click="openDeleteDialog(chat.id)">
                                                 <Trash2 class="mr-2 h-4 w-4" />
                                                 <span>Delete</span>
                                             </DropdownMenuItem>
@@ -660,31 +660,31 @@ const switchToSelectedAgent = () => {
                     </AlertDialogContent>
                 </AlertDialog>
 
-                <template v-if="(page.props.auth as any)?.member">
+                <template v-if="(page.props.auth as any)?.user">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
-                                class="text-foreground hover:bg-accent flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
+                                class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
                             >
                                 <Avatar class="h-7 w-7">
-                                    <AvatarImage :src="(page.props.auth as any)?.member?.avatar || ''" />
-                                    <AvatarFallback class="text-xs">{{ (page.props.auth as any)?.member?.name?.charAt(0) || 'U' }}</AvatarFallback>
+                                    <AvatarImage :src="(page.props.auth as any)?.user?.avatar || ''" />
+                                    <AvatarFallback class="text-xs">{{ (page.props.auth as any)?.user?.name?.charAt(0) || 'U' }}</AvatarFallback>
                                 </Avatar>
-                                <span class="flex-1 truncate text-left">{{ (page.props.auth as any)?.member?.name || 'User' }}</span>
+                                <span class="flex-1 truncate text-left">{{ (page.props.auth as any)?.user?.name || 'User' }}</span>
                                 <MoreVertical class="text-muted-foreground h-4 w-4" />
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" side="top" class="w-56">
-                            <DropdownMenuItem @click="openProfileDialog">
+                            <DropdownMenuItem class="cursor-pointer" @click="openProfileDialog">
                                 <User class="mr-2 h-4 w-4" />
                                 <span>Profile</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem @click="openAgentsDialog">
+                            <DropdownMenuItem class="cursor-pointer" @click="openAgentsDialog">
                                 <Bot class="mr-2 h-4 w-4" />
                                 <span>My Agents</span>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem @click="handleLogout">
+                            <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
                                 <LogOut class="mr-2 h-4 w-4" />
                                 <span>Log out</span>
                             </DropdownMenuItem>
@@ -859,21 +859,25 @@ const switchToSelectedAgent = () => {
                     <div v-else class="space-y-3">
                         <div
                             v-for="agent in agents"
-                            :key="agent.external_id"
+                            :key="agent.id"
                             :class="[
                                 'flex cursor-pointer items-center justify-between rounded-lg border p-4 transition-colors',
-                                selectedAgent?.id === agent.external_id ? 'border-primary bg-primary/5' : 'hover:bg-accent',
+                                selectedAgent?.id === agent.id ? 'border-primary bg-primary/5' : 'hover:bg-accent',
                             ]"
+                            role="button"
+                            tabindex="0"
                             @click="selectAgent(agent)"
+                            @keydown.enter="selectAgent(agent)"
+                            @keydown.space.prevent="selectAgent(agent)"
                         >
                             <div class="flex flex-1 items-center gap-3">
                                 <div
                                     :class="[
                                         'h-4 w-4 rounded-full border-2',
-                                        selectedAgent?.id === agent.external_id ? 'border-primary bg-primary' : 'border-muted-foreground',
+                                        selectedAgent?.id === agent.id ? 'border-primary bg-primary' : 'border-muted-foreground',
                                     ]"
                                 >
-                                    <div v-if="selectedAgent?.id === agent.external_id" class="m-0.5 h-2 w-2 rounded-full bg-white"></div>
+                                    <div v-if="selectedAgent?.id === agent.id" class="m-0.5 h-2 w-2 rounded-full bg-white"></div>
                                 </div>
                                 <div class="flex-1">
                                     <h4 class="font-semibold">{{ agent.name }}</h4>

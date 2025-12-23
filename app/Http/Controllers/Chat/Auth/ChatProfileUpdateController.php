@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
-use App\Models\Member;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -18,8 +18,8 @@ class ChatProfileUpdateController
             'password' => ['nullable', 'required_with:current_password', 'string', 'min:8', 'confirmed'],
         ]);
 
-        /** @var Member $member */
-        $member = $request->user('member');
+        /** @var User $user */
+        $user = $request->user();
 
         $values = [
             'name' => $request->input('name'),
@@ -28,9 +28,9 @@ class ChatProfileUpdateController
         $currentPassword = $request->input('current_password');
         $newPassword = $request->input('password');
 
-        $validation = ['email' => $member->email, 'password' => $currentPassword];
+        $validation = ['email' => $user->email, 'password' => $currentPassword];
 
-        if ($currentPassword && ! Auth::guard('member')->validate($validation)) {
+        if ($currentPassword && ! Auth::guard('web')->validate($validation)) {
             throw ValidationException::withMessages([
                 'current_password' => __('auth.failed'),
             ]);
@@ -40,7 +40,7 @@ class ChatProfileUpdateController
             $values['password'] = Hash::make($newPassword);
         }
 
-        $member->update(
+        $user->update(
             $values
         );
     }

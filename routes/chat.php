@@ -30,7 +30,7 @@ use App\Http\Controllers\Chat\Export\ChatExportController;
 
 Route::get('/chat/appearance', ChatAppearanceController::class)->name('chat.appearance');
 
-Route::middleware('guest.member')->group(function () {
+Route::middleware('guest')->group(function () {
     Route::get('chat/login', ChatShowLoginController::class)->name('chat.login.show');
     Route::post('chat/login', ChatLoginController::class)->name('chat.login');
 });
@@ -57,7 +57,7 @@ Route::prefix('/chat')
         Route::delete('/conversations/{conversationId}', ConversationDeleteController::class)->name('conversations.delete');
         Route::delete('/conversations', ChatDeleteAllConversationsController::class)->name('conversations.delete.all');
 
-        Route::middleware('auth.member')->group(function () {
+        Route::middleware('auth')->group(function () {
             Route::post('logout', ChatLogoutController::class)->name('chat.logout');
         });
 

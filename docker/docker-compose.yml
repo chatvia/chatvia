@@ -1,0 +1,54 @@
+services:
+  postgres:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    container_name: chatvia-postgres
+    environment:
+      # Database configuration
+      POSTGRES_DB: chatvia
+      POSTGRES_USER: chatvia
+      POSTGRES_PASSWORD: password
+
+      # PostgreSQL settings
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
+
+      # Timezone
+      TZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistent data
+      - postgres_data:/var/lib/postgresql/data
+
+      # Optional: Backups
+      - ./backups:/backups
+    networks:
+      - chatvia-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U chatvia -d chatvia" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    shm_size: 256MB
+    # Resource limits (adjust based on your machine)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+volumes:
+  postgres_data:
+    driver: local
+    name: chatvia-postgres-data
+
+networks:
+  chatvia-network:
+    driver: bridge
+    name: chatvia-network

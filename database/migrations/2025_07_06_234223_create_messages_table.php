@@ -75,7 +75,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['chat_session_id', 'created_at']);
-            $table->index(['deleted_at', 'created_at']);
             $table->index('chat_topic_id'); // For topic filtering
             $table->index('updated_at'); // For ORDER BY latest activity
         });
@@ -124,8 +123,6 @@ return new class extends Migration
             $table->index(['role', 'created_at']);
             $table->index(['llm_id', 'created_at']);
             $table->index(['feedback', 'created_at']);
-            $table->index(['expires_at', 'deleted_at']);
-            $table->index(['deleted_at', 'created_at']);
 
             // Indexes for conversation filtering (sentiment, tone, confidence, source)
             $table->index(['chat_conversation_id', 'sentiment']);
@@ -141,20 +138,20 @@ return new class extends Migration
     private function createBasicIndexes(): void
     {
         // Create regular indexes (non-concurrent) within the transaction
-        DB::statement('CREATE INDEX messages_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE deleted_at IS NULL');
-        DB::statement("CREATE INDEX messages_assistant_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'assistant' AND deleted_at IS NULL");
-        DB::statement("CREATE INDEX messages_user_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'user' AND deleted_at IS NULL");
+        DB::statement('CREATE INDEX messages_active_idx ON chat_messages (chat_conversation_id, created_at)');
+        DB::statement("CREATE INDEX messages_assistant_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'assistant'");
+        DB::statement("CREATE INDEX messages_user_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'user'");
 
         // Date-based indexes for analytics
-        DB::statement('CREATE INDEX messages_created_date_idx ON chat_messages USING btree (date(created_at)) WHERE deleted_at IS NULL');
-        DB::statement('CREATE INDEX messages_year_month_idx ON chat_messages USING btree (extract(year from created_at), extract(month from created_at)) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX messages_created_date_idx ON chat_messages USING btree (date(created_at))');
+        DB::statement('CREATE INDEX messages_year_month_idx ON chat_messages USING btree (extract(year from created_at), extract(month from created_at))');
 
         // Performance indexes for common queries
-        DB::statement('CREATE INDEX messages_feedback_date_idx ON chat_messages (feedback, created_at) WHERE feedback IS NOT NULL AND deleted_at IS NULL');
+        DB::statement('CREATE INDEX messages_feedback_date_idx ON chat_messages (feedback, created_at) WHERE feedback IS NOT NULL');
         DB::statement('CREATE INDEX messages_expires_cleanup_idx ON chat_messages (expires_at) WHERE expires_at IS NOT NULL');
 
         // Conversation-level indexes
-        DB::statement('CREATE INDEX conversations_active_idx ON chat_conversations (chat_session_id, created_at) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX conversations_active_idx ON chat_conversations (chat_session_id, created_at)');
 
         // Multi-language full-text search indexes
         $this->createMultiLanguageSearchIndexes();
@@ -163,13 +160,13 @@ return new class extends Migration
     private function createMultiLanguageSearchIndexes(): void
     {
         // Simple text search using trigrams (language-agnostic)
-        DB::statement('CREATE INDEX messages_content_trigram_idx ON chat_messages USING gin(content gin_trgm_ops) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX messages_content_trigram_idx ON chat_messages USING gin(content gin_trgm_ops)');
 
         // Multi-language full-text search with simple configuration
-        DB::statement('CREATE INDEX messages_content_simple_search_idx ON chat_messages USING gin(to_tsvector(\'simple\', content)) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX messages_content_simple_search_idx ON chat_messages USING gin(to_tsvector(\'simple\', content))');
 
         // Conversation title search (language-agnostic)
-        DB::statement('CREATE INDEX conversations_title_trigram_idx ON chat_conversations USING gin(title gin_trgm_ops) WHERE title IS NOT NULL AND deleted_at IS NULL');
+        DB::statement('CREATE INDEX conversations_title_trigram_idx ON chat_conversations USING gin(title gin_trgm_ops) WHERE title IS NOT NULL');
     }
 
     public function down(): void

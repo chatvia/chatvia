@@ -250,7 +250,7 @@ return [
                             'img' => 'images/chatvia/models.png',
                             'tab_name' => 'Models',
                             'title' => 'Multiple AI Models',
-                            'description' => 'Choose from various AI models including GPT-4, Claude, and more. Select the best model for your use case and budget.',
+                            'description' => 'Choose from various open-source AI models including GPT OSS, Llama, DeepSeek, Qwen, Mistral, Gemma, and Holo2. Select the best model for your use case and budget.',
                         ],
                         [
                             'img' => 'images/chatvia/settings.png',
@@ -333,7 +333,7 @@ return [
                 ],
                 [
                     'question' => 'What AI models does ChatVIA use?',
-                    'answer' => 'ChatVIA supports multiple cutting-edge AI models including GPT-4, Claude, Gemini, Llama, Qwen, DeepSeek, Gemma, Mistral, and more. You can choose the best model for your needs and switch between them anytime.',
+                    'answer' => 'ChatVIA supports multiple open-source AI models including GPT OSS, Llama, DeepSeek, Qwen, Mistral, Gemma, and Holo2. You can choose the best model for your needs and switch between them anytime.',
                 ],
                 [
                     'question' => 'Is my data secure and private?',

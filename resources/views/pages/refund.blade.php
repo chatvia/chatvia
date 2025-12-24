@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Refund Policy - ChatVia | 14-Day Money-Back Guarantee</title>
-    
+
     @section('description', 'ChatVia offers a 14-day money-back guarantee. Learn about our refund policy, eligibility requirements, and how to request a refund.')
     @section('og_title', 'Refund Policy - ChatVia')
     @section('og_description', '14-day money-back guarantee on all ChatVia subscriptions. Try risk-free and get a full refund if not satisfied.')
-    
+
     @vite(['resources/css/landing.css'])
     @include('partials.cover')
 </head>
@@ -53,14 +53,14 @@
                 <div class="bg-green-50 border border-green-200 rounded-lg p-6">
                     <h3 class="text-xl font-semibold text-green-800 mb-3">New Customer Guarantee</h3>
                     <p class="text-green-700 leading-relaxed">
-                        We offer a <strong>14-day money-back guarantee</strong> for all new paid subscriptions. If you're not completely satisfied with ChatVia within the first 14 days of your subscription, we'll provide a full refund of your payment.
+                        We offer a <strong>14-day money-back guarantee</strong> for all new paid subscriptions. If you're not completely satisfied with ChatVia within the first 30 days of your subscription, we'll provide a full refund of your payment.
                     </p>
                 </div>
 
                 <h3 class="text-xl font-medium text-gray-800">2.1 Eligibility Requirements</h3>
                 <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
                     <li>You must be a new customer (first-time subscriber)</li>
-                    <li>Refund request must be made within 14 days of your initial payment</li>
+                    <li>Refund request must be made within 30 days of your initial payment</li>
                     <li>Your account must be in good standing (no violations of our Terms of Service)</li>
                     <li>You must provide a valid reason for the refund request</li>
                 </ul>
@@ -80,7 +80,7 @@
 
                 <h3 class="text-xl font-medium text-gray-800">3.1 Refund Request Process</h3>
                 <ol class="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                    <li><strong>Contact Support:</strong> Email us at <a href="mailto:refunds@chatvia.com" class="text-blue-600 underline">refunds@chatvia.com</a> or use our support chat</li>
+                    <li><strong>Contact Support:</strong> Email us at <a href="mailto:info@chatvia.com" class="text-blue-600 underline">info@chatvia.com</a> or use our support chat</li>
                     <li><strong>Provide Details:</strong> Include your account email, subscription details, and reason for refund</li>
                     <li><strong>Review Period:</strong> We'll review your request within 2-3 business days</li>
                     <li><strong>Processing:</strong> Approved refunds are processed within 5-10 business days</li>
@@ -119,7 +119,7 @@
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4">
                     <p class="text-red-800 font-semibold mb-2">The following are NOT eligible for refunds:</p>
                     <ul class="list-disc list-inside text-red-700 space-y-1 ml-4 text-sm">
-                        <li>Subscriptions older than 14 days</li>
+                        <li>Subscriptions older than 30 days</li>
                         <li>Accounts that violate our Terms of Service</li>
                         <li>Add-on services or custom development work</li>
                         <li>Enterprise plans with custom contracts</li>

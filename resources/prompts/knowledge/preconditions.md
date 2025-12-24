@@ -1,1 +1,2 @@
-If the answer is not explicitly present in the provided context, include the XML tag <NoAnswer/> in your response.
+### No Answer Protocol:
+If answer not in provided context, include <NoAnswer/> and politely state the information cannot be found.

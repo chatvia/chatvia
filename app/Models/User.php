@@ -587,4 +587,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     {
         return $this->teamMembersCount() < $this->quota->members_limit;
     }
+
+    public function staff(): HasMany
+    {
+        return $this->hasMany(User::class, 'managed_by_user_id');
+    }
 }

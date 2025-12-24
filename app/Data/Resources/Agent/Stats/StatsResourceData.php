@@ -69,7 +69,7 @@ class StatsResourceData extends Data
         return self::from([
             'total_messages' => $agent->countAssistantMessages(),
             'total_conversations' => $agent->countConversations(),
-            'total_members' => $agent->members()->count(),
+            'total_members' => 0,
             'total_user_messages' => $agent->totalUserMessages(),
             'unique_sessions' => $agent->uniqueSessionsCount(),
             'avg_response_time' => $agent->avgResponseTime(),

@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Cashier\Cashier;
 
 class TrialSuccessController
 {
-    public function __invoke(Request $request): RedirectResponse
+    public function __invoke(Request $request)
     {
         $sessionId = $request->query('session_id');
 
@@ -30,9 +29,7 @@ class TrialSuccessController
             $user = User::query()->where('stripe_id', $session->customer)->first();
 
             if (! $user) {
-                return redirect()
-                    ->route('home')
-                    ->with('success', 'Payment successful! Please check your email for login instructions.');
+                return view('landing.payment-success');
             }
 
             // Log the user in automatically

@@ -42,6 +42,9 @@
 
     @include('landing.partials.scripts')
 
+    @stack('scripts')
+
+    @stack('preload')
 </body>
 
 </html>

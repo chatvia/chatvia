@@ -14,9 +14,8 @@ class AgentQueryBuilder extends Builder
     public function withTotalMembers(): self
     {
         return $this->addSelect([
-            'total_members' => DB::table('members')
-                ->join('agent_member', 'members.id', '=', 'agent_member.member_id')
-                ->whereColumn('agents.id', 'agent_member.agent_id')
+            'total_members' => DB::table('users')
+                ->whereColumn('users.managed_by_user_id', 'agents.user_id')
                 ->selectRaw('count(*)'),
         ]);
     }
@@ -31,7 +30,6 @@ class AgentQueryBuilder extends Builder
                 ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
                 ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
                 ->whereColumn('chat_sessions.agent_id', 'agents.id')
-                ->whereNull('chat_messages.deleted_at')
                 ->selectRaw('count(*)'),
         ]);
     }
@@ -43,10 +41,9 @@ class AgentQueryBuilder extends Builder
     {
         return $this->addSelect([
             'unique_users' => DB::table('chat_sessions')
-                ->join('members', 'chat_sessions.member_id', '=', 'members.id')
                 ->whereColumn('chat_sessions.agent_id', 'agents.id')
-                ->whereNotNull('members.user_id')
-                ->selectRaw('count(distinct members.user_id)'),
+                ->whereNotNull('chat_sessions.user_id')
+                ->selectRaw('count(distinct chat_sessions.user_id)'),
         ]);
     }
 

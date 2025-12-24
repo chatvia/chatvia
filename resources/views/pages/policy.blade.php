@@ -263,7 +263,6 @@
                             <li>Access controls and multi-factor authentication</li>
                             <li>Secure backup and disaster recovery procedures</li>
                             <li>Network isolation and firewall protection</li>
-                            <li>Compliance with ISO 27001 and SOC 2 standards</li>
                         </ul>
                     </section>
 

@@ -87,7 +87,9 @@ readonly class MessageProcessor
 
     private function buildSystemPrompt(StreamRequestData $data): array
     {
-        $systemPrompt = PromptLoader::load('knowledge/system');
+        $systemPrompt = $data->agent->system_instructions;
+
+        $systemPrompt .= PromptLoader::load('knowledge/preconditions');
 
         if ($data->canCollectLead) {
             if ($data->leadAlreadyCollected) {

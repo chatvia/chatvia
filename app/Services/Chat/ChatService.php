@@ -202,10 +202,10 @@ readonly class ChatService
         $message = str_replace($strip, '', $context->streamedMessage);
 
         // Check if the response contains the answer_not_found tag
-        $answerFound = ! str_contains($message, '<answer_not_found>');
+        $answerFound = ! str_contains($message, '<NoAnswer/>');
 
         // Remove the answer_not_found tags from the final message
-        $message = str_replace(['<answer_not_found>', '</answer_not_found>'], '', $message);
+        $message = str_replace(['<NoAnswer/>'], '', $message);
 
         $this
             ->memory

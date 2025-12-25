@@ -19,23 +19,13 @@ class AgentChatLogDeleteConversationController
 
         abort_if(! has_permission_to_agent($agent, 'agent.chat.delete'), 403);
 
-        // Find the conversation
-        $conversation = ChatConversation::find($conversationId);
+        // Find the conversation scoped to the current agent for security
+        $conversation = ChatConversation::whereHas('session', function ($query) use ($agent) {
+            $query->where('agent_id', $agent->id);
+        })->where('external_id', $conversationId)->firstOrFail();
 
-        if (! $conversation) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Conversation not found.',
-            ], 404);
-        }
-
-        // Verify conversation belongs to this agent
-        if ($conversation->session?->agent_id !== $agent->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You do not have permission to delete this conversation.',
-            ], 403);
-        }
+        // Get the session before deleting the conversation
+        $session = $conversation->session;
 
         $chatMemory
             ->setAgent($agent)
@@ -44,6 +34,18 @@ class AgentChatLogDeleteConversationController
             ->deleteConversation();
 
         $conversation->delete();
+
+        // Delete session if it's empty and inactive for more than 30 days
+        if ($session) {
+            $remainingConversations = $session->conversations()->count();
+
+            if ($remainingConversations === 0 &&
+                $session->last_activity_at &&
+                $session->last_activity_at->lt(now()->subDays(30))
+            ) {
+                $session->delete();
+            }
+        }
 
         return response()->json([
             'success' => true,

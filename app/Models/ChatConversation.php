@@ -28,6 +28,11 @@ class ChatConversation extends Model
         ];
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'external_id';
+    }
+
     public function newEloquentBuilder($query): ChatConversationQueryBuilder
     {
         return new ChatConversationQueryBuilder($query);

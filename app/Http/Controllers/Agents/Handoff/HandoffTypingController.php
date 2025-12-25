@@ -13,23 +13,13 @@ readonly class HandoffTypingController
 {
     public function __construct(private HandoffService $handoffService) {}
 
-    public function __invoke(Request $request, Agent $agent, string $conversation): JsonResponse
+    public function __invoke(Request $request, Agent $agent, ChatConversation $conversation): JsonResponse
     {
         $request->validate([
             'is_typing' => ['required', 'boolean'],
         ]);
 
         $user = auth()->user();
-
-        // Resolve conversation
-        $conversation = ChatConversation::find($conversation);
-
-        if (! $conversation) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Conversation not found.',
-            ], 404);
-        }
 
         // Check access (handles both ownership and team permissions)
         if (Gate::denies('access-agent', $agent) || $conversation->session?->agent_id !== $agent->id) {
@@ -48,7 +38,7 @@ readonly class HandoffTypingController
         }
 
         $this->handoffService->broadcastTyping(
-            conversationId: $conversation->id,
+            conversationId: $conversation->external_id,
             isTyping: $request->boolean('is_typing'),
             typerType: 'agent',
             typerName: $user->name,

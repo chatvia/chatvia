@@ -18,6 +18,11 @@ class AgentChatLogConversationPulseController
 
         abort_if(! has_permission_to_agent($agent, 'agent.chat.pulse'), 403);
 
+        // Verify conversation belongs to this agent
+        if ($conversation->session?->agent_id !== $agent->id) {
+            abort(404);
+        }
+
         $messages = $conversation->messages()
             ->where('role', 'user')
             ->orderBy('created_at')
@@ -48,7 +53,7 @@ class AgentChatLogConversationPulseController
             'messages' => $pulseData,
             'summary' => $summary,
             'conversation' => [
-                'id' => $conversation->id,
+                'id' => $conversation->external_id,
                 'sentiment' => $conversation->sentiment,
                 'tone' => $conversation->tone,
                 'total_messages' => $conversation->messages()->count(),

@@ -13,19 +13,9 @@ readonly class HandoffTakeOverController
 {
     public function __construct(private HandoffService $handoffService) {}
 
-    public function __invoke(Request $request, Agent $agent, string $conversation): JsonResponse
+    public function __invoke(Request $request, Agent $agent, ChatConversation $conversation): JsonResponse
     {
         $user = $request->user();
-
-        // Resolve conversation
-        $conversation = ChatConversation::find($conversation);
-
-        if (! $conversation) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Conversation not found.',
-            ], 404);
-        }
 
         // Check if user can access the agent (handles both ownership and team permissions)
         // and conversation belongs to the agent

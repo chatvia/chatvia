@@ -444,7 +444,7 @@ class ChatMemory implements ChatMemoryInterface
 
         $this->cache = new ChatCache($this->sessionId, $this->agent);
         $this->conversationManager = new ConversationManager($this->cache, $this->sessionId);
-        $this->messageManager = new MessageManager($this->cache, $this->agent);
+        $this->messageManager = new MessageManager($this->cache);
         $this->sourceManager = new SourceManager($this->cache);
     }
 }

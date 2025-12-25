@@ -2,11 +2,8 @@
 
 namespace App\Data\Memory;
 
-use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-#[MapInputName(SnakeCaseMapper::class)]
 class MessageData extends Data
 {
     public function __construct(
@@ -15,11 +12,11 @@ class MessageData extends Data
         public string $content,
         public string $type,
         public int $timestamp,
-        public ?int $readAt = null,
+        public ?int $read_at = null,
         public ?string $model = null,
         public ?bool $feedback = null,
         public ?string $language = null,
-        public ?string $messageForLlm = null,
-        public ?bool $llmFoundAnswer = null,
+        public ?string $message_for_llm = null,
+        public ?bool $llm_found_answer = null,
     ) {}
 }

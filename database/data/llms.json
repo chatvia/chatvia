@@ -50,7 +50,7 @@
         "input_price_per_1m_tokens": 0.75,
         "output_price_per_1m_tokens": 2.25,
         "is_default": false,
-        "is_reasoning": true
+        "reasoning": true
     },
     {
         "internal_name": "deepseek-r1-distill-llama-70b",
@@ -64,7 +64,7 @@
         "input_price_per_1m_tokens": 0.90,
         "output_price_per_1m_tokens": 0.90,
         "is_default": false,
-        "is_reasoning": true
+        "reasoning": true
     },
     {
         "internal_name": "gemma-3-27b-it",

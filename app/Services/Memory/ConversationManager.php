@@ -13,11 +13,11 @@ use Illuminate\Support\Str;
 /**
  * Manages chat conversations within sessions.
  */
-class ConversationManager
+readonly class ConversationManager
 {
     public function __construct(
-        private readonly ChatCache $cache,
-        private readonly string $sessionId
+        private ChatCache $cache,
+        private string $sessionId
     ) {}
 
     public function createConversation(string $title): string
@@ -39,6 +39,11 @@ class ConversationManager
 
         // Ensure the session exists in database
         $agent = $this->cache->getAgent();
+
+        if ($session = ChatSession::find($this->sessionId)) {
+
+        }
+
         ChatSession::firstOrCreate([
             'id' => $this->sessionId,
             'agent_id' => $agent->id,
@@ -58,23 +63,12 @@ class ConversationManager
     {
         $conversations = $this->getConversationsFromSession();
 
-        $conversations = array_map(function (array $conversation) use ($conversationId, $title) {
+        foreach ($conversations as &$conversation) {
             if ($conversation['id'] === $conversationId) {
-                $conversationData = ConversationData::from($conversation);
-
-                $updatedConversation = new ConversationData(
-                    id: $conversationData->id,
-                    title: Str::of($title)->replace('"', '')->toString(),
-                    timestamp: $conversationData->timestamp,
-                    visible: true,
-                    messages: $conversationData->messages,
-                );
-
-                return $updatedConversation->toArray();
+                $conversation['title'] = Str::of($title)->replace('"', '')->toString();
+                $conversation['visible'] = true;
             }
-
-            return $conversation;
-        }, $conversations);
+        }
 
         $this->saveSessionData($conversations);
     }
@@ -124,12 +118,10 @@ class ConversationManager
         $this->cache->flush();
     }
 
-    public function getConversationById(string $conversationId): ?ConversationData
+    public function getConversationById(string $conversationId): ?array
     {
-        $conversation = collect($this->getConversationsForSession(onlyVisible: true))
+        return collect($this->getConversationsForSession(onlyVisible: true))
             ->firstWhere('id', $conversationId);
-
-        return $conversation ? ConversationData::from($conversation) : null;
     }
 
     public function conversationExists(string $conversationId): bool
@@ -164,10 +156,7 @@ class ConversationManager
             $conversations = $conversations->sortByDesc('timestamp');
         }
 
-        return $conversations
-            ->map(fn (array $conversation) => ConversationData::from($conversation)->toArray())
-            ->values()
-            ->toArray();
+        return $conversations->values()->toArray();
     }
 
     public function isMemberAuthenticated(): bool

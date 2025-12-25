@@ -23,8 +23,8 @@ class HandoffMarkReadController
 
         $markedCount = $this->chatMemory
             ->setAgent($agent)
-            ->setExternalSessionId($session->id)
-            ->setConversationId($conversation->id)
+            ->setExternalSessionId($session->external_id)
+            ->setConversationId($conversation->external_id)
             ->markMessagesAsRead('admin'); // Admin is reading user messages
 
         return response()->json([

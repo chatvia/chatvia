@@ -34,7 +34,7 @@ class ChatLogConversationData extends Data
     public static function fromConversation(ChatConversation $conversation, ?string $excerpt = null): self
     {
         return new self(
-            conversation_id: $conversation->id,
+            conversation_id: $conversation->external_id,
             last_at: $conversation->updated_at->toISOString(),
             messages_count: $conversation->messages_count ?? 0,
             first_message_excerpt: $excerpt,

@@ -13,23 +13,13 @@ readonly class HandoffMessageController
 {
     public function __construct(private HandoffService $handoffService) {}
 
-    public function __invoke(Request $request, Agent $agent, string $conversation): JsonResponse
+    public function __invoke(Request $request, Agent $agent, ChatConversation $conversation): JsonResponse
     {
         $request->validate([
             'content' => ['required', 'string', 'max:10000'],
         ]);
 
         $user = auth()->user();
-
-        // Resolve conversation
-        $conversation = ChatConversation::find($conversation);
-
-        if (! $conversation) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Conversation not found.',
-            ], 404);
-        }
 
         // Check access (handles both ownership and team permissions)
         if (Gate::denies('access-agent', $agent) || $conversation->session?->agent_id !== $agent->id) {

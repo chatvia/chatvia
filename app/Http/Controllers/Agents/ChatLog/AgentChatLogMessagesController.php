@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class AgentChatLogMessagesController
 {
-    public function __invoke(Request $request, Agent $agent, string $conversationId)
+    public function __invoke(Request $request, Agent $agent, ChatConversation $conversation)
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),
@@ -20,20 +20,25 @@ class AgentChatLogMessagesController
 
         abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
 
+        // Verify conversation belongs to this agent
+        if ($conversation->session?->agent_id !== $agent->id) {
+            abort(404);
+        }
+
         $messages = ChatMessage::query()
             ->with('llm')
-            ->forAgentConversation($agent->id, $conversationId)
+            ->forAgentConversation($agent->id, $conversation->id)
             ->orderBy('created_at')
             ->orderByRaw("CASE WHEN role = 'user' THEN 0 ELSE 1 END")
             ->paginate(50, page: $request->integer('page', 1));
 
         $lead = Lead::query()
             ->where('agent_id', $agent->id)
-            ->where('chat_conversation_id', $conversationId)
+            ->where('chat_conversation_id', $conversation->id)
             ->first();
 
-        // Get conversation with handoff info
-        $conversation = ChatConversation::with('handoffUser')->find($conversationId);
+        // Load handoff info if not already loaded
+        $conversation->loadMissing('handoffUser');
 
         $response = ChatLogMessagesResourceData::fromPaginator($messages, $lead);
 

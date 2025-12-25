@@ -29,8 +29,8 @@ class AgentChatLogDeleteConversationController
 
         $chatMemory
             ->setAgent($agent)
-            ->setExternalSessionId($conversation->chat_session_id)
-            ->setConversationId($conversation->id)
+            ->setExternalSessionId($session->external_id)
+            ->setConversationId($conversation->external_id)
             ->deleteConversation();
 
         $conversation->delete();

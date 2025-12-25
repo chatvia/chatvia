@@ -16,7 +16,6 @@ class MessageManager
 {
     public function __construct(
         private readonly ChatCache $cache,
-        private readonly Agent $agent
     ) {}
 
     public function addMessage(

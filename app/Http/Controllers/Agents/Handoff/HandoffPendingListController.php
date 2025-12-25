@@ -26,6 +26,7 @@ readonly class HandoffPendingListController
             ->with(['session.member', 'lead', 'messages' => fn ($q) => $q->latest()->limit(1)])
             ->whereHas('session', fn ($q) => $q->where('agent_id', $agent->id))
             ->where('handoff_status', 'pending')
+            ->where('visible', true)
             ->orderBy('updated_at', 'desc')
             ->get()
             ->map(function (ChatConversation $conversation) {

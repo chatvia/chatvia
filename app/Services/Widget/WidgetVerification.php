@@ -48,7 +48,7 @@ class WidgetVerification
         return $session;
     }
 
-    public function verifyThreadByHmacHashId(?string $threadId): ?ChatConversation
+    public function verifyThreadId(?string $threadId): ?ChatConversation
     {
         if (! $threadId) {
             return null;

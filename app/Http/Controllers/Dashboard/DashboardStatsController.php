@@ -24,6 +24,7 @@ class DashboardStatsController
         $totalConversations = DB::table('chat_conversations')
             ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->whereIn('chat_sessions.agent_id', $agentIds)
+            ->where('chat_conversations.visible', true)
             ->count();
 
         // Count total leads for user's agents
@@ -156,6 +157,7 @@ class DashboardStatsController
             ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->whereIn('chat_sessions.agent_id', $agentIds)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->where('chat_messages.created_at', '>=', now()->startOfMonth())
             ->count();
@@ -165,6 +167,7 @@ class DashboardStatsController
             ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->whereIn('chat_sessions.agent_id', $agentIds)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->where('chat_messages.created_at', '>=', now()->subMonth()->startOfMonth())
             ->where('chat_messages.created_at', '<', now()->startOfMonth())
@@ -202,6 +205,7 @@ class DashboardStatsController
             ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('agents', 'chat_sessions.agent_id', '=', 'agents.id')
             ->where('agents.team_id', $team->id)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->whereRaw('date(chat_messages.created_at) >= ?', [$startDate->format('Y-m-d')])
             ->whereRaw('date(chat_messages.created_at) <= ?', [$endDate->format('Y-m-d')])
@@ -247,6 +251,7 @@ class DashboardStatsController
             ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('agents', 'chat_sessions.agent_id', '=', 'agents.id')
             ->where('agents.team_id', $team->id)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->whereRaw('date(chat_messages.created_at) >= ?', [$startDate->format('Y-m-d')])
             ->whereRaw('date(chat_messages.created_at) <= ?', [$endDate->format('Y-m-d')])

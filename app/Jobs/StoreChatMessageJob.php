@@ -72,7 +72,10 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'chat_session_id' => $session->id,
         ]);
 
-        $conversation->update(['last_activity_at' => now()]);
+        $conversation->update([
+            'last_activity_at' => now(),
+            'visible' => true,
+        ]);
 
         $llmId = $this->payload->model
             ? Llm::where('external_name', $this->payload->model)->value('id')

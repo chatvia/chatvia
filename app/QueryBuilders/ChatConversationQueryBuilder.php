@@ -99,4 +99,9 @@ class ChatConversationQueryBuilder extends Builder
     {
         return $this->orderByDesc('updated_at');
     }
+
+    public function onlyVisible(): self
+    {
+        return $this->where('visible', true);
+    }
 }

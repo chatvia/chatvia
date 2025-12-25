@@ -32,8 +32,9 @@ readonly class ConversationManager
 
         // Also create the conversation in the database immediately
         // so it exists when widget tries to subscribe or check handoff status
-        $conversation = ChatConversation::firstOrCreate([
+        $conversation = ChatConversation::create([
             'chat_session_id' => $session->id,
+            'title' => $title,
         ]);
 
         $conversationId = $conversation->external_id;

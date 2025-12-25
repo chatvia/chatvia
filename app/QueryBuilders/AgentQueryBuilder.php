@@ -66,6 +66,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->count('chat_messages.id');
     }
@@ -77,6 +78,7 @@ class AgentQueryBuilder extends Builder
         return DB::table('chat_sessions')
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->distinct()
             ->count('chat_conversations.id');
     }
@@ -89,6 +91,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->selectRaw('ROUND(AVG(chat_messages.response_time_ms) / 1000, 1) as avg_response_time')
             ->value('avg_response_time');
@@ -102,6 +105,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->whereNotNull('chat_messages.feedback')
             ->selectRaw('
@@ -126,6 +130,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->whereRaw('DATE(chat_messages.created_at) >= ?', [$startDate->format('Y-m-d')])
             ->whereRaw('DATE(chat_messages.created_at) <= ?', [$endDate->format('Y-m-d')])
@@ -143,6 +148,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->join('llms', 'llms.id', '=', 'chat_messages.llm_id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->whereNotNull('chat_messages.llm_id')
             ->selectRaw('
@@ -157,6 +163,7 @@ class AgentQueryBuilder extends Builder
                         JOIN chat_conversations cc2 ON cm2.chat_conversation_id = cc2.id
                         JOIN chat_sessions cs2 ON cc2.chat_session_id = cs2.id
                         WHERE cs2.agent_id = ?
+                        AND cc2.visible = true
                         AND cm2.role = ?
                         AND cm2.llm_id IS NOT NULL
                     ), 0),
@@ -176,6 +183,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->where('chat_messages.created_at', '>=', $startDate)
             ->selectRaw('DATE(chat_messages.created_at) as date, COUNT(*) as messages')
@@ -211,6 +219,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('countries', 'countries.id', '=', 'chat_sessions.country_id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->whereNotNull('chat_sessions.country_id')
             ->selectRaw('
                 countries.code as country_code,
@@ -222,6 +231,7 @@ class AgentQueryBuilder extends Builder
                         FROM chat_conversations cc2
                         JOIN chat_sessions cs2 ON cc2.chat_session_id = cs2.id
                         WHERE cs2.agent_id = ?
+                        AND cc2.visible = true
                     ), 0),
                     1
                 ) as percentage
@@ -238,6 +248,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->selectRaw('ROUND(COUNT(chat_messages.id)::numeric / NULLIF(COUNT(DISTINCT chat_conversations.id), 0), 1) as avg_messages')
             ->value('avg_messages') ?? 0;
     }
@@ -249,6 +260,7 @@ class AgentQueryBuilder extends Builder
         return DB::table('chat_sessions')
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->selectRaw('EXTRACT(HOUR FROM chat_conversations.created_at) as hour, COUNT(DISTINCT chat_conversations.id) as conversation_count')
             ->groupBy('hour')
             ->orderBy('hour');
@@ -261,6 +273,7 @@ class AgentQueryBuilder extends Builder
         $result = DB::table('chat_sessions')
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->selectRaw('EXTRACT(HOUR FROM chat_conversations.created_at) as hour, COUNT(DISTINCT chat_conversations.id) as conversation_count')
             ->groupBy('hour')
             ->orderByDesc('conversation_count')
@@ -276,6 +289,7 @@ class AgentQueryBuilder extends Builder
         return DB::table('chat_sessions')
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->selectRaw('
                 EXTRACT(DOW FROM chat_conversations.created_at) as day_of_week,
                 COUNT(DISTINCT chat_conversations.id) as conversation_count
@@ -292,6 +306,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->selectRaw('
                 chat_conversations.id,
                 EXTRACT(EPOCH FROM (
@@ -312,6 +327,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'user')
             ->count('chat_messages.id');
     }
@@ -324,6 +340,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->whereNotNull('chat_messages.feedback')
             ->distinct()
             ->count('chat_conversations.id');
@@ -337,6 +354,7 @@ class AgentQueryBuilder extends Builder
         return DB::table('chat_sessions')
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_conversations.created_at', '>=', $startDate)
             ->selectRaw('DATE(chat_conversations.created_at) as date, COUNT(DISTINCT chat_conversations.id) as conversations')
             ->groupBy('date')
@@ -362,6 +380,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_messages as user_msg', 'user_msg.chat_conversation_id', '=', 'chat_conversations.id')
             ->join('chat_messages as assistant_msg', 'assistant_msg.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('user_msg.role', 'user')
             ->where('assistant_msg.role', 'assistant')
             ->where('assistant_msg.created_at', '>', DB::raw('user_msg.created_at'))
@@ -380,6 +399,7 @@ class AgentQueryBuilder extends Builder
         $result = DB::table('chat_sessions')
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->selectRaw('MIN(DATE(chat_conversations.created_at)) as first_date')
             ->value('first_date');
 
@@ -397,6 +417,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_topics', 'chat_topics.id', '=', 'chat_conversations.chat_topic_id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->whereNotNull('chat_conversations.chat_topic_id')
             ->whereRaw('DATE(chat_conversations.created_at) >= ?', [$startDate->format('Y-m-d')])
             ->whereRaw('DATE(chat_conversations.created_at) <= ?', [$endDate->format('Y-m-d')])
@@ -423,6 +444,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_topics', 'chat_topics.id', '=', 'chat_conversations.chat_topic_id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->whereNotNull('chat_conversations.chat_topic_id')
             ->whereRaw('DATE(chat_conversations.created_at) >= ?', [$startDate->format('Y-m-d')])
             ->whereRaw('DATE(chat_conversations.created_at) <= ?', [$endDate->format('Y-m-d')])
@@ -448,6 +470,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->selectRaw('ROUND(AVG(COALESCE(chat_messages.prompt_tokens, 0) + COALESCE(chat_messages.completion_tokens, 0))) as avg_tokens')
             ->value('avg_tokens');
@@ -466,6 +489,7 @@ class AgentQueryBuilder extends Builder
             ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
             ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
             ->where('chat_sessions.agent_id', $agentId)
+            ->where('chat_conversations.visible', true)
             ->where('chat_messages.role', 'assistant')
             ->selectRaw('SUM(COALESCE(chat_messages.prompt_tokens, 0) + COALESCE(chat_messages.completion_tokens, 0)) as total_tokens')
             ->value('total_tokens');

@@ -38,6 +38,7 @@ class ChatLogConversationsResourceData extends Data
     ): self {
         $conversationsPaginator = ChatConversation::query()
             ->forAgent($agent->id)
+            ->onlyVisible()
             ->withSessionAndTopic()
             ->filterByTopic($topicFilter)
             ->filterBySentiment($sentimentFilter)

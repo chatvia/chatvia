@@ -19,7 +19,7 @@ All widget API endpoints require these headers:
 
 ```
 x-session-id: {session_id}
-x-agent-id: {agent_id}
+X-AGENT-ID: {agent_id}
 ```
 
 ---
@@ -36,7 +36,7 @@ Content-Type: application/json
 
 Headers:
   x-session-id: {session_id}
-  x-agent-id: {agent_id}
+  X-AGENT-ID: {agent_id}
 
 Body:
 {
@@ -97,7 +97,7 @@ Content-Type: application/json
 
 Headers:
   x-session-id: {session_id}
-  x-agent-id: {agent_id}
+  X-AGENT-ID: {agent_id}
 
 Body:
 {
@@ -120,7 +120,7 @@ Content-Type: application/json
 
 Headers:
   x-session-id: {session_id}
-  x-agent-id: {agent_id}
+  X-AGENT-ID: {agent_id}
 
 Body:
 {
@@ -142,7 +142,7 @@ Content-Type: application/json
 Headers:
   x-session-id: {session_id}
   x-thread-id: {conversation_id}
-  x-agent-id: {agent_id}
+  X-AGENT-ID: {agent_id}
 
 Body:
 {
@@ -169,7 +169,7 @@ const pusher = new Pusher(REVERB_APP_KEY, {
   auth: {
     headers: {
       'x-session-id': sessionId,
-      'x-agent-id': agentId,
+      'X-AGENT-ID': agentId,
     }
   }
 });
@@ -365,7 +365,7 @@ class WidgetHandoff {
     return {
       'Content-Type': 'application/json',
       'x-session-id': this.sessionId,
-      'x-agent-id': this.agentId,
+      'X-AGENT-ID': this.agentId,
     };
   }
   
@@ -410,7 +410,7 @@ class WidgetHandoff {
       auth: {
         headers: {
           'x-session-id': this.sessionId,
-          'x-agent-id': this.agentId,
+          'X-AGENT-ID': this.agentId,
         },
       },
     });

@@ -11,8 +11,8 @@ class WidgetThreadsController
 {
     public function __invoke(Request $request, WidgetVerification $widgetVerification, ChatMemory $memory, ChatSession $session)
     {
-        $agentId = $request->header('x-agent-id');
-        $sessionId = $request->header('x-session-id');
+        $agentId = $request->header('X-AGENT-ID');
+        $sessionId = $request->header('X-SESSION-ID');
 
         if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
             return [];
@@ -25,26 +25,32 @@ class WidgetThreadsController
             ->setSessionId($sessionId)
             ->getConversationsForCurrentSession();
 
+        // If no conversations exist (tampered session, deleted conversations, etc.),
+        // create a default one so the user can start chatting
+        if (empty($conversations)) {
+            $memory->createConversation('New Chat');
+            $conversations = $memory->getConversationsForCurrentSession();
+        }
+
         return [
             'threads' => $conversations,
         ];
     }
 }
+// Response format:
 // {
 //    "threads": [
-//    {
-//        "id": "thread_123",
-//      "title": "Chat about pricing", // Optional - will fallback to date if missing
-//      "created_at": "2024-01-15T10:30:00Z", // Required for sorting
-//      "updatedAt": "2024-01-15T14:20:00Z", // Optional - used for sorting if available
-//      "messages": [] // Array of messages (optional)
-//    },
-//    {
+//      {
+//        "id": "thread_123",           // Required - ULID identifier
+//        "title": "Chat about pricing", // Optional - defaults to "New conversation" in widget
+//        "timestamp": 1704067800,      // Required - Unix timestamp for sorting
+//        "visible": false              // Internal - whether thread has user messages
+//      },
+//      {
 //        "id": "thread_456",
-//      "title": "Support question",
-//      "created_at": "2024-01-14T09:15:00Z",
-//      "updatedAt": "2024-01-14T16:45:00Z"
-//    }
-//  ],
-//  "active_thread_id": "thread_123" // Optional - current active thread
+//        "title": "Support question",
+//        "timestamp": 1703981400,
+//        "visible": true
+//      }
+//    ]
 // }

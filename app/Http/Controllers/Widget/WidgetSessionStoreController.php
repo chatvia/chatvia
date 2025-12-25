@@ -11,7 +11,7 @@ class WidgetSessionStoreController
 {
     public function __invoke(Request $request, WidgetVerification $widgetVerification, ChatSession $session)
     {
-        $agentId = $request->header('x-agent-id');
+        $agentId = $request->header('X-AGENT-ID');
 
         if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
             return response()->json(data: ['error' => 'Could not verify the agent'], status: 403);

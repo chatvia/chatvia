@@ -17,9 +17,9 @@ readonly class WidgetHandoffStatusController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $sessionId = $request->header('x-session-id');
-        $agentId = $request->header('x-agent-id');
-        $conversationId = $request->input('conversation_id') ?? $request->header('x-thread-id');
+        $sessionId = $request->header('X-SESSION-ID');
+        $agentId = $request->header('X-AGENT-ID');
+        $conversationId = $request->input('conversation_id') ?? $request->header('X-THREAD-ID');
 
         if (! $sessionId || ! $conversationId) {
             return response()->json(['error' => 'Missing required parameters'], 400);
@@ -35,8 +35,15 @@ readonly class WidgetHandoffStatusController
             ->whereHas('session', fn ($q) => $q->where('id', $sessionId))
             ->first();
 
+        // If conversation doesn't exist (deleted or tampered ID),
+        // return default AI mode instead of 404
         if (! $conversation) {
-            return response()->json(['error' => 'Conversation not found'], 404);
+            return response()->json([
+                'conversation_id' => $conversationId,
+                'handoff_status' => 'ai',
+                'is_human_controlled' => false,
+                'admin_name' => null,
+            ]);
         }
 
         $isHandedOff = $this->handoffService->isHandedOff($conversation);

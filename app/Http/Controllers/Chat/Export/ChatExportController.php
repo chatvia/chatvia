@@ -53,7 +53,7 @@ readonly class ChatExportController
     {
         $conversation = $this->memory->getConversationById($conversationId);
 
-        return Str::slug($conversation['title']);
+        return Str::slug($conversation->title);
     }
 
     private function toPdf(array $messages, string $filename)

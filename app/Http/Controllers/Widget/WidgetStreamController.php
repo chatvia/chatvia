@@ -14,8 +14,8 @@ readonly class WidgetStreamController
 
     public function __invoke(Request $request)
     {
-        $sessionId = $request->header('x-session-id');
-        $threadId = $request->header('x-thread-id');
+        $sessionId = $request->header('X-SESSION-ID');
+        $threadId = $request->header('X-THREAD-ID');
 
         $message = $request->input('content');
 

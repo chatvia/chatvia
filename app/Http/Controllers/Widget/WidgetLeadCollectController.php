@@ -13,9 +13,9 @@ class WidgetLeadCollectController
 {
     public function __invoke(Request $request, WidgetVerification $widgetVerification, ChatMemory $memory)
     {
-        $agentId = $request->header('x-agent-id');
-        $threadId = $request->header('x-thread-id');
-        $sessionId = $request->header('x-session-id');
+        $agentId = $request->header('X-AGENT-ID');
+        $threadId = $request->header('X-THREAD-ID');
+        $sessionId = $request->header('X-SESSION-ID');
 
         if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
             return response()->json(['error' => 'Could not verify the agent'], 403);

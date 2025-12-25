@@ -18,8 +18,8 @@ readonly class WidgetBroadcastAuthController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $sessionId = $request->header('x-session-id');
-        $agentId = $request->header('x-agent-id');
+        $sessionId = $request->header('X-SESSION-ID');
+        $agentId = $request->header('X-AGENT-ID');
         $channelName = $request->input('channel_name');
         $socketId = $request->input('socket_id');
 

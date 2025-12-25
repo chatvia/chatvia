@@ -9,7 +9,7 @@ class WidgetLeadFormController
 {
     public function __invoke(Request $request, WidgetVerification $widgetVerification)
     {
-        $agentId = $request->header('x-agent-id');
+        $agentId = $request->header('X-AGENT-ID');
 
         $status = $widgetVerification->verifyByAgentExternalId($agentId, $request);
 

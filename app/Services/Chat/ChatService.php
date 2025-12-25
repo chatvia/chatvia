@@ -26,7 +26,7 @@ readonly class ChatService
         $this
             ->memory
             ->setAgent($data->agent)
-            ->setExternalSessionId($data->sessionId)
+            ->setExternalSessionId($data->externalSessionId)
             ->setConversationId($data->conversationId);
 
         ['lang' => $lang, 'query' => $query] = app(QueryRewriter::class)->rewrite($data->message->message);
@@ -35,7 +35,7 @@ readonly class ChatService
         $assistantMessageId = Str::ulid()->toString();
 
         $payload = ChatInputPayload::from([
-            'session_id' => $data->sessionId,
+            'session_id' => $data->externalSessionId,
             'conversation_id' => $data->conversationId,
             'message_id' => $userMessageId,
             'model' => $data->message->model->external_name,
@@ -59,7 +59,7 @@ readonly class ChatService
             $this
                 ->memory
                 ->setAgent($data->agent)
-                ->setExternalSessionId($data->sessionId)
+                ->setExternalSessionId($data->externalSessionId)
                 ->setConversationId($data->conversationId)
                 ->addMessageViaPayload($payload);
         }
@@ -175,7 +175,7 @@ readonly class ChatService
             $this
                 ->memory
                 ->setAgent($context->requestData->agent)
-                ->setExternalSessionId($context->requestData->sessionId)
+                ->setExternalSessionId($context->requestData->externalSessionId)
                 ->setConversationId($context->requestData->conversationId)
                 ->updateConversationTitleFromMessages();
         }
@@ -210,11 +210,11 @@ readonly class ChatService
         $this
             ->memory
             ->setAgent($context->requestData->agent)
-            ->setExternalSessionId($context->requestData->sessionId)
+            ->setExternalSessionId($context->requestData->externalSessionId)
             ->setConversationId($context->requestData->conversationId)
             ->addMessageViaPayload(
                 new ChatOutputPayload(
-                    session_id: $context->requestData->sessionId,
+                    external_session_id: $context->requestData->externalSessionId,
                     conversation_id: $context->requestData->conversationId,
                     message_id: $context->assistantMessageId,
                     message: $message,

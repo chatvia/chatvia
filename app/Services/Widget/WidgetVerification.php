@@ -5,7 +5,6 @@ namespace App\Services\Widget;
 use App\Models\Agent;
 use App\Models\ChatConversation;
 use App\Models\ChatSession;
-use App\Services\Security\HMAC;
 use Illuminate\Http\Request;
 
 class WidgetVerification
@@ -36,7 +35,7 @@ class WidgetVerification
 
     public function verifySessionByHmacHashId(?string $sessionId): ?ChatSession
     {
-        if (!$sessionId) {
+        if (! $sessionId) {
             return null;
         }
 
@@ -51,7 +50,7 @@ class WidgetVerification
 
     public function verifyThreadByHmacHashId(?string $threadId): ?ChatConversation
     {
-        if (!$threadId) {
+        if (! $threadId) {
             return null;
         }
 
@@ -61,7 +60,7 @@ class WidgetVerification
             return null;
         }
 
-       return $thread;
+        return $thread;
     }
 
     public function getRequestingDomain(Request $request): ?string

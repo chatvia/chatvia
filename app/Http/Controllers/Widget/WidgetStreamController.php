@@ -23,7 +23,7 @@ readonly class WidgetStreamController
         $session = $verification->verifySessionByHmacHashId($sessionId);
 
         abort_if(
-            !$session,
+            ! $session,
             '403',
             'Invalid session id'
         );
@@ -51,7 +51,7 @@ readonly class WidgetStreamController
                     model: $llm,
                     message: $message,
                 ),
-                sessionId: $sessionId,
+                externalSessionId: $sessionId,
                 conversationId: $threadId,
                 saveUserMessageImmediately: true,
                 streamSources: false,

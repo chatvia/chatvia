@@ -26,7 +26,7 @@ readonly class ChatStreamController
                     message: $request->input('message'),
                     createdAt: $request->input('created_at'),
                 ),
-                sessionId: $this->session->firstOrCreateChatSession($agent),
+                externalSessionId: $this->session->firstOrCreateChatSession($agent),
                 conversationId: $conversationId,
                 saveUserMessageImmediately: $request->boolean('save_user_message_immediately'),
                 streamSources: false,

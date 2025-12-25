@@ -12,12 +12,12 @@ trait SupportsHmac
         static::creating(function ($model) {
             $model->external_id = Str::uuid()->toString();
         });
-//
-//        static::created(function ($model) {
-//            $model->updateQuietly([
-//                'external_id' => $model->encrypt()
-//            ]);
-//        });
+        //
+        //        static::created(function ($model) {
+        //            $model->updateQuietly([
+        //                'external_id' => $model->encrypt()
+        //            ]);
+        //        });
     }
 
     public function validateEncryptedData(string $validationString): bool

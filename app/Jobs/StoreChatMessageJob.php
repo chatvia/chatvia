@@ -45,7 +45,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         }
 
         $session = ChatSession::firstOrCreate([
-            'external_id' => $this->payload->session_id,
+            'external_id' => $this->payload->external_session_id,
             'agent_id' => $this->agent->id,
             'user_id' => $isUserMessage ? $this->payload->user_id : null,
         ], [
@@ -68,8 +68,8 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         /** @var ChatConversation $conversation */
         $conversation = ChatConversation::firstOrCreate([
-            'id' => $this->payload->conversation_id,
-            'chat_session_id' => $this->payload->session_id,
+            'external_id' => $this->payload->conversation_id,
+            'chat_session_id' => $session->id,
         ]);
 
         $conversation->update(['last_activity_at' => now()]);
@@ -89,8 +89,8 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $cost = $usageData['total_cost'] ?? null;
 
         $messageData = [
-            'id' => $this->payload->message_id,
-            'chat_conversation_id' => $this->payload->conversation_id,
+            'external_id' => $this->payload->message_id,
+            'chat_conversation_id' => $conversation->id,
             'content' => $this->payload->message,
             'role' => $isUserMessage ? 'user' : 'assistant',
             'llm_id' => $llmId,

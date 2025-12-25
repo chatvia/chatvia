@@ -39,12 +39,12 @@ class AgentChatLogDeleteConversationController
 
         $chatMemory
             ->setAgent($agent)
-            ->setSessionId($conversation->session_id)
+            ->setSessionId($conversation->chat_session_id)
             ->setConversationId($conversation->id)
             ->deleteConversation();
 
         $conversation->delete();
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Conversation deleted successfully.',

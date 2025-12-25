@@ -23,10 +23,12 @@ readonly class ChatExportController
             'type' => ['required', 'string', 'in:pdf,text,markdown'],
         ]);
 
+        $agent = current_agent();
+
         $this
             ->memory
-            ->setSessionId($this->session->firstOrCreateChatSession())
-            ->setAgent(current_agent())
+            ->setAgent($agent)
+            ->setExternalSessionId($this->session->firstOrCreateChatSession($agent))
             ->setConversationId($conversationId);
 
         $type = $request->input('type');

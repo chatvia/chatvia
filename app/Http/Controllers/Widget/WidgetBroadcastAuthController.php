@@ -40,8 +40,8 @@ readonly class WidgetBroadcastAuthController
         $conversationId = $matches[1];
 
         // Verify the session owns this conversation
-        $conversation = ChatConversation::where('id', $conversationId)
-            ->whereHas('session', fn ($q) => $q->where('id', $sessionId))
+        $conversation = ChatConversation::where('external_id', $conversationId)
+            ->whereHas('session', fn ($q) => $q->where('external_id', $sessionId))
             ->first();
 
         if (! $conversation) {

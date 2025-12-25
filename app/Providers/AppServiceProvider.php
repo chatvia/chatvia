@@ -6,6 +6,9 @@ use App\Contracts\DocumentOCRInterface;
 use App\Contracts\EmbeddingsProviderInterface;
 use App\Contracts\LLMProviderInterface;
 use App\Models\Agent;
+use App\Models\ChatConversation;
+use App\Models\ChatMessage;
+use App\Models\ChatSession;
 use App\Models\ModelSetting;
 use App\Models\Post;
 use App\Models\SourceFile;
@@ -16,6 +19,9 @@ use App\Models\User;
 use App\Observers\AgentObserver;
 use App\Observers\AgentTextObserver;
 use App\Observers\AgentWebsiteObserver;
+use App\Observers\ChatConversationObserver;
+use App\Observers\ChatMessageObserver;
+use App\Observers\ChatSessionObserver;
 use App\Observers\ModelSettingObserver;
 use App\Observers\PostObserver;
 use App\Observers\SourceFileObserver;
@@ -121,6 +127,9 @@ class AppServiceProvider extends ServiceProvider
         SourceYoutubeVideo::observe(SourceYoutubeVideoObserver::class);
         ModelSetting::observe(ModelSettingObserver::class);
         Post::observe(PostObserver::class);
+        ChatSession::observe(ChatSessionObserver::class);
+        ChatConversation::observe(ChatConversationObserver::class);
+        ChatMessage::observe(ChatMessageObserver::class);
 
         if (app()->isProduction()) {
             URL::forceScheme('https');

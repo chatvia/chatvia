@@ -22,9 +22,11 @@ class ChatMessageRegenerateController extends Controller
         $assistantMessageId = $request->input('assistant_message_id');
         $userMessageId = $request->input('user_message_id');
 
+        $agent = current_agent();
+
         $memory
-            ->setAgent(current_agent())
-            ->setSessionId($session->firstOrCreateChatSession())
+            ->setAgent($agent)
+            ->setExternalSessionId($session->firstOrCreateChatSession($agent))
             ->setConversationId($conversationId);
 
         // Get the user message content and timestamps before deleting

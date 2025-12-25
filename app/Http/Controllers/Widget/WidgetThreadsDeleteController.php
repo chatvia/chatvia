@@ -15,7 +15,7 @@ class WidgetThreadsDeleteController
 
         $memory
             ->setAgent(current_agent_from_widget())
-            ->setSessionId($sessionId);
+            ->setExternalSessionId($sessionId);
 
         if ($threadId) {
             // Only delete if conversation exists (handle tampered/invalid IDs gracefully)

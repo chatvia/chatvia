@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use App\Traits\SupportsHmac;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,9 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ChatSession extends Model
 {
-    use HasFactory, HasUlids;
+    use HasFactory, SupportsHmac;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
+
+    protected array $hmacEncryptionColumns = [
+        'id',
+    ];
 
     public function conversations(): HasMany
     {

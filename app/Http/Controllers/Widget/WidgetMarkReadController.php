@@ -36,7 +36,7 @@ readonly class WidgetMarkReadController
 
         $markedCount = $this->chatMemory
             ->setAgent($agent)
-            ->setSessionId($sessionId)
+            ->setExternalSessionId($sessionId)
             ->setConversationId($conversationId)
             ->markMessagesAsRead('user'); // User is reading agent messages
 

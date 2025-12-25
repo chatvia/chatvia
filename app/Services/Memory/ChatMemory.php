@@ -25,7 +25,7 @@ class ChatMemory implements ChatMemoryInterface
 
     private ?Agent $agent = null;
 
-    private ?string $sessionId = null;
+    private ?string $externalSessionId = null;
 
     private ?ChatCache $cache = null;
 
@@ -59,9 +59,9 @@ class ChatMemory implements ChatMemoryInterface
     /**
      * Set the session ID and reset cached managers.
      */
-    public function setSessionId(string $sessionId): self
+    public function setExternalSessionId(string $sessionId): self
     {
-        $this->sessionId = $sessionId;
+        $this->externalSessionId = $sessionId;
         $this->resetManagers();
 
         return $this;
@@ -434,7 +434,7 @@ class ChatMemory implements ChatMemoryInterface
      */
     private function initializeManagers(): void
     {
-        if ($this->sessionId === null) {
+        if ($this->externalSessionId === null) {
             throw new InvalidArgumentException('Session ID must be set before initialization');
         }
 
@@ -442,8 +442,8 @@ class ChatMemory implements ChatMemoryInterface
             throw new InvalidArgumentException('Agent must be set before initialization');
         }
 
-        $this->cache = new ChatCache($this->sessionId, $this->agent);
-        $this->conversationManager = new ConversationManager($this->cache, $this->sessionId);
+        $this->cache = new ChatCache($this->externalSessionId, $this->agent);
+        $this->conversationManager = new ConversationManager($this->cache, $this->externalSessionId);
         $this->messageManager = new MessageManager($this->cache);
         $this->sourceManager = new SourceManager($this->cache);
     }

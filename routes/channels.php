@@ -68,7 +68,8 @@ Broadcast::channel('chat.{conversationId}', function ($user, $conversationId) {
         return false;
     }
 
-    $conversation = ChatConversation::with('session.agent')->find($conversationId);
+    $conversation = ChatConversation::with('session.agent')
+        ->where('external_id', $conversationId)->first();
 
     if (! $conversation) {
         return false;

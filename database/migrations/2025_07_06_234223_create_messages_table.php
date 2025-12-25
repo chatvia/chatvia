@@ -18,10 +18,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('chat_sessions', function (Blueprint $table) {
-            $table->ulid('id')->unique()->primary();
+            $table->id();
+            $table->uuid('external_id')->unique()->index();
 
-            $table->foreignIdFor(Agent::class)->nullable()->constrained()->nullOnDelete();
-            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(Agent::class)->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(User::class)->nullable()->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Country::class)->nullable()->constrained()->nullOnDelete();
 
             $table->string('name')->nullable();
@@ -56,9 +57,10 @@ return new class extends Migration
         });
 
         Schema::create('chat_conversations', function (Blueprint $table) {
-            $table->ulid('id')->primary();
+            $table->id();
+            $table->uuid('external_id')->unique()->index();
 
-            $table->foreignUlid('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
+            $table->foreignId('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
             $table->foreignIdFor(Language::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(ChatTopic::class)->nullable()->constrained()->nullOnDelete();
 
@@ -80,9 +82,10 @@ return new class extends Migration
         });
 
         Schema::create('chat_messages', function (Blueprint $table) {
-            $table->ulid('id')->primary();
+            $table->id();
+            $table->uuid('external_id')->unique()->index();
 
-            $table->foreignUlid('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
+            $table->foreignId('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
             $table->foreignIdFor(Llm::class)->nullable()->constrained()->restrictOnDelete();
             $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->constrained()->nullOnDelete();
 

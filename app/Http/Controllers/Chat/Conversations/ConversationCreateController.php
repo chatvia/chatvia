@@ -26,11 +26,11 @@ final class ConversationCreateController
         ['lang' => $lang, 'query' => $query] = app(QueryRewriter::class)
             ->rewrite($request->input('message'));
 
-        $sessionId = $session->firstOrCreateChatSession();
+        $sessionId = $session->firstOrCreateChatSession($agent);
 
         $conversationId = $memory
             ->setAgent($agent)
-            ->setSessionId($sessionId)
+            ->setExternalSessionId($sessionId)
             ->createConversation(title: 'New Chat');
 
         $payload = ChatInputPayload::from([

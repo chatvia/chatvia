@@ -91,7 +91,7 @@ class HandoffService
         $chatMemory = app(\App\Services\Memory\ChatMemory::class);
         $chatMemory
             ->setAgent($agent)
-            ->setSessionId($session->id)
+            ->setExternalSessionId($session->id)
             ->setConversationId($conversation->id)
             ->addMessage(
                 role: 'agent',
@@ -177,7 +177,7 @@ class HandoffService
         $chatMemory = app(\App\Services\Memory\ChatMemory::class);
         $chatMemory
             ->setAgent($agent)
-            ->setSessionId($session->id)
+            ->setExternalSessionId($session->id)
             ->setConversationId($conversation->id)
             ->addMessageViaPayload($payload);
 

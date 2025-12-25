@@ -2,6 +2,7 @@
 
 namespace App\Services\Memory;
 
+use App\Models\Agent;
 use Illuminate\Cache\Repository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -14,7 +15,7 @@ class ChatSession
 
     private const int GUEST_SESSION_TTL_DAYS = 3;
 
-    public function firstOrCreateChatSession(): string
+    public function firstOrCreateChatSession(Agent $agent): string
     {
         $existingSessionId = Session::get(self::SESSION_KEY);
 
@@ -22,16 +23,11 @@ class ChatSession
             return $existingSessionId;
         }
 
-        $newSessionId = $this->generateSessionKey();
+        $session = \App\Models\ChatSession::create(['agent_id' => $agent->id]);
 
-        $this->initializeSession($newSessionId);
+        $this->initializeSession($session->external_id);
 
-        return $newSessionId;
-    }
-
-    public function generateSessionKey(): string
-    {
-        return Str::ulid();
+        return $session->external_id;
     }
 
     public function isMemberAuth(): bool

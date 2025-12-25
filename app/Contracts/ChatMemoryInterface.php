@@ -22,7 +22,7 @@ interface ChatMemoryInterface
 
     public function setAgent(Agent $agent): self;
 
-    public function setSessionId(string $sessionId): self;
+    public function setExternalSessionId(string $sessionId): self;
 
     /**
      * Conversation management

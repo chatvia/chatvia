@@ -7,7 +7,6 @@ use App\Models\ChatSession;
 use App\Models\Llm;
 use App\Models\User;
 use App\Services\Agents\Agent as AgentHelper;
-use App\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\Storage;
 
 class AgentObserver
@@ -100,7 +99,7 @@ class AgentObserver
             }
         });
 
-        $agent->chatSessions->each(function (ChatSession $chatSession) use ($agent) {
+        $agent->chatSessions->each(function (ChatSession $chatSession) {
             app(\App\Services\Memory\ChatSession::class)->deleteSession($chatSession->id);
             $chatSession->delete();
         });
@@ -111,10 +110,7 @@ class AgentObserver
         Storage::deleteDirectory('users/'.$agent->user_id.'/agents/'.$agent->id);
     }
 
-    public function restored(Agent $agent): void
-    {
-
-    }
+    public function restored(Agent $agent): void {}
 
     /**
      * Handle the Agent "force deleted" event.

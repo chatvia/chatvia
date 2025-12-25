@@ -3,24 +3,33 @@
 namespace App\Http\Controllers\Widget;
 
 use App\Services\Memory\ChatMemory;
+use App\Services\Widget\WidgetVerification;
 use Illuminate\Http\Request;
 
 class WidgetThreadMessagesController
 {
-    public function __invoke(Request $request, ChatMemory $memory)
+    public function __invoke(Request $request, ChatMemory $memory, WidgetVerification $verification)
     {
         $sessionId = $request->header('X-SESSION-ID');
         $threadId = $request->header('X-THREAD-ID');
 
-        if (! $threadId) {
-            return response()->json(['error' => 'Missing thread ID'], 400);
+        if (! $sessionId || ! $threadId ) {
+            return response()->json(['error' => 'Missing thread/session ID'], 400);
         }
+
+        $conversation = $verification->verifyThreadByHmacHashId($threadId);
+
+        abort_if(
+            boolean: !$conversation,
+            code:'403',
+            message: 'Invalid thread',
+        );
 
         $agent = current_agent_from_widget();
 
         $chatMemory = $memory
             ->setAgent($agent)
-            ->setSessionId($sessionId)
+            ->setExternalSessionId($sessionId)
             ->setConversationId($threadId);
 
         // Check if conversation exists (handles tampered/deleted conversations)

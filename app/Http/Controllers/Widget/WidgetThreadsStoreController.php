@@ -20,7 +20,7 @@ class WidgetThreadsStoreController
         return [
             'id' => $memory
                 ->setAgent(current_agent_from_widget())
-                ->setSessionId($sessionId)
+                ->setExternalSessionId($sessionId)
                 ->createConversation('New Chat'),
         ];
     }

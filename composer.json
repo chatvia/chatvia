@@ -12,6 +12,7 @@
         "ext-intl": "*",
         "ext-libxml": "*",
         "ext-pdo": "*",
+        "ext-openssl": "*",
         "aws/aws-sdk-php": "^3.351",
         "cesargb/laravel-magiclink": "^2.24",
         "chatvia/laravel-prompt-manager": "dev-main",

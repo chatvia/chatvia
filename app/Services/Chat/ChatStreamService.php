@@ -25,7 +25,7 @@ readonly class ChatStreamService
 
         // 0. Check if conversation is handed off to a human
         if ($data->conversationId) {
-            $conversation = ChatConversation::find($data->conversationId);
+            $conversation = ChatConversation::where('external_id', $data->conversationId)->first();
             if ($conversation && $this->handoffService->isHandedOff($conversation)) {
                 // Save the user message and broadcast it to the admin
                 if ($data->message->message) {

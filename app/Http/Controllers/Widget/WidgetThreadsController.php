@@ -22,7 +22,7 @@ class WidgetThreadsController
 
         $conversations = $memory
             ->setAgent($agent)
-            ->setSessionId($sessionId)
+            ->setExternalSessionId($sessionId)
             ->getConversationsForCurrentSession();
 
         // If no conversations exist (tampered session, deleted conversations, etc.),

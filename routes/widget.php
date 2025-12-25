@@ -10,7 +10,7 @@ use App\Http\Controllers\Widget\WidgetHeartbeatController;
 use App\Http\Controllers\Widget\WidgetLeadCollectController;
 use App\Http\Controllers\Widget\WidgetLeadFormController;
 use App\Http\Controllers\Widget\WidgetMarkReadController;
-use App\Http\Controllers\Widget\WidgetSessionStoreController;
+use App\Http\Controllers\Widget\WidgetSessionInitController;
 use App\Http\Controllers\Widget\WidgetSettingsController;
 use App\Http\Controllers\Widget\WidgetStreamController;
 use App\Http\Controllers\Widget\WidgetThreadMessagesController;
@@ -21,7 +21,7 @@ use App\Http\Controllers\Widget\WidgetTypingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('widget')->group(function () {
-    Route::post('/sessions', WidgetSessionStoreController::class)->name('widget.sessions');
+    Route::post('/sessions/init', WidgetSessionInitController::class)->name('widget.sessions.init');
 
     Route::get('/threads', WidgetThreadsController::class)->name('widget.threads');
 

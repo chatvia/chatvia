@@ -13,7 +13,7 @@ readonly class WidgetHeartbeatController
         private WidgetVerification $widgetVerification,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, WidgetVerification $verification): JsonResponse
     {
         $sessionId = $request->header('X-SESSION-ID');
         $agentId = $request->header('X-AGENT-ID');
@@ -28,10 +28,8 @@ readonly class WidgetHeartbeatController
             return response()->json(['error' => 'Domain not allowed'], 403);
         }
 
-        // Update conversation's last_activity_at if conversation_id provided
         if ($conversationId) {
-            ChatConversation::where('id', $conversationId)
-                ->whereHas('session', fn ($q) => $q->where('id', $sessionId))
+            ChatConversation::where('external_id', $conversationId)
                 ->update(['last_activity_at' => now()]);
         }
 

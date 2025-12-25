@@ -3,9 +3,11 @@
 namespace App\Observers;
 
 use App\Models\Agent;
+use App\Models\ChatSession;
 use App\Models\Llm;
 use App\Models\User;
 use App\Services\Agents\Agent as AgentHelper;
+use App\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\Storage;
 
 class AgentObserver
@@ -97,6 +99,11 @@ class AgentObserver
                 $agent->youtubeVideos()->detach($video->id);
             }
         });
+
+        $agent->chatSessions->each(function (ChatSession $chatSession) use ($agent) {
+            app(\App\Services\Memory\ChatSession::class)->delete($chatSession->id);
+            $chatSession->delete();
+        });
     }
 
     public function deleted(Agent $agent): void
@@ -106,7 +113,7 @@ class AgentObserver
 
     public function restored(Agent $agent): void
     {
-        //
+
     }
 
     /**

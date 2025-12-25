@@ -61,6 +61,11 @@ class ChatSession
         Session::put(self::SESSION_KEY, $sessionId);
     }
 
+    public function deleteSession($sessionId): void
+    {
+        $this->getChatCache($sessionId)->forget($sessionId);
+    }
+
     private function getChatCache($sessionId): Repository
     {
         return Cache::driver('chat')->tags($sessionId);

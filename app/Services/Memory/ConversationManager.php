@@ -3,6 +3,7 @@
 namespace App\Services\Memory;
 
 use App\Models\ChatConversation;
+use App\Models\ChatSession;
 use App\Models\User;
 use App\Services\Infrastructure\LLM\Operations\TitleGenerator;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,20 @@ class ConversationManager
         ];
 
         $this->saveSessionData($conversations);
+
+        // Ensure the session exists in database
+        $agent = $this->cache->getAgent();
+        ChatSession::firstOrCreate([
+            'id' => $this->sessionId,
+            'agent_id' => $agent->id,
+        ]);
+
+        // Also create the conversation in the database immediately
+        // so it exists when widget tries to subscribe or check handoff status
+        ChatConversation::firstOrCreate([
+            'id' => $conversationId,
+            'chat_session_id' => $this->sessionId,
+        ]);
 
         return $conversationId;
     }

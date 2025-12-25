@@ -108,15 +108,17 @@
                                 <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
                             </div>
                         </div>
-                        <!-- Image with fade out effect -->
+                        <!-- Video -->
                         <div class="relative">
-                            <img src="{{ asset('images/agent-stats.png') }}"
-                                alt="ChatVia AI Chatbot Dashboard - Analytics and conversation management"
-                                class="w-full h-auto" />
-                            <!-- Fade out gradient overlay -->
-                            <div
-                                class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white via-white/80 to-transparent">
-                            </div>
+                            <video 
+                                src="https://cdn.chatvia.ai/media/chatvia-howto.mp4"
+                                class="w-full h-auto"
+                                autoplay
+                                muted
+                                loop
+                                playsinline
+                                aria-label="ChatVia AI Chatbot Demo - See how to set up and use your AI chatbot">
+                            </video>
                         </div>
                     </div>
                 </div>

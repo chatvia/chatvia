@@ -58,6 +58,11 @@ class ChatCache
         return "conversations:{$conversationId}:sources";
     }
 
+    public function getAgent(): Agent
+    {
+        return $this->agent;
+    }
+
     private function getMessageRetention(): Carbon
     {
         return now()->addDays($this->agent->messageRetentionInDays());

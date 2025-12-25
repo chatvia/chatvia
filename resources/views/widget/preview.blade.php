@@ -50,13 +50,13 @@
 
     @if (request()->get('full-preview') === 'true')
         <script id="chatbot-embed-script" src="{{ $embedScriptUrl }}" agent-id="{{ $agentId }}"
-            data-language="{{ $language }}" async></script>
+            language="{{ $language }}" async></script>
     @else
         <div id="chat-container"></div>
 
 
         <script id="chatbot-embed-script" src="{{ $embedScriptUrl }}" agent-id="{{ $agentId }}" mount-id="chat-container"
-            data-language="{{ $language }}" async></script>
+            language="{{ $language }}" async></script>
     @endif
 </body>
 

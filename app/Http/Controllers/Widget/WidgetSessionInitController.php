@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Widget;
 
-use App\Http\Controllers\Controller;
 use App\Models\ChatConversation;
 use App\Models\ChatSession;
+use App\Services\Memory\ChatMemory;
 use App\Services\UserAgentParser;
 use App\Services\Widget\WidgetVerification;
 use Illuminate\Http\Request;
 
-class WidgetSessionInitController extends Controller
+class WidgetSessionInitController
 {
-    public function __invoke(Request $request, WidgetVerification $widgetVerification, UserAgentParser $userAgentParser)
+    public function __invoke(Request $request, WidgetVerification $widgetVerification, UserAgentParser $userAgentParser, ChatMemory $memory)
     {
         $agentId = $request->header('X-AGENT-ID');
         $sessionId = $request->header('X-SESSION-ID');
@@ -30,8 +30,7 @@ class WidgetSessionInitController extends Controller
         $session = null;
 
         if ($sessionId) {
-            $session = $widgetVerification->verifySessionByHmacHashId($sessionId);
-
+            $session = $widgetVerification->verifySessionExternalId($sessionId);
             $session?->update(['last_activity' => now()]);
         }
 
@@ -45,7 +44,8 @@ class WidgetSessionInitController extends Controller
                 'device_type' => $userAgent['device_type'],
                 'browser' => $userAgent['browser'],
                 'os' => $userAgent['os'],
-                'locale' => $request->header('Accept-Language') ? substr($request->header('Accept-Language'), 0, 2) : 'en',
+                'locale' => $request->header('Accept-Language') ?
+                    substr($request->header('Accept-Language'), 0, 2) : 'en',
                 'referrer_url' => $request->header('Referer'),
                 'page_url' => $request->input('page_url') ?? $request->header('Referer'),
             ]);
@@ -58,23 +58,24 @@ class WidgetSessionInitController extends Controller
         if ($threadId && $session) {
             $thread = $widgetVerification->verifyThreadId($threadId);
 
-            $thread?->update(['last_activity_at' => now()]);
-        }
-
-        // Create new thread if validation failed or no thread provided
-        if (! $thread) {
-            $thread = ChatConversation::create([
-                'chat_session_id' => $session->id,
-                'title' => null,
+            $thread?->update([
                 'last_activity_at' => now(),
             ]);
+        }
+
+        if (! $thread) {
+            // Use ChatMemory to create conversation so it's properly synced to cache
+            $threadExternalId = $memory
+                ->setAgent($agent)
+                ->setExternalSessionId($session->external_id)
+                ->createConversation('New Chat');
 
             $isNewThread = true;
         }
 
         return response()->json([
             'session_id' => $session->external_id,
-            'thread_id' => $thread->external_id,
+            'thread_id' => $threadExternalId ?? $thread->external_id,
             'is_new_session' => $isNewSession,
             'is_new_thread' => $isNewThread,
         ]);

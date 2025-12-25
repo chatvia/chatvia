@@ -33,7 +33,7 @@ class WidgetVerification
         return $this->isDomainAllowed($requestingDomain, $allowedSites);
     }
 
-    public function verifySessionByHmacHashId(?string $sessionId): ?ChatSession
+    public function verifySessionExternalId(?string $sessionId): ?ChatSession
     {
         if (! $sessionId) {
             return null;

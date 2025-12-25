@@ -23,7 +23,7 @@ class WidgetSessionStoreController
         $userAgentData = UserAgentParser::parse($request->userAgent());
 
         if ($sessionId) {
-            $session = $widgetVerification->verifySessionByHmacHashId($sessionId);
+            $session = $widgetVerification->verifySessionExternalId($sessionId);
             if ($session) {
                 return ['id' => $sessionId];
             }

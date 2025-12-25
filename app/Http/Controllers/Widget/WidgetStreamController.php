@@ -20,7 +20,7 @@ readonly class WidgetStreamController
 
         $message = $request->input('content');
 
-        $session = $verification->verifySessionByHmacHashId($sessionId);
+        $session = $verification->verifySessionExternalId($sessionId);
 
         abort_if(
             ! $session,

@@ -101,7 +101,7 @@ class AgentObserver
         });
 
         $agent->chatSessions->each(function (ChatSession $chatSession) use ($agent) {
-            app(\App\Services\Memory\ChatSession::class)->delete($chatSession->id);
+            app(\App\Services\Memory\ChatSession::class)->deleteSession($chatSession->id);
             $chatSession->delete();
         });
     }

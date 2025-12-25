@@ -39,11 +39,7 @@ readonly class ConversationManager
 
         // Ensure the session exists in database
         $agent = $this->cache->getAgent();
-
-        if ($session = ChatSession::find($this->sessionId)) {
-
-        }
-
+        
         ChatSession::firstOrCreate([
             'id' => $this->sessionId,
             'agent_id' => $agent->id,

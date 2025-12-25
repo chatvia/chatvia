@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\SourceFile;
+use Illuminate\Support\Facades\Storage;
 
 class SourceFileObserver
 {
@@ -17,6 +18,11 @@ class SourceFileObserver
 
         // Detach all agents (removes agent_sources pivot records)
         $agentFile->agents()->detach();
+
+        // Delete the actual file from storage
+        if ($agentFile->filepath) {
+            Storage::delete($agentFile->filepath);
+        }
     }
 
     public function restored(SourceFile $agentFile): void {}

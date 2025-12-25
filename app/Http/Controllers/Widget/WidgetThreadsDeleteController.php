@@ -9,18 +9,24 @@ class WidgetThreadsDeleteController
 {
     public function __invoke(Request $request, ChatMemory $memory)
     {
-        $sessionId = $request->header('x-session-id');
+        $sessionId = $request->header('X-SESSION-ID');
 
-        $threadId = $request->header('x-thread-id');
+        $threadId = $request->header('X-THREAD-ID');
 
         $memory
             ->setAgent(current_agent_from_widget())
             ->setSessionId($sessionId);
 
         if ($threadId) {
-            $memory->setConversationId($threadId)->deleteConversation();
+            // Only delete if conversation exists (handle tampered/invalid IDs gracefully)
+            $chatMemory = $memory->setConversationId($threadId);
+            if ($chatMemory->conversationExists()) {
+                $chatMemory->deleteConversation();
+            }
         } else {
             $memory->deleteAllConversations();
         }
+
+        return response()->json(['success' => true]);
     }
 }

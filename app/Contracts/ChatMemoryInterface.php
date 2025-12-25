@@ -4,6 +4,8 @@ namespace App\Contracts;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
+use App\Data\Memory\ConversationData;
+use App\Data\Memory\MessageData;
 use App\Models\Agent;
 use App\Models\User;
 
@@ -39,7 +41,7 @@ interface ChatMemoryInterface
 
     public function conversationExist(): bool;
 
-    public function getConversationById(string $conversationId): ?array;
+    public function getConversationById(string $conversationId): ?ConversationData;
 
     public function getConversationsForCurrentSession(bool $onlyVisible = false, bool $orderByDate = false): array;
 
@@ -56,7 +58,7 @@ interface ChatMemoryInterface
 
     public function removeMessage(string $messageId): void;
 
-    public function getMessageById(string $messageId): ?array;
+    public function getMessageById(string $messageId): ?MessageData;
 
     public function getMessagesForConversation(bool $includeLlmMessages = false): array;
 

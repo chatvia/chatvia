@@ -5,6 +5,8 @@ namespace App\Services\Memory;
 use App\Contracts\ChatMemoryInterface;
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
+use App\Data\Memory\ConversationData;
+use App\Data\Memory\MessageData;
 use App\Jobs\StoreChatMessageJob;
 use App\Models\Agent;
 use App\Models\User;
@@ -145,7 +147,7 @@ class ChatMemory implements ChatMemoryInterface
     /**
      * Get a specific conversation by ID.
      */
-    public function getConversationById(string $conversationId): ?array
+    public function getConversationById(string $conversationId): ?ConversationData
     {
         $this->ensureInitialized();
 
@@ -242,7 +244,7 @@ class ChatMemory implements ChatMemoryInterface
     /**
      * Get a specific message by its ID.
      */
-    public function getMessageById(string $messageId): ?array
+    public function getMessageById(string $messageId): ?MessageData
     {
         $this->requireConversationId();
         $this->ensureInitialized();

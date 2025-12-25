@@ -4,6 +4,7 @@ namespace App\Services\Memory;
 
 use App\Data\Chat\ChatInputPayload;
 use App\Data\Chat\ChatOutputPayload;
+use App\Data\Memory\MessageData;
 use App\Models\Agent;
 use App\Models\ChatMessage;
 use Illuminate\Support\Str;
@@ -29,24 +30,18 @@ class MessageManager
     ): string {
         $messageId = $messageId ?? Str::ulid()->toString();
 
-        $formattedMessage = [
+        $messageData = MessageData::from([
             'id' => $messageId,
             'role' => $role,
             'content' => $message,
             'type' => $type,
             'timestamp' => now()->timestamp,
-        ];
+            'read_at' => $role === 'agent' ? null : null,
+            'model' => $model,
+            ...$append,
+        ]);
 
-        // Only add read_at for human agent messages (handoff mode)
-        if ($role === 'agent') {
-            $formattedMessage['read_at'] = null;
-        }
-
-        if ($model) {
-            $formattedMessage['model'] = $model;
-        }
-
-        $this->saveMessage($conversationId, array_merge($formattedMessage, $append));
+        $this->saveMessage($conversationId, $messageData->toArray());
 
         return $messageId;
     }
@@ -185,10 +180,12 @@ class MessageManager
         $this->saveMessages($conversationId, array_values($messages));
     }
 
-    public function getMessageById(string $conversationId, string $messageId): ?array
+    public function getMessageById(string $conversationId, string $messageId): ?MessageData
     {
-        return collect($this->getMessagesForConversation($conversationId))
+        $message = collect($this->getMessagesForConversation($conversationId))
             ->firstWhere('id', $messageId);
+
+        return $message ? MessageData::from($message) : null;
     }
 
     public function getMessagesForConversation(string $conversationId, bool $includeLlmMessages = false): array
@@ -196,14 +193,12 @@ class MessageManager
         $cacheKey = $this->cache->generateConversationKey($conversationId);
         $messages = $this->cache->get($cacheKey, []);
 
-        if ($includeLlmMessages) {
-            return $messages;
-        }
+        return collect($messages)->map(function (array $message) use ($includeLlmMessages) {
+            if (! $includeLlmMessages) {
+                unset($message['message_for_llm']);
+            }
 
-        return collect($messages)->map(function (array $message) {
-            unset($message['message_for_llm']);
-
-            return $message;
+            return MessageData::from($message)->toArray();
         })->toArray();
     }
 

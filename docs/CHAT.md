@@ -53,7 +53,7 @@ widget.pusherClient = new Pusher(appKey, {
   auth: {
     headers: {
       'x-session-id': widget.sessionId,
-      'x-agent-id': widget.agentId
+      'X-AGENT-ID': widget.agentId
     }
   }
 });

@@ -22,8 +22,8 @@ readonly class WidgetHandoffRequestController
             'conversation_id' => ['required', 'string'],
         ]);
 
-        $sessionId = $request->header('x-session-id');
-        $agentId = $request->header('x-agent-id');
+        $sessionId = $request->header('X-SESSION-ID');
+        $agentId = $request->header('X-AGENT-ID');
         $conversationId = $request->input('conversation_id');
 
         if (! $sessionId) {

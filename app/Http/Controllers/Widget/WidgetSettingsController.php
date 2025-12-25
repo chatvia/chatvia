@@ -9,7 +9,7 @@ class WidgetSettingsController
 {
     public function __invoke(Request $request, WidgetVerification $widgetVerification)
     {
-        if (! $widgetVerification->verifyByAgentExternalId($request->header('x-agent-id'), $request)) {
+        if (! $widgetVerification->verifyByAgentExternalId($request->header('X-AGENT-ID'), $request)) {
             return response()->json(['error' => 'Could not verify the agent'], 403);
         }
 

@@ -29,7 +29,7 @@ class ChatHandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-//            'chatSession' => app(ChatSession::class)->firstOrCreateChatSession(),
+            //            'chatSession' => app(ChatSession::class)->firstOrCreateChatSession(),
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
             'domain' => $request->domain(),

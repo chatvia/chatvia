@@ -13,15 +13,15 @@ class WidgetThreadMessagesController
         $sessionId = $request->header('X-SESSION-ID');
         $threadId = $request->header('X-THREAD-ID');
 
-        if (! $sessionId || ! $threadId ) {
+        if (! $sessionId || ! $threadId) {
             return response()->json(['error' => 'Missing thread/session ID'], 400);
         }
 
         $conversation = $verification->verifyThreadByHmacHashId($threadId);
 
         abort_if(
-            boolean: !$conversation,
-            code:'403',
+            boolean: ! $conversation,
+            code: '403',
             message: 'Invalid thread',
         );
 

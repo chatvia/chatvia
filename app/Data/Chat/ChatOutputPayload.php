@@ -8,7 +8,7 @@ use Spatie\LaravelData\Data;
 class ChatOutputPayload extends Data
 {
     public function __construct(
-        public string $session_id,
+        public string $external_session_id,
         public string $conversation_id,
         public string $message_id,
         public string $message,

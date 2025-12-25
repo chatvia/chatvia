@@ -6,25 +6,34 @@ use App\Models\Llm;
 use App\Services\Chat\ChatStreamService;
 use App\Services\Chat\Data\StreamRequestData;
 use App\Services\Chat\Data\StreamRequestMessageData;
+use App\Services\Widget\WidgetVerification;
 use Illuminate\Http\Request;
 
 readonly class WidgetStreamController
 {
     public function __construct(private ChatStreamService $chatStreamService) {}
 
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, WidgetVerification $verification)
     {
         $sessionId = $request->header('X-SESSION-ID');
         $threadId = $request->header('X-THREAD-ID');
 
         $message = $request->input('content');
 
+        $session = $verification->verifySessionByHmacHashId($sessionId);
+
+        abort_if(
+            !$session,
+            '403',
+            'Invalid session id'
+        );
+
         $agent = current_agent_from_widget();
         $leadCollected = $agent
             ->leads()
             ->with('conversation.session')
-            ->whereHas('conversation', function ($query) use ($sessionId) {
-                $query->where('chat_session_id', $sessionId);
+            ->whereHas('conversation', function ($query) use ($session) {
+                $query->where('chat_session_id', $session->id);
             })
             ->exists();
 

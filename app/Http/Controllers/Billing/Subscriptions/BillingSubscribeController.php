@@ -47,7 +47,7 @@ class BillingSubscribeController
                 'user_subscribed' => $user->subscribed(),
             ])
             ->when(config('billing.trial.days') !== 0, function (SubscriptionBuilder $subscription) {
-                $subscription->trialDays(config('billing.trial.days'));
+                $subscription->trialDays((int) config('billing.trial.days'));
             })
             ->allowPromotionCodes()
             ->alwaysInvoice()

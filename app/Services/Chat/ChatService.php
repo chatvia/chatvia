@@ -26,7 +26,7 @@ readonly class ChatService
         $this
             ->memory
             ->setAgent($data->agent)
-            ->setSessionId($data->sessionId)
+            ->setExternalSessionId($data->sessionId)
             ->setConversationId($data->conversationId);
 
         ['lang' => $lang, 'query' => $query] = app(QueryRewriter::class)->rewrite($data->message->message);
@@ -59,7 +59,7 @@ readonly class ChatService
             $this
                 ->memory
                 ->setAgent($data->agent)
-                ->setSessionId($data->sessionId)
+                ->setExternalSessionId($data->sessionId)
                 ->setConversationId($data->conversationId)
                 ->addMessageViaPayload($payload);
         }
@@ -175,7 +175,7 @@ readonly class ChatService
             $this
                 ->memory
                 ->setAgent($context->requestData->agent)
-                ->setSessionId($context->requestData->sessionId)
+                ->setExternalSessionId($context->requestData->sessionId)
                 ->setConversationId($context->requestData->conversationId)
                 ->updateConversationTitleFromMessages();
         }
@@ -210,7 +210,7 @@ readonly class ChatService
         $this
             ->memory
             ->setAgent($context->requestData->agent)
-            ->setSessionId($context->requestData->sessionId)
+            ->setExternalSessionId($context->requestData->sessionId)
             ->setConversationId($context->requestData->conversationId)
             ->addMessageViaPayload(
                 new ChatOutputPayload(

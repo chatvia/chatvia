@@ -3,6 +3,9 @@
 namespace App\Services\Widget;
 
 use App\Models\Agent;
+use App\Models\ChatConversation;
+use App\Models\ChatSession;
+use App\Services\Security\HMAC;
 use Illuminate\Http\Request;
 
 class WidgetVerification
@@ -29,6 +32,36 @@ class WidgetVerification
         $allowedSites = array_merge($widgetSettings['sites'], ['localhost', 'chatvia.test', 'chatvia.ai']) ?? [];
 
         return $this->isDomainAllowed($requestingDomain, $allowedSites);
+    }
+
+    public function verifySessionByHmacHashId(?string $sessionId): ?ChatSession
+    {
+        if (!$sessionId) {
+            return null;
+        }
+
+        $session = ChatSession::where('external_id', $sessionId)->first();
+
+        if (! $session) {
+            return null;
+        }
+
+        return $session;
+    }
+
+    public function verifyThreadByHmacHashId(?string $threadId): ?ChatConversation
+    {
+        if (!$threadId) {
+            return null;
+        }
+
+        $thread = ChatConversation::where('external_id', $threadId)->first();
+
+        if (! $thread) {
+            return null;
+        }
+
+       return $thread;
     }
 
     public function getRequestingDomain(Request $request): ?string

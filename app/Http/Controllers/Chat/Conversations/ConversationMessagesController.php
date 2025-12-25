@@ -10,9 +10,11 @@ class ConversationMessagesController
 {
     public function __invoke(Request $request, string $conversationId, ChatMemory $memory, ChatSession $session)
     {
+        $agent = current_agent();
+
         $memory
-            ->setAgent(current_agent())
-            ->setSessionId($session->firstOrCreateChatSession())
+            ->setAgent($agent)
+            ->setExternalSessionId($session->firstOrCreateChatSession($agent))
             ->setConversationId($conversationId);
 
         abort_if(

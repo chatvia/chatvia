@@ -12,21 +12,26 @@ class WidgetSessionStoreController
     public function __invoke(Request $request, WidgetVerification $widgetVerification, ChatSession $session)
     {
         $agentId = $request->header('X-AGENT-ID');
+        $sessionId = $request->header('X-SESSION-ID');
 
         if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
             return response()->json(data: ['error' => 'Could not verify the agent'], status: 403);
         }
 
-        $sessionId = $session->firstOrCreateChatSession();
-
         $agent = current_agent_from_widget();
 
         $userAgentData = UserAgentParser::parse($request->userAgent());
 
-        $agent
+        if ($sessionId) {
+            $session = $widgetVerification->verifySessionByHmacHashId($sessionId);
+            if ($session) {
+                return ['id' => $sessionId];
+            }
+        }
+
+        $session = $agent
             ->chatSessions()
             ->create([
-                'id' => $sessionId,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'device_type' => $userAgentData['device_type'] ?? null,
@@ -35,7 +40,7 @@ class WidgetSessionStoreController
             ]);
 
         return [
-            'id' => $sessionId,
+            'id' => $session->external_id,
         ];
     }
 }

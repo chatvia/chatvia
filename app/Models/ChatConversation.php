@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\QueryBuilders\ChatConversationQueryBuilder;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use App\Traits\SupportsHmac;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,9 +13,13 @@ use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class ChatConversation extends Model
 {
-    use HasFactory, HasUlids;
+    use HasFactory, SupportsHmac;
 
     protected $guarded = [];
+
+    protected array $hmacEncryptionColumns = [
+        'id',
+    ];
 
     protected function casts(): array
     {

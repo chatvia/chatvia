@@ -15,9 +15,11 @@ class ChatMessageDeleteController
             'message_id' => ['required', 'string'],
         ]);
 
+        $agent = current_agent();
+
         $memory
-            ->setAgent(current_agent())
-            ->setSessionId($session->firstOrCreateChatSession())
+            ->setAgent($agent)
+            ->setExternalSessionId($session->firstOrCreateChatSession($agent))
             ->setConversationId($request->input('conversation_id'))
             ->deleteMessage($request->input('message_id'));
     }

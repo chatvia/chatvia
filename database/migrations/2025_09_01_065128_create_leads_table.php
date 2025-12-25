@@ -13,7 +13,7 @@ return new class extends Migration
 
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
 
-            $table->foreignUlid('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
+            $table->foreignId('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
 
             // Core contact info
             $table->string('name')->nullable();

@@ -22,7 +22,21 @@ readonly class ConversationManager
 
     public function createConversation(string $title): string
     {
-        $conversationId = Str::ulid()->toString();
+        // Ensure the session exists in database
+        $agent = $this->cache->getAgent();
+
+        $session = ChatSession::firstOrCreate([
+            'external_id' => $this->sessionId,
+            'agent_id' => $agent->id,
+        ]);
+
+        // Also create the conversation in the database immediately
+        // so it exists when widget tries to subscribe or check handoff status
+        $conversation = ChatConversation::firstOrCreate([
+            'chat_session_id' => $session->id,
+        ]);
+
+        $conversationId = $conversation->external_id;
 
         $conversations = $this->getConversationsFromSession();
 
@@ -36,21 +50,6 @@ readonly class ConversationManager
         $conversations[] = $newConversation->toArray();
 
         $this->saveSessionData($conversations);
-
-        // Ensure the session exists in database
-        $agent = $this->cache->getAgent();
-        
-        ChatSession::firstOrCreate([
-            'id' => $this->sessionId,
-            'agent_id' => $agent->id,
-        ]);
-
-        // Also create the conversation in the database immediately
-        // so it exists when widget tries to subscribe or check handoff status
-        ChatConversation::firstOrCreate([
-            'id' => $conversationId,
-            'chat_session_id' => $this->sessionId,
-        ]);
 
         return $conversationId;
     }
@@ -87,7 +86,7 @@ readonly class ConversationManager
     public function deleteConversation(string $conversationId): void
     {
         // Soft delete the conversation
-        ChatConversation::where('id', $conversationId)->delete();
+        ChatConversation::where('external_id', $conversationId)->delete();
 
         // Clear conversation from cache
         $conversationKey = $this->cache->generateConversationKey($conversationId);

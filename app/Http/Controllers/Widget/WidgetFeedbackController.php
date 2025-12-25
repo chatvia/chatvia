@@ -22,7 +22,7 @@ class WidgetFeedbackController
 
         $memory
             ->setAgent(current_agent_from_widget())
-            ->setSessionId($sessionId)
+            ->setExternalSessionId($sessionId)
             ->setConversationId($threadId)
             ->feedback($messageId, $request->boolean('feedback'));
 

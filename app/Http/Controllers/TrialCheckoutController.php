@@ -29,7 +29,7 @@ class TrialCheckoutController extends Controller
             ? $plans[$package]['stripe_yearly_price_id']
             : $plans[$package]['stripe_monthly_price_id'];
 
-        $trialDays = config('billing.trial.days', 7);
+        $trialDays = (int) config('billing.trial.days', 7);
 
         try {
             // Capture user's IP address

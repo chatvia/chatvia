@@ -10,9 +10,11 @@ class ChatSourcesController
 {
     public function __invoke(Request $request, string $conversationId, ChatMemory $memory, ChatSession $session)
     {
+        $agent = current_agent();
+
         return $memory
-            ->setAgent(current_agent())
-            ->setSessionId($session->firstOrCreateChatSession())
+            ->setAgent($agent)
+            ->setExternalSessionId($session->firstOrCreateChatSession($agent))
             ->setConversationId($conversationId)
             ->getSources();
     }

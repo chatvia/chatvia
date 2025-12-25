@@ -10,9 +10,11 @@ class ConversationsController
 {
     public function __invoke(Request $request, ChatMemory $memory, ChatSession $session)
     {
+        $agent = current_agent();
+
         return $memory
-            ->setAgent(current_agent())
-            ->setSessionId($session->firstOrCreateChatSession())
+            ->setAgent($agent)
+            ->setExternalSessionId($session->firstOrCreateChatSession($agent))
             ->getConversationsForCurrentSession(
                 onlyVisible: true,
                 orderByDate: true,

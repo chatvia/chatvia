@@ -10,9 +10,11 @@ class ChatDeleteAllConversationsController
 {
     public function __invoke(Request $request, ChatMemory $memory, ChatSession $session)
     {
+        $agent = current_agent();
+
         $memory
-            ->setAgent(current_agent())
-            ->setSessionId($session->firstOrCreateChatSession())
+            ->setAgent($agent)
+            ->setExternalSessionId($session->firstOrCreateChatSession($agent))
             ->deleteAllConversations();
     }
 }

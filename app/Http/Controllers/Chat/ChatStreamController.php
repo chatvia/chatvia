@@ -16,15 +16,17 @@ readonly class ChatStreamController
 
     public function __invoke(ChatStreamRequest $request, string $conversationId): StreamedResponse
     {
+        $agent = current_agent();
+
         return $this->chatStreamService->stream(
             new StreamRequestData(
-                agent: current_agent(),
+                agent: $agent,
                 message: new StreamRequestMessageData(
                     model: Llm::whereExternalName($request->input('model'))->first(),
                     message: $request->input('message'),
                     createdAt: $request->input('created_at'),
                 ),
-                sessionId: $this->session->firstOrCreateChatSession(),
+                sessionId: $this->session->firstOrCreateChatSession($agent),
                 conversationId: $conversationId,
                 saveUserMessageImmediately: $request->boolean('save_user_message_immediately'),
                 streamSources: false,

@@ -53,7 +53,7 @@ class WidgetLeadCollectController
 
             $memory
                 ->setAgent($agent)
-                ->setSessionId($sessionId)
+                ->setExternalSessionId($sessionId)
                 ->setConversationId($threadId)
                 ->addMessageViaPayload(
                     new ChatOutputPayload(

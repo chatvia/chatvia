@@ -17,9 +17,11 @@ class WidgetThreadsStoreController
             return response()->json(['error' => 'Could not verify the agent'], 403);
         }
 
+        $agent = current_agent_from_widget();
+
         return [
             'id' => $memory
-                ->setAgent(current_agent_from_widget())
+                ->setAgent($agent)
                 ->setExternalSessionId($sessionId)
                 ->createConversation('New Chat'),
         ];

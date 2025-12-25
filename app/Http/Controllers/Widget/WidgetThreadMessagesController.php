@@ -17,7 +17,7 @@ class WidgetThreadMessagesController
             return response()->json(['error' => 'Missing thread/session ID'], 400);
         }
 
-        $conversation = $verification->verifyThreadByHmacHashId($threadId);
+        $conversation = $verification->verifyThreadId($threadId);
 
         abort_if(
             boolean: ! $conversation,

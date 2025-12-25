@@ -56,7 +56,7 @@ class WidgetSessionInitController extends Controller
         $thread = null;
 
         if ($threadId && $session) {
-            $thread = $widgetVerification->verifyThreadByHmacHashId($threadId);
+            $thread = $widgetVerification->verifyThreadId($threadId);
 
             $thread?->update(['last_activity_at' => now()]);
         }

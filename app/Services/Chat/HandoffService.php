@@ -106,7 +106,6 @@ class HandoffService
 
         // Save to database with agent role and metadata
         $message = ChatMessage::create([
-            'id' => $messageId,
             'chat_conversation_id' => $conversation->id,
             'content' => $content,
             'role' => 'agent',

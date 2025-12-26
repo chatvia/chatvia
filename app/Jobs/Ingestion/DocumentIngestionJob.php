@@ -46,7 +46,7 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
         }
     }
 
-    public function handle(LlamaParse $llamaParse, DocumentOCRInterface $documentOCR): void
+    public function handle(DocumentOCRInterface $documentOCR): void
     {
         if ($this->batch()?->cancelled()) {
             return;

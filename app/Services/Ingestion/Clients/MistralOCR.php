@@ -24,7 +24,10 @@ class MistralOCR implements DocumentOCRInterface
      */
     public function fromUrl(string $url): Collection
     {
-        $response = $this->mistral->client()->post('https://api.mistral.ai/v1/ocr', [
+        $response = $this->mistral
+            ->client()
+            ->timeout(3600)
+            ->post('https://api.mistral.ai/v1/ocr', [
             'model' => 'mistral-ocr-latest',
             'document' => [
                 'type' => 'document_url',

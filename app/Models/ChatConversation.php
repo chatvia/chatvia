@@ -25,6 +25,7 @@ class ChatConversation extends Model
     {
         return [
             'handoff_at' => 'datetime',
+            'last_activity_at' => 'datetime',
         ];
     }
 

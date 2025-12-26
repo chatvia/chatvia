@@ -16,11 +16,11 @@
             anchor.addEventListener('click', function(e) {
                 const href = this.getAttribute('href');
                 if (href === '#' || href === '#0') return;
-                
+
                 const target = document.querySelector(href);
                 if (target) {
                     e.preventDefault();
-                    
+
                     // Calculate offset for fixed header if needed
                     const headerOffset = 80;
                     const elementPosition = target.getBoundingClientRect().top;
@@ -37,7 +37,7 @@
                     setTimeout(() => {
                         AOS.refresh();
                     }, 600);
-                    
+
                     setTimeout(() => {
                         AOS.refresh();
                     }, 1000);
@@ -53,16 +53,16 @@
                     const headerOffset = 80;
                     const elementPosition = target.getBoundingClientRect().top;
                     const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                    
+
                     window.scrollTo({
                         top: offsetPosition,
                         behavior: 'smooth'
                     });
-                    
+
                     setTimeout(() => {
                         AOS.refresh();
                     }, 600);
-                    
+
                     setTimeout(() => {
                         AOS.refresh();
                     }, 1000);
@@ -77,5 +77,5 @@
     id="chatbot-embed-script"
     src="{{ config('widget.script_url_embed') }}"
     agent-id="{{ config('widget.chatvia_widget_id') }}"
-    async>
+    defer>
 </script>

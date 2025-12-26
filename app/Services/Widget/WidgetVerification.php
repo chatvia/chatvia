@@ -11,7 +11,6 @@ class WidgetVerification
 {
     public function verifyByAgentExternalId(string $externalId, Request $request): bool
     {
-        return true;
         /** @var Agent $agent */
         $agent = Agent::where('external_id', $externalId)->first();
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentChunkImageViewController;
 use App\Http\Controllers\Auth\Social\GoogleAuthController;
 use App\Http\Controllers\Auth\Social\GoogleCallbackAuthController;
 use App\Http\Controllers\Auth\Social\MicrosoftAuthController;
@@ -57,6 +58,8 @@ Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-too
 // Trial routes (guest accessible)
 Route::post('trial/checkout', TrialCheckoutController::class)->name('trial.checkout');
 Route::get('trial/success', TrialSuccessController::class)->name('trial.success');
+
+Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewController::class)->name('chunks.image.view');
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

@@ -73,7 +73,7 @@ class MessageManager
             conversationId: $conversationId,
             role: $role,
             message: $payload->message,
-            messageId: $payload->message_id,
+            messageId: $payload->external_message_id,
             model: $payload->model,
             append: $append
         );

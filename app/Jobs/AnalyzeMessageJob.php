@@ -12,14 +12,14 @@ class AnalyzeMessageJob implements ShouldQueue
     use Queueable;
 
     public function __construct(
-        public string $messageId,
+        public string $externalMessageId,
     ) {
         $this->onQueue('analytics');
     }
 
     public function handle(ToneAnalysis $toneAnalysis): void
     {
-        $message = ChatMessage::find($this->messageId);
+        $message = ChatMessage::where('external_id', $this->externalMessageId)->first();
 
         if (! $message || $message->role !== 'user') {
             return;

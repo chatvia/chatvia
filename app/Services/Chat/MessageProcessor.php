@@ -9,7 +9,6 @@ use App\Services\Chat\Data\StreamRequestData;
 use App\Services\Prompts\PromptLoader;
 use App\Services\Search\KnowledgeBase;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 readonly class MessageProcessor
@@ -24,8 +23,6 @@ readonly class MessageProcessor
 
         // Get the current user message content (may include retrieved context)
         $userMessageContent = $payload->message_for_llm;
-
-        ray($userMessageContent);
 
         // Check if the last message is already a user message
         $lastMessage = end($messages);
@@ -123,28 +120,37 @@ readonly class MessageProcessor
             return $payload->message_for_llm;
         }
 
-        return Str::of("### User Question:\n")
+        $message = Str::of("### User Question:\n")
             ->append($payload->message_for_llm)
-            ->append("\n### Retrieved Context\n")
-            ->append($sources->map(function ($chunk, $i) {
-                $text = "{$i}: ".$chunk['content']."\n";
+            ->append("\n\n### Retrieved Context\n");
 
-                if (! empty($chunk['images'])) {
-                    $text .= "These are the images associated with chunk {$i}:\n";
-                    $text .= "You MUST Include one or more of these images in markdown format if it does support the context and makes sense\n";
+        // Check if any sources have images
+        $hasImages = $sources->contains(fn ($chunk) => ! empty($chunk['images']));
 
-                    $imageIndex = 1;
-                    foreach ($chunk['images'] as $image => $description) {
-                        $text .= "Image {$imageIndex}: ".Storage::disk('public')->url($image)."\n";
-                        $text .= "Description for image {$imageIndex}: {$description}\n";
-                        $imageIndex++;
-                    }
+        if ($hasImages) {
+            $message = $message->append("\n⚠️ CRITICAL INSTRUCTION: This context includes images. You MUST include relevant images in your response using markdown format: ![description](url)\n\n");
+        }
+
+        $message = $message->append($sources->map(function ($chunk, $i) {
+            $text = "Context {$i}:\n".$chunk['content']."\n";
+
+            if (! empty($chunk['images'])) {
+                $text .= "\n📷 IMAGES FOR THIS CONTEXT (REQUIRED - Include in response):\n";
+
+                $imageIndex = 0;
+                foreach ($chunk['images'] as $image => $description) {
+                    $imageUrl = route('chunks.image.view', ['chunkExternalId' => $chunk['external_id'], 'imageIndex' => $imageIndex]);
+                    $text .= "- Image {$imageIndex}: {$description}\n";
+                    $text .= "  Markdown: ![{$description}]({$imageUrl})\n";
+                    $imageIndex++;
                 }
+                $text .= "\n";
+            }
 
-                return $text;
-            })
-                ->implode("\n"))
-            ->toString();
+            return $text;
+        })->implode("\n"));
+
+        return $message->toString();
     }
 
     private function enrichSourcesWithMetadata(array $searchResults): Collection
@@ -167,6 +173,8 @@ readonly class MessageProcessor
             $metadata = json_decode($result->metadata, true);
 
             return [
+                'id' => $result->id,
+                'external_id' => $result->external_id,
                 'content' => $result->chunk,
                 'confidence_score' => $result->confidence_score ?? null,
                 'metadata' => [

@@ -238,7 +238,7 @@
                     By subscribing to ChatVia, you acknowledge that you have read, understood, and agree to this Refund Policy.
                 </p>
                 <p class="mt-2">
-                    For questions about this policy, please contact us at <a href="mailto:refunds@chatvia.com" class="text-blue-600 underline">refunds@chatvia.com</a>
+                    For questions about this policy, please contact us at <a href="mailto:info@chatvia.com" class="text-blue-600 underline">info@chatvia.com</a>
                 </p>
             </div>
         </div>

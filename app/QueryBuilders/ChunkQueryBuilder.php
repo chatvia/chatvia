@@ -55,7 +55,7 @@ class ChunkQueryBuilder extends Builder
 
         $sql = "
 WITH vectorchord_candidates AS (
-    SELECT c.id, c.chunk, c.embedding, c.chunkable_type, c.chunkable_id, c.metadata,
+    SELECT c.id, c.external_id, c.chunk, c.embedding, c.chunkable_type, c.chunkable_id, c.metadata,
            {$distanceOperator}
     FROM chunks c
     WHERE {$sourceWhereClause}
@@ -63,14 +63,14 @@ WITH vectorchord_candidates AS (
     LIMIT ?
 ),
 vector_ranked AS (
-    SELECT id, chunk, chunkable_type, chunkable_id, metadata,
+    SELECT id, external_id, chunk, chunkable_type, chunkable_id, metadata,
            ROW_NUMBER() OVER (ORDER BY {$vectorOrderField} ASC) as rank,
            'vector' as search_type
     FROM vectorchord_candidates
     LIMIT ?
 ),
 bm25_ranked AS (
-    SELECT c.id, c.chunk, c.chunkable_type, c.chunkable_id, c.metadata,
+    SELECT c.id, c.external_id, c.chunk, c.chunkable_type, c.chunkable_id, c.metadata,
            ROW_NUMBER() OVER (ORDER BY c.embedding_bm25 <&> bm25_catalog.to_bm25query('chunks_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2'))) as rank,
            'bm25' as search_type
     FROM chunks c
@@ -79,18 +79,18 @@ bm25_ranked AS (
     LIMIT ?
 ),
 combined_results AS (
-    SELECT id, chunk, chunkable_type, chunkable_id, metadata, rank, search_type FROM vector_ranked
+    SELECT id, external_id, chunk, chunkable_type, chunkable_id, metadata, rank, search_type FROM vector_ranked
     UNION ALL
-    SELECT id, chunk, chunkable_type, chunkable_id, metadata, rank, search_type FROM bm25_ranked
+    SELECT id, external_id, chunk, chunkable_type, chunkable_id, metadata, rank, search_type FROM bm25_ranked
 ),
 rrf_scores AS (
-    SELECT id, chunk, chunkable_type, chunkable_id, metadata,
+    SELECT id, external_id, chunk, chunkable_type, chunkable_id, metadata,
            STRING_AGG(DISTINCT search_type, '+') as search_type,
            SUM(1.0 / (60 + rank)) as rrf_score
     FROM combined_results
-    GROUP BY id, chunk, chunkable_type, chunkable_id, metadata
+    GROUP BY id, external_id, chunk, chunkable_type, chunkable_id, metadata
 )
-SELECT id, chunk, chunkable_type, chunkable_id, metadata, search_type, rrf_score as score
+SELECT id, external_id, chunk, chunkable_type, chunkable_id, metadata, search_type, rrf_score as score
 FROM rrf_scores
 ORDER BY rrf_score DESC
 LIMIT ?
@@ -108,9 +108,7 @@ LIMIT ?
             [$limit]
         );
 
-        $results = DB::select($sql, $params);
-
-        return $results;
+        return DB::select($sql, $params);
     }
 
     /**

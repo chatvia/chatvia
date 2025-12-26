@@ -10,7 +10,9 @@ trait SupportsHmac
     protected static function booted(): void
     {
         static::creating(function ($model) {
-            $model->external_id = Str::uuid()->toString();
+            if (!$model->external_id) {
+                $model->external_id = Str::uuid()->toString();
+            }
         });
     }
 

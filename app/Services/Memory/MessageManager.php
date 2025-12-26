@@ -90,7 +90,7 @@ class MessageManager
 
                     // Handle feedback persistence to database
                     if ($key === 'feedback') {
-                        ChatMessage::where('id', $message['id'])->update([
+                        ChatMessage::where('external_id', $message['id'])->update([
                             'feedback' => $value ? 'positive' : 'negative',
                         ]);
                     }

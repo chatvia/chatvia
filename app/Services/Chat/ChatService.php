@@ -31,8 +31,8 @@ readonly class ChatService
 
         ['lang' => $lang, 'query' => $query] = app(QueryRewriter::class)->rewrite($data->message->message);
 
-        $userMessageId = Str::ulid()->toString();
-        $assistantMessageId = Str::ulid()->toString();
+        $userMessageId = Str::uuid()->toString();
+        $assistantMessageId = Str::uuid()->toString();
 
         $payload = ChatInputPayload::from([
             'external_session_id' => $data->externalSessionId,

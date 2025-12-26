@@ -27,7 +27,7 @@ class MessageManager
         string $type = 'text',
         array $append = []
     ): string {
-        $messageId = $messageId ?? Str::ulid()->toString();
+        $messageId = $messageId ?? Str::uuid()->toString();
 
         $messageData = MessageData::from([
             'id' => $messageId,

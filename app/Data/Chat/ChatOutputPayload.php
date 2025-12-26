@@ -9,8 +9,8 @@ class ChatOutputPayload extends Data
 {
     public function __construct(
         public string $external_session_id,
-        public string $conversation_id,
-        public string $message_id,
+        public string $external_conversation_id,
+        public string $external_message_id,
         public string $message,
         public string $model,
         public Carbon $sent_at,

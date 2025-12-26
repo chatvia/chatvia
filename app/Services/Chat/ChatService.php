@@ -215,8 +215,8 @@ readonly class ChatService
             ->addMessageViaPayload(
                 new ChatOutputPayload(
                     external_session_id: $context->requestData->externalSessionId,
-                    conversation_id: $context->requestData->conversationId,
-                    message_id: $context->assistantMessageId,
+                    external_conversation_id: $context->requestData->conversationId,
+                    external_message_id: $context->assistantMessageId,
                     message: $message,
                     model: $context->requestData->message->model->external_name,
                     sent_at: now(),

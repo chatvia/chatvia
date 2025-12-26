@@ -908,8 +908,8 @@ const embedSnippet = computed(() => {
         '<script',
         `  id="chatbot-embed-script"`,
         `  src="${props.embedScriptUrl}"`,
-        `  agent-id="${props.agent.external_id}"`,
-        `  language="${selectedLanguage.value}"`,
+        `  data-agent-id="${props.agent.external_id}"`,
+        `  data-language="${selectedLanguage.value}"`,
         '  defer>',
         '</scr' + 'ipt>',
     ];

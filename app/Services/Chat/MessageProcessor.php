@@ -139,7 +139,9 @@ readonly class MessageProcessor
 
                 $imageIndex = 0;
                 foreach ($chunk['images'] as $image => $description) {
-                    $imageUrl = route('chunks.image.view', ['chunkExternalId' => $chunk['external_id'], 'imageIndex' => $imageIndex]);
+                    // Always use main domain URL instead of subdomain-based route()
+                    $path = '/my/chunks/'.$chunk['external_id'].'/'.$imageIndex.'.png';
+                    $imageUrl = rtrim(config('app.url'), '/').$path;
                     $text .= "- Image {$imageIndex}: {$description}\n";
                     $text .= "  Markdown: ![{$description}]({$imageUrl})\n";
                     $imageIndex++;

@@ -107,8 +107,10 @@ readonly class ConversationManager
 
     public function deleteAllConversations(): void
     {
+        $sessionId = ChatSession::query()->where('external_id', $this->sessionId)->value('id');
+
         // Soft delete all conversations for this session
-        ChatConversation::where('chat_session_id', $this->sessionId)->delete();
+        ChatConversation::where('chat_session_id', $sessionId)->delete();
 
         // Clear cache
         $this->cache->flush();

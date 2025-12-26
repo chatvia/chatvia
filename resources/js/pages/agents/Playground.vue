@@ -30,7 +30,6 @@
                                     class="h-full w-full border-0"
                                     title="Chat Preview"
                                     loading="lazy"
-                                    sandbox="allow-scripts allow-same-origin allow-forms"
                                 ></iframe>
                             </div>
                         </div>

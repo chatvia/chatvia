@@ -838,7 +838,6 @@ const removeStarter = (id: number) => {
                         :src="buildIframeUrl(agent.chat_embed_url)"
                         class="h-full w-full border-0"
                         title="Chat Preview"
-                        sandbox="allow-scripts allow-same-origin allow-forms"
                     />
                 </div>
             </div>

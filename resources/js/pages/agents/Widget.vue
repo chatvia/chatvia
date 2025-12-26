@@ -354,7 +354,6 @@
                         :src="previewUrl"
                         class="h-full w-full border-0"
                         title="Widget Live Preview"
-                        sandbox="allow-scripts allow-same-origin allow-forms"
                     />
                 </div>
             </div>

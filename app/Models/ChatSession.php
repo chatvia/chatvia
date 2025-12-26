@@ -18,6 +18,13 @@ class ChatSession extends Model
         'id',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'last_activity_at' => 'datetime',
+        ];
+    }
+
     public function conversations(): HasMany
     {
         return $this->hasMany(ChatConversation::class, 'chat_session_id');

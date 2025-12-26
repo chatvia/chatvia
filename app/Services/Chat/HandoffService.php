@@ -86,7 +86,7 @@ class HandoffService
             return null;
         }
 
-        $messageId = (string) Str::ulid();
+        $messageId = Str::uuid()->toString();
 
         // Save to memory cache via ChatMemory
         $chatMemory = app(\App\Services\Memory\ChatMemory::class);
@@ -150,7 +150,7 @@ class HandoffService
             return null;
         }
 
-        $messageId = (string) Str::ulid();
+        $messageId = (string) Str::uuid();
         $session = $conversation->session;
         $agent = $session?->agent;
 

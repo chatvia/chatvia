@@ -27,7 +27,7 @@
     </div>
 
     <div class="relative max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="pt-32 pb-12 md:pt-40 md:pb-20">
+        <div class="pt-28 pb-12  md:pb-20">
 
             <!-- Hero content -->
             <div class="text-center" data-aos="fade-up">
@@ -36,7 +36,7 @@
                     <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>
-                    Privacy-first • 100% EU Hosted • Powered by Open Source AI
+                    Privacy-first • 100% EU Hosted • Powered by Open Source LLMs
                     <svg class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
@@ -110,7 +110,7 @@
                         </div>
                         <!-- Video -->
                         <div class="relative">
-                            <video 
+                            <video
                                 src="https://cdn.chatvia.ai/media/chatvia-howto.mp4"
                                 class="w-full h-auto"
                                 autoplay

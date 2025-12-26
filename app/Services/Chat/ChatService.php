@@ -35,9 +35,9 @@ readonly class ChatService
         $assistantMessageId = Str::ulid()->toString();
 
         $payload = ChatInputPayload::from([
-            'session_id' => $data->externalSessionId,
-            'conversation_id' => $data->conversationId,
-            'message_id' => $userMessageId,
+            'external_session_id' => $data->externalSessionId,
+            'external_conversation_id' => $data->conversationId,
+            'external_message_id' => $userMessageId,
             'model' => $data->message->model->external_name,
             'message' => $data->message->message,
             'sent_at' => $data->message->createdAt ? Carbon::parse($data->message->createdAt) : now(),
@@ -127,9 +127,9 @@ readonly class ChatService
         );
 
         $enrichedPayload = ChatInputPayload::from([
-            'session_id' => $context->payload->session_id,
-            'conversation_id' => $context->payload->conversation_id,
-            'message_id' => $context->payload->message_id,
+            'external_session_id' => $context->payload->external_session_id,
+            'external_conversation_id' => $context->payload->external_conversation_id,
+            'external_message_id' => $context->payload->external_message_id,
             'model' => $context->payload->model,
             'message' => $context->payload->message,
             'sent_at' => $context->payload->sent_at,

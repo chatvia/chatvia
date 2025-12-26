@@ -68,7 +68,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         /** @var ChatConversation $conversation */
         $conversation = ChatConversation::firstOrCreate([
-            'external_id' => $this->payload->conversation_id,
+            'external_id' => $this->payload->external_conversation_id,
             'chat_session_id' => $session->id,
         ]);
 
@@ -92,7 +92,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $cost = $usageData['total_cost'] ?? null;
 
         $messageData = [
-            'external_id' => $this->payload->message_id,
+            'external_id' => $this->payload->external_message_id,
             'chat_conversation_id' => $conversation->id,
             'content' => $this->payload->message,
             'role' => $isUserMessage ? 'user' : 'assistant',
@@ -116,7 +116,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         ChatMessage::create($messageData);
 
-        AnalyzeMessageJob::dispatchIf($isUserMessage, $this->payload->message_id);
+        AnalyzeMessageJob::dispatchIf($isUserMessage, $this->payload->external_message_id);
 
         $messagesCount = $conversation->messages()->count();
 
@@ -176,6 +176,6 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'messages:store:id:'.$this->payload->message_id;
+        return 'messages:store:id:'.$this->payload->external_message_id;
     }
 }

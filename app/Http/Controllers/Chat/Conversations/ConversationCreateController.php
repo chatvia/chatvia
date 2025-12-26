@@ -34,9 +34,9 @@ final class ConversationCreateController
             ->createConversation(title: 'New Chat');
 
         $payload = ChatInputPayload::from([
-            'session_id' => $sessionId,
-            'conversation_id' => $conversationId,
-            'message_id' => Str::ulid()->toString(),
+            'external_session_id' => $sessionId,
+            'external_conversation_id' => $conversationId,
+            'external_message_id' => Str::ulid()->toString(),
             'model' => $request->input('model'),
             'message' => $request->input('message'),
             'sent_at' => now(),

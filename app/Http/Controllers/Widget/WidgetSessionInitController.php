@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Widget;
 
-use App\Models\ChatConversation;
 use App\Models\ChatSession;
 use App\Services\Memory\ChatMemory;
 use App\Services\UserAgentParser;

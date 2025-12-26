@@ -2,6 +2,7 @@
 
 namespace App\Services\Chat;
 
+use App\Data\Chat\ChatInputPayload;
 use App\Events\Chat\ChatHandoffEvent;
 use App\Events\Chat\ChatMessageEvent;
 use App\Events\Chat\ChatTypingEvent;
@@ -158,10 +159,10 @@ class HandoffService
         }
 
         // Create payload for the message
-        $payload = new \App\Data\Chat\ChatInputPayload(
-            session_id: $session->id,
-            conversation_id: $conversation->id,
-            message_id: $messageId,
+        $payload = new ChatInputPayload(
+            external_session_id: $session->external_id,
+            external_conversation_id: $conversation->external_id,
+            external_message_id: $messageId,
             model: $model ?? $agent->llms()->first()?->external_name ?? 'unknown',
             message: $content,
             sent_at: now(),

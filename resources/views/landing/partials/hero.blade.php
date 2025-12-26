@@ -111,7 +111,7 @@
                         <!-- Video -->
                         <div class="relative">
                             <video
-                                src="https://cdn.chatvia.ai/media/chatvia-howto.mp4"
+                                src="https://cdn.chatvia.ai/media/howto/create-chatbot.mp4"
                                 class="w-full h-auto"
                                 autoplay
                                 muted

@@ -910,7 +910,7 @@ const embedSnippet = computed(() => {
         `  src="${props.embedScriptUrl}"`,
         `  agent-id="${props.agent.external_id}"`,
         `  language="${selectedLanguage.value}"`,
-        '  async>',
+        '  defer>',
         '</scr' + 'ipt>',
     ];
     return scriptLines.join('\n');

@@ -2,11 +2,11 @@
 
 @section('title', landing('title') . ' - GDPR Compliant AI Chatbot Platform | EU Hosted')
 
-@section('description', 'Build intelligent AI chatbots with ChatVia. Data stored in Germany, AI models in France. GDPR compliant with open-source models like Llama, DeepSeek, Qwen. Your data never leaves EU.')
+@section('description', 'Build intelligent AI chatbots with ChatVia. 100% EU-hosted infrastructure. GDPR compliant with open-source models like Llama, DeepSeek, Qwen. Your data never leaves EU.')
 
 @section('og_title', landing('title') . ' - GDPR Compliant AI Chatbot Platform')
 
-@section('og_description', 'Transform your customer support with EU-hosted AI chatbots. Data in Germany, models in France. GDPR compliant with open-source AI (Llama, DeepSeek, Qwen, Gemma). Instant 24/7 support.')
+@section('og_description', 'Transform your customer support with EU-hosted AI chatbots. 100% EU infrastructure. GDPR compliant with open-source AI (Llama, DeepSeek, Qwen, Gemma). Instant 24/7 support.')
 
 @push('preload')
     {{-- Preload first 3 feature images for better performance --}}

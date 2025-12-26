@@ -154,13 +154,19 @@
                                                 </svg>
 
                                                 @if ($tooltipText)
-                                                    <div class="relative group">
+                                                    <div class="relative group" x-data="{ tooltipOpen: false }" @click.away="tooltipOpen = false">
                                                         <span
+                                                            @click="tooltipOpen = !tooltipOpen"
                                                             class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 cursor-help">{{ $feature }}</span>
 
                                                         <!-- Tooltip -->
                                                         <div
-                                                            class="absolute top-full left-0 mt-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-10 w-64">
+                                                            x-show="tooltipOpen"
+                                                            x-transition
+                                                            @mouseenter="tooltipOpen = true"
+                                                            @mouseleave="tooltipOpen = false"
+                                                            class="absolute top-full left-0 mt-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 w-64"
+                                                            :class="{ '!opacity-100 !visible': tooltipOpen }">
                                                             @if ($tooltipIsList && is_array($tooltipText))
                                                                 <div class="text-xs text-slate-100">
                                                                     <div class="font-medium text-emerald-400 mb-2">
@@ -245,13 +251,19 @@
                                                 </svg>
 
                                                 @if ($tooltipText)
-                                                    <div class="relative group">
+                                                    <div class="relative group" x-data="{ tooltipOpen: false }" @click.away="tooltipOpen = false">
                                                         <span
+                                                            @click="tooltipOpen = !tooltipOpen"
                                                             class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 cursor-help">{{ $feature }}</span>
 
                                                         <!-- Tooltip -->
                                                         <div
-                                                            class="absolute top-full left-0 mt-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-10 w-64">
+                                                            x-show="tooltipOpen"
+                                                            x-transition
+                                                            @mouseenter="tooltipOpen = true"
+                                                            @mouseleave="tooltipOpen = false"
+                                                            class="absolute top-full left-0 mt-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 w-64"
+                                                            :class="{ '!opacity-100 !visible': tooltipOpen }">
                                                             @if ($tooltipIsList && is_array($tooltipText))
                                                                 <div class="text-xs text-slate-100">
                                                                     <div class="font-medium text-emerald-400 mb-2">

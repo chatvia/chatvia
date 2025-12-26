@@ -10,7 +10,7 @@
         "credits": 1,
         "input_price_per_1m_tokens": 0.15,
         "output_price_per_1m_tokens": 0.60,
-        "is_default": false
+        "is_default": true
     },
     {
         "internal_name": "llama-3.3-70b-instruct",
@@ -36,7 +36,7 @@
         "credits": 1,
         "input_price_per_1m_tokens": 0.15,
         "output_price_per_1m_tokens": 0.35,
-        "is_default": true
+        "is_default": false
     },
     {
         "internal_name": "qwen3-235b-a22b-instruct-2507",

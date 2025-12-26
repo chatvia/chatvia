@@ -32,12 +32,16 @@
             <!-- Hero content -->
             <div class="text-center" data-aos="fade-up">
                 <!-- Trust badge -->
-                <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/50 rounded-full text-sm font-medium text-slate-700 mb-6 backdrop-blur-sm">
-                    <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/50 rounded-full text-sm font-medium text-slate-700 mb-6 backdrop-blur-sm">
+                    <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>
                     Privacy-first • 100% EU Hosted • Powered by Open Source LLMs
-                    <svg class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                 </div>
@@ -97,7 +101,52 @@
                 </div>
 
                 <!-- Hero Image -->
-                <div class="relative max-w-5xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+                <div class="relative max-w-5xl mx-auto" data-aos="fade-up" data-aos-delay="100" x-data="{
+                    activeDemo: 'widget',
+                    switchVideo(demo) {
+                        this.activeDemo = demo;
+                        // Stop all videos first
+                        this.$refs.widgetVideo.pause();
+                        this.$refs.chatgptVideo.pause();
+                        // Play the selected video
+                        if (demo === 'widget') {
+                            this.$refs.widgetVideo.currentTime = 0;
+                            this.$refs.widgetVideo.play();
+                        } else {
+                            this.$refs.chatgptVideo.currentTime = 0;
+                            this.$refs.chatgptVideo.play();
+                        }
+                    }
+                }">
+                    <!-- Demo Section Heading -->
+                    <p class="text-center text-slate-600 font-medium mb-4">
+                        Embeddable chat widget & ChatGPT-style in one platform
+                    </p>
+
+                    <!-- Video Toggle Buttons -->
+                    <div class="flex items-center justify-center gap-2 mb-6">
+                        <button @click="switchVideo('widget')"
+                            :class="activeDemo === 'widget' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' :
+                                'bg-white text-slate-600 hover:bg-slate-50'"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium text-xs transition-all duration-200 border border-slate-200 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                            </svg>
+                            <span>Chat Widget</span>
+                        </button>
+                        <button @click="switchVideo('chatgpt')"
+                            :class="activeDemo === 'chatgpt' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' :
+                                'bg-white text-slate-600 hover:bg-slate-50'"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium text-xs transition-all duration-200 border border-slate-200 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            <span>ChatGPT-style</span>
+                        </button>
+                    </div>
+
                     <!-- Browser-style window -->
                     <div class="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-200/80 bg-white">
                         <!-- Window header with traffic lights -->
@@ -108,16 +157,19 @@
                                 <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
                             </div>
                         </div>
-                        <!-- Video -->
+                        <!-- Videos -->
                         <div class="relative">
-                            <video
-                                src="https://cdn.chatvia.ai/media/howto/create-chatbot.mp4"
-                                class="w-full h-auto"
-                                autoplay
-                                muted
-                                loop
-                                playsinline
-                                aria-label="ChatVia AI Chatbot Demo - See how to set up and use your AI chatbot">
+                            <!-- Widget Demo Video -->
+                            <video x-ref="widgetVideo" x-show="activeDemo === 'widget'"
+                                src="https://cdn.chatvia.ai/media/howto/create-chatbot.mp4" class="w-full h-auto"
+                                autoplay muted loop playsinline
+                                aria-label="ChatVia Chat Widget Demo - See how to set up and embed your chat widget">
+                            </video>
+                            <!-- ChatGPT-like Demo Video -->
+                            <video x-ref="chatgptVideo" x-show="activeDemo === 'chatgpt'"
+                                src="https://cdn.chatvia.ai/media/howto/create-gpt-like-chat.mp4"
+                                class="w-full h-auto" muted loop playsinline
+                                aria-label="ChatVia ChatGPT-like AI Demo - See how to create ChatGPT-style chatbots">
                             </video>
                         </div>
                     </div>

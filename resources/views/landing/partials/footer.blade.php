@@ -58,7 +58,6 @@
             <!-- Copyrights note -->
             <div class="text-sm text-slate-500 mr-4">&copy; {{ config('app.name') }}.
                 Made with ❤️ in Denmark
-
             </div>
 
         </div>

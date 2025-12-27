@@ -103,6 +103,59 @@
                 <!-- Hero Image -->
                 <div class="relative max-w-5xl mx-auto" data-aos="fade-up" data-aos-delay="100" x-data="{
                     activeDemo: 'widget',
+                    progress: 0,
+                    bindProgress(videoEl, demoKey) {
+                        const update = () => {
+                            if (this.activeDemo !== demoKey) {
+                                return;
+                            }
+
+                            const duration = videoEl?.duration ?? 0;
+                            if (!duration || Number.isNaN(duration)) {
+                                this.progress = 0;
+                                return;
+                            }
+
+                            const current = videoEl?.currentTime ?? 0;
+                            this.progress = Math.max(0, Math.min(100, (current / duration) * 100));
+                        };
+
+                        videoEl?.addEventListener('loadedmetadata', update);
+                        videoEl?.addEventListener('timeupdate', update);
+                        videoEl?.addEventListener('play', update);
+                        videoEl?.addEventListener('seeked', update);
+                    },
+                    updateProgress() {
+                        const videoEl = this.activeDemo === 'widget' ? this.$refs.widgetVideo : this.$refs.chatgptVideo;
+                        const duration = videoEl?.duration ?? 0;
+
+                        if (!duration || Number.isNaN(duration)) {
+                            this.progress = 0;
+                            return;
+                        }
+
+                        this.progress = Math.max(0, Math.min(100, ((videoEl?.currentTime ?? 0) / duration) * 100));
+                    },
+                    seekTo(event) {
+                        const track = event.currentTarget;
+                        const rect = track.getBoundingClientRect();
+                        const x = Math.min(Math.max(0, event.clientX - rect.left), rect.width);
+                        const ratio = rect.width ? (x / rect.width) : 0;
+
+                        const videoEl = this.activeDemo === 'widget' ? this.$refs.widgetVideo : this.$refs.chatgptVideo;
+                        const duration = videoEl?.duration ?? 0;
+                        if (!duration || Number.isNaN(duration)) {
+                            return;
+                        }
+
+                        videoEl.currentTime = ratio * duration;
+                        this.updateProgress();
+                    },
+                    init() {
+                        this.bindProgress(this.$refs.widgetVideo, 'widget');
+                        this.bindProgress(this.$refs.chatgptVideo, 'chatgpt');
+                        this.updateProgress();
+                    },
                     switchVideo(demo) {
                         this.activeDemo = demo;
                         // Stop all videos first
@@ -116,8 +169,9 @@
                             this.$refs.chatgptVideo.currentTime = 0;
                             this.$refs.chatgptVideo.play();
                         }
+                        this.updateProgress();
                     }
-                }">
+                }" x-init="init()">
                     <!-- Demo Section Heading -->
                     <p class="text-center text-slate-600 font-medium mb-4">
                         Embeddable chat widget & ChatGPT-style in one platform
@@ -171,6 +225,18 @@
                                 class="w-full h-auto" muted loop playsinline
                                 aria-label="ChatVia ChatGPT-like AI Demo - See how to create ChatGPT-style chatbots">
                             </video>
+
+                            <!-- Progress bar -->
+                            <div class="absolute inset-x-0 bottom-0 px-4 pb-4">
+                                <button type="button" @click="seekTo($event)"
+                                    class="group relative w-full h-2 rounded-full bg-slate-900/20 overflow-hidden"
+                                    aria-label="Video progress">
+                                    <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-500 to-purple-500"
+                                        :style="`width: ${progress}%`"></div>
+                                    <div class="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-white shadow-sm ring-2 ring-indigo-500/60 transition-opacity opacity-0 group-hover:opacity-100"
+                                        :style="`left: calc(${progress}% - 6px)`"></div>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -118,7 +118,7 @@
                 </section>
             @endif
 
-{{--            @include('landing.partials.comparison')--}}
+            @include('landing.partials.comparison')
 
             @include('landing.partials.pricing')
 

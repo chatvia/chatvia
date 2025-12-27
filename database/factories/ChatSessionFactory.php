@@ -38,9 +38,15 @@ class ChatSessionFactory extends Factory
      */
     public function forUser(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'user_id' => User::factory(),
-        ]);
+        return $this->state(function (array $attributes) {
+            $user = User::where('email', 'ahmad@mayahi.net')->first();
+
+            if (! $user) {
+                throw new \RuntimeException('Demo user (ahmad@mayahi.net) not found. Please run DatabaseSeeder first.');
+            }
+
+            return ['user_id' => $user->id];
+        });
     }
 
     /**

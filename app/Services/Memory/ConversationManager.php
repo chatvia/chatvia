@@ -122,7 +122,8 @@ readonly class ConversationManager
 
         /** @var ChatConversation $conversation */
         foreach ($conversations as $conversation) {
-            $conversation->messages()->update(['content' => null, 'deleted_by' => $deletedBy]);
+            $conversation->messages()->update(['content' => null]);
+            $conversation->update(['deleted_by' => $deletedBy]);
             $conversation->delete();
         }
 

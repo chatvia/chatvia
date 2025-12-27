@@ -15,6 +15,7 @@ class ChunkIngestionData extends Data
         public string $chunk_text,
         public array $metadata = [],
         public array $chunk_images = [],
+        public array $chunk_tables = [],
         public ?string $prev_chunk = null,
         public ?string $next_chunk = null,
     ) {}

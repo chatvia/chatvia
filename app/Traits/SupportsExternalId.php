@@ -5,7 +5,7 @@ namespace App\Traits;
 use App\Services\Security\HMAC;
 use Illuminate\Support\Str;
 
-trait SupportsHmac
+trait SupportsExternalId
 {
     protected static function booted(): void
     {

@@ -6,6 +6,7 @@ use App\Contracts\ChunkableContract;
 use App\QueryBuilders\SourceFileQueryBuilder;
 use App\Services\Ingestion\Ingestion;
 use App\Traits\Chunkable;
+use App\Traits\SupportsExternalId;
 use Exception;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,7 +19,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SourceFile extends Model implements ChunkableContract
 {
-    use Chunkable, HasFactory;
+    use Chunkable, HasFactory, SupportsExternalId;
 
     protected $guarded = ['id'];
 

@@ -34,10 +34,12 @@ readonly class Chunker
         $chunkIndex = 1;
         $textBuffer = '';
         $imageBuffer = [];
+        $tableBuffer = [];
 
         foreach ($pages as $page) {
             $pageText = $page->content;
             $pageImages = $page->images;
+            $pageTables = $page->tables;
 
             // Skip empty pages
             if (empty(trim($pageText))) {
@@ -47,25 +49,27 @@ readonly class Chunker
             // Add to buffer
             $textBuffer .= ($textBuffer ? "\n\n" : '').$pageText;
             $imageBuffer = array_merge($imageBuffer, $this->storePageImages($pageImages));
+            $tableBuffer = array_merge($tableBuffer, $pageTables);
 
             // Check if buffer exceeds token limit
             $bufferTokenCount = TikToken::countTokens($textBuffer);
 
             if ($bufferTokenCount >= $this->maxTokensPerChunk) {
                 // Process the buffer
-                $bufferChunks = $this->processBuffer($textBuffer, $imageBuffer, $chunkIndex);
+                $bufferChunks = $this->processBuffer($textBuffer, $imageBuffer, $tableBuffer, $chunkIndex);
                 $chunks = $chunks->merge($bufferChunks);
                 $chunkIndex += $bufferChunks->count();
 
                 // Reset buffer
                 $textBuffer = '';
                 $imageBuffer = [];
+                $tableBuffer = [];
             }
         }
 
         // Process any remaining buffer
         if (! empty(trim($textBuffer))) {
-            $bufferChunks = $this->processBuffer($textBuffer, $imageBuffer, $chunkIndex);
+            $bufferChunks = $this->processBuffer($textBuffer, $imageBuffer, $tableBuffer, $chunkIndex);
             $chunks = $chunks->merge($bufferChunks);
         }
 
@@ -75,14 +79,14 @@ readonly class Chunker
         return $this->setChunkRelationships($chunks);
     }
 
-    private function processBuffer(string $text, array $images, int $startChunkIndex): Collection
+    private function processBuffer(string $text, array $images, array $tables, int $startChunkIndex): Collection
     {
         $chunks = collect();
         $tokenCount = TikToken::countTokens($text);
 
         if ($tokenCount <= $this->maxTokensPerChunk) {
             // Text fits in a single chunk
-            $chunks->push($this->createChunk($text, $images, $startChunkIndex));
+            $chunks->push($this->createChunk($text, $images, $tables, $startChunkIndex));
         } else {
             // Text needs to be split
             $textSplitter = new RecursiveCharacterTextSplitter(
@@ -93,14 +97,14 @@ readonly class Chunker
             $textChunks = $textSplitter->splitText($text);
 
             foreach ($textChunks as $index => $chunkText) {
-                $chunks->push($this->createChunk($chunkText, $images, $startChunkIndex + $index));
+                $chunks->push($this->createChunk($chunkText, $images, $tables, $startChunkIndex + $index));
             }
         }
 
         return $chunks;
     }
 
-    private function createChunk(string $text, array $images, int $chunkIndex): ChunkIngestionData
+    private function createChunk(string $text, array $images, array $tables, int $chunkIndex): ChunkIngestionData
     {
         return ChunkIngestionData::from([
             'agent_id' => $this->agent->id,
@@ -110,6 +114,7 @@ readonly class Chunker
             'expected_chunks' => 0, // Will be set later
             'chunk_text' => trim($text),
             'chunk_images' => $images,
+            'chunk_tables' => $tables,
             'prev_chunk' => '',
             'next_chunk' => '',
         ]);
@@ -185,6 +190,7 @@ readonly class Chunker
                 'expected_chunks' => 0, // Will be set in setChunkRelationships
                 'chunk_text' => $chunk->chunk_text,
                 'chunk_images' => $chunk->chunk_images,
+                'chunk_tables' => $chunk->chunk_tables,
                 'prev_chunk' => $chunk->prev_chunk,
                 'next_chunk' => $chunk->next_chunk,
             ]);
@@ -201,6 +207,7 @@ readonly class Chunker
             'expected_chunks' => 0, // Will be set later
             'chunk_text' => $chunk1->chunk_text."\n\n".$chunk2->chunk_text,
             'chunk_images' => array_merge($chunk1->chunk_images, $chunk2->chunk_images),
+            'chunk_tables' => array_merge($chunk1->chunk_tables, $chunk2->chunk_tables),
             'prev_chunk' => $chunk1->prev_chunk,
             'next_chunk' => $chunk2->next_chunk,
         ]);
@@ -222,6 +229,7 @@ readonly class Chunker
                 'expected_chunks' => $totalChunks,
                 'chunk_text' => $chunk->chunk_text,
                 'chunk_images' => $chunk->chunk_images,
+                'chunk_tables' => $chunk->chunk_tables,
                 'prev_chunk' => $prevChunk,
                 'next_chunk' => $nextChunk,
             ]);

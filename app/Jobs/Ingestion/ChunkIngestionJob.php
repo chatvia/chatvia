@@ -53,7 +53,10 @@ class ChunkIngestionJob implements ShouldQueue
 
         $chunkText = $this->chunk->chunk_text;
 
-        $describedImages = [];
+        $tables = array_values(array_filter(
+            array_map('trim', $this->chunk->chunk_tables),
+            fn (string $table) => $table !== ''
+        ));
 
         if (Chunk::query()
             ->where('chunkable_type', $this->chunk->chunkable_type)
@@ -70,6 +73,7 @@ class ChunkIngestionJob implements ShouldQueue
             return;
         }
 
+        $describedImages = [];
         foreach ($this->chunk->chunk_images as $imagePath) {
             // Download image content and convert to data URI to avoid URL access issues
             $imageContent = Storage::get($imagePath);
@@ -90,6 +94,10 @@ class ChunkIngestionJob implements ShouldQueue
             ->append(
                 implode("\n\n", array_values($describedImages))
             )
+            ->append($tables ? "\n\n".implode("\n\n", array_map(
+                fn (string $table) => "Table:\n".$table,
+                $tables
+            )) : '')
             ->toString();
 
         $userPrompt = PromptLoader::load('chunking/user');
@@ -127,15 +135,18 @@ class ChunkIngestionJob implements ShouldQueue
             );
 
         // Build embedding content with summary and questions
-        $embeddingContent = $cleanChunk;
+        $embeddingContent = $cleanChunk."\n";
 
         if ($summary) {
-            $embeddingContent .= "\n".$summary;
+            $embeddingContent .= $summary."\n";
         }
 
         if ($questions) {
-            $embeddingContent .= "\n".implode("\n", $questions);
+            $embeddingContent .= implode("\n", $questions)."\n";
         }
+
+        $embeddingContent .= collect($describedImages)->pluck('description')->pluck("\n")."\n";
+        $embeddingContent .= collect($tables)->implode("\n")."\n";
 
         // Add embedding cost
         $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
@@ -159,6 +170,7 @@ class ChunkIngestionJob implements ShouldQueue
             'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($embeddingContent).", 'llmlingua2')"),
             'metadata' => array_merge($this->metadata, [
                 'images' => $describedImages,
+                'tables' => $tables,
             ]),
             'checksum' => md5($this->chunk->chunk_text),
             'retrieval_count' => 0,

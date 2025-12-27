@@ -19,6 +19,7 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\RequestDemoController;
 use App\Http\Controllers\SlackAuthController;
 use App\Http\Controllers\SlackCallbackController;
+use App\Http\Controllers\SourceFileViewController;
 use App\Http\Controllers\TrialCheckoutController;
 use App\Http\Controllers\TrialSuccessController;
 use App\Http\Controllers\UseCasesController;
@@ -60,6 +61,8 @@ Route::post('trial/checkout', TrialCheckoutController::class)->name('trial.check
 Route::get('trial/success', TrialSuccessController::class)->name('trial.success');
 
 Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewController::class)->name('chunks.image.view');
+
+Route::get('external/files/{type}/{externalId}', SourceFileViewController::class)->name('external.source.files.view');
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

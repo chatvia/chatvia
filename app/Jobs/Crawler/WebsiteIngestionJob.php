@@ -115,7 +115,10 @@ class WebsiteIngestionJob implements ShouldQueue
         dispatch(
             new SummaryIngestionJob(
                 $this->website,
-                Storage::temporaryUrl($storagePath, now()->addHour()),
+                route('external.source.files.view', [
+                    'type' => 'website',
+                    'externalId' => $this->website->external_id,
+                ]),
             )
         );
 

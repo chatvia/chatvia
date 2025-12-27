@@ -63,6 +63,11 @@ class ChatCache
         return $this->agent;
     }
 
+    public function getSessionId(): string
+    {
+        return $this->sessionId;
+    }
+
     private function getMessageRetention(): Carbon
     {
         return now()->addDays($this->agent->messageRetentionInDays());

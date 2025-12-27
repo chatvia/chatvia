@@ -67,6 +67,9 @@ readonly class ConversationManager
         }
 
         $this->saveSessionData($conversations);
+
+        // Also update database visibility
+        ChatConversation::where('external_id', $conversationId)->update(['visible' => true]);
     }
 
     public function updateConversationTitleFromMessages(string $conversationId, array|string $messages = []): void
@@ -84,10 +87,15 @@ readonly class ConversationManager
         $this->updateConversationTitle($conversationId, $newTitle);
     }
 
-    public function deleteConversation(string $conversationId): void
+    public function deleteConversation(string $conversationId, ?string $deletedBy = null): void
     {
         // Soft delete the conversation
-        ChatConversation::where('external_id', $conversationId)->delete();
+        $conversation = ChatConversation::where('external_id', $conversationId)->first();
+        $conversation->messages()->update([
+            'content' => null,
+            'deleted_by' => $deletedBy,
+        ]);
+        $conversation->delete();
 
         // Clear conversation from cache
         $conversationKey = $this->cache->generateConversationKey($conversationId);
@@ -105,12 +113,18 @@ readonly class ConversationManager
         $this->saveSessionData(array_values($conversations));
     }
 
-    public function deleteAllConversations(): void
+    public function deleteAllConversations(?string $deletedBy = null): void
     {
         $sessionId = ChatSession::query()->where('external_id', $this->sessionId)->value('id');
 
         // Soft delete all conversations for this session
-        ChatConversation::where('chat_session_id', $sessionId)->delete();
+        $conversations = ChatConversation::where('chat_session_id', $sessionId)->get();
+
+        /** @var ChatConversation $conversation */
+        foreach ($conversations as $conversation) {
+            $conversation->messages()->update(['content' => null, 'deleted_by' => $deletedBy]);
+            $conversation->delete();
+        }
 
         // Clear cache
         $this->cache->flush();

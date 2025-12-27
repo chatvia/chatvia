@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ChatConversation extends Model
 {
-    use HasFactory, SupportsHmac;
+    use HasFactory, SupportsHmac, SoftDeletes;
 
     protected $guarded = [];
 

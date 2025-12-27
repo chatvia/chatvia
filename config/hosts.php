@@ -87,7 +87,7 @@ return [
                 'description' => 'Capture and qualify families looking for their dream home 24/7 with AI-powered assistants.',
                 'button' => [
                     'label' => 'Start your free trial',
-                    'route' => 'register',
+                    'route' => '#pricing',
                 ],
             ],
             'social' => [],
@@ -253,32 +253,31 @@ return [
                             'description' => 'Turn conversations into qualified leads automatically. Capture contact information naturally during chat and integrate seamlessly with your CRM.',
                         ],
 
-//                        [
-//                            'img' => 'images/chatvia/sentiment-analysis.png',
-//                            'tab_name' => 'Sentiment',
-//                            'title' => 'Sentiment Analysis',
-//                            'description' => 'Analyze the overall sentiment of conversations. Identify trends, spot issues early, and measure customer satisfaction over time.',
-//                        ],
+                        //                        [
+                        //                            'img' => 'images/chatvia/sentiment-analysis.png',
+                        //                            'tab_name' => 'Sentiment',
+                        //                            'title' => 'Sentiment Analysis',
+                        //                            'description' => 'Analyze the overall sentiment of conversations. Identify trends, spot issues early, and measure customer satisfaction over time.',
+                        //                        ],
 
-
-//                        [
-//                            'img' => 'images/chatvia/models.png',
-//                            'tab_name' => 'Models',
-//                            'title' => 'Multiple AI Models',
-//                            'description' => 'Choose from various open-source AI models including GPT OSS, Llama, DeepSeek, Qwen, Mistral, Gemma, and Holo2. Select the best model for your use case and budget.',
-//                        ],
-//                        [
-//                            'img' => 'images/chatvia/settings.png',
-//                            'tab_name' => 'Settings',
-//                            'title' => 'Fully Customizable',
-//                            'description' => 'Personalize your chatbot appearance, behavior, and responses to match your brand. Choose from themes, customize colors, and create unique experiences.',
-//                        ],
-//                        [
-//                            'img' => 'images/chatvia/qa.png',
-//                            'tab_name' => 'Q&A',
-//                            'title' => 'Q&A Management',
-//                            'description' => 'Create and manage custom Q&A pairs to ensure your chatbot gives accurate answers to frequently asked questions.',
-//                        ],
+                        //                        [
+                        //                            'img' => 'images/chatvia/models.png',
+                        //                            'tab_name' => 'Models',
+                        //                            'title' => 'Multiple AI Models',
+                        //                            'description' => 'Choose from various open-source AI models including GPT OSS, Llama, DeepSeek, Qwen, Mistral, Gemma, and Holo2. Select the best model for your use case and budget.',
+                        //                        ],
+                        //                        [
+                        //                            'img' => 'images/chatvia/settings.png',
+                        //                            'tab_name' => 'Settings',
+                        //                            'title' => 'Fully Customizable',
+                        //                            'description' => 'Personalize your chatbot appearance, behavior, and responses to match your brand. Choose from themes, customize colors, and create unique experiences.',
+                        //                        ],
+                        //                        [
+                        //                            'img' => 'images/chatvia/qa.png',
+                        //                            'tab_name' => 'Q&A',
+                        //                            'title' => 'Q&A Management',
+                        //                            'description' => 'Create and manage custom Q&A pairs to ensure your chatbot gives accurate answers to frequently asked questions.',
+                        //                        ],
                     ],
                 ],
                 'slide2' => [
@@ -305,7 +304,7 @@ return [
                 'description' => 'Deploy an AI chatbot that knows your business inside out — in minutes, not weeks.',
                 'button' => [
                     'label' => 'Start your free trial',
-                    'route' => 'register',
+                    'route' => '#pricing',
                 ],
             ],
 

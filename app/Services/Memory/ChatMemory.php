@@ -105,7 +105,7 @@ class ChatMemory implements ChatMemoryInterface
     /**
      * Delete the current conversation and all its messages.
      */
-    public function deleteConversation(): void
+    public function deleteConversation(?string $deletedBy = null): void
     {
         $this->requireConversationId();
 
@@ -117,10 +117,11 @@ class ChatMemory implements ChatMemoryInterface
     /**
      * Delete all conversations for the current session.
      */
-    public function deleteAllConversations(): void
+    public function deleteAllConversations(?string $deletedBy = null): void
     {
         $this->ensureInitialized();
-        $this->conversationManager->deleteAllConversations();
+
+        $this->conversationManager->deleteAllConversations($deletedBy);
     }
 
     /**

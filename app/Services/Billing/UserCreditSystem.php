@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\UserCredit;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class UserCreditSystem
 {
@@ -232,6 +231,6 @@ class UserCreditSystem
             ->where('ends_at', '>=', now())
             ->value('amount');
 
-        return ($addons + $messages);
+        return $addons + $messages;
     }
 }

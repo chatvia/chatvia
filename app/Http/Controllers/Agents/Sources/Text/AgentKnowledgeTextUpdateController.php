@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\SourceText;
 use App\Services\Tidy\TextCleaner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AgentKnowledgeTextUpdateController
@@ -17,18 +18,21 @@ class AgentKnowledgeTextUpdateController
             code: 404,
         );
 
-        /** @var SourceText $agentText */
-        $agentText = $agent->texts()->where('source_texts.id', $id)->firstOrFail();
+        /** @var SourceText $sourceText */
+        $sourceText = $agent
+            ->texts()
+            ->where('source_texts.id', $id)
+            ->firstOrFail();
 
         $request->validate([
             'content' => ['required', 'min:500'],
         ]);
 
-        $content = Str::of(TextCleaner::clean($request->input('content')))->trim()->toString();
+        $newContent = Str::of(TextCleaner::clean($request->input('content')))->trim()->toString();
 
-        $checksum = md5($content);
+        $checksum = md5($newContent);
 
-        $numberOfPages = ceil(str_word_count($content) / 450);
+        $numberOfPages = ceil(str_word_count($newContent) / 450);
 
         if ($agent->texts()->where('checksum', $checksum)->exists()) {
             return;
@@ -40,17 +44,21 @@ class AgentKnowledgeTextUpdateController
             message: 'This document requires '.$numberOfPages.' pages.',
         );
 
-        $agentText->update([
-            'content' => $content,
+        Storage::delete($sourceText->filepath);
+
+        $filepath = 'users/'.$agent->user_id.'/agents/'.$agent->id.'/train/text/'.Str::uuid()->toString().'.txt';
+        Storage::put($filepath, $newContent);
+
+        $sourceText->update([
+            'filepath' => $filepath,
             'checksum' => $checksum,
             'length' => $numberOfPages,
             'status' => 'pending',
-            'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
+            'excerpt' => Str::of($newContent)->limit(200)->replace("\n", ' ')->trim()->toString(),
         ]);
 
-        // Delete chunks only for this agent
-        $agentText->chunks()->where('agent_id', $agent->id)->delete();
+        $sourceText->chunks()->delete();
 
-        $agentText->startTraining($agent->id);
+        $sourceText->startTraining($agent);
     }
 }

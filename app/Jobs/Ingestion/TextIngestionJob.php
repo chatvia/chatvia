@@ -34,12 +34,14 @@ class TextIngestionJob implements ShouldQueue
     {
         $startTime = microtime(true);
 
-        if (TikToken::countTokens($this->sourceText->content) <= 1000) {
+        $content = Storage::get($this->sourceText->filepath);
+
+        if (TikToken::countTokens($content) <= 1000) {
             $texts = collect([
-                new PageData(pageNumber: 0, content: $this->sourceText->content),
+                new PageData(pageNumber: 0, content: $content),
             ]);
         } else {
-            $texts = collect($splitter->splitText($this->sourceText->content))
+            $texts = collect($splitter->splitText($content))
                 ->map(function ($text) {
                     return new PageData(
                         pageNumber: 0,
@@ -59,19 +61,9 @@ class TextIngestionJob implements ShouldQueue
 
         $jobs = collect($chunks)->map(fn ($chunk) => new ChunkIngestionJob($chunk));
 
-        $path = 'agents/'.$this->agent->id.'/texts/'.$this->sourceText->id.'.txt';
-
-        Storage::put(
-            path: $path,
-            contents: $this->sourceText->content
-        );
-
-        $tempUrl = Storage::temporaryUrl(
-            $path,
-            now()->addDay()
-        );
-
-        dispatch(new SummaryIngestionJob($this->sourceText, $tempUrl));
+        //        $url = '';
+        //
+        //        dispatch(new SummaryIngestionJob($this->sourceText, $url));
 
         $agentTextId = $this->sourceText->id;
         $agent = $this->agent;

@@ -17,7 +17,7 @@ return new class extends Migration
 
         foreach (\Illuminate\Support\Facades\DB::table('chunks')->select('id')->get() as $item) {
             \Illuminate\Support\Facades\DB::table('chunks')->where('id', $item->id)->update([
-                'external_id' => \Illuminate\Support\Str::uuid()->toString()
+                'external_id' => \Illuminate\Support\Str::uuid()->toString(),
             ]);
         }
 

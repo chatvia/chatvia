@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserCredit;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class UserCreditSystem
 {
@@ -68,8 +69,7 @@ class UserCreditSystem
         Cache::put(template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]), 0, $endsAt);
 
         // Cache available messages and set can-send flag
-        $this->refreshAvailableMessages();
-        $this->setCanSendMessages(true, $endsAt);
+        $this->refreshCanSendMessages();
 
         return $credit;
     }
@@ -123,8 +123,10 @@ class UserCreditSystem
     {
         $available = $this->calculateAvailableMessages();
 
+        $cacheId = template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]);
+
         Cache::put(
-            template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]),
+            $cacheId,
             $available,
             now()->addHour()
         );
@@ -213,18 +215,23 @@ class UserCreditSystem
         /** @var User $user */
         $user = User::find($this->userId);
 
+        if (! $user) {
+            return 0;
+        }
+
         $messages = $user
             ->credits()
             ->where('ends_at', '>=', now())
-            ->sum('messages');
+            ->first()
+            ->value('messages');
 
         $addons = $user
             ->addons()
             ->select('amount')
             ->where('type', 'extra_message_credits')
             ->where('ends_at', '>=', now())
-            ->sum('amount');
+            ->value('amount');
 
-        return $addons + $messages;
+        return ($addons + $messages);
     }
 }

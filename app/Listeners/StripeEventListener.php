@@ -20,8 +20,6 @@ class StripeEventListener
 
         $type = $event->payload['type'];
 
-        Log::info(json_encode($event->payload));
-
         // Detect if this is a trial registration event
         $isTrial = $type === 'checkout.session.completed' &&
             isset($data['metadata']['registration_type']) &&
@@ -129,6 +127,9 @@ class StripeEventListener
                 ]);
             }
 
+            // Refresh user from database to ensure we have latest credit data
+            $user->refresh();
+            $user->creditSystem()->refreshCanSendMessages();
         }
     }
 
@@ -178,6 +179,7 @@ class StripeEventListener
             $userIp = $metadata['user_ip'] ?? null;
 
             // Create new user
+            /** @var User $user */
             $user = User::create([
                 'name' => $name,
                 'email' => $email,
@@ -193,6 +195,11 @@ class StripeEventListener
 
             // Grant subscription quotas
             $this->grantSubscriptionFromMetadata($user, $metadata);
+
+            // Refresh user from database to ensure we have latest credit data
+            $user->refresh();
+
+            $user->creditSystem()->refreshCanSendMessages();
 
             // Send welcome email with login instructions and temporary password
             $package = $metadata['package'] ?? 'starter';
@@ -246,6 +253,10 @@ class StripeEventListener
 
         // Add message credits for the billing period
         $user->addCredit($quotaLimit, $endsAt);
+
+        $user->refresh();
+
+        $user->creditSystem()->refreshCanSendMessages();
     }
 
     private function handleAddOns(array $data): void
@@ -269,7 +280,9 @@ class StripeEventListener
                 'ends_at' => now()->addMonth(),
             ]);
 
-            $user->creditSystem()->refreshAvailableMessages();
+            // Refresh user from database to ensure we have latest addon data
+            $user->refresh();
+            $user->creditSystem()->refreshCanSendMessages();
         }
     }
 }

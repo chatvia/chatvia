@@ -31,7 +31,7 @@ class AgentChatLogDeleteConversationController
             ->setAgent($agent)
             ->setExternalSessionId($session->external_id)
             ->setConversationId($conversation->external_id)
-            ->deleteConversation();
+            ->deleteConversation(deletedBy: 'admin');
 
         $conversation->delete();
 

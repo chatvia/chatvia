@@ -20,8 +20,9 @@ class WidgetThreadsDeleteController
         if ($threadId) {
             // Only delete if conversation exists (handle tampered/invalid IDs gracefully)
             $chatMemory = $memory->setConversationId($threadId);
+
             if ($chatMemory->conversationExists()) {
-                $chatMemory->deleteConversation();
+                $chatMemory->deleteConversation(deletedBy: 'user');
             }
         } else {
             $memory->deleteAllConversations();

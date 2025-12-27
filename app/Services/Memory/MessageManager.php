@@ -35,12 +35,15 @@ class MessageManager
             'content' => $message,
             'type' => $type,
             'timestamp' => now()->timestamp,
-            'read_at' => $role === 'agent' ? null : null,
+            'read_at' => null,
             'model' => $model,
             ...$append,
         ]);
 
         $this->saveMessage($conversationId, $messageData->toArray());
+
+        // Mark conversation as visible when first message is added
+        $this->markConversationAsVisible($conversationId);
 
         return $messageId;
     }
@@ -284,5 +287,31 @@ class MessageManager
     {
         $cacheKey = $this->cache->generateConversationKey($conversationId);
         $this->cache->put($cacheKey, $messages);
+    }
+
+    /**
+     * Mark conversation as visible in cache when first message is added.
+     */
+    private function markConversationAsVisible(string $conversationId): void
+    {
+        $sessionId = $this->cache->getSessionId();
+
+        // Get session data from cache
+        $session = $this->cache->get($sessionId, []);
+        $conversations = $session['conversations'] ?? [];
+
+        // Find and update the conversation
+        foreach ($conversations as &$conversation) {
+            if ($conversation['id'] === $conversationId) {
+                $conversation['visible'] = true;
+                break;
+            }
+        }
+
+        // Save updated session data
+        $this->cache->put($sessionId, [
+            'user_id' => $session['user_id'] ?? null,
+            'conversations' => $conversations,
+        ]);
     }
 }

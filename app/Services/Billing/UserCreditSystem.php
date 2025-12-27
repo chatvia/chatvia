@@ -94,9 +94,10 @@ class UserCreditSystem
     public function setCanSendMessages(bool $canSend, ?Carbon $ttl = null): void
     {
         $ttl = $ttl ?? now()->addDay();
+        $cacheId = template(self::CAN_SEND_MESSAGES_CACHE_PREFIX, ['id' => $this->userId]);
 
         Cache::put(
-            template(self::CAN_SEND_MESSAGES_CACHE_PREFIX, ['id' => $this->userId]),
+            $cacheId,
             $canSend,
             $ttl
         );
@@ -110,7 +111,7 @@ class UserCreditSystem
         $available = $this->refreshAvailableMessages();
         $hasMessages = $available > 0;
 
-        $this->setCanSendMessages($hasMessages);
+        $this->setCanSendMessages($hasMessages, now()->addHours(3));
 
         return $hasMessages;
     }

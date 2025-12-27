@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ChatConversation extends Model
 {
-    use HasFactory, SupportsHmac, SoftDeletes;
+    use HasFactory, SoftDeletes, SupportsHmac;
 
     protected $guarded = [];
 

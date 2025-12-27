@@ -21,8 +21,7 @@ class AgentKnowledgeTextListController
 
         $texts = $agent
             ->texts()
-            ->select('source_texts.id', 'length', 'status', 'source_texts.created_at', 'source_texts.updated_at', 'expected_chunks', 'content')
-            ->selectRaw("CONCAT(SUBSTRING(content, 1, 200), '...') as excerpt")
+            ->select('source_texts.id', 'source_texts.excerpt', 'length', 'status', 'source_texts.created_at', 'source_texts.updated_at', 'expected_chunks')
             ->withCount('agents')
             ->latest('source_texts.created_at')
             ->get();
@@ -30,9 +29,6 @@ class AgentKnowledgeTextListController
         return $texts->map(function ($text) {
             $text['progress'] = $text->ingestionProgress();
             $text['word_count'] = str_word_count($text->content);
-
-            // Remove the full content from the response to reduce payload size
-            unset($text['content']);
 
             return $text;
         });

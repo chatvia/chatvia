@@ -8,7 +8,6 @@ use App\Data\Ingestion\OCR\PageData;
 use App\Models\Agent;
 use App\Models\SourceFile;
 use App\Services\Chunking\Chunker;
-use App\Services\Ingestion\Clients\LlamaParse;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;

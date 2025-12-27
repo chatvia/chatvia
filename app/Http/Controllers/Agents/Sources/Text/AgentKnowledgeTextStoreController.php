@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\SourceText;
 use App\Services\Tidy\TextCleaner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AgentKnowledgeTextStoreController
@@ -36,10 +37,15 @@ class AgentKnowledgeTextStoreController
             message: 'This document requires '.$numberOfPages.' pages.',
         );
 
+        $filepath = 'users/'.$agent->user_id.'/agents/'.$agent->id.'/train/text/'.Str::uuid()->toString().'.txt';
+
+        Storage::put($filepath, $content);
+
         /** @var SourceText $agentText */
         $agentText = SourceText::create([
             'user_id' => $request->user()->id,
-            'content' => $content,
+            'filepath' => $filepath,
+            'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
             'length' => $numberOfPages, // number of pages, 450 word = 1 page
             'checksum' => md5($content),
         ]);

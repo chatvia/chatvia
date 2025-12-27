@@ -28,14 +28,14 @@ class MistralOCR implements DocumentOCRInterface
             ->client()
             ->timeout(3600)
             ->post('https://api.mistral.ai/v1/ocr', [
-            'model' => 'mistral-ocr-latest',
-            'document' => [
-                'type' => 'document_url',
-                'document_url' => $url,
-            ],
-            'table_format' => 'markdown',
-            'include_image_base64' => true,
-        ])->throw();
+                'model' => 'mistral-ocr-latest',
+                'document' => [
+                    'type' => 'document_url',
+                    'document_url' => $url,
+                ],
+                'table_format' => 'markdown',
+                'include_image_base64' => true,
+            ])->throw();
 
         $pages = $response->json('pages');
 

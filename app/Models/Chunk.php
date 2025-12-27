@@ -20,7 +20,7 @@ class Chunk extends Model
     protected static function booted(): void
     {
         static::creating(function ($model) {
-            if (!$model->external_id) {
+            if (! $model->external_id) {
                 $model->external_id = Str::uuid()->toString();
             }
         });

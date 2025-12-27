@@ -152,9 +152,9 @@ return [
             'navigation' => [
                 ['label' => 'Home', 'link' => '/'],
                 ['label' => 'Features', 'link' => '/#features'],
+                ['label' => 'Why Chatvia?', 'link' => '/#why-chatvia'],
                 ['label' => 'Pricing', 'link' => '/pricing'],
-                ['label' => 'Blog', 'link' => '/blog'],
-                ['label' => 'Changelog', 'link' => '/changelog'],
+
             ],
             'hero' => [
                 'top' => '',

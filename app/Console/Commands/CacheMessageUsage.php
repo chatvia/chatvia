@@ -2,13 +2,22 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use Illuminate\Console\Command;
 
 class CacheMessageUsage extends Command
 {
     protected $signature = 'app:cache-message-usage';
 
-    protected $description = 'Command description';
+    protected $description = 'Cache message usage';
 
-    public function handle() {}
+    public function handle(): void
+    {
+        User::chunk(100, function ($users) {
+            /** @var User $user */
+            foreach ($users as $user) {
+                $user->creditSystem()->refreshCanSendMessages();
+            }
+        });
+    }
 }

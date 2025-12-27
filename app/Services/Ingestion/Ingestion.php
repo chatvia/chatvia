@@ -13,7 +13,13 @@ class Ingestion
 {
     public function ingest(SourceFile $sourceFile, int|Agent $agent): void
     {
-        $sourceFile->update(['status' => 'ingesting']);
+        if ($sourceFile->status === 'ingested') {
+            return;
+        }
+
+        if ($sourceFile->status !== 'ingesting') {
+            $sourceFile->update(['status' => 'ingesting']);
+        }
 
         if (is_int($agent)) {
             $agent = Agent::find($agent);

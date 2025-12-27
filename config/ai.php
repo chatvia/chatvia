@@ -8,6 +8,8 @@ return [
 
         'embedding' => 'qwen',
 
+        'tables' => 'llama-3.1-8b-instruct',
+
         'chunker' => 'llama-3.3-70b-instruct',
 
         'title' => 'llama-3.1-8b-instruct',
@@ -19,6 +21,8 @@ return [
         'topic' => 'llama-3.1-8b-instruct',
 
         'search_decision' => 'gemma-3-27b-it',
+
+        'tables' => 'gemma-3-27b-it',
     ],
 
     'query' => [

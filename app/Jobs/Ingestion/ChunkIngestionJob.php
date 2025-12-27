@@ -16,6 +16,7 @@ use App\Models\SourceFile;
 use App\Models\SourceText;
 use App\Services\Infrastructure\LLM\Operations\Chunker;
 use App\Services\Infrastructure\LLM\Operations\CostCalculator;
+use App\Services\Infrastructure\LLM\Operations\Tables;
 use App\Services\Infrastructure\LLM\Operations\Vision;
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
@@ -90,14 +91,16 @@ class ChunkIngestionJob implements ShouldQueue
             }
         }
 
+        $describedTables = '';
+        if ($this->chunk->chunk_tables) {
+            $describedTables = app(Tables::class)->describe($this->chunk->chunk_tables);
+        }
+
         $chunkText = Str::of($chunkText)
             ->append(
                 implode("\n\n", array_values($describedImages))
             )
-            ->append($tables ? "\n\n".implode("\n\n", array_map(
-                fn (string $table) => "Table:\n".$table,
-                $tables
-            )) : '')
+            ->append("\n".$describedTables)
             ->toString();
 
         $userPrompt = PromptLoader::load('chunking/user');
@@ -145,9 +148,6 @@ class ChunkIngestionJob implements ShouldQueue
             $embeddingContent .= implode("\n", $questions)."\n";
         }
 
-        $embeddingContent .= collect($describedImages)->pluck('description')->pluck("\n")."\n";
-        $embeddingContent .= collect($tables)->implode("\n")."\n";
-
         // Add embedding cost
         $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents += app(CostCalculator::class)
@@ -170,7 +170,10 @@ class ChunkIngestionJob implements ShouldQueue
             'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($embeddingContent).", 'llmlingua2')"),
             'metadata' => array_merge($this->metadata, [
                 'images' => $describedImages,
-                'tables' => $tables,
+                'tables' => [
+                    'markdown' => $tables,
+                    'descriptions' => $describedTables,
+                ],
             ]),
             'checksum' => md5($this->chunk->chunk_text),
             'retrieval_count' => 0,

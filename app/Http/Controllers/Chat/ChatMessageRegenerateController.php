@@ -36,8 +36,8 @@ class ChatMessageRegenerateController extends Controller
             return response()->json(['error' => 'User message not found'], 404);
         }
 
-        $userMessageContent = $userMessage['content'] ?? '';
-        $userMessageCreatedAt = $userMessage['created_at'] ?? now()->toISOString();
+        $userMessageContent = $userMessage->content ?? '';
+        $userMessageCreatedAt = now()->toISOString();
 
         // Delete both messages
         $memory->deleteMessage($assistantMessageId);

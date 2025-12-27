@@ -10,11 +10,11 @@ class ConversationDeleteController
 {
     public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
     {
-        $conversation = ChatConversation::where('external_id', $conversationId)->first();
+//        $conversation = ChatConversation::where('external_id', $conversationId)->firstOrFail();
 
         $memory
             ->setAgent(current_agent())
-            ->setExternalSessionId($conversation->chat_session_id)
+//            ->setExternalSessionId($conversation->session->external_id)
             ->setConversationId($conversationId)
             ->deleteConversation();
     }

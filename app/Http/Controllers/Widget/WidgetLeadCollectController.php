@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Widget;
 
 use App\Data\Chat\ChatOutputPayload;
+use App\Models\ChatConversation;
 use App\Models\Llm;
 use App\Services\Memory\ChatMemory;
 use App\Services\Widget\WidgetVerification;
@@ -38,9 +39,10 @@ class WidgetLeadCollectController
         ]);
 
         if (! $agent->leads()->where('email', $validated['email'])->exists()) {
+            $id = ChatConversation::where('external_id', $threadId)->value('id');
             $agent->leads()->create(
                 array_merge($validated, [
-                    'chat_conversation_id' => $threadId,
+                    'chat_conversation_id' => $id,
                     'ip_address' => $request->ip(),
                     'referrer_url' => $request->input('referrer'),
                     'locale' => $request->input('locale'),

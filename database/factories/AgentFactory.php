@@ -18,7 +18,13 @@ class AgentFactory extends Factory
      */
     public function definition(): array
     {
-        $user = User::factory()->create();
+        // Use demo user instead of creating a new one
+        $user = User::where('email', 'ahmad@mayahi.net')->first();
+
+        if (! $user) {
+            throw new \RuntimeException('Demo user (ahmad@mayahi.net) not found. Please run DatabaseSeeder first.');
+        }
+
         $team = $user->primaryTeam() ?? app(\App\Services\Teams\TeamService::class)->createDefaultTeam($user);
 
         return [

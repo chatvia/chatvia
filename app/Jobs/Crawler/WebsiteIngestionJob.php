@@ -104,9 +104,13 @@ class WebsiteIngestionJob implements ShouldQueue
         $websiteHome = Http::get($this->website->url);
         $text = $parser->getTextFromHtml($websiteHome->body());
 
-        $storagePath = 'users/'.$this->agent->user_id.'/agents/'.$this->agent->id.'/'.Str::uuid()->toString().'.txt';
+        if (!$this->website->filepath) {
+            $storagePath = 'users/'.$this->agent->user_id.'/agents/'.$this->agent->id.'/websites/'.$this->website->id.'/'.Str::uuid()->toString().'.txt';
 
-        Storage::disk('scaleway')->put($storagePath, $text);
+            Storage::disk('scaleway')->put($storagePath, $text);
+
+            $this->website->update(['filepath' => $storagePath]);
+        }
 
         dispatch(
             new SummaryIngestionJob(

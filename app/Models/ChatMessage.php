@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\QueryBuilders\ChatMessageQueryBuilder;
-use App\Traits\SupportsHmac;
+use App\Traits\SupportsExternalId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ChatMessage extends Model
 {
-    use HasFactory, SupportsHmac;
+    use HasFactory, SupportsExternalId;
 
     protected $guarded = [];
 

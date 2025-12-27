@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\QueryBuilders\ChatConversationQueryBuilder;
-use App\Traits\SupportsHmac;
+use App\Traits\SupportsExternalId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ChatConversation extends Model
 {
-    use HasFactory, SoftDeletes, SupportsHmac;
+    use HasFactory, SoftDeletes, SupportsExternalId;
 
     protected $guarded = [];
 

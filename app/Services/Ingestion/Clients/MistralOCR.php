@@ -9,7 +9,6 @@ use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Laravel\Facades\Image;
 use InvalidArgumentException;
 use Throwable;
 
@@ -46,7 +45,6 @@ class MistralOCR implements DocumentOCRInterface
 
             if ($page['images']) {
                 $images = collect($page['images'])->map(function ($image) {
-                    //                    return Image::read($image['image_base64'])->toPng();
                     return $image['image_base64'];
                 })->toArray();
             }

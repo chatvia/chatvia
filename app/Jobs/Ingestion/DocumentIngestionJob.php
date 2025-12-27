@@ -98,7 +98,10 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
 
         SummaryIngestionJob::dispatch(
             $this->sourceFile,
-            Storage::temporaryUrl($filePath, now()->addDay()),
+            route('external.source.files.view', [
+                'type' => 'file',
+                'externalId' => $this->sourceFile->external_id,
+            ]),
         );
 
         $this->sourceFile->update([

@@ -95,28 +95,28 @@
                             @foreach (landing()['navigation'] as $navItem)
                                 <li>
                                     <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
-                                        href="{{ $navItem['link'] }}">{{ $navItem['label'] }}</a>
+                                        href="{{ $navItem['link'] }}" @click="expanded = false">{{ $navItem['label'] }}</a>
                                 </li>
                             @endforeach
                             <li class="pt-3 border-t border-slate-200 mt-3">
                                 @auth
                                     <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
-                                        href="{{ route('dashboard') }}">Dashboard</a>
+                                        href="{{ route('dashboard') }}" @click="expanded = false">Dashboard</a>
                                 @else
                                     <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
-                                        href="{{ route('login') }}">Log in</a>
+                                        href="{{ route('login') }}" @click="expanded = false">Log in</a>
                                 @endauth
                             </li>
                             @guest
                                 @if (host_config('user')['demo'] === true)
                                     <li>
                                         <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
-                                            href="{{ route('demo') }}">Book demo</a>
+                                            href="{{ route('demo') }}" @click="expanded = false">Book demo</a>
                                     </li>
                                 @endif
                                 <li class="pt-2">
                                     <a class="flex font-semibold text-white bg-indigo-600 hover:bg-indigo-700 py-3 px-4 rounded-lg justify-center transition"
-                                        href="{{ route('home') }}#pricing">Get started</a>
+                                        href="{{ route('home') }}#pricing" @click="expanded = false">Get started</a>
                                 </li>
                             @endguest
                         </ul>

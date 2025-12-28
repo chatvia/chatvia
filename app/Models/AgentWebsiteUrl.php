@@ -19,11 +19,11 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
         return $this->belongsTo(SourceWebsite::class, 'source_website_id');
     }
 
-    public function train(int $agentId): void
+    public function train(Agent $agent): void
     {
         $this->update(['status' => 'pending']);
 
-        WebsiteUrlTrainJob::dispatch($this, $agentId);
+        WebsiteUrlTrainJob::dispatch($this, $agent);
     }
 
     public function chunks(): HasManyThrough

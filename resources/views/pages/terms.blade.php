@@ -38,7 +38,7 @@
                     <!-- Title -->
                     <div class="text-center border-b pb-6">
                         <h1 class="text-4xl font-bold text-gray-900 mb-2">Terms of Service</h1>
-                        <p class="text-gray-600">Last updated: 10 Aug 2025</p>
+                        <p class="text-gray-600">Last updated: 28 Dec 2025</p>
                     </div>
 
                     <!-- Introduction -->

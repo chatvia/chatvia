@@ -38,6 +38,7 @@ class WebsiteChunker
     {
         $splitter = app(RecursiveCharacterTextSplitter::class);
         $parser = app(HTMLCleaner::class);
+
         $urls = $this->website->untrainedUrls;
 
         $urlsWithChunks = collect($this->getResponses())
@@ -60,40 +61,40 @@ class WebsiteChunker
 
                 $status = 'ingesting';
 
-                //                if ($urlModel->checksum === $checksum.'x') {
-                //                    $chunks = collect();
-                //                    $status = 'ingested';
-                //                } else {
-                $chunks = $splitter->splitText($text);
-                $chunks = collect($chunks)
-                    ->map(function ($textChunk) {
-                        return new PageData(
-                            pageNumber: 0,
-                            content: $textChunk,
-                        );
+                // Skip chunking if content hasn't changed
+                if ($urlModel->checksum === $checksum) {
+                    $chunks = collect();
+                    $status = 'ingested';
+                } else {
+                    $chunks = $splitter->splitText($text);
+                    $chunks = collect($chunks)
+                        ->map(function ($textChunk) {
+                            return new PageData(
+                                pageNumber: 0,
+                                content: $textChunk,
+                            );
+                        });
+
+                    $chunks = new Chunker(
+                        agent: $this->agent,
+                        chunkable: $this->website,
+                    )->createChunks($chunks);
+
+                    // Filter out chunks below 128 tokens
+                    $chunks = $chunks->reject(function (ChunkIngestionData $chunk) {
+                        return TikToken::countTokens($chunk->chunk_text) < 128;
                     });
-
-                $chunks = new Chunker(
-                    agent: $this->agent,
-                    chunkable: $this->website,
-                )->createChunks($chunks);
-
-                // Filter out chunks below 128 tokens
-                $chunks = $chunks->reject(function (ChunkIngestionData $chunk) {
-                    return TikToken::countTokens($chunk->chunk_text) < 128;
-                });
-
-                //                }
+                }
 
                 $urlModel->update([
                     'checksum' => $checksum,
-                    'crawled_at' => now(),
                     'status' => $status,
+                    'crawled_at' => now(),
                 ]);
 
-                //                if ($status === 'ingested') {
-                //                    UrlIngestionEvent::dispatch($urlModel, $this->agent->external_id);
-                //                }
+                if ($status === 'ingested') {
+                    UrlIngestionEvent::dispatch($urlModel, $this->agent->external_id);
+                }
 
                 return [
                     $url => [

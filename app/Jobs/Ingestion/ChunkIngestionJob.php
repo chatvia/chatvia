@@ -160,6 +160,7 @@ class ChunkIngestionJob implements ShouldQueue
             'type' => 'text',
             'chunk_index' => $this->chunk->chunk_index,
             'chunk' => $cleanChunk,
+            'original_chunk' => $this->chunk->chunk_text,
             'questions' => $questions,
             'summary' => $summary,
             'chunked_using_model' => config('ai.models.chunker'),

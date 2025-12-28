@@ -209,7 +209,7 @@
                         <p><strong>Refund Requests:</strong> <a href="mailto:info@chatvia.ai" class="underline">info@chatvia.ai</a></p>
                     </div>
                 </div>
-                
+
             </section>
 
             <!-- Policy Updates -->

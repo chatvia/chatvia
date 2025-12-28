@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Crawler;
 
+use App\Data\Ingestion\OCR\PageData;
 use App\Events\UrlIngestionEvent;
 use App\Jobs\Ingestion\ChunkIngestionJob;
 use App\Models\Agent;
@@ -25,7 +26,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public AgentWebsiteUrl $websiteUrl, public int $agentId)
+    public function __construct(public AgentWebsiteUrl $websiteUrl, public Agent $agent)
     {
         $this->onQueue('ingestion.website');
     }
@@ -37,11 +38,9 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
         $text = $parser->getTextFromHtml($response->body());
         $checksum = md5($text);
 
-        $agentExternalId = Agent::where('id', $this->agentId)->value('external_id');
-
         if ($checksum === $this->websiteUrl->checksum) {
             $this->websiteUrl->update(['status' => 'ingested']);
-            UrlIngestionEvent::dispatch($this->websiteUrl, $agentExternalId);
+            UrlIngestionEvent::dispatch($this->websiteUrl, $this->agent->external_id);
 
             return;
         }
@@ -53,13 +52,18 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
         $this->websiteUrl->chunks()->delete();
 
-        $chunks = $splitter->splitText($text);
-        $chunks = collect($chunks)->map(fn ($item) => ['text' => $item])->toArray();
+        $pages = collect($splitter->splitText($text))
+            ->map(function ($text) {
+                return new PageData(
+                    pageNumber: 0,
+                    content: $text,
+                );
+            });
+
         $chunks = new Chunker(
-            agent: $this->agentId,
-            chunkable: AgentWebsiteUrl::class,
-            chunkableId: $this->websiteUrl->id,
-        )->createChunks($chunks);
+            agent: $this->agent,
+            chunkable: $this->websiteUrl,
+        )->createChunks($pages);
 
         $this->websiteUrl->update([
             'checksum' => $checksum,
@@ -71,7 +75,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
             'expected_chunks' => ($website->expected_chunks - $deletedChunks + count($chunks)),
         ]);
 
-        UrlIngestionEvent::dispatch($this->websiteUrl, $agentExternalId);
+        UrlIngestionEvent::dispatch($this->websiteUrl, $this->agent->external_id);
 
         $prompt = PromptLoader::load('chunking/web');
 

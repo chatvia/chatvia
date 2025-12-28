@@ -16,6 +16,6 @@ class AgentSourceCrawlerLinkRetrainController
             code: 404,
         );
 
-        $link->train($agent->id);
+        $link->train($agent);
     }
 }

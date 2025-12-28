@@ -209,11 +209,7 @@
                         <p><strong>Refund Requests:</strong> <a href="mailto:info@chatvia.ai" class="underline">info@chatvia.ai</a></p>
                     </div>
                 </div>
-
-                <h3 class="text-xl font-medium text-gray-800">9.1 Business Hours</h3>
-                <p class="text-gray-700 leading-relaxed">
-                    Our support team is available Monday through Friday, 9:00 AM to 6:00 PM (CET/CEST). Refund requests submitted outside business hours will be processed on the next business day.
-                </p>
+                
             </section>
 
             <!-- Policy Updates -->

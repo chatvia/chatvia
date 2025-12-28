@@ -9,7 +9,6 @@ use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
 use App\Models\SourceWebsite;
 use App\Services\Chunking\Chunker;
-use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use App\Services\Tidy\HTMLCleaner;
 use App\Services\TikToken;
 use Illuminate\Http\Client\ConnectionException;
@@ -36,10 +35,9 @@ class WebsiteChunker
 
     public function chunkUrls()
     {
-        $splitter = app(RecursiveCharacterTextSplitter::class);
         $parser = app(HTMLCleaner::class);
-
         $urls = $this->website->untrainedUrls;
+        $chunkIndex = 1; // Track chunk index across all URLs
 
         $urlsWithChunks = collect($this->getResponses())
             ->reject(function ($response) {
@@ -53,9 +51,10 @@ class WebsiteChunker
                 // Then filter out failed responses
                 return ! $response->ok() || $response->noContent();
             })
-            ->mapWithKeys(function (Response $response, string $url) use ($splitter, $parser, $urls) {
-                $text = $parser->getTextFromHtml($response->body());
-                $checksum = md5($text);
+            ->mapWithKeys(function (Response $response, string $url) use ($urls, &$chunkIndex) {
+                // Get clean HTML content
+                $html = $response->body();
+                $checksum = md5($html);
 
                 $urlModel = $urls->where('url', $url)->first();
 
@@ -66,23 +65,31 @@ class WebsiteChunker
                     $chunks = collect();
                     $status = 'ingested';
                 } else {
-                    $chunks = $splitter->splitText($text);
-                    $chunks = collect($chunks)
-                        ->map(function ($textChunk) {
-                            return new PageData(
-                                pageNumber: 0,
-                                content: $textChunk,
-                            );
-                        });
+                    // One webpage = one chunk (no splitting)
+                    // The LLM will handle the full HTML content
+                    $pageData = new PageData(
+                        pageNumber: 0,
+                        content: $html,
+                    );
 
                     $chunks = new Chunker(
                         agent: $this->agent,
                         chunkable: $this->website,
-                    )->createChunks($chunks);
+                    )->createChunks(collect([$pageData]));
 
-                    // Filter out chunks below 128 tokens
+                    // Filter out chunks below 128 tokens (keep meaningful content)
                     $chunks = $chunks->reject(function (ChunkIngestionData $chunk) {
                         return TikToken::countTokens($chunk->chunk_text) < 128;
+                    });
+
+                    // Update chunk indices to be sequential across all URLs
+                    $chunks = $chunks->map(function (ChunkIngestionData $chunk) use (&$chunkIndex) {
+                        $updatedChunk = ChunkIngestionData::from(array_merge(
+                            $chunk->toArray(),
+                            ['chunk_index' => $chunkIndex++]
+                        ));
+
+                        return $updatedChunk;
                     });
                 }
 

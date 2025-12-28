@@ -64,10 +64,15 @@ class WebsiteIngestionJob implements ShouldQueue
         $checksums = [];
         foreach ($urlsWithChunks as $url => $data) {
             foreach ($data['chunks'] as $chunk) {
-                $jobs[] = new ChunkIngestionJob($chunk, $prompt, chunkReference: [
-                    'referenceable_type' => AgentWebsiteUrl::class,
-                    'referenceable_id' => $urlToId[$url],
-                ]);
+                $jobs[] = new ChunkIngestionJob(
+                    chunk: $chunk,
+                    //                    appendUserPrompt: $prompt,
+                    chunkReference: [
+                        'referenceable_type' => AgentWebsiteUrl::class,
+                        'referenceable_id' => $urlToId[$url],
+                    ],
+                    chunkSystemPrompt: $prompt,
+                );
             }
             $checksums[] = $data['checksum'];
         }

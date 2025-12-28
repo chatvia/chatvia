@@ -35,9 +35,14 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
         $this->onQueue('ingestion.website');
     }
 
+    public function uniqueId(): string
+    {
+        return 'agents:'.$this->agent->id.':website-url:'.$this->websiteUrl->id.':train';
+    }
+
     public function handle(HTMLCleaner $parser, RecursiveCharacterTextSplitter $splitter): void
     {
-        $response = Http::retry(3, 1000)->get($this->websiteUrl->url)->throw();
+        $response = Http::retry(3, 1000)->timeout(600)->get($this->websiteUrl->url)->throw();
 
         $text = $parser->getTextFromHtml($response->body());
         $checksum = md5($text);

@@ -26,6 +26,10 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public bool $deleteWhenMissingModels = true;
+
+    public int $timeout = 800;
+
     public function __construct(public AgentWebsiteUrl $websiteUrl, public Agent $agent)
     {
         $this->onQueue('ingestion.website');

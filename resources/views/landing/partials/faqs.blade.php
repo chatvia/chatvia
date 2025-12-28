@@ -72,7 +72,7 @@
                             </p>
                             <button onclick="window.chatvia.open()"
                                     class="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium transition-colors duration-200 cursor-pointer">
-                                Get in touch with our support team
+                                Talk to our AI
                                 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor"
                                      viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

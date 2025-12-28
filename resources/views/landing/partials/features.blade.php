@@ -74,138 +74,238 @@
                         autoSlide: true,
                         manuallyPaused: false,
                         slideInterval: null,
+                        progress: 0,
+                        progressStart: null,
+                        progressDuration: 4000,
+                        progressRaf: null,
                         totalTabs: {{ count($landing['features']['slide']['tabs']) }},
                         init() {
-                            this.startAutoSlide();
+                            this.$nextTick(() => {
+                                this.scrollActiveTabIntoView({ behavior: 'auto' });
+                                this.startAutoSlide();
+                            });
                         },
                         startAutoSlide() {
                             this.stopAutoSlide();
+                            this.resetProgress();
+                            this.startProgress();
+                    
                             this.slideInterval = setInterval(() => {
                                 if (this.autoSlide) {
                                     this.nextTab();
                                 }
-                            }, 4000);
+                            }, this.progressDuration);
                         },
                         stopAutoSlide() {
                             if (this.slideInterval) {
                                 clearInterval(this.slideInterval);
                                 this.slideInterval = null;
                             }
+                            this.stopProgress();
+                        },
+                        startProgress() {
+                            this.stopProgress();
+                    
+                            if (this.progressStart === null) {
+                                this.progressStart = performance.now();
+                            }
+                    
+                            const tick = (now) => {
+                                if (!this.autoSlide) {
+                                    this.stopProgress();
+                                    return;
+                                }
+                    
+                                const elapsed = now - this.progressStart;
+                                this.progress = Math.min(100, (elapsed / this.progressDuration) * 100);
+                    
+                                if (this.progress < 100) {
+                                    this.progressRaf = requestAnimationFrame(tick);
+                                }
+                            };
+                    
+                            this.progressRaf = requestAnimationFrame(tick);
+                        },
+                        stopProgress() {
+                            if (this.progressRaf) {
+                                cancelAnimationFrame(this.progressRaf);
+                                this.progressRaf = null;
+                            }
+                        },
+                        resetProgress() {
+                            this.progress = 0;
+                            this.progressStart = performance.now();
+                        },
+                        setTab(tabNumber, { behavior = 'smooth' } = {}) {
+                            this.tab = tabNumber.toString();
+                            this.resetProgress();
+                            if (this.autoSlide) {
+                                this.startProgress();
+                            }
+                            this.$nextTick(() => this.scrollActiveTabIntoView({ behavior }));
                         },
                         nextTab() {
                             let nextTab = parseInt(this.tab) + 1;
                             if (nextTab > this.totalTabs) {
                                 nextTab = 1;
                             }
-                            this.tab = nextTab.toString();
+                            this.setTab(nextTab, { behavior: 'smooth' });
+                            if (this.autoSlide) {
+                                this.startAutoSlide();
+                            }
                         },
                         prevTab() {
                             let prevTab = parseInt(this.tab) - 1;
                             if (prevTab < 1) {
                                 prevTab = this.totalTabs;
                             }
-                            this.tab = prevTab.toString();
-                        },
-                        selectTab(tabNumber) {
-                            this.tab = tabNumber;
-                            // Only temporarily pause if not manually paused
-                            if (!this.manuallyPaused) {
-                                this.autoSlide = false;
-                                setTimeout(() => {
-                                    if (!this.manuallyPaused) {
-                                        this.autoSlide = true;
-                                    }
-                                }, 8000);
+                            this.setTab(prevTab, { behavior: 'smooth' });
+                            if (this.autoSlide) {
+                                this.startAutoSlide();
                             }
                         },
-                        handleNavigation() {
-                            // Only temporarily pause if not manually paused
-                            if (!this.manuallyPaused && this.autoSlide) {
-                                this.autoSlide = false;
-                                setTimeout(() => {
-                                    if (!this.manuallyPaused) {
-                                        this.autoSlide = true;
-                                    }
-                                }, 8000);
+                        selectTab(tabNumber) {
+                            this.setTab(tabNumber, { behavior: 'smooth' });
+                            if (this.autoSlide) {
+                                this.startAutoSlide();
                             }
                         },
                         toggleAutoSlide() {
                             this.autoSlide = !this.autoSlide;
                             this.manuallyPaused = !this.autoSlide;
+                    
                             if (this.autoSlide) {
                                 this.startAutoSlide();
+                            } else {
+                                this.stopAutoSlide();
                             }
+                        },
+                        scrollActiveTabIntoView({ behavior = 'smooth' } = {}) {
+                            const el = this.$refs.tabScroll;
+                            if (!el) return;
+                    
+                            const active = el.querySelector(`[data-tab='${this.tab}']`);
+                            if (!active) return;
+                    
+                            // Horizontal-only centering inside the scroll container.
+                            // Avoids `scrollIntoView()`, which can scroll the whole page vertically in some browsers.
+                            const containerRect = el.getBoundingClientRect();
+                            const activeRect = active.getBoundingClientRect();
+                    
+                            const activeCenter = (activeRect.left - containerRect.left) + (activeRect.width / 2);
+                            const targetLeft = el.scrollLeft + activeCenter - (containerRect.width / 2);
+                    
+                            const maxLeft = el.scrollWidth - el.clientWidth;
+                            const nextLeft = Math.max(0, Math.min(maxLeft, targetLeft));
+                    
+                            el.scrollTo({ left: nextLeft, behavior });
                         }
                     }">
 
                         <!-- Single column layout -->
                         <div class="text-center">
 
-                            <!-- Play/Pause button above menu -->
-                            <div class="flex justify-center mb-6">
-                                <button @click="toggleAutoSlide()"
-                                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-full border border-slate-200 shadow-sm transition-all focus:outline-none cursor-pointer"
-                                    :aria-label="autoSlide ? 'Pause slideshow' : 'Play slideshow'">
-                                    <!-- Pause icon -->
-                                    <svg x-show="autoSlide" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                    </svg>
-                                    <!-- Play icon -->
-                                    <svg x-show="!autoSlide" x-cloak class="w-4 h-4" fill="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path d="M8 5v14l11-7z" />
-                                    </svg>
-                                    <span x-text="autoSlide ? 'Pause' : 'Play'"></span>
-                                </button>
-                            </div>
-
-                            <!-- Tab menu at top - scrollable on mobile -->
+                            <!-- Tab menu (features-bar style): fixed prev/next + scrollable pills -->
                             <div class="relative mb-12">
-                                <!-- Scroll container -->
-                                <div
-                                    class="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible">
-                                    <div class="flex sm:justify-center items-center gap-3 min-w-max sm:min-w-0">
-                                        <!-- Previous button -->
-                                        <button @click="prevTab(); handleNavigation();"
-                                            class="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white hover:bg-slate-50 rounded-full border border-slate-200 shadow-sm transition-all focus:outline-none cursor-pointer"
-                                            aria-label="Previous slide">
-                                            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 19l-7-7 7-7" />
-                                            </svg>
-                                        </button>
+                                <!-- Custom CSS for hiding scrollbar (keep layout from shifting) -->
+                                <style>
+                                    .scrollbar-hide::-webkit-scrollbar {
+                                        display: none;
+                                    }
 
-                                        <div
-                                            class="inline-flex bg-slate-100 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
-                                            @foreach ($landing['features']['slide']['tabs'] as $index => $tab)
-                                                <button
-                                                    class="px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-medium rounded-full transition-all duration-300 focus:outline-none whitespace-nowrap cursor-pointer"
-                                                    :class="tab === '{{ $index + 1 }}'
-                                                        ?
-                                                        'bg-white text-slate-900 shadow-md' :
-                                                        'text-slate-500 hover:text-slate-700'"
-                                                    @click="selectTab('{{ $index + 1 }}')">
-                                                    {{ $tab['tab_name'] ?? explode(' ', $tab['title'])[0] }}
-                                                </button>
-                                            @endforeach
+                                    .scrollbar-hide {
+                                        -ms-overflow-style: none;
+                                        scrollbar-width: none;
+                                    }
+                                </style>
+                                <!-- Bar row: buttons OUTSIDE the bar, bar sits between them -->
+                                <div class="flex justify-center">
+                                    <div class="inline-flex items-center gap-2 sm:gap-3 max-w-full">
+                                        <!-- Previous -->
+                                        <div class="shrink-0">
+                                            <button @click="prevTab()"
+                                                class="cursor-pointer bg-white/90 hover:bg-white text-slate-700 rounded-full w-11 h-11 flex items-center justify-center shadow-lg transition-all duration-200 backdrop-blur-sm border border-slate-200"
+                                                aria-label="Previous slide">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M15 19l-7-7 7-7" />
+                                                </svg>
+                                            </button>
                                         </div>
 
-                                        <!-- Next button -->
-                                        <button @click="nextTab(); handleNavigation();"
-                                            class="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white hover:bg-slate-50 rounded-full border border-slate-200 shadow-sm transition-all focus:outline-none cursor-pointer"
-                                            aria-label="Next slide">
-                                            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </button>
+                                        <!-- Bar (pills) -->
+                                        <div class="relative min-w-0 w-fit max-w-3xl lg:max-w-5xl xl:max-w-6xl">
+                                            <div class="overflow-x-auto overflow-y-visible scrollbar-hide scroll-smooth px-2 py-1"
+                                                x-ref="tabScroll">
+                                                <div
+                                                    class="flex items-center gap-3 min-w-max justify-start sm:justify-center">
+                                                    <div
+                                                        class="inline-flex bg-slate-100 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
+                                                        @foreach ($landing['features']['slide']['tabs'] as $index => $tab)
+                                                            <button
+                                                                class="px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-medium rounded-full transition-all duration-300 focus:outline-none whitespace-nowrap cursor-pointer"
+                                                                data-tab="{{ $index + 1 }}"
+                                                                :class="tab === '{{ $index + 1 }}' ?
+                                                                    'bg-white text-slate-900 shadow-md' :
+                                                                    'text-slate-500 hover:text-slate-700'"
+                                                                @click="selectTab('{{ $index + 1 }}')">
+                                                                {{ $tab['tab_name'] ?? explode(' ', $tab['title'])[0] }}
+                                                            </button>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Edge fade hints (mobile only) -->
+                                            <div
+                                                class="absolute left-0 top-0 bottom-0 w-14 bg-gradient-to-r from-slate-50 to-transparent pointer-events-none sm:hidden">
+                                            </div>
+                                            <div
+                                                class="absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none sm:hidden">
+                                            </div>
+                                        </div>
+
+                                        <!-- Next -->
+                                        <div class="shrink-0">
+                                            <button @click="nextTab()"
+                                                class="cursor-pointer bg-white/90 hover:bg-white text-slate-700 rounded-full w-11 h-11 flex items-center justify-center shadow-lg transition-all duration-200 backdrop-blur-sm border border-slate-200"
+                                                aria-label="Next slide">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- Scroll hint gradient (mobile only) -->
-                                <div
-                                    class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none sm:hidden">
+
+                                <!-- Progress bar (time until next auto-slide) -->
+                                <div class="mt-4 w-full max-w-md mx-auto px-4 sm:px-0">
+                                    <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-indigo-600 rounded-full transition-[width] duration-75"
+                                            :style="`width: ${progress}%`"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Play/Pause button below bar -->
+                                <div class="mt-4 flex justify-center">
+                                    <button @click="toggleAutoSlide()"
+                                        class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-full border border-slate-200 shadow-sm transition-all focus:outline-none cursor-pointer"
+                                        :aria-label="autoSlide ? 'Pause slideshow' : 'Play slideshow'">
+                                        <!-- Pause icon -->
+                                        <svg x-show="autoSlide" class="w-3.5 h-3.5" fill="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                        </svg>
+                                        <!-- Play icon -->
+                                        <svg x-show="!autoSlide" x-cloak class="w-3.5 h-3.5" fill="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z" />
+                                        </svg>
+                                        <span x-text="autoSlide ? 'Pause' : 'Play'"></span>
+                                    </button>
                                 </div>
                             </div>
 

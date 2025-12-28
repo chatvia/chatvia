@@ -11,15 +11,19 @@ class Chunker
         public LLMProviderInterface $provider,
     ) {}
 
-    public function chunk(string $prompt): string
+    public function chunk(string $prompt, string $systemPrompt = ''): string
     {
+        if (! $systemPrompt) {
+            $systemPrompt = PromptLoader::load('chunking/system');
+        }
+
         $res = $this->provider->completion([
             'model' => config('ai.models.chunker'),
             'temperature' => 0.0,
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => PromptLoader::load('chunking/system'),
+                    'content' => $systemPrompt,
                 ],
                 [
                     'role' => 'user',

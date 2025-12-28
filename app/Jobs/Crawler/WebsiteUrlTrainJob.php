@@ -10,7 +10,6 @@ use App\Models\AgentWebsiteUrl;
 use App\Models\SourceWebsite;
 use App\Services\Chunking\Chunker;
 use App\Services\Prompts\PromptLoader;
-use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use App\Services\Tidy\HTMLCleaner;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
@@ -40,12 +39,12 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
         return 'agents:'.$this->agent->id.':website-url:'.$this->websiteUrl->id.':train';
     }
 
-    public function handle(HTMLCleaner $parser, RecursiveCharacterTextSplitter $splitter): void
+    public function handle(HTMLCleaner $parser): void
     {
         $response = Http::retry(3, 1000)->timeout(600)->get($this->websiteUrl->url)->throw();
 
-        $text = $parser->getTextFromHtml($response->body());
-        $checksum = md5($text);
+        $html = $parser->getTextFromHtml($response->body());
+        $checksum = md5($html);
 
         if ($checksum === $this->websiteUrl->checksum) {
             $this->websiteUrl->update(['status' => 'ingested']);
@@ -61,18 +60,16 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
         $this->websiteUrl->chunks()->delete();
 
-        $pages = collect($splitter->splitText($text))
-            ->map(function ($text) {
-                return new PageData(
-                    pageNumber: 0,
-                    content: $text,
-                );
-            });
+        // One webpage = one chunk (no splitting)
+        $pageData = new PageData(
+            pageNumber: 0,
+            content: $html,
+        );
 
         $chunks = new Chunker(
             agent: $this->agent,
             chunkable: $this->websiteUrl,
-        )->createChunks($pages);
+        )->createChunks(collect([$pageData]));
 
         $this->websiteUrl->update([
             'checksum' => $checksum,

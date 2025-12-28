@@ -42,6 +42,7 @@ class ChunkIngestionJob implements ShouldQueue
         public string $appendUserPrompt = '',
         public array $metadata = [],
         public array $chunkReference = [],
+        public string $chunkSystemPrompt = '',
     ) {}
 
     public function handle(): void
@@ -52,6 +53,7 @@ class ChunkIngestionJob implements ShouldQueue
 
         // Check if chunk already exists (early return to avoid wasted processing)
         $checksum = md5($this->chunk->chunk_text);
+
         if (Chunk::query()
             ->where('chunkable_type', $this->chunk->chunkable_type)
             ->where('chunkable_id', $this->chunk->chunkable_id)
@@ -120,7 +122,7 @@ class ChunkIngestionJob implements ShouldQueue
             'next_context' => $this->chunk->next_chunk,
         ]).$this->appendUserPrompt;
 
-        $rawChunk = app(Chunker::class)->chunk($userPrompt);
+        $rawChunk = app(Chunker::class)->chunk($userPrompt, $this->chunkSystemPrompt);
 
         // Extract summary and questions from XML tags
         $extractedData = $this->extractSummaryAndQuestions($rawChunk);

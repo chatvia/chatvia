@@ -104,57 +104,57 @@
                 <div class="relative max-w-5xl mx-auto" data-aos="fade-up" data-aos-delay="100" x-data="{
                     activeDemo: 'widget',
                     progress: 0,
+                    isPaused: false,
                     bindProgress(videoEl, demoKey) {
                         const update = () => {
                             if (this.activeDemo !== demoKey) {
                                 return;
                             }
-
+                
                             const duration = videoEl?.duration ?? 0;
                             if (!duration || Number.isNaN(duration)) {
                                 this.progress = 0;
                                 return;
                             }
-
+                
                             const current = videoEl?.currentTime ?? 0;
                             this.progress = Math.max(0, Math.min(100, (current / duration) * 100));
                         };
-
+                
+                        const updatePlayState = () => {
+                            if (this.activeDemo === demoKey) {
+                                this.isPaused = videoEl?.paused ?? true;
+                            }
+                        };
+                
                         videoEl?.addEventListener('loadedmetadata', update);
                         videoEl?.addEventListener('timeupdate', update);
-                        videoEl?.addEventListener('play', update);
+                        videoEl?.addEventListener('play', () => {
+                            update();
+                            updatePlayState();
+                        });
+                        videoEl?.addEventListener('pause', () => {
+                            update();
+                            updatePlayState();
+                        });
                         videoEl?.addEventListener('seeked', update);
                     },
                     updateProgress() {
                         const videoEl = this.activeDemo === 'widget' ? this.$refs.widgetVideo : this.$refs.chatgptVideo;
                         const duration = videoEl?.duration ?? 0;
-
+                
                         if (!duration || Number.isNaN(duration)) {
                             this.progress = 0;
                             return;
                         }
-
+                
                         this.progress = Math.max(0, Math.min(100, ((videoEl?.currentTime ?? 0) / duration) * 100));
-                    },
-                    seekTo(event) {
-                        const track = event.currentTarget;
-                        const rect = track.getBoundingClientRect();
-                        const x = Math.min(Math.max(0, event.clientX - rect.left), rect.width);
-                        const ratio = rect.width ? (x / rect.width) : 0;
-
-                        const videoEl = this.activeDemo === 'widget' ? this.$refs.widgetVideo : this.$refs.chatgptVideo;
-                        const duration = videoEl?.duration ?? 0;
-                        if (!duration || Number.isNaN(duration)) {
-                            return;
-                        }
-
-                        videoEl.currentTime = ratio * duration;
-                        this.updateProgress();
                     },
                     init() {
                         this.bindProgress(this.$refs.widgetVideo, 'widget');
                         this.bindProgress(this.$refs.chatgptVideo, 'chatgpt');
                         this.updateProgress();
+                        this.isPaused = this.$refs.widgetVideo?.paused ?? true;
                     },
                     switchVideo(demo) {
                         this.activeDemo = demo;
@@ -165,13 +165,16 @@
                         if (demo === 'widget') {
                             this.$refs.widgetVideo.currentTime = 0;
                             this.$refs.widgetVideo.play();
+                            this.isPaused = false;
                         } else {
                             this.$refs.chatgptVideo.currentTime = 0;
                             this.$refs.chatgptVideo.play();
+                            this.isPaused = false;
                         }
                         this.updateProgress();
                     }
-                }" x-init="init()">
+                }"
+                    x-init="init()">
                     <!-- Demo Section Heading -->
                     <p class="text-center text-slate-600 font-medium mb-4">
                         Embeddable chat widget & ChatGPT-style in one platform
@@ -226,16 +229,55 @@
                                 aria-label="ChatVia ChatGPT-like AI Demo - See how to create ChatGPT-style chatbots">
                             </video>
 
-                            <!-- Progress bar -->
-                            <div class="absolute inset-x-0 bottom-0 px-4 pb-4">
-                                <button type="button" @click="seekTo($event)"
-                                    class="group relative w-full h-2 rounded-full bg-slate-900/20 overflow-hidden"
-                                    aria-label="Video progress">
-                                    <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-500 to-purple-500"
-                                        :style="`width: ${progress}%`"></div>
-                                    <div class="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-white shadow-sm ring-2 ring-indigo-500/60 transition-opacity opacity-0 group-hover:opacity-100"
-                                        :style="`left: calc(${progress}% - 6px)`"></div>
-                                </button>
+                            <!-- Circular Progress Indicator -->
+                            <div class="absolute top-6 left-6 group cursor-pointer"
+                                @click="
+                                const videoEl = activeDemo === 'widget' ? $refs.widgetVideo : $refs.chatgptVideo;
+                                if (isPaused) {
+                                    videoEl.play();
+                                    isPaused = false;
+                                } else {
+                                    videoEl.pause();
+                                    isPaused = true;
+                                }
+                            "
+                                aria-label="Video progress and playback control">
+                                <!-- Background circle -->
+                                <svg class="w-14 h-14 transform -rotate-90 drop-shadow-lg" viewBox="0 0 100 100">
+                                    <!-- Background track -->
+                                    <circle cx="50" cy="50" r="42" fill="none"
+                                        class="stroke-slate-300" stroke-width="6" />
+                                    <!-- Progress arc -->
+                                    <circle cx="50" cy="50" r="42" fill="none"
+                                        class="stroke-indigo-600 transition-all duration-200" stroke-width="6"
+                                        stroke-linecap="round" :stroke-dasharray="`${2 * Math.PI * 42}`"
+                                        :stroke-dashoffset="`${2 * Math.PI * 42 * (1 - progress / 100)}`" />
+                                </svg>
+
+                                <!-- Play/Pause icon -->
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-white backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200 relative">
+                                        <!-- Play icon (when paused) -->
+                                        <svg x-show="isPaused" x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                                            x-transition:leave="transition ease-in duration-100"
+                                            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                                            class="absolute w-5 h-5 text-indigo-600 ml-0.5" fill="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z" />
+                                        </svg>
+                                        <!-- Pause icon (when playing) -->
+                                        <svg x-show="!isPaused" x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                                            x-transition:leave="transition ease-in duration-100"
+                                            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                                            class="absolute w-5 h-5 text-indigo-600" fill="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -21,13 +21,14 @@ use App\Services\Infrastructure\LLM\Operations\Vision;
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
 use Illuminate\Bus\Batchable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class ChunkIngestionJob implements ShouldQueue
+class ChunkIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable;
 
@@ -37,12 +38,30 @@ class ChunkIngestionJob implements ShouldQueue
 
     public int $backoff = 10;
 
+    /**
+     * The number of seconds after which the job's unique lock will be released.
+     */
+    public int $uniqueFor = 3600;
+
     public function __construct(
         public ChunkIngestionData $chunk,
         public string $appendUserPrompt = '',
         public array $metadata = [],
         public array $chunkReference = [],
     ) {}
+
+    /**
+     * Get the unique ID for the job.
+     */
+    public function uniqueId(): string
+    {
+        return sprintf(
+            '%s:%s:%s',
+            $this->chunk->chunkable_type,
+            $this->chunk->chunkable_id,
+            md5($this->chunk->chunk_text)
+        );
+    }
 
     public function handle(): void
     {
@@ -61,12 +80,6 @@ class ChunkIngestionJob implements ShouldQueue
 
         if (Chunk::query()
             ->where('chunkable_type', $this->chunk->chunkable_type)
-            ->where('chunkable_id', $this->chunk->chunkable_id)
-            ->where('checksum', md5($this->chunk->chunk_text))
-            ->exists()) {
-            return;
-        }
-
         $agent = Agent::find($this->chunk->agent_id);
         $agentExternalId = $agent->external_id;
 

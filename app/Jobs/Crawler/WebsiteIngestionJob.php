@@ -28,6 +28,8 @@ class WebsiteIngestionJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable;
 
+    public int $timeout = 1800; // 30 min
+
     public bool $deleteWhenMissingModels = true;
 
     public function __construct(public SourceWebsite $website, public Agent $agent)
@@ -59,21 +61,9 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $prompt = PromptLoader::load('chunking/web');
 
-        // Get all existing chunk checksums for this website to avoid duplicates
-        $existingChecksums = $this->website->chunks()
-            ->pluck('checksum')
-            ->flip()
-            ->toArray();
-
         $checksums = [];
         foreach ($urlsWithChunks as $url => $data) {
             foreach ($data['chunks'] as $chunk) {
-                // Skip if chunk with same checksum already exists
-                $chunkChecksum = md5($chunk->chunk_text);
-                if (isset($existingChecksums[$chunkChecksum])) {
-                    continue;
-                }
-
                 $jobs[] = new ChunkIngestionJob($chunk, $prompt, chunkReference: [
                     'referenceable_type' => AgentWebsiteUrl::class,
                     'referenceable_id' => $urlToId[$url],

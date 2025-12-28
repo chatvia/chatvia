@@ -88,21 +88,9 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
         $prompt = PromptLoader::load('chunking/web');
 
-        // Get all existing chunk checksums for this URL to avoid duplicates
-        $existingChecksums = $this->websiteUrl->chunks()
-            ->pluck('checksum')
-            ->flip()
-            ->toArray();
-
         $jobs = [];
 
         foreach ($chunks as $chunk) {
-            // Skip if chunk with same checksum already exists
-            $chunkChecksum = md5($chunk->chunk_text);
-            if (isset($existingChecksums[$chunkChecksum])) {
-                continue;
-            }
-
             $jobs[] = new ChunkIngestionJob($chunk, $prompt, chunkReference: [
                 'referenceable_type' => AgentWebsiteUrl::class,
                 'referenceable_id' => $this->websiteUrl->id,

@@ -79,11 +79,35 @@
                         progressDuration: 4000,
                         progressRaf: null,
                         totalTabs: {{ count($landing['features']['slide']['tabs']) }},
+                        imagesPreloaded: false,
                         init() {
-                            this.$nextTick(() => {
-                                this.scrollActiveTabIntoView({ behavior: 'auto' });
-                                this.startAutoSlide();
+                            this.preloadImages().then(() => {
+                                this.imagesPreloaded = true;
+                                this.$nextTick(() => {
+                                    this.scrollActiveTabIntoView({ behavior: 'auto' });
+                                    this.startAutoSlide();
+                                });
                             });
+                        },
+                        preloadImages() {
+                            const imageSources = [
+                                @foreach($landing['features']['slide']['tabs'] as $index => $tab)
+                                '{{ asset($tab['img']) }}'
+                                @if(!$loop->last),
+                                @endif
+                                @endforeach
+                            ];
+                    
+                            const imagePromises = imageSources.map(src => {
+                                return new Promise((resolve, reject) => {
+                                    const img = new Image();
+                                    img.onload = () => resolve();
+                                    img.onerror = () => resolve(); // Resolve even on error to prevent blocking
+                                    img.src = src;
+                                });
+                            });
+                    
+                            return Promise.all(imagePromises);
                         },
                         startAutoSlide() {
                             this.stopAutoSlide();
@@ -280,33 +304,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Progress bar (time until next auto-slide) -->
-                                <div class="mt-4 w-full max-w-md mx-auto px-4 sm:px-0">
-                                    <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                        <div class="h-full bg-indigo-600 rounded-full transition-[width] duration-75"
-                                            :style="`width: ${progress}%`"></div>
-                                    </div>
-                                </div>
-
-                                <!-- Play/Pause button below bar -->
-                                <div class="mt-4 flex justify-center">
-                                    <button @click="toggleAutoSlide()"
-                                        class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-full border border-slate-200 shadow-sm transition-all focus:outline-none cursor-pointer"
-                                        :aria-label="autoSlide ? 'Pause slideshow' : 'Play slideshow'">
-                                        <!-- Pause icon -->
-                                        <svg x-show="autoSlide" class="w-3.5 h-3.5" fill="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                        </svg>
-                                        <!-- Play icon -->
-                                        <svg x-show="!autoSlide" x-cloak class="w-3.5 h-3.5" fill="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z" />
-                                        </svg>
-                                        <span x-text="autoSlide ? 'Pause' : 'Play'"></span>
-                                    </button>
-                                </div>
                             </div>
 
                             <!-- Tab content - titles, descriptions and images combined -->
@@ -347,9 +344,59 @@
                                             <div class=" bg-slate-100">
                                                 <img class="w-full h-full object-cover object-top"
                                                     src="{{ asset($tab['img']) }}" alt="{{ $tab['title'] }}"
-                                                    loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                                    loading="eager"
                                                     @if ($index === 0) fetchpriority="high" @endif />
                                             </div>
+
+                                            <!-- Circular Progress Indicator -->
+                                            <button @click="toggleAutoSlide()"
+                                                class="absolute top-6 left-6 group cursor-pointer"
+                                                :aria-label="autoSlide ? 'Pause slideshow' : 'Play slideshow'">
+                                                <!-- Circular progress indicator -->
+                                                <svg class="w-14 h-14 transform -rotate-90 drop-shadow-lg"
+                                                    viewBox="0 0 100 100">
+                                                    <!-- Background track -->
+                                                    <circle cx="50" cy="50" r="42" fill="none"
+                                                        class="stroke-slate-300" stroke-width="6" />
+                                                    <!-- Progress arc -->
+                                                    <circle cx="50" cy="50" r="42" fill="none"
+                                                        class="stroke-indigo-600 transition-all duration-75"
+                                                        stroke-width="6" stroke-linecap="round"
+                                                        :stroke-dasharray="`${2 * Math.PI * 42}`"
+                                                        :stroke-dashoffset="`${2 * Math.PI * 42 * (1 - progress / 100)}`" />
+                                                </svg>
+
+                                                <!-- Play/Pause icon in center -->
+                                                <div class="absolute inset-0 flex items-center justify-center">
+                                                    <div
+                                                        class="w-10 h-10 rounded-full bg-white backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200 relative">
+                                                        <!-- Pause icon -->
+                                                        <svg x-show="autoSlide"
+                                                            x-transition:enter="transition ease-out duration-100"
+                                                            x-transition:enter-start="opacity-0"
+                                                            x-transition:enter-end="opacity-100"
+                                                            x-transition:leave="transition ease-in duration-100"
+                                                            x-transition:leave-start="opacity-100"
+                                                            x-transition:leave-end="opacity-0"
+                                                            class="absolute w-5 h-5 text-indigo-600"
+                                                            fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                                        </svg>
+                                                        <!-- Play icon -->
+                                                        <svg x-show="!autoSlide" x-cloak
+                                                            x-transition:enter="transition ease-out duration-100"
+                                                            x-transition:enter-start="opacity-0"
+                                                            x-transition:enter-end="opacity-100"
+                                                            x-transition:leave="transition ease-in duration-100"
+                                                            x-transition:leave-start="opacity-100"
+                                                            x-transition:leave-end="opacity-0"
+                                                            class="absolute w-5 h-5 text-indigo-600 ml-0.5"
+                                                            fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M8 5v14l11-7z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

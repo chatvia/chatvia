@@ -72,7 +72,6 @@ class WebsiteIngestionJob implements ShouldQueue
 
         $websiteId = $this->website->id;
 
-        $agentId = $this->agent->id;
         $agentExternalId = $this->agent->external_id;
         $agent = $this->agent;
 

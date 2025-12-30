@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Jobs\Ingestion;
+namespace App\Jobs\Ingestion\Media;
 
 use App\Data\Ingestion\ChunkIngestionData;
 use App\Data\Ingestion\OCR\PageData;
 use App\Events\FileIngestionProgressEvent;
+use App\Jobs\Ingestion\ChunkIngestionJob;
+use App\Jobs\Ingestion\SummaryIngestionJob;
 use App\Models\Agent;
 use App\Models\SourceFile;
 use App\Services\Chunking\Chunker;

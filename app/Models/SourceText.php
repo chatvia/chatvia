@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\ChunkableContract;
-use App\Jobs\Ingestion\TextIngestionJob;
+use App\Jobs\Ingestion\Text\TextIngestionJob;
 use App\Traits\Chunkable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;

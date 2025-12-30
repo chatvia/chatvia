@@ -38,7 +38,7 @@ readonly class Chunker
 
         foreach ($pages as $page) {
             $pageText = $page->content;
-            $pageImages = $page->images;
+            $pageImages = $page->imagesBase64;
             $pageTables = $page->tables;
 
             // Skip empty pages

@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Jobs\Ingestion;
+namespace App\Jobs\Ingestion\Document;
 
 use App\Contracts\DocumentOCRInterface;
-use App\Data\Ingestion\ChunkIngestionData;
 use App\Data\Ingestion\OCR\PageData;
 use App\Models\Agent;
 use App\Models\SourceFile;
-use App\Services\Chunking\Chunker;
+use App\Services\Infrastructure\MistralFiles;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -16,6 +15,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -45,13 +45,13 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
         }
     }
 
-    public function handle(DocumentOCRInterface $documentOCR): void
+    public function handle(DocumentOCRInterface $documentOCR, MistralFiles $mistralFiles): void
     {
         if ($this->batch()?->cancelled()) {
             return;
         }
 
-        if ($this->sourceFile->status === 'ingested') {
+        if ($this->sourceFile->isIngested()) {
             return;
         }
 
@@ -59,7 +59,7 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $updateValues = [
             'internal_ingestion_job_id' => $internalJobId,
-            'parser' => $this->sourceFile->isAudioFile() ? 'whisper' : 'mistral-ocr',
+            'parser' => 'mistral-ocr',
         ];
 
         // Get the file once and reuse it
@@ -73,7 +73,10 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
             $pages = Storage::get($this->sourceFile->parser_filepath);
             $pages = PageData::fromJson($pages);
         } else {
-            $pages = $documentOCR->fromFile($filePath);
+            $pages = Cache::remember('files:ocr:'.$fileChecksum, now()->addMonth(), function () use ($documentOCR, $filePath) {
+                return $documentOCR->fromFile($filePath);
+            });
+
             $fileName = Str::uuid()->toString().'.json';
 
             $updateValues['parser_filepath'] = Storage::putFileAs(
@@ -87,26 +90,30 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $this->sourceFile->refresh();
 
-        $chunks = new Chunker(
-            agent: $this->agent,
-            chunkable: $this->sourceFile,
-        )->createChunks($pages);
+        $jobs = $pages->map(function (PageData $page, int $index) use ($pages) {
+            $previousPage = $index > 0 ? $pages[$index - 1] : null;
+            $nextPage = $index < $pages->count() - 1 ? $pages[$index + 1] : null;
 
-        $jobs = $chunks->map(function (ChunkIngestionData $chunk) {
-            return new ChunkIngestionJob($chunk);
+            return new DocumentChunkIngestionJob(
+                $this->agent,
+                $this->sourceFile,
+                $page,
+                $previousPage,
+                $nextPage
+            );
         });
 
-        SummaryIngestionJob::dispatch(
-            $this->sourceFile,
-            route('external.source.files.view', [
-                'type' => 'file',
-                'externalId' => $this->sourceFile->external_id,
-            ]),
-        );
+        // Upload file to Mistral for summary generation
+        //        $mistralFile = $mistralFiles->upload($filePath);
+
+        //        SummaryIngestionJob::dispatch(
+        //            $this->sourceFile,
+        //            $mistralFile,
+        //        );
 
         $this->sourceFile->update([
             'status' => 'ingesting',
-            'expected_chunks' => $chunks->count(),
+            'expected_chunks' => $pages->count(),
         ]);
 
         $agentFileId = $this->sourceFile->id;

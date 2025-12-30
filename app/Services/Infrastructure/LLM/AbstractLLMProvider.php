@@ -102,12 +102,12 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
      *
      * @return string The API key
      */
-    abstract protected function getApiKey(): string;
+    abstract public function getApiKey(): string;
 
     /**
      * Get the base URL for the provider.
      *
      * @return string The base URL
      */
-    abstract protected function getBaseUrl(): string;
+    abstract public function getBaseUrl(): string;
 }

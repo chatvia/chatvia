@@ -10,7 +10,9 @@ class PageData extends Data
     public function __construct(
         public int $pageNumber,
         public string $content,
-        public array $images = [],
+        public string $checksum,
+        public array $imagesBase64 = [],
+        public array $imagePaths = [],
         public array $tables = [],
         public array $hyperlinks = [],
     ) {}

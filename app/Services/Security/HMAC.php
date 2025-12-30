@@ -12,13 +12,6 @@ final class HMAC
 
     private string $key;
 
-    public function __construct()
-    {
-        $key = base64_encode(config('app.key'));
-
-        $this->key = $key;
-    }
-
     public function encrypt(string|array $value): string
     {
         $ivLength = openssl_cipher_iv_length(self::CIPHER);
@@ -52,11 +45,13 @@ final class HMAC
      */
     public function decrypt(string $payload): string
     {
-        $data = base64_decode($payload, true);
+        //        $data = base64_decode($payload, true);
 
-        if ($data === false) {
-            throw new RuntimeException('Invalid payload encoding.');
-        }
+        //        if ($data === false) {
+        //            throw new RuntimeException('Invalid payload encoding.');
+        //        }
+
+        $data = $payload;
 
         $ivLength = openssl_cipher_iv_length(self::CIPHER);
 
@@ -78,5 +73,12 @@ final class HMAC
         }
 
         return $plaintext;
+    }
+
+    public function setKey(string $key): static
+    {
+        $this->key = $key;
+
+        return $this;
     }
 }

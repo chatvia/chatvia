@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('chunks', function (Blueprint $table) {
             $table->id();
-
+            $table->uuid('external_id')->unique()->nullable();
             $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnDelete();
 
             // The parent model this chunk belongs to
@@ -22,6 +22,7 @@ return new class extends Migration
 
             $table->unsignedInteger('chunk_index');
             $table->text('chunk');
+            $table->text('original_chunk')->nullable();
             $table->string('chunked_using_model')->nullable();
             $table->string('embedding_model')->nullable();
             $table->json('questions')->nullable()->after('chunk');

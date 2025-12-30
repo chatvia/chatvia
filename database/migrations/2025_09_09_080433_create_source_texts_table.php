@@ -11,12 +11,13 @@ return new class extends Migration
     {
         Schema::create('source_texts', function (Blueprint $table) {
             $table->id();
+            $table->uuid('external_id')->index()->nullable();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
 
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
 
-            $table->text('content');
+            $table->text('excerpt');
 
             $table->unsignedInteger('length')->default(0)->comment('This is the number of pages not characters in the text');
 

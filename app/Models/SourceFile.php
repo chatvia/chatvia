@@ -127,4 +127,9 @@ class SourceFile extends Model implements ChunkableContract
             'metadata' => 'json',
         ];
     }
+
+    public function isIngested()
+    {
+        return $this->status === 'ingested';
+    }
 }

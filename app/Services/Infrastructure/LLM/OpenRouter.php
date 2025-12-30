@@ -85,7 +85,7 @@ class OpenRouter extends AbstractLLMProvider
      *
      * @return string The API key
      */
-    protected function getApiKey(): string
+    public function getApiKey(): string
     {
         return config('services.openrouter.api_key');
     }
@@ -95,7 +95,7 @@ class OpenRouter extends AbstractLLMProvider
      *
      * @return string The base URL
      */
-    protected function getBaseUrl(): string
+    public function getBaseUrl(): string
     {
         return config('services.openrouter.base_url', 'https://openrouter.ai/api/v1');
     }

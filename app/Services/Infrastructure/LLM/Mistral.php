@@ -32,7 +32,7 @@ class Mistral extends AbstractLLMProvider
      *
      * @return string The API key
      */
-    protected function getApiKey(): string
+    public function getApiKey(): string
     {
         return config('services.mistral.api_key');
     }
@@ -42,7 +42,7 @@ class Mistral extends AbstractLLMProvider
      *
      * @return string The base URL
      */
-    protected function getBaseUrl(): string
+    public function getBaseUrl(): string
     {
         return config('services.mistral.base_url', 'https://api.mistral.ai/v1');
     }

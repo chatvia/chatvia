@@ -35,7 +35,7 @@ STRICT RULES:
 
 FORMAT:
 
-- Plain text or light Markdown (headings, bullets, simple tables).
+- Plain text.
 - No HTML tags, no backticks, no commentary.
 
 Now clean the following HTML chunk and produce the final text result.

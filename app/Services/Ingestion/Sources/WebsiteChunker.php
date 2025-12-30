@@ -3,12 +3,10 @@
 namespace App\Services\Ingestion\Sources;
 
 use App\Data\Ingestion\ChunkIngestionData;
-use App\Data\Ingestion\OCR\PageData;
 use App\Events\UrlIngestionEvent;
 use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
 use App\Models\SourceWebsite;
-use App\Services\Chunking\Chunker;
 use App\Services\Tidy\HTMLCleaner;
 use App\Services\TikToken;
 use Illuminate\Http\Client\ConnectionException;
@@ -35,9 +33,8 @@ class WebsiteChunker
 
     public function chunkUrls()
     {
-        $parser = app(HTMLCleaner::class);
         $urls = $this->website->untrainedUrls;
-        $chunkIndex = 1; // Track chunk index across all URLs
+        $chunkIndex = 1;
 
         $urlsWithChunks = collect($this->getResponses())
             ->reject(function ($response) {
@@ -53,7 +50,8 @@ class WebsiteChunker
             })
             ->mapWithKeys(function (Response $response, string $url) use ($urls, &$chunkIndex) {
                 // Get clean HTML content
-                $html = $response->body();
+                $html = app(HTMLCleaner::class)->cleanHtml($response->getBody()->getContents());
+
                 $checksum = md5($html);
 
                 $urlModel = $urls->where('url', $url)->first();
@@ -61,37 +59,35 @@ class WebsiteChunker
                 $status = 'ingesting';
 
                 // Skip chunking if content hasn't changed
-                if ($urlModel->checksum === $checksum) {
+                //                if ($urlModel->checksum === $checksum) {
+                //                    $chunks = collect();
+                //                    $status = 'ingested';
+                //                } else {
+                //                    // Check if content is meaningful (at least 128 tokens)
+                $tokenCount = TikToken::countTokens($html);
+
+                if ($tokenCount < 128) {
+                    // Skip pages with too little content
                     $chunks = collect();
                     $status = 'ingested';
                 } else {
-                    // One webpage = one chunk (no splitting)
-                    // The LLM will handle the full HTML content
-                    $pageData = new PageData(
-                        pageNumber: 0,
-                        content: $html,
-                    );
+                    // One webpage = one chunk (no Chunker needed)
+                    $chunk = ChunkIngestionData::from([
+                        'agent_id' => $this->agent->id,
+                        'chunkable_type' => $this->website::class,
+                        'chunkable_id' => $this->website->id,
+                        'chunk_index' => $chunkIndex++,
+                        'expected_chunks' => 0, // Will be set later
+                        'chunk_text' => trim($html),
+                        'chunk_images' => [],
+                        'chunk_tables' => [],
+                        'prev_chunk' => '',
+                        'next_chunk' => '',
+                    ]);
 
-                    $chunks = new Chunker(
-                        agent: $this->agent,
-                        chunkable: $this->website,
-                    )->createChunks(collect([$pageData]));
-
-                    // Filter out chunks below 128 tokens (keep meaningful content)
-                    $chunks = $chunks->reject(function (ChunkIngestionData $chunk) {
-                        return TikToken::countTokens($chunk->chunk_text) < 128;
-                    });
-
-                    // Update chunk indices to be sequential across all URLs
-                    $chunks = $chunks->map(function (ChunkIngestionData $chunk) use (&$chunkIndex) {
-                        $updatedChunk = ChunkIngestionData::from(array_merge(
-                            $chunk->toArray(),
-                            ['chunk_index' => $chunkIndex++]
-                        ));
-
-                        return $updatedChunk;
-                    });
+                    $chunks = collect([$chunk]);
                 }
+                //                }
 
                 $urlModel->update([
                     'checksum' => $checksum,
@@ -111,7 +107,9 @@ class WebsiteChunker
                 ];
             });
 
-        $totalChunks = $urlsWithChunks->sum(fn ($data) => count($data['chunks']));
+        //        $totalChunks = $urlsWithChunks->sum(fn ($data) => count($data['chunks']));
+
+        $totalChunks = count($urls);
 
         // Append the total expected chunks to each chunk
         return $urlsWithChunks->mapWithKeys(function ($data, string $url) use ($totalChunks) {

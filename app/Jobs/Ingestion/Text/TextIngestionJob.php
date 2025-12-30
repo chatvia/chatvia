@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Jobs\Ingestion;
+namespace App\Jobs\Ingestion\Text;
 
 use App\Data\Ingestion\OCR\PageData;
 use App\Events\TextIngestionEvent;
+use App\Jobs\Ingestion\ChunkIngestionJob;
 use App\Models\Agent;
 use App\Models\SourceText;
 use App\Services\Chunking\Chunker;

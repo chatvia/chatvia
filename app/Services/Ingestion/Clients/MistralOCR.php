@@ -55,10 +55,22 @@ class MistralOCR implements DocumentOCRInterface
                 })->toArray();
             }
 
+            $text = str(Markdown::convert($page['markdown'])->getContent())
+                ->stripTags()
+                ->trim()
+                ->toString();
+
+            $pageNumber = (int) $page['index'];
+
+            if ($pageNumber === 0) {
+                $pageNumber++;
+            }
+
             return new PageData(
-                pageNumber: $page['index'],
-                content: str(Markdown::convert($page['markdown'])->getContent())->stripTags()->toString(),
-                images: $images,
+                pageNumber: $pageNumber,
+                content: $text,
+                checksum: md5($text),
+                imagesBase64: $images,
                 tables: $tables,
                 hyperlinks: $page['hyperlinks'] ?? [],
             );

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Jobs\Crawler;
+namespace App\Jobs\Ingestion\Website;
 
 use App\Events\UrlIngestionEvent;
 use App\Events\WebsiteCrawlerEvent;
@@ -62,16 +62,17 @@ class WebsiteIngestionJob implements ShouldQueue
         $prompt = PromptLoader::load('chunking/web');
 
         $checksums = [];
+        $userPrompt = PromptLoader::load('chunking/user');
         foreach ($urlsWithChunks as $url => $data) {
             foreach ($data['chunks'] as $chunk) {
                 $jobs[] = new ChunkIngestionJob(
                     chunk: $chunk,
-                    //                    appendUserPrompt: $prompt,
                     chunkReference: [
                         'referenceable_type' => AgentWebsiteUrl::class,
                         'referenceable_id' => $urlToId[$url],
                     ],
                     chunkSystemPrompt: $prompt,
+                    chunkUserPrompt: $userPrompt,
                 );
             }
             $checksums[] = $data['checksum'];

@@ -6,7 +6,7 @@ use App\Contracts\ChunkableContract;
 use App\Data\Crawler\CrawlerData;
 use App\Events\WebsiteCrawlerEvent;
 use App\Jobs\Crawler\WebsiteCrawlerJob;
-use App\Jobs\Crawler\WebsiteIngestionJob;
+use App\Jobs\Ingestion\Website\WebsiteIngestionJob;
 use App\Traits\Chunkable;
 use App\Traits\SupportsExternalId;
 use Illuminate\Database\Eloquent\Model;

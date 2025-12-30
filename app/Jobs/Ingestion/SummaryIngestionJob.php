@@ -4,10 +4,12 @@ namespace App\Jobs\Ingestion;
 
 use App\Contracts\ChunkableContract;
 use App\Contracts\EmbeddingsProviderInterface;
+use App\Data\Mistral\MistralFileResponse;
 use App\Models\Chunk;
 use App\Services\Infrastructure\LLM\Operations\ContentAnalyzer;
 use App\Services\Infrastructure\LLM\Operations\CostCalculator;
 use App\Services\Infrastructure\LLM\Operations\Summarizer;
+use App\Services\Infrastructure\MistralFiles;
 use App\Services\Prompts\PromptLoader;
 use App\Services\TikToken;
 use Illuminate\Bus\Batchable;
@@ -25,12 +27,14 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public int $timeout = 1800;
 
-    public function __construct(public ChunkableContract $source, public string $publicUrl)
-    {
+    public function __construct(
+        public ChunkableContract $source,
+        public MistralFileResponse $mistralFile,
+    ) {
         $this->onQueue('ingestion.summary');
     }
 
-    public function handle(): void
+    public function handle(MistralFiles $mistralFiles): void
     {
         if ($this->batch()?->cancelled()) {
             return;
@@ -40,26 +44,30 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $contentAnalysis = app(ContentAnalyzer::class)->fromUrl($this->publicUrl);
+        // Get signed URL if Mistral file is provided, otherwise use public URL
+        $signedUrlResponse = $mistralFiles->signUrl($this->mistralFile->id);
+        $signedUrl = $signedUrlResponse->url;
+
+        $contentAnalysis = app(ContentAnalyzer::class)->fromUrl($signedUrl);
 
         $this->source->update([
-            'language' => $contentAnalysis['language'] ?? null,
-            'document_classification' => $contentAnalysis['document_type'] ?? null,
+            'language' => $contentAnalysis->language,
+            'document_classification' => $contentAnalysis->document_type,
         ]);
 
-        $summary = app(Summarizer::class)->fromUrl($this->publicUrl);
+        $summary = app(Summarizer::class)->fromUrl($signedUrl);
 
         // Extract questions separately
         $questions = null;
-        if (isset($contentAnalysis['questions'])) {
-            $questions = is_array($contentAnalysis['questions'])
-                ? $contentAnalysis['questions']
-                : [$contentAnalysis['questions']];
+        if ($contentAnalysis->questions) {
+            $questions = is_array($contentAnalysis->questions)
+                ? $contentAnalysis->questions
+                : [$contentAnalysis->questions];
         }
 
         // Calculate LLM cost for summarization and analysis
         $costInCents = app(CostCalculator::class)->calculateCostInCents(
-            inputText: $this->publicUrl,
+            inputText: '',
             outputText: PromptLoader::load('file/describe').strip_tags($summary),
             pricePerInputMilToken: 2.0,
             pricePerOutputMilToken: 8.0,
@@ -85,14 +93,16 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'tokens' => TikToken::countTokens($summary),
             'embedding' => embed(strip_tags($summary), true),
             'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($summary)).", 'llmlingua2')"),
-            'metadata' => $contentAnalysis['metadata'],
+            'metadata' => $contentAnalysis->metadata->toArray(),
             'checksum' => md5($summary),
             'retrieval_count' => 0,
         ]);
+
+        $mistralFiles->delete($this->mistralFile->id);
     }
 
     public function uniqueId()
     {
-        return 'ingestion:summary:files:'.$this->source->id;
+        return 'ingestion:summary:files:'.$this->source::class.':'.$this->source->id;
     }
 }

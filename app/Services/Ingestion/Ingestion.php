@@ -2,8 +2,8 @@
 
 namespace App\Services\Ingestion;
 
-use App\Jobs\Ingestion\DocumentIngestionJob;
-use App\Jobs\Ingestion\MediaIngestionJob;
+use App\Jobs\Ingestion\Document\DocumentIngestionJob;
+use App\Jobs\Ingestion\Media\MediaIngestionJob;
 use App\Models\Agent;
 use App\Models\SourceFile;
 use Illuminate\Support\Facades\Bus;

@@ -39,10 +39,10 @@ class ChunkIngestionJob implements ShouldQueue
 
     public function __construct(
         public ChunkIngestionData $chunk,
-        public string $appendUserPrompt = '',
         public array $metadata = [],
         public array $chunkReference = [],
         public string $chunkSystemPrompt = '',
+        public string $chunkUserPrompt = '',
     ) {}
 
     public function handle(): void
@@ -115,14 +115,19 @@ class ChunkIngestionJob implements ShouldQueue
             ->append("\n".$describedTables)
             ->toString();
 
-        $userPrompt = PromptLoader::load('chunking/user');
+        $userPrompt = $this->chunkUserPrompt;
+
+        if (! $this->chunkUserPrompt) {
+            $userPrompt = PromptLoader::load('chunking/user');
+        }
+
         $userPrompt = template($userPrompt, [
             'text' => $chunkText,
             'previous_context' => $this->chunk->prev_chunk,
             'next_context' => $this->chunk->next_chunk,
-        ]).$this->appendUserPrompt;
+        ]);
 
-        $rawChunk = app(Chunker::class)->chunk($userPrompt, $this->chunkSystemPrompt);
+        $rawChunk = app(Chunker::class)->chunkDocument($userPrompt, $this->chunkSystemPrompt);
 
         // Extract summary and questions from XML tags
         $extractedData = $this->extractSummaryAndQuestions($rawChunk);

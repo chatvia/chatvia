@@ -50,6 +50,11 @@ class HTMLCleaner
         return $this->cleanText($this->domCrawler($html)->text());
     }
 
+    public function cleanHtml(string $html): string
+    {
+        return $this->cleanText($this->domCrawler($html)->html());
+    }
+
     private function cleanText(string $text): string
     {
         // Remove null bytes and control characters

@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Jobs\Crawler;
+namespace App\Jobs\Ingestion\Website;
 
-use App\Data\Ingestion\OCR\PageData;
+use App\Data\Ingestion\ChunkIngestionData;
 use App\Events\UrlIngestionEvent;
 use App\Jobs\Ingestion\ChunkIngestionJob;
 use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
 use App\Models\SourceWebsite;
-use App\Services\Chunking\Chunker;
 use App\Services\Prompts\PromptLoader;
 use App\Services\Tidy\HTMLCleaner;
+use App\Services\TikToken;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -43,7 +43,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
     {
         $response = Http::retry(3, 1000)->timeout(600)->get($this->websiteUrl->url)->throw();
 
-        $html = $parser->getTextFromHtml($response->body());
+        $html = $parser->cleanHtml($response->body());
         $checksum = md5($html);
 
         if ($checksum === $this->websiteUrl->checksum) {
@@ -60,16 +60,32 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
         $this->websiteUrl->chunks()->delete();
 
-        // One webpage = one chunk (no splitting)
-        $pageData = new PageData(
-            pageNumber: 0,
-            content: $html,
-        );
+        // Check if content is meaningful (at least 128 tokens)
+        $tokenCount = TikToken::countTokens($html);
 
-        $chunks = new Chunker(
-            agent: $this->agent,
-            chunkable: $this->websiteUrl,
-        )->createChunks(collect([$pageData]));
+        if ($tokenCount < 128) {
+            // Skip pages with too little content
+            $this->websiteUrl->update(['status' => 'ingested', 'checksum' => $checksum]);
+            UrlIngestionEvent::dispatch($this->websiteUrl, $this->agent->external_id);
+
+            return;
+        }
+
+        // One webpage = one chunk (no Chunker needed)
+        $chunk = ChunkIngestionData::from([
+            'agent_id' => $this->agent->id,
+            'chunkable_type' => $this->websiteUrl::class,
+            'chunkable_id' => $this->websiteUrl->id,
+            'chunk_index' => 1, // Single URL = single chunk, always index 1
+            'expected_chunks' => 1,
+            'chunk_text' => trim($html),
+            'chunk_images' => [],
+            'chunk_tables' => [],
+            'prev_chunk' => '',
+            'next_chunk' => '',
+        ]);
+
+        $chunks = collect([$chunk]);
 
         $this->websiteUrl->update([
             'checksum' => $checksum,

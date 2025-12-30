@@ -2,6 +2,7 @@
 
 namespace App\Services\Infrastructure\LLM\Operations;
 
+use App\Data\ContentAnalysis\ContentAnalysisData;
 use App\Services\Infrastructure\LLM\Mistral;
 use App\Services\Prompts\PromptLoader;
 use Exception;
@@ -12,7 +13,7 @@ class ContentAnalyzer
         public Mistral $provider
     ) {}
 
-    public function fromUrl(string $documentUrl)
+    public function fromUrl(string $documentUrl): ContentAnalysisData
     {
         $response = $this->provider->completion([
             'model' => 'mistral-large-latest',
@@ -48,10 +49,11 @@ class ContentAnalyzer
 
         $content = $response['choices'][0]['message']['content'];
 
-        return is_string($content)
+        $data = is_string($content)
             ? json_decode($content, true, 512, JSON_THROW_ON_ERROR)
             : $content;
 
+        return ContentAnalysisData::from($data);
     }
 
     private function fileAnalysisSchema(): array

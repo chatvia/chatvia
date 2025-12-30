@@ -64,6 +64,8 @@ return new class extends Migration
             $table->foreignIdFor(Language::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(ChatTopic::class)->nullable()->constrained()->nullOnDelete();
 
+            $table->boolean('visible')->index()->default(false);
+
             $table->string('title')->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
@@ -74,6 +76,9 @@ return new class extends Migration
 
             $table->timestamp('handoff_at')->nullable();
             $table->timestamp('last_activity_at')->nullable()->index();
+
+            $table->enum('deleted_by', ['user', 'admin'])->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['chat_session_id', 'created_at']);
@@ -95,7 +100,7 @@ return new class extends Migration
 
             $table->string('source')->nullable()->index();
 
-            $table->text('content');
+            $table->text('content')->nullable();
             $table->json('metadata')->nullable();
 
             $table->enum('role', ['user', 'assistant', 'agent'])->index();

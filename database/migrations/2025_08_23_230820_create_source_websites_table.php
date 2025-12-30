@@ -11,10 +11,12 @@ return new class extends Migration
     {
         Schema::create('source_websites', function (Blueprint $table) {
             $table->id();
+            $table->uuid('external_id')->index()->nullable();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
             $table->string('url');
+            $table->string('filepath')->unique()->nullable();
             $table->string('checksum')->index()->nullable();
             $table->jsonb('options')->nullable();
             $table->unsignedInteger('expected_chunks')->nullable();

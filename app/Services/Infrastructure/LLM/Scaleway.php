@@ -32,7 +32,7 @@ class Scaleway extends AbstractLLMProvider
      *
      * @return string The API key
      */
-    protected function getApiKey(): string
+    public function getApiKey(): string
     {
         return config('services.scalewayai.api_key');
     }
@@ -42,7 +42,7 @@ class Scaleway extends AbstractLLMProvider
      *
      * @return string The base URL
      */
-    protected function getBaseUrl(): string
+    public function getBaseUrl(): string
     {
         return 'https://api.scaleway.ai/ce82c941-d642-4fe0-94d7-b89bee83dd9d/v1';
     }

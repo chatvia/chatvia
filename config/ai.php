@@ -11,7 +11,7 @@ return [
         'tables' => 'gemma-3-27b-it',
 
         //        'chunker' => 'llama-3.1-70b-instruct',
-        'chunker' => 'gemma-3-27b-it',
+        'chunker' => 'llama-3.1-70b-instruct',
 
         'title' => 'llama-3.1-8b-instruct',
 

@@ -5,7 +5,9 @@ namespace App\Services\Infrastructure\LLM\Operations;
 use App\Contracts\LLMProviderInterface;
 use App\Data\Chunking\DocumentChunk;
 use App\Data\Ingestion\OCR\PageData;
+use App\Services\Infrastructure\LLM\Mistral;
 use App\Services\Prompts\PromptLoader;
+use App\Services\TikToken;
 use Illuminate\Support\Facades\Log;
 
 class Chunker
@@ -58,6 +60,63 @@ class Chunker
         );
 
         return DocumentChunk::from($data);
+    }
+
+    public function chunkHtml($html)
+    {
+        $systemPrompt = PromptLoader::load('chunking/web');
+
+        $userPrompt = PromptLoader::load('chunking/user-web');
+
+        $userPrompt = template($userPrompt, [
+            'html' => $html,
+        ]);
+
+        $res = app(Mistral::class)->completion([
+            'model' => 'mistral-large-latest',
+            'temperature' => 0.0,
+            'max_tokens' => 10000,
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => $systemPrompt,
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $userPrompt,
+                ],
+            ],
+        ])->throw();
+
+        return $this->parseHtmlChunks($res->json('choices.0.message.content'));
+
+        //        return DocumentChunk::from($data);
+    }
+
+    public function parseHtmlChunks(string $llmResponse): array
+    {
+        // Handle empty response
+        if (empty(trim($llmResponse)) || trim($llmResponse) === '""') {
+            return [];
+        }
+
+        $chunks = [];
+
+        // Match all <Chunk>...</Chunk> blocks (case-insensitive, handles multiline)
+        $pattern = '/<Chunk>(.*?)<\/Chunk>/si';
+
+        if (preg_match_all($pattern, $llmResponse, $matches)) {
+            foreach ($matches[1] as $content) {
+                $trimmed = trim($content);
+
+                // Only add non-empty chunks
+                if (! empty($trimmed) && TikToken::countTokens($trimmed) >= 128) {
+                    $chunks[] = $trimmed;
+                }
+            }
+        }
+
+        return $chunks;
     }
 
     public function calculateCost($input, $output)

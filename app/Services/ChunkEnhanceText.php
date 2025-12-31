@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class ChunkEnhanceText
 {
-    public function enhanceText(Chunk $chunk, PageData $page, ?PageData $previousPage, ?PageData $nextPage): void
+    public function enhanceText(Chunk $chunk, PageData $page, ?PageData $previousPage = null, ?PageData $nextPage = null): void
     {
         $enhancedChunk = app(Chunker::class)->chunkDocument(
             page: $page,

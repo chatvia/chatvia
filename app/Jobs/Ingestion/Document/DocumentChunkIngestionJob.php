@@ -66,11 +66,13 @@ class DocumentChunkIngestionJob implements ShouldQueue
             'retrieval_count' => 0,
         ]);
 
+        $this->sourceFile->refresh();
+
         FileIngestionProgressEvent::dispatch(
             $this->sourceFile,
             $this->agent->external_id
         );
 
-        DocumentEnhanceChunkJob::dispatch($this->agent, $this->sourceFile, $chunk, $this->page, $this->previousPage, $this->nextPage);
+        DocumentEnhanceChunkJob::dispatchIf(config('ai.chunker.enhance'), $this->agent, $this->sourceFile, $chunk, $this->page, $this->previousPage, $this->nextPage);
     }
 }

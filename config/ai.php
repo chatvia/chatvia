@@ -36,4 +36,8 @@ return [
         'chunker_output_per_million_tokens' => 0.90,
         'embedding_output_per_million_tokens' => 0.90,
     ],
+
+    'chunker' => [
+        'enhance' => false,
+    ],
 ];

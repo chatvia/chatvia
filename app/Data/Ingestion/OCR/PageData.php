@@ -11,6 +11,7 @@ class PageData extends Data
         public int $pageNumber,
         public string $content,
         public string $checksum,
+        public int $tokens = 0,
         public array $imagesBase64 = [],
         public array $imagePaths = [],
         public array $tables = [],

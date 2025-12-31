@@ -23,7 +23,10 @@ class TextSplitter
         // Base case: text fits in chunk size
         if (mb_strlen($text, 'UTF-8') <= $this->chunkSize) {
             if (trim($text) !== '') {
-                $chunks[] = trim($text);
+                $chunks[] = [
+                    'chunk' => trim($text),
+                    'tokens' => TikToken::countTokens($text),
+                ];
             }
 
             return;
@@ -33,7 +36,10 @@ class TextSplitter
         if ($separatorIndex >= count($this->separators)) {
             foreach ($this->mbStrSplit($text, $this->chunkSize) as $part) {
                 if (trim($part) !== '') {
-                    $chunks[] = trim($part);
+                    $chunks[] = [
+                        'chunk' => trim($part),
+                        'tokens' => TikToken::countTokens($part),
+                    ];
                 }
             }
 

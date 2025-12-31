@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
 
+            $table->string('filepath');
+
             $table->text('excerpt');
 
             $table->unsignedInteger('length')->default(0)->comment('This is the number of pages not characters in the text');

@@ -61,14 +61,6 @@ class RecursiveCharacterTextSplitter
     }
 
     /**
-     * Get the minimum chunk size in tokens.
-     */
-    public function getMinChunkSize(): int
-    {
-        return 128;
-    }
-
-    /**
      * Find the most appropriate separator to use between two chunks.
      */
     private function findAppropriateSeparator(string $chunk1, string $chunk2): string

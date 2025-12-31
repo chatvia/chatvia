@@ -54,5 +54,6 @@ class AgentKnowledgeTextStoreController
         $agent->texts()->attach($agentText->id);
 
         $agentText->startTraining($agent);
+
     }
 }

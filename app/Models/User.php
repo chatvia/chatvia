@@ -289,24 +289,52 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function pagesConsumed(): int
     {
-        // Get unique files (avoid counting duplicates when file is linked to multiple agents)
-        return $this
-            ->agentFiles()
-            ->whereIn('source_files.filetype', ['pdf', 'word', 'markdown', 'text'])
-            ->groupBy('source_files.id', 'source_files.length')
-            ->pluck('source_files.length')
-            ->sum();
+        $effectiveUserId = $this->effectiveUser()->id;
+
+        // Get unique SourceFiles (avoid counting duplicates when file is linked to multiple agents)
+        $sourceFilesPages = SourceFile::query()
+            ->whereIn('id', function ($query) use ($effectiveUserId) {
+                $query->select('agent_sources.sourceable_id')
+                    ->from('agent_sources')
+                    ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
+                    ->where('agents.user_id', $effectiveUserId)
+                    ->where('agent_sources.sourceable_type', '=', SourceFile::class)
+                    ->distinct();
+            })
+            ->whereIn('filetype', ['pdf', 'word', 'markdown', 'text'])
+            ->sum('length');
+
+        // Get unique SourceTexts (avoid counting duplicates when text is linked to multiple agents)
+        $sourceTextsPages = SourceText::query()
+            ->whereIn('id', function ($query) use ($effectiveUserId) {
+                $query->select('agent_sources.sourceable_id')
+                    ->from('agent_sources')
+                    ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
+                    ->where('agents.user_id', $effectiveUserId)
+                    ->where('agent_sources.sourceable_type', '=', SourceText::class)
+                    ->distinct();
+            })
+            ->sum('length');
+
+        return (int) ($sourceFilesPages + $sourceTextsPages);
     }
 
     public function minutesConsumed(): int
     {
-        // Get unique files (avoid counting duplicates when file is linked to multiple agents)
-        return $this
-            ->agentFiles()
-            ->whereIn('source_files.filetype', ['audio', 'video'])
-            ->groupBy('source_files.id', 'source_files.length')
-            ->pluck('source_files.length')
-            ->sum();
+        $effectiveUserId = $this->effectiveUser()->id;
+
+        // Get unique SourceFiles (avoid counting duplicates when file is linked to multiple agents)
+        return (int) SourceFile::query()
+            ->whereIn('id', function ($query) use ($effectiveUserId) {
+                $query->select('agent_sources.sourceable_id')
+                    ->from('agent_sources')
+                    ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
+                    ->where('agents.user_id', $effectiveUserId)
+                    ->where('agent_sources.sourceable_type', '=', SourceFile::class)
+                    ->distinct();
+            })
+            ->whereIn('filetype', ['audio', 'video'])
+            ->sum('length');
     }
 
     public function linksConsumed(): int

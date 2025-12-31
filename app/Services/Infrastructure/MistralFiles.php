@@ -6,6 +6,7 @@ use App\Data\Mistral\MistralFileDeleteResponse;
 use App\Data\Mistral\MistralFileResponse;
 use App\Data\Mistral\MistralFileSignedUrlResponse;
 use App\Services\Infrastructure\LLM\Mistral;
+use Illuminate\Support\Facades\Http;
 
 class MistralFiles
 {
@@ -22,14 +23,17 @@ class MistralFiles
     {
         $url = $this->mistral->getBaseUrl().'/files';
 
-        $response = $this->mistral->client()
+        $response = Http::withToken(config('services.mistral.api_key'))
             ->attach(
-                name: 'file',
-                contents: file_get_contents($filePath),
+                'file',
+                file_get_contents($filePath),
+                basename($filePath)
             )
-            ->post($url, [
-                'purpose' => 'ocr',
-            ])
+            ->attach(
+                'purpose',
+                'ocr'
+            )
+            ->post($url)
             ->throw();
 
         return MistralFileResponse::from($response->json());

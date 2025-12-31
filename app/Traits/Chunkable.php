@@ -13,7 +13,7 @@ trait Chunkable
 {
     public function chunks(): MorphMany
     {
-        return $this->morphMany(Chunk::class, 'chunkable');
+        return $this->morphMany(Chunk::class, 'chunkable')->whereNot('chunk_index', 0);
     }
 
     public function agents(): BelongsToMany
@@ -40,7 +40,13 @@ trait Chunkable
 
         $importedChunks = $this->chunks()->count();
 
-        return round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
+        $progress = round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
+
+        if ((int) $progress === 100 && $this->status !== 'ingested') {
+            $this->update(['status' => 'ingested']);
+        }
+
+        return $progress;
     }
 
     public function summary(): MorphOne

@@ -51,15 +51,15 @@ class LibreOffice
         }
     }
 
-    public function convert(string $filepath, string $format): string
+    public function convert(string $filepathToConvert, string $format): string
     {
-        $this->validateInputFile($filepath);
+        $this->validateInputFile($filepathToConvert);
 
         $this->validateFormat($format);
 
-        $fileInfo = pathinfo($filepath);
+        $fileInfo = pathinfo($filepathToConvert);
 
-        $command = $this->buildConvertCommand($filepath, $format);
+        $command = $this->buildConvertCommand($filepathToConvert, $format);
 
         $result = Process::timeout($this->timeout)
             ->env($this->getLibreOfficeEnv())

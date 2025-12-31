@@ -69,7 +69,7 @@ class MistralOCR implements DocumentOCRInterface
             return new PageData(
                 pageNumber: $pageNumber,
                 content: $text,
-                checksum: md5($text),
+                checksum: hash('xxh128', $text),
                 imagesBase64: $images,
                 tables: $tables,
                 hyperlinks: $page['hyperlinks'] ?? [],

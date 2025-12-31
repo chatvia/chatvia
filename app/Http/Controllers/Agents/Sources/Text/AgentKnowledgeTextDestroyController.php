@@ -31,5 +31,7 @@ class AgentKnowledgeTextDestroyController
 
         // Delete the text if it's not used in any other agents
         $text->delete();
+
+        $text->chunks()->delete();
     }
 }

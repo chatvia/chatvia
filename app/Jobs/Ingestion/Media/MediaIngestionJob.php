@@ -2,18 +2,13 @@
 
 namespace App\Jobs\Ingestion\Media;
 
-use App\Data\Ingestion\ChunkIngestionData;
 use App\Data\Ingestion\OCR\PageData;
-use App\Events\FileIngestionProgressEvent;
-use App\Jobs\Ingestion\ChunkIngestionJob;
 use App\Jobs\Ingestion\SummaryIngestionJob;
 use App\Models\Agent;
 use App\Models\SourceFile;
-use App\Services\Chunking\Chunker;
 use App\Services\Infrastructure\LLM\Operations\Transcription;
 use App\Services\Media\AudioCompressor;
-use App\Services\Splitters\RecursiveCharacterTextSplitter;
-use App\Services\TikToken;
+use App\Services\TokenSplitter;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -22,6 +17,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -48,7 +44,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         }
     }
 
-    public function handle(AudioCompressor $audioCompressor, RecursiveCharacterTextSplitter $splitter): void
+    public function handle(AudioCompressor $audioCompressor, TokenSplitter $splitter): void
     {
         if ($this->batch()?->cancelled()) {
             return;
@@ -58,97 +54,65 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
+        $startTime = microtime(true);
+
         $updateValues = [
             'internal_ingestion_job_id' => $this->job->getJobId(),
             'parser' => 'whisper',
+            'status' => 'ingesting',
         ];
+
+        $this->sourceFile->update($updateValues);
 
         if ($this->sourceFile->parser_filepath) {
             $file = $this->sourceFile->readFile();
             $transcription = $file->getContent();
         } else {
             $file = $this->sourceFile->readFile();
-            $compressedFilePath = $audioCompressor->process($file->getPathname());
 
-            $transcription = app(Transcription::class)->transcribe($compressedFilePath);
+            $transcription = Cache::remember('ingestion:media:transcription:file:'.$this->sourceFile->checksum, now()->addMonth(), function () use ($audioCompressor, $file) {
+                $compressedFilePath = $audioCompressor->process($file->getPathname());
+
+                return app(Transcription::class)->transcribe($compressedFilePath);
+            });
 
             $filePath = 'agents/'.$this->agent->id.'/audio/'.Str::uuid()->toString().'.txt';
 
             Storage::put($filePath, $transcription);
 
-            $this->sourceFile->update([
-                'parser_filepath' => $filePath,
-            ]);
+            $this->sourceFile->update(['parser_filepath' => $filePath]);
         }
-
-        $this->sourceFile->refresh();
 
         if (empty($transcription)) {
             throw new RuntimeException('No valid pages data available for chunking');
         }
 
-        // Split transcription if it's too large
-        if (TikToken::countTokens($transcription) <= 1000) {
-            $pages = collect([
-                new PageData(pageNumber: 0, content: $transcription),
-            ]);
-        } else {
-            $pages = collect($splitter->splitText($transcription))
-                ->map(function ($text) {
-                    return new PageData(
-                        pageNumber: 0,
-                        content: $text,
-                    );
-                });
-        }
-
-        $chunker = new Chunker(
-            agent: $this->agent,
-            chunkable: $this->sourceFile,
-        );
-
-        $chunks = $chunker->createChunks($pages);
-
-        $updateValues['expected_chunks'] = $chunks->count();
-
-        $this->sourceFile->update($updateValues);
-
         $this->sourceFile->refresh();
 
-        dispatch(
-            new SummaryIngestionJob(
-                $this->sourceFile,
-                route('external.source.files.view', [
-                    'type' => 'file',
-                    'externalId' => $this->sourceFile->external_id,
-                ]),
-            )
-        );
+        dispatch(new SummaryIngestionJob($this->sourceFile));
 
-        $agentFileId = $this->sourceFile->id;
+        $texts = collect($splitter->split($transcription));
 
-        $jobs = $chunks->map(function (ChunkIngestionData $chunk) {
-            return new ChunkIngestionJob($chunk);
-        });
+        $jobs = collect($texts)->map(fn (PageData $page) => new MediaChunkIngestionJob($this->agent, $this->sourceFile, $page));
+
+        $agentFileId = $this->agent->id;
 
         $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent File ID: '.$agentFileId)
+            ->name('Ingestion Agent File ID: '.$this->agent->id)
             ->then(function (Batch $batch) use ($agentFileId) {
                 $file = SourceFile::find($agentFileId);
                 $file?->update(['status' => 'ingested']);
-
-                // Dispatch final progress event for all agents using this file
-                if ($file) {
-                    foreach ($file->agents as $agent) {
-                        FileIngestionProgressEvent::dispatch($file, $agent->external_id);
-                    }
-                }
             })
             ->dispatch();
 
-        // Update batch ID after dispatch
+        $endTime = microtime(true);
+
+        $tookInSeconds = ceil($endTime - $startTime);
+
         $this->sourceFile->update([
-            'internal_chunking_batch_id' => $batch->id,
+            'expected_chunks' => count($texts),
+            'internal_ingestion_job_id' => $batch->id,
+            'took_in_seconds' => $tookInSeconds,
         ]);
     }
 

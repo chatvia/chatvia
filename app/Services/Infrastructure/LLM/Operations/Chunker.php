@@ -23,7 +23,7 @@ class Chunker
         $userPrompt = template($userPrompt, [
             'previous_page' => $prevPage?->content,
             'target_page' => $page->content,
-            'next_page' => $nextPage->content,
+            'next_page' => $nextPage?->content,
         ]);
 
         $res = $this->provider->completion([

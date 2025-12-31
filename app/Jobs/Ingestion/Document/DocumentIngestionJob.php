@@ -4,6 +4,7 @@ namespace App\Jobs\Ingestion\Document;
 
 use App\Contracts\DocumentOCRInterface;
 use App\Data\Ingestion\OCR\PageData;
+use App\Jobs\Ingestion\SummaryIngestionJob;
 use App\Models\Agent;
 use App\Models\SourceFile;
 use App\Services\Infrastructure\MistralFiles;
@@ -103,13 +104,7 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
             );
         });
 
-        // Upload file to Mistral for summary generation
-        //        $mistralFile = $mistralFiles->upload($filePath);
-
-        //        SummaryIngestionJob::dispatch(
-        //            $this->sourceFile,
-        //            $mistralFile,
-        //        );
+        SummaryIngestionJob::dispatch($this->sourceFile);
 
         $this->sourceFile->update([
             'status' => 'ingesting',

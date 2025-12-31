@@ -8,6 +8,7 @@ use App\Events\WebsiteCrawlerEvent;
 use App\Jobs\Crawler\WebsiteCrawlerJob;
 use App\Jobs\Ingestion\Website\WebsiteIngestionJob;
 use App\Traits\Chunkable;
+use App\Traits\HasStorageFile;
 use App\Traits\SupportsExternalId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class SourceWebsite extends Model implements ChunkableContract
 {
-    use Chunkable, SupportsExternalId;
+    use Chunkable, HasStorageFile, SupportsExternalId;
 
     protected $guarded = ['id'];
 

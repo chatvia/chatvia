@@ -2,10 +2,11 @@
 
 namespace App\Jobs\Ingestion;
 
-use App\Contracts\ChunkableContract;
 use App\Contracts\EmbeddingsProviderInterface;
-use App\Data\Mistral\MistralFileResponse;
 use App\Models\Chunk;
+use App\Models\SourceFile;
+use App\Models\SourceText;
+use App\Models\SourceWebsite;
 use App\Services\Infrastructure\LLM\Operations\ContentAnalyzer;
 use App\Services\Infrastructure\LLM\Operations\CostCalculator;
 use App\Services\Infrastructure\LLM\Operations\Summarizer;
@@ -18,6 +19,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\File\File;
 
 class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 {
@@ -28,13 +31,12 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
     public int $timeout = 1800;
 
     public function __construct(
-        public ChunkableContract $source,
-        public MistralFileResponse $mistralFile,
+        public SourceFile|SourceText|SourceWebsite $source,
     ) {
         $this->onQueue('ingestion.summary');
     }
 
-    public function handle(MistralFiles $mistralFiles): void
+    public function handle(): void
     {
         if ($this->batch()?->cancelled()) {
             return;
@@ -45,17 +47,17 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
         }
 
         // Get signed URL if Mistral file is provided, otherwise use public URL
-        $signedUrlResponse = $mistralFiles->signUrl($this->mistralFile->id);
-        $signedUrl = $signedUrlResponse->url;
+        $pdfFilepath = $this->source->toPdf();
+        $pdfFileUrl = Storage::temporaryUrl($pdfFilepath, now()->addDay());
 
-        $contentAnalysis = app(ContentAnalyzer::class)->fromUrl($signedUrl);
+        $contentAnalysis = app(ContentAnalyzer::class)->fromUrl($pdfFileUrl);
 
         $this->source->update([
             'language' => $contentAnalysis->language,
             'document_classification' => $contentAnalysis->document_type,
         ]);
 
-        $summary = app(Summarizer::class)->fromUrl($signedUrl);
+        $summary = app(Summarizer::class)->fromUrl($pdfFileUrl);
 
         // Extract questions separately
         $questions = null;
@@ -94,11 +96,11 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'embedding' => embed(strip_tags($summary), true),
             'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($summary)).", 'llmlingua2')"),
             'metadata' => $contentAnalysis->metadata->toArray(),
-            'checksum' => md5($summary),
+            'checksum' => hash('xxh128', $summary),
             'retrieval_count' => 0,
         ]);
 
-        $mistralFiles->delete($this->mistralFile->id);
+        Storage::delete($pdfFilepath);
     }
 
     public function uniqueId()

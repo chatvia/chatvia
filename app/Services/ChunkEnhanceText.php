@@ -12,6 +12,11 @@ class ChunkEnhanceText
 {
     public function enhanceText(Chunk $chunk, PageData $page, ?PageData $previousPage = null, ?PageData $nextPage = null): void
     {
+        if ($chunk->enhanced) {
+            return ;
+        }
+
+
         $enhancedChunk = app(Chunker::class)->chunkDocument(
             page: $page,
             prevPage: $previousPage,
@@ -43,6 +48,7 @@ class ChunkEnhanceText
             'cost' => $costInCents,
             'summary' => $summary,
             'questions' => $questions,
+            'enhanced' => true,
         ]);
     }
 }

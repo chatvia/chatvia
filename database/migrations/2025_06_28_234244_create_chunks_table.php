@@ -22,7 +22,7 @@ return new class extends Migration
 
             $table->unsignedInteger('chunk_index');
             $table->text('chunk');
-            $table->text('original_chunk')->nullable();
+            $table->boolean('enhanced')->default(false);
             $table->string('chunked_using_model')->nullable();
             $table->string('embedding_model')->nullable();
             $table->json('questions')->nullable()->after('chunk');

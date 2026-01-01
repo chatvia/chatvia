@@ -40,6 +40,10 @@ class DocumentEnhanceChunkJob implements ShouldQueue
 
     public function handle(): void
     {
+        if ($this->chunk->enhanced) {
+            return ;
+        }
+
         // Describe and Save Images associated with the page
         $describedImages = [];
         foreach ($this->page->imagesBase64 as $imageBase64) {
@@ -74,8 +78,6 @@ class DocumentEnhanceChunkJob implements ShouldQueue
 
         $summary = $enhancedChunk->summary;
         $questions = $enhancedChunk->questions;
-
-        $tokens = TikToken::countTokens($this->page->content);
 
         // Build embedding content with summary and questions
         $embeddingContent = $this->page->content."\n";

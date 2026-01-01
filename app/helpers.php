@@ -271,3 +271,10 @@ if (! function_exists('host_config')) {
         return $config;
     }
 }
+
+if (! function_exists('checksum')) {
+    function checksum(string $text): string
+    {
+        return hash('xxh128', $text);
+    }
+}

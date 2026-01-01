@@ -89,8 +89,6 @@ class Chunker
         ])->throw();
 
         return $this->parseHtmlChunks($res->json('choices.0.message.content'));
-
-        //        return DocumentChunk::from($data);
     }
 
     public function parseHtmlChunks(string $llmResponse): array

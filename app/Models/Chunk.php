@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\Ingestion\OCR\PageData;
 use App\QueryBuilders\ChunkQueryBuilder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -76,5 +77,42 @@ class Chunk extends Model
             'id',            // Local key on Chunk
             'referenceable_id' // Local key on ChunkReference
         )->where('chunk_references.referenceable_type', AgentWebsiteUrl::class);
+    }
+
+    public function page(): array
+    {
+        $page = new PageData(
+            pageNumber: $this->chunk_index,
+            content: $this->chunk,
+            checksum: $this->checksum,
+        );
+
+        $nextId = $this->chunk_index + 1;
+        $prevId = $this->chunk_index - 1;
+
+        $chunks = Chunk::query()
+            ->select('chunk', 'checksum', 'chunk_index')
+            ->where('chunkable_type', $this->chunkable_type)
+            ->where('chunkable_id', $this->chunkable_id)
+            ->whereIn('chunk_index', [$nextId, $prevId])
+            ->get();
+
+        $next = $chunks->where('chunk_index', $nextId)->first();
+
+        if ($next) {
+            $next = PageData::fromChunkModel($next);
+        }
+
+        $prev = $chunks->where('chunk_index', $prevId)->first();
+
+        if ($prev) {
+            $prev = PageData::fromChunkModel($prev);
+        }
+
+        return [
+            'page' => $page,
+            'previous' => $prev,
+            'next' => $next,
+        ];
     }
 }

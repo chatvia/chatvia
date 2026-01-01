@@ -41,7 +41,6 @@ import { Switch } from '@/components/ui/switch';
 
 import AttachWebsiteDialog from '@/components/ui/AttachWebsiteDialog.vue';
 import InfoBanner from '@/components/ui/InfoBanner.vue';
-import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { useEcho } from '@laravel/echo-vue';
 
@@ -58,7 +57,6 @@ interface WebSource {
     error_message?: string;
     discovered_links?: DiscoveredLink[];
     urls_count?: number;
-    progress?: number;
     agents_count?: number;
     options?: {
         include_paths?: string;
@@ -92,11 +90,6 @@ useEcho(`agents.${props.agent.external_id}.crawler`, 'WebsiteCrawlerEvent', (e) 
 // WebSocket event listener for URL ingestion status updates
 useEcho(`agents.${props.agent.external_id}.web.ingestion.url`, 'UrlIngestionEvent', (e) => {
     handleUrlIngestionUpdate(e);
-});
-
-// WebSocket event listener for website ingestion progress updates
-useEcho(`agents.${props.agent.external_id}.crawler.progress`, 'WebsiteIngestionProgressEvent', (e) => {
-    handleWebsiteIngestionProgress(e);
 });
 
 // State
@@ -180,6 +173,7 @@ const isDeletingSource = ref(false);
 // Retrain dialog state
 const retrainDialogOpen = ref(false);
 const websiteToRetrain = ref<WebSource | null>(null);
+
 
 // Attach website dialog state
 const attachWebsiteDialogOpen = ref(false);
@@ -535,7 +529,6 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
                 status: website.status,
                 created_at: website.created_at,
                 urls_count: website.urls_count || 0,
-                progress: website.progress ?? 0,
                 agents_count: website.agents_count || 0,
                 options: website.options || {},
                 // Preserve discovered_links if they exist
@@ -955,34 +948,6 @@ const handleUrlIngestionUpdate = (event: any) => {
         case 'failed':
             toast.error('Link training failed');
             break;
-    }
-};
-
-// Handle website ingestion progress updates
-const handleWebsiteIngestionProgress = (event: any) => {
-    const { website_id, progress } = event;
-
-    console.log('WebsiteIngestionProgressEvent received:', { website_id, progress });
-
-    if (!website_id || progress === undefined) {
-        console.warn('Missing website_id or progress in WebsiteIngestionProgressEvent', event);
-        return;
-    }
-
-    // Find the website and update its progress
-    const sourceIndex = webSources.value.findIndex((source) => source.id === website_id);
-
-    console.log('Found source at index:', sourceIndex, 'Current sources:', webSources.value.length);
-
-    if (sourceIndex !== -1) {
-        // Create a new array with the updated source for reactivity
-        const updatedSources = [...webSources.value];
-        updatedSources[sourceIndex] = {
-            ...updatedSources[sourceIndex],
-            progress,
-        };
-        webSources.value = updatedSources;
-        console.log('Updated source progress to:', progress);
     }
 };
 
@@ -2431,8 +2396,11 @@ onUnmounted(() => {
                                                 <span> Added {{ formatDate(source.created_at) }} </span>
                                             </div>
 
-                                            <!-- Progress Bar -->
-                                            <IngestionProgressBar v-if="source.status === 'ingesting'" :progress="source.progress ?? 0" />
+                                            <!-- Loading indicator -->
+                                            <div v-if="source.status === 'ingesting'" class="mt-2 flex items-center gap-2 text-blue-600">
+                                                <LoaderCircle class="h-3.5 w-3.5 animate-spin" />
+                                                <span class="text-xs">Training in progress...</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Data\Ingestion\OCR;
 
+use App\Models\Chunk;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 
@@ -23,5 +24,14 @@ class PageData extends Data
         $pages = json_decode($json, true);
 
         return collect($pages)->map(fn ($page) => new PageData(...$page));
+    }
+
+    public static function fromChunkModel(Chunk $chunk): static
+    {
+        return new static(
+            pageNumber: $chunk->chunk_index,
+            content: $chunk->chunk,
+            checksum: $chunk->checksum,
+        );
     }
 }

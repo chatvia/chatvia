@@ -38,6 +38,6 @@ return [
     ],
 
     'chunker' => [
-        'enhance' => false,
+        'enhance' => env('CHUNKER_ENHANCE', false),
     ],
 ];

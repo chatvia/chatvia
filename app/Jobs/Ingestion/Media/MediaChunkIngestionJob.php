@@ -70,7 +70,7 @@ class MediaChunkIngestionJob implements ShouldBeUnique, ShouldQueue
 
         FileIngestionProgressEvent::dispatch($this->sourceFile, $this->agent->external_id);
 
-        TextEnhanceChunkJob::dispatchIf(config('ai.chunker.enhance'),
+        TextEnhanceChunkJob::dispatchIf(config('ai.chunker.enhance') === true,
             $this->agent,
             $this->sourceFile,
             $chunk,

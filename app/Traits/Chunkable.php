@@ -40,13 +40,7 @@ trait Chunkable
 
         $importedChunks = $this->chunks()->count();
 
-        $progress = round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
-
-        if ((int) $progress === 100 && $this->status !== 'ingested') {
-            $this->update(['status' => 'ingested']);
-        }
-
-        return $progress;
+        return round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
     }
 
     public function summary(): MorphOne

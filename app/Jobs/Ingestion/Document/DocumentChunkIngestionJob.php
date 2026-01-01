@@ -73,6 +73,6 @@ class DocumentChunkIngestionJob implements ShouldQueue
             $this->agent->external_id
         );
 
-        DocumentEnhanceChunkJob::dispatchIf(config('ai.chunker.enhance'), $this->agent, $this->sourceFile, $chunk, $this->page, $this->previousPage, $this->nextPage);
+        DocumentEnhanceChunkJob::dispatchIf(config('ai.chunker.enhance') === true, $this->agent, $this->sourceFile, $chunk, $this->page, $this->previousPage, $this->nextPage);
     }
 }

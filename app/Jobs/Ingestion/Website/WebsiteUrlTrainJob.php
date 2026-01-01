@@ -4,6 +4,7 @@ namespace App\Jobs\Ingestion\Website;
 
 use App\Contracts\EmbeddingsProviderInterface;
 use App\Events\UrlIngestionEvent;
+use App\Events\WebsiteIngestionProgressEvent;
 use App\Models\Agent;
 use App\Models\AgentWebsiteUrl;
 use App\Models\Chunk;
@@ -18,8 +19,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 {
@@ -42,16 +45,19 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
             ->throw();
 
         $text = $parser->getTextFromHtml($response->body());
-        $checksum = hash('xxh128', $text);
 
-        if ($checksum === $this->websiteUrl->checksum) {
+        $checksum = hash('sha256', $text);
+
+        if ($this->websiteUrl->checksum === $checksum) {
             $this->websiteUrl->update(['status' => 'ingested']);
             UrlIngestionEvent::dispatch($this->websiteUrl, $this->agent->external_id);
 
             return;
         }
 
-        $chunks = $chunker->chunkHtml($text);
+        $chunks = Cache::remember('ingestion:website:chunks:'.$this->websiteUrl->id, now()->addDay(), function () use ($chunker, $text) {
+            return $chunker->chunkHtml($text);
+        });
 
         /** @var SourceWebsite $website */
         $website = $this->websiteUrl->agentWebsite;
@@ -73,7 +79,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
                 'embedding' => embed($chunk, true),
                 'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($chunk).", 'llmlingua2')"),
                 'metadata' => [],
-                'checksum' => hash('xxh128', $chunk),
+                'checksum' => hash('sha256', $chunk),
                 'retrieval_count' => 0,
             ]);
 
@@ -82,18 +88,25 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
                 'referenceable_id' => $this->websiteUrl->id,
             ]);
 
-            WebsiteUrlEnhanceJob::dispatch($this->agent, $this->websiteUrl, $chunkModel);
+            WebsiteUrlEnhanceJob::dispatchIf(config('ai.chunker.enhance') === true, $this->agent, $this->websiteUrl, $chunkModel);
+
+            $website->refresh();
+
+            WebsiteIngestionProgressEvent::dispatch($website, $this->agent->external_id);
         }
 
         $website->increment('expected_chunks', count($chunks));
 
         $this->websiteUrl->update(['status' => 'ingested']);
 
+        $website->refresh();
+
         UrlIngestionEvent::dispatch($this->websiteUrl, $this->agent->external_id);
+        WebsiteIngestionProgressEvent::dispatch($website, $this->agent->external_id);
     }
 
     public function uniqueId(): string
     {
-        return 'agents:'.$this->agent->id.':website-url:'.$this->websiteUrl->id.':train';
+        return 'agents:'.$this->agent->id.':websites:url:'.$this->websiteUrl->url.':train:';
     }
 }

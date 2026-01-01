@@ -93,8 +93,12 @@ readonly class ConversationManager
         $conversation = ChatConversation::where('external_id', $conversationId)->first();
         $conversation->messages()->update([
             'content' => null,
-            'deleted_by' => $deletedBy,
         ]);
+
+        if ($deletedBy) {
+            $conversation->update(['deleted_by' => $deletedBy]);
+        }
+
         $conversation->delete();
 
         // Clear conversation from cache

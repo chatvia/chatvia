@@ -111,7 +111,7 @@ class ChatMemory implements ChatMemoryInterface
 
         $this->ensureInitialized();
 
-        $this->conversationManager->deleteConversation($this->conversationId, ?$deletedBy = null);
+        $this->conversationManager->deleteConversation($this->conversationId, $deletedBy);
     }
 
     /**

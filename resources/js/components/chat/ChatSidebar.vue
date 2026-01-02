@@ -227,7 +227,11 @@ const deleteAllConversations = async () => {
         await axios.delete(route('conversations.delete.all'));
 
         // After clearing all conversations, redirect to chat home
-        router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }));
+        router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }), {
+            preserveState: false,
+            preserveScroll: false,
+            replace: true,
+        });
     } catch (error) {
         console.error('Failed to delete all conversations:', error);
     }
@@ -318,7 +322,11 @@ const deleteConversation = async () => {
 
         if (currentRoute === props.newChatRoute && currentConversationId === deletedConversationId) {
             // Redirect to chat home if we deleted the current conversation
-            router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }));
+            router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }), {
+                preserveState: false,
+                preserveScroll: false,
+                replace: true,
+            });
         }
     } catch (error) {
         console.error('Failed to delete conversation:', error);

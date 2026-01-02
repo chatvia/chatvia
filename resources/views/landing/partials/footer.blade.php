@@ -25,8 +25,6 @@
                     href="{{ route('privacy') }}">Privacy</a>
                 <a class="text-sm font-medium text-slate-500 hover:text-blue-600 transition duration-150 ease-in-out"
                     href="{{ route('refund') }}">Refund Policy</a>
-                <a class="text-sm font-medium text-slate-500 hover:text-blue-600 transition duration-150 ease-in-out"
-                    href="{{ route('changelog') }}">Changelog</a>
             </div>
 
         </div>

@@ -102,8 +102,18 @@ async function deleteConversation() {
         toast.success('Conversation deleted successfully');
         showDeleteConversationDialog.value = false;
 
+        // Clear the current conversation state before redirecting
+        currentConversationId.value = null;
+        messagesData.value = null;
+        lead.value = null;
+
         // Redirect to logs page without conversation selected
-        router.visit(route('agents.logs', { agent: agent.value.external_id }));
+        // Use replace: true to replace history and preserveState: false to clear state
+        router.visit(route('agents.logs', { agent: agent.value.external_id }), {
+            preserveState: false,
+            preserveScroll: false,
+            replace: true,
+        });
     } catch (error: any) {
         console.error('Failed to delete conversation:', error);
         toast.error('Failed to delete conversation', {

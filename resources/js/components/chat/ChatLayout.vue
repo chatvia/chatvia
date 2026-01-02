@@ -148,7 +148,11 @@ onMounted(async () => {
 const deleteConversation = (conversationId: string) => {
     axios.delete(route('conversations.delete', { conversationId })).then(() => {
         if (availableModels.value.length > 0) {
-            router.visit(route(props.newChatRoute, { model: availableModels.value[0].id }));
+            router.visit(route(props.newChatRoute, { model: availableModels.value[0].id }), {
+                preserveState: false,
+                preserveScroll: false,
+                replace: true,
+            });
         }
     });
 };

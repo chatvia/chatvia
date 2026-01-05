@@ -67,7 +67,7 @@ readonly class WidgetHandoffRequestController
 
         // Broadcast the pending status (admin dashboard can listen to this)
         ChatHandoffEvent::dispatch(
-            $conversation->id,
+            $conversation->external_id,
             'pending',
             null,
             null,

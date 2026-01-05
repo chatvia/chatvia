@@ -29,7 +29,7 @@ class HandoffService
         ]);
 
         ChatHandoffEvent::dispatch(
-            $conversation->id,
+            $conversation->external_id,
             'human',
             (string) $admin->id,
             $admin->name,
@@ -54,7 +54,7 @@ class HandoffService
         ]);
 
         ChatHandoffEvent::dispatch(
-            $conversation->id,
+            $conversation->external_id,
             'returned',
             (string) $admin->id,
             $admin->name,
@@ -121,7 +121,7 @@ class HandoffService
 
         // Broadcast the message
         ChatMessageEvent::dispatch(
-            $conversation->id,
+            $conversation->external_id,
             $messageId,
             $content,
             'agent',
@@ -186,7 +186,7 @@ class HandoffService
 
         // Broadcast the message to admin
         ChatMessageEvent::dispatch(
-            $conversation->id,
+            $conversation->external_id,
             $messageId,
             $content,
             'user',

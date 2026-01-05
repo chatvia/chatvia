@@ -8,7 +8,7 @@
                 Two ways to deploy your AI
             </h2>
             <p class="text-lg text-slate-600 max-w-2xl mx-auto">
-                Choose the experience that fits your needs. Both options are powered by your custom knowledge base.
+                Choose the experience that fits your needs. Both options are powered by your custom GPT.
             </p>
         </div>
 
@@ -34,7 +34,7 @@
                             : 'text-slate-500 hover:text-slate-700'"
                         @click="activeType = 'knowledge'"
                     >
-                        Knowledge Base
+                        Custom GPT
                     </button>
                 </div>
             </div>
@@ -98,7 +98,7 @@
                     </div>
                 </div>
 
-                <!-- Knowledge Base content -->
+                <!-- Custom GPT content -->
                 <div x-show="activeType === 'knowledge'"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform translate-y-4"
@@ -114,10 +114,10 @@
                             </div>
                         </div>
                         <h3 class="text-2xl md:text-3xl font-display text-slate-900 mb-4">
-                            Knowledge Base
+                            Custom GPT
                         </h3>
                         <p class="text-lg text-slate-600 max-w-2xl mx-auto mb-6">
-                            A ChatGPT-like experience trained on your data. Perfect for internal teams, documentation portals, and self-service knowledge bases.
+                            A ChatGPT-like experience trained on your data. Perfect for internal teams, documentation portals, and self-service support.
                         </p>
                         <div class="flex flex-wrap justify-center gap-4 text-sm text-slate-600">
                             <span class="flex items-center gap-2">
@@ -146,7 +146,7 @@
                         <div class="overflow-hidden rounded-xl border border-slate-200 shadow-lg bg-slate-100">
                             <img
                                 src="{{ asset('images/chatvia/gpt.png') }}"
-                                alt="GPT-like Knowledge Base Interface"
+                                alt="Custom GPT Interface"
                                 class="w-full h-auto"
                                 loading="lazy"
                             />

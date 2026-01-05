@@ -35,16 +35,16 @@
                 </button>
             </div>
 
-            <!-- Card 2: Knowledge Bases -->
+            <!-- Card 2: Custom GPT -->
             <div class="group bg-gradient-to-br from-slate-50 to-purple-50/50 rounded-2xl p-8 lg:p-10 border border-slate-100 hover:border-purple-200 hover:shadow-lg hover:shadow-purple-100/50 transition-all duration-300" data-aos="fade-up" data-aos-delay="100">
                 <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
                     <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                 </div>
-                <h3 class="text-xl font-semibold text-slate-900 mb-3">Knowledge Bases</h3>
+                <h3 class="text-xl font-semibold text-slate-900 mb-3">Custom GPT</h3>
                 <p class="text-slate-600 mb-6 leading-relaxed">
-                    Build custom knowledge bases like ChatGPT. Upload documents, websites, and files to train your AI on your specific content.
+                    Build your own GPT trained on your data. Upload documents, websites, and files to create an AI that knows your specific content.
                 </p>
                 <a href="https://help.chatvia.ai"
                    class="inline-flex items-center text-purple-600 hover:text-purple-700 font-medium text-sm group-hover:gap-2 transition-all">

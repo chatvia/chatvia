@@ -214,13 +214,13 @@ return [
                             'img' => 'images/chatvia/gpt.png',
                             'tab_name' => 'ChatGPT-Style',
                             'title' => 'ChatGPT-Style Interface',
-                            'description' => 'Provide your users with a familiar ChatGPT-like experience, powered by your own business data. Perfect for knowledge bases, documentation, and customer support.',
+                            'description' => 'Provide your users with a familiar ChatGPT-like experience, powered by your own business data. Perfect for documentation, internal tools, and customer support.',
                         ],
                         [
                             'img' => 'images/chatvia/training.png',
                             'tab_name' => 'Training',
                             'title' => 'Train on Any Data Source',
-                            'description' => 'Upload documents, crawl your website, or connect your knowledge base. Your AI chatbot learns from your content and stays synchronized with your latest information.',
+                            'description' => 'Upload documents, crawl your website, or connect your data sources. Your AI chatbot learns from your content and stays synchronized with your latest information.',
                         ],
                         [
                             'img' => 'images/chatvia/control-panel.png',
@@ -292,8 +292,8 @@ return [
                 'steps' => [
                     'title' => 'No coding platform, deploy instantly',
                     'steps' => [
-                        ['title' => 'Create', 'description' => 'Just click on the Create Agent button to get started and choose between a widget and knowledge base'],
-                        ['title' => 'Train', 'description' => 'Upload documents, add website content, or connect your knowledge base to train your AI chatbot with your business data'],
+                        ['title' => 'Create', 'description' => 'Just click on the Create Agent button to get started and choose between a widget and a custom GPT'],
+                        ['title' => 'Train', 'description' => 'Upload documents, add website content, or connect your data sources to train your AI chatbot with your business data'],
                         ['title' => 'Deploy', 'description' => 'Embed the chatbot widget on your website or share a direct link to start answering customer questions instantly 24/7'],
                     ],
                 ],

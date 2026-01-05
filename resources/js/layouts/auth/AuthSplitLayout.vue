@@ -43,7 +43,7 @@ defineProps<{
                                 <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
                             </svg>
-                            Custom knowledge base
+                            Custom GPT
                         </span>
                     </div>
                 </div>

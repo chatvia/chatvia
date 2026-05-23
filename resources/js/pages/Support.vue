@@ -50,7 +50,7 @@ const form = useForm<{ title: string; message: string; priority: 'low' | 'medium
 
 const fetchTickets = async () => {
     try {
-        const response = await axios.get(route('tickets'));
+        const response = await axios.get(route('tickets.index'));
         tickets.value = response.data as Ticket[];
     } catch (error) {
         // eslint-disable-next-line no-console

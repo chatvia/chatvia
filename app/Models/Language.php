@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Language extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'native',
+        'code',
+    ];
 
     public function conversations(): HasMany
     {

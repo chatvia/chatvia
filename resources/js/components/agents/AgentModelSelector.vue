@@ -93,7 +93,7 @@ const fetchModels = async () => {
         isLoadingModels.value = true;
         modelsError.value = null;
 
-        const response = await axios.get(route('agents.models.list', { agent: props.agentId }));
+        const response = await axios.get(route('agents.models.index', { agent: props.agentId }));
         models.value = response.data.models;
 
         // Initialize selection state from API response

@@ -1,10 +1,11 @@
+import inertia from '@inertiajs/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import path from 'path';
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
-import compression from 'vite-plugin-compression';
+import { compression } from 'vite-plugin-compression2';
 import { exec } from 'node:child_process';
 import fs from 'node:fs';
 
@@ -49,6 +50,7 @@ export default defineConfig({
             ssr: 'resources/js/ssr.ts',
             refresh: true,
         }),
+        inertia(),
         tailwindcss(),
         vue({
             template: {
@@ -59,16 +61,8 @@ export default defineConfig({
             },
         }),
         compression({
-            algorithm: 'gzip',
-            ext: '.gz',
+            algorithms: ['gzip', 'brotliCompress'],
             threshold: 10240, // Only compress files larger than 10kb
-            deleteOriginFile: false,
-        }),
-        compression({
-            algorithm: 'brotliCompress',
-            ext: '.br',
-            threshold: 10240, // Only compress files larger than 10kb
-            deleteOriginFile: false,
         }),
     ],
     resolve: {

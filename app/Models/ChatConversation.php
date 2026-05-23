@@ -16,7 +16,21 @@ class ChatConversation extends Model
 {
     use HasFactory, SoftDeletes, SupportsExternalId;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'external_id',
+        'chat_session_id',
+        'language_id',
+        'chat_topic_id',
+        'visible',
+        'title',
+        'sentiment',
+        'tone',
+        'handoff_user_id',
+        'handoff_status',
+        'handoff_at',
+        'last_activity_at',
+        'deleted_by',
+    ];
 
     protected array $hmacEncryptionColumns = [
         'id',

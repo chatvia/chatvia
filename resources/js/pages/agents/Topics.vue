@@ -251,11 +251,11 @@ const pieChartOptions: ChartOptions<'pie'> = {
 const fetchAllTopics = async () => {
     loadingTopics.value = true;
     try {
-        const response = await axios.get(route('agents.topics.list', props.agent.external_id));
+        const response = await axios.get(route('agents.topics.index', props.agent.external_id));
         agentTopics.value = response.data;
 
         // Get all topics from the database
-        const allTopicsResponse = await axios.get(route('agents.topics.list', props.agent.external_id), {
+        const allTopicsResponse = await axios.get(route('agents.topics.index', props.agent.external_id), {
             params: { all: true },
         });
         allTopics.value = allTopicsResponse.data;
@@ -318,7 +318,7 @@ const addTopicToAgent = async (topicId: number) => {
 // Remove topic from agent
 const removeTopicFromAgent = async (topicId: number) => {
     try {
-        await axios.delete(route('agents.topics.delete', { agent: props.agent.external_id, topic: topicId }));
+        await axios.delete(route('agents.topics.destroy', { agent: props.agent.external_id, topic: topicId }));
 
         // Refresh topics
         await fetchAllTopics();

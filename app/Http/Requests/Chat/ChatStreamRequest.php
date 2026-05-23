@@ -25,6 +25,7 @@ class ChatStreamRequest extends FormRequest
             'model' => ['required', 'string', 'exists:llms,external_name'],
             'message' => ['required', 'string'],
             'updated_message_info' => ['nullable', 'array'],
+            'request_id' => ['nullable', 'string', 'uuid'],
         ];
     }
 

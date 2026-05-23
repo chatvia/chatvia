@@ -7,6 +7,14 @@ use App\Models\ChatConversation;
 use App\Models\User;
 use App\Services\Billing\UserCreditSystem;
 use App\Services\Chat\Data\StreamRequestData;
+use App\Services\Chat\Streaming\ErrorCode;
+use App\Services\Chat\Streaming\SseStreamer;
+use App\Services\Chat\Streaming\Sources\ErrorSource;
+use App\Services\Chat\Streaming\Sources\HandoffSource;
+use App\Services\Chat\Streaming\Sources\LlmSource;
+use App\Services\Chat\Streaming\Sources\QASource;
+use App\Services\Chat\Streaming\Sources\ReplaySource;
+use App\Services\Chat\Streaming\RequestDedupeStore;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -17,17 +25,113 @@ readonly class ChatStreamService
         private StreamHandler $streamHandler,
         private UserCreditSystem $creditSystem,
         private HandoffService $handoffService,
+        private SseStreamer $streamer,
+        private LlmSource $llmSource,
+        private QASource $qaSource,
+        private HandoffSource $handoffSource,
+        private ErrorSource $errorSource,
+        private ReplaySource $replaySource,
+        private RequestDedupeStore $dedupe,
     ) {}
 
     public function stream(StreamRequestData $data): StreamedResponse
     {
-        $user = $data->agent->user;
+        return config('sse.envelope_v1')
+            ? $this->streamWithEnvelope($data)
+            : $this->streamLegacy($data);
+    }
 
-        // 0. Check if conversation is handed off to a human
+    // ---------------------------------------------------------------------
+    // Envelope v1 path
+    // ---------------------------------------------------------------------
+
+    private function streamWithEnvelope(StreamRequestData $data): StreamedResponse
+    {
+        // 0. Idempotent replay of a previously-completed request.
+        if ($data->requestId) {
+            $snapshot = $this->dedupe->find($data->requestId);
+            if ($snapshot && ($snapshot['content'] ?? '') !== '') {
+                return $this->streamer->respond(
+                    $this->replaySource->events($data->requestId, $snapshot)
+                );
+            }
+        }
+
+        // 1. Conversation handed off to a human — acknowledge and broadcast.
         if ($data->conversationId) {
             $conversation = ChatConversation::where('external_id', $data->conversationId)->first();
             if ($conversation && $this->handoffService->isHandedOff($conversation)) {
-                // Save the user message and broadcast it to the admin
+                if ($data->message->message) {
+                    $this->handoffService->sendUserMessage(
+                        conversation: $conversation,
+                        content: $data->message->message,
+                        model: $data->message->model?->external_name,
+                        ipAddress: $data->ipAddress,
+                        userAgent: $data->userAgent,
+                        referrerUrl: $data->referrerUrl,
+                        pageUrl: $data->pageUrl,
+                        locale: $data->locale,
+                    );
+                }
+
+                return $this->streamer->respond(
+                    $this->handoffSource->events($conversation)
+                );
+            }
+        }
+
+        $user = $data->agent->user;
+
+        // 2. Subscription / credit gates → typed error event.
+        if (! $this->userIsSubscribed($user)) {
+            return $this->streamer->respond(
+                $this->errorSource->events(
+                    ErrorCode::SubscriptionExpired,
+                    'Your subscription has expired. Please renew to continue.',
+                )
+            );
+        }
+
+        if (! $this->userCanSendMessages($user->id)) {
+            return $this->streamer->respond(
+                $this->errorSource->events(
+                    ErrorCode::MessageLimitReached,
+                    'You have reached your message limit. Please upgrade to continue.',
+                )
+            );
+        }
+
+        // 3. Build context + knowledge.
+        $context = $this->chatService->initializeChatContext($data);
+        $context = $this->chatService->enrichContextWithKnowledge($context);
+
+        // 4. Q&A match → stream the answer using the same envelope.
+        if ($context->hasQAMatch()) {
+            return $this->streamer->respond(
+                $this->qaSource->events($context)
+            );
+        }
+
+        // 5. Default — LLM stream.
+        $llmMessages = $this->chatService->prepareLlmMessages($context);
+
+        return $this->streamer->respond(
+            $this->llmSource->events($context, $llmMessages)
+        );
+    }
+
+    // ---------------------------------------------------------------------
+    // Legacy path (pre-envelope) — kept behind the feature flag for safe
+    // incremental rollout. To be deleted once envelope_v1 is permanent.
+    // ---------------------------------------------------------------------
+
+    private function streamLegacy(StreamRequestData $data): StreamedResponse
+    {
+        $user = $data->agent->user;
+
+        if ($data->conversationId) {
+            $conversation = ChatConversation::where('external_id', $data->conversationId)->first();
+            if ($conversation && $this->handoffService->isHandedOff($conversation)) {
                 if ($data->message->message) {
                     $this->handoffService->sendUserMessage(
                         conversation: $conversation,
@@ -45,7 +149,6 @@ readonly class ChatStreamService
             }
         }
 
-        // 1. Check subscription status first
         if (! $this->userIsSubscribed($user)) {
             return $this->streamErrorResponse(
                 'Your subscription has expired. Please renew your subscription to continue.',
@@ -53,7 +156,6 @@ readonly class ChatStreamService
             );
         }
 
-        // 2. Check if user can send messages (has remaining messages)
         if (! $this->userCanSendMessages($user->id)) {
             return $this->streamErrorResponse(
                 'You have reached your message limit. Please upgrade your plan to continue.',
@@ -61,28 +163,18 @@ readonly class ChatStreamService
             );
         }
 
-        // 3. Initialize chat context
         $context = $this->chatService->initializeChatContext($data);
-
-        // 4. Enrich context with knowledge (checks Q&A first, then chunks)
         $context = $this->chatService->enrichContextWithKnowledge($context);
 
-        // 5. If Q&A match found, stream it directly without LLM
         if ($context->hasQAMatch()) {
             return $this->streamQAResponse($context);
         }
 
-        // 6. Prepare LLM messages
         $llmMessages = $this->chatService->prepareLlmMessages($context);
 
-        // 7. Create and return the stream response
         return $this->createStreamResponse($context, $llmMessages);
     }
 
-    /**
-     * Stream a response indicating the message was received during handoff.
-     * The message has already been saved and broadcast to the admin via WebSocket.
-     */
     private function streamHandoffResponse(ChatConversation $conversation): StreamedResponse
     {
         return new StreamedResponse(function () use ($conversation) {
@@ -95,7 +187,6 @@ readonly class ChatStreamService
                 ob_end_clean();
             }
 
-            // Send acknowledgment that message was received (no AI response needed)
             echo 'data: '.json_encode([
                 'type' => 'handoff_ack',
                 'status' => 'human',
@@ -103,7 +194,6 @@ readonly class ChatStreamService
             ])."\n\n";
             flush();
 
-            // Send done signal
             echo "data: {\"content\":\"[DONE]\"}\n\n";
             flush();
 
@@ -115,26 +205,16 @@ readonly class ChatStreamService
         ]);
     }
 
-    /**
-     * Check if user has an active subscription or is on trial.
-     */
     private function userIsSubscribed(User $user): bool
     {
         return $user->subscribed() || $user->onTrial();
     }
 
-    /**
-     * Check if the agent owner can send messages (fast cached check).
-     */
     private function userCanSendMessages(int $userId): bool
     {
         return $this->creditSystem->setUserId($userId)->canSendMessages();
     }
 
-    /**
-     * Stream an error message as regular content to the client.
-     * This allows errors to appear naturally in the chat bubble.
-     */
     private function streamErrorResponse(string $message, string $code = 'error'): StreamedResponse
     {
         return new StreamedResponse(function () use ($message) {
@@ -147,11 +227,9 @@ readonly class ChatStreamService
                 ob_end_clean();
             }
 
-            // Stream the error message as regular content
             echo 'data: '.json_encode(['content' => $message])."\n\n";
             flush();
 
-            // Send done signal
             echo "data: {\"content\":\"[DONE]\"}\n\n";
             flush();
 
@@ -163,9 +241,6 @@ readonly class ChatStreamService
         ]);
     }
 
-    /**
-     * Stream Q&A answer directly to the client
-     */
     private function streamQAResponse(ChatContext $context): StreamedResponse
     {
         $qaMatch = $context->qaMatch;
@@ -173,7 +248,6 @@ readonly class ChatStreamService
         $context->appendStreamedMessage($answer);
 
         return new StreamedResponse(function () use ($context, $answer, $qaMatch) {
-            // Setup headers
             header('Content-Type: text/event-stream');
             header('Cache-Control: no-cache, no-store, must-revalidate');
             header('Connection: keep-alive');
@@ -183,11 +257,9 @@ readonly class ChatStreamService
                 ob_end_clean();
             }
 
-            // Stream language
             echo 'language: '.$context->queryLanguage."\n\n";
             flush();
 
-            // Stream the answer in chunks to simulate typing
             $chunks = $this->chunkAnswer($answer);
             $isFirst = true;
 
@@ -209,13 +281,11 @@ readonly class ChatStreamService
                 echo 'data: '.json_encode($payload)."\n\n";
                 flush();
 
-                // Small delay to simulate natural typing
-                usleep(15000); // 15ms
+                usleep(15000);
             }
 
             $context->markEndTime();
 
-            // Stream sources if enabled
             if ($context->requestData->streamSources) {
                 $sources = [
                     [
@@ -231,11 +301,9 @@ readonly class ChatStreamService
                 echo 'sources: '.json_encode($sources)."\n\n";
             }
 
-            // Send done signal
             echo "data: {\"content\":\"[DONE]\"}\n\n";
             flush();
 
-            // Handle completion
             $this->chatService->handleChatCompletion($context);
 
         }, 200, [
@@ -246,12 +314,8 @@ readonly class ChatStreamService
         ]);
     }
 
-    /**
-     * Split answer into natural chunks for streaming
-     */
     private function chunkAnswer(string $answer): array
     {
-        // Split by words, keeping punctuation attached
         $words = preg_split('/(\s+)/', $answer, -1, PREG_SPLIT_DELIM_CAPTURE);
 
         $chunks = [];
@@ -260,7 +324,6 @@ readonly class ChatStreamService
         foreach ($words as $word) {
             $currentChunk .= $word;
 
-            // Emit chunk every 2-4 words or at sentence boundaries
             if (
                 Str::endsWith(trim($currentChunk), ['.', '!', '?', ':', ';']) ||
                 str_word_count($currentChunk) >= 3
@@ -272,7 +335,6 @@ readonly class ChatStreamService
             }
         }
 
-        // Add remaining content
         if (trim($currentChunk) !== '') {
             $chunks[] = $currentChunk;
         }
@@ -280,9 +342,6 @@ readonly class ChatStreamService
         return $chunks;
     }
 
-    /**
-     * Create the streamed response.
-     */
     private function createStreamResponse(ChatContext $context, array $llmMessages): StreamedResponse
     {
         return $this->streamHandler->createStreamResponse(

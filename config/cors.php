@@ -17,13 +17,31 @@ return [
 
     'paths' => ['api/*', 'sanctum/csrf-cookie', 'chat/*', 'widget/*'],
 
-    'allowed_methods' => ['*'],
+    'allowed_methods' => ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
-    'allowed_origins' => ['*'],
+    /*
+     * Widget/chat are embeddable on third-party sites, so `*` is intentional here.
+     * Restrict by setting CORS_ALLOWED_ORIGINS to a comma-separated allowlist when ready
+     * to migrate to a per-tenant model (see AUDIT.md SEC-01).
+     */
+    'allowed_origins' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('CORS_ALLOWED_ORIGINS', '*'))
+    ))),
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => [
+        'Accept',
+        'Authorization',
+        'Content-Type',
+        'Origin',
+        'X-Requested-With',
+        'X-CSRF-TOKEN',
+        'X-XSRF-TOKEN',
+        'X-Inertia',
+        'X-Inertia-Version',
+    ],
 
     'exposed_headers' => [],
 

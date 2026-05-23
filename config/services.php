@@ -147,4 +147,16 @@ return [
     'chunker' => [
         'hash_key' => env('CHUNKER_HASH_KEY'),
     ],
+
+    'turnstile' => [
+        'key' => env('TURNSTILE_SITE_KEY'),
+        'secret' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
+    'chunkfit' => [
+        'api_key' => env('CHUNK_FIT_API_KEY'),
+        'base_url' => env('CHUNK_FIT_BASE_URL', 'https://chunk.fit/api/v1'),
+        'timeout' => (int) env('CHUNK_FIT_TIMEOUT', 120),
+        'tokenizer' => env('CHUNK_FIT_TOKENIZER', 'cl100k_base'),
+    ],
 ];

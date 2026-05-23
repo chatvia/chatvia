@@ -47,7 +47,7 @@ const videoToDelete = ref<YoutubeVideo | null>(null);
 const loadYoutubeVideos = async () => {
     try {
         isLoadingVideos.value = true;
-        const response = await axios.get(route('agents.sources.youtube.list', { agent: props.agent.external_id }));
+        const response = await axios.get(route('agents.sources.youtube.index', { agent: props.agent.external_id }));
         youtubeVideos.value = response.data;
     } catch (error) {
         console.error('Failed to load YouTube videos:', error);

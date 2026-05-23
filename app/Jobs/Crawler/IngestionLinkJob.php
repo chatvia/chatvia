@@ -3,7 +3,6 @@
 namespace App\Jobs\Crawler;
 
 use App\Data\Crawler\LinkData;
-use App\Services\Splitters\RecursiveCharacterTextSplitter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -16,5 +15,5 @@ class IngestionLinkJob implements ShouldQueue
 
     public function __construct(public LinkData $link) {}
 
-    public function handle(RecursiveCharacterTextSplitter $splitter): void {}
+    public function handle(): void {}
 }

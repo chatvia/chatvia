@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\Agents\AgentLeadsController;
+use App\Http\Controllers\Agents\AgentLeadsExportController;
+use App\Http\Controllers\Agents\AgentLeadsSettingsController;
 use App\Http\Controllers\Agents\AgentManagerController;
+use App\Http\Controllers\Agents\AgentModelsController;
+use App\Http\Controllers\Agents\AgentModelsSettingsController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteController;
 use App\Http\Controllers\Agents\Agents\AgentDeleteSettingsController;
 use App\Http\Controllers\Agents\Agents\AgentFileSummaryController;
@@ -16,6 +21,8 @@ use App\Http\Controllers\Agents\Agents\AgentSourceUnlinkFileController;
 use App\Http\Controllers\Agents\Agents\AgentStoreController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateController;
 use App\Http\Controllers\Agents\Agents\AgentUpdateSettingsController;
+use App\Http\Controllers\Agents\AgentStartersController;
+use App\Http\Controllers\Agents\AgentTopicsController as TopicsResourceController;
 use App\Http\Controllers\Agents\Analytics\AgentAnalyticsController;
 use App\Http\Controllers\Agents\Analytics\AgentAnalyticsDataController;
 use App\Http\Controllers\Agents\Analytics\AgentChartDataController;
@@ -44,14 +51,6 @@ use App\Http\Controllers\Agents\Handoff\HandoffPendingListController;
 use App\Http\Controllers\Agents\Handoff\HandoffReturnController;
 use App\Http\Controllers\Agents\Handoff\HandoffTakeOverController;
 use App\Http\Controllers\Agents\Handoff\HandoffTypingController;
-use App\Http\Controllers\Agents\Leads\AgentLeadsController;
-use App\Http\Controllers\Agents\Leads\AgentLeadsDataController;
-use App\Http\Controllers\Agents\Leads\AgentLeadsDeleteController;
-use App\Http\Controllers\Agents\Leads\AgentLeadsExportController;
-use App\Http\Controllers\Agents\Leads\AgentLeadsUpdateSettingsController;
-use App\Http\Controllers\Agents\Models\AgentModelsListController;
-use App\Http\Controllers\Agents\Models\AgentModelsStoreSettings;
-use App\Http\Controllers\Agents\Models\AgentModelsToggleController;
 use App\Http\Controllers\Agents\Persona\AgentShowPersonaController;
 use App\Http\Controllers\Agents\Security\AgentSecurityUpdateController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesController;
@@ -62,8 +61,10 @@ use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesStatsController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeUploadedFilesDeleteController;
 use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeYoutubeController;
+use App\Http\Controllers\Agents\Sources\AgentQaController;
 use App\Http\Controllers\Agents\Sources\AgentSourcesFilesController;
+use App\Http\Controllers\Agents\Sources\AgentTextController;
+use App\Http\Controllers\Agents\Sources\AgentYoutubeController;
 use App\Http\Controllers\Agents\Sources\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceCrawlerController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceCrawlerLinkRetrainController;
@@ -76,37 +77,12 @@ use App\Http\Controllers\Agents\Sources\Crawler\AgentSourcesTrainedWebsitesListC
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceWebsiteDeleteController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceWebsitesListController;
 use App\Http\Controllers\Agents\Sources\Crawler\AgentSourceWebsiteUnlinkController;
-use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaController;
-use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaDestroyController;
-use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaListController;
-use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaShowController;
-use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaStoreController;
-use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaUnlinkController;
-use App\Http\Controllers\Agents\Sources\Qa\AgentKnowledgeQaUpdateController;
-use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextController;
-use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextDestroyController;
-use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextListController;
-use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextShowController;
-use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextStoreController;
-use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextUnlinkController;
-use App\Http\Controllers\Agents\Sources\Text\AgentKnowledgeTextUpdateController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourcesLinkTextController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourcesTrainedTextsListController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourceUnlinkTextController;
 use App\Http\Controllers\Agents\Sources\Video\AgentSourceFileDeleteController;
 use App\Http\Controllers\Agents\Sources\Video\AgentSourceVideoController;
-use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeDestroyController;
-use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeListController;
-use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeRetrainController;
-use App\Http\Controllers\Agents\Sources\Youtube\AgentKnowledgeYoutubeStoreController;
-use App\Http\Controllers\Agents\Starters\StarterDeleteController;
-use App\Http\Controllers\Agents\Starters\StartersStoreController;
 use App\Http\Controllers\Agents\Team\AgentTeamController;
-use App\Http\Controllers\Agents\Topics\AgentTopicsDeleteController;
-use App\Http\Controllers\Agents\Topics\AgentTopicsListController;
-use App\Http\Controllers\Agents\Topics\AgentTopicsManageController;
-use App\Http\Controllers\Agents\Topics\AgentTopicsStoreController;
-use App\Http\Controllers\Agents\Topics\AgentTopicsUpdateController;
 use App\Http\Controllers\Agents\Widget\WidgetController;
 use App\Http\Controllers\Agents\Widget\WidgetPreviewController;
 use App\Http\Controllers\Agents\Workflow\AgentWorkflowController;
@@ -140,11 +116,10 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
 
         // Topics Management
-        Route::get('topics/manage', AgentTopicsManageController::class)->name('topics.manage');
-        Route::get('topics/list', AgentTopicsListController::class)->name('topics.list');
-        Route::post('topics', AgentTopicsStoreController::class)->name('topics.store');
-        Route::patch('topics/{topic}', AgentTopicsUpdateController::class)->name('topics.update');
-        Route::delete('topics/{topic}', AgentTopicsDeleteController::class)->name('topics.delete');
+        Route::get('topics', [TopicsResourceController::class, 'index'])->name('topics.index');
+        Route::post('topics', [TopicsResourceController::class, 'store'])->name('topics.store');
+        Route::patch('topics/{topic}', [TopicsResourceController::class, 'update'])->name('topics.update');
+        Route::delete('topics/{topic}', [TopicsResourceController::class, 'destroy'])->name('topics.destroy');
 
         // Update Agent (Persona/Instructions)
         Route::patch('/update', AgentUpdateController::class)->name('update');
@@ -163,29 +138,26 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::get('sources/audio', AgentSourceAudioController::class)->name('sources.audio');
         Route::get('sources/video', AgentSourceVideoController::class)->name('sources.video');
         Route::get('sources/web', AgentKnowledgeWebController::class)->name('sources.web');
-        Route::get('sources/youtube', AgentKnowledgeYoutubeController::class)->name('sources.youtube');
-        Route::get('sources/youtube/list', AgentKnowledgeYoutubeListController::class)->name('sources.youtube.list');
-        Route::post('sources/youtube', AgentKnowledgeYoutubeStoreController::class)->name('sources.youtube.store');
-        Route::delete('sources/youtube/{youtube}', AgentKnowledgeYoutubeDestroyController::class)->name('sources.youtube.destroy');
-        Route::post('sources/youtube/{youtube}/retrain', AgentKnowledgeYoutubeRetrainController::class)->name('sources.youtube.retrain');
+        Route::get('sources/youtube', [AgentYoutubeController::class, 'index'])->name('sources.youtube.index');
+        Route::post('sources/youtube', [AgentYoutubeController::class, 'store'])->name('sources.youtube.store');
+        Route::delete('sources/youtube/{youtube}', [AgentYoutubeController::class, 'destroy'])->name('sources.youtube.destroy');
+        Route::post('sources/youtube/{youtube}/retrain', [AgentYoutubeController::class, 'retrain'])->name('sources.youtube.retrain');
 
-        Route::get('sources/text', AgentKnowledgeTextController::class)->name('sources.text');
-        Route::post('sources/text', AgentKnowledgeTextStoreController::class)->name('sources.text.store');
-        Route::get('sources/text/list', AgentKnowledgeTextListController::class)->name('sources.text.index');
-        Route::get('sources/text/{id}', AgentKnowledgeTextShowController::class)->name('sources.text.show');
-        Route::patch('sources/text/{id}', AgentKnowledgeTextUpdateController::class)->name('sources.text.update');
-        Route::post('sources/text/{id}/unlink', AgentKnowledgeTextUnlinkController::class)->name('sources.text.unlink');
+        Route::get('sources/text', [AgentTextController::class, 'index'])->name('sources.text.index');
+        Route::post('sources/text', [AgentTextController::class, 'store'])->name('sources.text.store');
+        Route::get('sources/text/{id}', [AgentTextController::class, 'show'])->name('sources.text.show');
+        Route::patch('sources/text/{id}', [AgentTextController::class, 'update'])->name('sources.text.update');
+        Route::post('sources/text/{id}/unlink', [AgentTextController::class, 'unlink'])->name('sources.text.unlink');
 
-        Route::get('sources/qa', AgentKnowledgeQaController::class)->name('sources.qa');
-        Route::post('sources/qa', AgentKnowledgeQaStoreController::class)->name('sources.qa.store');
-        Route::get('sources/qa/list', AgentKnowledgeQaListController::class)->name('sources.qa.index');
-        Route::get('sources/qa/{id}', AgentKnowledgeQaShowController::class)->name('sources.qa.show');
-        Route::patch('sources/qa/{id}', AgentKnowledgeQaUpdateController::class)->name('sources.qa.update');
-        Route::delete('sources/qa/{id}', AgentKnowledgeQaDestroyController::class)->name('sources.qa.destroy');
-        Route::post('sources/qa/{id}/unlink', AgentKnowledgeQaUnlinkController::class)->name('sources.qa.unlink');
+        Route::get('sources/qa', [AgentQaController::class, 'index'])->name('sources.qa.index');
+        Route::post('sources/qa', [AgentQaController::class, 'store'])->name('sources.qa.store');
+        Route::get('sources/qa/{id}', [AgentQaController::class, 'show'])->name('sources.qa.show');
+        Route::patch('sources/qa/{id}', [AgentQaController::class, 'update'])->name('sources.qa.update');
+        Route::delete('sources/qa/{id}', [AgentQaController::class, 'destroy'])->name('sources.qa.destroy');
+        Route::post('sources/qa/{id}/unlink', [AgentQaController::class, 'unlink'])->name('sources.qa.unlink');
 
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
-        Route::delete('sources/text/{id}', AgentKnowledgeTextDestroyController::class)->name('sources.text.destroy');
+        Route::delete('sources/text/{id}', [AgentTextController::class, 'destroy'])->name('sources.text.destroy');
         Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->name('sources.files.delete');
         Route::delete('sources/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->name('sources.uploaded-files');
         Route::post('sources/files/process', AgentKnowledgeFilesProcessController::class)->name('sources.files.process');
@@ -201,13 +173,12 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::post('sources/website/{website}/train', AgentSourceCrawlerWebsiteTrainController::class)->name('sources.website.train');
 
         // Starters API endpoints (used by Widget and Embed components)
-        Route::post('starters', StartersStoreController::class)->name('starters.store');
-        Route::delete('starters/{id}', StarterDeleteController::class)->name('starters.delete');
+        Route::post('starters', [AgentStartersController::class, 'store'])->name('starters.store');
+        Route::delete('starters/{id}', [AgentStartersController::class, 'destroy'])->name('starters.destroy');
 
-        Route::get('leads', AgentLeadsController::class)->name('leads');
-        Route::get('leads/data', AgentLeadsDataController::class)->name('leads.data');
-        Route::delete('leads', AgentLeadsDeleteController::class)->name('leads.delete');
-        Route::patch('leads/settings', AgentLeadsUpdateSettingsController::class)->name('leads.settings');
+        Route::get('leads', [AgentLeadsController::class, 'index'])->name('leads.index');
+        Route::delete('leads', [AgentLeadsController::class, 'destroy'])->name('leads.destroy');
+        Route::patch('leads/settings', AgentLeadsSettingsController::class)->name('leads.settings');
         Route::post('leads/export', AgentLeadsExportController::class)->name('leads.export');
 
         Route::get('logs', AgentChatLogController::class)->name('logs');
@@ -238,9 +209,9 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::delete('settings/{group}', AgentDeleteSettingsController::class)->name('settings.delete');
 
         // Models API
-        Route::get('/models/list', AgentModelsListController::class)->name('models.list');
-        Route::patch('/models/settings', AgentModelsStoreSettings::class)->name('models.settings.update');
-        Route::patch('/models/toggle', AgentModelsToggleController::class)->name('models.toggle');
+        Route::get('/models', [AgentModelsController::class, 'index'])->name('models.index');
+        Route::patch('/models/toggle', [AgentModelsController::class, 'toggle'])->name('models.toggle');
+        Route::patch('/models/settings', AgentModelsSettingsController::class)->name('models.settings.update');
 
         // Members
         Route::get('team', AgentTeamController::class)->name('team');

@@ -188,11 +188,15 @@ readonly class ChatService
         }
     }
 
+    /**
+     * Legacy hook from the pre-envelope StreamHandler path. The old behavior
+     * was to delete the user's message on disconnect, which was destructive
+     * on flaky networks. Under the envelope path, partial state is preserved
+     * via LlmSource::events()'s catch block — so this is now a no-op.
+     */
     public function handleClientDisconnection(ChatContext $context): void
     {
-        if ($context->userMessageId) {
-            $this->memory->removeMessage($context->userMessageId);
-        }
+        // Intentionally no-op. See LlmSource for the envelope-path equivalent.
     }
 
     private function saveAssistantMessage(ChatContext $context): void

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Mail\RequestDemoMail;
-use Coderflex\LaravelTurnstile\Rules\TurnstileCheck;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 
 class RequestDemoController
 {
@@ -20,7 +20,7 @@ class RequestDemoController
                 'postal_code' => ['required', 'string'],
                 'country' => ['required', 'string'],
                 'usage_timeline' => ['required', 'string'],
-                'cf-turnstile-response' => [new TurnstileCheck],
+                'cf-turnstile-response' => ['required', new Turnstile],
             ]);
 
             Mail::to('info@chatvia.ai')

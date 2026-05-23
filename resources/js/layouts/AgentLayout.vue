@@ -213,7 +213,7 @@ const controlPanelNavigationItems = computed(() => {
 
     // Leads - only show if user has leads permission
     if (hasPermission('agent.leads.view')) {
-        baseItems.push({ id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads', tooltip: 'Manage leads captured by your agent' });
+        baseItems.push({ id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads.index', tooltip: 'Manage leads captured by your agent' });
     }
 
     // Chat/Logs - only show if user has chat view permission
@@ -331,7 +331,7 @@ const isActiveRoute = (routeName: string) => {
         componentName = 'Sources'; // Maps to Sources component file
     } else if (routeName === 'agents.sources.web') {
         componentName = 'Sources/Web'; // Maps to Sources/Web component file
-    } else if (routeName === 'agents.sources.text') {
+    } else if (routeName === 'agents.sources.text.index') {
         componentName = 'Sources/Text'; // Maps to Sources/Text component file
     } else if (routeName === 'agents.sources.files') {
         componentName = 'Sources/FilesSource'; // Maps to Sources/FilesSource component file
@@ -339,7 +339,7 @@ const isActiveRoute = (routeName: string) => {
         componentName = 'Sources/Video'; // Maps to Sources/Video component file
     } else if (routeName === 'agents.sources.audio') {
         componentName = 'Sources/Audio'; // Maps to Sources/Audio component file
-    } else if (routeName === 'agents.sources.youtube') {
+    } else if (routeName === 'agents.sources.youtube.index') {
         componentName = 'Sources/Youtube'; // Maps to Sources/Youtube component file
     } else if (routeName === 'agents.sources.markdown') {
         componentName = 'Sources/Markdown'; // Maps to Sources/Markdown component file
@@ -347,7 +347,7 @@ const isActiveRoute = (routeName: string) => {
         componentName = 'Workflow'; // Maps to Workflow component file
     } else if (routeName === 'agents.actions') {
         componentName = 'Sentiment'; // Maps to Sentiment component file
-    } else if (routeName === 'agents.leads') {
+    } else if (routeName === 'agents.leads.index') {
         componentName = 'Leads'; // Maps to Leads component file
     } else if (routeName === 'agents.logs') {
         componentName = 'ChatLog'; // Maps to ChatLog folder with index.vue
@@ -383,11 +383,11 @@ const sourcesSubmenuOpen = ref(
     currentRoute.value.startsWith('agents/Sources/') ||
         isActiveRoute('agents.sources') ||
         isActiveRoute('agents.sources.web') ||
-        isActiveRoute('agents.sources.text') ||
+        isActiveRoute('agents.sources.text.index') ||
         isActiveRoute('agents.sources.files') ||
         isActiveRoute('agents.sources.video') ||
         isActiveRoute('agents.sources.audio') ||
-        isActiveRoute('agents.sources.youtube') ||
+        isActiveRoute('agents.sources.youtube.index') ||
         isActiveRoute('agents.sources.markdown'),
 );
 

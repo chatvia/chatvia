@@ -6,16 +6,15 @@ use App\Data\Ingestion\OCR\PageData;
 use App\Models\Chunk;
 use App\Services\Infrastructure\LLM\Operations\Chunker;
 use App\Services\Infrastructure\LLM\Operations\CostCalculator;
-use Illuminate\Support\Facades\DB;
+use App\Services\Search\Bm25Tokenizer;
 
 class ChunkEnhanceText
 {
     public function enhanceText(Chunk $chunk, PageData $page, ?PageData $previousPage = null, ?PageData $nextPage = null): void
     {
         if ($chunk->enhanced) {
-            return ;
+            return;
         }
-
 
         $enhancedChunk = app(Chunker::class)->chunkDocument(
             page: $page,
@@ -44,7 +43,7 @@ class ChunkEnhanceText
 
         $chunk->update([
             'embedding' => embed($embeddingContent),
-            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($embeddingContent).", 'llmlingua2')"),
+            'embedding_bm25' => Bm25Tokenizer::expression($embeddingContent),
             'cost' => $costInCents,
             'summary' => $summary,
             'questions' => $questions,

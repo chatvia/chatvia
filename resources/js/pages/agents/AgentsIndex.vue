@@ -32,7 +32,7 @@ const canCreateAgent = computed(() => {
 
 onMounted(async () => {
     try {
-        const response = await axios.get(route('agents.list'));
+        const response = await axios.get(route('agents.index'));
         agents.value = response.data;
     } catch (error) {
         console.error('Failed to fetch agents:', error);
@@ -44,7 +44,7 @@ onMounted(async () => {
 // Function to refresh agents list
 const refreshAgents = async () => {
     try {
-        const response = await axios.get(route('agents.list'));
+        const response = await axios.get(route('agents.index'));
         agents.value = response.data;
     } catch (error) {
         console.error('Failed to fetch agents:', error);

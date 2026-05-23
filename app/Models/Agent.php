@@ -134,6 +134,11 @@ class Agent extends Model
             ->withTimestamps();
     }
 
+    public function functions(): HasMany
+    {
+        return $this->hasMany(AgentFunction::class);
+    }
+
     public function starters(): HasMany
     {
         return $this->hasMany(Starter::class);

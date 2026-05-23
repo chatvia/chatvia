@@ -94,6 +94,14 @@ const scrollAnimationFrame = ref(null);
 const messageSources = ref(new Map()); // Keyed by assistant message UUID (string)
 const scrollThrottleTimeout = ref(null); // For throttling scroll updates
 
+// In-flight function/tool calls keyed by tool_call_id. Populated by the
+// `tool` envelope event from useChatStream — see submitChat()'s onTool
+// callback below. Synchronous + ordered with the LLM stream; the equivalent
+// async pattern (knowledge-base ingestion) uses Reverb broadcasts instead.
+const activeFunctionCalls = ref(new Map());
+
+const hasActiveFunctionCalls = computed(() => activeFunctionCalls.value.size > 0);
+
 // Usage checking
 const USAGE_CHECK_INTERVAL = 60000; // 1 minute
 const canSendMessages = ref(true);
@@ -516,6 +524,21 @@ function submitChat({
         onSources: (sources, id) => {
             if (id) messageSources.value.set(id, sources);
         },
+        onTool: (data) => {
+            // Drives the "Calling <function>..." indicator. The backend
+            // yields `tool { phase: 'start' }` before dispatching the
+            // webhook and `{ phase: 'end' }` after — synchronous + in
+            // order with the LLM stream.
+            if (!data?.tool_call_id) return;
+            if (data.phase === 'start') {
+                activeFunctionCalls.value.set(data.tool_call_id, {
+                    name: data.name ?? '',
+                    started_at: Date.now(),
+                });
+            } else if (data.phase === 'end') {
+                activeFunctionCalls.value.delete(data.tool_call_id);
+            }
+        },
         onError: () => {
             // Toast is shown by the streamError watcher; here we clean up the
             // empty assistant stub so the UI doesn't show an empty bubble.
@@ -527,6 +550,7 @@ function submitChat({
         },
         onDone: () => {
             streamingAssistantId.value = null;
+            activeFunctionCalls.value.clear();
 
             if (isNewConversation) {
                 setTimeout(() => {
@@ -793,6 +817,7 @@ const handleScrollToBottomClick = () => {
                                     :hideFeedback="isMessageStreaming(message)"
                                     :isThinking="isMessageStreaming(message) && !message.content"
                                     :isStreaming="isMessageStreaming(message)"
+                                    :isCallingExternal="isMessageStreaming(message) && hasActiveFunctionCalls"
                                     :avatar="props.appearance?.avatar"
                                     :isRTL="isMessageRTL(message)"
                                     @messageDeleted="messageDeleted"

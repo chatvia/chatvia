@@ -2,7 +2,7 @@ import { useHandoff } from '@/composables/useHandoff';
 import { useTimeAgo } from '@/composables/useTimeAgo';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 type Message = App.Data.Resources.Agent.ChatLog.ChatLogMessageData;
 type Topic = App.Data.Resources.Agent.ChatLog.ChatLogTopicData;
@@ -25,6 +25,10 @@ const isLoadingMessages = ref(false);
 
 // Singleton handoff instance
 let handoffInstance: ReturnType<typeof useHandoff> | null = null;
+
+// Track whether the cross-agent navigation watcher has been registered yet.
+// useChatLog() is consumed by multiple components, but we only need one watcher.
+let agentWatcherRegistered = false;
 
 // Filter data
 const topics = ref<Topic[]>([]);
@@ -55,13 +59,13 @@ export function useChatLog() {
     const page = usePage();
     const { formatTimeAgo } = useTimeAgo();
 
-    // Initialize / re-sync when the agent in page props changes (e.g. user
-    // navigated to another agent's chat log via Inertia). All singleton state
-    // is per-agent and must be flushed.
-    const incomingAgent = page.props.agent as any;
-    if (!agent.value || agent.value.external_id !== incomingAgent?.external_id) {
-        agent.value = incomingAgent;
-        currentConversationId.value = page.props.current_conversation_id as string | null;
+    // Flush all per-agent singleton state. Used both on initial mount when the
+    // agent differs from the cached one, AND via a watcher to handle Inertia
+    // navigations that update page.props without re-running setup (same-page
+    // component reuse).
+    const resetForAgent = (newAgent: any, conversationId: string | null) => {
+        agent.value = newAgent;
+        currentConversationId.value = conversationId;
 
         // Reset per-agent data
         messagesData.value = null;
@@ -90,6 +94,34 @@ export function useChatLog() {
         // Reset pulse
         pulseData.value = null;
         pulseError.value = null;
+    };
+
+    // Initial sync on mount
+    const incomingAgent = page.props.agent as any;
+    if (!agent.value || agent.value.external_id !== incomingAgent?.external_id) {
+        resetForAgent(incomingAgent, page.props.current_conversation_id as string | null);
+    }
+
+    // React to Inertia prop changes (handles same-page navigation between agents
+    // where Inertia reuses the component and only updates page.props). Register
+    // once across all consumers of this composable.
+    if (!agentWatcherRegistered) {
+        agentWatcherRegistered = true;
+        watch(
+            () => (page.props.agent as any)?.external_id,
+            (newExternalId) => {
+                const nextAgent = page.props.agent as any;
+                if (!newExternalId || newExternalId === agent.value?.external_id) {
+                    return;
+                }
+                resetForAgent(nextAgent, page.props.current_conversation_id as string | null);
+                // Only refetch when we're actually on the chat log page; otherwise
+                // the next mount of the page will fetch fresh data itself.
+                if (typeof page.component === 'string' && page.component.startsWith('agents/ChatLog')) {
+                    fetchInitialData();
+                }
+            },
+        );
     }
 
     // Singleton handoff composable - create once

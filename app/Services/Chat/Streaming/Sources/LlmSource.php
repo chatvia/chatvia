@@ -10,6 +10,8 @@ use App\Services\Chat\Streaming\Exceptions\ClientDisconnected;
 use App\Services\Chat\Streaming\RequestDedupeStore;
 use App\Services\Chat\Streaming\StreamEvent;
 use App\Services\Chat\Streaming\StreamTransformerResolver;
+use App\Services\Chat\Tooling\ToolDispatcherInterface;
+use App\Services\Chat\Tooling\ToolRegistry;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
@@ -17,26 +19,33 @@ use Throwable;
 
 class LlmSource
 {
+    private const MAX_TOOL_ITERATIONS = 5;
+
     public function __construct(
         private readonly LLMProviderInterface $llmProvider,
         private readonly StreamTransformerResolver $transformers,
         private readonly ChatService $chatService,
         private readonly RequestDedupeStore $dedupe,
+        private readonly ToolRegistry $tools,
+        private readonly ToolDispatcherInterface $dispatcher,
     ) {}
 
     /**
      * Stream an LLM response using the v1 envelope.
      *
-     * Order of operations:
+     * High-level flow:
      *   1. yield `start`
-     *   2. open upstream stream + delegate per-chunk parsing to the
-     *      provider-specific StreamTransformer (yields `delta` + `meta`)
-     *   3. yield `sources` if requested
-     *   4. finalize persistence (assistant message cache + DB job)
-     *   5. record the result in the dedupe store keyed by request_id
-     *   6. yield `done` AFTER persistence — so a client refetch on `done`
-     *      always sees the message
+     *   2. tool loop:
+     *      a. open upstream stream with `tools` (if any) and the current
+     *         messages array
+     *      b. relay `delta`, `meta` events from the transformer
+     *      c. if the LLM emitted tool_calls, dispatch each via
+     *         ToolDispatcherInterface, append a `role: 'tool'` message,
+     *         then loop again
+     *      d. if no tool calls (final text answer), break
+     *   3. yield `sources`, persist, yield `done`
      *
+     * @param  array<int, array<string, mixed>>  $llmMessages
      * @return Generator<StreamEvent>
      */
     public function events(ChatContext $context, array $llmMessages): Generator
@@ -52,15 +61,83 @@ class LlmSource
         ]);
 
         try {
-            $response = $this->llmProvider->stream(
-                $context->requestData->message->model->internal_name,
-                $llmMessages,
-                $context->requestData->agent->llmSettings()
-            );
+            $agent = $context->requestData->agent;
+            $toolDefinitions = $this->tools->for($agent);
 
-            $transformer = $this->transformers->for($this->llmProvider);
+            $iteration = 0;
+            while ($iteration < self::MAX_TOOL_ITERATIONS) {
+                $settings = $agent->llmSettings();
+                if (! empty($toolDefinitions)) {
+                    $settings['tools'] = $toolDefinitions;
+                    $settings['tool_choice'] = 'auto';
+                }
 
-            yield from $transformer->transform($response, $context);
+                $response = $this->llmProvider->stream(
+                    $context->requestData->message->model->internal_name,
+                    $llmMessages,
+                    $settings,
+                );
+
+                $transformer = $this->transformers->for($this->llmProvider);
+                yield from $transformer->transform($response, $context);
+
+                $toolCalls = $context->takeToolCalls();
+                if ($toolCalls === []) {
+                    break;
+                }
+
+                // Persist the assistant turn that requested tools, then
+                // execute each call and append a `role: 'tool'` message
+                // with the result so the next iteration sees it.
+                $llmMessages[] = [
+                    'role' => 'assistant',
+                    'content' => $context->streamedMessage,
+                    'tool_calls' => array_map(static fn (array $tc): array => [
+                        'id' => $tc['id'],
+                        'type' => 'function',
+                        'function' => [
+                            'name' => $tc['name'],
+                            'arguments' => $tc['arguments'],
+                        ],
+                    ], $toolCalls),
+                ];
+
+                // Tool dispatch is synchronous + ordered with the LLM stream,
+                // so the loading indicator is driven by SSE envelope events
+                // here (not Reverb). Knowledge-base ingestion is async and
+                // uses Reverb broadcasts — that distinction is intentional.
+                foreach ($toolCalls as $tc) {
+                    yield StreamEvent::tool(
+                        assistantMessageId: $assistantId,
+                        phase: 'start',
+                        toolCallId: $tc['id'],
+                        name: $tc['name'],
+                        args: $tc['arguments'],
+                    );
+
+                    $result = $this->dispatcher->dispatch($agent, $tc['name'], $tc['arguments']);
+
+                    $llmMessages[] = [
+                        'role' => 'tool',
+                        'tool_call_id' => $tc['id'],
+                        'content' => $result,
+                    ];
+
+                    yield StreamEvent::tool(
+                        assistantMessageId: $assistantId,
+                        phase: 'end',
+                        toolCallId: $tc['id'],
+                        name: $tc['name'],
+                        result: $result,
+                    );
+                }
+
+                // Drop the visible text buffer between iterations so the
+                // final saved assistant message is only the post-tool
+                // answer, not the (usually empty) pre-tool fragment.
+                $context->resetStreamedMessage();
+                $iteration++;
+            }
 
             if ($context->requestData->streamSources && $context->sources->isNotEmpty()) {
                 yield StreamEvent::sources($assistantId, $context->sources->toArray());
@@ -80,7 +157,6 @@ class LlmSource
             $this->safeFinalize($context);
             $this->rememberForReplay($context, partial: true);
 
-            // The client is gone — no point yielding more.
             return;
         } catch (RequestException $e) {
             Log::error('Chat stream upstream error', [
@@ -136,7 +212,6 @@ class LlmSource
                 sources: $context->sources->toArray(),
             );
         } catch (Throwable $e) {
-            // Replay is a nice-to-have; never let it fail the stream.
             report($e);
         }
     }

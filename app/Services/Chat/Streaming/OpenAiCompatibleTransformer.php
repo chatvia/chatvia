@@ -61,6 +61,20 @@ class OpenAiCompatibleTransformer implements StreamTransformer
                     $context->appendStreamedMessage($delta);
                     yield StreamEvent::delta($context->assistantMessageId, $delta);
                 }
+
+                // OpenAI tool-calls stream as a list of indexed partial
+                // chunks. First chunk per index carries `id` + name; later
+                // chunks carry only the `function.arguments` string
+                // fragment. We accumulate into ChatContext and let
+                // LlmSource act on them once the stream finishes.
+                $toolCalls = $json['choices'][0]['delta']['tool_calls'] ?? null;
+                if (is_array($toolCalls)) {
+                    foreach ($toolCalls as $tc) {
+                        if (is_array($tc)) {
+                            $context->applyToolCallDelta($tc);
+                        }
+                    }
+                }
             }
         }
     }

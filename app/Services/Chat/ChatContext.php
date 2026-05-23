@@ -18,6 +18,16 @@ class ChatContext
 
     public ?object $qaMatch = null;
 
+    /**
+     * Tool calls accumulated from the LLM stream within the current tool-loop
+     * iteration. Each entry has the partial shape `['id' => string,
+     * 'name' => string, 'arguments' => string]`. Mutated by
+     * OpenAiCompatibleTransformer, drained by LlmSource between iterations.
+     *
+     * @var array<int, array{id: string, name: string, arguments: string}>
+     */
+    public array $pendingToolCalls = [];
+
     private float $startTime;
 
     private ?float $endTime = null;
@@ -43,6 +53,63 @@ class ChatContext
     public function appendStreamedMessage(string $content): void
     {
         $this->streamedMessage .= $content;
+    }
+
+    /**
+     * Reset the visible text buffer between tool-loop iterations so the
+     * final saved assistant message only contains the post-tool reply.
+     */
+    public function resetStreamedMessage(): void
+    {
+        $this->streamedMessage = '';
+    }
+
+    /**
+     * Apply a tool_call delta from the upstream LLM stream. OpenAI sends
+     * tool calls as partial chunks: the first chunk has `id` + (typically)
+     * `function.name`, subsequent chunks only have `function.arguments` as
+     * a JSON-string fragment to be appended.
+     *
+     * @param  array<string, mixed>  $delta
+     */
+    public function applyToolCallDelta(array $delta): void
+    {
+        $index = $delta['index'] ?? 0;
+        $current = $this->pendingToolCalls[$index] ?? [
+            'id' => '',
+            'name' => '',
+            'arguments' => '',
+        ];
+
+        if (isset($delta['id']) && is_string($delta['id'])) {
+            $current['id'] = $delta['id'];
+        }
+
+        $function = $delta['function'] ?? null;
+        if (is_array($function)) {
+            if (isset($function['name']) && is_string($function['name'])) {
+                $current['name'] = $function['name'];
+            }
+            if (isset($function['arguments']) && is_string($function['arguments'])) {
+                $current['arguments'] .= $function['arguments'];
+            }
+        }
+
+        $this->pendingToolCalls[$index] = $current;
+    }
+
+    /**
+     * Drain and return the accumulated tool calls, leaving the buffer empty
+     * for the next iteration.
+     *
+     * @return array<int, array{id: string, name: string, arguments: string}>
+     */
+    public function takeToolCalls(): array
+    {
+        $calls = array_values($this->pendingToolCalls);
+        $this->pendingToolCalls = [];
+
+        return $calls;
     }
 
     public function setSources(Collection $sources): void

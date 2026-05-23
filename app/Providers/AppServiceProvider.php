@@ -6,6 +6,7 @@ use App\Contracts\DocumentOCRInterface;
 use App\Contracts\EmbeddingsProviderInterface;
 use App\Contracts\LLMProviderInterface;
 use App\Models\Agent;
+use App\Models\AgentFunction;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
@@ -16,6 +17,7 @@ use App\Models\SourceText;
 use App\Models\SourceWebsite;
 use App\Models\SourceYoutubeVideo;
 use App\Models\User;
+use App\Observers\AgentFunctionObserver;
 use App\Observers\AgentObserver;
 use App\Observers\AgentTextObserver;
 use App\Observers\AgentWebsiteObserver;
@@ -60,6 +62,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Tool dispatcher for the Functions feature
+        $this->app->bind(
+            \App\Services\Chat\Tooling\ToolDispatcherInterface::class,
+            \App\Services\Chat\Tooling\HttpToolDispatcher::class,
+        );
+
         // Bind the LLM provider interface based on configuration
         $this->app->bind(LLMProviderInterface::class, function ($app) {
             $provider = config('ai.provider', 'openrouter');
@@ -121,6 +129,7 @@ class AppServiceProvider extends ServiceProvider
 
         User::observe(UserObserver::class);
         Agent::observe(AgentObserver::class);
+        AgentFunction::observe(AgentFunctionObserver::class);
         SourceFile::observe(SourceFileObserver::class);
         SourceText::observe(AgentTextObserver::class);
         SourceWebsite::observe(AgentWebsiteObserver::class);

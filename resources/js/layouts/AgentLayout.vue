@@ -343,6 +343,8 @@ const isActiveRoute = (routeName: string) => {
         componentName = 'Sources/Youtube'; // Maps to Sources/Youtube component file
     } else if (routeName === 'agents.sources.markdown') {
         componentName = 'Sources/Markdown'; // Maps to Sources/Markdown component file
+    } else if (routeName === 'agents.sources.functions.index') {
+        componentName = 'Sources/Functions/index'; // Maps to Sources/Functions/index.vue
     } else if (routeName === 'agents.workflow') {
         componentName = 'Workflow'; // Maps to Workflow component file
     } else if (routeName === 'agents.actions') {
@@ -388,7 +390,8 @@ const sourcesSubmenuOpen = ref(
         isActiveRoute('agents.sources.video') ||
         isActiveRoute('agents.sources.audio') ||
         isActiveRoute('agents.sources.youtube.index') ||
-        isActiveRoute('agents.sources.markdown'),
+        isActiveRoute('agents.sources.markdown') ||
+        isActiveRoute('agents.sources.functions.index'),
 );
 
 // Source stats

@@ -458,7 +458,7 @@ const fetchWebsiteLinks = async (websiteId: number, page: number = 1, searchQuer
 
         // Fetch paginated links from API
         const response = await axios.get(
-            route('agents.sources.websites.links', {
+            route('agents.sources.websites.links.index', {
                 agent: props.agent.external_id,
                 website: websiteId,
             }),
@@ -515,7 +515,7 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
     }
 
     try {
-        const response = await axios.get(route('agents.sources.websites.list', { agent: props.agent.external_id }));
+        const response = await axios.get(route('agents.sources.websites.index', { agent: props.agent.external_id }));
 
         // Transform the response data to match our WebSource interface
         webSources.value = response.data.map((website: any) => {
@@ -583,7 +583,7 @@ const addWebsite = () => {
         websiteForm.url = getFullUrl.value;
 
         // Submit form with comprehensive error handling
-        websiteForm.post(route('agents.sources.website.crawl', { agent: props.agent.external_id }), {
+        websiteForm.post(route('agents.sources.websites.store', { agent: props.agent.external_id }), {
             preserveScroll: true,
             onStart: () => {
                 console.log('Form submission started');
@@ -681,7 +681,7 @@ const unlinkWebsite = async () => {
 
     try {
         await axios.post(
-            route('agents.sources.websites.unlink', {
+            route('agents.sources.trained-websites.unlink', {
                 agent: props.agent.external_id,
                 websiteId: websiteToUnlink.id,
             }),
@@ -710,7 +710,7 @@ const deleteWebSource = async () => {
 
     try {
         await axios.delete(
-            route('agents.sources.websites.delete', {
+            route('agents.sources.websites.destroy', {
                 agent: props.agent.external_id,
                 website: sourceToDelete.value.id,
             }),
@@ -1154,7 +1154,7 @@ const deleteLink = async (websiteId: number, linkId: number) => {
 
     try {
         await axios.delete(
-            route('agents.sources.websites.links.delete', {
+            route('agents.sources.websites.links.destroy', {
                 agent: props.agent.external_id,
                 website: websiteId,
                 link: linkId,
@@ -1206,7 +1206,7 @@ const deleteSelectedLinks = async (websiteId: number) => {
 
     try {
         await axios.post(
-            route('agents.sources.websites.links.bulk-delete', {
+            route('agents.sources.websites.links.bulk-destroy', {
                 agent: props.agent.external_id,
                 website: websiteId,
             }),
@@ -1332,7 +1332,7 @@ const trainSelectedWebsites = async () => {
             // Send request to train all links from the website
             await new Promise<void>((resolve, reject) => {
                 router.post(
-                    route('agents.sources.website.train', {
+                    route('agents.sources.websites.train', {
                         agent: props.agent.external_id,
                         website: websiteId,
                     }),
@@ -1419,7 +1419,7 @@ const fetchDialogLinks = async (websiteId: number, page: number = 1, searchQuery
         }
 
         const response = await axios.get(
-            route('agents.sources.websites.links', {
+            route('agents.sources.websites.links.index', {
                 agent: props.agent.external_id,
                 website: websiteId,
             }),
@@ -1491,7 +1491,7 @@ const deleteDialogLink = async (linkId: number) => {
 
     try {
         await axios.delete(
-            route('agents.sources.websites.links.delete', {
+            route('agents.sources.websites.links.destroy', {
                 agent: props.agent.external_id,
                 website: currentWebsite.value.id,
                 link: linkId,
@@ -1558,7 +1558,7 @@ const deleteSelectedDialogLinks = async () => {
 
     try {
         await axios.post(
-            route('agents.sources.websites.links.bulk-delete', {
+            route('agents.sources.websites.links.bulk-destroy', {
                 agent: props.agent.external_id,
                 website: currentWebsite.value.id,
             }),
@@ -1666,7 +1666,7 @@ const retrainEntireWebsite = async () => {
 
     try {
         await axios.post(
-            route('agents.sources.website.train', {
+            route('agents.sources.websites.train', {
                 agent: props.agent.external_id,
                 website: websiteToRetrain.value.id,
             }),

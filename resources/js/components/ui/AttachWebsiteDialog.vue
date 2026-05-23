@@ -63,7 +63,7 @@ const isWebsiteAttaching = (websiteId: number) => {
 const fetchAvailableWebsites = async () => {
     isLoading.value = true;
     try {
-        const response = await axios.get(route('agents.sources.trained-websites.list', { agent: props.agentId }));
+        const response = await axios.get(route('agents.sources.trained-websites.index', { agent: props.agentId }));
         availableWebsites.value = response.data;
     } catch (error: any) {
         console.error('Error fetching available websites:', error);

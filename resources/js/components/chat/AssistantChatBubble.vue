@@ -23,7 +23,7 @@ import type { AIModel, Message } from '@/types/chat';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import hljs from 'highlight.js';
-import { Check, Copy, Download, FileText, MessageSquare, RefreshCw, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-vue-next';
+import { Check, Copy, Download, FileText, LoaderCircle, MessageSquare, RefreshCw, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-vue-next';
 import { Marked } from 'marked';
 import markedAlert from 'marked-alert';
 import markedCodePreview from 'marked-code-preview';
@@ -38,6 +38,7 @@ const props = defineProps<{
     userMessageId?: string | number;
     isThinking?: boolean;
     isStreaming?: boolean;
+    isCallingExternal?: boolean;
     hideFeedback?: boolean;
     models?: AIModel[];
     defaultModel?: AIModel | null;
@@ -317,7 +318,23 @@ onMounted(() => {
                     v-html="renderedHtml"
                 ></div>
                 <div v-else class="flex items-center gap-2 py-1">
-                    <WaitingIndicator />
+                    <template v-if="isCallingExternal">
+                        <LoaderCircle class="external-call-spinner h-4 w-4 animate-spin" />
+                        <span class="external-call-shimmer text-sm italic">
+                            Calling external data source…
+                        </span>
+                    </template>
+                    <WaitingIndicator v-else />
+                </div>
+                <!-- Edge case: the LLM streamed some text before deciding to
+                     call a tool. Show the indicator below the content rather
+                     than next to the three dots. -->
+                <div
+                    v-if="message.content && isCallingExternal"
+                    class="mt-2 flex items-center gap-2 py-1 text-sm"
+                >
+                    <LoaderCircle class="external-call-spinner h-4 w-4 animate-spin" />
+                    <span class="external-call-shimmer italic">Calling external data source…</span>
                 </div>
             </div>
 
@@ -740,6 +757,40 @@ onMounted(() => {
     }
     50% {
         opacity: 0;
+    }
+}
+
+/* External-call indicator: shimmering gradient text + matching spinner.
+   Used by the "Calling external data source…" status shown while the LLM
+   tool loop is dispatching a webhook. The theme exposes CSS variables as
+   full color functions (e.g. `--primary: #404040`), so use them directly —
+   wrapping them with `hsl()` produces invalid syntax and the rule is
+   silently dropped. */
+.external-call-shimmer {
+    background-image: linear-gradient(
+        90deg,
+        var(--muted-foreground) 0%,
+        var(--primary) 50%,
+        var(--muted-foreground) 100%
+    );
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: external-call-shimmer 2.4s linear infinite;
+}
+
+.external-call-spinner {
+    color: var(--primary);
+}
+
+@keyframes external-call-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
     }
 }
 </style>

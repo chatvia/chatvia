@@ -20,11 +20,11 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
      */
     public function stream(string $model, array $messages, array $settings = []): ResponseInterface
     {
-        $json = [
+        $json = array_merge([
             'model' => $model,
             'messages' => $messages,
             'stream' => true,
-        ];
+        ], $settings);
 
         if (static::class === OpenRouter::class) {
             $json['provider'] = [

@@ -51,6 +51,40 @@ final readonly class StreamEvent
         ]);
     }
 
+    /**
+     * Tool-call lifecycle event. `phase` is one of:
+     *   - 'start' — the LLM has emitted a complete tool call; about to dispatch
+     *   - 'end'   — the dispatch finished (with `result` or `error`)
+     */
+    public static function tool(
+        string $assistantMessageId,
+        string $phase,
+        string $toolCallId,
+        ?string $name = null,
+        ?string $args = null,
+        ?string $result = null,
+        ?string $error = null,
+    ): self {
+        $data = [
+            'phase' => $phase,
+            'tool_call_id' => $toolCallId,
+        ];
+        if ($name !== null) {
+            $data['name'] = $name;
+        }
+        if ($args !== null) {
+            $data['args'] = $args;
+        }
+        if ($result !== null) {
+            $data['result'] = $result;
+        }
+        if ($error !== null) {
+            $data['error'] = $error;
+        }
+
+        return new self(EventType::Tool, $assistantMessageId, $data);
+    }
+
     public function withSeq(int $seq): self
     {
         return new self($this->type, $this->id, $this->data, $seq);

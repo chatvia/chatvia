@@ -17,12 +17,16 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
-class WebsiteIngestionJob implements ShouldQueue, ShouldBeUnique
+class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable;
+
+    public int $tries = 1;
 
     public int $timeout = 1800; // 30 min
 
@@ -49,18 +53,38 @@ class WebsiteIngestionJob implements ShouldQueue, ShouldBeUnique
         });
 
         $websiteId = $this->website->id;
-
-        $agenId = $this->agent->id;
+        $agentId = $this->agent->id;
 
         $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent WebSite ID: '.$this->website->id)
-            ->then(function (Batch $batch) use ($websiteId, $agenId) {
-                $agent = Agent::find($agenId);
+            ->name("Website Ingestion: agent={$agentId} website={$websiteId}")
+            ->before(function (Batch $batch) use ($websiteId) {
+                SourceWebsite::query()
+                    ->whereKey($websiteId)
+                    ->update(['internal_chunking_batch_id' => $batch->id]);
+            })
+            ->then(function (Batch $batch) use ($websiteId, $agentId) {
+                $agent = Agent::find($agentId);
                 $website = SourceWebsite::find($websiteId);
 
-                $website->update(['status' => 'ingested']);
+                if (! $agent || ! $website) {
+                    return;
+                }
 
-                $website->decrement('expected_chunks', $website->urls()->count());
+                DB::transaction(function () use ($website) {
+                    $locked = SourceWebsite::query()
+                        ->whereKey($website->id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $locked) {
+                        return;
+                    }
+
+                    $locked->update(['status' => 'ingested']);
+                    $locked->decrement('expected_chunks', $locked->urls()->count());
+                });
+
+                $website->refresh();
 
                 // Save entire chunks into file
                 $text = $website->chunks()
@@ -68,7 +92,7 @@ class WebsiteIngestionJob implements ShouldQueue, ShouldBeUnique
                     ->pluck('chunk')
                     ->implode("\n\n");
 
-                $filePath = 'users/'.$agent->user_id.'/agents/'.$agent.'/websites/'.$website->id.'/'.Str::uuid()->toString().'.txt';
+                $filePath = 'users/'.$agent->user_id.'/agents/'.$agent->id.'/websites/'.$website->id.'/'.Str::uuid()->toString().'.txt';
 
                 Storage::put($filePath, $text);
 
@@ -81,8 +105,6 @@ class WebsiteIngestionJob implements ShouldQueue, ShouldBeUnique
 
                 // Dispatch status event (moves website to "Trained" section)
                 WebsiteCrawlerEvent::dispatch($website, $agent);
-
-                // Enhance
             })
             ->dispatch();
 
@@ -94,7 +116,16 @@ class WebsiteIngestionJob implements ShouldQueue, ShouldBeUnique
         ]);
     }
 
-    public function uniqueId()
+    public function failed(Throwable $e): void
+    {
+        $this->website->update(['status' => 'failed']);
+
+        WebsiteCrawlerEvent::dispatch($this->website, $this->agent);
+
+        report($e);
+    }
+
+    public function uniqueId(): string
     {
         return 'agents:'.$this->agent->id.':sources:websites:'.$this->website->id;
     }

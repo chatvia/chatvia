@@ -8,8 +8,6 @@ use App\Services\Billing\Billing;
 use App\Services\Billing\UserCreditSystem;
 use App\Services\Teams\TeamService;
 use App\Traits\HasSettings;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,7 +23,7 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Billable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements FilamentUser, MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use Billable, HasFactory, HasRoles, HasSettings, Notifiable;
@@ -355,11 +353,6 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function consumableMessages(): int
     {
         return $this->creditSystem()->consumableMessages();
-    }
-
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return $this->type === 'admin';
     }
 
     public function tickets(): HasMany

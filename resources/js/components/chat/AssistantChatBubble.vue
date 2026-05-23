@@ -29,7 +29,7 @@ import markedAlert from 'marked-alert';
 import markedCodePreview from 'marked-code-preview';
 import { markedHighlight } from 'marked-highlight';
 import markedKatex from 'marked-katex-extension';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import SourcesDialog from './SourcesDialog.vue';
 import WaitingIndicator from './WaitingIndicator.vue';
 
@@ -120,6 +120,50 @@ function formatMessage(content: string): string {
     const result = marked.parse(content);
     return typeof result === 'string' ? result : '';
 }
+
+// Markdown + highlight.js parsing is expensive. While streaming, debounce
+// reparsing on a trailing edge — every ~60 ms is well under the threshold
+// where a user would notice the lag, but caps CPU on long responses.
+// When the stream ends, flush immediately so the final tokens land.
+const renderedHtml = ref('');
+let renderDebounce: ReturnType<typeof setTimeout> | null = null;
+
+function flushRender() {
+    if (renderDebounce) {
+        clearTimeout(renderDebounce);
+        renderDebounce = null;
+    }
+    renderedHtml.value = formatMessage(props.message.content ?? '');
+}
+
+watch(
+    () => props.message.content,
+    () => {
+        if (!props.isStreaming || renderedHtml.value === '') {
+            // Not streaming, or first paint — render immediately so the
+            // bubble doesn't flash empty for the debounce window.
+            flushRender();
+            return;
+        }
+        if (renderDebounce) return;
+        renderDebounce = setTimeout(() => {
+            renderDebounce = null;
+            renderedHtml.value = formatMessage(props.message.content ?? '');
+        }, 60);
+    },
+    { immediate: true },
+);
+
+watch(
+    () => props.isStreaming,
+    (streaming) => {
+        if (!streaming) flushRender();
+    },
+);
+
+onUnmounted(() => {
+    if (renderDebounce) clearTimeout(renderDebounce);
+});
 
 async function copyToClipboard() {
     try {
@@ -270,7 +314,7 @@ onMounted(() => {
                     ref="messageContentRef"
                     class="streaming-content"
                     :class="{ 'is-streaming': isStreaming }"
-                    v-html="formatMessage(message.content)"
+                    v-html="renderedHtml"
                 ></div>
                 <div v-else class="flex items-center gap-2 py-1">
                     <WaitingIndicator />

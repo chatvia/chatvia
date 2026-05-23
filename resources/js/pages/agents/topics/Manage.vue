@@ -46,7 +46,7 @@ const filteredTopics = computed(() => {
 const fetchTopics = async () => {
     loading.value = true;
     try {
-        const response = await axios.get(route('agents.topics.list', props.agent.external_id));
+        const response = await axios.get(route('agents.topics.index', props.agent.external_id));
         topics.value = response.data;
 
         // Set frozen status from first topic (assuming all have same status)
@@ -144,7 +144,7 @@ const handleEdit = async () => {
 const handleDelete = async () => {
     isSubmitting.value = true;
     try {
-        await axios.delete(route('agents.topics.delete', [props.agent.external_id, currentTopic.value.id]));
+        await axios.delete(route('agents.topics.destroy', [props.agent.external_id, currentTopic.value.id]));
         toast.success('Topic deleted successfully');
         isDeleteDialogOpen.value = false;
         fetchTopics();

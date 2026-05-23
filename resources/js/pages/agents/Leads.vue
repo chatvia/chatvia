@@ -36,7 +36,7 @@ const isLoadingLeads = ref(true);
 const fetchLeads = async () => {
     isLoadingLeads.value = true;
     try {
-        const response = await axios.get(route('agents.leads.data', { agent: props.agent.external_id }));
+        const response = await axios.get(route('agents.leads.index', { agent: props.agent.external_id }));
         leads.value = response.data;
     } catch (error) {
         console.error('Failed to fetch leads:', error);
@@ -259,7 +259,7 @@ const deleteSelectedLeads = async () => {
     isDeleting.value = true;
 
     try {
-        await axios.delete(route('agents.leads.delete', { agent: props.agent.external_id }), {
+        await axios.delete(route('agents.leads.destroy', { agent: props.agent.external_id }), {
             data: {
                 lead_ids: selectedLeads.value,
             },

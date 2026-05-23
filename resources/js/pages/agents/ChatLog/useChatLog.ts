@@ -55,10 +55,41 @@ export function useChatLog() {
     const page = usePage();
     const { formatTimeAgo } = useTimeAgo();
 
-    // Initialize agent from page props (only once)
-    if (!agent.value) {
-        agent.value = page.props.agent;
+    // Initialize / re-sync when the agent in page props changes (e.g. user
+    // navigated to another agent's chat log via Inertia). All singleton state
+    // is per-agent and must be flushed.
+    const incomingAgent = page.props.agent as any;
+    if (!agent.value || agent.value.external_id !== incomingAgent?.external_id) {
+        agent.value = incomingAgent;
         currentConversationId.value = page.props.current_conversation_id as string | null;
+
+        // Reset per-agent data
+        messagesData.value = null;
+        conversations.value = null;
+        conversationTitle.value = null;
+        leadConversationIds.value = [];
+        lead.value = null;
+        currentConversationData.value = null;
+        activeTab.value = 'chat';
+
+        // Reset filters (they're agent-scoped)
+        topics.value = [];
+        countries.value = [];
+        models.value = [];
+        selectedTopic.value = 'all';
+        selectedSentiment.value = 'all';
+        selectedTone.value = 'all';
+        selectedCountry.value = 'all';
+        selectedConfidenceScore.value = 'all';
+        selectedFeedback.value = 'all';
+        selectedSource.value = 'all';
+        dateRange.value = undefined;
+        onlineOnly.value = false;
+        search.value = '';
+
+        // Reset pulse
+        pulseData.value = null;
+        pulseError.value = null;
     }
 
     // Singleton handoff composable - create once
@@ -237,7 +268,7 @@ export function useChatLog() {
     async function fetchInitialData() {
         try {
             const [modelsResponse, topicsResponse, countriesResponse] = await Promise.all([
-                axios.get(route('agents.models.list', { agent: agent.value.external_id })),
+                axios.get(route('agents.models.index', { agent: agent.value.external_id })),
                 axios.get(route('agents.logs.topics', { agent: agent.value.external_id })),
                 axios.get(route('agents.logs.countries', { agent: agent.value.external_id })),
             ]);

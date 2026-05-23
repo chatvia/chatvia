@@ -10,6 +10,7 @@ use App\Models\AgentWebsiteUrl;
 use App\Models\Chunk;
 use App\Models\SourceWebsite;
 use App\Services\Infrastructure\LLM\Operations\Chunker;
+use App\Services\Search\Bm25Tokenizer;
 use App\Services\Tidy\HTMLCleaner;
 use App\Services\TikToken;
 use Illuminate\Bus\Batchable;
@@ -22,15 +23,22 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 3;
+
+    /** @var array<int, int> */
+    public array $backoff = [10, 60, 300];
+
     public bool $deleteWhenMissingModels = true;
 
     public int $timeout = 800;
+
+    private const PROGRESS_EVENT_EVERY = 25;
 
     public function __construct(public AgentWebsiteUrl $websiteUrl, public Agent $agent)
     {
@@ -55,54 +63,94 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $chunks = Cache::remember('ingestion:website:chunks:'.$this->websiteUrl->id, now()->addDay(), function () use ($chunker, $text) {
+        $cacheKey = 'ingestion:website:chunks:'.$this->websiteUrl->id.':'.$checksum;
+
+        $chunks = Cache::remember($cacheKey, now()->addDay(), function () use ($chunker, $text) {
             return $chunker->chunkHtml($text);
         });
 
         /** @var SourceWebsite $website */
         $website = $this->websiteUrl->agentWebsite;
 
-        foreach ($chunks as $idx => $chunk) {
-            $chunkModel = Chunk::query()->create([
-                'user_id' => $this->agent->user_id,
-                'chunkable_type' => $website::class,
-                'chunkable_id' => $website->id,
-                'type' => 'text',
-                'chunk_index' => $idx + 1,
-                'chunk' => $chunk,
-                'questions' => [],
-                'summary' => '',
-                'chunked_using_model' => config('ai.models.chunker'),
-                'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
-                'cost_in_cents' => 0,
-                'tokens' => TikToken::countTokens($chunk),
-                'embedding' => embed($chunk, true),
-                'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($chunk).", 'llmlingua2')"),
-                'metadata' => [],
-                'checksum' => hash('sha256', $chunk),
-                'retrieval_count' => 0,
-            ]);
+        $createdChunkIds = [];
 
-            $chunkModel->references()->create([
+        foreach ($chunks as $idx => $chunk) {
+            $chunkChecksum = hash('sha256', $chunk);
+
+            $chunkModel = Chunk::query()->updateOrCreate(
+                [
+                    'chunkable_type' => $website::class,
+                    'chunkable_id' => $website->id,
+                    'checksum' => $chunkChecksum,
+                ],
+                [
+                    'user_id' => $this->agent->user_id,
+                    'type' => 'text',
+                    'chunk_index' => $idx + 1,
+                    'chunk' => $chunk,
+                    'questions' => [],
+                    'summary' => null,
+                    'chunked_using_model' => config('ai.models.chunker'),
+                    'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
+                    'cost_in_cents' => 0,
+                    'tokens' => TikToken::countTokens($chunk),
+                    'embedding' => embed($chunk, true),
+                    'embedding_bm25' => Bm25Tokenizer::expression($chunk),
+                    'metadata' => [],
+                    'retrieval_count' => 0,
+                ]
+            );
+
+            $chunkModel->references()->firstOrCreate([
                 'referenceable_type' => $this->websiteUrl::class,
                 'referenceable_id' => $this->websiteUrl->id,
             ]);
 
-            WebsiteUrlEnhanceJob::dispatchIf(config('ai.chunker.enhance') === true, $this->agent, $this->websiteUrl, $chunkModel);
+            WebsiteUrlEnhanceJob::dispatchIf(
+                config('ai.chunker.enhance') === true,
+                $this->agent,
+                $this->websiteUrl,
+                $chunkModel,
+            );
 
-            $website->refresh();
+            $createdChunkIds[] = $chunkModel->id;
 
-            WebsiteIngestionProgressEvent::dispatch($website, $this->agent->external_id);
+            if (($idx + 1) % self::PROGRESS_EVENT_EVERY === 0) {
+                WebsiteIngestionProgressEvent::dispatch($website, $this->agent->external_id);
+            }
         }
 
-        $website->increment('expected_chunks', count($chunks));
+        DB::transaction(function () use ($website, $chunks) {
+            $locked = SourceWebsite::query()
+                ->whereKey($website->id)
+                ->lockForUpdate()
+                ->first();
 
-        $this->websiteUrl->update(['status' => 'ingested']);
+            if (! $locked) {
+                return;
+            }
+
+            $locked->increment('expected_chunks', count($chunks));
+        });
+
+        $this->websiteUrl->update([
+            'status' => 'ingested',
+            'checksum' => $checksum,
+        ]);
 
         $website->refresh();
 
         UrlIngestionEvent::dispatch($this->websiteUrl, $this->agent->external_id);
         WebsiteIngestionProgressEvent::dispatch($website, $this->agent->external_id);
+    }
+
+    public function failed(Throwable $e): void
+    {
+        $this->websiteUrl->update(['status' => 'failed']);
+
+        UrlIngestionEvent::dispatch($this->websiteUrl, $this->agent->external_id);
+
+        report($e);
     }
 
     public function uniqueId(): string

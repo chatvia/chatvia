@@ -190,10 +190,8 @@
 
                                     <!-- Turnstile Widget -->
                                     <div>
-                                        <x-turnstile-widget
-                                            theme="light"
-                                            language="en-US"
-                                        />
+                                        <x-turnstile data-theme="light" data-language="en-US" />
+                                        <x-turnstile.scripts />
                                         @error('cf-turnstile-response')
                                         <p class="error">{{ $message }}</p>
                                         @enderror

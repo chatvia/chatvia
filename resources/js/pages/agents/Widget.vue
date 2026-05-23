@@ -967,7 +967,7 @@ const addStarterMessage = () => {
 
 const removeStarter = (id: number) => {
     axios
-        .delete(route('agents.starters.delete', { agent: props.agent.external_id, id }))
+        .delete(route('agents.starters.destroy', { agent: props.agent.external_id, id }))
         .then(() => {
             starters.value = starters.value.filter((starter) => starter.id !== id);
             toast.success('Starter message removed');

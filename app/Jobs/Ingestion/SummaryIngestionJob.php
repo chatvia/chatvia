@@ -11,18 +11,24 @@ use App\Services\Infrastructure\LLM\Operations\ContentAnalyzer;
 use App\Services\Infrastructure\LLM\Operations\CostCalculator;
 use App\Services\Infrastructure\LLM\Operations\Summarizer;
 use App\Services\Prompts\PromptLoader;
+use App\Services\Search\Bm25Tokenizer;
 use App\Services\TikToken;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable, SerializesModels;
+
+    public int $tries = 3;
+
+    /** @var array<int, int> */
+    public array $backoff = [10, 60, 300];
 
     public bool $deleteWhenMissingModels = true;
 
@@ -92,7 +98,7 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'cost_in_cents' => $costInCents,
             'tokens' => TikToken::countTokens($summary),
             'embedding' => embed(strip_tags($summary), true),
-            'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote(strip_tags($summary)).", 'llmlingua2')"),
+            'embedding_bm25' => Bm25Tokenizer::expression(strip_tags($summary)),
             'metadata' => $contentAnalysis->metadata->toArray(),
             'checksum' => hash('xxh128', $summary),
             'retrieval_count' => 0,
@@ -101,7 +107,12 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
         Storage::delete($pdfFilepath);
     }
 
-    public function uniqueId()
+    public function failed(Throwable $e): void
+    {
+        report($e);
+    }
+
+    public function uniqueId(): string
     {
         return 'ingestion:summary:files:'.$this->source::class.':'.$this->source->id;
     }

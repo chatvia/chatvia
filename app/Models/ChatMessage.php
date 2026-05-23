@@ -13,7 +13,33 @@ class ChatMessage extends Model
 {
     use HasFactory, SupportsExternalId;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'external_id',
+        'chat_conversation_id',
+        'llm_id',
+        'agent_question_answer_id',
+        'generation_id',
+        'message_credits',
+        'source',
+        'content',
+        'metadata',
+        'role',
+        'confidence_score',
+        'sentiment',
+        'tone',
+        'feedback',
+        'is_response_from_qa',
+        'llm_found_answer',
+        'response_time_ms',
+        'prompt_tokens',
+        'completion_tokens',
+        'cost',
+        'is_usage_counted',
+        'expires_at',
+        'read_at',
+        'created_at',
+        'updated_at',
+    ];
 
     protected array $hmacEncryptionColumns = [
         'conversation.session.agent_id',

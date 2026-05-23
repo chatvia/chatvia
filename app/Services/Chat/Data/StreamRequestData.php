@@ -24,5 +24,6 @@ class StreamRequestData extends Data
         public ?string $referrerUrl = null,
         public ?string $pageUrl = null,
         public ?string $locale = null,
+        public ?string $requestId = null,
     ) {}
 }

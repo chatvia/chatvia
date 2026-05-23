@@ -4,16 +4,32 @@ import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import UserChatBubble from '@/components/chat/UserChatBubble.vue';
 import { useColorTheme } from '@/composables/useColorTheme';
-import { useSSE } from '@/composables/useSSE';
+import { useChatStream } from '@/composables/useChatStream';
 import { router } from '@inertiajs/vue3';
 import { useScroll } from '@vueuse/core';
 import axios from 'axios';
 import { ChevronDown } from 'lucide-vue-next';
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 
 const chatEventBus = inject('chatEventBus');
 
-const { isStreaming, startStream, stopStream } = useSSE();
+const { state: streamState, error: streamError, start: startStream, stop: stopStream } = useChatStream();
+
+const isStreaming = computed(() => streamState.value === 'streaming' || streamState.value === 'connecting');
+
+/**
+ * Tell whether a message is the one currently being streamed into.
+ * After the server's `start` event, we have a real UUID; before it,
+ * the pending assistant stub still has id `0`.
+ */
+function isMessageStreaming(message) {
+    if (!isStreaming.value) return false;
+    if (streamingAssistantId.value) {
+        return message.id === streamingAssistantId.value;
+    }
+    return message.role === 'assistant' && (message.id === 0 || message.id === null);
+}
 
 const props = defineProps({
     agent_id: {
@@ -70,12 +86,12 @@ const scrollTimeout = ref(null);
 const messagesContainer = ref(null);
 const { arrivedState } = useScroll(messagesContainer);
 const selectedModel = ref({});
-const streamingForMessageIndex = ref(null);
+const streamingAssistantId = ref(null);
 const isChatExpanded = ref(false);
 const userHasScrolledUp = ref(false);
 const lastScrollTop = ref(0);
 const scrollAnimationFrame = ref(null);
-const messageSources = ref(new Map()); // Store sources for each message
+const messageSources = ref(new Map()); // Keyed by assistant message UUID (string)
 const scrollThrottleTimeout = ref(null); // For throttling scroll updates
 
 // Usage checking
@@ -164,16 +180,25 @@ const loadSourcesAsync = async () => {
         const response = await axios.get(route('chat.sources', { conversationId: props.conversation_id }));
         const sourcesData = response.data;
 
-        // Map sources to message indices based on message IDs
-        messages.value.forEach((message, index) => {
+        // Map sources keyed by assistant message UUID (stable across re-orderings/deletions).
+        messages.value.forEach((message) => {
             if (message.role === 'assistant' && message.id && sourcesData[message.id]) {
-                messageSources.value.set(index, sourcesData[message.id]);
+                messageSources.value.set(message.id, sourcesData[message.id]);
             }
         });
     } catch (error) {
         console.error('Failed to load sources:', error);
     }
 };
+
+// Show typed stream errors as toasts. The bubble UI keeps the assistant
+// message stub if there's already content; otherwise the streaming-cleanup
+// code in submitChat removes it.
+watch(streamError, (err) => {
+    if (err) {
+        toast.error(err.message);
+    }
+});
 
 // Function to check usage status
 const checkUsage = async () => {
@@ -205,23 +230,37 @@ const stopUsageChecking = () => {
 };
 
 async function messageAdded(message, model) {
+    const userIndex = messages.value.length;
     messages.value.push({
         role: 'user',
         content: message,
-        id: 0, // Default ID that will be overwritten by real ID
+        id: 0,
+    });
+
+    const assistantIndex = messages.value.length;
+    messages.value.push({
+        role: 'assistant',
+        content: '',
+        model: model.id,
+        id: 0,
     });
 
     if (window.innerWidth < 768 && isSidebarOpen.value) {
         isSidebarOpen.value = false;
     }
 
-    // Reset scroll state for new message
     userHasScrolledUp.value = false;
     isAutoScrollEnabled.value = true;
 
     await nextTick(() => {
         scrollToBottom();
-        startSseStreaming(message, model.id);
+        submitChat({
+            message,
+            model,
+            userIndex,
+            assistantIndex,
+            isNewConversation: getQueryParam('new') === '1',
+        });
     });
 }
 
@@ -351,7 +390,22 @@ onMounted(async () => {
             const modelId = getQueryParam('model') || defaultModel.value?.id;
 
             if (messages.value.length === 1) {
-                startSseStreaming(messages.value[0].content, modelId, {}, true);
+                const model = models.value.find((m) => m.id === modelId) || defaultModel.value;
+                const userIndex = 0;
+                const assistantIndex = messages.value.length;
+                messages.value.push({
+                    role: 'assistant',
+                    content: '',
+                    model: model?.id,
+                    id: 0,
+                });
+                submitChat({
+                    message: messages.value[0].content,
+                    model,
+                    userIndex,
+                    assistantIndex,
+                    isNewConversation: true,
+                });
             }
 
             nextTick(() => {
@@ -412,103 +466,110 @@ function scrollWhileStreaming() {
     }
 }
 
-function startSseStreaming(
+/**
+ * Single entry point for all stream invocations (compose / edit / regenerate).
+ *
+ * The caller mutates `messages` first (push or replace user + assistant stubs)
+ * and tells us the indices. We own the stream lifecycle and route every
+ * incoming envelope event to the right message via the assistant UUID that
+ * the server emits in the `start` event.
+ */
+function submitChat({
     message,
-    modelId,
+    model,
+    userIndex,
+    assistantIndex,
     updatedMessageInfo = {},
-    isNewConversation = false,
     saveUserMessageImmediately = false,
     createdAt = null,
-) {
-    const newMessage = {
-        role: 'assistant',
-        content: '',
-        model: modelId,
-        id: 0, // Default ID that will be overwritten by real ID
-    };
-    messages.value.push(newMessage);
+    isNewConversation = false,
+    autoScrollOnDone = true,
+}) {
+    const requestId = window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-    const stream = startStream(
+    streamingAssistantId.value = null;
+
+    const callbacks = {
+        onStart: (data) => {
+            if (messages.value[assistantIndex] && messages.value[assistantIndex].role === 'assistant') {
+                messages.value[assistantIndex].id = data.assistant_message_id;
+            }
+            if (data.user_message_id && messages.value[userIndex] && messages.value[userIndex].role === 'user') {
+                messages.value[userIndex].id = data.user_message_id;
+            }
+            streamingAssistantId.value = data.assistant_message_id;
+        },
+        onDelta: (text) => {
+            const msg = findStreamingAssistant(streamingAssistantId.value, assistantIndex);
+            if (msg) {
+                msg.content += text;
+                scrollWhileStreaming();
+            }
+        },
+        onMeta: (key, value) => {
+            if (key === 'language' && typeof value === 'string') {
+                const msg = findStreamingAssistant(streamingAssistantId.value, assistantIndex);
+                if (msg) msg.language = value;
+            }
+            // 'generation_id' and 'handoff' are no-ops in this view; widget/admin handle handoff.
+        },
+        onSources: (sources, id) => {
+            if (id) messageSources.value.set(id, sources);
+        },
+        onError: () => {
+            // Toast is shown by the streamError watcher; here we clean up the
+            // empty assistant stub so the UI doesn't show an empty bubble.
+            const stub = messages.value[assistantIndex];
+            if (stub && stub.role === 'assistant' && !stub.content) {
+                messages.value.splice(assistantIndex, 1);
+            }
+            streamingAssistantId.value = null;
+        },
+        onDone: () => {
+            streamingAssistantId.value = null;
+
+            if (isNewConversation) {
+                setTimeout(() => {
+                    chatEventBus.emitConversationCreated(props.conversation_id);
+                }, 2000);
+            }
+
+            if (getQueryParam('new') === '1') {
+                const url = new URL(window.location);
+                url.searchParams.delete('new');
+                window.history.replaceState({}, '', url);
+            }
+
+            if (autoScrollOnDone && isAutoScrollEnabled.value) {
+                nextTick(() => scrollToBottom());
+            }
+        },
+    };
+
+    startStream(
         route('chat.stream', { conversationId: props.conversation_id }),
         JSON.stringify({
-            model: modelId,
-            message: message,
+            model: model.id,
+            message,
             updated_message_info: updatedMessageInfo,
             save_user_message_immediately: saveUserMessageImmediately,
             created_at: createdAt,
+            request_id: requestId,
         }),
-        {
-            onMessage: (content, messageId, userMessageId) => {
-                let messageIndex = messages.value.length - 1;
-
-                if (streamingForMessageIndex.value !== null) {
-                    messageIndex = streamingForMessageIndex.value;
-                }
-
-                messages.value[messageIndex].content += content;
-
-                // Set the assistant message ID if provided (only on first chunk)
-                if (messageId && messages.value[messageIndex] && messages.value[messageIndex].role === 'assistant') {
-                    messages.value[messageIndex].id = messageId;
-                }
-
-                // Set the user message ID if provided (only on first chunk)
-                if (userMessageId && messageIndex > 0 && messages.value[messageIndex - 1] && messages.value[messageIndex - 1].role === 'user') {
-                    messages.value[messageIndex - 1].id = userMessageId;
-                }
-
-                scrollWhileStreaming();
-            },
-            onSources: (sources) => {
-                let messageIndex = messages.value.length - 1;
-
-                if (streamingForMessageIndex.value !== null) {
-                    messageIndex = streamingForMessageIndex.value;
-                }
-
-                // Store sources for this message using message index as key
-                messageSources.value.set(messageIndex, sources);
-            },
-            onLanguage: (language) => {
-                // Store the detected language in the streaming message
-                let messageIndex = messages.value.length - 1;
-                if (streamingForMessageIndex.value !== null) {
-                    messageIndex = streamingForMessageIndex.value;
-                }
-
-                if (messages.value[messageIndex] && messages.value[messageIndex].role === 'assistant') {
-                    messages.value[messageIndex].language = language;
-                }
-            },
-            onDone: () => {
-                streamingForMessageIndex.value = null;
-
-                // For new conversations, wait for title generation to complete
-                // before emitting the event to ensure conversation is visible
-                if (isNewConversation) {
-                    setTimeout(() => {
-                        chatEventBus.emitConversationCreated(props.conversation_id);
-                    }, 2000);
-                }
-
-                // Remove 'new' query parameter after streaming is done
-                if (getQueryParam('new') === '1') {
-                    const url = new URL(window.location);
-                    url.searchParams.delete('new');
-                    window.history.replaceState({}, '', url);
-                }
-
-                // Final scroll to ensure we're at the bottom if auto-scroll is enabled
-                if (isAutoScrollEnabled.value) {
-                    nextTick(() => {
-                        scrollToBottom();
-                    });
-                }
-            },
-        },
+        callbacks,
     );
+}
 
-    stream();
+/**
+ * Resolve the assistant message currently being streamed. Prefer the UUID
+ * once the server has sent it; fall back to the array index until then.
+ */
+function findStreamingAssistant(id, fallbackIndex) {
+    if (id) {
+        const byId = messages.value.find((m) => m.id === id);
+        if (byId) return byId;
+    }
+    return messages.value[fallbackIndex];
 }
 
 const stopStreaming = () => {
@@ -516,114 +577,70 @@ const stopStreaming = () => {
 };
 
 const messageUpdated = (messageId, messageContent) => {
-    const currentMessage = messages.value.find((m) => m.id === messageId);
-    const currentMessageIndex = messages.value.findIndex((m) => m.id === messageId);
+    const userIndex = messages.value.findIndex((m) => m.id === messageId);
+    if (userIndex === -1) return;
 
-    if (currentMessage) {
-        if (currentMessage.content !== messageContent) {
-            currentMessage.content = messageContent;
+    const currentMessage = messages.value[userIndex];
+    if (currentMessage.content === messageContent) return;
 
-            messages.value[currentMessageIndex + 1].content = '';
-            streamingForMessageIndex.value = currentMessageIndex + 1;
+    const assistantIndex = userIndex + 1;
+    const assistant = messages.value[assistantIndex];
+    if (!assistant || assistant.role !== 'assistant') return;
 
-            // Clear existing sources for the assistant message being regenerated
-            messageSources.value.delete(currentMessageIndex + 1);
+    const previousAssistantId = assistant.id;
 
-            // Reset scroll state for edited message
-            userHasScrolledUp.value = false;
-            isAutoScrollEnabled.value = true;
+    currentMessage.content = messageContent;
+    assistant.content = '';
+    assistant.id = 0;
 
-            // updatedMessageInfo for edited message
-            startSseStreaming(currentMessage.content, selectedModel.value.id, {
-                userMessageId: currentMessage.id,
-                assistantMessageId: messages.value[currentMessageIndex + 1].id,
-            });
-        }
+    if (previousAssistantId) {
+        messageSources.value.delete(previousAssistantId);
     }
+
+    userHasScrolledUp.value = false;
+    isAutoScrollEnabled.value = true;
+
+    submitChat({
+        message: messageContent,
+        model: selectedModel.value,
+        userIndex,
+        assistantIndex,
+        updatedMessageInfo: {
+            userMessageId: currentMessage.id,
+            assistantMessageId: previousAssistantId,
+        },
+    });
 };
 
 const messageDeleted = (messageId) => {
     const messageIndex = messages.value.findIndex((m) => m.id === messageId);
-
     if (messageIndex === -1) return;
 
     const message = messages.value[messageIndex];
 
     if (message.role === 'user') {
-        // If deleting a user message, also remove the subsequent assistant message
-        const assistantMessageIndex = messageIndex + 1;
-        if (assistantMessageIndex < messages.value.length && messages.value[assistantMessageIndex].role === 'assistant') {
-            // Remove both user and assistant messages
+        // Delete the user message and its following assistant reply (if present).
+        const next = messages.value[messageIndex + 1];
+        if (next && next.role === 'assistant') {
+            if (next.id) messageSources.value.delete(next.id);
             messages.value.splice(messageIndex, 2);
-            // Clear sources for the assistant message
-            messageSources.value.delete(assistantMessageIndex);
-            // Update source indices for remaining messages
-            const newSources = new Map();
-            messageSources.value.forEach((sources, index) => {
-                if (index > assistantMessageIndex) {
-                    newSources.set(index - 2, sources);
-                } else if (index < messageIndex) {
-                    newSources.set(index, sources);
-                }
-            });
-            messageSources.value = newSources;
         } else {
-            // Remove only the user message
             messages.value.splice(messageIndex, 1);
-            // Update source indices
-            const newSources = new Map();
-            messageSources.value.forEach((sources, index) => {
-                if (index > messageIndex) {
-                    newSources.set(index - 1, sources);
-                } else if (index < messageIndex) {
-                    newSources.set(index, sources);
-                }
-            });
-            messageSources.value = newSources;
         }
     } else {
-        // If deleting an assistant message, also remove the previous user message
-        const userMessageIndex = messageIndex - 1;
-        if (userMessageIndex >= 0 && messages.value[userMessageIndex].role === 'user') {
-            // Remove both user and assistant messages
-            messages.value.splice(userMessageIndex, 2);
-            // Clear sources for the assistant message
-            messageSources.value.delete(messageIndex);
-            // Update source indices for remaining messages
-            const newSources = new Map();
-            messageSources.value.forEach((sources, index) => {
-                if (index > messageIndex) {
-                    newSources.set(index - 2, sources);
-                } else if (index < userMessageIndex) {
-                    newSources.set(index, sources);
-                }
-            });
-            messageSources.value = newSources;
+        // Delete the assistant message and its preceding user message (if present).
+        const prev = messages.value[messageIndex - 1];
+        if (message.id) messageSources.value.delete(message.id);
+        if (prev && prev.role === 'user') {
+            messages.value.splice(messageIndex - 1, 2);
         } else {
-            // Remove only the assistant message if no previous user message
             messages.value.splice(messageIndex, 1);
-            // Clear sources for this message
-            messageSources.value.delete(messageIndex);
-            // Update source indices for remaining messages
-            const newSources = new Map();
-            messageSources.value.forEach((sources, index) => {
-                if (index > messageIndex) {
-                    newSources.set(index - 1, sources);
-                } else if (index < messageIndex) {
-                    newSources.set(index, sources);
-                }
-            });
-            messageSources.value = newSources;
         }
     }
 
-    // Check if all messages are deleted, redirect to home
     if (messages.value.length === 0) {
         router.visit(route(props.newChatRoute));
-        return;
     }
-
-    console.log('ChatMessage deleted from UI:', messageId);
 };
 
 const feedbackProvided = (messageId, type) => {
@@ -631,228 +648,71 @@ const feedbackProvided = (messageId, type) => {
     console.log('Feedback:', messageId, type);
 };
 
-// Handle message edited - similar to regenerate but with new content
-const handleMessageEdited = async (userMessageId, assistantMessageId, newContent) => {
-    // Use the current selected model
-    const model = selectedModel.value || defaultModel.value;
+// Shared edit/regen flow: delete both messages on the server (which also
+// returns the original timestamp), then restream into the same slot.
+async function reissue({ userMessageId, assistantMessageId, model, overrideContent = null }) {
     if (!model) {
         console.error('No model selected');
         return;
     }
 
+    let response;
     try {
-        // Call the regenerate endpoint to delete both messages and get original created_at
-        const response = await axios.post(route('chat.messages.regenerate'), {
+        response = await axios.post(route('chat.messages.regenerate'), {
             conversation_id: props.conversation_id,
             user_message_id: userMessageId,
             assistant_message_id: assistantMessageId,
         });
-
-        if (response.data.success) {
-            const createdAt = response.data.created_at;
-
-            // Find the indices of both messages
-            const userIndex = messages.value.findIndex((m) => m.id === userMessageId);
-            const assistantIndex = messages.value.findIndex((m) => m.id === assistantMessageId);
-
-            if (userIndex === -1 || assistantIndex === -1) {
-                console.error('Could not find messages to edit');
-                return;
-            }
-
-            // Clear sources for the assistant message
-            messageSources.value.delete(assistantIndex);
-
-            // Replace user message in-place with NEW content
-            messages.value[userIndex] = {
-                role: 'user',
-                content: newContent,
-                id: 0,
-            };
-
-            // Replace assistant message in-place with empty content
-            messages.value[assistantIndex] = {
-                role: 'assistant',
-                content: '',
-                model: model.id,
-                id: 0,
-            };
-
-            // Set streaming index to the assistant message position
-            streamingForMessageIndex.value = assistantIndex;
-
-            // Disable auto-scroll to bottom - we want to stay at the edited message
-            userHasScrolledUp.value = true;
-            isAutoScrollEnabled.value = false;
-
-            // Start streaming at the same position
-            await nextTick(() => {
-                // Scroll to the message being edited
-                const messageElement = document.getElementById(`message-${userIndex}`);
-                if (messageElement) {
-                    messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-
-                // Start stream with the NEW content
-                const stream = startStream(
-                    route('chat.stream', { conversationId: props.conversation_id }),
-                    JSON.stringify({
-                        model: model.id,
-                        message: newContent,
-                        updated_message_info: {},
-                        save_user_message_immediately: true,
-                        created_at: createdAt,
-                    }),
-                    {
-                        onMessage: (content, messageId, userMessageId) => {
-                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
-                            messages.value[messageIndex].content += content;
-
-                            // Set the assistant message ID if provided
-                            if (messageId && messages.value[messageIndex]) {
-                                messages.value[messageIndex].id = messageId;
-                            }
-
-                            // Set the user message ID if provided
-                            if (userMessageId && messages.value[userIndex]) {
-                                messages.value[userIndex].id = userMessageId;
-                            }
-
-                            scrollWhileStreaming();
-                        },
-                        onSources: (sources) => {
-                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
-                            messageSources.value.set(messageIndex, sources);
-                        },
-                        onLanguage: (language) => {
-                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
-                            if (messages.value[messageIndex]) {
-                                messages.value[messageIndex].language = language;
-                            }
-                        },
-                        onDone: () => {
-                            streamingForMessageIndex.value = null;
-                        },
-                        onError: (error) => {
-                            console.error('Edit streaming error:', error);
-                        },
-                    },
-                );
-                stream();
-            });
-        }
     } catch (error) {
-        console.error('Failed to edit message:', error);
+        console.error('Failed to reissue message:', error);
+        return;
     }
+
+    if (!response.data?.success) return;
+
+    const createdAt = response.data.created_at;
+    const newContent = overrideContent ?? response.data.user_message_content;
+
+    const userIndex = messages.value.findIndex((m) => m.id === userMessageId);
+    const assistantIndex = messages.value.findIndex((m) => m.id === assistantMessageId);
+    if (userIndex === -1 || assistantIndex === -1) {
+        console.error('Could not find messages to reissue');
+        return;
+    }
+
+    if (assistantMessageId) messageSources.value.delete(assistantMessageId);
+
+    messages.value[userIndex] = { role: 'user', content: newContent, id: 0 };
+    messages.value[assistantIndex] = { role: 'assistant', content: '', model: model.id, id: 0 };
+
+    userHasScrolledUp.value = true;
+    isAutoScrollEnabled.value = false;
+
+    await nextTick(() => {
+        const messageElement = document.getElementById(`message-${userIndex}`);
+        if (messageElement) {
+            messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        submitChat({
+            message: newContent,
+            model,
+            userIndex,
+            assistantIndex,
+            saveUserMessageImmediately: true,
+            createdAt,
+            autoScrollOnDone: false,
+        });
+    });
+}
+
+const handleMessageEdited = (userMessageId, assistantMessageId, newContent) => {
+    const model = selectedModel.value || defaultModel.value;
+    return reissue({ userMessageId, assistantMessageId, model, overrideContent: newContent });
 };
 
-// Handle regenerate request
-const handleRegenerate = async (userMessageId, assistantMessageId, model) => {
-    try {
-        // Call the regenerate endpoint to delete both messages and get user message content
-        const response = await axios.post(route('chat.messages.regenerate'), {
-            conversation_id: props.conversation_id,
-            user_message_id: userMessageId,
-            assistant_message_id: assistantMessageId,
-        });
-
-        if (response.data.success) {
-            const userMessageContent = response.data.user_message_content;
-            const createdAt = response.data.created_at;
-
-            // Find the indices of both messages
-            const userIndex = messages.value.findIndex((m) => m.id === userMessageId);
-            const assistantIndex = messages.value.findIndex((m) => m.id === assistantMessageId);
-
-            if (userIndex === -1 || assistantIndex === -1) {
-                console.error('Could not find messages to regenerate');
-                return;
-            }
-
-            // Clear sources for the assistant message
-            messageSources.value.delete(assistantIndex);
-
-            // Replace user message in-place (keep same index)
-            messages.value[userIndex] = {
-                role: 'user',
-                content: userMessageContent,
-                id: 0,
-            };
-
-            // Replace assistant message in-place with empty content (keep same index)
-            messages.value[assistantIndex] = {
-                role: 'assistant',
-                content: '',
-                model: model.id,
-                id: 0,
-            };
-
-            // Set streaming index to the assistant message position
-            streamingForMessageIndex.value = assistantIndex;
-
-            // Disable auto-scroll to bottom - we want to stay at the regenerated message
-            userHasScrolledUp.value = true;
-            isAutoScrollEnabled.value = false;
-
-            // Start streaming at the same position with saveUserMessageImmediately=true and original created_at
-            await nextTick(() => {
-                // Scroll to the message being regenerated
-                const messageElement = document.getElementById(`message-${userIndex}`);
-                if (messageElement) {
-                    messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                // Start stream without pushing new assistant message (already replaced in-place)
-                const stream = startStream(
-                    route('chat.stream', { conversationId: props.conversation_id }),
-                    JSON.stringify({
-                        model: model.id,
-                        message: userMessageContent,
-                        updated_message_info: {},
-                        save_user_message_immediately: true,
-                        created_at: createdAt,
-                    }),
-                    {
-                        onMessage: (content, messageId, userMessageId) => {
-                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
-                            messages.value[messageIndex].content += content;
-
-                            // Set the assistant message ID if provided
-                            if (messageId && messages.value[messageIndex]) {
-                                messages.value[messageIndex].id = messageId;
-                            }
-
-                            // Set the user message ID if provided
-                            if (userMessageId && messages.value[userIndex]) {
-                                messages.value[userIndex].id = userMessageId;
-                            }
-
-                            scrollWhileStreaming();
-                        },
-                        onSources: (sources) => {
-                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
-                            messageSources.value.set(messageIndex, sources);
-                        },
-                        onLanguage: (language) => {
-                            const messageIndex = streamingForMessageIndex.value ?? assistantIndex;
-                            if (messages.value[messageIndex]) {
-                                messages.value[messageIndex].language = language;
-                            }
-                        },
-                        onDone: () => {
-                            streamingForMessageIndex.value = null;
-                            // Don't auto-scroll after regeneration - user is viewing specific message
-                        },
-                        onError: (error) => {
-                            console.error('Regenerate streaming error:', error);
-                        },
-                    },
-                );
-                stream();
-            });
-        }
-    } catch (error) {
-        console.error('Failed to regenerate message:', error);
-    }
+const handleRegenerate = (userMessageId, assistantMessageId, model) => {
+    return reissue({ userMessageId, assistantMessageId, model });
 };
 
 // Function to handle scroll to bottom button click
@@ -928,13 +788,11 @@ const handleScrollToBottomClick = () => {
                                     :userMessageId="index > 0 && messages[index - 1]?.role === 'user' ? messages[index - 1].id : undefined"
                                     :models="models"
                                     :defaultModel="defaultModel"
-                                    :sources="messageSources.get(index) || []"
+                                    :sources="message.id ? messageSources.get(message.id) || [] : []"
                                     :conversationId="conversation_id"
-                                    :hideFeedback="isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex)"
-                                    :isThinking="
-                                        isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex) && !message.content
-                                    "
-                                    :isStreaming="isStreaming && (index === messages.length - 1 || index === streamingForMessageIndex)"
+                                    :hideFeedback="isMessageStreaming(message)"
+                                    :isThinking="isMessageStreaming(message) && !message.content"
+                                    :isStreaming="isMessageStreaming(message)"
                                     :avatar="props.appearance?.avatar"
                                     :isRTL="isMessageRTL(message)"
                                     @messageDeleted="messageDeleted"

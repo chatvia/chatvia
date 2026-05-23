@@ -6,7 +6,7 @@ use App\Contracts\ChunkableContract;
 use App\Data\Ingestion\ChunkIngestionData;
 use App\Data\Ingestion\OCR\PageData;
 use App\Models\Agent;
-use App\Services\Splitters\RecursiveCharacterTextSplitter;
+use App\Services\Chunking\ChunkFit\ChunkFitClient;
 use App\Services\TikToken;
 use Illuminate\Http\File;
 use Illuminate\Support\Collection;
@@ -22,6 +22,7 @@ readonly class Chunker
         private ChunkableContract $chunkable,
         private int $maxTokensPerChunk = 800,
         private int $minTokensPerChunk = 128,
+        private ?ChunkFitClient $chunkFit = null,
     ) {}
 
     /**
@@ -87,21 +88,29 @@ readonly class Chunker
         if ($tokenCount <= $this->maxTokensPerChunk) {
             // Text fits in a single chunk
             $chunks->push($this->createChunk($text, $images, $tables, $startChunkIndex));
-        } else {
-            // Text needs to be split
-            $textSplitter = new RecursiveCharacterTextSplitter(
-                chunkSize: $this->maxTokensPerChunk,
-                chunkOverlap: 0,
-            );
 
-            $textChunks = $textSplitter->splitText($text);
+            return $chunks;
+        }
 
-            foreach ($textChunks as $index => $chunkText) {
-                $chunks->push($this->createChunk($chunkText, $images, $tables, $startChunkIndex + $index));
-            }
+        // Delegate splitting to chunk.fit's LlamaIndex SentenceSplitter:
+        // sentence-boundary aware, token-budgeted in the same tiktoken
+        // currency the rest of this pipeline uses.
+        $textChunks = $this->chunkFit()->splitSentences(
+            text: $text,
+            chunkSize: $this->maxTokensPerChunk,
+            chunkOverlap: 0,
+        );
+
+        foreach ($textChunks as $index => $chunkText) {
+            $chunks->push($this->createChunk($chunkText, $images, $tables, $startChunkIndex + $index));
         }
 
         return $chunks;
+    }
+
+    private function chunkFit(): ChunkFitClient
+    {
+        return $this->chunkFit ?? app(ChunkFitClient::class);
     }
 
     private function createChunk(string $text, array $images, array $tables, int $chunkIndex): ChunkIngestionData

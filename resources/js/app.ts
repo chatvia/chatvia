@@ -2,9 +2,7 @@ import '../css/app.css';
 
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { configureEcho } from '@laravel/echo-vue';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import 'primeicons/primeicons.css';
-import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { createGtag } from 'vue-gtag';
 import { toast } from 'vue-sonner';
@@ -46,7 +44,6 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) => resolvePageComponent(`./pages/${name}.vue`, import.meta.glob<DefineComponent>('./pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)

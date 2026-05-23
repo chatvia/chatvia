@@ -75,7 +75,12 @@ return Application::configure(basePath: dirname(__DIR__))
             '/ingestion/*',
         ]);
 
-        $middleware->trustProxies('*');
+        // Set TRUSTED_PROXIES to a comma-separated list of upstream IPs/CIDRs (e.g. Cloudflare).
+        // Wildcard fallback is for local/dev only; see AUDIT.md SEC-03.
+        $trustedProxies = (string) env('TRUSTED_PROXIES', '*');
+        $middleware->trustProxies(
+            at: $trustedProxies === '*' ? '*' : array_values(array_filter(array_map('trim', explode(',', $trustedProxies))))
+        );
     })
     ->withExceptions(function (Exceptions $exceptions) {
         if (app()->isProduction()) {

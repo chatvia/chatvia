@@ -44,7 +44,7 @@ const contentTypes = [
         label: 'Text',
         icon: 'pi-align-justify',
         description: 'Add custom text content and notes directly',
-        route: 'agents.sources.text',
+        route: 'agents.sources.text.index',
         statsKey: 'texts',
     },
     {
@@ -76,7 +76,7 @@ const contentTypes = [
         label: 'YouTube',
         icon: 'pi-youtube',
         description: 'Import YouTube videos and extract transcripts',
-        route: 'agents.sources.youtube',
+        route: 'agents.sources.youtube.index',
         statsKey: 'youtube',
     },
     {
@@ -84,7 +84,7 @@ const contentTypes = [
         label: 'Q&A',
         icon: 'pi-question-circle',
         description: 'Craft responses for key questions',
-        route: 'agents.sources.qa',
+        route: 'agents.sources.qa.index',
         statsKey: 'qa',
     },
 ];

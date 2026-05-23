@@ -41,7 +41,7 @@ type Ticket = {
 const props = defineProps<{ ticket: Ticket }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Support', href: route('tickets') },
+    { title: 'Support', href: route('tickets.index') },
     { title: `Ticket #${props.ticket.id}`, href: route('tickets.show', { ticket: props.ticket.id }) },
 ];
 

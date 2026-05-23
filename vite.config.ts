@@ -12,13 +12,13 @@ import fs from 'node:fs';
 // Plugin to watch app/Data and run typescript:transform on changes
 function typescriptTransformPlugin(): Plugin {
     const runTransform = () => {
-        // exec('php artisan typescript:transform', (error, stdout, stderr) => {
-        //     if (error) {
-        //         console.error('\x1b[31m[typescript:transform] Error:\x1b[0m', stderr || error.message);
-        //         return;
-        //     }
-        //     console.log('\x1b[32m[typescript:transform] Types regenerated\x1b[0m');
-        // });
+        exec('php artisan typescript:transform', (error, stdout, stderr) => {
+            if (error) {
+                console.error('\x1b[31m[typescript:transform] Error:\x1b[0m', stderr || error.message);
+                return;
+            }
+            console.log('\x1b[32m[typescript:transform] Types regenerated\x1b[0m');
+        });
     };
 
     const watchDir = (dir: string) => {

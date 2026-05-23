@@ -121,57 +121,60 @@ watch(
    The caret is still rendered because of the explicit caret-color. */
 .json-code-editor textarea {
     color: transparent;
-    caret-color: var(--foreground, hsl(0 0% 10%));
+    caret-color: var(--foreground);
 }
 
-/* Highlight.js token colors — VS Code "dark+" inspired, matching the
-   theme used in the chat assistant bubble. */
+/* Highlight.js token colors — default = VS Code light theme so JSON is
+   readable on the default white background. Dark mode overrides below.
+   Note: theme CSS variables hold full color functions (e.g. `--primary:
+   #404040`), so reference them with `var(--name)` directly — never wrap
+   with `hsl(var(--name))` (invalid → silently dropped). */
 :deep(.hljs) {
-    color: hsl(var(--foreground));
+    color: var(--foreground);
     background: transparent;
 }
 
 :deep(.hljs-attr) {
-    color: #9cdcfe;
+    color: #0451a5;
 }
 
 :deep(.hljs-string) {
-    color: #ce9178;
+    color: #a31515;
 }
 
 :deep(.hljs-number),
 :deep(.hljs-literal) {
-    color: #b5cea8;
+    color: #098658;
 }
 
 :deep(.hljs-punctuation) {
-    color: hsl(var(--muted-foreground));
+    color: var(--muted-foreground);
 }
 
 :deep(.hljs-keyword) {
-    color: #569cd6;
+    color: #0000ff;
 }
 
 :deep(.hljs-comment) {
-    color: #6a9955;
+    color: #008000;
     font-style: italic;
 }
 
-/* Make the light theme readable too. */
-:global(html:not(.dark)) .json-code-editor :deep(.hljs-attr) {
-    color: #0451a5;
+/* Dark-mode overrides — VS Code "dark+" palette for low-light comfort. */
+:global(html.dark) .json-code-editor :deep(.hljs-attr) {
+    color: #9cdcfe;
 }
-:global(html:not(.dark)) .json-code-editor :deep(.hljs-string) {
-    color: #a31515;
+:global(html.dark) .json-code-editor :deep(.hljs-string) {
+    color: #ce9178;
 }
-:global(html:not(.dark)) .json-code-editor :deep(.hljs-number),
-:global(html:not(.dark)) .json-code-editor :deep(.hljs-literal) {
-    color: #098658;
+:global(html.dark) .json-code-editor :deep(.hljs-number),
+:global(html.dark) .json-code-editor :deep(.hljs-literal) {
+    color: #b5cea8;
 }
-:global(html:not(.dark)) .json-code-editor :deep(.hljs-keyword) {
-    color: #0000ff;
+:global(html.dark) .json-code-editor :deep(.hljs-keyword) {
+    color: #569cd6;
 }
-:global(html:not(.dark)) .json-code-editor :deep(.hljs-comment) {
-    color: #008000;
+:global(html.dark) .json-code-editor :deep(.hljs-comment) {
+    color: #6a9955;
 }
 </style>

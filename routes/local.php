@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Http\Request;
+
 if (app()->isLocal()) {
     Route::get('playground', function () {
         dd(app(\App\Services\TopicAnalysis::class)->analyze('How to login?'));
@@ -9,7 +11,10 @@ if (app()->isLocal()) {
     // can verify the end-to-end LLM tool-call loop without standing up an
     // external API. Path lives under /webhooks/* which is excluded from
     // CSRF in bootstrap/app.php.
-    Route::match(['get', 'post'], '/webhooks/get-weather', function () {
+    Route::match(['get', 'post'], '/webhooks/get-weather', function (Request $request) {
+        logger()->info(
+            json_encode($request->all(), JSON_PRETTY_PRINT)
+        );
         sleep(5);
         return response()->json([
             'weather' => 23,

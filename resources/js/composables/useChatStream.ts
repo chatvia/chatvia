@@ -1,6 +1,6 @@
+import type { StreamCallbacks, StreamEnvelope, StreamError, StreamErrorCode, StreamState } from '@/types/stream';
 import { usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import type { StreamCallbacks, StreamEnvelope, StreamError, StreamErrorCode, StreamState } from '@/types/stream';
 
 /**
  * Typed SSE consumer for the envelope v1 wire format.
@@ -61,11 +61,7 @@ export function useChatStream() {
                 callbacks.onTool?.(env.data, env.id);
                 return false;
             case 'error':
-                reportError(
-                    { code: env.data.code, message: env.data.message, retryable: env.data.retryable },
-                    env.id,
-                    callbacks,
-                );
+                reportError({ code: env.data.code, message: env.data.message, retryable: env.data.retryable }, env.id, callbacks);
                 return false;
             case 'done':
                 state.value = 'done';
@@ -98,22 +94,14 @@ export function useChatStream() {
                 state.value = 'idle';
                 return;
             }
-            reportError(
-                synthesizeError('network', 'Could not reach the server. Please try again.', true),
-                null,
-                callbacks,
-            );
+            reportError(synthesizeError('network', 'Could not reach the server. Please try again.', true), null, callbacks);
             return;
         }
 
         if (myGeneration !== generation) return;
 
         if (!response.ok) {
-            reportError(
-                synthesizeError('network', `Server returned status ${response.status}.`, response.status >= 500),
-                null,
-                callbacks,
-            );
+            reportError(synthesizeError('network', `Server returned status ${response.status}.`, response.status >= 500), null, callbacks);
             return;
         }
 
@@ -142,11 +130,7 @@ export function useChatStream() {
                     state.value = 'idle';
                     return;
                 }
-                reportError(
-                    synthesizeError('network', 'The connection was interrupted.', true),
-                    null,
-                    callbacks,
-                );
+                reportError(synthesizeError('network', 'The connection was interrupted.', true), null, callbacks);
                 return;
             }
 
@@ -173,11 +157,7 @@ export function useChatStream() {
                 try {
                     env = JSON.parse(match[1]);
                 } catch {
-                    reportError(
-                        synthesizeError('parse', 'Received malformed data from the server.', false),
-                        null,
-                        callbacks,
-                    );
+                    reportError(synthesizeError('parse', 'Received malformed data from the server.', false), null, callbacks);
                     continue;
                 }
 

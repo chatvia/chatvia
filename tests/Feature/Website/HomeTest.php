@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Website;
 
-use App\Models\Post;
+use App\Marketing\Models\Post;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 

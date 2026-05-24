@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Team;
-use App\Models\User;
+use App\Teams\Models\Team;
+use App\Auth\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

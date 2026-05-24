@@ -660,7 +660,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                                                     :src="getFlagPath(country.country_code)"
                                                     :alt="country.country_name"
                                                     class="h-4 w-6 flex-shrink-0 rounded object-cover"
-                                                    onerror="this.style.display='none'"
+                                                    onerror="this.style.display = 'none'"
                                                 />
                                                 <span class="truncate text-sm font-medium">{{ country.country_name }}</span>
                                             </div>

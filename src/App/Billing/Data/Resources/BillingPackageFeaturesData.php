@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Billing\Data\Resources;
+
+use Illuminate\Support\Collection;
+use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
+#[TypeScript]
+class BillingPackageFeaturesData extends Data
+{
+    public function __construct(
+        /** @var Collection<int, string> */
+        public Collection $monthly,
+        /** @var Collection<int, string> */
+        public Collection $yearly,
+    ) {}
+
+    public static function fromArray(array $features): self
+    {
+        return new self(
+            monthly: collect($features['monthly'] ?? []),
+            yearly: collect($features['yearly'] ?? []),
+        );
+    }
+}

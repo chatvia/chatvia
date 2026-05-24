@@ -833,12 +833,7 @@ const removeStarter = (id: number) => {
 
                 <!-- Preview Frame -->
                 <div class="flex-1 overflow-hidden">
-                    <iframe
-                        :key="embedKey"
-                        :src="buildIframeUrl(agent.chat_embed_url)"
-                        class="h-full w-full border-0"
-                        title="Chat Preview"
-                    />
+                    <iframe :key="embedKey" :src="buildIframeUrl(agent.chat_embed_url)" class="h-full w-full border-0" title="Chat Preview" />
                 </div>
             </div>
         </div>

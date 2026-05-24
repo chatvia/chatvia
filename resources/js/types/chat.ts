@@ -1,12 +1,14 @@
 export interface Message {
     id?: string | number;
     content: string;
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'error';
     model?: string;
     created_at?: string;
     updated_at?: string;
-    feedback?: boolean;
+    feedback?: 'positive' | 'negative' | null;
     sources?: any[];
+    errorCode?: import('./stream').StreamErrorCode;
+    errorRetryable?: boolean;
 }
 
 export type AIModel = App.Data.Chat.LlmModelData;

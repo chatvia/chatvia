@@ -57,6 +57,14 @@ return [
             'label' => 'Train Video',
             'description' => 'Upload and transcribe video files',
         ],
+        'agent.sources.train.functions' => [
+            'label' => 'Manage Functions',
+            'description' => 'Define LLM tool calls that hit your own webhook endpoints',
+        ],
+        'agent.sources.train.connectors' => [
+            'label' => 'Manage Connectors',
+            'description' => 'Connect third-party services (Stripe, GitHub, Notion, …) as live data sources',
+        ],
         'agent.sources.delete' => [
             'label' => 'Delete sources',
             'description' => 'Remove training sources from the agent',

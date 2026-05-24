@@ -134,6 +134,17 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::post('sources/functions/{function}/test', \App\Http\Controllers\Agents\Sources\Functions\AgentFunctionTestController::class)->name('sources.functions.test');
         Route::delete('sources/functions/{function}', \App\Http\Controllers\Agents\Sources\Functions\AgentFunctionDeleteController::class)->name('sources.functions.delete');
 
+        // Connectors (preset-backed MCP servers — Notion, Stripe, GitHub, …)
+        Route::get('sources/connectors', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsController::class)->name('sources.connectors.index');
+        Route::get('sources/connectors/data', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsListController::class)->name('sources.connectors.data');
+        Route::post('sources/connectors/custom', \App\Http\Controllers\Agents\Sources\Connectors\AgentCustomConnectorAddController::class)->name('sources.connectors.custom.add');
+        Route::post('sources/connectors/{slug}/connect', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorConnectController::class)->name('sources.connectors.connect');
+        Route::get('sources/connectors/{slug}/oauth/start', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorOAuthStartController::class)->name('sources.connectors.oauth.start');
+        Route::post('sources/connectors/{slug}/refresh', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorRefreshController::class)->name('sources.connectors.refresh');
+        Route::get('sources/connectors/{slug}/tools', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorToolsController::class)->name('sources.connectors.tools');
+        Route::post('sources/connectors/{slug}/enable', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorEnableController::class)->name('sources.connectors.enable');
+        Route::delete('sources/connectors/{slug}', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorDisconnectController::class)->name('sources.connectors.disconnect');
+
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
         Route::delete('sources/text/{id}', [AgentTextController::class, 'destroy'])->name('sources.text.destroy');
         Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->name('sources.files.delete');

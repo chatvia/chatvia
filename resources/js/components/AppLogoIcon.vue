@@ -13,7 +13,7 @@ defineProps<Props>();
 </script>
 
 <template>
-    <img src="/images/logo.png" :class="[className]" v-bind="$attrs" alt="ChatVIA" />
+    <img src="/images/logo.svg" :class="[className]" v-bind="$attrs" alt="ChatVIA" />
 </template>
 
 <style scoped>

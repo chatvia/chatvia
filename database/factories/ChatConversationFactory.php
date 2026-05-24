@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\ChatConversation;
-use App\Models\ChatSession;
+use Domain\Chat\Models\ChatConversation;
+use Domain\Chat\Models\ChatSession;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ChatConversation>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Chat\Models\ChatConversation>
  */
 class ChatConversationFactory extends Factory
 {

@@ -22,7 +22,10 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Support\Facades\Route;
 use Sentry\Laravel\Integration as SentryIntegration;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
+    ->withCommands([
+        dirname(__DIR__).'/src/App/Console/Commands',
+    ])
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -87,3 +90,9 @@ return Application::configure(basePath: dirname(__DIR__))
             SentryIntegration::handles($exceptions);
         }
     })->create();
+
+// DDD layout: the Laravel framework surface lives at src/App/ rather than
+// the default app/. This reroutes `app_path()` + framework discovery.
+$app->useAppPath($app->basePath('src/App'));
+
+return $app;

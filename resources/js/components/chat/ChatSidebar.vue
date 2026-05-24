@@ -598,7 +598,10 @@ const switchToSelectedAgent = () => {
                                                 </DropdownMenuSubContent>
                                             </DropdownMenuSub>
                                             <DropdownMenuSeparator />
-                                            <DropdownMenuItem class="text-destructive focus:text-destructive cursor-pointer" @click="openDeleteDialog(chat.id)">
+                                            <DropdownMenuItem
+                                                class="text-destructive focus:text-destructive cursor-pointer"
+                                                @click="openDeleteDialog(chat.id)"
+                                            >
                                                 <Trash2 class="mr-2 h-4 w-4" />
                                                 <span>Delete</span>
                                             </DropdownMenuItem>

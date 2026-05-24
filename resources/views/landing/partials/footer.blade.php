@@ -11,7 +11,7 @@
                     <!-- Logo -->
                     <a class="inline-flex text-blue-600 transition duration-150 ease-in-out" href="{{ route('home') }}"
                         aria-label="{{ config('app.name') }}">
-                        <img src="{{ asset('images/logo.png') }}" class="w-12" alt="{{ config('app.name') }} Logo" />
+                        <img src="{{ asset('images/logo.svg') }}" class="w-12" alt="{{ config('app.name') }} Logo" />
                     </a>
                 </div>
 

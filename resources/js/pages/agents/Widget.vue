@@ -349,12 +349,7 @@
 
                 <!-- Preview Frame -->
                 <div class="flex-1 overflow-hidden">
-                    <iframe
-                        :key="previewKey"
-                        :src="previewUrl"
-                        class="h-full w-full border-0"
-                        title="Widget Live Preview"
-                    />
+                    <iframe :key="previewKey" :src="previewUrl" class="h-full w-full border-0" title="Widget Live Preview" />
                 </div>
             </div>
         </div>

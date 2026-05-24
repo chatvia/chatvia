@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use App\Auth\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Agent>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Agents\Models\Agent>
  */
 class AgentFactory extends Factory
 {
@@ -25,7 +25,7 @@ class AgentFactory extends Factory
             throw new \RuntimeException('Demo user (ahmad@mayahi.net) not found. Please run DatabaseSeeder first.');
         }
 
-        $team = $user->primaryTeam() ?? app(\App\Services\Teams\TeamService::class)->createDefaultTeam($user);
+        $team = $user->primaryTeam() ?? app(\App\Teams\Services\TeamService::class)->createDefaultTeam($user);
 
         return [
             'external_id' => Str::random(20),

@@ -2,14 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\Agent;
-use App\Models\ChatSession;
-use App\Models\Country;
-use App\Models\User;
+use Domain\Agents\Models\Agent;
+use Domain\Chat\Models\ChatSession;
+use App\Country\Models\Country;
+use App\Auth\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ChatSession>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Chat\Models\ChatSession>
  */
 class ChatSessionFactory extends Factory
 {

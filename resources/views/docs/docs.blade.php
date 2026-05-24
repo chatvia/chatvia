@@ -35,7 +35,7 @@
                     <div class="flex items-center">
                         <!-- Logo -->
                         <a href="index.html" aria-label="Cruip">
-                            <img src="./images/logo.png" width="32" height="32" alt="Docs" />
+                            <img src="./images/logo.svg" width="32" height="32" alt="Docs" />
                         </a>
 
                         <script>
@@ -502,7 +502,7 @@
                                                 <div class="shrink-0 flex flex-col md:flex-row items-center">
                                                     <!-- Logo -->
                                                     <a class="inline-flex mb-2 md:mb-0" href="index.html" aria-label="Cruip">
-                                                        <img src="./images/logo.png" width="32" height="32" alt="Docs" />
+                                                        <img src="./images/logo.svg" width="32" height="32" alt="Docs" />
                                                     </a>
                                                     <div class="text-sm text-slate-500 ml-4">Copyright © Cruip<span class="md:hidden lg:inline">. All rights reserved.</span></div>
                                                 </div>

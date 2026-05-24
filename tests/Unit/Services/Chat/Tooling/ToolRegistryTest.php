@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Services\Chat\Tooling;
 
-use App\Models\Agent;
-use App\Models\AgentFunction;
-use App\Services\Chat\Tooling\ToolRegistry;
+use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\AgentFunction;
+use Domain\Chat\Services\Tooling\ToolRegistry;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;

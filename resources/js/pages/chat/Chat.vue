@@ -1,10 +1,11 @@
 <script setup>
 import AssistantChatBubble from '@/components/chat/AssistantChatBubble.vue';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
+import ChatErrorBubble from '@/components/chat/ChatErrorBubble.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import UserChatBubble from '@/components/chat/UserChatBubble.vue';
-import { useColorTheme } from '@/composables/useColorTheme';
 import { useChatStream } from '@/composables/useChatStream';
+import { useColorTheme } from '@/composables/useColorTheme';
 import { router } from '@inertiajs/vue3';
 import { useScroll } from '@vueuse/core';
 import axios from 'axios';
@@ -199,11 +200,16 @@ const loadSourcesAsync = async () => {
     }
 };
 
-// Show typed stream errors as toasts. The bubble UI keeps the assistant
-// message stub if there's already content; otherwise the streaming-cleanup
-// code in submitChat removes it.
+// Stream errors are rendered as an inline ChatErrorBubble where the assistant
+// reply would have been (see submitChat's onError). The toast only fires when
+// the assistant had already streamed some content — those cases can't be
+// shown inline without clobbering the partial reply, so a toast is the
+// least-disruptive fallback.
 watch(streamError, (err) => {
-    if (err) {
+    if (!err) return;
+    const stub = messages.value[messages.value.length - 1];
+    const inlineShown = stub && stub.role === 'error';
+    if (!inlineShown) {
         toast.error(err.message);
     }
 });
@@ -539,12 +545,19 @@ function submitChat({
                 activeFunctionCalls.value.delete(data.tool_call_id);
             }
         },
-        onError: () => {
-            // Toast is shown by the streamError watcher; here we clean up the
-            // empty assistant stub so the UI doesn't show an empty bubble.
+        onError: (err) => {
+            // Replace the empty assistant stub with an inline error message
+            // so the user sees a typed card (with CTA / retry) where the reply
+            // would have appeared, instead of a transient toast.
             const stub = messages.value[assistantIndex];
             if (stub && stub.role === 'assistant' && !stub.content) {
-                messages.value.splice(assistantIndex, 1);
+                messages.value[assistantIndex] = {
+                    ...stub,
+                    role: 'error',
+                    content: err.message,
+                    errorCode: err.code,
+                    errorRetryable: err.retryable,
+                };
             }
             streamingAssistantId.value = null;
         },
@@ -739,6 +752,20 @@ const handleRegenerate = (userMessageId, assistantMessageId, model) => {
     return reissue({ userMessageId, assistantMessageId, model });
 };
 
+const handleErrorRetry = (errorIndex) => {
+    const prevUser = messages.value[errorIndex - 1];
+    if (!prevUser || prevUser.role !== 'user') return;
+    const model = selectedModel.value || defaultModel.value;
+    if (!model) return;
+    messages.value.splice(errorIndex, 1);
+    return reissue({
+        userMessageId: prevUser.id,
+        assistantMessageId: null,
+        model,
+        overrideContent: prevUser.content,
+    });
+};
+
 // Function to handle scroll to bottom button click
 const handleScrollToBottomClick = () => {
     scrollToBottom(true); // Use smooth scrolling for button clicks
@@ -805,6 +832,11 @@ const handleScrollToBottomClick = () => {
                                     @messageUpdated="messageUpdated"
                                     @messageDeleted="messageDeleted"
                                     @messageEdited="handleMessageEdited"
+                                />
+                                <ChatErrorBubble
+                                    v-else-if="message.role === 'error'"
+                                    :message="message"
+                                    @retry="handleErrorRetry(index)"
                                 />
                                 <AssistantChatBubble
                                     v-else

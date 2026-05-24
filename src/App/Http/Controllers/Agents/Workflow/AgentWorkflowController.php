@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Controllers\Agents\Workflow;
+
+use Domain\Agents\Data\Resources\AgentResourceData;
+use App\Features\Workflow as WorkflowFeature;
+use Domain\Agents\Models\Agent;
+use Inertia\Inertia;
+use Laravel\Pennant\Feature;
+
+class AgentWorkflowController
+{
+    public function __invoke(Agent $agent)
+    {
+        if (! Feature::active(WorkflowFeature::class)) {
+            return back()->with('error', 'Workflow feature is not enabled');
+        }
+
+        return Inertia::render('agents/Workflow', [
+            'agent' => AgentResourceData::fromModel($agent),
+        ]);
+    }
+}

@@ -1,0 +1,113 @@
+<?php
+
+namespace Domain\Connectors\Services\OAuth;
+
+use Domain\Connectors\Data\ConnectorData;
+use Domain\Connectors\Models\ConnectorOAuthClient;
+use Illuminate\Support\Facades\Http;
+use Throwable;
+
+/**
+ * RFC 7591 — dynamically registers ChatVia as an OAuth client with the
+ * authorization server protecting an MCP endpoint. We register once per
+ * `auth_server_url`; every agent that later connects the same service
+ * reuses the cached `client_id`.
+ */
+class McpOAuthRegistrar
+{
+    /**
+     * Look up or create a registered client for the given auth server.
+     *
+     * Three paths:
+     *   1. We've already registered for this auth-server URL — return that row.
+     *   2. Server supports RFC 7591 DCR — register dynamically.
+     *   3. Server doesn't support DCR but the catalog carries pre-registered
+     *      credentials (env-var driven, e.g. GitHub) — insert a synthetic
+     *      row from those creds.
+     */
+    public function clientFor(OAuthServerMetadata $metadata, ?ConnectorData $connector = null): ConnectorOAuthClient
+    {
+        $existing = ConnectorOAuthClient::query()
+            ->where('auth_server_url', $metadata->authServerUrl)
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        if (! $metadata->supportsDynamicRegistration()) {
+            if ($connector && $connector->hasPreRegisteredOAuth()) {
+                return ConnectorOAuthClient::create([
+                    'auth_server_url' => $metadata->authServerUrl,
+                    'client_id' => (string) $connector->oauthClientId,
+                    'client_secret' => $connector->oauthClientSecret,
+                    'registration_access_token' => null,
+                    'registration_client_uri' => null,
+                    'token_endpoint' => $metadata->tokenEndpoint,
+                    'authorization_endpoint' => $metadata->authorizationEndpoint,
+                    'metadata' => ['source' => 'pre_registered', 'connector_slug' => $connector->slug],
+                ]);
+            }
+
+            throw new McpOAuthException(
+                'This MCP server requires a pre-registered OAuth client. Dynamic Client Registration is not supported.'
+            );
+        }
+
+        $payload = [
+            'client_name' => 'ChatVia',
+            'redirect_uris' => [$this->redirectUri()],
+            'grant_types' => ['authorization_code', 'refresh_token'],
+            'response_types' => ['code'],
+            'token_endpoint_auth_method' => 'none', // public client; PKCE only
+            'application_type' => 'web',
+        ];
+
+        try {
+            $response = Http::withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ])->post($metadata->registrationEndpoint, $payload);
+        } catch (Throwable $e) {
+            throw new McpOAuthException('Dynamic client registration failed: '.$e->getMessage(), previous: $e);
+        }
+
+        if ($response->failed()) {
+            throw new McpOAuthException(
+                "Dynamic client registration was rejected ({$response->status()}): ".
+                mb_substr((string) $response->body(), 0, 200)
+            );
+        }
+
+        $body = $response->json();
+        if (! is_array($body) || empty($body['client_id'])) {
+            throw new McpOAuthException('Dynamic client registration returned no client_id.');
+        }
+
+        return ConnectorOAuthClient::create([
+            'auth_server_url' => $metadata->authServerUrl,
+            'client_id' => (string) $body['client_id'],
+            'client_secret' => $body['client_secret'] ?? null,
+            'registration_access_token' => $body['registration_access_token'] ?? null,
+            'registration_client_uri' => $body['registration_client_uri'] ?? null,
+            'token_endpoint' => $metadata->tokenEndpoint,
+            'authorization_endpoint' => $metadata->authorizationEndpoint,
+            'metadata' => $body,
+        ]);
+    }
+
+    public function redirectUri(): string
+    {
+        return rtrim(config('app.url'), '/').'/connectors/oauth/callback';
+    }
+
+    /**
+     * Lookup helper for background flows (token refresh) that don't have a
+     * PendingOAuthState in hand. Lives here so the flow service can stay
+     * model-free and the registrar owns all DCR-cache access.
+     */
+    public function findByAuthServer(string $authServerUrl): ?ConnectorOAuthClient
+    {
+        return ConnectorOAuthClient::query()->where('auth_server_url', $authServerUrl)->first();
+    }
+}

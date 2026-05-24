@@ -62,7 +62,7 @@ return [
     |
     */
     'defaults' => [
-        \App\Models\Agent::class => [
+        \Domain\Agents\Models\Agent::class => [
             'appearance' => [
                 'avatar' => null,
                 'logo' => null,

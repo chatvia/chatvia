@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Agent;
-use App\Models\Llm;
+use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\Llm;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

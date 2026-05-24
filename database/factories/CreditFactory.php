@@ -5,7 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\UserCredit>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Billing\Models\UserCredit>
  */
 class CreditFactory extends Factory
 {

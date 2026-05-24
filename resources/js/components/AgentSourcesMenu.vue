@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { Link } from '@inertiajs/vue3';
-import { File, FileAudio, FileText, FunctionSquare, Globe, HelpCircle, Video } from 'lucide-vue-next';
+import { File, FileAudio, FileText, FunctionSquare, Globe, HelpCircle, Plug, Video } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -91,6 +91,14 @@ const allMenuItems = [
         route: 'agents.sources.functions.index',
         statsKey: 'functions',
         permission: 'agent.sources.train.functions',
+    },
+    {
+        id: 'connectors',
+        label: 'Connectors',
+        icon: Plug,
+        route: 'agents.sources.connectors.index',
+        statsKey: 'connectors',
+        permission: 'agent.sources.train.connectors',
     },
 ];
 

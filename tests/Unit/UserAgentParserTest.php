@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Services\UserAgentParser;
+use Domain\Analytics\Services\UserAgentParser;
 use PHPUnit\Framework\TestCase;
 
 class UserAgentParserTest extends TestCase

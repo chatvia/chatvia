@@ -9,7 +9,7 @@
                 <!-- Logo -->
                 <a class="flex items-center gap-2 transition duration-150 ease-in-out" href="{{ route('home') }}"
                     aria-label="{{ config('app.name') }}">
-                    <img src="{{ asset('images/logo.png') }}" class="w-9 h-9" alt="{{ config('app.name') }} Logo" />
+                    <img src="{{ asset('images/logo.svg') }}" class="w-9 h-9" alt="{{ config('app.name') }} Logo" />
                     <span class="font-semibold text-lg text-slate-900 hidden sm:block">{{ config('app.name') }}</span>
                 </a>
             </div>

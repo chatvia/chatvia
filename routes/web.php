@@ -64,6 +64,14 @@ Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewCo
 
 Route::get('external/files/{type}/{externalId}', SourceFileViewController::class)->name('external.source.files.view');
 
+// Global OAuth callback for MCP connectors. The `state` query param carries
+// the agent + connector slug, so this is a single endpoint shared across
+// every preset.
+Route::get(
+    'connectors/oauth/callback',
+    \App\Http\Controllers\Connectors\ConnectorOAuthCallbackController::class,
+)->middleware(['web', 'auth'])->name('connectors.oauth.callback');
+
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

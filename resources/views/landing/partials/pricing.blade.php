@@ -42,7 +42,7 @@
                             @php
                                 $numericIndex = $loop->index;
                                 // Get all LLM models for tooltip
-                                $llmModels = \App\Models\Llm::select('descriptive_name')
+                                $llmModels = \Domain\Agents\Models\Llm::select('descriptive_name')
                                     ->orderBy('descriptive_name')
                                     ->get()
                                     ->pluck('descriptive_name')

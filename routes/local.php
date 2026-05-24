@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 
 if (app()->isLocal()) {
     Route::get('playground', function () {
-        dd(app(\App\Services\TopicAnalysis::class)->analyze('How to login?'));
+        dd(app(\Domain\Analytics\Services\TopicAnalysis::class)->analyze('How to login?'));
     });
 
     // Test webhook for the Functions feature. Returns a fixed value so we
@@ -17,7 +17,7 @@ if (app()->isLocal()) {
         );
         sleep(5);
         return response()->json([
-            'weather' => 23,
+            'weather' => mt_rand(20, 50),
             'unit' => 'celsius',
         ]);
     })->name('webhooks.get-weather');

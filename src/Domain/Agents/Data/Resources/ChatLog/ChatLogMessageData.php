@@ -1,0 +1,54 @@
+<?php
+
+namespace Domain\Agents\Data\Resources\ChatLog;
+
+use Domain\Chat\Models\ChatMessage;
+use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
+#[TypeScript]
+class ChatLogMessageData extends Data
+{
+    public function __construct(
+        public string $id,
+        public string $chat_conversation_id,
+        public string $content,
+        public string $role,
+        public ?string $sentiment,
+        public ?string $tone,
+        public ?string $feedback,
+        public ?bool $is_response_from_qa,
+        public ?int $response_time_ms,
+        public ?int $prompt_tokens,
+        public ?int $completion_tokens,
+        public ?string $llm_name,
+        public ?string $llm_icon,
+        public string $created_at,
+        public ?int $agent_question_answer_id,
+        public ?string $source = null,
+        public ?string $read_at = null,
+    ) {}
+
+    public static function fromMessage(ChatMessage $message): self
+    {
+        return new self(
+            id: $message->id,
+            chat_conversation_id: $message->chat_conversation_id,
+            content: $message->content,
+            role: $message->role,
+            sentiment: $message->sentiment,
+            tone: $message->tone,
+            feedback: $message->feedback,
+            is_response_from_qa: $message->is_response_from_qa,
+            response_time_ms: $message->response_time_ms,
+            prompt_tokens: $message->prompt_tokens,
+            completion_tokens: $message->completion_tokens,
+            llm_name: $message->llm?->descriptive_name,
+            llm_icon: $message->llm?->icon,
+            created_at: $message->created_at->toISOString(),
+            agent_question_answer_id: $message->agent_question_answer_id,
+            source: $message->source,
+            read_at: $message->read_at?->toISOString(),
+        );
+    }
+}

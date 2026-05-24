@@ -179,27 +179,24 @@ async function copyToClipboard() {
 }
 
 async function provideFeedback(type: 'thumbs-up' | 'thumbs-down') {
-    if (feedback.value === type) {
-        feedback.value = null;
-    } else {
-        feedback.value = type;
-    }
+    const next = feedback.value === type ? null : type;
+    feedback.value = next;
 
     if (props.message.id !== undefined && props.conversationId) {
         try {
-            const feedbackValue = type === 'thumbs-up';
+            const wireValue = next === 'thumbs-up' ? 'positive' : next === 'thumbs-down' ? 'negative' : null;
 
             await axios.patch(route('chat.messages.feedback'), {
                 conversation_id: props.conversationId,
                 message_id: props.message.id,
-                feedback: feedbackValue,
+                feedback: wireValue,
             });
 
-            console.log('Feedback sent successfully:', props.message.id, type);
-            emit('feedbackProvided', props.message.id, type);
+            if (next !== null) {
+                emit('feedbackProvided', props.message.id, next);
+            }
         } catch (error) {
             console.error('Failed to send feedback:', error);
-            // Reset feedback state on error
             feedback.value = null;
         }
     }
@@ -287,13 +284,12 @@ watch(
     { immediate: true },
 );
 
-// Initialize feedback from message data
 watch(
-    () => props.message,
-    (newMessage) => {
-        if (newMessage.feedback !== undefined) {
-            feedback.value = newMessage.feedback ? 'thumbs-up' : 'thumbs-down';
-        }
+    () => props.message.feedback,
+    (value) => {
+        if (value === 'positive') feedback.value = 'thumbs-up';
+        else if (value === 'negative') feedback.value = 'thumbs-down';
+        else feedback.value = null;
     },
     { immediate: true },
 );
@@ -320,19 +316,14 @@ onMounted(() => {
                 <div v-else class="flex items-center gap-2 py-1">
                     <template v-if="isCallingExternal">
                         <LoaderCircle class="external-call-spinner h-4 w-4 animate-spin" />
-                        <span class="external-call-shimmer text-sm italic">
-                            Calling external data source…
-                        </span>
+                        <span class="external-call-shimmer text-sm italic"> Calling external data source… </span>
                     </template>
                     <WaitingIndicator v-else />
                 </div>
                 <!-- Edge case: the LLM streamed some text before deciding to
                      call a tool. Show the indicator below the content rather
                      than next to the three dots. -->
-                <div
-                    v-if="message.content && isCallingExternal"
-                    class="mt-2 flex items-center gap-2 py-1 text-sm"
-                >
+                <div v-if="message.content && isCallingExternal" class="mt-2 flex items-center gap-2 py-1 text-sm">
                     <LoaderCircle class="external-call-spinner h-4 w-4 animate-spin" />
                     <span class="external-call-shimmer italic">Calling external data source…</span>
                 </div>
@@ -767,12 +758,7 @@ onMounted(() => {
    wrapping them with `hsl()` produces invalid syntax and the rule is
    silently dropped. */
 .external-call-shimmer {
-    background-image: linear-gradient(
-        90deg,
-        var(--muted-foreground) 0%,
-        var(--primary) 50%,
-        var(--muted-foreground) 100%
-    );
+    background-image: linear-gradient(90deg, var(--muted-foreground) 0%, var(--primary) 50%, var(--muted-foreground) 100%);
     background-size: 200% 100%;
     background-clip: text;
     -webkit-background-clip: text;

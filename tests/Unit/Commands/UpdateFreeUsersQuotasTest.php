@@ -1,8 +1,8 @@
 <?php
 
 use App\Console\Commands\UpdateFreeUsersQuotas;
-use App\Models\User;
-use App\Models\UserCredit;
+use App\Auth\Models\User;
+use App\Billing\Models\UserCredit;
 use Illuminate\Support\Facades\Event;
 
 beforeEach(function () {

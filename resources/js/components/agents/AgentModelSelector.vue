@@ -358,7 +358,7 @@ onMounted(() => {
                     <Info class="h-4 w-4" />
                     <AlertDescription> <strong>Recommended:</strong> GPT OSS is an excellent choice for most use cases. </AlertDescription>
                 </Alert>
- <Alert>
+                <Alert>
                     <Info class="h-4 w-4" />
                     <AlertDescription> Do not choose a reasoning model in widgets. </AlertDescription>
                 </Alert>

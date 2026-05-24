@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Chat\Streaming;
 
-use App\Services\Chat\Streaming\ErrorCode;
-use App\Services\Chat\Streaming\EventType;
-use App\Services\Chat\Streaming\StreamEvent;
+use Domain\Chat\Services\Streaming\ErrorCode;
+use Domain\Chat\Services\Streaming\EventType;
+use Domain\Chat\Services\Streaming\StreamEvent;
 use PHPUnit\Framework\TestCase;
 
 class StreamEventTest extends TestCase

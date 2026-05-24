@@ -309,90 +309,18 @@ const canDelete = computed(() => {
     return agentNameConfirmation.value === props.agent.name;
 });
 
+// Highlight any sidebar entry whose registered route matches the current URL.
+// Reactive on `page.url` so Inertia visits invalidate the computation. Ziggy's
+// `current(name)` supports trailing-`*` patterns (e.g. 'agents.sources.*') for
+// parent items that should stay active on any nested route.
 const isActiveRoute = (routeName: string) => {
-    const routeParts = routeName.split('.'); // Extract parts like ['agents', 'knowledge', 'web']
-
-    // Special handling for knowledge base routes - if checking for agents.sources,
-    // match sub-routes like agents/Sources/Web, agents/Sources/Text (with trailing slash)
-    // but NOT the analytics sources page which is just 'agents/Sources'
-    if (routeName === 'agents.sources') {
-        return currentRoute.value.startsWith('agents/Sources/');
-    }
-
-    // Handle special cases for component naming
-    let componentName;
-    if (routeName === 'agents.embed') {
-        componentName = 'Embed';
-    } else if (routeName === 'agents.playground') {
-        componentName = 'Playground';
-    } else if (routeName === 'agents.settings') {
-        componentName = 'Persona'; // Now maps to Persona component file
-    } else if (routeName === 'agents.sources') {
-        componentName = 'Sources'; // Maps to Sources component file
-    } else if (routeName === 'agents.sources.web') {
-        componentName = 'Sources/Web'; // Maps to Sources/Web component file
-    } else if (routeName === 'agents.sources.text.index') {
-        componentName = 'Sources/Text'; // Maps to Sources/Text component file
-    } else if (routeName === 'agents.sources.files') {
-        componentName = 'Sources/FilesSource'; // Maps to Sources/FilesSource component file
-    } else if (routeName === 'agents.sources.video') {
-        componentName = 'Sources/Video'; // Maps to Sources/Video component file
-    } else if (routeName === 'agents.sources.audio') {
-        componentName = 'Sources/Audio'; // Maps to Sources/Audio component file
-    } else if (routeName === 'agents.sources.youtube.index') {
-        componentName = 'Sources/Youtube'; // Maps to Sources/Youtube component file
-    } else if (routeName === 'agents.sources.markdown') {
-        componentName = 'Sources/Markdown'; // Maps to Sources/Markdown component file
-    } else if (routeName === 'agents.sources.functions.index') {
-        componentName = 'Sources/Functions/index'; // Maps to Sources/Functions/index.vue
-    } else if (routeName === 'agents.workflow') {
-        componentName = 'Workflow'; // Maps to Workflow component file
-    } else if (routeName === 'agents.actions') {
-        componentName = 'Sentiment'; // Maps to Sentiment component file
-    } else if (routeName === 'agents.leads.index') {
-        componentName = 'Leads'; // Maps to Leads component file
-    } else if (routeName === 'agents.logs') {
-        componentName = 'ChatLog'; // Maps to ChatLog folder with index.vue
-    } else {
-        const routeSuffix = routeParts[routeParts.length - 1]; // Get last part
-        componentName = routeSuffix.charAt(0).toUpperCase() + routeSuffix.slice(1);
-    }
-
-    // Handle both direct component and index.vue in folder (e.g., 'agents/ChatLog' and 'agents/ChatLog/index')
-    return currentRoute.value === `agents/${componentName}` || currentRoute.value === `agents/${componentName}/index`;
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    page.url;
+    return Boolean(route().current(routeName));
 };
 
-// Analytics submenu state - auto-open if on any analytics page
-// Note: 'agents/Sources' (exact match) is the analytics sources page
-const analyticsSubmenuOpen = ref(
-    currentRoute.value.startsWith('agents/Analytics') ||
-        currentRoute.value.startsWith('agents/Metrics') ||
-        currentRoute.value.startsWith('agents/Sentiment') ||
-        currentRoute.value.startsWith('agents/Tone') ||
-        currentRoute.value.startsWith('agents/Topics') ||
-        currentRoute.value === 'agents/Sources' ||
-        isActiveRoute('agents.analytics') ||
-        isActiveRoute('agents.analytics.metrics') ||
-        isActiveRoute('agents.analytics.sentiment') ||
-        isActiveRoute('agents.analytics.tone') ||
-        isActiveRoute('agents.analytics.topics') ||
-        isActiveRoute('agents.analytics.sources'),
-);
-
-// Sources submenu state - auto-open if on knowledge sources page
-// Note: 'agents/Sources/' prefix (with slash) matches knowledge pages like Sources/Web
-const sourcesSubmenuOpen = ref(
-    currentRoute.value.startsWith('agents/Sources/') ||
-        isActiveRoute('agents.sources') ||
-        isActiveRoute('agents.sources.web') ||
-        isActiveRoute('agents.sources.text.index') ||
-        isActiveRoute('agents.sources.files') ||
-        isActiveRoute('agents.sources.video') ||
-        isActiveRoute('agents.sources.audio') ||
-        isActiveRoute('agents.sources.youtube.index') ||
-        isActiveRoute('agents.sources.markdown') ||
-        isActiveRoute('agents.sources.functions.index'),
-);
+const analyticsSubmenuOpen = ref(isActiveRoute('agents.analytics.*'));
+const sourcesSubmenuOpen = ref(isActiveRoute('agents.sources.*'));
 
 // Source stats
 const sourceStats = ref<any>(null);

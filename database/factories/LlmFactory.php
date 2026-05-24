@@ -2,11 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Models\Llm;
+use Domain\Agents\Models\Llm;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Llm>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Agents\Models\Llm>
  */
 class LlmFactory extends Factory
 {

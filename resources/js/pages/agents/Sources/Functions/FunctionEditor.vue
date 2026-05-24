@@ -143,10 +143,7 @@ async function save(): Promise<void> {
                 payload,
             );
         } else {
-            response = await axios.post(
-                route('agents.sources.functions.store', props.agentId),
-                payload,
-            );
+            response = await axios.post(route('agents.sources.functions.store', props.agentId), payload);
         }
         toast.success(props.existing ? `Updated ${response.data.data.name}` : `Created ${response.data.data.name}`);
         emit('saved', response.data.data);
@@ -182,8 +179,8 @@ function authTypeChanged(type: AuthType): void {
             <SheetHeader class="border-b px-6 pt-6 pb-4 text-left">
                 <SheetTitle>{{ isEdit ? 'Edit function' : 'New function' }}</SheetTitle>
                 <SheetDescription>
-                    Functions let the chat call your API as a tool. Give the chat a description of when
-                    to call it, the JSON-Schema of its arguments, and a webhook URL.
+                    Functions let the chat call your API as a tool. Give the chat a description of when to call it, the JSON-Schema of its arguments,
+                    and a webhook URL.
                     <a
                         href="https://platform.openai.com/docs/guides/function-calling"
                         target="_blank"
@@ -200,31 +197,16 @@ function authTypeChanged(type: AuthType): void {
                 <!-- Name -->
                 <div class="space-y-2">
                     <Label for="fn-name">Function name</Label>
-                    <Input
-                        id="fn-name"
-                        v-model="draft.name"
-                        placeholder="get_weather"
-                        :disabled="isEdit"
-                        autocomplete="off"
-                    />
-                    <p class="text-muted-foreground text-xs">
-                        Letters, numbers, and underscores. Must start with a letter. The chat sees this name.
-                    </p>
+                    <Input id="fn-name" v-model="draft.name" placeholder="get_weather" :disabled="isEdit" autocomplete="off" />
+                    <p class="text-muted-foreground text-xs">Letters, numbers, and underscores. Must start with a letter. The chat sees this name.</p>
                     <p v-if="fieldError('name')" class="text-destructive text-xs">{{ fieldError('name') }}</p>
                 </div>
 
                 <!-- Description -->
                 <div class="space-y-2">
                     <Label for="fn-desc">Description</Label>
-                    <Textarea
-                        id="fn-desc"
-                        v-model="draft.description"
-                        rows="3"
-                        placeholder="Returns the current weather for the given city."
-                    />
-                    <p class="text-muted-foreground text-xs">
-                        Be specific — the chat uses this to decide when to call your function.
-                    </p>
+                    <Textarea id="fn-desc" v-model="draft.description" rows="3" placeholder="Returns the current weather for the given city." />
+                    <p class="text-muted-foreground text-xs">Be specific — the chat uses this to decide when to call your function.</p>
                     <p v-if="fieldError('description')" class="text-destructive text-xs">{{ fieldError('description') }}</p>
                 </div>
 
@@ -233,14 +215,7 @@ function authTypeChanged(type: AuthType): void {
                     <div class="flex items-center justify-between">
                         <Label>Parameters schema (JSON Schema)</Label>
                         <div class="flex gap-1">
-                            <Button
-                                v-for="t in TEMPLATES"
-                                :key="t.label"
-                                size="sm"
-                                variant="ghost"
-                                class="text-xs"
-                                @click="applyTemplate(t.schema)"
-                            >
+                            <Button v-for="t in TEMPLATES" :key="t.label" size="sm" variant="ghost" class="text-xs" @click="applyTemplate(t.schema)">
                                 {{ t.label }}
                             </Button>
                         </div>
@@ -256,10 +231,7 @@ function authTypeChanged(type: AuthType): void {
                 <div class="space-y-2">
                     <Label>Webhook URL</Label>
                     <div class="flex gap-2">
-                        <Select
-                            :model-value="draft.webhook_method"
-                            @update:model-value="(v) => (draft.webhook_method = v as 'POST' | 'GET')"
-                        >
+                        <Select :model-value="draft.webhook_method" @update:model-value="(v) => (draft.webhook_method = v as 'POST' | 'GET')">
                             <SelectTrigger class="w-24">
                                 <SelectValue />
                             </SelectTrigger>
@@ -296,8 +268,8 @@ function authTypeChanged(type: AuthType): void {
                     />
                     <p v-if="fieldError('auth_value')" class="text-destructive text-xs">{{ fieldError('auth_value') }}</p>
                     <p v-if="draft.auth_type === 'hmac'" class="text-muted-foreground text-xs">
-                        ChatVia signs every outgoing request with HMAC-SHA256 over the body using the
-                        function's secret. You verify it with the secret shown after saving.
+                        ChatVia signs every outgoing request with HMAC-SHA256 over the body using the function's secret. You verify it with the secret
+                        shown after saving.
                     </p>
                 </div>
 
@@ -305,18 +277,10 @@ function authTypeChanged(type: AuthType): void {
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <Label>Custom headers</Label>
-                        <Button size="sm" variant="ghost" @click="addHeader">
-                            <Plus class="mr-1 h-3.5 w-3.5" /> Add
-                        </Button>
+                        <Button size="sm" variant="ghost" @click="addHeader"> <Plus class="mr-1 h-3.5 w-3.5" /> Add </Button>
                     </div>
-                    <div v-if="draft.webhook_headers.length === 0" class="text-muted-foreground text-xs">
-                        No custom headers.
-                    </div>
-                    <div
-                        v-for="(h, i) in draft.webhook_headers"
-                        :key="i"
-                        class="flex gap-2"
-                    >
+                    <div v-if="draft.webhook_headers.length === 0" class="text-muted-foreground text-xs">No custom headers.</div>
+                    <div v-for="(h, i) in draft.webhook_headers" :key="i" class="flex gap-2">
                         <Input v-model="h.key" placeholder="X-Header-Name" class="w-1/3" />
                         <Input v-model="h.value" placeholder="value" class="flex-1" />
                         <Button variant="ghost" size="icon" @click="removeHeader(i)">
@@ -347,7 +311,7 @@ function authTypeChanged(type: AuthType): void {
                 </div>
             </div>
 
-            <SheetFooter class="border-t px-6 pt-4 pb-6 gap-2">
+            <SheetFooter class="gap-2 border-t px-6 pt-4 pb-6">
                 <Button variant="outline" @click="emit('update:open', false)">Cancel</Button>
                 <Button :disabled="saving" @click="save">
                     <LoaderCircle v-if="saving" class="mr-1 h-4 w-4 animate-spin" />

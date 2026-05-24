@@ -36,3 +36,4 @@ frankenphp-worker.php
 /resources/js/routes
 
 .tinker/
+.laravel-scratchpad/

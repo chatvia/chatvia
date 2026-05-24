@@ -174,7 +174,6 @@ const isDeletingSource = ref(false);
 const retrainDialogOpen = ref(false);
 const websiteToRetrain = ref<WebSource | null>(null);
 
-
 // Attach website dialog state
 const attachWebsiteDialogOpen = ref(false);
 const reCrawlNewLinks = ref(false);

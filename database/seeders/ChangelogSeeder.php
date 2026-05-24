@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Changelog;
-use App\Models\ChangelogItem;
+use App\Changelog\Models\Changelog;
+use App\Changelog\Models\ChangelogItem;
 use Illuminate\Database\Seeder;
 
 class ChangelogSeeder extends Seeder

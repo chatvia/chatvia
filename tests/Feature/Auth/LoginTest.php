@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Auth\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 describe('User Login', function () {

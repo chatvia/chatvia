@@ -49,9 +49,7 @@ function openEdit(fn: AgentFunction): void {
 
 async function toggle(fn: AgentFunction): Promise<void> {
     try {
-        const response = await axios.post(
-            route('agents.sources.functions.toggle', { agent: props.agent.external_id, function: fn.external_id }),
-        );
+        const response = await axios.post(route('agents.sources.functions.toggle', { agent: props.agent.external_id, function: fn.external_id }));
         const updated: AgentFunction = response.data.data;
         const i = functions.value.findIndex((f) => f.external_id === fn.external_id);
         if (i !== -1) functions.value[i] = updated;
@@ -65,9 +63,7 @@ async function confirmDelete(): Promise<void> {
     const target = deleteTarget.value;
     if (!target) return;
     try {
-        await axios.delete(
-            route('agents.sources.functions.delete', { agent: props.agent.external_id, function: target.external_id }),
-        );
+        await axios.delete(route('agents.sources.functions.delete', { agent: props.agent.external_id, function: target.external_id }));
         functions.value = functions.value.filter((f) => f.external_id !== target.external_id);
         toast.success(`Deleted ${target.name}`);
     } catch (err) {
@@ -99,9 +95,8 @@ onMounted(fetchFunctions);
                 <div>
                     <h1 class="text-xl font-semibold">Functions</h1>
                     <p class="text-muted-foreground text-sm">
-                        Let the chat call your own APIs as tools. Define a function with a JSON-Schema
-                        for its arguments and a webhook URL — when a user asks something the chat thinks
-                        needs your data, it will call your webhook and use the result in its reply.
+                        Let the chat call your own APIs as tools. Define a function with a JSON-Schema for its arguments and a webhook URL — when a
+                        user asks something the chat thinks needs your data, it will call your webhook and use the result in its reply.
                     </p>
                 </div>
                 <Button @click="openCreate">
@@ -119,9 +114,7 @@ onMounted(fetchFunctions);
                 <CardContent class="py-12 text-center">
                     <FunctionSquare class="mx-auto mb-3 h-10 w-10 opacity-40" />
                     <p class="font-medium">No functions yet</p>
-                    <p class="text-muted-foreground mt-1 text-sm">
-                        Create a function the chat can call when it needs live data.
-                    </p>
+                    <p class="text-muted-foreground mt-1 text-sm">Create a function the chat can call when it needs live data.</p>
                 </CardContent>
             </Card>
 
@@ -130,7 +123,7 @@ onMounted(fetchFunctions);
                     <CardContent class="flex items-center justify-between gap-4 py-4">
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2">
-                                <code class="rounded bg-muted px-1.5 py-0.5 text-xs font-semibold">{{ fn.name }}</code>
+                                <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.name }}</code>
                                 <Badge v-if="!fn.enabled" variant="secondary">disabled</Badge>
                                 <Badge v-if="fn.last_error" variant="destructive" class="gap-1">
                                     <AlertCircle class="h-3 w-3" />
@@ -149,12 +142,7 @@ onMounted(fetchFunctions);
                             <Button variant="ghost" size="icon" @click="openEdit(fn)">
                                 <Pencil class="h-4 w-4" />
                             </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                class="text-destructive"
-                                @click="deleteTarget = fn"
-                            >
+                            <Button variant="ghost" size="icon" class="text-destructive" @click="deleteTarget = fn">
                                 <Trash2 class="h-4 w-4" />
                             </Button>
                         </div>
@@ -163,12 +151,7 @@ onMounted(fetchFunctions);
             </div>
         </div>
 
-        <FunctionEditor
-            v-model:open="editorOpen"
-            :agent-id="agent.external_id"
-            :existing="editing"
-            @saved="onSaved"
-        />
+        <FunctionEditor v-model:open="editorOpen" :agent-id="agent.external_id" :existing="editing" @saved="onSaved" />
 
         <DeleteConfirmationDialog
             :open="!!deleteTarget"

@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Services\Chunking\ChunkFit;
 
-use App\Services\Chunking\ChunkFit\ChunkFitClient;
-use App\Services\Chunking\ChunkFit\Exceptions\ChunkFitException;
+use Domain\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
+use Domain\Ingestion\Services\Chunking\ChunkFit\Exceptions\ChunkFitException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;

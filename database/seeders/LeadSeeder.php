@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Agent;
-use App\Models\ChatConversation;
-use App\Models\Lead;
-use App\Models\User;
+use Domain\Agents\Models\Agent;
+use Domain\Chat\Models\ChatConversation;
+use Domain\Agents\Models\Lead;
+use App\Auth\Models\User;
 use Illuminate\Database\Seeder;
 
 class LeadSeeder extends Seeder

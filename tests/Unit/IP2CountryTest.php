@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Services\IP2Country;
+use Domain\Analytics\Services\IP2Country;
 use PHPUnit\Framework\TestCase;
 
 class IP2CountryTest extends TestCase

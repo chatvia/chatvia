@@ -23,7 +23,7 @@
                             <!-- Logo -->
                             <a class="inline-flex text-blue-600 transition duration-150 ease-in-out" href="index.html"
                                aria-label="Cruip">
-                                <img src="{{  asset('images/logo.png') }}" alt="Logo" class="w-14"/>
+                                <img src="{{  asset('images/logo.svg') }}" alt="Logo" class="w-14"/>
                             </a>
                         </div>
 

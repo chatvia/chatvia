@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Llm;
+use Domain\Agents\Models\Llm;
 use Illuminate\Database\Seeder;
 
 class LlmSeeder extends Seeder

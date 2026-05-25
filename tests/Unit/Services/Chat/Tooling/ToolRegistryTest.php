@@ -3,7 +3,6 @@
 namespace Tests\Unit\Services\Chat\Tooling;
 
 use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentFunction;
 use Domain\Chat\Services\Tooling\ToolRegistry;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +26,7 @@ class ToolRegistryTest extends TestCase
         DB::enableQueryLog();
         $queriesBefore = count(DB::getQueryLog());
 
-        $result = (new ToolRegistry)->for($agent);
+        $result = app(ToolRegistry::class)->for($agent);
 
         $queriesAfter = count(DB::getQueryLog());
 
@@ -40,7 +39,7 @@ class ToolRegistryTest extends TestCase
         $agent = new Agent;
         $agent->id = 999;
 
-        $this->assertSame([], (new ToolRegistry)->for($agent));
+        $this->assertSame([], app(ToolRegistry::class)->for($agent));
     }
 
     public function test_caches_compiled_tools_payload_per_agent(): void
@@ -57,7 +56,7 @@ class ToolRegistryTest extends TestCase
                 'function' => ['name' => 'get_weather', 'description' => 'desc', 'parameters' => ['type' => 'object']],
             ]]);
 
-        $result = (new ToolRegistry)->for($agent);
+        $result = app(ToolRegistry::class)->for($agent);
 
         $this->assertSame('get_weather', $result[0]['function']['name']);
     }
@@ -66,7 +65,7 @@ class ToolRegistryTest extends TestCase
     {
         Cache::put('agent:tools:42', ['x'], 60);
 
-        (new ToolRegistry)->forget(42);
+        app(ToolRegistry::class)->forget(42);
 
         $this->assertNull(Cache::get('agent:tools:42'));
     }

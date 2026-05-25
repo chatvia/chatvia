@@ -3,14 +3,14 @@
 use App\Auth\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-describe('User Login', function () {
-    it('shows login page to guests', function () {
+describe('User Login', function (): void {
+    it('shows login page to guests', function (): void {
         $response = $this->get(route('login'));
 
         $response->assertOk();
     });
 
-    it('redirects authenticated users away from login page', function () {
+    it('redirects authenticated users away from login page', function (): void {
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->get(route('login'));
@@ -18,7 +18,7 @@ describe('User Login', function () {
         $response->assertRedirect(route('dashboard'));
     });
 
-    it('allows user to login with valid credentials', function () {
+    it('allows user to login with valid credentials', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
         ]);
@@ -32,7 +32,7 @@ describe('User Login', function () {
         $this->assertAuthenticatedAs($user);
     });
 
-    it('rejects login with invalid email', function () {
+    it('rejects login with invalid email', function (): void {
         $response = $this->from(route('login'))->post(route('login'), [
             'email' => 'nonexistent@example.com',
             'password' => 'password',
@@ -43,7 +43,7 @@ describe('User Login', function () {
         $this->assertGuest();
     });
 
-    it('rejects login with invalid password', function () {
+    it('rejects login with invalid password', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('correct-password'),
@@ -59,7 +59,7 @@ describe('User Login', function () {
         $this->assertGuest();
     });
 
-    it('requires email field', function () {
+    it('requires email field', function (): void {
         $response = $this->post(route('login'), [
             'email' => '',
             'password' => 'password',
@@ -69,7 +69,7 @@ describe('User Login', function () {
         $this->assertGuest();
     });
 
-    it('requires password field', function () {
+    it('requires password field', function (): void {
         $response = $this->post(route('login'), [
             'email' => 'test@example.com',
             'password' => '',
@@ -79,7 +79,7 @@ describe('User Login', function () {
         $this->assertGuest();
     });
 
-    it('supports remember me functionality', function () {
+    it('supports remember me functionality', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('password'),
@@ -98,7 +98,7 @@ describe('User Login', function () {
         $response->assertCookie(Auth::guard()->getRecallerName());
     });
 
-    it('does not set remember cookie when not requested', function () {
+    it('does not set remember cookie when not requested', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('password'),
@@ -117,12 +117,12 @@ describe('User Login', function () {
         // Ensure remember cookie is not set
         $recallerName = Auth::guard()->getRecallerName();
         $cookies = $response->headers->getCookies();
-        $recallerCookie = collect($cookies)->first(fn ($cookie) => $cookie->getName() === $recallerName);
+        $recallerCookie = collect($cookies)->first(fn ($cookie): bool => $cookie->getName() === $recallerName);
 
         expect($recallerCookie)->toBeNull();
     });
 
-    it('validates email format', function () {
+    it('validates email format', function (): void {
         $response = $this->post(route('login'), [
             'email' => 'not-an-email',
             'password' => 'password',
@@ -133,8 +133,8 @@ describe('User Login', function () {
     });
 });
 
-describe('User Logout', function () {
-    it('allows authenticated user to logout', function () {
+describe('User Logout', function (): void {
+    it('allows authenticated user to logout', function (): void {
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('logout'));
@@ -143,14 +143,14 @@ describe('User Logout', function () {
         $this->assertGuest();
     });
 
-    it('prevents unauthenticated users from accessing logout', function () {
+    it('prevents unauthenticated users from accessing logout', function (): void {
         $response = $this->post(route('logout'));
 
         $response->assertRedirect(route('login'));
         $this->assertGuest();
     });
 
-    it('invalidates session on logout', function () {
+    it('invalidates session on logout', function (): void {
         $user = User::factory()->create();
 
         $this->actingAs($user);
@@ -162,7 +162,7 @@ describe('User Logout', function () {
         $this->assertGuest();
     });
 
-    it('removes remember token on logout', function () {
+    it('removes remember token on logout', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('password'),
@@ -180,12 +180,15 @@ describe('User Logout', function () {
         // Logout
         $this->post(route('logout'));
 
-        expect($user->fresh()->remember_token)->toBeNull();
+        // Laravel clears the remember_token on logout. Depending on the
+        // framework version this is either null or an empty string — accept
+        // both, since the contract is "no longer a valid token".
+        expect($user->fresh()->remember_token)->toBeIn([null, '']);
     });
 });
 
-describe('Session Management', function () {
-    it('regenerates session on login to prevent fixation', function () {
+describe('Session Management', function (): void {
+    it('regenerates session on login to prevent fixation', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('password'),
@@ -201,7 +204,7 @@ describe('Session Management', function () {
         expect(session()->getId())->not->toBe($oldSessionId);
     });
 
-    it('prevents concurrent sessions when user logs in multiple times', function () {
+    it('prevents concurrent sessions when user logs in multiple times', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('password'),

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agents;
 
 use Domain\Agents\Models\Agent;
-use Domain\Sources\QA\Models\AgentQuestionAnswer;
 use Domain\Chat\Models\ChatMessage;
+use Domain\Sources\QA\Models\AgentQuestionAnswer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

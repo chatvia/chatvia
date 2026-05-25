@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agents;
 
+use App\Auth\Services\AgentMemberAuthTokenService;
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
-use App\Auth\Services\AgentMemberAuthTokenService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

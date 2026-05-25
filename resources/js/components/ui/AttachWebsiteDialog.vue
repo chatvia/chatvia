@@ -22,6 +22,7 @@ interface AvailableWebsite {
     created_at: string;
     agents?: Array<{
         id: number;
+        external_id: string;
         name: string;
     }>;
 }

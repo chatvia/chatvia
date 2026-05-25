@@ -2,19 +2,19 @@
 
 namespace Domain\Chat\Services;
 
-use Domain\Sources\QA\Models\AgentQuestionAnswer;
-use Domain\Chat\Models\ChatConversation;
 use App\Auth\Models\User;
 use App\Billing\Services\UserCreditSystem;
+use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Services\Data\StreamRequestData;
 use Domain\Chat\Services\Streaming\ErrorCode;
-use Domain\Chat\Services\Streaming\SseStreamer;
+use Domain\Chat\Services\Streaming\RequestDedupeStore;
 use Domain\Chat\Services\Streaming\Sources\ErrorSource;
 use Domain\Chat\Services\Streaming\Sources\HandoffSource;
 use Domain\Chat\Services\Streaming\Sources\LlmSource;
 use Domain\Chat\Services\Streaming\Sources\QASource;
 use Domain\Chat\Services\Streaming\Sources\ReplaySource;
-use Domain\Chat\Services\Streaming\RequestDedupeStore;
+use Domain\Chat\Services\Streaming\SseStreamer;
+use Domain\Sources\QA\Models\AgentQuestionAnswer;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -65,7 +65,7 @@ readonly class ChatStreamService
                     $this->handoffService->sendUserMessage(
                         conversation: $conversation,
                         content: $data->message->message,
-                        model: $data->message->model?->external_name,
+                        model: $data->message->model->external_name,
                         ipAddress: $data->ipAddress,
                         userAgent: $data->userAgent,
                         referrerUrl: $data->referrerUrl,
@@ -136,7 +136,7 @@ readonly class ChatStreamService
                     $this->handoffService->sendUserMessage(
                         conversation: $conversation,
                         content: $data->message->message,
-                        model: $data->message->model?->external_name,
+                        model: $data->message->model->external_name,
                         ipAddress: $data->ipAddress,
                         userAgent: $data->userAgent,
                         referrerUrl: $data->referrerUrl,
@@ -177,7 +177,7 @@ readonly class ChatStreamService
 
     private function streamHandoffResponse(ChatConversation $conversation): StreamedResponse
     {
-        return new StreamedResponse(function () use ($conversation) {
+        return new StreamedResponse(function () use ($conversation): void {
             header('Content-Type: text/event-stream');
             header('Cache-Control: no-cache, no-store, must-revalidate');
             header('Connection: keep-alive');
@@ -217,7 +217,7 @@ readonly class ChatStreamService
 
     private function streamErrorResponse(string $message, string $code = 'error'): StreamedResponse
     {
-        return new StreamedResponse(function () use ($message) {
+        return new StreamedResponse(function () use ($message): void {
             header('Content-Type: text/event-stream');
             header('Cache-Control: no-cache, no-store, must-revalidate');
             header('Connection: keep-alive');
@@ -247,7 +247,7 @@ readonly class ChatStreamService
         $answer = $qaMatch->answer;
         $context->appendStreamedMessage($answer);
 
-        return new StreamedResponse(function () use ($context, $answer, $qaMatch) {
+        return new StreamedResponse(function () use ($context, $answer, $qaMatch): void {
             header('Content-Type: text/event-stream');
             header('Cache-Control: no-cache, no-store, must-revalidate');
             header('Connection: keep-alive');

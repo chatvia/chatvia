@@ -2,8 +2,9 @@
 
 namespace Domain\Agents\Data\Resources;
 
-use Domain\Agents\Models\Agent;
 use Carbon\CarbonInterface;
+use Domain\Agents\Models\Agent;
+use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -83,8 +84,8 @@ class AgentResourceData extends Data
     /**
      * Create a collection of AgentResourceData from a collection of Agent models.
      */
-    public static function collection(\Illuminate\Support\Collection $agents): \Illuminate\Support\Collection
+    public static function collection(Collection $agents): Collection
     {
-        return $agents->map(fn (Agent $agent) => self::fromModelWithStats($agent));
+        return $agents->map(fn (Agent $agent): AgentResourceData => self::fromModelWithStats($agent));
     }
 }

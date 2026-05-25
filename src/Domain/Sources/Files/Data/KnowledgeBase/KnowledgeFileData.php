@@ -2,11 +2,11 @@
 
 namespace Domain\Sources\Files\Data\KnowledgeBase;
 
-use Domain\Agents\Data\AgentData;
 use DateTime;
+use Domain\Agents\Data\AgentData;
 use Spatie\LaravelData\Data;
 
-class KnowledgeFileData extends Data
+final class KnowledgeFileData extends Data
 {
     public function __construct(
         public int $id,
@@ -28,7 +28,7 @@ class KnowledgeFileData extends Data
         $data = [];
 
         foreach ($files as $file) {
-            $data[] = new static(
+            $data[] = new self(
                 id: $file->id,
                 agent: AgentData::from($file->agent),
                 filename: $file->filename,

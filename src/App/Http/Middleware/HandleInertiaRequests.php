@@ -92,38 +92,4 @@ class HandleInertiaRequests extends Middleware
 
         return app(TeamService::class)->userPermissionsMap($user);
     }
-
-    private function subDomain(string $host): ?string
-    {
-        $appUrl = parse_url(
-            url: config('app.url'),
-            component: PHP_URL_HOST
-        );
-
-        $subdomain = null;
-
-        if ($host !== $appUrl && ! filter_var($host, FILTER_VALIDATE_IP)) {
-            $hostParts = explode('.', $host);
-            $appUrlParts = explode('.', $appUrl);
-
-            if (count($hostParts) > count($appUrlParts)) {
-                $subdomain = $hostParts[0];
-            }
-        }
-
-        return $subdomain;
-    }
-
-    private function transformModel(array $model): array
-    {
-        return [
-            'id' => $model['external_name'],
-            'external_id' => $model['external_name'],
-            'name' => $model['descriptive_name'],
-            'context' => $model['context_window'],
-            'icon' => $model['icon'],
-            'description' => $model['description'],
-            'features' => $model['features'] ?? [],
-        ];
-    }
 }

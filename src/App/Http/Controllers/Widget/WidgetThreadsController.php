@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\Widget;
 
+use App\Widget\WidgetVerification;
 use Domain\Chat\Services\Memory\ChatMemory;
 use Domain\Chat\Services\Memory\ChatSession;
-use App\Widget\WidgetVerification;
 use Illuminate\Http\Request;
 
 class WidgetThreadsController
 {
-    public function __invoke(Request $request, WidgetVerification $widgetVerification, ChatMemory $memory, ChatSession $session)
+    /**
+     * @return mixed[][]
+     */
+    public function __invoke(Request $request, WidgetVerification $widgetVerification, ChatMemory $memory, ChatSession $session): array
     {
         $agentId = $request->header('X-AGENT-ID');
         $sessionId = $request->header('X-SESSION-ID');

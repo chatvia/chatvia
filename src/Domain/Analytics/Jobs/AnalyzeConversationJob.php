@@ -2,10 +2,10 @@
 
 namespace Domain\Analytics\Jobs;
 
-use Domain\Chat\Models\ChatConversation;
 use App\TextAnalysis\LanguageDetection;
 use App\TextAnalysis\ToneAnalysis;
 use Domain\Analytics\Services\TopicAnalysis;
+use Domain\Chat\Models\ChatConversation;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 

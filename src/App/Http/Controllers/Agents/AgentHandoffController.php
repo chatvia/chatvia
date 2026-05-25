@@ -27,7 +27,7 @@ readonly class AgentHandoffController
         }
 
         $pending = ChatConversation::query()
-            ->with(['session.member', 'lead', 'messages' => fn ($q) => $q->latest()->limit(1)])
+            ->with(['session.user', 'lead', 'messages' => fn ($q) => $q->latest()->limit(1)])
             ->whereHas('session', fn ($q) => $q->where('agent_id', $agent->id))
             ->where('handoff_status', 'pending')
             ->where('visible', true)
@@ -36,12 +36,12 @@ readonly class AgentHandoffController
             ->map(function (ChatConversation $conversation) {
                 $lastMessage = $conversation->messages->first();
                 $lead = $conversation->lead;
-                $member = $conversation->session?->member;
+                $member = $conversation->session->user;
 
                 return [
                     'conversation_id' => $conversation->id,
-                    'user_name' => $lead?->name ?? $member?->name ?? 'Visitor',
-                    'user_email' => $lead?->email ?? $member?->email,
+                    'user_name' => $lead->name ?? $member->name ?? 'Visitor',
+                    'user_email' => $lead->email ?? $member->email,
                     'last_message' => $lastMessage?->content,
                     'last_message_at' => $lastMessage?->created_at?->toIso8601String(),
                     'requested_at' => $conversation->updated_at->toIso8601String(),
@@ -193,7 +193,7 @@ readonly class AgentHandoffController
      */
     private function guardAccess(Agent $agent, ChatConversation $conversation): ?JsonResponse
     {
-        if (Gate::denies('access-agent', $agent) || $conversation->session?->agent_id !== $agent->id) {
+        if (Gate::denies('access-agent', $agent) || $conversation->session->agent_id !== $agent->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
         }
 

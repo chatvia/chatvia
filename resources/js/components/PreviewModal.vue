@@ -107,7 +107,7 @@ const isOpen = computed({
 });
 
 // Device classes for embed preview
-const deviceClasses: Record<string, string> = {
+const _deviceClasses: Record<string, string> = {
     desktop: 'w-full max-w-4xl h-[600px]',
     tablet: 'w-[768px] h-[500px]',
     mobile: 'w-[375px] h-[600px]',

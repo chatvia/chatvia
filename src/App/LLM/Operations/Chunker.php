@@ -3,10 +3,10 @@
 namespace App\LLM\Operations;
 
 use App\LLM\Contracts\LLMProviderInterface;
-use Domain\Ingestion\Data\Chunking\DocumentChunk;
-use Domain\Ingestion\Data\OCR\PageData;
 use App\LLM\Mistral;
 use App\Prompts\PromptLoader;
+use Domain\Ingestion\Data\Chunking\DocumentChunk;
+use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Services\TikToken;
 use Illuminate\Support\Facades\Log;
 
@@ -62,7 +62,7 @@ class Chunker
         return DocumentChunk::from($data);
     }
 
-    public function chunkHtml($html)
+    public function chunkHtml($html): array
     {
         $systemPrompt = PromptLoader::load('chunking/web');
 
@@ -117,7 +117,7 @@ class Chunker
         return $chunks;
     }
 
-    public function calculateCost($input, $output)
+    public function calculateCost($input, $output): float
     {
         return app(CostCalculator::class)
             ->calculateCostInCents(
@@ -131,7 +131,7 @@ class Chunker
     /**
      * Extract <Chunk>, <Summary>, and <Questions> XML tags and return clean chunk
      */
-    private function extractSummaryAndQuestions(string $llmResponse, $originalChunk): array
+    private function extractSummaryAndQuestions(string $llmResponse, string $originalChunk): array
     {
         $chunk = null;
         $summary = '';
@@ -153,7 +153,7 @@ class Chunker
             // Split questions by newlines and filter out empty lines
             $questions = array_values(array_filter(
                 array_map('trim', explode("\n", $questionsText)),
-                fn ($q) => ! empty($q)
+                fn ($q): bool => ! empty($q)
             ));
         }
 

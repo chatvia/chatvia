@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests\Agents\Functions;
 
+use Closure;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Domain\Agents\Rules\SafeWebhookUrl;
 use Domain\Chat\Services\Tooling\FunctionSchemaValidator;
-use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

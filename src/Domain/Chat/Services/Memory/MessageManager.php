@@ -2,10 +2,10 @@
 
 namespace Domain\Chat\Services\Memory;
 
+use Domain\Agents\Models\Agent;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\ChatOutputPayload;
 use Domain\Chat\Data\Memory\MessageData;
-use Domain\Agents\Models\Agent;
 use Domain\Chat\Models\ChatMessage;
 use Illuminate\Support\Str;
 
@@ -67,7 +67,7 @@ class MessageManager
             }
         } else {
             // For output messages, set llm_found_answer flag
-            $append['llm_found_answer'] = $payload->llm_found_answer ?? true;
+            $append['llm_found_answer'] = $payload->llm_found_answer;
         }
 
         $role = $isInputMessage ? 'user' : 'assistant';
@@ -250,7 +250,7 @@ class MessageManager
         //        $messages = array_slice($filteredMessages, -$limit);
 
         $formattedMessages = collect($messages)
-            ->map(fn ($message) => [
+            ->map(fn ($message): array => [
                 'role' => $message['role'],
                 'content' => $message['message_for_llm'] ?? $message['content'],
             ])

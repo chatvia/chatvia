@@ -1,13 +1,13 @@
 <?php
 
-use Domain\Analytics\Enums\ToneEnum;
-use Domain\Agents\Models\Agent;
-use Domain\Sources\QA\Models\AgentQuestionAnswer;
-use Domain\Chat\Models\ChatTopic;
+use App\Auth\Models\User;
 use App\Country\Models\Country;
 use App\Language\Models\Language;
+use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Llm;
-use App\Auth\Models\User;
+use Domain\Analytics\Enums\ToneEnum;
+use Domain\Chat\Models\ChatTopic;
+use Domain\Sources\QA\Models\AgentQuestionAnswer;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;

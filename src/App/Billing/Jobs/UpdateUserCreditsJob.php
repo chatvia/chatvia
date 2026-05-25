@@ -2,9 +2,9 @@
 
 namespace App\Billing\Jobs;
 
-use Domain\Agents\Models\Llm;
 use App\Auth\Models\User;
 use App\Billing\Services\UserCreditSystem;
+use Domain\Agents\Models\Llm;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
@@ -26,7 +26,7 @@ class UpdateUserCreditsJob implements ShouldQueue
     {
         $lockKey = "user_credits_lock:{$this->userId}";
 
-        Cache::lock($lockKey, 10)->block(5, function () use ($creditSystem) {
+        Cache::lock($lockKey, 10)->block(5, function () use ($creditSystem): void {
             $this->updateCredits($creditSystem);
         });
     }
@@ -35,7 +35,7 @@ class UpdateUserCreditsJob implements ShouldQueue
     {
         $creditSystem->setUserId($this->userId);
 
-        DB::transaction(function () use ($creditSystem) {
+        DB::transaction(function () use ($creditSystem): void {
             /** @var User $user */
             $user = User::query()
                 ->lockForUpdate()
@@ -57,7 +57,7 @@ class UpdateUserCreditsJob implements ShouldQueue
 
             // Get credits from model
             $model = Llm::find($this->modelId);
-            $credits = $model?->credits ?? 1;
+            $credits = $model->credits ?? 1;
 
             // Update usage in database
             // Messages: increment by LLM cost (e.g., Claude Sonnet 4 with credits=4 uses 4 messages)

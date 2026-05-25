@@ -6,7 +6,7 @@ use Domain\Ingestion\Models\Chunk;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 
-class PageData extends Data
+final class PageData extends Data
 {
     public function __construct(
         public int $pageNumber,
@@ -23,12 +23,12 @@ class PageData extends Data
     {
         $pages = json_decode($json, true);
 
-        return collect($pages)->map(fn ($page) => new PageData(...$page));
+        return collect($pages)->map(fn ($page): PageData => new PageData(...$page));
     }
 
     public static function fromChunkModel(Chunk $chunk): static
     {
-        return new static(
+        return new self(
             pageNumber: $chunk->chunk_index,
             content: $chunk->chunk,
             checksum: $chunk->checksum,

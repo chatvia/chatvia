@@ -2,10 +2,12 @@
 
 namespace Domain\Connectors\Services\OAuth;
 
-use Domain\Connectors\Data\ConnectorData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Chat\Services\Tooling\Mcp\McpCatalog;
+use Domain\Connectors\Data\ConnectorData;
+use Domain\Connectors\Models\ConnectorOAuthClient;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -296,7 +298,7 @@ class McpOAuthFlow
      * Look up the DCR client registration for a connected server (used when
      * we don't have a PendingOAuthState — i.e. background refreshes).
      */
-    private function clientForServer(AgentMcpServer $server): \Domain\Connectors\Models\ConnectorOAuthClient
+    private function clientForServer(AgentMcpServer $server): ConnectorOAuthClient
     {
         $client = $this->registrar->findByAuthServer((string) $server->oauth_authorization_server);
 
@@ -341,7 +343,7 @@ class McpOAuthFlow
         return 'oauth:mcp:state:'.$state;
     }
 
-    private function stateStore(): \Illuminate\Contracts\Cache\Repository
+    private function stateStore(): Repository
     {
         return Cache::store(config('cache.default'));
     }

@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 
-describe('Email Verification', function () {
-    it('shows email verification notice to unverified users', function () {
+describe('Email Verification', function (): void {
+    it('shows email verification notice to unverified users', function (): void {
         $user = User::factory()->unverified()->create();
 
         $response = $this->actingAs($user)->get(route('verification.notice'));
@@ -16,7 +16,7 @@ describe('Email Verification', function () {
         $response->assertOk();
     });
 
-    it('redirects verified users away from verification notice', function () {
+    it('redirects verified users away from verification notice', function (): void {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
         $response = $this->actingAs($user)->get(route('verification.notice'));
@@ -24,13 +24,13 @@ describe('Email Verification', function () {
         $response->assertRedirect(route('dashboard'));
     });
 
-    it('requires authentication to access verification notice', function () {
+    it('requires authentication to access verification notice', function (): void {
         $response = $this->get(route('verification.notice'));
 
         $response->assertRedirect(route('login'));
     });
 
-    it('verifies email with valid signed URL', function () {
+    it('verifies email with valid signed URL', function (): void {
         Event::fake();
 
         $user = User::factory()->unverified()->create();
@@ -50,7 +50,7 @@ describe('Email Verification', function () {
         $response->assertRedirect(route('dashboard', ['verified' => 1]));
     });
 
-    it('rejects verification with invalid signature', function () {
+    it('rejects verification with invalid signature', function (): void {
         $user = User::factory()->unverified()->create();
 
         $invalidUrl = route('verification.verify', [
@@ -65,7 +65,7 @@ describe('Email Verification', function () {
         expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
     });
 
-    it('rejects verification with wrong user id', function () {
+    it('rejects verification with wrong user id', function (): void {
         $user = User::factory()->unverified()->create();
         $otherUser = User::factory()->unverified()->create();
 
@@ -80,7 +80,7 @@ describe('Email Verification', function () {
         $response->assertStatus(403);
     });
 
-    it('rejects verification with wrong email hash', function () {
+    it('rejects verification with wrong email hash', function (): void {
         $user = User::factory()->unverified()->create();
 
         $verificationUrl = URL::temporarySignedRoute(
@@ -96,7 +96,7 @@ describe('Email Verification', function () {
         expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
     });
 
-    it('rejects verification with expired signature', function () {
+    it('rejects verification with expired signature', function (): void {
         $user = User::factory()->unverified()->create();
 
         $verificationUrl = URL::temporarySignedRoute(
@@ -112,7 +112,7 @@ describe('Email Verification', function () {
         expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
     });
 
-    it('does not verify already verified email', function () {
+    it('does not verify already verified email', function (): void {
         Event::fake();
 
         $user = User::factory()->create(['email_verified_at' => now()]);
@@ -130,7 +130,7 @@ describe('Email Verification', function () {
         $response->assertRedirect(route('dashboard', ['verified' => 1]));
     });
 
-    it('throttles verification attempts', function () {
+    it('throttles verification attempts', function (): void {
         $user = User::factory()->unverified()->create();
 
         $verificationUrl = URL::temporarySignedRoute(
@@ -151,12 +151,12 @@ describe('Email Verification', function () {
     });
 });
 
-describe('Email Verification Notification', function () {
-    beforeEach(function () {
+describe('Email Verification Notification', function (): void {
+    beforeEach(function (): void {
         Notification::fake();
     });
 
-    it('sends verification notification to unverified users', function () {
+    it('sends verification notification to unverified users', function (): void {
         $user = User::factory()->unverified()->create();
 
         $response = $this->actingAs($user)->post(route('verification.send'));
@@ -166,7 +166,7 @@ describe('Email Verification Notification', function () {
         $response->assertSessionHas('status');
     });
 
-    it('does not send notification to verified users', function () {
+    it('does not send notification to verified users', function (): void {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
         $response = $this->actingAs($user)->post(route('verification.send'));
@@ -174,13 +174,13 @@ describe('Email Verification Notification', function () {
         Notification::assertNothingSent();
     });
 
-    it('requires authentication to send verification notification', function () {
+    it('requires authentication to send verification notification', function (): void {
         $response = $this->post(route('verification.send'));
 
         $response->assertRedirect(route('login'));
     });
 
-    it('throttles verification notification requests', function () {
+    it('throttles verification notification requests', function (): void {
         $user = User::factory()->unverified()->create();
 
         // Make multiple requests
@@ -194,7 +194,7 @@ describe('Email Verification Notification', function () {
         $response->assertStatus(429); // Too Many Requests
     });
 
-    it('generates unique verification URL for each user', function () {
+    it('generates unique verification URL for each user', function (): void {
         $user1 = User::factory()->unverified()->create();
         $user2 = User::factory()->unverified()->create();
 
@@ -206,8 +206,8 @@ describe('Email Verification Notification', function () {
     });
 });
 
-describe('Protected Routes', function () {
-    it('allows verified users to access dashboard', function () {
+describe('Protected Routes', function (): void {
+    it('allows verified users to access dashboard', function (): void {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
         $response = $this->actingAs($user)->get(route('dashboard'));
@@ -215,7 +215,7 @@ describe('Protected Routes', function () {
         $response->assertOk();
     });
 
-    it('redirects unverified users to verification notice', function () {
+    it('redirects unverified users to verification notice', function (): void {
         $user = User::factory()->unverified()->create();
 
         $response = $this->actingAs($user)->get(route('dashboard'));

@@ -157,7 +157,7 @@ class AzureMarkdownSplitter
         ?Chunk $currentChunk,
         array &$chunks,
         string $currentPage
-    ): ?Chunk {
+    ): Chunk {
         $level = $headerInfo['level'];
         $heading = $headerInfo['heading'];
 
@@ -460,7 +460,7 @@ class AzureMarkdownSplitter
             $parts[] = $nextChunk->original_content;
         }
 
-        return implode("\n\n", array_filter($parts));
+        return implode("\n\n", $parts);
     }
 
     /**

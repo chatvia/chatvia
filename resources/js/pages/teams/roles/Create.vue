@@ -16,10 +16,10 @@ import { type BreadcrumbItem } from '@/types';
 import { Bot, Check, ChevronDown, Info, Loader2 } from 'lucide-vue-next';
 
 // Use generated TypeScript types from DTOs
-type TeamData = App.Data.Resources.Team.TeamData;
-type TeamAgentData = App.Data.Resources.Team.TeamAgentData;
-type PermissionMetaData = App.Data.Resources.Team.PermissionMetaData;
-type PermissionGroupData = App.Data.Resources.Team.PermissionGroupData;
+type TeamData = App.Teams.Data.Resources.TeamData;
+type TeamAgentData = App.Teams.Data.Resources.TeamAgentData;
+type PermissionMetaData = App.Teams.Data.Resources.PermissionMetaData;
+type PermissionGroupData = App.Teams.Data.Resources.PermissionGroupData;
 
 interface Props {
     team: TeamData;
@@ -142,7 +142,7 @@ const getPermissionRequires = (permission: string): string[] => {
 };
 
 // Check if a permission has unmet requirements
-const hasUnmetRequirements = (permission: string): boolean => {
+const _hasUnmetRequirements = (permission: string): boolean => {
     const requires = getPermissionRequires(permission);
     return requires.some((req) => !form.permissions.includes(req));
 };

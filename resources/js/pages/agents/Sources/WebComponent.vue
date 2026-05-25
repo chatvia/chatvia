@@ -45,7 +45,7 @@ import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { useEcho } from '@laravel/echo-vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
 interface WebSource {
@@ -220,7 +220,7 @@ const completedSources = computed(() => {
 });
 
 // Computed properties
-const hasCrawlingSources = computed(() => {
+const _hasCrawlingSources = computed(() => {
     return webSources.value.some((source) => source.status === 'crawling');
 });
 
@@ -320,7 +320,7 @@ const formatDate = (dateString: string): string => {
             hour: '2-digit',
             minute: '2-digit',
         }).format(date);
-    } catch (error) {
+    } catch (_error) {
         return dateString;
     }
 };
@@ -1129,7 +1129,7 @@ const loadPrevPage = async (websiteId: number) => {
 };
 
 // Get total links count for display
-const getTotalLinksCount = (sourceId: number): number => {
+const _getTotalLinksCount = (sourceId: number): number => {
     // Get the source's urls_count from backend (most accurate)
     const source = webSources.value.find((s) => s.id === sourceId);
     if (source?.urls_count) {
@@ -1315,11 +1315,11 @@ const trainSelectedWebsites = async () => {
     if (!canTrain.value || isTraining.value) return;
 
     const selectedIds = Array.from(selectedWebsites.value);
-    const totalLinksToTrain = selectedWebsitesTotalLinks.value;
+    const _totalLinksToTrain = selectedWebsitesTotalLinks.value;
 
     isTraining.value = true;
     let successCount = 0;
-    let failedWebsites: string[] = [];
+    const failedWebsites: string[] = [];
 
     // Process each website individually - train ALL links
     for (const websiteId of selectedIds) {
@@ -1376,7 +1376,7 @@ const trainSelectedWebsites = async () => {
 };
 
 // Auto-refresh logic for crawling sources
-const stopRefreshInterval = () => {
+const _stopRefreshInterval = () => {
     if (refreshInterval.value) {
         clearInterval(refreshInterval.value);
         refreshInterval.value = null;

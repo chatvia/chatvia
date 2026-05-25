@@ -2,9 +2,9 @@
 
 namespace App\LLM\Operations;
 
-use Domain\Analytics\Data\ContentAnalysisData;
 use App\LLM\Mistral;
 use App\Prompts\PromptLoader;
+use Domain\Analytics\Data\ContentAnalysisData;
 use Exception;
 
 class ContentAnalyzer

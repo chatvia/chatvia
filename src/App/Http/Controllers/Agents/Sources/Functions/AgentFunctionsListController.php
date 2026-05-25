@@ -16,7 +16,7 @@ class AgentFunctionsListController
         $functions = $agent->functions()
             ->orderBy('name')
             ->get()
-            ->map(fn ($fn) => AgentFunctionData::fromModel($fn));
+            ->map(fn ($fn): AgentFunctionData => AgentFunctionData::fromModel($fn));
 
         return response()->json([
             'data' => $functions,

@@ -103,6 +103,11 @@ const activeFunctionCalls = ref(new Map());
 
 const hasActiveFunctionCalls = computed(() => activeFunctionCalls.value.size > 0);
 
+// Sorted by start time (oldest first), so AssistantChatBubble can stack
+// the icons in arrival order and show the most-recently-started one as
+// the current label.
+const activeFunctionCallsList = computed(() => Array.from(activeFunctionCalls.value.values()).sort((a, b) => a.started_at - b.started_at));
+
 // Usage checking
 const USAGE_CHECK_INTERVAL = 60000; // 1 minute
 const canSendMessages = ref(true);
@@ -356,7 +361,7 @@ onUnmounted(() => {
     }
 });
 
-function checkScrollPosition() {
+function _checkScrollPosition() {
     if (!messagesContainer.value) return;
 
     const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value;
@@ -429,7 +434,7 @@ onMounted(async () => {
             // Load sources asynchronously to avoid blocking the page
             loadSourcesAsync();
         })
-        .catch((error) => {
+        .catch((_error) => {
             router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }));
         });
 
@@ -531,14 +536,21 @@ function submitChat({
             if (id) messageSources.value.set(id, sources);
         },
         onTool: (data) => {
-            // Drives the "Calling <function>..." indicator. The backend
-            // yields `tool { phase: 'start' }` before dispatching the
-            // webhook and `{ phase: 'end' }` after — synchronous + in
-            // order with the LLM stream.
+            // Drives the branded "Calling <service>…" indicator. The
+            // backend yields `tool { phase: 'start' }` before dispatching
+            // and `{ phase: 'end' }` after — synchronous + in order with
+            // the LLM stream. The start payload carries display metadata
+            // (kind, label, icon_url, brand_color) resolved server-side
+            // against the connector catalog.
             if (!data?.tool_call_id) return;
             if (data.phase === 'start') {
                 activeFunctionCalls.value.set(data.tool_call_id, {
+                    tool_call_id: data.tool_call_id,
                     name: data.name ?? '',
+                    kind: data.kind ?? 'function',
+                    label: data.label ?? data.name ?? '',
+                    icon_url: data.icon_url ?? null,
+                    brand_color: data.brand_color ?? null,
                     started_at: Date.now(),
                 });
             } else if (data.phase === 'end') {
@@ -833,11 +845,7 @@ const handleScrollToBottomClick = () => {
                                     @messageDeleted="messageDeleted"
                                     @messageEdited="handleMessageEdited"
                                 />
-                                <ChatErrorBubble
-                                    v-else-if="message.role === 'error'"
-                                    :message="message"
-                                    @retry="handleErrorRetry(index)"
-                                />
+                                <ChatErrorBubble v-else-if="message.role === 'error'" :message="message" @retry="handleErrorRetry(index)" />
                                 <AssistantChatBubble
                                     v-else
                                     :message="message"
@@ -850,6 +858,7 @@ const handleScrollToBottomClick = () => {
                                     :isThinking="isMessageStreaming(message) && !message.content"
                                     :isStreaming="isMessageStreaming(message)"
                                     :isCallingExternal="isMessageStreaming(message) && hasActiveFunctionCalls"
+                                    :activeCalls="isMessageStreaming(message) ? activeFunctionCallsList : []"
                                     :avatar="props.appearance?.avatar"
                                     :isRTL="isMessageRTL(message)"
                                     @messageDeleted="messageDeleted"

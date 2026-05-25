@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Teams\Roles;
 
-use Domain\Agents\Models\Agent;
 use App\Teams\Models\Permission;
 use App\Teams\Models\Role;
 use App\Teams\Models\Team;
+use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 
 class TeamRoleStoreController
@@ -43,7 +43,7 @@ class TeamRoleStoreController
             return back()->withErrors(['name' => 'A role with this name already exists.']);
         }
 
-        $role = Role::create([
+        $role = Role::query()->create([
             'name' => $validated['name'],
             'code' => $code,
             'team_id' => $team->id,

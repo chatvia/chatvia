@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agents\Analytics;
 
 use Domain\Agents\Models\Agent;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AgentToneDataController
@@ -77,12 +77,12 @@ class AgentToneDataController
 
             $filledData[] = [
                 'date' => $dateStr,
-                'neutral' => $dataPoint?->neutral_count ?? 0,
-                'frustrated' => $dataPoint?->frustrated_count ?? 0,
-                'urgent' => $dataPoint?->urgent_count ?? 0,
-                'confused' => $dataPoint?->confused_count ?? 0,
-                'satisfied' => $dataPoint?->satisfied_count ?? 0,
-                'unspecified' => $dataPoint?->unspecified_count ?? 0,
+                'neutral' => $dataPoint->neutral_count ?? 0,
+                'frustrated' => $dataPoint->frustrated_count ?? 0,
+                'urgent' => $dataPoint->urgent_count ?? 0,
+                'confused' => $dataPoint->confused_count ?? 0,
+                'satisfied' => $dataPoint->satisfied_count ?? 0,
+                'unspecified' => $dataPoint->unspecified_count ?? 0,
             ];
 
             $currentDate->addDay();

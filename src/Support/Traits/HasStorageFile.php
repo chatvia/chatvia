@@ -7,21 +7,27 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\File\File;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string|null $filepath
+ * @property string|null $parser_filepath
+ */
 trait HasStorageFile
 {
-    public function readFile($field = 'filepath'): File
+    public function readFile(string $field = 'filepath'): File
     {
         if (! $this->filepath) {
             throw new Exception("File path is not set for AgentFile ID: {$this->id}");
         }
 
-        $data = Storage::get($this->$field);
+        $data = Storage::get($this->{$field});
 
         if ($data === null) {
-            throw new Exception("File not found in storage: {$this->$field}");
+            throw new Exception("File not found in storage: {$this->{$field}}");
         }
 
-        $extension = pathinfo($this->$field, PATHINFO_EXTENSION);
+        $extension = pathinfo($this->{$field}, PATHINFO_EXTENSION);
 
         $tempPath = tempnam(sys_get_temp_dir(), 'agent_file_').'.'.$extension;
 

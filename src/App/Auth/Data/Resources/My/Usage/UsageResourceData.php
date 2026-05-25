@@ -3,6 +3,7 @@
 namespace App\Auth\Data\Resources\My\Usage;
 
 use App\Auth\Models\User;
+use App\Billing\Models\UserCredit;
 use App\Billing\Models\UserQuota;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -23,7 +24,7 @@ class UsageResourceData extends Data
 
     public static function fromUser(User $user): self
     {
-        /** @var User $credit */
+        /** @var UserCredit $credit */
         $credit = $user->credit;
 
         $totalSentMessage = $user->creditSystem()->getTotalSentMessages();

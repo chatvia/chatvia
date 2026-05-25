@@ -3,7 +3,7 @@ import { CalendarCell, RangeCalendarCell, type CalendarCellProps } from 'reka-ui
 import { inject, computed } from 'vue'
 import { cn } from '@/lib/utils'
 
-const props = defineProps<CalendarCellProps & { isRange?: boolean }>()
+const props = defineProps<CalendarCellProps & { isRange?: boolean; class?: string }>()
 
 // Check if we're in a RangeCalendar context
 const isRangeCalendar = inject('isRangeCalendar', false)

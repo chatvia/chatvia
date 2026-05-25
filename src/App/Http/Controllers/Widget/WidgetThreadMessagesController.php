@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Widget;
 
-use Domain\Chat\Services\Memory\ChatMemory;
 use App\Widget\WidgetVerification;
+use Domain\Chat\Services\Memory\ChatMemory;
 use Illuminate\Http\Request;
 
 class WidgetThreadMessagesController
@@ -21,7 +21,7 @@ class WidgetThreadMessagesController
 
         abort_if(
             boolean: ! $conversation,
-            code: '403',
+            code: 403,
             message: 'Invalid thread',
         );
 

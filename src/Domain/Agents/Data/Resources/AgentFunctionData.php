@@ -2,8 +2,8 @@
 
 namespace Domain\Agents\Data\Resources;
 
-use Domain\Agents\Models\AgentFunction;
 use Carbon\CarbonInterface;
+use Domain\Agents\Models\AgentFunction;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -18,7 +18,7 @@ class AgentFunctionData extends Data
         public array $parameters_schema,
         public string $webhook_url,
         public string $webhook_method,
-        /** @var array<int, array{key: string, value: string}> */
+        /** @var array<int, array<string, string>> */
         public array $webhook_headers,
         public string $auth_type,
         public int $timeout_ms,

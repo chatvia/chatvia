@@ -2,8 +2,8 @@
 
 namespace App\Teams\Data\Resources;
 
-use App\Teams\Models\Team;
 use App\Auth\Models\User;
+use App\Teams\Models\Team;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -30,7 +30,7 @@ class TeamListItemData extends Data
             owner: TeamOwnerData::fromModel($team->owner),
             is_owner: $user->ownsTeam($team),
             is_primary: $user->isPrimaryTeam($team),
-            role: $user->teamRole($team)?->code ?? 'owner',
+            role: $user->teamRole($team)->code ?? 'owner',
             members_count: $team->members()->count() + 1, // members + owner
             agents_count: $team->agents()->count(),
             created_at: $team->created_at->toDateTimeString(),

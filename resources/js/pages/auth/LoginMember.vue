@@ -44,7 +44,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <AuthBase :title="$page.props.agent.name" description="Sign in to access this chat workspace">
+    <AuthBase :title="agentName ?? ''" description="Sign in to access this chat workspace">
         <Head title="Member Login" />
 
         <div class="absolute top-4 right-4">

@@ -56,7 +56,7 @@ const copyEmail = async () => {
         setTimeout(() => {
             copiedEmail.value = false;
         }, 2000);
-    } catch (error) {
+    } catch (_error) {
         toast.error('Failed to copy email');
     }
 };
@@ -82,7 +82,7 @@ const statusStyles: Record<string, string> = {
     converted: 'bg-purple-500/10 text-purple-600 border-purple-200',
 };
 
-const leadStatusClass = computed(() => {
+const _leadStatusClass = computed(() => {
     if (!props.lead || !props.lead.status) return statusStyles.new;
     return statusStyles[props.lead.status] || statusStyles.new;
 });

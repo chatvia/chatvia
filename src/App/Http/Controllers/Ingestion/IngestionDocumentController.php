@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class IngestionDocumentController
 {
-    public function __invoke(Request $request, EmbeddingsProviderInterface $embeddings)
+    public function __invoke(Request $request, EmbeddingsProviderInterface $embeddings): void
     {
         $rawJson = $request->getContent();
 
@@ -21,7 +21,7 @@ class IngestionDocumentController
             'chunkable_id' => $data->source_file_id,
             'chunkable_type' => SourceFile::class,
             'agent_id' => $data->agent_id,
-            'type' => $data->chunk->type->value,
+            'type' => $data->chunk->type,
             'original' => $data->chunk->original,
             'enhanced' => $data->chunk->enhanced,
             'checksum' => $data->id,

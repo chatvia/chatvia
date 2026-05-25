@@ -21,7 +21,7 @@ class UserAgentParser
         ];
     }
 
-    private static function getDeviceType(string $userAgent): ?string
+    private static function getDeviceType(string $userAgent): string
     {
         if (stripos($userAgent, 'ipad') !== false) {
             return 'iPad';
@@ -66,7 +66,7 @@ class UserAgentParser
         return 'Desktop';
     }
 
-    private static function getBrowser(string $userAgent): ?string
+    private static function getBrowser(string $userAgent): string
     {
         $browsers = [
             'Edge' => '/edg[ea]?\/([\d.]+)/i',
@@ -87,7 +87,7 @@ class UserAgentParser
         return 'Unknown';
     }
 
-    private static function getOS(string $userAgent): ?string
+    private static function getOS(string $userAgent): string
     {
         // iOS devices (iPhone, iPad, iPod)
         if (preg_match('/(iphone|ipad|ipod)/i', $userAgent)) {

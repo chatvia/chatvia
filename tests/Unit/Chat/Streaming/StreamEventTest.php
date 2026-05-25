@@ -47,10 +47,10 @@ class StreamEventTest extends TestCase
 
     public function test_preserves_unicode_and_slashes(): void
     {
-        $event = StreamEvent::delta('msg-1', "héllo / 你好");
+        $event = StreamEvent::delta('msg-1', 'héllo / 你好');
         $line = $event->toLine();
 
-        $this->assertStringContainsString("héllo / 你好", $line);
+        $this->assertStringContainsString('héllo / 你好', $line);
     }
 
     public function test_done_event_carries_reason_and_timing(): void

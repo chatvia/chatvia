@@ -5,13 +5,18 @@ namespace App\Embeddings\Contracts;
 interface EmbeddingsProviderInterface
 {
     /**
-     * Generate embeddings for a single text.
-     *
-     * @param  string  $text  The text to embed
-     * @param  bool  $returnAsText  Whether to return as text string or array
-     * @return string|array The embedding vector
+     * Generate embeddings for a single text, treating it as a document
+     * (content to be indexed and later retrieved).
      */
     public function embed(string $text, bool $returnAsText = false): string|array;
+
+    /**
+     * Generate embeddings for a search query, applying any provider-specific
+     * query-side conventions (Qwen3 instruction prefix, Cohere
+     * input_type=search_query, etc.). Providers without such conventions
+     * should delegate to embed().
+     */
+    public function embedQuery(string $text, bool $returnAsText = false): string|array;
 
     /**
      * Rerank documents based on query relevance.

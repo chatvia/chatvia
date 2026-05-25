@@ -66,7 +66,7 @@ class SourceFileViewController
             $headers['Content-Length'] = (string) $size;
         }
 
-        return response()->stream(function () use ($stream) {
+        return response()->stream(function () use ($stream): void {
             fpassthru($stream);
 
             if (is_resource($stream)) {

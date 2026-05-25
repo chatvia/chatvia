@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Marketing\Mail\RequestDemoMail;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 
 class RequestDemoController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): Factory|View
     {
         if ($request->method() === 'POST') {
             $request->validate([

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
-use Domain\Chat\Data\ChatInputPayload;
-use Domain\Agents\Rules\AgentLLmChatRule;
 use App\LLM\Operations\QueryRewriter;
+use Domain\Agents\Rules\AgentLLmChatRule;
+use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Services\Memory\ChatMemory;
 use Domain\Chat\Services\Memory\ChatSession;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 final class ConversationCreateController
 {
-    public function __invoke(Request $request, ChatMemory $memory, ChatSession $session)
+    public function __invoke(Request $request, ChatMemory $memory, ChatSession $session): array
     {
         $request->validate([
             'model' => ['required', 'string', new AgentLLmChatRule],

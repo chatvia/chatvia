@@ -39,7 +39,7 @@ class QueryRewriter
         [$lang, $query] = explode('|', $response);
 
         return [
-            'lang' => $lang ?? 'en',
+            'lang' => $lang !== '' ? $lang : 'en',
             'query' => $query,
         ];
     }

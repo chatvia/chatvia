@@ -3,8 +3,8 @@
 namespace Domain\Ingestion\Services\Clients;
 
 use App\Documents\Contracts\DocumentOCRInterface;
-use Domain\Ingestion\Data\OCR\PageData;
 use App\LLM\Mistral;
+use Domain\Ingestion\Data\OCR\PageData;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;

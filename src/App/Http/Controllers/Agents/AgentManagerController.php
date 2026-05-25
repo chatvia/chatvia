@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents;
 
-use Domain\Agents\Models\Agent;
 use App\Auth\Models\User;
+use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 
 class AgentManagerController

@@ -3,6 +3,7 @@
 namespace App\LLM\Contracts;
 
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Psr\Http\Message\ResponseInterface;
 
 interface LLMProviderInterface
@@ -23,7 +24,7 @@ interface LLMProviderInterface
      * Execute a completion request.
      *
      * @param  array  $data  The request data
-     * @return \Illuminate\Http\Client\Response The response
+     * @return Response The response
      */
     public function completion(array $data);
 

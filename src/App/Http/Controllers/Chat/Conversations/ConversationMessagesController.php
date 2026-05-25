@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class ConversationMessagesController
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $memory, ChatSession $session)
+    public function __invoke(Request $request, string $conversationId, ChatMemory $memory, ChatSession $session): array
     {
         $agent = current_agent();
 

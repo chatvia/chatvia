@@ -2,7 +2,7 @@
 
 namespace Domain\Ingestion\Services\Search;
 
-use Illuminate\Database\Query\Expression;
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
 final class Bm25Tokenizer

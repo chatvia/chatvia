@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { DateRange, DateValue } from '@internationalized/date'
-import { CalendarDate, DateFormatter, getLocalTimeZone, today } from '@internationalized/date'
+import { CalendarDate, DateFormatter, getLocalTimeZone, today, type DateValue } from '@internationalized/date'
+
+// Local alias matching reka-ui's `DateRange` shape. We avoid importing it
+// directly to keep `DateValue` resolving to the @internationalized/date
+// identity — reka-ui re-exports it under an alias which vue-tsc treats as a
+// distinct nominal type even though it's structurally identical.
+type DateRange = { start: DateValue | undefined; end: DateValue | undefined }
 import { CalendarIcon } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -62,39 +67,43 @@ const calendarDateToString = (date: DateValue): string => {
     return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
 }
 
-// Initialize date range
+// Initialize date range. Cast the inner values to `DateValue` so vue-tsc
+// keeps the canonical union identity instead of widening to a structural
+// shape (which then fails to match the same `DateValue` union elsewhere).
 const value = ref<DateRange>({
-    start: props.modelValue?.start ? stringToCalendarDate(props.modelValue.start) : today(getLocalTimeZone()).subtract({ days: 6 }),
-    end: props.modelValue?.end ? stringToCalendarDate(props.modelValue.end) : today(getLocalTimeZone()),
+    start: (props.modelValue?.start
+        ? stringToCalendarDate(props.modelValue.start)
+        : today(getLocalTimeZone()).subtract({ days: 6 })) as DateValue,
+    end: (props.modelValue?.end ? stringToCalendarDate(props.modelValue.end) : today(getLocalTimeZone())) as DateValue,
 })
 
 // Calculate date range based on preset
 const getPresetDateRange = (preset: string): DateRange => {
-    const now = today(getLocalTimeZone())
-    
+    const now = today(getLocalTimeZone()) as DateValue
+
     switch (preset) {
         case 'today':
             return { start: now, end: now }
         case 'yesterday':
-            const yesterday = now.subtract({ days: 1 })
+            const yesterday = (now as CalendarDate).subtract({ days: 1 }) as DateValue
             return { start: yesterday, end: yesterday }
         case 'last_7_days':
-            return { start: now.subtract({ days: 6 }), end: now }
+            return { start: (now as CalendarDate).subtract({ days: 6 }) as DateValue, end: now }
         case 'last_30_days':
-            return { start: now.subtract({ days: 29 }), end: now }
+            return { start: (now as CalendarDate).subtract({ days: 29 }) as DateValue, end: now }
         case 'this_month':
-            return { start: now.set({ day: 1 }), end: now }
+            return { start: (now as CalendarDate).set({ day: 1 }) as DateValue, end: now }
         case 'last_month':
-            const lastMonth = now.subtract({ months: 1 })
-            const lastMonthStart = lastMonth.set({ day: 1 })
-            const lastMonthEnd = now.set({ day: 1 }).subtract({ days: 1 })
+            const lastMonth = (now as CalendarDate).subtract({ months: 1 })
+            const lastMonthStart = lastMonth.set({ day: 1 }) as DateValue
+            const lastMonthEnd = (now as CalendarDate).set({ day: 1 }).subtract({ days: 1 }) as DateValue
             return { start: lastMonthStart, end: lastMonthEnd }
         case 'last_3_months':
-            return { start: now.subtract({ months: 3 }), end: now }
+            return { start: (now as CalendarDate).subtract({ months: 3 }) as DateValue, end: now }
         case 'last_12_months':
-            return { start: now.subtract({ months: 12 }), end: now }
+            return { start: (now as CalendarDate).subtract({ months: 12 }) as DateValue, end: now }
         default:
-            return value.value
+            return value.value as DateRange
     }
 }
 
@@ -114,10 +123,10 @@ watch(value, () => {
     const currentPresetRange = selectedPreset.value !== 'custom' ? getPresetDateRange(selectedPreset.value) : null
     
     if (currentPresetRange) {
-        const startMatches = value.value.start && currentPresetRange.start && 
-            calendarDateToString(value.value.start) === calendarDateToString(currentPresetRange.start)
-        const endMatches = value.value.end && currentPresetRange.end && 
-            calendarDateToString(value.value.end) === calendarDateToString(currentPresetRange.end)
+        const startMatches = value.value.start && currentPresetRange.start &&
+            calendarDateToString(value.value.start as DateValue) === calendarDateToString(currentPresetRange.start as DateValue)
+        const endMatches = value.value.end && currentPresetRange.end &&
+            calendarDateToString(value.value.end as DateValue) === calendarDateToString(currentPresetRange.end as DateValue)
         
         if (!startMatches || !endMatches) {
             selectedPreset.value = 'custom'
@@ -130,8 +139,8 @@ watch(value, () => {
 const emitValue = () => {
     if (value.value.start && value.value.end) {
         emit('update:modelValue', {
-            start: calendarDateToString(value.value.start),
-            end: calendarDateToString(value.value.end),
+            start: calendarDateToString(value.value.start as DateValue),
+            end: calendarDateToString(value.value.end as DateValue),
         })
     }
 }
@@ -177,12 +186,12 @@ const displayText = computed(() => {
             
             <!-- Calendar - Always visible -->
             <RangeCalendar
-                v-model="value"
+                v-model="(value as never)"
                 :number-of-months="2"
                 initial-focus
                 :min-value="minDate"
                 :max-value="today(getLocalTimeZone())"
-                @update:model-value="(range) => { if (range.start && range.end) isOpen = false }"
+                @update:model-value="(range: DateRange) => { if (range.start && range.end) isOpen = false }"
             />
         </PopoverContent>
     </Popover>

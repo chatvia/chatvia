@@ -25,7 +25,7 @@ import HandoffPanel from './HandoffPanel.vue';
 // Composable
 import { useChatLog } from './useChatLog';
 
-type Message = App.Data.Resources.Agent.ChatLog.ChatLogMessageData;
+type Message = Domain.Agents.Data.Resources.ChatLog.ChatLogMessageData;
 
 const {
     agent,

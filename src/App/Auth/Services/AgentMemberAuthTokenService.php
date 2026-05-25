@@ -2,8 +2,8 @@
 
 namespace App\Auth\Services;
 
-use Domain\Agents\Models\Agent;
 use App\Auth\Models\User;
+use Domain\Agents\Models\Agent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 

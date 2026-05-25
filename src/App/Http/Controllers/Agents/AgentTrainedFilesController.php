@@ -9,7 +9,10 @@ use Illuminate\Http\Request;
 
 class AgentTrainedFilesController
 {
-    public function index(Request $request, Agent $agent): AgentSourcesListData
+    /**
+     * @return AgentSourcesListData[]
+     */
+    public function index(Request $request, Agent $agent): array
     {
         abort_if($request->user()->cannot('update', $agent), 403);
 

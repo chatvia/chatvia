@@ -73,6 +73,9 @@ trait HasSettings
         ]);
     }
 
+    /**
+     * @return MorphMany<ModelSetting, $this>
+     */
     public function modelSettings(): MorphMany
     {
         return $this->morphMany(ModelSetting::class, 'model');

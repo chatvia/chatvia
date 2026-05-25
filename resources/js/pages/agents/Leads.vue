@@ -16,7 +16,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
     settings?: {
         fields?: any;
     } | null;
@@ -30,7 +30,7 @@ const canManageLeadSettings = computed(() => hasPermission('agent.leads.settings
 const canExportLeads = computed(() => hasPermission('agent.leads.export'));
 
 // Leads data loaded via Axios
-const leads = ref<App.Data.Resources.Agent.LeadResourceData[]>([]);
+const leads = ref<Domain.Agents.Data.Resources.LeadResourceData[]>([]);
 const isLoadingLeads = ref(true);
 
 const fetchLeads = async () => {
@@ -97,7 +97,7 @@ const showDeleteDialog = ref(false);
 const isDeleting = ref(false);
 const isExporting = ref(false);
 const showLeadDetails = ref(false);
-const selectedLeadForView = ref<Lead | null>(null);
+const selectedLeadForView = ref<Domain.Agents.Data.Resources.LeadResourceData | null>(null);
 
 // Settings dialog state
 const showSettingsDialog = ref(false);
@@ -190,7 +190,7 @@ const clearSelection = () => {
     selectedLeads.value = [];
 };
 
-const viewLead = (lead: Lead) => {
+const viewLead = (lead: Domain.Agents.Data.Resources.LeadResourceData) => {
     selectedLeadForView.value = lead;
     showLeadDetails.value = true;
 };
@@ -302,7 +302,8 @@ const exportSelectedLeads = async () => {
             },
         );
 
-        const blob = new Blob([res.data], { type: res.headers['content-type'] ?? 'application/octet-stream' });
+        const contentType = res.headers['content-type'];
+        const blob = new Blob([res.data], { type: typeof contentType === 'string' ? contentType : 'application/octet-stream' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

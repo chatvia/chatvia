@@ -13,9 +13,9 @@ import { computed, onMounted, ref } from 'vue';
 import { Background } from '@vue-flow/background';
 import { ControlButton, Controls } from '@vue-flow/controls';
 import type { Connection, Edge, Node } from '@vue-flow/core';
-import { Handle, Position, VueFlow, useVueFlow } from '@vue-flow/core';
+import { ConnectionMode, Handle, Position, VueFlow, useVueFlow } from '@vue-flow/core';
 
-const props = defineProps({
+const _props = defineProps({
     agent: {
         type: Object,
         required: true,
@@ -247,22 +247,24 @@ const getNodeColorClasses = (color: string) => {
 /**
  * To update node positions randomly
  */
-function updatePos() {
-    nodes.value = nodes.value.map((node) => {
-        return {
-            ...node,
-            position: {
-                x: Math.random() * 400,
-                y: Math.random() * 400,
-            },
-        };
-    });
+function _updatePos(): void {
+    // Vue Flow's `Node` generic is deep enough to choke vue-tsc when we map
+    // over the array, so route around it by re-typing through `unknown`.
+    const current = nodes.value as unknown as Array<{ position: { x: number; y: number } } & Record<string, unknown>>;
+
+    nodes.value = current.map((node) => ({
+        ...node,
+        position: {
+            x: Math.random() * 400,
+            y: Math.random() * 400,
+        },
+    })) as unknown as typeof nodes.value;
 }
 
 /**
  * toObject transforms your current graph data to an easily persist-able object
  */
-function logToObject() {
+function _logToObject() {
     console.log(toObject());
 }
 
@@ -273,7 +275,7 @@ function resetTransform() {
     setViewport({ x: 0, y: 0, zoom: 1 });
 }
 
-function toggleDarkMode() {
+function _toggleDarkMode() {
     dark.value = !dark.value;
     // Toggle the dark class on the document root to affect the entire page
     if (dark.value) {
@@ -307,13 +309,13 @@ onMounted(() => {
 });
 
 // Allow only one incoming edge per target node
-function isValidConnection(connection) {
+function isValidConnection(connection: { target?: string | null }): boolean {
     const { target } = connection;
     if (!target) return false;
 
     // check if target already has an incoming edge
     const edges = getEdges.value;
-    const alreadyConnected = edges.some((e) => e.target === target);
+    const alreadyConnected = edges.some((e: { target: string }) => e.target === target);
 
     return !alreadyConnected;
 }
@@ -352,7 +354,7 @@ function isValidConnection(connection) {
                 <VueFlow
                     v-model:nodes="nodes"
                     v-model:edges="edges"
-                    is-valid-connection="isValidConnection"
+                    :is-valid-connection="isValidConnection"
                     :class="{ dark }"
                     class="workflow-canvas"
                     :snap-to-grid="true"
@@ -360,7 +362,7 @@ function isValidConnection(connection) {
                     :default-viewport="{ zoom: 1.5 }"
                     :min-zoom="0.2"
                     :max-zoom="4"
-                    :connection-mode="'loose'"
+                    :connection-mode="ConnectionMode.Loose"
                     :connect-on-click="false"
                     :nodes-connectable="true"
                     :edges-updatable="true"

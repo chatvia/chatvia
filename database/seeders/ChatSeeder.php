@@ -2,12 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Auth\Models\User;
+use App\Country\Models\Country;
 use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\Llm;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
-use App\Country\Models\Country;
-use App\Auth\Models\User;
 use Illuminate\Database\Seeder;
 
 class ChatSeeder extends Seeder
@@ -253,7 +254,7 @@ class ChatSeeder extends Seeder
         }
 
         // Ensure we have LLMs in the database
-        $llmCount = \Domain\Agents\Models\Llm::count();
+        $llmCount = Llm::count();
         if ($llmCount === 0) {
             $this->command->warn('No LLMs found. Please run the LlmSeeder first.');
 
@@ -261,7 +262,7 @@ class ChatSeeder extends Seeder
         }
 
         // Get LLM IDs for assistant messages
-        $llmIds = \Domain\Agents\Models\Llm::pluck('id')->toArray();
+        $llmIds = Llm::pluck('id')->toArray();
 
         // Get countries for sessions
         $countries = Country::pluck('id')->toArray();

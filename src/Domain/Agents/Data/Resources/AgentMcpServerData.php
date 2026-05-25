@@ -2,8 +2,8 @@
 
 namespace Domain\Agents\Data\Resources;
 
-use Domain\Agents\Models\AgentMcpServer;
 use Carbon\CarbonInterface;
+use Domain\Agents\Models\AgentMcpServer;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 

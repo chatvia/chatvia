@@ -2,9 +2,6 @@
 
 namespace App\Mistral;
 
-use App\Mistral\MistralFileDeleteResponse;
-use App\Mistral\MistralFileResponse;
-use App\Mistral\MistralFileSignedUrlResponse;
 use App\LLM\Mistral;
 use Illuminate\Support\Facades\Http;
 
@@ -16,7 +13,6 @@ class MistralFiles
      * Upload a file to Mistral.
      *
      * @param  string  $filePath  The path to the file to upload
-     * @param  string|null  $fileName  Optional custom file name
      * @return MistralFileResponse The file response
      */
     public function upload(string $filePath): MistralFileResponse

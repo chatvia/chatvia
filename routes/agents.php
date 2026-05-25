@@ -45,11 +45,27 @@ use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
 use App\Http\Controllers\Agents\Sources\AgentQaController;
 use App\Http\Controllers\Agents\Sources\AgentSourcesFilesController;
 use App\Http\Controllers\Agents\Sources\AgentTextController;
-use App\Http\Controllers\Agents\Sources\AgentYoutubeController;
-use App\Http\Controllers\Agents\Sources\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agents\Sources\AgentTrainedWebsitesController;
 use App\Http\Controllers\Agents\Sources\AgentWebsiteLinksController;
 use App\Http\Controllers\Agents\Sources\AgentWebsitesController;
+use App\Http\Controllers\Agents\Sources\AgentYoutubeController;
+use App\Http\Controllers\Agents\Sources\Audio\AgentSourceAudioController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorConnectController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorDisconnectController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorEnableController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorOAuthStartController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorRefreshController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsListController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorToolsController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentCustomConnectorAddController;
+use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionDeleteController;
+use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionsController;
+use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionsListController;
+use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionStoreController;
+use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionTestController;
+use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionToggleController;
+use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionUpdateController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourcesLinkTextController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourcesTrainedTextsListController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourceUnlinkTextController;
@@ -62,13 +78,13 @@ use App\Http\Controllers\Agents\Workflow\AgentWorkflowController;
 use App\Http\Controllers\CountriesListController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group(function () {
+Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group(function (): void {
     Route::get('agents', [AgentsController::class, 'index'])->name('agents.index');
     Route::post('agents', [AgentsController::class, 'store'])->name('agents.store');
 
     Route::get('countries/list', CountriesListController::class)->name('countries.list');
 
-    Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function () {
+    Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function (): void {
         Route::get('home', AgentManagerController::class)->name('manager');
         Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
         Route::get('analytics/data', AgentAnalyticsDataController::class)->name('analytics.data');
@@ -126,24 +142,24 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::post('sources/qa/{id}/unlink', [AgentQaController::class, 'unlink'])->name('sources.qa.unlink');
 
         // Functions (LLM tool calls — webhook-backed)
-        Route::get('sources/functions', \App\Http\Controllers\Agents\Sources\Functions\AgentFunctionsController::class)->name('sources.functions.index');
-        Route::get('sources/functions/data', \App\Http\Controllers\Agents\Sources\Functions\AgentFunctionsListController::class)->name('sources.functions.data');
-        Route::post('sources/functions', \App\Http\Controllers\Agents\Sources\Functions\AgentFunctionStoreController::class)->name('sources.functions.store');
-        Route::patch('sources/functions/{function}', \App\Http\Controllers\Agents\Sources\Functions\AgentFunctionUpdateController::class)->name('sources.functions.update');
-        Route::post('sources/functions/{function}/toggle', \App\Http\Controllers\Agents\Sources\Functions\AgentFunctionToggleController::class)->name('sources.functions.toggle');
-        Route::post('sources/functions/{function}/test', \App\Http\Controllers\Agents\Sources\Functions\AgentFunctionTestController::class)->name('sources.functions.test');
-        Route::delete('sources/functions/{function}', \App\Http\Controllers\Agents\Sources\Functions\AgentFunctionDeleteController::class)->name('sources.functions.delete');
+        Route::get('sources/functions', AgentFunctionsController::class)->name('sources.functions.index');
+        Route::get('sources/functions/data', AgentFunctionsListController::class)->name('sources.functions.data');
+        Route::post('sources/functions', AgentFunctionStoreController::class)->name('sources.functions.store');
+        Route::patch('sources/functions/{function}', AgentFunctionUpdateController::class)->name('sources.functions.update');
+        Route::post('sources/functions/{function}/toggle', AgentFunctionToggleController::class)->name('sources.functions.toggle');
+        Route::post('sources/functions/{function}/test', AgentFunctionTestController::class)->name('sources.functions.test');
+        Route::delete('sources/functions/{function}', AgentFunctionDeleteController::class)->name('sources.functions.delete');
 
         // Connectors (preset-backed MCP servers — Notion, Stripe, GitHub, …)
-        Route::get('sources/connectors', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsController::class)->name('sources.connectors.index');
-        Route::get('sources/connectors/data', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsListController::class)->name('sources.connectors.data');
-        Route::post('sources/connectors/custom', \App\Http\Controllers\Agents\Sources\Connectors\AgentCustomConnectorAddController::class)->name('sources.connectors.custom.add');
-        Route::post('sources/connectors/{slug}/connect', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorConnectController::class)->name('sources.connectors.connect');
-        Route::get('sources/connectors/{slug}/oauth/start', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorOAuthStartController::class)->name('sources.connectors.oauth.start');
-        Route::post('sources/connectors/{slug}/refresh', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorRefreshController::class)->name('sources.connectors.refresh');
-        Route::get('sources/connectors/{slug}/tools', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorToolsController::class)->name('sources.connectors.tools');
-        Route::post('sources/connectors/{slug}/enable', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorEnableController::class)->name('sources.connectors.enable');
-        Route::delete('sources/connectors/{slug}', \App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorDisconnectController::class)->name('sources.connectors.disconnect');
+        Route::get('sources/connectors', AgentConnectorsController::class)->name('sources.connectors.index');
+        Route::get('sources/connectors/data', AgentConnectorsListController::class)->name('sources.connectors.data');
+        Route::post('sources/connectors/custom', AgentCustomConnectorAddController::class)->name('sources.connectors.custom.add');
+        Route::post('sources/connectors/{slug}/connect', AgentConnectorConnectController::class)->name('sources.connectors.connect');
+        Route::get('sources/connectors/{slug}/oauth/start', AgentConnectorOAuthStartController::class)->name('sources.connectors.oauth.start');
+        Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)->name('sources.connectors.refresh');
+        Route::get('sources/connectors/{slug}/tools', AgentConnectorToolsController::class)->name('sources.connectors.tools');
+        Route::post('sources/connectors/{slug}/enable', AgentConnectorEnableController::class)->name('sources.connectors.enable');
+        Route::delete('sources/connectors/{slug}', AgentConnectorDisconnectController::class)->name('sources.connectors.disconnect');
 
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
         Route::delete('sources/text/{id}', [AgentTextController::class, 'destroy'])->name('sources.text.destroy');

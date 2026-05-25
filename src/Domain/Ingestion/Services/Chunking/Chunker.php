@@ -2,10 +2,10 @@
 
 namespace Domain\Ingestion\Services\Chunking;
 
+use Domain\Agents\Models\Agent;
 use Domain\Ingestion\Contracts\ChunkableContract;
 use Domain\Ingestion\Data\ChunkIngestionData;
 use Domain\Ingestion\Data\OCR\PageData;
-use Domain\Agents\Models\Agent;
 use Domain\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
 use Domain\Ingestion\Services\TikToken;
 use Illuminate\Http\File;
@@ -118,7 +118,7 @@ readonly class Chunker
         return ChunkIngestionData::from([
             'agent_id' => $this->agent->id,
             'chunkable_type' => $this->chunkable::class,
-            'chunkable_id' => $this->chunkable->id,
+            'chunkable_id' => $this->chunkable->getKey(),
             'chunk_index' => $chunkIndex,
             'expected_chunks' => 0, // Will be set later
             'chunk_text' => trim($text),

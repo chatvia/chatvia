@@ -3,11 +3,11 @@
 namespace Domain\Ingestion\Jobs\Document;
 
 use App\Documents\Contracts\DocumentOCRInterface;
+use App\Mistral\MistralFiles;
+use Domain\Agents\Models\Agent;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Jobs\SummaryIngestionJob;
-use Domain\Agents\Models\Agent;
 use Domain\Sources\Files\Models\SourceFile;
-use App\Mistral\MistralFiles;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -115,7 +115,7 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent File ID: '.$agentFileId)
-            ->then(function (Batch $batch) use ($agentFileId) {
+            ->then(function (Batch $batch) use ($agentFileId): void {
                 $file = SourceFile::find($agentFileId);
                 $file?->update(['status' => 'ingested']);
             })

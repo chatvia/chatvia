@@ -25,7 +25,14 @@ const messageInput = ref<HTMLTextAreaElement>();
 const isFocused = ref(false);
 
 // Voice recording
-const { isRecording, isTranscribing, isSupported: isVoiceSupported, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
+const {
+    isRecording,
+    isTranscribing,
+    isSupported: isVoiceSupported,
+    startRecording,
+    stopRecording,
+    cancelRecording: _cancelRecording,
+} = useVoiceRecorder();
 
 // Only show model selector if we have multiple models (hide while loading)
 const showModelSelector = computed(() => {

@@ -3,29 +3,19 @@
 namespace App\Console\Commands;
 
 use App\Auth\Models\User;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 
+#[Description('Create an admin user')]
+#[Signature('admin:create-user {email} {name} {password?}')]
 class CreateAdminUser extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'admin:create-user {email} {name} {password?}';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Create an admin user';
-
-    /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $email = $this->argument('email');
         $name = $this->argument('name');

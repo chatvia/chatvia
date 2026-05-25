@@ -39,7 +39,7 @@ import { computed, reactive, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
     settings: any;
     default_settings: any;
     embed_settings?: any;
@@ -270,7 +270,7 @@ const removeLogo = () => {
 const updateSetting = (key: string, value: any) => {
     (embedForm as any)[key] = value;
 
-    let dataToSend: any = { [key]: value };
+    const dataToSend: any = { [key]: value };
 
     if (key === 'remove_sidebar' && value === true) {
         (embedForm as any).hide_sidebar_on_page_load = false;
@@ -365,7 +365,7 @@ const refreshPreview = () => {
 
 const copyAgentUrl = async () => {
     try {
-        await navigator.clipboard.writeText(props.agent.public_url || props.agent.url);
+        await navigator.clipboard.writeText(props.agent.permanent_url || props.agent.url);
         toast.success('Agent URL copied to clipboard!');
     } catch (error) {
         console.error('Failed to copy URL:', error);
@@ -784,7 +784,7 @@ const removeStarter = (id: number) => {
                         <div class="bg-muted rounded-lg p-4">
                             <div class="flex items-center justify-between gap-3">
                                 <code class="text-foreground text-sm break-all">
-                                    {{ agent.public_url || agent.url }}
+                                    {{ agent.permanent_url || agent.url }}
                                 </code>
                                 <Button type="button" variant="outline" size="sm" @click="copyAgentUrl" class="shrink-0 gap-2">
                                     <Copy class="h-4 w-4" />

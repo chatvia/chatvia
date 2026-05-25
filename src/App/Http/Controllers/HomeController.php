@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Billing\Services\Billing;
 use App\Hosting\HostConfig;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class HomeController
 {
-    public function __invoke(Request $request, Billing $billing)
+    public function __invoke(Request $request, Billing $billing): Factory|View
     {
         $config = HostConfig::get($request->host());
 

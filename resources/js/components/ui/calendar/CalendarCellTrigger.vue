@@ -3,7 +3,7 @@ import { CalendarCellTrigger, RangeCalendarCellTrigger, type CalendarCellTrigger
 import { inject, computed } from 'vue'
 import { cn } from '@/lib/utils'
 
-const props = defineProps<CalendarCellTriggerProps & { isRange?: boolean }>()
+const props = defineProps<CalendarCellTriggerProps & { isRange?: boolean; class?: string }>()
 
 // Check if we're in a RangeCalendar context
 const isRangeCalendar = inject('isRangeCalendar', false)

@@ -3,10 +3,9 @@
 namespace Domain\Agents\Observers;
 
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Models\ChatSession;
 use Domain\Agents\Models\Llm;
-use App\Auth\Models\User;
 use Domain\Agents\Services\Agent as AgentHelper;
+use Domain\Chat\Models\ChatSession;
 use Illuminate\Support\Facades\Storage;
 
 class AgentObserver
@@ -15,7 +14,6 @@ class AgentObserver
     {
         AgentHelper::cacheAgentName($agent->sub_domain);
 
-        /** @var User $user */
         $user = $agent->user;
 
         $defaultLlm = Llm::query()
@@ -52,7 +50,7 @@ class AgentObserver
     public function deleting(Agent $agent): void
     {
         // Clean up files that are only used by this agent
-        $agent->files->each(function ($file) use ($agent) {
+        $agent->files->each(function ($file) use ($agent): void {
             // Check if this file is only attached to this agent
             if ($file->agents()->count() === 1) {
                 // Delete the file (observer will handle storage cleanup)
@@ -64,7 +62,7 @@ class AgentObserver
         });
 
         // Clean up websites that are only used by this agent
-        $agent->websites->each(function ($website) use ($agent) {
+        $agent->websites->each(function ($website) use ($agent): void {
             // Check if this website is only attached to this agent
             if ($website->agents()->count() === 1) {
                 // Delete the website (observer will handle related cleanup)
@@ -76,7 +74,7 @@ class AgentObserver
         });
 
         // Clean up texts that are only used by this agent
-        $agent->texts->each(function ($text) use ($agent) {
+        $agent->texts->each(function ($text) use ($agent): void {
             // Check if this text is only attached to this agent
             if ($text->agents()->count() === 1) {
                 // Delete the text (observer will handle related cleanup)
@@ -88,7 +86,7 @@ class AgentObserver
         });
 
         // Clean up YouTube videos that are only used by this agent
-        $agent->youtubeVideos->each(function ($video) use ($agent) {
+        $agent->youtubeVideos->each(function ($video) use ($agent): void {
             // Check if this video is only attached to this agent
             if ($video->agents()->count() === 1) {
                 // Delete the video (observer will handle related cleanup)
@@ -99,7 +97,7 @@ class AgentObserver
             }
         });
 
-        $agent->chatSessions->each(function (ChatSession $chatSession) {
+        $agent->chatSessions->each(function (ChatSession $chatSession): void {
             app(\Domain\Chat\Services\Memory\ChatSession::class)->deleteSession($chatSession->id);
             $chatSession->delete();
         });
@@ -118,29 +116,5 @@ class AgentObserver
     public function forceDeleted(Agent $agent): void
     {
         $this->deleted($agent);
-    }
-
-    private function decreaseAgentLimit(Agent $agent): void
-    {
-        $this->updateAgentQuota($agent, false);
-    }
-
-    private function increaseAgentLimit(Agent $agent): void
-    {
-        $this->updateAgentQuota($agent, true);
-    }
-
-    private function updateAgentQuota(Agent $agent, bool $increment): void
-    {
-        /** @var User $user */
-        $user = $agent->user;
-
-        $agentTypeField = 'agents_limit'; // Unified agents limit
-
-        $operator = $increment ? '+' : '-';
-
-        //        $user->update([
-        //            $agentTypeField => DB::raw($agentTypeField.' '.$operator.' 1'),
-        //        ]);
     }
 }

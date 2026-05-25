@@ -2,17 +2,17 @@
 
 namespace App\Teams\Services;
 
+use App\Auth\Models\User;
 use App\Teams\Data\Resources\PermissionGroupData;
 use App\Teams\Data\Resources\PermissionMetaData;
 use App\Teams\Data\Resources\RoleConfigData;
 use App\Teams\Data\Resources\TeamAgentData;
 use App\Teams\Data\Resources\TeamRoleData;
-use Domain\Agents\Models\Agent;
 use App\Teams\Models\Permission;
 use App\Teams\Models\Role;
 use App\Teams\Models\Team;
-use App\Auth\Models\User;
 use App\Teams\Notifications\TeamInvitationNotification;
+use Domain\Agents\Models\Agent;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 use RuntimeException;
@@ -89,14 +89,14 @@ class TeamService
     public function permissionsConfig(): array
     {
         return collect($this->permissionsConfigRaw())
-            ->map(fn ($data, $code) => PermissionMetaData::fromConfig(is_array($data) ? $data : ['label' => $data], $code))
+            ->map(fn ($data, $code): PermissionMetaData => PermissionMetaData::fromConfig(is_array($data) ? $data : ['label' => $data], $code))
             ->all();
     }
 
     public function permissionGroups(): array
     {
         return collect(config('team-permissions.groups', []))
-            ->map(fn ($data) => PermissionGroupData::fromConfig($data))
+            ->map(fn ($data): PermissionGroupData => PermissionGroupData::fromConfig($data))
             ->all();
     }
 
@@ -108,7 +108,7 @@ class TeamService
     public function defaultRoles(): array
     {
         return collect($this->defaultRolesConfig())
-            ->map(fn ($data) => RoleConfigData::fromConfig($data))
+            ->map(fn ($data): RoleConfigData => RoleConfigData::fromConfig($data))
             ->all();
     }
 
@@ -121,7 +121,7 @@ class TeamService
     {
         return $team->agents()
             ->get(['id', 'external_id', 'name'])
-            ->map(fn (Agent $agent) => TeamAgentData::fromModel($agent));
+            ->map(fn (Agent $agent): TeamAgentData => TeamAgentData::fromModel($agent));
     }
 
     /**
@@ -134,7 +134,7 @@ class TeamService
         return $team->roles()
             ->with('permissions')
             ->get()
-            ->map(fn (Role $role) => TeamRoleData::fromModel($role));
+            ->map(fn (Role $role): TeamRoleData => TeamRoleData::fromModel($role));
     }
 
     /**

@@ -35,7 +35,7 @@ class FunctionSchemaValidator
      * Validate the shape of a parameters schema.
      *
      * @param  mixed  $schema  the value the user submitted
-     * @return list<string>  zero or more error messages; empty = valid
+     * @return list<string> zero or more error messages; empty = valid
      */
     public function validateShape(mixed $schema): array
     {

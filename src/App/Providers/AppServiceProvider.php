@@ -2,48 +2,53 @@
 
 namespace App\Providers;
 
-use App\Documents\Contracts\DocumentOCRInterface;
-use App\Embeddings\Contracts\EmbeddingsProviderInterface;
-use App\LLM\Contracts\LLMProviderInterface;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentFunction;
-use Domain\Agents\Models\AgentMcpServer;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Chat\Models\ChatMessage;
-use Domain\Chat\Models\ChatSession;
-use Domain\Agents\Models\ModelSetting;
-use App\Marketing\Models\Post;
-use Domain\Sources\Files\Models\SourceFile;
-use Domain\Sources\Text\Models\SourceText;
-use Domain\Sources\Web\Models\SourceWebsite;
-use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
 use App\Auth\Models\User;
-use Domain\Agents\Observers\AgentFunctionObserver;
-use Domain\Agents\Observers\AgentMcpServerObserver;
-use Domain\Agents\Observers\AgentObserver;
-use Domain\Sources\Text\Observers\AgentTextObserver;
-use Domain\Sources\Web\Observers\AgentWebsiteObserver;
-use Domain\Chat\Observers\ChatConversationObserver;
-use Domain\Chat\Observers\ChatMessageObserver;
-use Domain\Chat\Observers\ChatSessionObserver;
-use Domain\Agents\Observers\ModelSettingObserver;
-use App\Marketing\Observers\PostObserver;
-use Domain\Sources\Files\Observers\SourceFileObserver;
-use Domain\Sources\Youtube\Observers\SourceYoutubeVideoObserver;
 use App\Auth\Observers\UserObserver;
+use App\Documents\Contracts\DocumentOCRInterface;
 use App\Embeddings\Cohere;
+use App\Embeddings\Contracts\EmbeddingsProviderInterface;
 use App\Embeddings\Jina;
 use App\Embeddings\Qwen3;
+use App\LLM\Contracts\LLMProviderInterface;
 use App\LLM\Groq;
 use App\LLM\Mistral;
 use App\LLM\OpenRouter;
 use App\LLM\Scaleway;
-use Domain\Ingestion\Services\Clients\MistralOCR;
+use App\Marketing\Models\Post;
+use App\Marketing\Observers\PostObserver;
 use App\Teams\Services\TeamService;
+use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\AgentFunction;
+use Domain\Agents\Models\AgentMcpServer;
+use Domain\Agents\Models\ModelSetting;
+use Domain\Agents\Observers\AgentFunctionObserver;
+use Domain\Agents\Observers\AgentMcpServerObserver;
+use Domain\Agents\Observers\AgentObserver;
+use Domain\Agents\Observers\ModelSettingObserver;
+use Domain\Chat\Models\ChatConversation;
+use Domain\Chat\Models\ChatMessage;
+use Domain\Chat\Models\ChatSession;
+use Domain\Chat\Observers\ChatConversationObserver;
+use Domain\Chat\Observers\ChatMessageObserver;
+use Domain\Chat\Observers\ChatSessionObserver;
+use Domain\Chat\Services\Tooling\RoutingToolDispatcher;
+use Domain\Chat\Services\Tooling\ToolDispatcherInterface;
+use Domain\Ingestion\Services\Clients\MistralOCR;
+use Domain\Sources\Files\Models\SourceFile;
+use Domain\Sources\Files\Observers\SourceFileObserver;
+use Domain\Sources\Text\Models\SourceText;
+use Domain\Sources\Text\Observers\AgentTextObserver;
+use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Sources\Web\Observers\AgentWebsiteObserver;
+use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
+use Domain\Sources\Youtube\Observers\SourceYoutubeVideoObserver;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Storage;
@@ -67,8 +72,8 @@ class AppServiceProvider extends ServiceProvider
         // Tool dispatcher: routes by tool name to either the webhook
         // (AgentFunctions) or MCP backend.
         $this->app->bind(
-            \Domain\Chat\Services\Tooling\ToolDispatcherInterface::class,
-            \Domain\Chat\Services\Tooling\RoutingToolDispatcher::class,
+            ToolDispatcherInterface::class,
+            RoutingToolDispatcher::class,
         );
 
         // Bind the LLM provider interface based on configuration
@@ -148,15 +153,15 @@ class AppServiceProvider extends ServiceProvider
         // Factories live flat at database/factories/ regardless of which
         // domain/module owns the model. Map any model's class basename to
         // Database\Factories\<Name>Factory.
-        \Illuminate\Database\Eloquent\Factories\Factory::guessFactoryNamesUsing(
-            fn (string $modelClass) => 'Database\\Factories\\'.class_basename($modelClass).'Factory'
+        Factory::guessFactoryNamesUsing(
+            fn (string $modelClass): string => 'Database\\Factories\\'.class_basename($modelClass).'Factory'
         );
 
         // The inverse — given a factory class, find the matching model in
         // either the App-module or Domain-context layout. Factories declare
         // their model implicitly via their basename; we search the known
         // locations under App\* and Domain\* for a class match.
-        \Illuminate\Database\Eloquent\Factories\Factory::guessModelNamesUsing(function ($factory) {
+        Factory::guessModelNamesUsing(function ($factory) {
             $base = preg_replace('/Factory$/', '', class_basename($factory));
             $candidates = [
                 "App\\Auth\\Models\\$base",
@@ -230,13 +235,34 @@ class AppServiceProvider extends ServiceProvider
             return app(TeamService::class)->canAccessAgent($user, $team, $agent);
         });
 
-        Event::listen(function (SocialiteWasCalled $event) {
+        Event::listen(function (SocialiteWasCalled $event): void {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
         });
 
         RateLimiter::for('widgets', function ($request) {
             return Limit::perMinute(90)->by($request->ip());
         });
+
+        // Parallel testing creates per-worker databases (testing_test_N) and
+        // migrates them before the first test runs. Our schema relies on
+        // PostgreSQL extensions (vector, vchord, vchord_bm25, pg_tokenizer,
+        // pg_trgm) that aren't created by the migrations themselves, so we
+        // install them on each fresh test DB before migrations execute.
+        if ($this->app->environment('testing')) {
+            ParallelTesting::setUpTestDatabaseBeforeMigrating(function (): void {
+                $extensions = [
+                    'vector',
+                    'pg_trgm',
+                    'pg_tokenizer',
+                    'vchord',
+                    'vchord_bm25',
+                ];
+
+                foreach ($extensions as $extension) {
+                    rescue(fn () => DB::statement("CREATE EXTENSION IF NOT EXISTS {$extension} CASCADE"));
+                }
+            });
+        }
 
         Storage::extend('bunnycdn', function ($app, $config) {
             $bunnyConfig = config('filesystems.disks.bunnycdn');

@@ -10,7 +10,7 @@ import { Brain, Check, ChevronDown, Info, Loader2, Save, Search } from 'lucide-v
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
-type AIModel = App.Data.Chat.LlmModelData;
+type AIModel = Domain.Chat.Data.LlmModelData;
 
 const props = withDefaults(
     defineProps<{

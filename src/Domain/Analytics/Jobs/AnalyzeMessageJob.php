@@ -2,8 +2,8 @@
 
 namespace Domain\Analytics\Jobs;
 
-use Domain\Chat\Models\ChatMessage;
 use App\TextAnalysis\ToneAnalysis;
+use Domain\Chat\Models\ChatMessage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 

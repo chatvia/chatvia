@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Teams\Models\Invitation;
 use App\Auth\Models\User;
+use App\Teams\Models\Invitation;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

@@ -32,8 +32,8 @@ class ChatLogMessageData extends Data
     public static function fromMessage(ChatMessage $message): self
     {
         return new self(
-            id: $message->id,
-            chat_conversation_id: $message->chat_conversation_id,
+            id: (string) $message->id,
+            chat_conversation_id: (string) $message->chat_conversation_id,
             content: $message->content,
             role: $message->role,
             sentiment: $message->sentiment,

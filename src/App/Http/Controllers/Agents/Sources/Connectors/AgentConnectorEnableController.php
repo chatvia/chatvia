@@ -14,7 +14,7 @@ class AgentConnectorEnableController
         abort_if($request->user()->cannot('update', $agent), 403);
 
         $server = $agent->mcpServers()->where('slug', $slug)->first();
-        abort_unless($server, 404);
+        abort_unless($server !== null, 404);
 
         $server->forceFill(['enabled' => ! $server->enabled])->save();
 

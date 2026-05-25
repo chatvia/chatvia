@@ -51,7 +51,7 @@ class AzureDocumentIntelligence
     public function getAnalysisResult(string|SourceFile $operationLocation): array
     {
         if ($operationLocation instanceof SourceFile) {
-            $operationLocation = $operationLocation->azure_operation_location;
+            $operationLocation = (string) ($operationLocation->metadata['azure_operation_location'] ?? '');
         }
 
         return Http::withHeaders([

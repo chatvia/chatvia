@@ -22,7 +22,7 @@ class AgentLeadsController
             $leads = $agent->leads()
                 ->orderByDesc('created_at')
                 ->get()
-                ->map(fn ($lead) => LeadResourceData::fromModel($lead));
+                ->map(fn ($lead): LeadResourceData => LeadResourceData::fromModel($lead));
 
             return response()->json($leads);
         }

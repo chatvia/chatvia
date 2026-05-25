@@ -24,8 +24,7 @@ interface TypingState {
 }
 
 // Make Pusher globally available
-// @ts-ignore
-window.Pusher = Pusher;
+(window as any).Pusher = Pusher;
 
 // Singleton Echo instance for presence channels
 let echoInstance: Echo<'reverb'> | null = null;
@@ -157,7 +156,7 @@ export function useHandoff(agentId: () => number | null, conversationId: () => s
                     handoffAt: data.timestamp,
                 };
             })
-            .error((err: any) => {
+            .error((_err: any) => {
                 error.value = 'Failed to connect to chat channel';
                 isConnected.value = false;
             });

@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class AgentAnalyticsDataController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Request $request, Agent $agent): StatsResourceData
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),

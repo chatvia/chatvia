@@ -28,16 +28,14 @@ configureEcho({
 const vueTag = createGtag({ tagId: 'G-RTCBL1ZT5C' });
 
 // Extend ImportMeta interface for Vite...
-declare module 'vite/client' {
-    interface ImportMetaEnv {
-        readonly VITE_APP_NAME: string;
-        [key: string]: string | boolean | undefined;
-    }
+interface ImportMetaEnv {
+    readonly VITE_APP_NAME: string;
+    [key: string]: string | boolean | undefined;
+}
 
-    interface ImportMeta {
-        readonly env: ImportMetaEnv;
-        readonly glob: <T>(pattern: string) => Record<string, () => Promise<T>>;
-    }
+interface _ImportMeta {
+    readonly env: ImportMetaEnv;
+    readonly glob: <T>(pattern: string) => Record<string, () => Promise<T>>;
 }
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -51,7 +49,7 @@ createInertiaApp({
             .use(Vue3ColorPicker)
             .use(vueTag)
             .provide('chatEventBus', chatEventBus)
-            .mount(el);
+            .mount(el as Element);
     },
     progress: {
         color: '#4B5563',
@@ -70,7 +68,7 @@ router.on('navigate', (event: any) => {
         const errors = props.errors;
 
         // Show each error as a toast
-        Object.entries(errors).forEach(([field, messages]) => {
+        Object.entries(errors).forEach(([_field, messages]) => {
             const messageArray = Array.isArray(messages) ? messages : [messages];
             messageArray.forEach((message: string) => {
                 toast.error(message, {

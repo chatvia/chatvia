@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Agents\Sources;
 
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Files\Models\SourceFile;
 use Domain\Ingestion\Services\Ingestion;
+use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeFilesProcessController
 {
-    public function __invoke(Request $request, Agent $agent, Ingestion $ingestion)
+    public function __invoke(Request $request, Agent $agent, Ingestion $ingestion): void
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),
@@ -24,7 +24,7 @@ class AgentKnowledgeFilesProcessController
         $agent
             ->files()
             ->where('source_files.status', 'uploaded')
-            ->each(function (SourceFile $agentFile) use ($agent) {
+            ->each(function (SourceFile $agentFile) use ($agent): void {
                 $agentFile->ingest($agent->id);
             });
     }

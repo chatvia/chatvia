@@ -23,7 +23,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Loader2, LogOut, Plus, Search, Trash2, Users } from 'lucide-vue-next';
 
-type Team = App.Data.Resources.Team.TeamListItemData;
+type Team = App.Teams.Data.Resources.TeamListItemData;
 
 interface Props {
     teams: Team[];
@@ -83,7 +83,7 @@ const deleteTeam = () => {
     });
 };
 
-const formatDate = (dateString: string) => {
+const _formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',

@@ -2,9 +2,9 @@
 
 namespace Domain\Sources\Web\Jobs\Crawler;
 
+use Domain\Agents\Models\Agent;
 use Domain\Sources\Web\Data\Crawler\CrawlerData;
 use Domain\Sources\Web\Events\WebsiteCrawlerEvent;
-use Domain\Agents\Models\Agent;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Domain\Sources\Web\Services\Crawler\Crawler;
 use Illuminate\Bus\Queueable;
@@ -36,10 +36,6 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
         $tookInSeconds = ceil($endTime - $startTime);
 
-        if (! $this->website) {
-            return;
-        }
-
         $this->website->update([
             'status' => 'crawled',
             'took_in_seconds' => $tookInSeconds,
@@ -47,7 +43,7 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
         ]);
 
         $this->website->urls()->createMany(
-            array_map(static fn ($url) => ['url' => $url], $urls)
+            array_map(static fn ($url): array => ['url' => $url], $urls)
         );
 
         $this->website->refresh();

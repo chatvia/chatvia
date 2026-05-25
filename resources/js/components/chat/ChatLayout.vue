@@ -7,7 +7,7 @@ import axios from 'axios';
 import isMobile from 'is-mobile';
 import { onMounted, ref, watch } from 'vue';
 
-type AIModel = App.Data.Chat.LlmModelData;
+type AIModel = Domain.Chat.Data.LlmModelData;
 
 interface ModelSettings {
     temperature: number;
@@ -58,7 +58,7 @@ const isMobileDevice = isMobile();
 
 const isSidebarOpen = ref(false);
 
-const page = usePage();
+const _page = usePage();
 const isIncognitoMode = ref(false);
 
 const selectedModel = ref<AIModel | null>(null);

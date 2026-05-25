@@ -51,7 +51,7 @@ const formatAmount = (amount: number, currency: string) => {
     }).format(amount / 100); // Convert from cents to dollars
 };
 
-const getStatusBadge = (status: string) => {
+const _getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
         case 'paid':
             return { variant: 'default', text: 'Paid' };

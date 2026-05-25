@@ -32,15 +32,15 @@ $app = Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
-        then: function (Application $app) {
+        then: function (Application $app): void {
             Route::middleware('throttle:widgets')->group(__DIR__.'/../routes/widget.php');
         }
     )
-    ->withSchedule(function (Schedule $schedule) {
+    ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('telescope:prune --hours=24')->dailyAt('00:00');
         $schedule->command('app:cache-message-usage')->everyFiveMinutes();
     })
-    ->withMiddleware(function (Middleware $middleware) {
+    ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
@@ -85,7 +85,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             at: $trustedProxies === '*' ? '*' : array_values(array_filter(array_map('trim', explode(',', $trustedProxies))))
         );
     })
-    ->withExceptions(function (Exceptions $exceptions) {
+    ->withExceptions(function (Exceptions $exceptions): void {
         if (app()->isProduction()) {
             SentryIntegration::handles($exceptions);
         }

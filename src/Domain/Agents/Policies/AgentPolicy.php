@@ -2,8 +2,8 @@
 
 namespace Domain\Agents\Policies;
 
-use Domain\Agents\Models\Agent;
 use App\Auth\Models\User;
+use Domain\Agents\Models\Agent;
 
 class AgentPolicy
 {

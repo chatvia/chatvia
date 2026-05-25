@@ -19,7 +19,7 @@ class AgentSettingsController
 
         $requestData = array_filter(
             $request->only($settings),
-            fn ($value) => $value !== '' && $value !== null,
+            fn ($value): bool => $value !== '' && $value !== null,
         );
 
         foreach ($requestData as $key => $value) {

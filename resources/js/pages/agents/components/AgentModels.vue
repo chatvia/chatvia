@@ -24,6 +24,7 @@ interface Model {
 interface Props {
     agent: {
         id: number;
+        external_id: string;
         name: string;
         models: string[];
     };
@@ -66,7 +67,7 @@ const toggleModel = (modelId: string) => {
     }
 };
 
-const getModelDetails = (modelId: string) => {
+const _getModelDetails = (modelId: string) => {
     return props.availableModels.find((model) => model.id === modelId);
 };
 </script>

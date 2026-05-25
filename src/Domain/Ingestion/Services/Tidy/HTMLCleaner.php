@@ -30,12 +30,12 @@ class HTMLCleaner
         ];
     }
 
-    private function domCrawler($html): DOMCrawler
+    private function domCrawler(string $html): DOMCrawler
     {
         $crawler = new DOMCrawler($html);
 
         foreach ($this->unwantedTags() as $selector) {
-            $crawler->filter($selector)->each(function (DOMCrawler $node) {
+            $crawler->filter($selector)->each(function (DOMCrawler $node): void {
                 if ($node->getNode(0) && $node->getNode(0)->parentNode) {
                     $node->getNode(0)->parentNode->removeChild($node->getNode(0));
                 }

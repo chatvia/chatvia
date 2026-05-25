@@ -1,7 +1,7 @@
 import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 
-type Capability = keyof App.Data.Resources.Billing.BillingPackageCapabilitiesData;
+type Capability = keyof App.Billing.Data.Resources.BillingPackageCapabilitiesData;
 
 export function useCapabilityGuard() {
     const page = usePage<SharedData>();

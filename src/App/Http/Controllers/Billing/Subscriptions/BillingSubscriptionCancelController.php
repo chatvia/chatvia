@@ -7,7 +7,7 @@ use Stripe\SubscriptionSchedule;
 
 class BillingSubscriptionCancelController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): void
     {
         $user = $request->user();
         $subscription = $user->subscription();

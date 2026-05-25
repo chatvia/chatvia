@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Widget;
 
+use App\Widget\WidgetVerification;
 use Domain\Chat\Services\Memory\ChatMemory;
 use Domain\Chat\Services\Memory\ChatSession;
-use App\Widget\WidgetVerification;
 use Illuminate\Http\Request;
 
 class WidgetFeedbackController

@@ -31,7 +31,7 @@ class Billing
         ]);
     }
 
-    public function getFreePackage()
+    public function getFreePackage(): ?array
     {
         // Since free package is removed, return starter as default
         return $this->getPackage(config('billing.default_package', 'starter'));

@@ -2,17 +2,62 @@
 
 namespace Domain\Agents\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
+/**
+ * @property int $id
+ * @property string $internal_name
+ * @property string $external_name
+ * @property int $credits
+ * @property string $descriptive_name
+ * @property string $description
+ * @property string $icon
+ * @property int $context_window
+ * @property array<array-key, mixed> $features
+ * @property string $location
+ * @property bool $reasoning
+ * @property numeric|null $input_price_per_1m_tokens
+ * @property numeric|null $output_price_per_1m_tokens
+ * @property bool $is_default
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read string $location_label
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm byLocation($location)
+ * @method static \Database\Factories\LlmFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereContextWindow($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereCredits($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereDescriptiveName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereExternalName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereFeatures($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereIcon($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereInputPricePer1mTokens($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereInternalName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereIsDefault($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereLocation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereOutputPricePer1mTokens($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereReasoning($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm withReasoning()
+ *
+ * @mixin \Eloquent
+ */
+#[Guarded([
+    'id',
+])]
 class Llm extends Model
 {
     use HasFactory;
-
-    protected $guarded = [
-        'id',
-    ];
 
     protected $casts = [
         'features' => 'json',

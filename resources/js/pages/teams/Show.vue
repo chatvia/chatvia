@@ -49,15 +49,15 @@ import {
 } from 'lucide-vue-next';
 
 // Use generated TypeScript types from DTOs
-type TeamData = App.Data.Resources.Team.TeamData;
-type TeamMemberData = App.Data.Resources.Team.TeamMemberData;
-type TeamRoleData = App.Data.Resources.Team.TeamRoleData;
-type TeamAgentData = App.Data.Resources.Team.TeamAgentData;
-type TeamInvitationData = App.Data.Resources.Team.TeamInvitationData;
-type ManagedUserData = App.Data.Resources.Team.ManagedUserData;
-type PermissionMetaData = App.Data.Resources.Team.PermissionMetaData;
-type PermissionGroupData = App.Data.Resources.Team.PermissionGroupData;
-type RoleConfigData = App.Data.Resources.Team.RoleConfigData;
+type TeamData = App.Teams.Data.Resources.TeamData;
+type TeamMemberData = App.Teams.Data.Resources.TeamMemberData;
+type TeamRoleData = App.Teams.Data.Resources.TeamRoleData;
+type TeamAgentData = App.Teams.Data.Resources.TeamAgentData;
+type TeamInvitationData = App.Teams.Data.Resources.TeamInvitationData;
+type ManagedUserData = App.Teams.Data.Resources.ManagedUserData;
+type PermissionMetaData = App.Teams.Data.Resources.PermissionMetaData;
+type PermissionGroupData = App.Teams.Data.Resources.PermissionGroupData;
+type RoleConfigData = App.Teams.Data.Resources.RoleConfigData;
 
 interface Props {
     team: TeamData;
@@ -91,7 +91,9 @@ const currentUser = page.props.auth.user;
 
 // Edit team name
 const isEditingName = ref(false);
-const teamNameInput = ref<HTMLInputElement | null>(null);
+// The template attaches this ref to a wrapped `Input` component; `$el` is the
+// underlying <input> when present, otherwise the ref already is the input.
+const teamNameInput = ref<HTMLInputElement | { $el?: HTMLInputElement } | null>(null);
 const updateTeamForm = useForm({
     name: props.team.name,
 });
@@ -99,7 +101,8 @@ const updateTeamForm = useForm({
 const startEditingName = () => {
     isEditingName.value = true;
     nextTick(() => {
-        const input = teamNameInput.value?.$el || teamNameInput.value;
+        const refValue = teamNameInput.value;
+        const input = (refValue && '$el' in refValue ? refValue.$el : refValue) as HTMLInputElement | undefined;
         input?.focus();
         input?.select();
     });
@@ -134,17 +137,20 @@ const inviteForm = useForm({
 });
 
 const inviteMember = () => {
-    const data =
-        inviteType.value === 'existing' ? { user_id: inviteForm.user_id, role: inviteForm.role } : { email: inviteForm.email, role: inviteForm.role };
-
-    inviteForm.post(route('teams.invite', props.team.id), {
-        data,
-        onSuccess: () => {
-            isInviteDialogOpen.value = false;
-            inviteForm.reset();
-            inviteType.value = 'existing';
-        },
-    });
+    // Reshape the submitted payload depending on whether we're inviting an
+    // existing managed user (by id) or a new one (by email). Inertia's
+    // `transform()` is the supported way to mutate the data right before send.
+    inviteForm
+        .transform((current) =>
+            inviteType.value === 'existing' ? { user_id: current.user_id, role: current.role } : { email: current.email, role: current.role },
+        )
+        .post(route('teams.invite', props.team.id), {
+            onSuccess: () => {
+                isInviteDialogOpen.value = false;
+                inviteForm.reset();
+                inviteType.value = 'existing';
+            },
+        });
 };
 
 const openInviteDialogForRole = (role: TeamRoleData) => {
@@ -231,7 +237,7 @@ const deleteRole = () => {
 };
 
 // Helper functions
-const getRoleBadgeVariant = (role: string): 'default' | 'secondary' | 'outline' => {
+const getRoleBadgeVariant = (role: string | null): 'default' | 'secondary' | 'outline' => {
     switch (role) {
         case 'owner':
             return 'default';
@@ -438,7 +444,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                             <span class="text-muted-foreground">
                                                 ({{
                                                     agents
-                                                        .filter((a) => role.agent_ids?.includes(a.id))
+                                                        .filter((a) => role.agent_ids?.includes(a.external_id))
                                                         .map((a) => a.name)
                                                         .join(', ')
                                                 }})

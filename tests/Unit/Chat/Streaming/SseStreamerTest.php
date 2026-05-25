@@ -11,7 +11,7 @@ class SseStreamerTest extends TestCase
 {
     public function test_returns_streamed_response_with_sse_headers(): void
     {
-        $streamer = new SseStreamer();
+        $streamer = new SseStreamer;
 
         $response = $streamer->respond((function () {
             yield StreamEvent::delta('msg-1', 'hi');
@@ -30,7 +30,7 @@ class SseStreamerTest extends TestCase
 
     public function test_accepts_any_iterable_not_only_generators(): void
     {
-        $streamer = new SseStreamer();
+        $streamer = new SseStreamer;
 
         $response = $streamer->respond([StreamEvent::delta('msg-1', 'a')]);
 

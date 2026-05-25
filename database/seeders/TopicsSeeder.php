@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Auth\Models\User;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatTopic;
-use App\Auth\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

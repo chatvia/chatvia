@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Widget;
 
 use App\Widget\WidgetVerification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class WidgetLeadFormController
 {
-    public function __invoke(Request $request, WidgetVerification $widgetVerification)
+    public function __invoke(Request $request, WidgetVerification $widgetVerification): Collection
     {
         $agentId = $request->header('X-AGENT-ID');
 

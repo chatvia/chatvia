@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\Workflow;
 
-use Domain\Agents\Data\Resources\AgentResourceData;
 use App\Features\Workflow as WorkflowFeature;
+use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Inertia\Inertia;
 use Laravel\Pennant\Feature;

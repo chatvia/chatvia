@@ -5,13 +5,15 @@ namespace App\Auth\Actions;
 use App\Auth\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 
 class SocialLoginAction
 {
     public function execute(string $driver)
     {
-        /** @var \Laravel\Socialite\Contracts\User $socialUser */
-        $socialUser = Socialite::driver($driver)->stateless()->user();
+        /** @var AbstractProvider $provider */
+        $provider = Socialite::driver($driver);
+        $socialUser = $provider->stateless()->user();
 
         $driverId = $driver.'_id';
 
@@ -26,7 +28,7 @@ class SocialLoginAction
         if ($user->email && ! $user->$driverId) {
 
             $data = [
-                $driver.'_id' => $socialUser->id,
+                $driver.'_id' => $socialUser->getId(),
             ];
 
             $user->update($data);

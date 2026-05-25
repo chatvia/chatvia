@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agents\Team;
 
+use App\Billing\Models\UserQuota;
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
-use App\Billing\Models\UserQuota;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -28,7 +28,7 @@ class AgentTeamController
 
         return Inertia::render('agents/Team', [
             'agent' => AgentResourceData::fromModel($agent),
-            'team_collaboration' => $user->capabilityAllows('team_collaboration'),
+            'team_collaboration' => $user->hasCapability('team_collaboration'),
             'members_limit' => $quota->members_limit,
         ]);
     }

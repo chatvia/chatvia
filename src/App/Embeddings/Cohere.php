@@ -38,7 +38,7 @@ class Cohere extends AbstractEmbeddingsProvider
 
         // Return array with index and relevance_score for each result
         return collect($rerank)
-            ->map(fn ($item) => [
+            ->map(fn ($item): array => [
                 'index' => $item['index'],
                 'relevance_score' => $item['relevance_score'],
             ])

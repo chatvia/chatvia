@@ -11,7 +11,7 @@ export interface Message {
     errorRetryable?: boolean;
 }
 
-export type AIModel = App.Data.Chat.LlmModelData;
+export type AIModel = Domain.Chat.Data.LlmModelData;
 
 export interface Conversation {
     id: string;

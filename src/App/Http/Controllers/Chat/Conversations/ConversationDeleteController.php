@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class ConversationDeleteController
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
+    public function __invoke(Request $request, string $conversationId, ChatMemory $memory): void
     {
         $conversation = ChatConversation::where('external_id', $conversationId)->firstOrFail();
 

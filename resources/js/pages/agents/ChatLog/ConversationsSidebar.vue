@@ -7,10 +7,10 @@ import { Calendar, Circle, Download, Filter, Globe, LoaderCircle, RefreshCcw, Th
 import { useChatLog } from './useChatLog';
 
 const {
-    agent,
+    agent: _agent,
     conversations,
     currentConversationId,
-    leadConversationIds,
+    leadConversationIds: _leadConversationIds,
     isLoadingConversations,
     totalConversations,
     currentConversationsPage,

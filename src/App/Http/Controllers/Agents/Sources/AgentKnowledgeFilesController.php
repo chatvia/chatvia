@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\Sources;
 
-use Domain\Agents\Data\Resources\AgentResourceData;
 use App\Http\Controllers\Controller;
+use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

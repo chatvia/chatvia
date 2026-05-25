@@ -21,6 +21,7 @@ interface AvailableText {
     word_count: number;
     agents?: Array<{
         id: number;
+        external_id: string;
         name: string;
     }>;
 }

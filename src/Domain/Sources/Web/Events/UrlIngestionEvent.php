@@ -23,7 +23,7 @@ class UrlIngestionEvent implements ShouldBroadcastNow
         ];
     }
 
-    public function broadcastWith()
+    public function broadcastWith(): array
     {
         return [
             'id' => $this->websiteUrl->id,

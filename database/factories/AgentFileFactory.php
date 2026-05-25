@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
-use Domain\Agents\Models\Agent;
 use App\Auth\Models\User;
+use Domain\Agents\Models\Agent;
+use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Sources\Files\Models\SourceFile>
+ * @extends Factory<SourceFile>
  */
 class AgentFileFactory extends Factory
 {

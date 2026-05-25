@@ -16,7 +16,7 @@ class AgentConnectorDisconnectController
             ->where('connector_slug', $slug)
             ->first();
 
-        abort_unless($server, 404);
+        abort_unless($server !== null, 404);
 
         $server->delete();
 

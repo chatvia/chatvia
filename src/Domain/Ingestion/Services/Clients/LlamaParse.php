@@ -35,7 +35,7 @@ class LlamaParse
             //            'extract_charts' => false,
         ];
 
-        $parseOptions = array_merge($defaultOptions, $options ?? []);
+        $parseOptions = array_merge($defaultOptions, $options);
 
         return $this->runJob($file, $parseOptions);
     }

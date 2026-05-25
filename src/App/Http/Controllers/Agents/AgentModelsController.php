@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Agents;
 
-use Domain\Chat\Data\LlmModelData;
 use Domain\Agents\Data\Resources\AgentLlmDefaultSettingsData;
 use Domain\Agents\Data\Resources\AgentLlmSettingsData;
 use Domain\Agents\Data\Resources\AgentModelsResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Llm;
+use Domain\Chat\Data\LlmModelData;
 use Illuminate\Http\Request;
 
 class AgentModelsController

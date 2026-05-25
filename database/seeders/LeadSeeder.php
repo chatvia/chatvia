@@ -2,11 +2,12 @@
 
 namespace Database\Seeders;
 
-use Domain\Agents\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Agents\Models\Lead;
 use App\Auth\Models\User;
+use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\Lead;
+use Domain\Chat\Models\ChatConversation;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 class LeadSeeder extends Seeder
 {
@@ -264,7 +265,7 @@ class LeadSeeder extends Seeder
             try {
                 $this->createLead($agent, $conversation, $leadData);
                 $leadsCreated++;
-            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            } catch (UniqueConstraintViolationException $e) {
                 // Skip duplicate email constraints
                 continue;
             }

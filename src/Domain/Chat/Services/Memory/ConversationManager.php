@@ -2,11 +2,11 @@
 
 namespace Domain\Chat\Services\Memory;
 
+use App\Auth\Models\User;
+use App\LLM\Operations\TitleGenerator;
 use Domain\Chat\Data\Memory\ConversationData;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatSession;
-use App\Auth\Models\User;
-use App\LLM\Operations\TitleGenerator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -166,7 +166,7 @@ readonly class ConversationManager
         $conversations = collect($session['conversations'] ?? []);
 
         if ($onlyVisible) {
-            $conversations = $conversations->filter(fn ($conversation) => $conversation['visible'] === true);
+            $conversations = $conversations->filter(fn ($conversation): bool => $conversation['visible'] === true);
         }
 
         if ($orderByDate) {

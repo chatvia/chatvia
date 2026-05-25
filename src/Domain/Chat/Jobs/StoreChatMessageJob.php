@@ -2,17 +2,19 @@
 
 namespace Domain\Chat\Jobs;
 
+use App\Country\Models\Country;
 use App\LLM\Contracts\LLMProviderInterface;
+use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\Llm;
+use Domain\Analytics\Jobs\AnalyzeConversationJob;
+use Domain\Analytics\Jobs\AnalyzeMessageJob;
+use Domain\Analytics\Services\IP2Country;
+use Domain\Analytics\Services\UserAgentParser;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\ChatOutputPayload;
-use Domain\Agents\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
-use App\Country\Models\Country;
-use Domain\Agents\Models\Llm;
-use Domain\Analytics\Services\IP2Country;
-use Domain\Analytics\Services\UserAgentParser;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -109,10 +111,8 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'llm_found_answer' => ! $isUserMessage ? ($this->payload->llm_found_answer ?? true) : true,
         ];
 
-        if ($this->payload->sent_at) {
-            $messageData['created_at'] = $this->payload->sent_at;
-            $messageData['updated_at'] = $this->payload->sent_at;
-        }
+        $messageData['created_at'] = $this->payload->sent_at;
+        $messageData['updated_at'] = $this->payload->sent_at;
 
         ChatMessage::create($messageData);
 

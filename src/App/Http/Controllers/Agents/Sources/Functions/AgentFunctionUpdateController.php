@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\Sources\Functions;
 
-use Domain\Agents\Data\Resources\AgentFunctionData;
 use App\Http\Requests\Agents\Functions\AgentFunctionRequest;
+use Domain\Agents\Data\Resources\AgentFunctionData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;

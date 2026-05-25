@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Billing\Payments;
 use App\Auth\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Laravel\Cashier\PaymentMethod;
 
 class BillingPaymentMethodsController
 {
@@ -14,13 +15,19 @@ class BillingPaymentMethodsController
         $user = $request->user();
 
         return Inertia::render('billing/PaymentMethods', [
-            'paymentMethods' => $request->user()->paymentMethods()->map(function ($paymentMethod) use ($user) {
+            'paymentMethods' => $request->user()->paymentMethods()->map(function (PaymentMethod $paymentMethod) use ($user) {
+                $stripe = $paymentMethod->asStripePaymentMethod();
+                $default = $user->defaultPaymentMethod();
+                $defaultId = $default instanceof PaymentMethod
+                    ? $default->asStripePaymentMethod()->id
+                    : null;
+
                 return [
-                    'id' => $paymentMethod->id,
-                    'type' => $paymentMethod->type,
-                    'billing_details' => $paymentMethod->billing_details,
-                    'card' => $paymentMethod->card ?? null,
-                    'is_default' => $paymentMethod->id === $user->defaultPaymentMethod()?->id,
+                    'id' => $stripe->id,
+                    'type' => $stripe->type,
+                    'billing_details' => $stripe->billing_details,
+                    'card' => $stripe->card ?? null,
+                    'is_default' => $stripe->id === $defaultId,
                 ];
             }),
             'intent' => $request->user()->createSetupIntent(),

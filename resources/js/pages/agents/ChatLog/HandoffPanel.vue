@@ -10,7 +10,7 @@ import { Bot, Circle, LoaderCircle, MessageSquare, Phone, PhoneOff, Send, User }
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useChatLog } from './useChatLog';
 
-const { currentConversationId, messagesData, messages, handoff, fetchMessages, appendMessage, formatTimeAgo } = useChatLog();
+const { currentConversationId, messagesData: _messagesData, messages, handoff, fetchMessages, appendMessage, formatTimeAgo } = useChatLog();
 
 const { hasCapability } = useCapabilityGuard();
 const hasAccess = computed(() => hasCapability('handoff'));
@@ -51,7 +51,7 @@ async function sendMessage() {
             await fetchMessages(currentConversationId.value);
             scrollToBottom();
         }
-    } catch (err) {
+    } catch (_err) {
         // Error already handled in composable
         messageInput.value = content; // Restore message on error
     }
@@ -66,7 +66,7 @@ async function handleTakeOver() {
             await fetchMessages(currentConversationId.value);
             scrollToBottom();
         }
-    } catch (err) {
+    } catch (_err) {
         // Error handled in composable
     }
 }
@@ -75,7 +75,7 @@ async function handleTakeOver() {
 async function handleReturn() {
     try {
         await handoff.returnToAi();
-    } catch (err) {
+    } catch (_err) {
         // Error handled in composable
     }
 }

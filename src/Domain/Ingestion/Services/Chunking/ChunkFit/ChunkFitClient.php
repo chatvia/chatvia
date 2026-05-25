@@ -48,6 +48,12 @@ class ChunkFitClient
     {
         $apiKey = $this->apiKey();
 
+        if ($apiKey === null || $apiKey === '') {
+            throw new ChunkFitException(
+                'chunk.fit is not configured: missing CHUNK_FIT_API_KEY.',
+            );
+        }
+
         try {
             $response = Http::baseUrl($this->baseUrl())
                 ->timeout($this->timeoutSeconds())
@@ -88,8 +94,8 @@ class ChunkFitClient
         }
 
         return array_values(array_filter(
-            array_map(fn ($chunk) => is_string($chunk) ? trim($chunk) : null, $chunks),
-            fn ($chunk) => $chunk !== null && $chunk !== '',
+            array_map(fn ($chunk): ?string => is_string($chunk) ? trim($chunk) : null, $chunks),
+            fn ($chunk): bool => $chunk !== null && $chunk !== '',
         ));
     }
 

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agents\Analytics;
 
+use App\Auth\Models\User;
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
-use App\Auth\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

@@ -11,6 +11,7 @@ use Domain\Chat\Services\Streaming\RequestDedupeStore;
 use Domain\Chat\Services\Streaming\StreamEvent;
 use Domain\Chat\Services\Streaming\StreamTransformerResolver;
 use Domain\Chat\Services\Tooling\ToolDispatcherInterface;
+use Domain\Chat\Services\Tooling\ToolDisplayResolver;
 use Domain\Chat\Services\Tooling\ToolRegistry;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
@@ -28,6 +29,7 @@ class LlmSource
         private readonly RequestDedupeStore $dedupe,
         private readonly ToolRegistry $tools,
         private readonly ToolDispatcherInterface $dispatcher,
+        private readonly ToolDisplayResolver $displayResolver,
     ) {}
 
     /**
@@ -107,12 +109,18 @@ class LlmSource
                 // here (not Reverb). Knowledge-base ingestion is async and
                 // uses Reverb broadcasts — that distinction is intentional.
                 foreach ($toolCalls as $tc) {
+                    $display = $this->displayResolver->resolve($agent, $tc['name']);
+
                     yield StreamEvent::tool(
                         assistantMessageId: $assistantId,
                         phase: 'start',
                         toolCallId: $tc['id'],
                         name: $tc['name'],
                         args: $tc['arguments'],
+                        kind: $display['kind'],
+                        label: $display['label'],
+                        iconUrl: $display['icon_url'],
+                        brandColor: $display['brand_color'],
                     );
 
                     $result = $this->dispatcher->dispatch($agent, $tc['name'], $tc['arguments']);

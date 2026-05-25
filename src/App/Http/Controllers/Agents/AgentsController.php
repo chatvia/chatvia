@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\Agents;
 
-use Domain\Agents\Data\Resources\AgentResourceData;
+use App\Auth\Models\User;
+use App\Hosting\Subdomain;
 use App\Http\Requests\Agents\CreateAgentRequest;
+use App\Prompts\PromptLoader;
+use App\Teams\Models\Team;
+use App\Teams\Services\TeamService;
+use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Models\ChatTopic;
-use App\Teams\Models\Team;
-use App\Auth\Models\User;
 use Domain\Ingestion\Services\Ingestion;
-use App\Prompts\PromptLoader;
-use App\Hosting\Subdomain;
-use App\Teams\Services\TeamService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;

@@ -91,7 +91,7 @@ class LibreOffice
         return $this->convert($inputPath, 'pdf');
     }
 
-    public function text2Pdf(string $text)
+    public function text2Pdf(string $text): string
     {
         $filePath = create_temp_file('file.txt', $text);
 

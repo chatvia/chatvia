@@ -22,7 +22,7 @@ class ChatLogTopicsResourceData extends Data
         return new self(
             topics: new DataCollection(
                 ChatLogTopicData::class,
-                $topics->map(fn (ChatTopic $topic) => ChatLogTopicData::fromTopic($topic)),
+                $topics->map(fn (ChatTopic $topic): ChatLogTopicData => ChatLogTopicData::fromTopic($topic)),
             ),
         );
     }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use Domain\Agents\Services\Agent;
 use Closure;
+use Domain\Agents\Services\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

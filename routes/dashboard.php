@@ -12,7 +12,7 @@ use App\Http\Controllers\Tickets\TicketsController;
 use App\Http\Controllers\UsageController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('my/stats', DashboardStatsController::class)->name('dashboard.stats');
     Route::get('my/features', FeaturesController::class)->name('dashboard.features');

@@ -9,7 +9,7 @@ defineOptions({
     inheritAttrs: false,
 });
 
-const props = withDefaults(
+const _props = withDefaults(
     defineProps<{
         content: string | Component;
         side?: 'top' | 'right' | 'bottom' | 'left';

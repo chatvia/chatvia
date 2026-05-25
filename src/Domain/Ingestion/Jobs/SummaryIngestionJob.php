@@ -3,16 +3,17 @@
 namespace Domain\Ingestion\Jobs;
 
 use App\Embeddings\Contracts\EmbeddingsProviderInterface;
-use Domain\Ingestion\Models\Chunk;
-use Domain\Sources\Files\Models\SourceFile;
-use Domain\Sources\Text\Models\SourceText;
-use Domain\Sources\Web\Models\SourceWebsite;
 use App\LLM\Operations\ContentAnalyzer;
 use App\LLM\Operations\CostCalculator;
 use App\LLM\Operations\Summarizer;
 use App\Prompts\PromptLoader;
+use Domain\Ingestion\Models\Chunk;
+use Domain\Ingestion\Models\ChunkQuestion;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Ingestion\Services\TikToken;
+use Domain\Sources\Files\Models\SourceFile;
+use Domain\Sources\Text\Models\SourceText;
+use Domain\Sources\Web\Models\SourceWebsite;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -84,14 +85,13 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
         $costInCents += app(CostCalculator::class)
             ->calculateCostInCents(strip_tags($summary), '', $embeddingPrice, 0.0);
 
-        Chunk::query()->create([
+        $chunk = Chunk::query()->create([
             'user_id' => $this->source->user_id,
             'chunkable_type' => get_class($this->source),
             'chunkable_id' => $this->source->id,
             'type' => 'text',
             'chunk_index' => 0,
             'chunk' => $summary,
-            'questions' => $questions,
             'summary' => '',
             'chunked_using_model' => config('ai.models.chunker'),
             'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
@@ -103,6 +103,14 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'checksum' => hash('xxh128', $summary),
             'retrieval_count' => 0,
         ]);
+
+        foreach ($questions ?? [] as $question) {
+            ChunkQuestion::query()->create([
+                'chunk_id' => $chunk->id,
+                'question' => $question,
+                'embedding' => embed($question, true),
+            ]);
+        }
 
         Storage::delete($pdfFilepath);
     }

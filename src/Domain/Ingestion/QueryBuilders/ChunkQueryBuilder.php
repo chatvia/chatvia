@@ -2,14 +2,25 @@
 
 namespace Domain\Ingestion\QueryBuilders;
 
+use Domain\Ingestion\Models\Chunk;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @template TModel of Chunk
+ *
+ * @extends Builder<TModel>
+ */
 class ChunkQueryBuilder extends Builder
 {
     /**
      * Perform VectorChord optimized hybrid search for agent chunks
      * Returns only the top N highest confidence chunks (default: 4)
+     *
+     * Three retrieval sources are fused with Reciprocal Rank Fusion (k=60):
+     *   1. Vector search over chunk embeddings
+     *   2. Vector search over chunk_questions (best-matching question per chunk)
+     *   3. BM25 over chunk text
      */
     public function hybridSearchForAgent(
         int $agentId,
@@ -18,7 +29,6 @@ class ChunkQueryBuilder extends Builder
         int $limit = 4,
         bool $quantize = true
     ): array {
-        // First, get all source IDs for this agent from agent_sources
         $sources = DB::table('agent_sources')
             ->where('agent_id', $agentId)
             ->select(['sourceable_id', 'sourceable_type'])
@@ -28,7 +38,6 @@ class ChunkQueryBuilder extends Builder
             return [];
         }
 
-        // Build WHERE clause for chunks based on sources
         $sourceConditions = [];
         $sourceParams = [];
 
@@ -47,6 +56,10 @@ class ChunkQueryBuilder extends Builder
 
         // Get slightly more candidates to ensure good hybrid results
         $candidateLimit = $limit * 3;
+
+        // Over-fetch questions before dedup so we still end up with ~candidateLimit
+        // unique chunks (questions are ~6 per chunk on average).
+        $questionPoolLimit = $candidateLimit * 6;
 
         $vectorOrderField = $quantize ? 'binary_distance' : 'vector_distance';
         $vectorOrderBy = $quantize
@@ -69,6 +82,28 @@ vector_ranked AS (
     FROM vectorchord_candidates
     LIMIT ?
 ),
+question_pool AS (
+    SELECT q.chunk_id, q.embedding <-> ?::vector({$dims}) AS qdist
+    FROM chunk_questions q
+    JOIN chunks c ON c.id = q.chunk_id
+    WHERE {$sourceWhereClause}
+    ORDER BY q.embedding <-> ?::vector({$dims}) ASC
+    LIMIT ?
+),
+question_deduped AS (
+    SELECT DISTINCT ON (chunk_id) chunk_id, qdist
+    FROM question_pool
+    ORDER BY chunk_id, qdist ASC
+),
+question_ranked AS (
+    SELECT c.id, c.external_id, c.chunk, c.chunkable_type, c.chunkable_id, c.metadata,
+           ROW_NUMBER() OVER (ORDER BY qd.qdist ASC) as rank,
+           'question' as search_type
+    FROM question_deduped qd
+    JOIN chunks c ON c.id = qd.chunk_id
+    ORDER BY qd.qdist ASC
+    LIMIT ?
+),
 bm25_ranked AS (
     SELECT c.id, c.external_id, c.chunk, c.chunkable_type, c.chunkable_id, c.metadata,
            ROW_NUMBER() OVER (ORDER BY c.embedding_bm25 <&> bm25_catalog.to_bm25query('chunks_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2'))) as rank,
@@ -80,6 +115,8 @@ bm25_ranked AS (
 ),
 combined_results AS (
     SELECT id, external_id, chunk, chunkable_type, chunkable_id, metadata, rank, search_type FROM vector_ranked
+    UNION ALL
+    SELECT id, external_id, chunk, chunkable_type, chunkable_id, metadata, rank, search_type FROM question_ranked
     UNION ALL
     SELECT id, external_id, chunk, chunkable_type, chunkable_id, metadata, rank, search_type FROM bm25_ranked
 ),
@@ -97,15 +134,20 @@ LIMIT ?
 ";
 
         $params = array_merge(
-            [$vectorString],
-            $sourceParams,
-            [$vectorString],
-            [$candidateLimit],
-            [$candidateLimit],
-            [$query],
-            $sourceParams,
-            [$candidateLimit],
-            [$limit]
+            [$vectorString],                  // distanceOperator in candidates SELECT
+            $sourceParams,                    // sourceWhereClause for chunks
+            [$vectorString],                  // vectorOrderBy
+            [$candidateLimit],                // vectorchord_candidates LIMIT
+            [$candidateLimit],                // vector_ranked LIMIT
+            [$vectorString],                  // question_pool qdist SELECT
+            $sourceParams,                    // sourceWhereClause for chunks (join)
+            [$vectorString],                  // question_pool ORDER BY
+            [$questionPoolLimit],             // question_pool LIMIT
+            [$candidateLimit],                // question_ranked LIMIT
+            [$query],                         // bm25 tokenize
+            $sourceParams,                    // sourceWhereClause for chunks
+            [$candidateLimit],                // bm25_ranked LIMIT
+            [$limit]                          // final LIMIT
         );
 
         return DB::select($sql, $params);

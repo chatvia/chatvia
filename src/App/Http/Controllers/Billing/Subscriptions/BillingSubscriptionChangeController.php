@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Billing\Subscriptions;
 
-use App\Billing\Data\StripeScheduleData;
 use App\Auth\Models\User;
+use App\Billing\Data\StripeScheduleData;
 use App\Billing\Services\Billing;
 use Illuminate\Http\Request;
 use Laravel\Cashier\Cashier;
@@ -43,8 +43,9 @@ class BillingSubscriptionChangeController
         }
 
         $stripeSubscription = $subscription->asStripeSubscription();
+        $subscriptionItem = $stripeSubscription->items->data[0];
 
-        $currentPeriodEnd = now()->timestamp($stripeSubscription->current_period_end);
+        $currentPeriodEnd = now()->timestamp($subscriptionItem->current_period_end);
 
         $metadata = $stripeSubscription->metadata->toArray();
 
@@ -70,8 +71,8 @@ class BillingSubscriptionChangeController
                             'quantity' => 1,
                         ],
                     ],
-                    'start_date' => $stripeSubscription->current_period_start,
-                    'end_date' => $stripeSubscription->current_period_end,
+                    'start_date' => $subscriptionItem->current_period_start,
+                    'end_date' => $subscriptionItem->current_period_end,
                 ],
                 [
                     'items' => [
@@ -80,7 +81,7 @@ class BillingSubscriptionChangeController
                             'quantity' => 1,
                         ],
                     ],
-                    'start_date' => $stripeSubscription->current_period_end,
+                    'start_date' => $subscriptionItem->current_period_end,
                 ],
             ],
         ]);

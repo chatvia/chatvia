@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\Social\MicrosoftAuthController;
 use App\Http\Controllers\Auth\Social\MicrosoftCallbackAuthController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ChatPdfController;
+use App\Http\Controllers\Connectors\ConnectorOAuthCallbackController;
 use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HomeController;
@@ -69,7 +70,7 @@ Route::get('external/files/{type}/{externalId}', SourceFileViewController::class
 // every preset.
 Route::get(
     'connectors/oauth/callback',
-    \App\Http\Controllers\Connectors\ConnectorOAuthCallbackController::class,
+    ConnectorOAuthCallbackController::class,
 )->middleware(['web', 'auth'])->name('connectors.oauth.callback');
 
 require __DIR__.'/dashboard.php';

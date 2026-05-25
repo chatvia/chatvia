@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Agents;
 
 use Domain\Agents\Actions\AgentSourceAnalyzeFileAction;
+use Domain\Agents\Data\KnowledgeAnalyzeResourceData;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeFilesAnalyzeController
 {
-    public function __invoke(Request $request, AgentSourceAnalyzeFileAction $action)
+    public function __invoke(Request $request, AgentSourceAnalyzeFileAction $action): KnowledgeAnalyzeResourceData
     {
         $request->validate([
             'file' => ['required', 'file', 'mimes:pdf,docx,txt,md'],

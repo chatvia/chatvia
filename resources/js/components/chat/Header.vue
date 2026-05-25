@@ -75,7 +75,7 @@ const handleConfirm = () => {
     showDeleteDialog.value = false;
 };
 
-function toggleIncognitoMode() {
+function _toggleIncognitoMode() {
     isIncognitoMode.value = !isIncognitoMode.value;
     localStorage.setItem('isIncognitoMode', isIncognitoMode.value.toString());
     emit('toggleIncognito', isIncognitoMode.value);

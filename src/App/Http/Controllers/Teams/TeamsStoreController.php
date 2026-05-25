@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Teams;
 
-use App\Teams\Models\Team;
 use App\Auth\Models\User;
+use App\Teams\Models\Team;
 use App\Teams\Services\TeamService;
 use Illuminate\Http\Request;
 

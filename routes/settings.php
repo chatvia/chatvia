@@ -24,7 +24,7 @@ use App\Http\Middleware\DenyIfStaff;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function (): void {
     Route::redirect('settings', '/settings/profile');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -45,7 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::get('my/teams/list', TeamListController::class)->name('my.teams.list');
 
     // Teams management (denied for staff)
-    Route::middleware(DenyIfStaff::class)->group(function () {
+    Route::middleware(DenyIfStaff::class)->group(function (): void {
         Route::get('my/teams', TeamsHomeController::class)->name('teams.index');
         Route::post('my/teams', TeamsStoreController::class)->name('teams.store');
 

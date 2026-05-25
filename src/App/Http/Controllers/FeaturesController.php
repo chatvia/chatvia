@@ -10,7 +10,7 @@ use Laravel\Pennant\Feature;
 
 class FeaturesController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): array
     {
         return [
             'widget' => Feature::active(Widget::class),

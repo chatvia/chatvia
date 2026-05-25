@@ -14,6 +14,7 @@ import { computed, onMounted, ref } from 'vue';
 // Types
 interface Agent {
     id: number;
+    external_id: string;
     name: string;
     sub_domain: string;
     url: string;

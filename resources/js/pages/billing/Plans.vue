@@ -149,12 +149,12 @@ const formatDiscountEndDate = computed(() => {
     });
 });
 
-const subscriptionForm = useForm({
+const _subscriptionForm = useForm({
     package: '',
     billing_cycle: 'monthly' as 'monthly' | 'yearly',
 });
 
-const trialForm = useForm({
+const _trialForm = useForm({
     package: 'starter',
 });
 
@@ -576,7 +576,11 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                 <div class="flex-1 space-y-3">
                                     <h4 class="text-sm font-semibold">{{ getFeatureHeader(pkg.id, packages) }}</h4>
                                     <div class="space-y-2">
-                                        <div v-for="(feature, index) in getPackageFeatures(pkg)" :key="feature" class="flex items-start gap-2">
+                                        <div
+                                            v-for="(feature, index) in Object.values(getPackageFeatures(pkg))"
+                                            :key="feature"
+                                            class="flex items-start gap-2"
+                                        >
                                             <Check class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" />
                                             <span
                                                 :class="[

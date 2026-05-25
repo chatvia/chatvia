@@ -24,13 +24,13 @@ class AgentConnectorToolsController
         abort_if($request->user()->cannot('view', $agent), 404);
 
         $server = $agent->mcpServers()->where('slug', $slug)->first();
-        abort_unless($server, 404);
+        abort_unless($server !== null, 404);
 
         $tools = $this->catalog->for($server);
 
         // McpCatalog returns OpenAI shape; strip the wrapper to send a
         // flatter list to the UI.
-        $flattened = array_map(fn (array $entry) => [
+        $flattened = array_map(fn (array $entry): array => [
             'name' => (string) ($entry['function']['name'] ?? ''),
             'short_name' => $this->stripPrefix((string) ($entry['function']['name'] ?? ''), $server->toolPrefix()),
             'description' => (string) ($entry['function']['description'] ?? ''),

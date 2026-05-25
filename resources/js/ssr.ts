@@ -1,34 +1,53 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import createServer from '@inertiajs/vue3/server';
 import { renderToString } from '@vue/server-renderer';
-import { createSSRApp, h } from 'vue';
+import { createSSRApp, h, type DefineComponent } from 'vue';
 import { route as ziggyRoute } from 'ziggy-js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+interface SsrZiggyConfig {
+    location: string;
+    [key: string]: unknown;
+}
 
 createServer((page) =>
     createInertiaApp({
         page,
         render: renderToString,
         title: (title) => `${title} - ${appName}`,
+        // Page components live alongside the rest of the SPA and are
+        // discovered via Vite's glob import. Same convention as `app.ts`.
+        resolve: (name) => {
+            const pages = import.meta.glob<{ default: DefineComponent }>('./pages/**/*.vue');
+            const loader = pages[`./pages/${name}.vue`];
+
+            if (!loader) {
+                throw new Error(`Inertia page not found: ./pages/${name}.vue`);
+            }
+
+            return loader().then((module) => module.default);
+        },
         setup({ App, props, plugin }) {
             const app = createSSRApp({ render: () => h(App, props) });
 
-            // Configure Ziggy for SSR...
+            // Configure Ziggy for SSR.
+            const ziggyProp = page.props.ziggy as SsrZiggyConfig;
             const ziggyConfig = {
-                ...page.props.ziggy,
-                location: new URL(page.props.ziggy.location),
+                ...ziggyProp,
+                location: new URL(ziggyProp.location),
             };
 
-            // Create route function...
-            const route = (name: string, params?: any, absolute?: boolean) => ziggyRoute(name, params, absolute, ziggyConfig);
+            // Ziggy's overloads expect compile-time known route names; in
+            // SSR we route through `never` and trust the runtime arguments.
+            const route = (name: string, params?: Record<string, unknown>, absolute?: boolean) =>
+                ziggyRoute(name as never, params as never, absolute, ziggyConfig as never);
 
-            // Make route function available globally...
-            app.config.globalProperties.route = route;
+            // Expose `route()` on every component instance.
+            (app.config.globalProperties as any).route = route;
 
-            // Make route function available globally for SSR...
             if (typeof window === 'undefined') {
-                global.route = route;
+                (globalThis as any).route = route;
             }
 
             app.use(plugin);

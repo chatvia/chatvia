@@ -49,7 +49,7 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         if ($user) {
-            $user->setRememberToken(null);
+            $user->setRememberToken('');
             $user->save();
         }
         $request->session()->invalidate();

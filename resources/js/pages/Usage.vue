@@ -6,7 +6,7 @@ import { Head } from '@inertiajs/vue3';
 import { Bot, Clock, FileText, Layers, Link2, Loader2, MessageSquare, TrendingUp, Users } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 
-type UsageData = App.Data.Resources.My.Usage.UsageResourceData;
+type UsageData = App.Auth.Data.Resources.My.Usage.UsageResourceData;
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {

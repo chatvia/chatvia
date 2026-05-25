@@ -2,10 +2,11 @@
 
 namespace Tests\Unit\Connectors\OAuth;
 
-use Domain\Connectors\Data\ConnectorData;
 use Domain\Agents\Models\Agent;
-use Domain\Connectors\Models\ConnectorOAuthClient;
+use Domain\Agents\Models\AgentMcpServer;
 use Domain\Chat\Services\Tooling\Mcp\McpCatalog;
+use Domain\Connectors\Data\ConnectorData;
+use Domain\Connectors\Models\ConnectorOAuthClient;
 use Domain\Connectors\Services\OAuth\McpOAuthDiscoverer;
 use Domain\Connectors\Services\OAuth\McpOAuthException;
 use Domain\Connectors\Services\OAuth\McpOAuthFlow;
@@ -122,7 +123,7 @@ class McpOAuthFlowTest extends TestCase
         $client->authorization_endpoint = 'https://auth.example.test/authorize';
         $client->exists = true;
 
-        $hijacked = new class extends \Domain\Agents\Models\AgentMcpServer
+        $hijacked = new class extends AgentMcpServer
         {
             public bool $saved = false;
 

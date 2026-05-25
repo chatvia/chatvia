@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class ChatDeleteAllConversationsController
 {
-    public function __invoke(Request $request, ChatMemory $memory, ChatSession $session)
+    public function __invoke(Request $request, ChatMemory $memory, ChatSession $session): void
     {
         $agent = current_agent();
 

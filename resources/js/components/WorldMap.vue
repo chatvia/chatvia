@@ -107,7 +107,7 @@ const initMap = () => {
             ],
         },
         bindTouchEvents: false,
-        onLoaded(map: any) {
+        onLoaded(_map: any) {
             // Add custom tooltip functionality after map loads
             const container = mapContainer.value;
             if (!container) return;

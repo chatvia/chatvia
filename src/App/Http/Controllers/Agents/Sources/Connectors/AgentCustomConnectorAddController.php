@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\Sources\Connectors;
 
-use Domain\Agents\Data\Resources\AgentMcpServerData;
 use App\Http\Requests\Agents\Connectors\AgentCustomConnectorRequest;
+use Domain\Agents\Data\Resources\AgentMcpServerData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Chat\Services\Tooling\Mcp\McpCatalog;

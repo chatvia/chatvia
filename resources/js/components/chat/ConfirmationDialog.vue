@@ -49,7 +49,7 @@ const cancel = () => {
                 <Button class="cursor-pointer" type="button" variant="secondary" @click="cancel">
                     {{ cancelText }}
                 </Button>
-                <Button class="cursor-pointer" type="button" variant="primary" @click="confirm">
+                <Button class="cursor-pointer" type="button" variant="default" @click="confirm">
                     {{ confirmText }}
                 </Button>
             </DialogFooter>

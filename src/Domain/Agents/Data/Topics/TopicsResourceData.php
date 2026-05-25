@@ -3,7 +3,7 @@
 namespace Domain\Agents\Data\Topics;
 
 use Domain\Agents\Models\Agent;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
@@ -42,12 +42,12 @@ class TopicsResourceData extends Data
             $trendData = [];
             foreach ($dates as $date) {
                 $record = $topicsByDate->first(
-                    fn ($item) => $item->topic_id === $topic->topic_id && $item->date === $date
+                    fn ($item): bool => $item->topic_id === $topic->topic_id && $item->date === $date
                 );
 
                 $trendData[] = TopicCountByDateData::from([
                     'date' => $date,
-                    'count' => $record?->count ?? 0,
+                    'count' => $record->count ?? 0,
                 ]);
             }
 
@@ -57,7 +57,7 @@ class TopicsResourceData extends Data
             ]);
         }
 
-        $totalTopicsData = $totalTopics->map(fn ($topic) => TopicSummaryData::from([
+        $totalTopicsData = $totalTopics->map(fn ($topic): TopicSummaryData => TopicSummaryData::from([
             'id' => $topic->topic_id,
             'name' => $topic->topic_name,
             'count' => $topic->total_count,

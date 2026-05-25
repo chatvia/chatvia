@@ -54,7 +54,7 @@ const agentTypeOptions: AgentTypeOption[] = [
     },
 ];
 
-type UsageData = App.Data.Resources.My.Usage.UsageResourceData;
+type UsageData = App.Auth.Data.Resources.My.Usage.UsageResourceData;
 
 const form = useForm({
     name: '',
@@ -66,7 +66,7 @@ const isLoadingUsage = ref(false);
 const usageData = ref<UsageData | null>(null);
 
 // Compute whether user can create any agents
-const canCreateAgent = computed(() => {
+const _canCreateAgent = computed(() => {
     if (!usageData.value) return false;
     return usageData.value.agents.remaining > 0;
 });
@@ -113,7 +113,7 @@ const fetchUsageData = async () => {
 };
 
 // No longer needed with unified limit
-const autoSwitchToAvailableAgentType = (showNotification = false) => {
+const autoSwitchToAvailableAgentType = (_showNotification = false) => {
     // With unified limit, no need to switch between types
     return;
 };

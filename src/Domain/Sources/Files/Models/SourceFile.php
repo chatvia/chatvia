@@ -2,29 +2,107 @@
 
 namespace Domain\Sources\Files\Models;
 
+use App\Auth\Models\User;
+use Domain\Agents\Collections\AgentCollection;
+use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\AgentSource;
 use Domain\Ingestion\Contracts\ChunkableContract;
-use Domain\Sources\Files\QueryBuilders\SourceFileQueryBuilder;
+use Domain\Ingestion\Models\Chunk;
 use Domain\Ingestion\Services\Ingestion;
-use Support\Traits\Chunkable;
-use Support\Traits\HasStorageFile;
-use Support\Traits\SupportsExternalId;
+use Domain\Sources\Files\QueryBuilders\SourceFileQueryBuilder;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Support\Traits\Chunkable;
+use Support\Traits\HasStorageFile;
+use Support\Traits\SupportsExternalId;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentSource;
 
+/**
+ * @property int $id
+ * @property string|null $external_id
+ * @property int $user_id
+ * @property string|null $language
+ * @property string|null $document_classification
+ * @property string $filename
+ * @property string $filetype
+ * @property string $filepath
+ * @property numeric $size_in_kb
+ * @property string $mime_type
+ * @property string $checksum
+ * @property string|null $parser
+ * @property string|null $parser_filepath
+ * @property int|null $expected_chunks
+ * @property int $length
+ * @property string|null $internal_ingestion_job_id
+ * @property string|null $internal_chunking_batch_id
+ * @property string|null $external_parsing_job_id
+ * @property array<array-key, mixed>|null $metadata
+ * @property string $status
+ * @property int $took_in_seconds
+ * @property string|null $failure_reason
+ * @property int $retrieval_count
+ * @property string|null $last_retrieved_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read AgentSource|null $pivot
+ * @property-read AgentCollection<int, Agent> $agents
+ * @property-read int|null $agents_count
+ * @property-read Collection<int, Chunk> $chunks
+ * @property-read int|null $chunks_count
+ * @property-read Chunk|null $summary
+ * @property-read mixed $url
+ * @property-read User $user
+ *
+ * @method static SourceFileQueryBuilder<static>|SourceFile audio()
+ * @method static SourceFileQueryBuilder<static>|SourceFile ingested()
+ * @method static SourceFileQueryBuilder<static>|SourceFile markdown()
+ * @method static SourceFileQueryBuilder<static>|SourceFile newModelQuery()
+ * @method static SourceFileQueryBuilder<static>|SourceFile newQuery()
+ * @method static SourceFileQueryBuilder<static>|SourceFile pdf()
+ * @method static SourceFileQueryBuilder<static>|SourceFile query()
+ * @method static SourceFileQueryBuilder<static>|SourceFile video()
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereChecksum($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereCreatedAt($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereDocumentClassification($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereExpectedChunks($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereExternalId($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereExternalParsingJobId($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereFailureReason($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereFilename($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereFilepath($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereFiletype($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereId($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereInternalChunkingBatchId($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereInternalIngestionJobId($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereLanguage($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereLastRetrievedAt($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereLength($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereMetadata($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereMimeType($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereParser($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereParserFilepath($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereRetrievalCount($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereSizeInKb($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereStatus($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereTookInSeconds($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereUpdatedAt($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereUserId($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile word()
+ *
+ * @mixin \Eloquent
+ */
+#[Guarded(['id'])]
 class SourceFile extends Model implements ChunkableContract
 {
     use Chunkable, HasFactory, HasStorageFile, SupportsExternalId;
-
-    protected $guarded = ['id'];
 
     public function newEloquentBuilder($query): SourceFileQueryBuilder
     {
@@ -46,7 +124,7 @@ class SourceFile extends Model implements ChunkableContract
         if ($agentId) {
             app(Ingestion::class)->ingest($this, $agentId);
         } else {
-            $this->agents->each(function ($agent) {
+            $this->agents->each(function (Agent $agent): void {
                 app(Ingestion::class)->ingest($this, $agent->id);
             });
         }
@@ -99,7 +177,7 @@ class SourceFile extends Model implements ChunkableContract
         ];
     }
 
-    public function isIngested()
+    public function isIngested(): bool
     {
         return $this->status === 'ingested';
     }

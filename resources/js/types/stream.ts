@@ -55,6 +55,12 @@ export interface StreamToolData {
     name?: string;
     args_delta?: string;
     result?: unknown;
+    // Display metadata, sent on phase: 'start'. Drives the branded
+    // loading indicator (icon + service name) in the chat bubble.
+    kind?: 'mcp' | 'function';
+    label?: string;
+    icon_url?: string | null;
+    brand_color?: string | null;
 }
 
 interface BaseEnvelope {

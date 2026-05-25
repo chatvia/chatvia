@@ -19,7 +19,7 @@ Route::get('invitation/{invitation}', [TeamInvitationController::class, 'show'])
 Route::post('invitation/{invitation}/accept', [TeamInvitationController::class, 'accept'])
     ->name('teams.invitation.accept');
 
-Route::middleware('guest')->group(function () {
+Route::middleware('guest')->group(function (): void {
     //    Route::get('register', [RegisteredUserController::class, 'create'])
     //        ->name('register');
     //
@@ -34,6 +34,7 @@ Route::middleware('guest')->group(function () {
         ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:6,1')
         ->name('password.email');
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
@@ -43,7 +44,7 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function (): void {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 

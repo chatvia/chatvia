@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
 import { useChatLog } from './useChatLog';
 
-type Message = App.Data.Resources.Agent.ChatLog.ChatLogMessageData;
+type Message = Domain.Agents.Data.Resources.ChatLog.ChatLogMessageData;
 
 const emit = defineEmits<{
     (e: 'open-revise', message: Message): void;

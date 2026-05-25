@@ -12,7 +12,7 @@ import { computed, onMounted, ref } from 'vue';
 
 const page = usePage<SharedData>();
 
-type Agent = App.Data.Resources.Agent.AgentResourceData;
+type Agent = Domain.Agents.Data.Resources.AgentResourceData;
 
 // Fetch agents from the server
 const agents = ref<Agent[]>([]);

@@ -7,7 +7,7 @@ use Domain\Chat\Models\ChatSession;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Chat\Models\ChatConversation>
+ * @extends Factory<ChatConversation>
  */
 class ChatConversationFactory extends Factory
 {

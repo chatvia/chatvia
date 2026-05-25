@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class WebhookIngestionJobController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): void
     {
         $request->validate([
             'job_id' => ['required', 'exists:source_files,ingestion_job_id'],

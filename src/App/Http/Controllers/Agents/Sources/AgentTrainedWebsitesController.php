@@ -19,18 +19,18 @@ class AgentTrainedWebsitesController
             ->where('user_id', $request->user()->id)
             ->where('status', 'ingested')
             ->whereNotIn('id', $currentIds)
-            ->with(['agents' => function ($q) use ($agent) {
+            ->with(['agents' => function ($q) use ($agent): void {
                 $q->select('agents.id', 'agents.name')
                     ->where('agents.id', '!=', $agent->id);
             }])
             ->withCount('urls')
             ->get()
-            ->map(fn (SourceWebsite $website) => [
+            ->map(fn (SourceWebsite $website): array => [
                 'id' => $website->id,
                 'url' => $website->url,
                 'urls_count' => $website->urls_count,
                 'created_at' => $website->created_at,
-                'agents' => $website->agents->map(fn ($a) => ['id' => $a->id, 'name' => $a->name]),
+                'agents' => $website->agents->map(fn (Agent $a): array => ['id' => $a->id, 'name' => $a->name]),
             ]);
 
         return response()->json($websites);

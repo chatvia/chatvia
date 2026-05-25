@@ -6,7 +6,7 @@ use Domain\Agents\Models\Llm;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Agents\Models\Llm>
+ * @extends Factory<Llm>
  */
 class LlmFactory extends Factory
 {

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class AgentsGenerateRandomSubDomainController
 {
-    public function __invoke(Request $request, Subdomain $subdomain)
+    public function __invoke(Request $request, Subdomain $subdomain): array
     {
         return [
             'name' => $subdomain->generateRandomSubDomain(),

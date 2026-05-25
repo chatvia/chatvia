@@ -1,12 +1,12 @@
 <?php
 
+use App\Documents\LibreOffice;
 use App\Embeddings\Contracts\EmbeddingsProviderInterface;
+use App\Hosting\HostConfig;
+use App\Teams\Models\Team;
+use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent as AgentModel;
 use Domain\Agents\Services\Agent;
-use App\Teams\Models\Team;
-use App\Hosting\HostConfig;
-use App\Documents\LibreOffice;
-use App\Teams\Services\TeamService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 
@@ -85,9 +85,16 @@ if (! function_exists('office')) {
 }
 
 if (! function_exists('embed')) {
-    function embed(string $text, bool $returnAsText = false)
+    function embed(string $text, bool $returnAsText = false): string|array
     {
         return app(EmbeddingsProviderInterface::class)->embed($text, $returnAsText);
+    }
+}
+
+if (! function_exists('embed_query')) {
+    function embed_query(string $text, bool $returnAsText = false): string|array
+    {
+        return app(EmbeddingsProviderInterface::class)->embedQuery($text, $returnAsText);
     }
 }
 
@@ -128,7 +135,7 @@ if (! function_exists('has_permission_to_agent')) {
     /**
      * Check if the current user has a specific permission for an agent.
      */
-    function has_permission_to_agent(\Domain\Agents\Models\Agent $agent, string $permission): bool
+    function has_permission_to_agent(AgentModel $agent, string $permission): bool
     {
         $user = auth()->user();
 
@@ -240,9 +247,13 @@ if (! function_exists('is_video_file')) {
 }
 
 if (! function_exists('current_agent_from_widget')) {
-    function current_agent_from_widget(): AgentModel
+    function current_agent_from_widget(): ?AgentModel
     {
         $agentId = request()->header('x-agent_id');
+
+        if ($agentId === null) {
+            return null;
+        }
 
         return AgentModel::where('external_id', $agentId)->first();
     }

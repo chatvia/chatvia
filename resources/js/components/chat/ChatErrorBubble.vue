@@ -62,9 +62,7 @@ const TREATMENT: Record<StreamErrorCode, Treatment> = {
     },
 };
 
-const treatment = computed<Treatment>(
-    () => TREATMENT[props.message.errorCode ?? 'internal'] ?? TREATMENT.internal,
-);
+const treatment = computed<Treatment>(() => TREATMENT[props.message.errorCode ?? 'internal'] ?? TREATMENT.internal);
 
 const containerClass = computed(() => {
     switch (treatment.value.severity) {

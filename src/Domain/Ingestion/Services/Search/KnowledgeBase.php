@@ -2,12 +2,12 @@
 
 namespace Domain\Ingestion\Services\Search;
 
-use App\Embeddings\Contracts\EmbeddingsProviderInterface;
-use Domain\Ingestion\Jobs\UpdateRetrievalStatsJob;
-use Domain\Agents\Models\Agent;
-use Domain\Ingestion\Models\Chunk;
 use App\Embeddings\Cohere;
+use App\Embeddings\Contracts\EmbeddingsProviderInterface;
 use App\LLM\Operations\SearchDecision;
+use Domain\Agents\Models\Agent;
+use Domain\Ingestion\Jobs\UpdateRetrievalStatsJob;
+use Domain\Ingestion\Models\Chunk;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -15,18 +15,12 @@ use Illuminate\Support\Str;
 
 class KnowledgeBase
 {
-    private int $cacheTtl;
-
-    private string $cachePrefix;
-
     private string $cacheStore;
 
     private array $vectorChordConfig;
 
     public function __construct()
     {
-        $this->cacheTtl = config('vector.cache.ttl', 3600);
-        $this->cachePrefix = config('vector.cache.prefix', 'rag_search:');
         $this->cacheStore = config('vector.cache.store', 'redis');
         $this->vectorChordConfig = config('vector', []);
     }
@@ -37,12 +31,16 @@ class KnowledgeBase
             $agent = $agent->id;
         }
 
-        // Cache the embedding for 24 hours to speed up repeated queries
+        // Cache the embedding for 24 hours to speed up repeated queries.
+        // Note: query embedding uses provider-specific query conventions
+        // (Qwen3 instruction prefix etc.), distinct from how documents are
+        // embedded at ingestion time. Cache key versioned with ':q' so old
+        // document-style cache entries can't collide.
         $embeddingProvider = app(EmbeddingsProviderInterface::class);
         $embedding = Cache::store($this->cacheStore)->remember(
-            'search_embedding:'.md5($query).':'.$embeddingProvider->getModelName(),
+            'search_embedding:q:'.md5($query).':'.$embeddingProvider->getModelName(),
             3600 * 24,
-            fn () => embed($query)
+            fn (): string|array => embed_query($query)
         );
         $vectorString = '['.implode(',', $embedding).']';
 
@@ -59,8 +57,6 @@ class KnowledgeBase
         $maxChunks = config('vector.search.max_chunks', 3);
         $candidateLimit = config('vector.search.rerank', false) ? 12 : ($maxChunks * 2); // Fetch extra for filtering
         $results = $chunkBuilder->hybridSearchForAgent($agent, $query, $vectorString, $candidateLimit, $quantize);
-
-        ray($results);
 
         if ($results) {
             // Dispatch stats update to background job for better performance
@@ -107,7 +103,7 @@ class KnowledgeBase
             // Map reranked results with relevance scores and filter by threshold
             // Then limit to max chunks
             return collect($rerankedResults)
-                ->filter(fn ($item) => $item['relevance_score'] >= $relevanceThreshold)
+                ->filter(fn ($item): bool => $item['relevance_score'] >= $relevanceThreshold)
                 ->take($maxChunks)
                 ->map(function ($item) use ($results) {
                     $result = $results[$item['index']];

@@ -668,7 +668,7 @@ import { toast } from 'vue-sonner';
 import { route } from 'ziggy-js';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
     widgetSettings: any;
     appearanceSettings: any;
     embedScriptUrl: string;
@@ -789,7 +789,7 @@ const hasUnsavedChanges = computed(() => {
     return appearanceChanged || widgetChanged;
 });
 
-const hasFormErrors = computed(() => {
+const _hasFormErrors = computed(() => {
     return Object.keys(appearanceForm.errors).length > 0 || Object.keys(widgetForm.errors).length > 0;
 });
 
@@ -915,7 +915,7 @@ const copyEmbedSnippet = async () => {
     try {
         await navigator.clipboard.writeText(embedSnippet.value);
         toast.success('Embed code copied');
-    } catch (e) {
+    } catch (_e) {
         toast.error('Failed to copy');
     }
 };

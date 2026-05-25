@@ -6,7 +6,6 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import type { AgentMcpServer, Connector, ConnectorRow } from '@/types/connector';
-import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { LoaderCircle, Plug, Plus, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -107,9 +106,7 @@ async function startConnect(connector: Connector): Promise<void> {
 
     // 'none' — no credentials, no modal. Just provision.
     try {
-        const response = await axios.post(
-            route('agents.sources.connectors.connect', { agent: props.agent.external_id, slug: connector.slug }),
-        );
+        const response = await axios.post(route('agents.sources.connectors.connect', { agent: props.agent.external_id, slug: connector.slug }));
         onTokenConnected(response.data.data);
         toast.success(`Connected ${connector.name}`);
     } catch (e: unknown) {
@@ -165,21 +162,14 @@ function applyRemoval(slug: string): void {
     custom.value = custom.value.filter((r) => r.server?.slug !== slug);
 }
 
-function flashFromSession(): void {
-    const flash = (usePage().props as { flash?: { success?: string | null; error?: string | null } }).flash;
-    if (flash?.success) toast.success(flash.success);
-    if (flash?.error) toast.error(flash.error);
-}
-
 onMounted(() => {
-    flashFromSession();
     fetchAll();
 });
 </script>
 
 <template>
     <AgentLayout :agent="agent">
-        <div class="space-y-6">
+        <div class="mx-auto w-full max-w-6xl space-y-6">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <div class="flex items-center gap-2">

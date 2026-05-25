@@ -14,7 +14,10 @@ class AgentSourcesListData extends Data
         public array $agents = [],
     ) {}
 
-    public static function fromSources($sources)
+    /**
+     * @return AgentSourcesListData[]
+     */
+    public static function fromSources($sources): array
     {
         $data = [];
         foreach ($sources as $source) {

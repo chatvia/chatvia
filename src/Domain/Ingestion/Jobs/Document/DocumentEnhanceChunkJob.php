@@ -2,15 +2,16 @@
 
 namespace Domain\Ingestion\Jobs\Document;
 
-use Domain\Ingestion\Data\OCR\PageData;
-use Domain\Agents\Models\Agent;
-use Domain\Ingestion\Models\Chunk;
-use Domain\Sources\Files\Models\SourceFile;
 use App\LLM\Operations\Chunker;
 use App\LLM\Operations\CostCalculator;
 use App\LLM\Operations\Tables;
 use App\LLM\Operations\Vision;
+use Domain\Agents\Models\Agent;
+use Domain\Ingestion\Data\OCR\PageData;
+use Domain\Ingestion\Models\Chunk;
+use Domain\Ingestion\Models\ChunkQuestion;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
+use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -84,41 +85,41 @@ class DocumentEnhanceChunkJob implements ShouldQueue
         $summary = $enhancedChunk->summary;
         $questions = $enhancedChunk->questions;
 
-        // Build embedding content with summary and questions
-        $embeddingContent = $this->page->content."\n";
+        // Embed chunk content only (with image/table descriptions, which describe
+        // the same content). Summary and questions are stored separately to avoid
+        // diluting the chunk's vector and confusing the embedding model with mixed
+        // intent (chunk = answer, questions = question).
+        $chunkEmbeddingText = $this->page->content;
 
         if ($describedImages) {
-            $embeddingContent .= implode("\n\n", array_values($describedImages));
+            $chunkEmbeddingText .= "\n\n".implode("\n\n", array_values($describedImages));
         }
 
         if ($describedTables) {
-            $embeddingContent .= $describedTables."\n";
+            $chunkEmbeddingText .= "\n\n".$describedTables;
         }
 
-        if ($summary) {
-            $embeddingContent .= $summary."\n";
-        }
-
-        if ($questions) {
-            $embeddingContent .= implode("\n", $questions)."\n";
-        }
-
-        // Add embedding cost
         $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents = app(CostCalculator::class)
-            ->calculateCostInCents($embeddingContent, '', $embeddingPrice, 0.0) + $enhancedChunk->cost;
+            ->calculateCostInCents($chunkEmbeddingText, '', $embeddingPrice, 0.0) + $enhancedChunk->cost;
+
+        // Embed each question separately and embedding cost on top.
+        foreach ($questions as $question) {
+            $costInCents += app(CostCalculator::class)
+                ->calculateCostInCents($question, '', $embeddingPrice, 0.0);
+        }
 
         $tables = array_values(array_filter(
             array_map('trim', $this->page->tables),
-            fn (string $table) => $table !== ''
+            fn (string $table): bool => $table !== ''
         ));
 
         $this->chunk->update([
-            'embedding' => embed($embeddingContent),
-            'embedding_bm25' => Bm25Tokenizer::expression($embeddingContent),
-            'cost' => $costInCents,
+            'embedding' => embed($chunkEmbeddingText),
+            'embedding_bm25' => Bm25Tokenizer::expression($chunkEmbeddingText),
+            'cost_in_cents' => $costInCents,
             'summary' => $summary,
-            'questions' => $questions,
+            'enhanced' => true,
             'metadata' => [
                 'images' => $describedImages,
                 'tables' => [
@@ -127,6 +128,18 @@ class DocumentEnhanceChunkJob implements ShouldQueue
                 ],
             ],
         ]);
+
+        // Re-enhance safety: drop any previously-generated question rows for this
+        // chunk before fanning out, so retries don't accumulate duplicates.
+        ChunkQuestion::query()->where('chunk_id', $this->chunk->id)->delete();
+
+        foreach ($questions as $question) {
+            ChunkQuestion::query()->create([
+                'chunk_id' => $this->chunk->id,
+                'question' => $question,
+                'embedding' => embed($question, true),
+            ]);
+        }
     }
 
     public function failed(Throwable $e): void

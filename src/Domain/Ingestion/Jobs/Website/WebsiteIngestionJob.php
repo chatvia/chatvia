@@ -2,13 +2,13 @@
 
 namespace Domain\Ingestion\Jobs\Website;
 
+use Domain\Agents\Models\Agent;
+use Domain\Ingestion\Jobs\SummaryIngestionJob;
+use Domain\Ingestion\Services\Tidy\HTMLCleaner;
 use Domain\Sources\Web\Events\WebsiteCrawlerEvent;
 use Domain\Sources\Web\Events\WebsiteIngestionProgressEvent;
-use Domain\Ingestion\Jobs\SummaryIngestionJob;
-use Domain\Agents\Models\Agent;
 use Domain\Sources\Web\Models\AgentWebsiteUrl;
 use Domain\Sources\Web\Models\SourceWebsite;
-use Domain\Ingestion\Services\Tidy\HTMLCleaner;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -45,7 +45,6 @@ class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
 
         WebsiteCrawlerEvent::dispatch($this->website, $this->agent);
 
-        /** @var AgentWebsiteUrl<array> $untrainedUrls */
         $untrainedUrls = $this->website->untrainedUrls;
 
         $jobs = collect($untrainedUrls)->map(function (AgentWebsiteUrl $url) {
@@ -57,12 +56,12 @@ class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $batch = Bus::batch($jobs)
             ->name("Website Ingestion: agent={$agentId} website={$websiteId}")
-            ->before(function (Batch $batch) use ($websiteId) {
+            ->before(function (Batch $batch) use ($websiteId): void {
                 SourceWebsite::query()
                     ->whereKey($websiteId)
                     ->update(['internal_chunking_batch_id' => $batch->id]);
             })
-            ->then(function (Batch $batch) use ($websiteId, $agentId) {
+            ->then(function (Batch $batch) use ($websiteId, $agentId): void {
                 $agent = Agent::find($agentId);
                 $website = SourceWebsite::find($websiteId);
 
@@ -70,7 +69,7 @@ class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
                     return;
                 }
 
-                DB::transaction(function () use ($website) {
+                DB::transaction(function () use ($website): void {
                     $locked = SourceWebsite::query()
                         ->whereKey($website->id)
                         ->lockForUpdate()

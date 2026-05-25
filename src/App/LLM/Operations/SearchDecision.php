@@ -37,7 +37,6 @@ class SearchDecision
         ])->json('choices.0.message.content');
 
         $response = strtolower(trim($response ?? ''));
-        ray($response);
 
         return str_contains($response, 'search');
     }

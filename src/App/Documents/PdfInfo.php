@@ -13,16 +13,12 @@ final class PdfInfo
 {
     private string $pdfInfoPath;
 
-    private string $tempDir;
-
     private int $timeout;
 
     public function __construct()
     {
         $this->pdfInfoPath = config('services.bin.pdfinfo');
-        $this->tempDir = create_temp_dir();
         $this->timeout = 3600;
-
     }
 
     public function getInfo(string $pdfPath): FileAnalysisData

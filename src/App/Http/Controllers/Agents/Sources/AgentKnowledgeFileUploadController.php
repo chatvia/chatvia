@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class AgentKnowledgeFileUploadController
 {
-    public function __invoke(Request $request, Agent $agent, AgentSourceAnalyzeFileAction $action)
+    public function __invoke(Request $request, Agent $agent, AgentSourceAnalyzeFileAction $action): array
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),

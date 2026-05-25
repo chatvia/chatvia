@@ -3,10 +3,10 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import YoutubeComponent from './YoutubeComponent.vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
-const props = defineProps<Props>();
+const _props = defineProps<Props>();
 </script>
 
 <template>

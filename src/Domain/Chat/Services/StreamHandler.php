@@ -23,7 +23,7 @@ class StreamHandler
         ?callable $onComplete = null,
         ?callable $onError = null
     ): StreamedResponse {
-        return new StreamedResponse(function () use ($context, $llmMessages, $onComplete, $onError) {
+        return new StreamedResponse(function () use ($context, $llmMessages, $onComplete, $onError): void {
             $this->setupStreamHeaders();
 
             ignore_user_abort(false);

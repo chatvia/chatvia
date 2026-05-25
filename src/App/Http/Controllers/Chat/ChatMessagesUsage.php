@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class ChatMessagesUsage
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): array
     {
         return [
             'can_send_messages' => app(UserCreditSystem::class)

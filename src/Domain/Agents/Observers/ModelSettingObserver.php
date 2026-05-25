@@ -4,6 +4,7 @@ namespace Domain\Agents\Observers;
 
 use Domain\Agents\Models\ModelSetting;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 class ModelSettingObserver
 {
@@ -91,7 +92,7 @@ class ModelSettingObserver
     protected function clearRedisCache(ModelSetting $modelSetting, string $cachePrefix): void
     {
         try {
-            $redis = Cache::getRedis();
+            $redis = Redis::connection(config('cache.stores.redis.connection'));
             $pattern = sprintf(
                 '%s:%s.%s.%s.*',
                 config('cache.prefix'),
@@ -135,7 +136,7 @@ class ModelSettingObserver
         // For Redis, try to clear all related cache keys
         if (config('cache.default') === 'redis') {
             try {
-                $redis = Cache::getRedis();
+                $redis = Redis::connection(config('cache.stores.redis.connection'));
                 $pattern = sprintf(
                     '%s:%s.%s.%s.*',
                     config('cache.prefix'),

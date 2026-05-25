@@ -5,6 +5,7 @@ namespace App\LLM;
 use App\LLM\Contracts\LLMProviderInterface;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Psr\Http\Message\ResponseInterface;
 
@@ -49,7 +50,7 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
      * Execute a completion request using Laravel HTTP client.
      *
      * @param  array  $data  The request data
-     * @return \Illuminate\Http\Client\Response The response
+     * @return Response The response
      */
     public function completion(array $data)
     {

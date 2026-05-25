@@ -28,7 +28,7 @@ Route::get('subscribe', BillingSubscribeController::class)
 Route::get('subscribe/failure', BillingSubscribeFailureController::class)
     ->name('subscribe.failure');
 
-Route::middleware(['auth', 'verified', DenyIfStaff::class])->prefix('billing')->name('billing.')->group(function () {
+Route::middleware(['auth', 'verified', DenyIfStaff::class])->prefix('billing')->name('billing.')->group(function (): void {
 
     Route::get('addons/extra-message-credits', CheckoutExtraMessagesController::class)
         ->name('addons.extra-message-credits');

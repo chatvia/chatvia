@@ -17,7 +17,7 @@ class TeamsHomeController
         $allTeams = $user->ownedTeams->concat($user->memberTeams);
 
         $teams = $allTeams
-            ->map(fn ($team) => TeamListItemData::fromTeamForUser($team, $user))
+            ->map(fn ($team): TeamListItemData => TeamListItemData::fromTeamForUser($team, $user))
             ->values()
             ->all();
 

@@ -2,9 +2,9 @@
 
 namespace Domain\Agents\Data\Resources\ChatLog;
 
-use Domain\Chat\Models\ChatMessage;
 use Domain\Agents\Models\Lead;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Domain\Chat\Models\ChatMessage;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -27,7 +27,7 @@ class ChatLogMessagesResourceData extends Data
             }
         }
 
-        $messages->through(fn (ChatMessage $message) => ChatLogMessageData::fromMessage($message));
+        $messages->through(fn (ChatMessage $message): ChatLogMessageData => ChatLogMessageData::fromMessage($message));
 
         return new self(
             messages: $messages,

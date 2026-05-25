@@ -1,5 +1,7 @@
 <?php
 
+use Domain\Agents\Models\Agent;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -62,7 +64,7 @@ return [
     |
     */
     'defaults' => [
-        \Domain\Agents\Models\Agent::class => [
+        Agent::class => [
             'appearance' => [
                 'avatar' => null,
                 'logo' => null,

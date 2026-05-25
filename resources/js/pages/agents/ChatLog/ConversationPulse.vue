@@ -31,10 +31,10 @@ const {
     isLoadingPulse,
     pulseError,
     fetchPulseData,
-    getToneDisplayName,
-    getToneEmoji,
-    getToneBadgeColor,
-    getSentimentBadgeColor,
+    getToneDisplayName: _getToneDisplayName,
+    getToneEmoji: _getToneEmoji,
+    getToneBadgeColor: _getToneBadgeColor,
+    getSentimentBadgeColor: _getSentimentBadgeColor,
     getPulsePointColor,
 } = useChatLog();
 
@@ -68,7 +68,7 @@ onMounted(() => {
     }
 });
 
-function capitalize(str: string): string {
+function _capitalize(str: string): string {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
 }

@@ -1,4 +1,4 @@
-import type { StreamCallbacks, StreamEnvelope, StreamError, StreamErrorCode, StreamState } from '@/types/stream';
+import type { StreamCallbacks, StreamDoneData, StreamEnvelope, StreamError, StreamErrorCode, StreamState } from '@/types/stream';
 import { usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -16,8 +16,35 @@ import { ref } from 'vue';
  *     `onError`, instead of writing to the console
  *   - one auto-retry with backoff for retryable errors, reusing the same
  *     `request_id` so the server returns the replay
+ *
+ * Display pacing
+ * --------------
+ * Modern LLMs often finish a multi-paragraph response in under two seconds.
+ * Forwarding every `delta` straight to the UI yields the "text just appears
+ * in a block" feel users complain about. To match the smooth typewriter
+ * cadence of ChatGPT / Claude.ai we buffer incoming text and drain it to
+ * `onDelta` at a steady rate (default ~80 chars/sec) via rAF.
+ *
+ * Slow streams pay no cost — the queue stays empty so paced output keeps
+ * up with arrivals. When the server's `done` envelope arrives we accelerate
+ * the drain (4× the steady rate) so any backlog flushes within ~1s before
+ * `onDone` fires, keeping the streaming indicator visible until the last
+ * character lands.
  */
-export function useChatStream() {
+const PACE_CHARS_PER_SECOND = 80;
+const FINISH_ACCELERATION = 4;
+
+export interface UseChatStreamOptions {
+    /**
+     * Override the steady-state display rate. Set to `Infinity` to disable
+     * pacing entirely and forward deltas the moment they arrive (the old
+     * behaviour, useful for tests).
+     */
+    charsPerSecond?: number;
+}
+
+export function useChatStream(options: UseChatStreamOptions = {}) {
+    const charsPerSecond = options.charsPerSecond ?? PACE_CHARS_PER_SECOND;
     const state = ref<StreamState>('idle');
     const error = ref<StreamError | null>(null);
 
@@ -43,36 +70,141 @@ export function useChatStream() {
         callbacks.onError?.(err, id);
     }
 
-    function dispatch(env: StreamEnvelope, callbacks: StreamCallbacks): boolean {
+    /**
+     * Per-stream pacer. Closed over by `dispatch` so each `run()` call
+     * gets its own queue + rAF loop without leaking state between
+     * sequential prompts.
+     */
+    function createPacer(callbacks: StreamCallbacks, isAlive: () => boolean) {
+        // Pacing disabled: forward deltas synchronously and skip the rAF
+        // machinery entirely.
+        if (!isFinite(charsPerSecond) || charsPerSecond <= 0) {
+            return {
+                push(text: string, id: string) {
+                    callbacks.onDelta?.(text, id);
+                },
+                async flush() {
+                    /* no-op */
+                },
+                cancel() {
+                    /* no-op */
+                },
+            };
+        }
+
+        let buffer = '';
+        let bufferedId = '';
+        let lastTickMs = 0;
+        let rafHandle: number | null = null;
+        let finishing = false;
+        let drainResolver: (() => void) | null = null;
+
+        function scheduleTick(): void {
+            if (rafHandle !== null) return;
+            lastTickMs = performance.now();
+            rafHandle = requestAnimationFrame(tick);
+        }
+
+        function tick(now: number): void {
+            rafHandle = null;
+            if (!isAlive()) return;
+
+            const dt = Math.max(0, now - lastTickMs) / 1000;
+            lastTickMs = now;
+
+            const rate = finishing ? charsPerSecond * FINISH_ACCELERATION : charsPerSecond;
+            const budget = Math.max(1, Math.floor(rate * dt));
+
+            if (buffer.length > 0) {
+                const slice = buffer.slice(0, budget);
+                buffer = buffer.slice(budget);
+                callbacks.onDelta?.(slice, bufferedId);
+            }
+
+            if (buffer.length > 0) {
+                rafHandle = requestAnimationFrame(tick);
+                lastTickMs = now;
+            } else if (finishing && drainResolver) {
+                const resolve = drainResolver;
+                drainResolver = null;
+                resolve();
+            }
+        }
+
+        return {
+            push(text: string, id: string) {
+                if (!text) return;
+                buffer += text;
+                bufferedId = id;
+                scheduleTick();
+            },
+            /** Flush any buffered characters at accelerated rate, then resolve. */
+            flush(): Promise<void> {
+                if (buffer.length === 0) return Promise.resolve();
+                finishing = true;
+                return new Promise<void>((resolve) => {
+                    drainResolver = resolve;
+                    scheduleTick();
+                });
+            },
+            cancel() {
+                if (rafHandle !== null) {
+                    cancelAnimationFrame(rafHandle);
+                    rafHandle = null;
+                }
+                buffer = '';
+                if (drainResolver) {
+                    const resolve = drainResolver;
+                    drainResolver = null;
+                    resolve();
+                }
+            },
+        };
+    }
+
+    /**
+     * Dispatch a parsed envelope. Returns the `done` envelope (so the run
+     * loop can fire `onDone` AFTER the pacer drains), or `null` for
+     * non-terminal envelopes.
+     */
+    function dispatch(
+        env: StreamEnvelope,
+        callbacks: StreamCallbacks,
+        pacer: ReturnType<typeof createPacer>,
+    ): { data: StreamDoneData; id: string } | null {
         switch (env.type) {
             case 'start':
                 callbacks.onStart?.(env.data, env.id);
-                return false;
+                return null;
             case 'delta':
-                callbacks.onDelta?.(env.data.text, env.id);
-                return false;
+                pacer.push(env.data.text, env.id);
+                return null;
             case 'meta':
                 callbacks.onMeta?.(env.data.key, env.data.value, env.id);
-                return false;
+                return null;
             case 'sources':
                 callbacks.onSources?.(env.data.sources, env.id);
-                return false;
+                return null;
             case 'tool':
                 callbacks.onTool?.(env.data, env.id);
-                return false;
+                return null;
             case 'error':
+                pacer.cancel();
                 reportError({ code: env.data.code, message: env.data.message, retryable: env.data.retryable }, env.id, callbacks);
-                return false;
+                return null;
             case 'done':
-                state.value = 'done';
-                callbacks.onDone?.(env.data, env.id);
-                return true;
+                // Return the done envelope so the run loop can fire
+                // `onDone` AFTER the pacer drains. Otherwise consumers
+                // flip `isStreaming=false` mid-flush and the trailing
+                // tokens lose their streaming animation.
+                return { data: env.data, id: env.id };
         }
     }
 
     async function run(url: string, body: string, callbacks: StreamCallbacks, myGeneration: number): Promise<void> {
         state.value = 'connecting';
         error.value = null;
+        const pacer = createPacer(callbacks, () => myGeneration === generation);
 
         let response: Response;
         try {
@@ -89,8 +221,12 @@ export function useChatStream() {
                 signal: abortController!.signal,
             });
         } catch (e) {
-            if (myGeneration !== generation) return;
+            if (myGeneration !== generation) {
+                pacer.cancel();
+                return;
+            }
             if ((e as Error).name === 'AbortError') {
+                pacer.cancel();
                 state.value = 'idle';
                 return;
             }
@@ -98,7 +234,10 @@ export function useChatStream() {
             return;
         }
 
-        if (myGeneration !== generation) return;
+        if (myGeneration !== generation) {
+            pacer.cancel();
+            return;
+        }
 
         if (!response.ok) {
             reportError(synthesizeError('network', `Server returned status ${response.status}.`, response.status >= 500), null, callbacks);
@@ -113,6 +252,7 @@ export function useChatStream() {
 
         while (true) {
             if (myGeneration !== generation) {
+                pacer.cancel();
                 try {
                     await reader.cancel();
                 } catch {
@@ -125,8 +265,12 @@ export function useChatStream() {
             try {
                 chunk = await reader.read();
             } catch (e) {
-                if (myGeneration !== generation) return;
+                if (myGeneration !== generation) {
+                    pacer.cancel();
+                    return;
+                }
                 if ((e as Error).name === 'AbortError') {
+                    pacer.cancel();
                     state.value = 'idle';
                     return;
                 }
@@ -135,6 +279,7 @@ export function useChatStream() {
             }
 
             if (chunk.done) {
+                await pacer.flush();
                 if (state.value === 'streaming') {
                     state.value = 'done';
                 }
@@ -147,7 +292,10 @@ export function useChatStream() {
             buffer = events.pop() ?? '';
 
             for (const raw of events) {
-                if (myGeneration !== generation) return;
+                if (myGeneration !== generation) {
+                    pacer.cancel();
+                    return;
+                }
                 if (raw.trim() === '') continue;
 
                 const match = raw.match(/^data:\s?(.+)$/s);
@@ -163,8 +311,16 @@ export function useChatStream() {
 
                 if (env?.v !== 1 || !env.type) continue;
 
-                const terminal = dispatch(env, callbacks);
+                const terminal = dispatch(env, callbacks, pacer);
                 if (terminal) {
+                    // Drain any buffered text at accelerated rate so the
+                    // visible stream finishes naturally, THEN fire
+                    // `onDone`. Consumers typically use `onDone` to flip
+                    // `isStreaming=false`, which must happen after the
+                    // last paced characters render.
+                    await pacer.flush();
+                    state.value = 'done';
+                    callbacks.onDone?.(terminal.data, terminal.id);
                     try {
                         await reader.cancel();
                     } catch {

@@ -55,6 +55,10 @@ final readonly class StreamEvent
      * Tool-call lifecycle event. `phase` is one of:
      *   - 'start' — the LLM has emitted a complete tool call; about to dispatch
      *   - 'end'   — the dispatch finished (with `result` or `error`)
+     *
+     * The `start` phase optionally carries display metadata (`kind`,
+     * `label`, `icon_url`, `brand_color`) so the chat UI can render a
+     * branded icon + service name instead of a generic spinner.
      */
     public static function tool(
         string $assistantMessageId,
@@ -64,6 +68,10 @@ final readonly class StreamEvent
         ?string $args = null,
         ?string $result = null,
         ?string $error = null,
+        ?string $kind = null,
+        ?string $label = null,
+        ?string $iconUrl = null,
+        ?string $brandColor = null,
     ): self {
         $data = [
             'phase' => $phase,
@@ -80,6 +88,18 @@ final readonly class StreamEvent
         }
         if ($error !== null) {
             $data['error'] = $error;
+        }
+        if ($kind !== null) {
+            $data['kind'] = $kind;
+        }
+        if ($label !== null) {
+            $data['label'] = $label;
+        }
+        if ($iconUrl !== null) {
+            $data['icon_url'] = $iconUrl;
+        }
+        if ($brandColor !== null) {
+            $data['brand_color'] = $brandColor;
         }
 
         return new self(EventType::Tool, $assistantMessageId, $data);

@@ -2,8 +2,8 @@
 
 namespace Domain\Sources\Files\Policies;
 
-use Domain\Sources\Files\Models\SourceFile;
 use App\Auth\Models\User;
+use Domain\Sources\Files\Models\SourceFile;
 
 class SourceFilePolicy
 {

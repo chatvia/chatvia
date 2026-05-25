@@ -13,7 +13,7 @@ import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
     team_collaboration?: boolean;
     members_limit?: number;
 }
@@ -106,7 +106,7 @@ const sendInvitation = () => {
     isSubmitting.value = true;
 
     // Store values before form reset
-    const invitedName = invitationForm.name;
+    const _invitedName = invitationForm.name;
     const invitedEmail = invitationForm.email;
 
     invitationForm.post(route('agents.team.invite', props.agent.external_id), {
@@ -142,12 +142,12 @@ const openInviteDialog = () => {
     invitationForm.clearErrors();
 };
 
-const openDeleteDialog = (member: any) => {
+const _openDeleteDialog = (member: any) => {
     selectedMember.value = member;
     showDeleteDialog.value = true;
 };
 
-const removeFromAgent = async () => {
+const _removeFromAgent = async () => {
     if (!selectedMember.value) return;
 
     try {
@@ -233,7 +233,7 @@ const grantAccess = async (member: any) => {
     }
 };
 
-const deleteMember = async (member: any) => {
+const _deleteMember = async (member: any) => {
     try {
         await axios.delete(
             route('agents.team.member.delete', {

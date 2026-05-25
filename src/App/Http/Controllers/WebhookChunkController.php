@@ -8,14 +8,14 @@ use Illuminate\Support\Facades\Log;
 
 class WebhookChunkController
 {
-    public function __invoke(Request $request, HMAC $hmac)
+    public function __invoke(Request $request, HMAC $hmac): void
     {
         $authHash = $request->header('X-Auth-Hash');
         $chunkId = $request->string('chunk_id');
 
         Log::info('Chunk ID: '.$chunkId.'. Hash: '.$authHash);
 
-        abort_unless($authHash, 401);
+        abort_unless($authHash !== null, 401);
 
         $passed = $this->verify($chunkId, $authHash);
 

@@ -31,7 +31,7 @@ import { toast } from 'vue-sonner';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, ChartTooltip, Legend, Filler);
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
 const props = defineProps<Props>();
@@ -40,7 +40,7 @@ const { hasCapability } = useCapabilityGuard();
 const hasAccess = computed(() => hasCapability('topics'));
 
 const loading = ref(true);
-const topicsData = ref<App.Data.Agent.Topics.TopicsResourceData | null>(null);
+const topicsData = ref<Domain.Agents.Data.Topics.TopicsResourceData | null>(null);
 const error = ref<string | null>(null);
 const activeView = ref<'graph' | 'pie'>('graph');
 
@@ -97,25 +97,27 @@ const formatDate = (dateStr: string): string => {
 const lineChartData = computed(() => {
     if (!topicsData.value) return null;
 
-    const datasets = topicsData.value.topics_by_date.map((topic, index) => {
-        const color = colors[index % colors.length];
+    const datasets = (topicsData.value.topics_by_date as Domain.Agents.Data.Topics.TopicTrendData[]).map(
+        (topic: Domain.Agents.Data.Topics.TopicTrendData, index: number) => {
+            const color = colors[index % colors.length];
 
-        return {
-            label: topic.topic_name,
-            data: topic.counts.map((d) => d.count),
-            borderColor: color,
-            backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
-            fill: true,
-            tension: 0.4,
-            pointRadius: 4,
-            pointBackgroundColor: color,
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-        };
-    });
+            return {
+                label: topic.topic_name,
+                data: topic.counts.map((d: Domain.Agents.Data.Topics.TopicCountByDateData) => d.count),
+                borderColor: color,
+                backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: color,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            };
+        },
+    );
 
-    const firstTopic = topicsData.value.topics_by_date[0];
-    const labels = firstTopic ? firstTopic.counts.map((d) => formatDate(d.date)) : [];
+    const firstTopic = (topicsData.value.topics_by_date as Domain.Agents.Data.Topics.TopicTrendData[])[0];
+    const labels = firstTopic ? firstTopic.counts.map((d: Domain.Agents.Data.Topics.TopicCountByDateData) => formatDate(d.date)) : [];
 
     return {
         labels,
@@ -193,13 +195,13 @@ const lineChartOptions: ChartOptions<'line'> = {
 const pieChartData = computed(() => {
     if (!topicsData.value) return null;
 
-    const totals = topicsData.value.total_topics;
+    const totals = topicsData.value.total_topics as Domain.Agents.Data.Topics.TopicSummaryData[];
 
     return {
-        labels: totals.map((t) => t.name),
+        labels: totals.map((t: Domain.Agents.Data.Topics.TopicSummaryData) => t.name),
         datasets: [
             {
-                data: totals.map((t) => t.count),
+                data: totals.map((t: Domain.Agents.Data.Topics.TopicSummaryData) => t.count),
                 backgroundColor: colors,
                 borderColor: '#fff',
                 borderWidth: 2,
@@ -238,7 +240,11 @@ const pieChartOptions: ChartOptions<'pie'> = {
                 label: function (context) {
                     const label = context.label || '';
                     const value = context.parsed || 0;
-                    const total = topicsData.value?.total_topics.reduce((sum, t) => sum + t.count, 0) ?? 0;
+                    const total =
+                        (topicsData.value?.total_topics as Domain.Agents.Data.Topics.TopicSummaryData[] | undefined)?.reduce(
+                            (sum: number, t: Domain.Agents.Data.Topics.TopicSummaryData) => sum + t.count,
+                            0,
+                        ) ?? 0;
                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                     return `${label}: ${value} (${percentage}%)`;
                 },

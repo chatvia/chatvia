@@ -2,17 +2,76 @@
 
 namespace Domain\Agents\Models;
 
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $external_id
+ * @property int $agent_id
+ * @property string|null $connector_slug
+ * @property string $name
+ * @property string $slug
+ * @property string $url
+ * @property string $transport
+ * @property string $auth_type
+ * @property string|null $auth_value
+ * @property array<array-key, mixed>|null $headers
+ * @property int $timeout_ms
+ * @property bool $enabled
+ * @property Carbon|null $catalog_cached_at
+ * @property int $catalog_tools_count
+ * @property Carbon|null $last_invoked_at
+ * @property string|null $last_error
+ * @property int $invocation_count
+ * @property string|null $oauth_authorization_server
+ * @property string|null $oauth_token_endpoint
+ * @property string|null $oauth_refresh_token
+ * @property Carbon|null $oauth_expires_at
+ * @property string|null $oauth_scopes
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Agent $agent
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereAgentId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereAuthType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereAuthValue($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereCatalogCachedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereCatalogToolsCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereConnectorSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereEnabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereExternalId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereHeaders($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereInvocationCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereLastError($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereLastInvokedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereOauthAuthorizationServer($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereOauthExpiresAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereOauthRefreshToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereOauthScopes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereOauthTokenEndpoint($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereTimeoutMs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereTransport($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereUrl($value)
+ *
+ * @mixin \Eloquent
+ */
+#[Guarded(['id'])]
 class AgentMcpServer extends Model
 {
     use HasFactory;
-
-    protected $guarded = ['id'];
 
     protected function casts(): array
     {
@@ -50,7 +109,7 @@ class AgentMcpServer extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (self $server) {
+        static::creating(function (self $server): void {
             if (! $server->external_id) {
                 $server->external_id = (string) Str::uuid();
             }

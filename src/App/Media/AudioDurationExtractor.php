@@ -7,11 +7,6 @@ use RuntimeException;
 
 class AudioDurationExtractor
 {
-    private function ffmpegPath(): string
-    {
-        return config('services.bin.ffmpeg');
-    }
-
     private function getSupportedMimeTypes(): array
     {
         return array_merge(

@@ -24,7 +24,7 @@ class ChunkFitClientTest extends TestCase
     {
         Http::fake();
 
-        $client = new ChunkFitClient();
+        $client = new ChunkFitClient;
 
         $this->assertSame([], $client->splitSentences('   ', chunkSize: 800));
 
@@ -41,7 +41,7 @@ class ChunkFitClientTest extends TestCase
             ], 200),
         ]);
 
-        $client = new ChunkFitClient();
+        $client = new ChunkFitClient;
         $chunks = $client->splitSentences('Long body of text.', chunkSize: 800, chunkOverlap: 0);
 
         $this->assertSame(['First chunk text.', 'Second chunk text.'], $chunks);
@@ -67,7 +67,7 @@ class ChunkFitClientTest extends TestCase
             ], 200),
         ]);
 
-        $client = new ChunkFitClient();
+        $client = new ChunkFitClient;
         $chunks = $client->splitSentences('text', chunkSize: 800);
 
         $this->assertSame(['padded', 'normal'], $chunks);
@@ -79,7 +79,7 @@ class ChunkFitClientTest extends TestCase
             'chunk.fit/*' => Http::response(['detail' => 'invalid chunk_size'], 422),
         ]);
 
-        $client = new ChunkFitClient();
+        $client = new ChunkFitClient;
 
         $this->expectException(ChunkFitException::class);
         $this->expectExceptionMessage('chunk.fit returned 422: invalid chunk_size');
@@ -93,7 +93,7 @@ class ChunkFitClientTest extends TestCase
             'chunk.fit/*' => Http::response(['unexpected' => 'shape'], 200),
         ]);
 
-        $client = new ChunkFitClient();
+        $client = new ChunkFitClient;
 
         $this->expectException(ChunkFitException::class);
         $this->expectExceptionMessage('missing "chunks" array');
@@ -105,7 +105,7 @@ class ChunkFitClientTest extends TestCase
     {
         config()->set('services.chunkfit.api_key', null);
 
-        $client = new ChunkFitClient();
+        $client = new ChunkFitClient;
 
         $this->expectException(ChunkFitException::class);
         $this->expectExceptionMessage('CHUNK_FIT_API_KEY');

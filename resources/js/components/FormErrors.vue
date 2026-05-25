@@ -18,7 +18,7 @@ const hasErrors = computed(() => Object.keys(props.errors).length > 0);
 </script>
 
 <template>
-    <div v-if="hasErrors" :class="class">
+    <div v-if="hasErrors" :class="props.class">
         <Alert variant="destructive" class="bg-red-50 text-red-900 dark:bg-red-900/20 dark:text-red-300">
             <AlertCircle class="h-4 w-4" />
             <AlertTitle>{{ title }}</AlertTitle>

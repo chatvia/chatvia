@@ -11,11 +11,17 @@ use Illuminate\Support\Facades\Storage;
 
 trait Chunkable
 {
+    /**
+     * @return MorphMany<Chunk, $this>
+     */
     public function chunks(): MorphMany
     {
         return $this->morphMany(Chunk::class, 'chunkable')->whereNot('chunk_index', 0);
     }
 
+    /**
+     * @return BelongsToMany<Agent, $this>
+     */
     public function agents(): BelongsToMany
     {
         return $this->belongsToMany(Agent::class, 'agent_chunk');
@@ -40,7 +46,7 @@ trait Chunkable
 
         $importedChunks = $this->chunks()->count();
 
-        return round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
+        return (int) round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
     }
 
     public function summary(): MorphOne
@@ -55,7 +61,7 @@ trait Chunkable
         return $this->chunks()
             ->select('metadata')
             ->get()
-            ->reject(fn ($item) => count($item['metadata']['images'] ?? []) === 0)
+            ->reject(fn ($item): bool => count($item['metadata']['images'] ?? []) === 0)
             ->pluck('metadata.images')
             ->map(fn ($images) => collect($images)->keys()->map(fn ($image) => Storage::disk('public')->url($image))->toArray())
             ->flatten()

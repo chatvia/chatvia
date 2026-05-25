@@ -21,7 +21,7 @@ class AgentSourcesTrainedTextsListController
             ->where('user_id', $request->user()->id)
             ->where('status', 'ingested')
             ->whereNotIn('id', $currentAgentTextIds)
-            ->with(['agents' => function ($query) {
+            ->with(['agents' => function ($query): void {
                 $query->select('agents.id', 'agents.name');
             }])
             ->get()
@@ -30,7 +30,7 @@ class AgentSourcesTrainedTextsListController
                     'id' => $text->id,
                     'excerpt' => substr($text->content, 0, 200),
                     'word_count' => str_word_count($text->content),
-                    'agents' => $text->agents->map(function ($agent) {
+                    'agents' => $text->agents->map(function (Agent $agent) {
                         return [
                             'id' => $agent->id,
                             'name' => $agent->name,

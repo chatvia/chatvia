@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Teams\Roles;
 
-use Domain\Agents\Models\Agent;
 use App\Teams\Models\Permission;
 use App\Teams\Models\Team;
+use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 
 class TeamRoleUpdateController

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Agents\Sources;
 
+use Domain\Agents\Models\Agent;
 use Domain\Sources\Web\Data\Crawler\CrawlerData;
 use Domain\Sources\Web\Events\WebsiteCrawlerEvent;
 use Domain\Sources\Web\Jobs\Crawler\WebsiteCrawlerJob;
-use Domain\Agents\Models\Agent;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Exception;
 use Illuminate\Http\RedirectResponse;

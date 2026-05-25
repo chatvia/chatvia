@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers\Teams;
 
+use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
 use App\Teams\Models\Invitation;
 use App\Teams\Models\Team;
-use App\Auth\Models\User;
-use App\Teams\Services\TeamService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,16 +15,12 @@ use Inertia\Inertia;
 
 class TeamInvitationController extends Controller
 {
-    public function __construct(
-        private TeamService $teamService
-    ) {}
-
     /**
      * Show the invitation acceptance page.
      */
     public function show(Request $request, Invitation $invitation)
     {
-        if (! $invitation || $invitation->created_at->addDays(7)->isPast()) {
+        if ($invitation->created_at->addDays(7)->isPast()) {
             return Inertia::render('auth/InvitationExpired', [
                 'message' => 'This invitation has expired.',
             ]);
@@ -75,7 +70,7 @@ class TeamInvitationController extends Controller
     public function accept(Request $request, Invitation $invitation)
     {
         // Check if invitation is still valid
-        if (! $invitation || $invitation->created_at->addDays(7)->isPast()) {
+        if ($invitation->created_at->addDays(7)->isPast()) {
             return back()->withErrors(['invitation' => 'This invitation has expired.']);
         }
 

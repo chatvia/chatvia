@@ -6,27 +6,25 @@ use Domain\Sources\Web\Data\Crawler\CrawlerData;
 use Spatie\Browsershot\Browsershot;
 use Spatie\Crawler\Crawler as CrawlerSpatie;
 
-class Crawler
+final class Crawler
 {
     private int $concurrency = 10;
 
-    private int $delayBetweenRequests = 250;
-
     private int $totalCrawlLimit = 1000;
 
-    public static function create(): static
+    public static function create(): self
     {
-        return new static;
+        return new self;
     }
 
-    public function setConcurrency(int $concurrency): static
+    public function setConcurrency(int $concurrency): self
     {
         $this->concurrency = $concurrency;
 
         return $this;
     }
 
-    public function setTotalCrawlLimit(int $limit): static
+    public function setTotalCrawlLimit(int $limit): self
     {
         $this->totalCrawlLimit = $limit;
 

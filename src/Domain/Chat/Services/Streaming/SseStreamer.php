@@ -62,7 +62,7 @@ class SseStreamer
                 $event = $events->current();
 
                 if (! $this->emit($event, $seq)) {
-                    $events->throw(new ClientDisconnected());
+                    $events->throw(new ClientDisconnected);
 
                     return;
                 }

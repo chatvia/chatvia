@@ -2,13 +2,15 @@
 
 namespace Domain\Chat\Services;
 
+use App\Auth\Models\User;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Events\ChatHandoffEvent;
 use Domain\Chat\Events\ChatMessageEvent;
 use Domain\Chat\Events\ChatTypingEvent;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
-use App\Auth\Models\User;
+use Domain\Chat\Services\Memory\ChatMemory;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class HandoffService
@@ -80,7 +82,7 @@ class HandoffService
         }
 
         $session = $conversation->session;
-        $agent = $session?->agent;
+        $agent = $session->agent;
 
         if (! $agent) {
             return null;
@@ -89,11 +91,11 @@ class HandoffService
         $messageId = Str::uuid()->toString();
 
         // Save to memory cache via ChatMemory
-        $chatMemory = app(\Domain\Chat\Services\Memory\ChatMemory::class);
+        $chatMemory = app(ChatMemory::class);
         $chatMemory
             ->setAgent($agent)
-            ->setExternalSessionId($session->id)
-            ->setConversationId($conversation->id)
+            ->setExternalSessionId($session->external_id)
+            ->setConversationId($conversation->external_id)
             ->addMessage(
                 role: 'agent',
                 message: $content,
@@ -151,7 +153,7 @@ class HandoffService
 
         $messageId = (string) Str::uuid();
         $session = $conversation->session;
-        $agent = $session?->agent;
+        $agent = $session->agent;
 
         if (! $agent) {
             return null;
@@ -162,7 +164,7 @@ class HandoffService
             external_session_id: $session->external_id,
             external_conversation_id: $conversation->external_id,
             external_message_id: $messageId,
-            model: $model ?? $agent->llms()->first()?->external_name ?? 'unknown',
+            model: $model ?? $agent->llms->first()->external_name ?? 'unknown',
             message: $content,
             sent_at: now(),
             ip_address: $ipAddress,
@@ -174,11 +176,11 @@ class HandoffService
         );
 
         // Use ChatMemory to save both to memory (cache) and dispatch persistence job
-        $chatMemory = app(\Domain\Chat\Services\Memory\ChatMemory::class);
+        $chatMemory = app(ChatMemory::class);
         $chatMemory
             ->setAgent($agent)
-            ->setExternalSessionId($session->id)
-            ->setConversationId($conversation->id)
+            ->setExternalSessionId($session->external_id)
+            ->setConversationId($conversation->external_id)
             ->addMessageViaPayload($payload);
 
         // Get user name for broadcast
@@ -191,7 +193,7 @@ class HandoffService
             $content,
             'user',
             $userName,
-            $session->id,
+            (string) $session->id,
         );
 
         return $messageId;
@@ -243,13 +245,13 @@ class HandoffService
         }
 
         // User must have access to the agent (owner or team member with permissions)
-        $agent = $conversation->session?->agent;
+        $agent = $conversation->session->agent;
 
         if (! $agent) {
             return false;
         }
 
-        return \Illuminate\Support\Facades\Gate::forUser($admin)->allows('access-agent', $agent);
+        return Gate::forUser($admin)->allows('access-agent', $agent);
     }
 
     /**
@@ -277,7 +279,7 @@ class HandoffService
         }
 
         // Check member
-        $member = $conversation->session?->member;
+        $member = $conversation->session->user;
         if ($member && $member->name) {
             return $member->name;
         }
@@ -295,7 +297,7 @@ class HandoffService
             return $lead->email;
         }
 
-        $member = $conversation->session?->member;
+        $member = $conversation->session->user;
         if ($member && $member->email) {
             return $member->email;
         }

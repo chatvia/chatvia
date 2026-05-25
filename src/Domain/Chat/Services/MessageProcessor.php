@@ -2,12 +2,13 @@
 
 namespace Domain\Chat\Services;
 
-use Domain\Chat\Data\ChatInputPayload;
-use Domain\Agents\Models\Agent;
-use Domain\Sources\QA\Models\AgentQuestionAnswer;
-use Domain\Chat\Services\Data\StreamRequestData;
 use App\Prompts\PromptLoader;
+use Domain\Agents\Models\Agent;
+use Domain\Chat\Data\ChatInputPayload;
+use Domain\Chat\Services\Data\StreamRequestData;
 use Domain\Ingestion\Services\Search\KnowledgeBase;
+use Domain\Sources\QA\Models\AgentQuestionAnswer;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -102,18 +103,6 @@ readonly class MessageProcessor
         ];
     }
 
-    private function buildUserMessage(Agent $agent, ChatInputPayload $payload): string
-    {
-        $userMessageContent = $payload->message_for_llm;
-
-        if (! $agent->isStandalone()) {
-            return $userMessageContent;
-        }
-
-        // This will be set by the ChatService after knowledge base search
-        return $userMessageContent;
-    }
-
     public function buildContextualUserMessage(ChatInputPayload $payload, Collection $sources): string
     {
         if ($sources->isEmpty()) {
@@ -125,7 +114,7 @@ readonly class MessageProcessor
             ->append("\n\n### Retrieved Context\n");
 
         // Check if any sources have images
-        $hasImages = $sources->contains(fn ($chunk) => ! empty($chunk['images']));
+        $hasImages = $sources->contains(fn ($chunk): bool => ! empty($chunk['images']));
 
         if ($hasImages) {
             $message = $message->append("\n⚠️ CRITICAL INSTRUCTION: This context includes images. You MUST include relevant images in your response using markdown format: ![description](url)\n\n");
@@ -138,7 +127,7 @@ readonly class MessageProcessor
                 $text .= "\n📷 IMAGES FOR THIS CONTEXT (REQUIRED - Include in response):\n";
 
                 $imageIndex = 0;
-                foreach ($chunk['images'] as $image => $description) {
+                foreach ($chunk['images'] as $description) {
                     // Always use main domain URL instead of subdomain-based route()
                     $path = '/my/chunks/'.$chunk['external_id'].'/'.$imageIndex.'.png';
                     $imageUrl = rtrim(config('app.url'), '/').$path;
@@ -164,9 +153,10 @@ readonly class MessageProcessor
         // Get unique chunkable IDs and their types
         $chunkableItems = collect($searchResults)
             ->groupBy('chunkable_type')
-            ->map(function ($results, $type) {
+            ->map(function ($results, string $type) {
                 $ids = $results->pluck('chunkable_id')->unique();
 
+                /** @var class-string<Model> $type */
                 return $type::whereIn('id', $ids)->get()->keyBy('id');
             });
 
@@ -180,7 +170,7 @@ readonly class MessageProcessor
                 'content' => $result->chunk,
                 'confidence_score' => $result->confidence_score ?? null,
                 'metadata' => [
-                    'filename' => $chunkable?->filename ?? ($chunkable?->url ?? 'Unknown'),
+                    'filename' => $chunkable->filename ?? ($chunkable->url ?? 'Unknown'),
                     'document_id' => $result->id,
                     'chunkable_type' => $result->chunkable_type,
                     'chunkable_id' => $result->chunkable_id,

@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { ref, nextTick, computed, watch } from 'vue';
-import ModelSelector from "@/components/chat/ModelSelector.vue";
+import ModelSelector from '@/components/chat/ModelSelector.vue';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Square, Send, Keyboard } from 'lucide-vue-next';
 import type { AIModel } from '@/types/chat';
+import { Send, Square } from 'lucide-vue-next';
+import { nextTick, ref, watch } from 'vue';
 
 interface Props {
-    isThinking?: boolean,
-    text?: string,
-    models?: AIModel[],
-    defaultModel?: AIModel | null,
-    isLoadingModels?: boolean,
-    placeholder?: string,
+    isThinking?: boolean;
+    text?: string;
+    models?: AIModel[];
+    defaultModel?: AIModel | null;
+    isLoadingModels?: boolean;
+    placeholder?: string;
 }
 
 const props = defineProps<Props>();
@@ -23,30 +23,38 @@ const messageInput = ref<HTMLTextAreaElement>();
 const isComposing = ref(false);
 
 // Watch for changes in the text prop and update userInput
-watch(() => props.text, (newText) => {
-    if (newText !== undefined && newText !== userInput.value) {
-        userInput.value = newText;
-        // Auto-adjust textarea height after text update, but only if textarea exists
-        nextTick(() => {
-            if (messageInput.value) {
-                adjustTextareaHeight();
-            }
-        });
-    }
-}, { immediate: true });
+watch(
+    () => props.text,
+    (newText) => {
+        if (newText !== undefined && newText !== userInput.value) {
+            userInput.value = newText;
+            // Auto-adjust textarea height after text update, but only if textarea exists
+            nextTick(() => {
+                if (messageInput.value) {
+                    adjustTextareaHeight();
+                }
+            });
+        }
+    },
+    { immediate: true },
+);
 
 // Watch for changes in the defaultModel prop and update selectedModel
-watch(() => props.defaultModel, (newDefaultModel) => {
-    if (newDefaultModel && newDefaultModel !== selectedModel.value) {
-        selectedModel.value = newDefaultModel;
-        emit('modelSelected', newDefaultModel);
-    }
-}, { immediate: true });
+watch(
+    () => props.defaultModel,
+    (newDefaultModel) => {
+        if (newDefaultModel && newDefaultModel !== selectedModel.value) {
+            selectedModel.value = newDefaultModel;
+            emit('modelSelected', newDefaultModel);
+        }
+    },
+    { immediate: true },
+);
 
 const emit = defineEmits<{
-    messageAdded: [content: string, model: AIModel]
-    stopStreaming: []
-    modelSelected: [model: AIModel]
+    messageAdded: [content: string, model: AIModel];
+    stopStreaming: [];
+    modelSelected: [model: AIModel];
 }>();
 
 const handleEnterKey = (event: KeyboardEvent) => {
@@ -59,7 +67,7 @@ const handleEnterKey = (event: KeyboardEvent) => {
 };
 
 const adjustTextareaHeight = (event?: Event) => {
-    const textarea = event?.target as HTMLTextAreaElement || messageInput.value;
+    const textarea = (event?.target as HTMLTextAreaElement) || messageInput.value;
     if (!textarea || !textarea.style) return;
 
     textarea.style.height = 'auto';
@@ -75,7 +83,7 @@ watch(userInput, () => {
 
 const stopStreaming = () => {
     emit('stopStreaming');
-}
+};
 
 const handleModelChange = (model: AIModel) => {
     emit('modelSelected', model);
@@ -87,7 +95,7 @@ const handleModelChange = (model: AIModel) => {
             messageInput.value.focus();
         }
     });
-}
+};
 
 const sendMessage = () => {
     if (!userInput.value.trim() || !selectedModel.value) return;
@@ -99,7 +107,7 @@ const sendMessage = () => {
     if (messageInput.value && messageInput.value.style) {
         messageInput.value.style.height = 'auto';
     }
-}
+};
 
 // Track composition state
 const handleFocus = () => {
@@ -115,10 +123,7 @@ const handleBlur = () => {
     <div class="relative">
         <div
             class="rounded-2xl border transition-all duration-200"
-            :class="[
-                isComposing ? 'border-primary shadow-md' : 'border-border shadow-sm hover:shadow-md',
-                'bg-card'
-            ]"
+            :class="[isComposing ? 'border-primary shadow-md' : 'border-border shadow-sm hover:shadow-md', 'bg-card']"
         >
             <div class="relative">
                 <Textarea
@@ -129,13 +134,13 @@ const handleBlur = () => {
                     @focus="handleFocus"
                     @blur="handleBlur"
                     :placeholder="placeholder || 'Ask anything...'"
-                    class="min-h-[60px] max-h-[200px] resize-none rounded-2xl border-0 bg-transparent px-4 py-4 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 pr-12 sm:px-6 sm:py-5"
+                    class="text-foreground placeholder:text-muted-foreground max-h-[200px] min-h-[60px] resize-none rounded-2xl border-0 bg-transparent px-4 py-4 pr-12 focus-visible:ring-0 focus-visible:outline-none sm:px-6 sm:py-5"
                     :disabled="isThinking"
                     autofocus
                 />
             </div>
 
-            <div class="flex items-center justify-between border-t border-border/50 px-3 py-2 sm:px-4">
+            <div class="border-border/50 flex items-center justify-between border-t px-3 py-2 sm:px-4">
                 <div class="flex items-center gap-2">
                     <ModelSelector
                         @modelChanged="handleModelChange"
@@ -146,14 +151,8 @@ const handleBlur = () => {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <Button
-                        v-if="isThinking"
-                        @click="stopStreaming"
-                        size="icon"
-                        variant="ghost"
-                        class="h-9 w-9 rounded-full hover:bg-destructive/10"
-                    >
-                        <Square class="h-4 w-4"" />
+                    <Button v-if="isThinking" @click="stopStreaming" size="icon" variant="ghost" class="hover:bg-destructive/10 h-9 w-9 rounded-full">
+                        <Square class="h-4 w-4" />
                     </Button>
 
                     <Button
@@ -165,7 +164,7 @@ const handleBlur = () => {
                         class="h-9 w-9 rounded-full transition-all"
                         :class="{
                             'opacity-50': userInput.trim() === '' || !selectedModel,
-                            'scale-110 shadow-lg': userInput.trim() !== '' && selectedModel
+                            'scale-110 shadow-lg': userInput.trim() !== '' && selectedModel,
                         }"
                     >
                         <Send class="h-4 w-4" />
@@ -175,5 +174,3 @@ const handleBlur = () => {
         </div>
     </div>
 </template>
-
-

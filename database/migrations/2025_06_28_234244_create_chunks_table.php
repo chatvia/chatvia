@@ -25,8 +25,7 @@ return new class extends Migration
             $table->boolean('enhanced')->default(false);
             $table->string('chunked_using_model')->nullable();
             $table->string('embedding_model')->nullable();
-            $table->json('questions')->nullable()->after('chunk');
-            $table->text('summary')->nullable()->after('questions');
+            $table->text('summary')->nullable()->after('chunk');
             $table->decimal('cost_in_cents', 10, 3)->default(0);
             $table->unsignedInteger('tokens');
 

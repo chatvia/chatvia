@@ -2,7 +2,7 @@ import axios from 'axios';
 import { computed, onUnmounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
-export type FileAnalyzedData = App.Data.Agent.KnowledgeAnalyzeResourceData;
+export type FileAnalyzedData = Domain.Agents.Data.KnowledgeAnalyzeResourceData;
 
 export interface FileStats {
     pages?: number;

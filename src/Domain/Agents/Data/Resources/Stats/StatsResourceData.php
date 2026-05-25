@@ -4,7 +4,7 @@ namespace Domain\Agents\Data\Resources\Stats;
 
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Llm;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -61,7 +61,7 @@ class StatsResourceData extends Data
         $startDate = $startDate ?? now()->subDays(6)->startOfDay();
         $endDate = $endDate ?? now()->endOfDay();
 
-        $days = $startDate->diffInDays($endDate) + 1;
+        $days = (int) $startDate->diffInDays($endDate) + 1;
 
         $firstDate = $agent->firstDataDate();
         $satisfactionRate = $agent->satisfactionRate();
@@ -159,7 +159,7 @@ class StatsResourceData extends Data
         return $agent
             ->dailyMessages($days)
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn ($item): array => [
                 'date' => $item->date,
                 'messages' => $item->messages,
             ])
@@ -172,9 +172,9 @@ class StatsResourceData extends Data
             ->mostAccessedFiles()
             ->limit($limit)
             ->get()
-            ->map(fn ($file) => [
+            ->map(fn ($file): array => [
                 'name' => $file->filename,
-                'type' => $agent->document_classification,
+                'type' => $file->document_classification,
                 'accessed' => $file->retrieval_count,
             ])
             ->toArray();
@@ -185,7 +185,7 @@ class StatsResourceData extends Data
         return $agent
             ->conversationsByCountry()
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn ($item): array => [
                 'country_code' => strtoupper($item->country_code),
                 'country_name' => $item->country_name,
                 'count' => $item->conversation_count,
@@ -199,12 +199,12 @@ class StatsResourceData extends Data
         $startDate = $startDate ?? now()->subDays(6)->startOfDay();
         $endDate = $endDate ?? now()->endOfDay();
 
-        $days = $startDate->diffInDays($endDate) + 1;
+        $days = (int) $startDate->diffInDays($endDate) + 1;
 
         return $agent
             ->conversationsTrend($days)
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn ($item): array => [
                 'date' => $item->date,
                 'conversations' => $item->conversations,
             ])
@@ -219,7 +219,7 @@ class StatsResourceData extends Data
         for ($hour = 0; $hour < 24; $hour++) {
             $result[] = [
                 'hour' => $hour,
-                'count' => $hourlyData->get($hour)?->conversation_count ?? 0,
+                'count' => $hourlyData->get($hour)->conversation_count ?? 0,
             ];
         }
 
@@ -237,7 +237,7 @@ class StatsResourceData extends Data
             $result[] = [
                 'day' => $dayNames[$day],
                 'day_number' => $day,
-                'count' => $daysData->get($day)?->conversation_count ?? 0,
+                'count' => $daysData->get($day)->conversation_count ?? 0,
             ];
         }
 

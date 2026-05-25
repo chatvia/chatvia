@@ -6,7 +6,7 @@ use Domain\Agents\Models\Agent;
 
 class ChatModelsListController
 {
-    public function __invoke(Agent $agent)
+    public function __invoke(Agent $agent): array
     {
         $models = current_agent()?->llmsFormatted();
 

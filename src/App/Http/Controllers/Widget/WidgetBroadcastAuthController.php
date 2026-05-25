@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Widget;
 
-use Domain\Chat\Models\ChatConversation;
 use App\Widget\WidgetVerification;
+use Domain\Chat\Models\ChatConversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Pusher\Pusher;
@@ -87,7 +87,7 @@ readonly class WidgetBroadcastAuthController
         }
 
         // Try member
-        $member = $conversation->session?->member;
+        $member = $conversation->session->user;
         if ($member && $member->name) {
             return $member->name;
         }

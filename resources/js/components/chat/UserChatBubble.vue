@@ -32,7 +32,7 @@ const emit = defineEmits<{
 }>();
 
 const page = usePage();
-const user = (page.props as any).auth?.user;
+const _user = (page.props as any).auth?.user;
 
 const isEditing = ref(false);
 const editedContent = ref('');

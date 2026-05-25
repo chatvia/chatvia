@@ -2,13 +2,13 @@
 
 namespace Domain\Ingestion\Jobs\Media;
 
-use Domain\Ingestion\Data\OCR\PageData;
-use Domain\Ingestion\Jobs\SummaryIngestionJob;
-use Domain\Agents\Models\Agent;
-use Domain\Sources\Files\Models\SourceFile;
 use App\LLM\Operations\Transcription;
 use App\Media\AudioCompressor;
+use Domain\Agents\Models\Agent;
+use Domain\Ingestion\Data\OCR\PageData;
+use Domain\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Ingestion\Services\TokenSplitter;
+use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -93,13 +93,13 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $texts = collect($splitter->split($transcription));
 
-        $jobs = collect($texts)->map(fn (PageData $page) => new MediaChunkIngestionJob($this->agent, $this->sourceFile, $page));
+        $jobs = collect($texts)->map(fn (PageData $page): MediaChunkIngestionJob => new MediaChunkIngestionJob($this->agent, $this->sourceFile, $page));
 
         $agentFileId = $this->agent->id;
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent File ID: '.$this->agent->id)
-            ->then(function (Batch $batch) use ($agentFileId) {
+            ->then(function (Batch $batch) use ($agentFileId): void {
                 $file = SourceFile::find($agentFileId);
                 $file?->update(['status' => 'ingested']);
             })

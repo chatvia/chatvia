@@ -32,19 +32,19 @@ import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 
-const page = usePage();
+const _page = usePage();
 const { hasPermission } = useTeamPermissions();
 
 // Check if user can delete sources
 const canDeleteSources = computed(() => hasPermission('agent.sources.delete'));
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
     fileType?: string; // 'pdf', 'word', or undefined for all files
     // Removed quota and usage props - will fetch from API
 }
 
-type KnowledgeFile = App.Data.Responses.Agent.SourceFileDataResponse;
+type KnowledgeFile = Domain.Agents.Data.Resources.SourceFileDataResource;
 
 interface UploadedFile {
     id: number;
@@ -66,8 +66,8 @@ interface UploadingFileData extends BaseUploadingFileData {
 
 // Usage data interface - subset of the full usage resource with optional minutes
 type UsageData = {
-    pages: App.Data.Resources.My.Usage.UsageStatsData;
-    minutes?: App.Data.Resources.My.Usage.UsageStatsData;
+    pages: App.Auth.Data.Resources.My.Usage.UsageStatsData;
+    minutes?: App.Auth.Data.Resources.My.Usage.UsageStatsData;
 };
 
 // File summary data interface
@@ -141,8 +141,8 @@ const fileUploaderConfig = computed<FileUploaderConfig>(() => {
         maxFiles: maxFilesToUpload,
         acceptedTypes,
         maxFileSize,
-        analyzeEndpoint: (file: File) => route('agents.sources.files.upload', { agent: props.agent.external_id }),
-        onFileAnalyzed: (file: BaseUploadingFileData, data: FileAnalyzedData) => {
+        analyzeEndpoint: (_file: File) => route('agents.sources.files.upload', { agent: props.agent.external_id }),
+        onFileAnalyzed: (file: BaseUploadingFileData, _data: FileAnalyzedData) => {
             // For Knowledge.vue, the upload endpoint uploads the file
             // Remove the file from FileUploader since it's now uploaded and will show in "Ready to Train"
             if (fileUploaderRef.value) {
@@ -267,14 +267,14 @@ const allUploadingFiles = computed(() => {
 // Selection computed properties
 const selectedFilesCount = computed(() => selectedFileIds.value.size);
 
-const isAllSelected = computed(() => {
+const _isAllSelected = computed(() => {
     const visibleFiles = allUploadingFiles.value;
     if (visibleFiles.length === 0) return false;
 
     return visibleFiles.every((file) => selectedFileIds.value.has(file.id));
 });
 
-const isIndeterminate = computed(() => {
+const _isIndeterminate = computed(() => {
     const visibleFiles = allUploadingFiles.value;
     if (visibleFiles.length === 0) return false;
 
@@ -283,16 +283,16 @@ const isIndeterminate = computed(() => {
 });
 
 // Other computed properties
-const isAnyFileUploading = computed(() => {
+const _isAnyFileUploading = computed(() => {
     return uploadingFiles.value.some((file) => file.uploading);
 });
 
-const hasFailedFiles = computed(() => {
+const _hasFailedFiles = computed(() => {
     return uploadingFiles.value.some((file) => file.error);
 });
 
 // Check if agent supports knowledge base functionality
-const isKnowledgeAgent = computed(() => {
+const _isKnowledgeAgent = computed(() => {
     return props.agent.type === 'knowledge';
 });
 
@@ -317,7 +317,7 @@ const minutesRemaining = computed(() => {
     return usageData.value.minutes?.remaining ?? 0;
 });
 
-const totalUploadedPages = computed(() => {
+const _totalUploadedPages = computed(() => {
     return (
         uploadedFiles.value.reduce((total, file) => {
             if (usesMinutesQuota(file)) {
@@ -415,7 +415,7 @@ const wouldExceedQuota = computed(() => {
     return uploadingPages > pagesRemaining.value;
 });
 
-const quotaUtilization = computed(() => {
+const _quotaUtilization = computed(() => {
     const pagesUsed = usageData.value.pages.used + totalUploadedPagesOnly.value;
     const minutesUsed = (usageData.value.minutes?.used || 0) + totalUploadedMinutes.value;
 
@@ -431,7 +431,7 @@ const clearSelection = () => {
     selectedFileIds.value = new Set();
 };
 
-const removeFromSelection = (fileIds: string | string[]) => {
+const _removeFromSelection = (fileIds: string | string[]) => {
     const newSelection = new Set(selectedFileIds.value);
     const idsToRemove = Array.isArray(fileIds) ? fileIds : [fileIds];
 
@@ -483,7 +483,7 @@ const formatDate = (dateString: string): string => {
             month: 'short',
             day: 'numeric',
         }).format(date);
-    } catch (error) {
+    } catch (_error) {
         return dateString; // Return original if formatting fails
     }
 };
@@ -501,7 +501,7 @@ const formatFileSize = (sizeInBytes: number): string => {
     return `${size.toFixed(1)} ${units[unitIndex]}`;
 };
 
-const formatSpeed = (bytesPerSecond: number): string => {
+const _formatSpeed = (bytesPerSecond: number): string => {
     const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
     let speed = bytesPerSecond;
     let unitIndex = 0;
@@ -527,7 +527,7 @@ const formatFileLength = (file: { length?: number; type?: string; mime_type?: st
     }
 };
 
-const calculateETA = (file: UploadingFileData): string => {
+const _calculateETA = (file: UploadingFileData): string => {
     if (!file.startTime || !file.progress || file.progress === 0 || !file.uploadSpeed) {
         return '';
     }
@@ -553,7 +553,7 @@ const calculateETA = (file: UploadingFileData): string => {
 // Upload functionality now handled by FileUploader component
 
 // File management functions
-const confirmDeleteUploadingFile = (fileId: string) => {
+const _confirmDeleteUploadingFile = (fileId: string) => {
     const file = uploadingFiles.value.find((f) => f.id === fileId);
     if (file) {
         uploadingFileToDelete.value = file;
@@ -637,14 +637,14 @@ const clearAllFiles = async () => {
     clearAllDialogOpen.value = false;
 };
 
-const clearFailedFiles = () => {
+const _clearFailedFiles = () => {
     // Use FileUploader's clearFailedFiles method
     if (fileUploaderRef.value) {
         fileUploaderRef.value.clearFailedFiles();
     }
 };
 
-const confirmDeleteSelectedFiles = () => {
+const _confirmDeleteSelectedFiles = () => {
     if (selectedFilesCount.value > 0) {
         bulkDeleteDialogOpen.value = true;
     }

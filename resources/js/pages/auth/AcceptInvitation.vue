@@ -215,7 +215,9 @@ const submit = () => {
                     </span>
                 </Button>
 
-                <InputError :message="form.errors.invitation" class="text-center" />
+                <!-- The `invitation` error is set server-side (token validity)
+                     and lives on $page.props.errors rather than the form-bound keys. -->
+                <InputError :message="$page.props.errors?.invitation" class="text-center" />
             </form>
         </div>
     </AuthBase>

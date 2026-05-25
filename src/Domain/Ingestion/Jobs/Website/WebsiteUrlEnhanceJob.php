@@ -2,11 +2,11 @@
 
 namespace Domain\Ingestion\Jobs\Website;
 
-use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Web\Models\AgentWebsiteUrl;
+use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Models\Chunk;
 use Domain\Ingestion\Services\ChunkEnhanceText;
+use Domain\Sources\Web\Models\AgentWebsiteUrl;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;

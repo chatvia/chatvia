@@ -2,8 +2,8 @@
 
 namespace App\Helpdesk\Policies;
 
-use App\Helpdesk\Models\Ticket;
 use App\Auth\Models\User;
+use App\Helpdesk\Models\Ticket;
 
 class TicketPolicy
 {

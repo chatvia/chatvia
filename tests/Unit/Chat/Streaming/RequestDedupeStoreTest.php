@@ -18,14 +18,14 @@ class RequestDedupeStoreTest extends TestCase
 
     public function test_returns_null_for_unknown_request_id(): void
     {
-        $store = new RequestDedupeStore();
+        $store = new RequestDedupeStore;
 
         $this->assertNull($store->find('req-missing'));
     }
 
     public function test_remembers_and_reads_a_snapshot(): void
     {
-        $store = new RequestDedupeStore();
+        $store = new RequestDedupeStore;
 
         $store->remember(
             requestId: 'req-1',
@@ -45,7 +45,7 @@ class RequestDedupeStoreTest extends TestCase
 
     public function test_forgets_a_snapshot(): void
     {
-        $store = new RequestDedupeStore();
+        $store = new RequestDedupeStore;
 
         $store->remember('req-1', 'msg-1', 'content', null, []);
         $store->forget('req-1');

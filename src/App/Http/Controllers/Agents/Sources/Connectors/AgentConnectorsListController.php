@@ -40,7 +40,7 @@ class AgentConnectorsListController
             ];
         });
 
-        $custom = $servers->whereNull('connector_slug')->values()->map(fn (AgentMcpServer $server) => [
+        $custom = $servers->whereNull('connector_slug')->values()->map(fn (AgentMcpServer $server): array => [
             'kind' => 'custom',
             'connector' => null,
             'server' => AgentMcpServerData::fromModel($server),

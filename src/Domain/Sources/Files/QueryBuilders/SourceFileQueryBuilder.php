@@ -2,8 +2,14 @@
 
 namespace Domain\Sources\Files\QueryBuilders;
 
+use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * @template TModel of SourceFile
+ *
+ * @extends Builder<TModel>
+ */
 class SourceFileQueryBuilder extends Builder
 {
     public function ingested(): self

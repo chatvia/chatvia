@@ -2,10 +2,10 @@
 import Sources from './Sources.vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
-const props = defineProps<Props>();
+const _props = defineProps<Props>();
 
 // This component will be rendered when accessing /knowledge/web
 // It will use the Sources component but with currentType set to 'web'

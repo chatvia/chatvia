@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Auth\Models\User;
+use App\Http\Controllers\Controller;
 use Domain\Analytics\Services\IP2Country;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;

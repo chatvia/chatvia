@@ -34,17 +34,17 @@ const isCountryDialogOpen = ref(false);
 const isDayOfWeekDialogOpen = ref(false);
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
 const props = defineProps<Props>();
 
 const loading = ref(true);
 const isRefreshing = ref(false);
-const analytics = ref<App.Data.Agent.Stats.StatsData | null>(null);
+const analytics = ref<Domain.Agents.Data.Resources.Stats.StatsResourceData | null>(null);
 const error = ref<string | null>(null);
 
-const { formatTimeAgo } = useTimeAgo();
+const { formatTimeAgo: _formatTimeAgo } = useTimeAgo();
 
 // Date range state
 const dateRange = ref({
@@ -147,7 +147,7 @@ onMounted(() => {
 });
 
 // Helper functions
-const formatDuration = (seconds: number | null): string => {
+const _formatDuration = (seconds: number | null): string => {
     if (!seconds) return 'N/A';
     const minutes = Math.floor(seconds / 60);
     const secs = Math.round(seconds % 60);
@@ -204,13 +204,13 @@ const conversationChartData = computed(() => {
     return result;
 });
 
-const maxConversations = computed(() => {
+const _maxConversations = computed(() => {
     if (!conversationChartData.value.length) return 10;
     return Math.max(...conversationChartData.value.map((day) => day.conversations), 10);
 });
 
 // Activity by hour chart - max value for scaling
-const maxHourlyActivity = computed(() => {
+const _maxHourlyActivity = computed(() => {
     const hours = analytics.value?.activity_by_hour || [];
     if (!hours.length) return 10;
     return Math.max(...hours.map((h) => h.count), 10);

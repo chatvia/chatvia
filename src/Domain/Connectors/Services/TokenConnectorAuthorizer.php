@@ -2,11 +2,11 @@
 
 namespace Domain\Connectors\Services;
 
-use Domain\Connectors\Data\ConnectorData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Chat\Services\Tooling\Mcp\McpCatalog;
 use Domain\Chat\Services\Tooling\Mcp\McpException;
+use Domain\Connectors\Data\ConnectorData;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 

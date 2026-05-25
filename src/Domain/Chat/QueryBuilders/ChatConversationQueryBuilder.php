@@ -2,11 +2,17 @@
 
 namespace Domain\Chat\QueryBuilders;
 
+use Domain\Chat\Models\ChatConversation;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * @template TModel of ChatConversation
+ *
+ * @extends Builder<TModel>
+ */
 class ChatConversationQueryBuilder extends Builder
 {
-    public function forAgent(string $agentId): self
+    public function forAgent(int $agentId): self
     {
         return $this->whereHas('session', fn ($query) => $query->where('agent_id', $agentId));
     }
@@ -23,36 +29,36 @@ class ChatConversationQueryBuilder extends Builder
 
     public function filterBySentiment(?string $sentiment): self
     {
-        return $this->when($sentiment, function ($query) use ($sentiment) {
+        return $this->when($sentiment, function ($query) use ($sentiment): void {
             $query->whereHas('messages', fn ($q) => $q->where('sentiment', $sentiment));
         });
     }
 
     public function filterByTone(?string $tone): self
     {
-        return $this->when($tone, function ($query) use ($tone) {
+        return $this->when($tone, function ($query) use ($tone): void {
             $query->whereHas('messages', fn ($q) => $q->where('tone', $tone));
         });
     }
 
     public function filterByDateRange(?string $startDate, ?string $endDate): self
     {
-        return $this->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+        return $this->when($startDate && $endDate, function ($query) use ($startDate, $endDate): void {
             $query->whereBetween('created_at', [$startDate.' 00:00:00', $endDate.' 23:59:59']);
         });
     }
 
     public function filterByCountry(?string $countryId): self
     {
-        return $this->when($countryId, function ($query) use ($countryId) {
+        return $this->when($countryId, function ($query) use ($countryId): void {
             $query->whereHas('session', fn ($q) => $q->where('country_id', $countryId));
         });
     }
 
     public function filterByConfidenceScore(?string $confidenceScore): self
     {
-        return $this->when($confidenceScore, function ($query) use ($confidenceScore) {
-            $query->whereHas('messages', function ($q) use ($confidenceScore) {
+        return $this->when($confidenceScore, function ($query) use ($confidenceScore): void {
+            $query->whereHas('messages', function ($q) use ($confidenceScore): void {
                 $q->where('role', 'assistant');
                 match ($confidenceScore) {
                     'high' => $q->where('confidence_score', '>=', 0.8),
@@ -66,8 +72,8 @@ class ChatConversationQueryBuilder extends Builder
 
     public function filterByFeedback(?string $feedback): self
     {
-        return $this->when($feedback, function ($query) use ($feedback) {
-            $query->whereHas('messages', function ($q) use ($feedback) {
+        return $this->when($feedback, function ($query) use ($feedback): void {
+            $query->whereHas('messages', function ($q) use ($feedback): void {
                 $q->where('role', 'assistant')
                     ->whereNotNull('feedback')
                     ->where('feedback', $feedback);
@@ -77,7 +83,7 @@ class ChatConversationQueryBuilder extends Builder
 
     public function filterBySource(?string $source): self
     {
-        return $this->when($source, function ($query) use ($source) {
+        return $this->when($source, function ($query) use ($source): void {
             match ($source) {
                 'widget' => $query->whereHas('messages', fn ($q) => $q->where('source', 'widget')),
                 'playground' => $query->whereHas('messages', fn ($q) => $q->where('source', 'playground')),
@@ -89,7 +95,7 @@ class ChatConversationQueryBuilder extends Builder
 
     public function filterByOnlineStatus(?bool $onlineOnly): self
     {
-        return $this->when($onlineOnly, function ($query) {
+        return $this->when($onlineOnly, function ($query): void {
             // Consider users "online" if active within the last 3 minutes
             $query->where('last_activity_at', '>=', now()->subMinutes(3));
         });

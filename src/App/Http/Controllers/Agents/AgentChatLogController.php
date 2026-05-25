@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Agents;
 
+use App\Country\Models\Country;
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Data\Resources\ChatLog\ChatLogConversationsResourceData;
 use Domain\Agents\Data\Resources\ChatLog\ChatLogMessagesResourceData;
 use Domain\Agents\Data\Resources\ChatLog\ChatLogTopicsResourceData;
 use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\Lead;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
-use App\Country\Models\Country;
-use Domain\Agents\Models\Lead;
 use Domain\Chat\Services\Memory\ChatMemory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,13 +57,12 @@ class AgentChatLogController
         abort_if($request->user()->cannot('view', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
 
-        if ($conversation->session?->agent_id !== $agent->id) {
+        if ($conversation->session->agent_id !== $agent->id) {
             abort(404);
         }
 
-        $messages = ChatMessage::query()
+        $messages = ChatMessage::forAgentConversation($agent->id, $conversation->id)
             ->with('llm')
-            ->forAgentConversation($agent->id, $conversation->id)
             ->orderBy('created_at')
             ->orderByRaw("CASE WHEN role = 'user' THEN 0 ELSE 1 END")
             ->paginate(50, page: $request->integer('page', 1));
@@ -91,7 +90,7 @@ class AgentChatLogController
         abort_if($request->user()->cannot('view', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.chat.pulse'), 403);
 
-        if ($conversation->session?->agent_id !== $agent->id) {
+        if ($conversation->session->agent_id !== $agent->id) {
             abort(404);
         }
 
@@ -100,7 +99,7 @@ class AgentChatLogController
             ->orderBy('created_at')
             ->get(['id', 'content', 'tone', 'sentiment', 'created_at']);
 
-        $pulseData = $messages->map(function ($message, $index) {
+        $pulseData = $messages->map(function (ChatMessage $message, int $index): array {
             $toneScore = $this->toneScore($message->tone);
             $sentimentScore = $this->sentimentScore($message->sentiment);
             $score = $message->tone ? $toneScore : $sentimentScore;

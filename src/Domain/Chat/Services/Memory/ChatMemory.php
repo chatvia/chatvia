@@ -2,14 +2,14 @@
 
 namespace Domain\Chat\Services\Memory;
 
+use App\Auth\Models\User;
+use Domain\Agents\Models\Agent;
 use Domain\Chat\Contracts\ChatMemoryInterface;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\ChatOutputPayload;
 use Domain\Chat\Data\Memory\ConversationData;
 use Domain\Chat\Data\Memory\MessageData;
 use Domain\Chat\Jobs\StoreChatMessageJob;
-use Domain\Agents\Models\Agent;
-use App\Auth\Models\User;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 
@@ -152,7 +152,9 @@ class ChatMemory implements ChatMemoryInterface
     {
         $this->ensureInitialized();
 
-        return $this->conversationManager->getConversationById($conversationId);
+        $data = $this->conversationManager->getConversationById($conversationId);
+
+        return $data !== null ? ConversationData::from($data) : null;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agents;
 
 use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\Lead;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -40,6 +41,9 @@ class AgentLeadsExportController
             ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
+    /**
+     * @param  Collection<int, Lead>  $leads
+     */
     private function toCsv(Collection $leads): string
     {
         $output = fopen('php://temp', 'r+');

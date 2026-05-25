@@ -2,15 +2,6 @@
 
 namespace App\Auth\Models;
 
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\Llm;
-use Domain\Chat\Data\LlmModelData;
-use Domain\Chat\Models\ChatMessage;
-use Domain\Sources\Files\Models\SourceFile;
-use Domain\Sources\Text\Models\SourceText;
-use Domain\Sources\Web\Models\SourceWebsite;
-use App\Teams\Models\Role;
-use App\Teams\Models\Team;
 use App\Billing\Data\Resources\BillingPackageCapabilitiesData;
 use App\Billing\Models\UserAddon;
 use App\Billing\Models\UserCredit;
@@ -18,10 +9,27 @@ use App\Billing\Models\UserQuota;
 use App\Billing\Models\UserUsage;
 use App\Billing\Services\Billing;
 use App\Billing\Services\UserCreditSystem;
+use App\Helpdesk\Models\Ticket;
+use App\Teams\Models\Permission;
+use App\Teams\Models\Role;
+use App\Teams\Models\Team;
 use App\Teams\Services\TeamService;
-use Support\Traits\HasSettings;
+use Database\Factories\UserFactory;
+use Domain\Agents\Collections\AgentCollection;
+use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\Llm;
+use Domain\Agents\Models\ModelSetting;
+use Domain\Chat\Data\LlmModelData;
+use Domain\Chat\Models\ChatMessage;
+use Domain\Sources\Files\Models\SourceFile;
+use Domain\Sources\Text\Models\SourceText;
+use Domain\Sources\Web\Models\SourceWebsite;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\Appends;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -29,36 +37,129 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Billable;
+use Laravel\Cashier\Subscription;
 use Spatie\Permission\Traits\HasRoles;
-use App\Helpdesk\Models\Ticket;
+use Support\Traits\HasSettings;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property Carbon|null $email_verified_at
+ * @property string $password
+ * @property string $type
+ * @property string|null $remember_token
+ * @property int|null $managed_by_user_id
+ * @property int|null $current_team_id
+ * @property string|null $stripe_id
+ * @property string|null $pm_type
+ * @property string|null $pm_last_four
+ * @property Carbon|null $trial_ends_at
+ * @property string|null $google_id
+ * @property string|null $microsoft_id
+ * @property string|null $slack_id
+ * @property string|null $linkedin_id
+ * @property string|null $x_id
+ * @property string|null $registered_ip
+ * @property string|null $registered_country_code
+ * @property string|null $domain
+ * @property string|null $deactivation_reason
+ * @property string|null $deactivated_at
+ * @property Carbon|null $last_login_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, UserAddon> $addons
+ * @property-read int|null $addons_count
+ * @property-read AgentCollection<int, Agent> $agents
+ * @property-read int|null $agents_count
+ * @property-read BillingPackageCapabilitiesData $capabilities
+ * @property-read UserCredit|null $credit
+ * @property-read Collection<int, UserCredit> $credits
+ * @property-read int|null $credits_count
+ * @property-read Team|null $currentTeam
+ * @property-read bool $is_paid
+ * @property-read Collection<int, User> $managedUsers
+ * @property-read int|null $managed_users_count
+ * @property-read User|null $manager
+ * @property-read Collection<int, Team> $memberTeams
+ * @property-read int|null $member_teams_count
+ * @property-read Collection<int, ModelSetting> $modelSettings
+ * @property-read int|null $model_settings_count
+ * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
+ * @property-read Collection<int, Team> $ownedTeams
+ * @property-read int|null $owned_teams_count
+ * @property-read Collection<int, Permission> $permissions
+ * @property-read int|null $permissions_count
+ * @property-read mixed $plan
+ * @property-read UserQuota|null $quota
+ * @property-read Collection<int, Role> $roles
+ * @property-read int|null $roles_count
+ * @property-read Collection<int, User> $staff
+ * @property-read int|null $staff_count
+ * @property-read Collection<int, Subscription> $subscriptions
+ * @property-read int|null $subscriptions_count
+ * @property-read Collection<int, Ticket> $tickets
+ * @property-read int|null $tickets_count
+ * @property-read UserUsage|null $usage
+ *
+ * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User hasExpiredGenericTrial()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User onGenericTrial()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User permission($permissions, bool $without = false)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User role($roles, ?string $guard = null, bool $without = false)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User team($teams, bool $without = false)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCurrentTeamId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereDeactivatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereDeactivationReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereDomain($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereGoogleId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastLoginAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLinkedinId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereManagedByUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereMicrosoftId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePmLastFour($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePmType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRegisteredCountryCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRegisteredIp($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereSlackId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereStripeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTrialEndsAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereXId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, ?string $guard = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTeam($teams)
+ *
+ * @mixin \Eloquent
+ */
+#[Appends(['plan', 'is_paid', 'capabilities'])]
+#[Guarded(['id'])]
+#[Hidden([
+    'password',
+    'remember_token',
+])]
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use Billable, HasFactory, HasRoles, HasSettings, Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $guarded = ['id'];
-
-    protected $appends = ['plan', 'is_paid', 'capabilities'];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
 
     /**
      * Get the attributes that should be cast.
@@ -95,7 +196,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function messages()
     {
         return ChatMessage::query()
-            ->whereHas('conversation.session.member', function ($query) {
+            ->whereHas('conversation.session.member', function ($query): void {
                 $query->where('user_id', $this->id);
             });
     }
@@ -144,7 +245,7 @@ class User extends Authenticatable implements MustVerifyEmail
             $plan = $this->plan;
         }
 
-        return Attribute::get(fn () => BillingPackageCapabilitiesData::forPlan($plan));
+        return Attribute::get(fn (): BillingPackageCapabilitiesData => BillingPackageCapabilitiesData::forPlan($plan));
     }
 
     public function hasCapability(string $capability): bool
@@ -184,7 +285,7 @@ class User extends Authenticatable implements MustVerifyEmail
         $effectiveUserId = $this->effectiveUser()->id;
 
         return SourceFile::query()
-            ->join('agent_sources', function ($join) {
+            ->join('agent_sources', function ($join): void {
                 $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
                     ->where('agent_sources.sourceable_type', '=', SourceFile::class);
             })
@@ -201,7 +302,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isPaid(): Attribute
     {
         // All users are now paid (on trial or subscribed)
-        return Attribute::get(fn () => $this->hasActiveSubscription());
+        return Attribute::get(fn (): bool => $this->hasActiveSubscription());
     }
 
     public function credits(): HasMany
@@ -249,7 +350,7 @@ class User extends Authenticatable implements MustVerifyEmail
                     'new_price_id' => $metadata['new_price_id'] ?? null,
                     'is_yearly' => ($metadata['is_yearly'] ?? 'false') === 'true',
                     'scheduled_at' => $metadata['scheduled_at'] ?? null,
-                    'effective_date' => $stripeSubscription->current_period_end * 1000, // Convert to milliseconds for JS
+                    'effective_date' => $stripeSubscription->items->data[0]->current_period_end * 1000, // Convert to milliseconds for JS
                 ];
             }
 
@@ -304,7 +405,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Get unique SourceFiles (avoid counting duplicates when file is linked to multiple agents)
         $sourceFilesPages = SourceFile::query()
-            ->whereIn('id', function ($query) use ($effectiveUserId) {
+            ->whereIn('id', function ($query) use ($effectiveUserId): void {
                 $query->select('agent_sources.sourceable_id')
                     ->from('agent_sources')
                     ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
@@ -317,7 +418,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Get unique SourceTexts (avoid counting duplicates when text is linked to multiple agents)
         $sourceTextsPages = SourceText::query()
-            ->whereIn('id', function ($query) use ($effectiveUserId) {
+            ->whereIn('id', function ($query) use ($effectiveUserId): void {
                 $query->select('agent_sources.sourceable_id')
                     ->from('agent_sources')
                     ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
@@ -336,7 +437,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Get unique SourceFiles (avoid counting duplicates when file is linked to multiple agents)
         return (int) SourceFile::query()
-            ->whereIn('id', function ($query) use ($effectiveUserId) {
+            ->whereIn('id', function ($query) use ($effectiveUserId): void {
                 $query->select('agent_sources.sourceable_id')
                     ->from('agent_sources')
                     ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
@@ -352,7 +453,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this
             ->agents()
-            ->join('agent_sources', function ($join) {
+            ->join('agent_sources', function ($join): void {
                 $join->on('agents.id', '=', 'agent_sources.agent_id')
                     ->where('agent_sources.sourceable_type', '=', SourceWebsite::class);
             })
@@ -391,6 +492,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get all teams where the user is a member (not owner).
+     *
+     * @return BelongsToMany<Team, $this>
      */
     public function memberTeams(): BelongsToMany
     {
@@ -401,6 +504,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get all teams owned by the user.
+     *
+     * @return HasMany<Team, $this>
      */
     public function ownedTeams(): HasMany
     {
@@ -439,7 +544,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return null;
         }
 
-        return Role::find($membership->pivot->role_id);
+        return Role::find($membership->pivot->getAttribute('role_id'));
     }
 
     /**
@@ -503,6 +608,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get the user's current active team.
+     *
+     * @return BelongsTo<Team, $this>
      */
     public function currentTeam(): BelongsTo
     {
@@ -547,6 +654,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get all users managed by this user (invited via their teams).
+     *
+     * @return HasMany<User, $this>
      */
     public function managedUsers(): HasMany
     {

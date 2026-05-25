@@ -15,7 +15,10 @@ class PermissionMetaData extends Data
         public array $requires = [],
     ) {}
 
-    public static function fromConfig(array $data, string $code): self
+    /**
+     * @param  array<string, mixed>|string  $data
+     */
+    public static function fromConfig(array|string $data, string $code): self
     {
         if (! is_array($data)) {
             return new self(

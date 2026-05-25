@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelMarkdown\MarkdownRenderer;
 use Spatie\LaravelPdf\Facades\Pdf;
+use Spatie\LaravelPdf\PdfBuilder;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 readonly class ChatExportController
@@ -40,14 +41,14 @@ readonly class ChatExportController
         if ($messageId) {
             $messages[] = $this->memory->getMessageById($messageId);
         } else {
-            $messages = $this->memory->getMessagesForConversation($conversationId);
+            $messages = $this->memory->getMessagesForConversation();
         }
 
         return match ($type) {
             'pdf' => $this->toPdf($messages, $this->filename($conversationId)),
             'markdown' => $this->toMarkdown($messages, $this->filename($conversationId)),
             'text' => $this->toText($messages, $this->filename($conversationId)),
-            'default' => throw new Exception('Unsupported export type'),
+            default => throw new Exception('Unsupported export type'),
         };
     }
 
@@ -58,9 +59,9 @@ readonly class ChatExportController
         return Str::slug($conversation->title);
     }
 
-    private function toPdf(array $messages, string $filename)
+    private function toPdf(array $messages, string $filename): PdfBuilder
     {
-        return Pdf::withBrowsershot(function (Browsershot $browsershot) {
+        return Pdf::withBrowsershot(function (Browsershot $browsershot): void {
             if (config('services.bin.nvm_include_path')) {
                 $browsershot->setIncludePath(config('services.bin.nvm_include_path'));
             }

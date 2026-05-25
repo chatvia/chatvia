@@ -4,7 +4,6 @@ namespace Domain\Chat\Services\Tooling;
 
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
-use Domain\Agents\Rules\SafeWebhookUrl;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;

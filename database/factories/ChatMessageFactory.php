@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
+use Domain\Agents\Models\Llm;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Chat\Models\ChatMessage>
+ * @extends Factory<ChatMessage>
  */
 class ChatMessageFactory extends Factory
 {
@@ -41,7 +42,7 @@ class ChatMessageFactory extends Factory
      */
     private function getRandomLlmId(): ?int
     {
-        $llmIds = \Domain\Agents\Models\Llm::pluck('id')->toArray();
+        $llmIds = Llm::pluck('id')->toArray();
 
         return $llmIds ? $this->faker->randomElement($llmIds) : null;
     }

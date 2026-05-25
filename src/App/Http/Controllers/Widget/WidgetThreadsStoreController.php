@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Widget;
 
-use Domain\Chat\Services\Memory\ChatMemory;
 use App\Widget\WidgetVerification;
+use Domain\Chat\Services\Memory\ChatMemory;
 use Illuminate\Http\Request;
 
 class WidgetThreadsStoreController

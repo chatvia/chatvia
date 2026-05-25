@@ -5,11 +5,15 @@ namespace Support\Traits;
 use App\Security\HMAC;
 use Illuminate\Support\Str;
 
+/**
+ * @property string|null $external_id
+ * @property array<int, string> $hmacEncryptionColumns
+ */
 trait SupportsExternalId
 {
     protected static function booted(): void
     {
-        static::creating(function ($model) {
+        static::creating(function ($model): void {
             if (! $model->external_id) {
                 $model->external_id = Str::uuid()->toString();
             }
@@ -40,7 +44,7 @@ trait SupportsExternalId
     protected function loadHmacRelationships(): void
     {
         $relationships = collect($this->hmacEncryptionColumns)
-            ->filter(fn ($column) => str_contains($column, '.'))
+            ->filter(fn ($column): bool => str_contains($column, '.'))
             ->map(function ($column) {
                 $parts = explode('.', $column);
                 array_pop($parts);

@@ -1,18 +1,18 @@
 <?php
 
-use App\Console\Commands\UpdateFreeUsersQuotas;
 use App\Auth\Models\User;
 use App\Billing\Models\UserCredit;
+use App\Console\Commands\UpdateFreeUsersQuotas;
 use Illuminate\Support\Facades\Event;
 
-beforeEach(function () {
+beforeEach(function (): void {
     Event::fake();
 });
 
-test('updates credit for user with expiring credit', function () {
-    $quotaLimit = config('billing.packages.free.quota_limits.monthly');
+test('updates credit for user with expiring credit', function (): void {
+    $quotaLimit = config('billing.packages.starter.quota_limits.monthly');
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['trial_ends_at' => now()->addDays(7)]);
 
     // Create an expiring credit (expires within a day)
     $expiringCredit = UserCredit::factory()->create([
@@ -35,10 +35,10 @@ test('updates credit for user with expiring credit', function () {
         ->and($latestCredit->ends_at->lessThanOrEqualTo(now()->addMonth()))->toBeTrue();
 });
 
-test('updates credit for user without credit', function () {
-    $quotaLimit = config('billing.packages.free.quota_limits.monthly');
+test('updates credit for user without credit', function (): void {
+    $quotaLimit = config('billing.packages.starter.quota_limits.monthly');
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['trial_ends_at' => now()->addDays(7)]);
 
     $this->artisan(UpdateFreeUsersQuotas::class);
 
@@ -51,10 +51,10 @@ test('updates credit for user without credit', function () {
         ->and($latestCredit->ends_at->lessThanOrEqualTo(now()->addMonth()))->toBeTrue();
 });
 
-test('does not update credit for user with valid credit', function () {
+test('does not update credit for user with valid credit', function (): void {
     Event::fake();
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['trial_ends_at' => now()->addDays(7)]);
 
     $validCredit = UserCredit::factory()->create([
         'user_id' => $user->id,

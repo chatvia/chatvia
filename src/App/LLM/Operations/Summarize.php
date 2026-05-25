@@ -13,8 +13,6 @@ class Summarize
 
     public function summarize(string $content): string
     {
-        office()->toPdf();
-
         $response = $this->provider->completion([
             'model' => 'qwen3-235b-a22b-instruct-2507',
             'temperature' => 0.0,

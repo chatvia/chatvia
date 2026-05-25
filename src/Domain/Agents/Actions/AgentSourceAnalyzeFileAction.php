@@ -2,9 +2,9 @@
 
 namespace Domain\Agents\Actions;
 
+use App\Auth\Models\User;
 use Domain\Agents\Data\KnowledgeAnalyzeResourceData;
 use Domain\Agents\Models\Agent;
-use App\Auth\Models\User;
 use Domain\Agents\Services\FileAnalyzer;
 use Domain\Ingestion\Services\Tidy\TextCleaner;
 use Illuminate\Http\UploadedFile;

@@ -4,9 +4,9 @@ import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, ref, watch } from 'vue';
 
-type Message = App.Data.Resources.Agent.ChatLog.ChatLogMessageData;
-type Topic = App.Data.Resources.Agent.ChatLog.ChatLogTopicData;
-type AIModel = App.Data.Chat.LlmModelData;
+type Message = Domain.Agents.Data.Resources.ChatLog.ChatLogMessageData;
+type Topic = Domain.Agents.Data.Resources.ChatLog.ChatLogTopicData;
+type AIModel = Domain.Chat.Data.LlmModelData;
 
 // Singleton state - shared across components
 const agent = ref<any>(null);
@@ -331,12 +331,27 @@ export function useChatLog() {
         const exists = messagesData.value.data.some((m: any) => m.id === messageData.id);
         if (exists) return;
 
-        // Create message object matching the expected format
+        // Create message object matching the expected format. The websocket
+        // payload only carries a handful of fields; pad the rest to keep the
+        // typed `ChatLogMessageData` shape.
         const newMessage: Message = {
             id: messageData.id,
+            chat_conversation_id: messageData.chat_conversation_id ?? '',
             content: messageData.content,
             role: messageData.role,
+            sentiment: null,
+            tone: null,
+            feedback: null,
+            is_response_from_qa: null,
+            response_time_ms: null,
+            prompt_tokens: null,
+            completion_tokens: null,
+            llm_name: null,
+            llm_icon: null,
             created_at: messageData.timestamp || new Date().toISOString(),
+            agent_question_answer_id: null,
+            source: null,
+            read_at: null,
         };
 
         messagesData.value.data.push(newMessage);

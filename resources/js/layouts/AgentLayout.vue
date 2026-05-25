@@ -80,10 +80,10 @@ const props = defineProps({
 });
 
 const page = usePage<SharedData>();
-const currentRoute = computed(() => page.component);
+const _currentRoute = computed(() => page.component);
 
 // Get features from page props
-const features = page.props.features as Features;
+const _features = page.props.features as Features;
 
 // Use team permissions composable
 const { hasPermission, hasAnyPermission, isOwner } = useTeamPermissions();
@@ -264,7 +264,7 @@ const deleteAgent = () => {
             agentNameConfirmation.value = '';
             toast.success('Agent deleted successfully');
         },
-        onError: (errors) => {
+        onError: (_errors) => {
             isDeleting.value = false;
             toast.error('Failed to delete agent. Please try again.');
         },
@@ -336,7 +336,7 @@ const fetchSourceStats = async () => {
 };
 
 // Get stat count for a source type
-const getSourceCount = (statsKey: string): string => {
+const _getSourceCount = (statsKey: string): string => {
     if (!sourceStats.value || !(statsKey in sourceStats.value)) {
         return '';
     }

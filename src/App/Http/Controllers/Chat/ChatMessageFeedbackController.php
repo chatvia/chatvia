@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class ChatMessageFeedbackController
 {
-    public function __invoke(Request $request, ChatMemory $memory, ChatSession $session)
+    public function __invoke(Request $request, ChatMemory $memory, ChatSession $session): void
     {
         $validated = $request->validate([
             'conversation_id' => ['required', 'string'],

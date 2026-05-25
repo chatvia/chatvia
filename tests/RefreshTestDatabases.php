@@ -6,6 +6,7 @@ use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Finder\Finder;
 
 trait RefreshTestDatabases
@@ -27,10 +28,37 @@ trait RefreshTestDatabases
 
     protected function runMigrationsIfNecessary(): void
     {
-        if ($this->identicalChecksum() === false) {
+        // In parallel mode each worker gets its own database (testing_test_1,
+        // _test_2, ...). The checksum file is shared but the DB is fresh, so
+        // we must also force migration when the current DB has no schema.
+        $databaseEmpty = ! $this->databaseAlreadyMigrated();
+
+        if ($databaseEmpty) {
+            // Fresh per-worker DB: install extensions then run migrate. We do
+            // NOT call migrate:fresh because db:wipe drops tables across all
+            // schemas (including extension catalogs) which leaves the extension
+            // types in a half-broken state for subsequent CREATE TABLE calls.
+            $this->installPostgresExtensions();
+            $this->artisan('migrate');
+            $this->createChecksum();
+
+            return;
+        }
+
+        if (! $this->identicalChecksum()) {
             $this->createChecksum();
             $this->dropPostgresExtensions();
+            $this->installPostgresExtensions();
             $this->artisan('migrate:fresh');
+        }
+    }
+
+    protected function databaseAlreadyMigrated(): bool
+    {
+        try {
+            return Schema::hasTable('migrations') && DB::table('migrations')->exists();
+        } catch (\Throwable) {
+            return false;
         }
     }
 
@@ -97,6 +125,26 @@ trait RefreshTestDatabases
 
         foreach ($extensions as $extension) {
             rescue(fn () => DB::statement("DROP EXTENSION IF EXISTS {$extension} CASCADE"));
+        }
+    }
+
+    /**
+     * Install Postgres extensions required by the schema. Order matters:
+     * `vector` first (required by vchord), then the rest. The migrations
+     * reference these schemas/types but don't create the extensions.
+     */
+    protected function installPostgresExtensions(): void
+    {
+        $extensions = [
+            'vector',
+            'pg_trgm',
+            'pg_tokenizer',
+            'vchord',
+            'vchord_bm25',
+        ];
+
+        foreach ($extensions as $extension) {
+            rescue(fn () => DB::statement("CREATE EXTENSION IF NOT EXISTS {$extension} CASCADE"));
         }
     }
 }

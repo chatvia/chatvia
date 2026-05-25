@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agents\Analytics;
 
 use Domain\Agents\Models\Agent;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AgentSentimentDataController
@@ -73,10 +73,10 @@ class AgentSentimentDataController
 
             $filledData[] = [
                 'date' => $dateStr,
-                'positive' => $dataPoint?->positive_count ?? 0,
-                'negative' => $dataPoint?->negative_count ?? 0,
-                'neutral' => $dataPoint?->neutral_count ?? 0,
-                'unspecified' => $dataPoint?->unspecified_count ?? 0,
+                'positive' => $dataPoint->positive_count ?? 0,
+                'negative' => $dataPoint->negative_count ?? 0,
+                'neutral' => $dataPoint->neutral_count ?? 0,
+                'unspecified' => $dataPoint->unspecified_count ?? 0,
             ];
 
             $currentDate->addDay();

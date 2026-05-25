@@ -7,7 +7,7 @@ import { computed } from 'vue';
 
 const { appearance, updateAppearance } = useAppearance();
 
-const currentIcon = computed(() => {
+const _currentIcon = computed(() => {
     switch (appearance.value) {
         case 'dark':
             return Moon;

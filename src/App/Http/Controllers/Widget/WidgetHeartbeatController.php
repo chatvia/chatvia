@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Widget;
 
-use Domain\Chat\Models\ChatConversation;
 use App\Widget\WidgetVerification;
+use Domain\Chat\Models\ChatConversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

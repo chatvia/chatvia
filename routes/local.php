@@ -1,10 +1,11 @@
 <?php
 
+use Domain\Analytics\Services\TopicAnalysis;
 use Illuminate\Http\Request;
 
 if (app()->isLocal()) {
-    Route::get('playground', function () {
-        dd(app(\Domain\Analytics\Services\TopicAnalysis::class)->analyze('How to login?'));
+    Route::get('playground', function (): void {
+        dd(app(TopicAnalysis::class)->analyze('How to login?'));
     });
 
     // Test webhook for the Functions feature. Returns a fixed value so we
@@ -16,6 +17,7 @@ if (app()->isLocal()) {
             json_encode($request->all(), JSON_PRETTY_PRINT)
         );
         sleep(5);
+
         return response()->json([
             'weather' => mt_rand(20, 50),
             'unit' => 'celsius',

@@ -7,7 +7,7 @@ import axios from 'axios';
 import { ChevronDown, Search } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
-type AIModel = App.Data.Chat.LlmModelData;
+type AIModel = Domain.Chat.Data.LlmModelData;
 
 interface ModelSettings {
     temperature: number;
@@ -23,7 +23,7 @@ interface ModelsResponse {
     default_settings: ModelSettings;
 }
 
-const page = usePage();
+const _page = usePage();
 
 const props = defineProps<{
     agentId?: string;
@@ -39,7 +39,7 @@ const isLoading = ref(props.isLoadingModels ?? true);
 const error = ref<string | null>(null);
 
 const searchQuery = ref('');
-const isModelDropdownOpen = ref(false);
+const _isModelDropdownOpen = ref(false);
 const searchInput = ref<any>();
 
 const emit = defineEmits<{

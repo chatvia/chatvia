@@ -107,6 +107,61 @@ class McpClientTest extends TestCase
         $this->assertSame('pong', $result['content'][0]['text']);
     }
 
+    public function test_session_and_protocol_headers_are_not_duplicated_across_calls(): void
+    {
+        // Regression guard: Laravel's PendingRequest::withHeaders uses
+        // array_merge_recursive, so reusing a request and chaining
+        // withHeaders for each RPC would nest duplicate keys into arrays —
+        // causing the wire to carry the same header twice. Notion (and other
+        // strict MCP servers) interpret repeated `Mcp-Session-Id` headers as
+        // comma-joined and 404 with "Session not found". Each RPC must
+        // build a fresh PendingRequest.
+        Http::fake(function ($request) {
+            $body = $request->data();
+            $method = $body['method'] ?? '';
+
+            if ($method === 'initialize') {
+                return Http::response([
+                    'jsonrpc' => '2.0',
+                    'id' => $body['id'],
+                    'result' => ['protocolVersion' => '2025-06-18'],
+                ], 200, ['Mcp-Session-Id' => 's-1']);
+            }
+
+            if ($method === 'tools/list') {
+                return Http::response([
+                    'jsonrpc' => '2.0',
+                    'id' => $body['id'],
+                    'result' => ['tools' => []],
+                ]);
+            }
+
+            return Http::response('', 202);
+        });
+
+        (new McpClient)->fetchTools($this->server());
+
+        Http::assertSent(function ($request) {
+            $body = $request->data();
+            if (($body['method'] ?? null) !== 'tools/list') {
+                return false;
+            }
+
+            // Guzzle exposes each header as an array of values; a single
+            // value means the header was set once, which is what we want.
+            // Two values means we re-introduced the accumulation bug.
+            $sessionHeader = $request->header('Mcp-Session-Id');
+            $protocolHeader = $request->header('MCP-Protocol-Version');
+
+            $this->assertCount(1, $sessionHeader, 'Mcp-Session-Id was sent multiple times');
+            $this->assertSame('s-1', $sessionHeader[0]);
+            $this->assertCount(1, $protocolHeader, 'MCP-Protocol-Version was sent multiple times');
+            $this->assertSame('2025-06-18', $protocolHeader[0]);
+
+            return true;
+        });
+    }
+
     public function test_throws_on_protocol_error(): void
     {
         Http::fake(function ($request) {

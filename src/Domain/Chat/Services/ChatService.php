@@ -2,14 +2,13 @@
 
 namespace Domain\Chat\Services;
 
+use App\Billing\Jobs\UpdateUserCreditsJob;
+use App\LLM\Operations\QueryRewriter;
+use Carbon\Carbon;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\ChatOutputPayload;
-use App\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Chat\Services\Data\StreamRequestData;
-use App\LLM\Operations\QueryRewriter;
 use Domain\Chat\Services\Memory\ChatMemory;
-use Domain\Ingestion\Services\Search\KnowledgeBase;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -17,7 +16,6 @@ readonly class ChatService
 {
     public function __construct(
         private ChatMemory $memory,
-        private KnowledgeBase $knowledgeBase,
         private MessageProcessor $messageProcessor
     ) {}
 
@@ -247,7 +245,7 @@ readonly class ChatService
 
         $confidenceScores = $sources
             ->pluck('confidence_score')
-            ->filter(fn ($score) => $score !== null);
+            ->filter(fn ($score): bool => $score !== null);
 
         if ($confidenceScores->isEmpty()) {
             return null;

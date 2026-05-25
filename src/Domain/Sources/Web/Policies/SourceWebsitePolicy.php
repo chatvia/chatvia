@@ -2,8 +2,8 @@
 
 namespace Domain\Sources\Web\Policies;
 
-use Domain\Sources\Web\Models\SourceWebsite;
 use App\Auth\Models\User;
+use Domain\Sources\Web\Models\SourceWebsite;
 
 class SourceWebsitePolicy
 {

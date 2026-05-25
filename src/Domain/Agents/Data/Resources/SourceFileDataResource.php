@@ -2,8 +2,8 @@
 
 namespace Domain\Agents\Data\Resources;
 
-use Domain\Sources\Files\Models\SourceFile;
 use Carbon\CarbonInterface;
+use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -40,9 +40,13 @@ class SourceFileDataResource extends Data
         );
     }
 
+    /**
+     * @param  Collection<int, SourceFile>  $files
+     * @return \Illuminate\Support\Collection<int, self>
+     */
     public static function fromFiles(Collection $files): \Illuminate\Support\Collection
     {
-        return collect($files)->map(function (SourceFile $file) {
+        return $files->map(function (SourceFile $file): self {
             return self::fromFile($file);
         });
     }

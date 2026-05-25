@@ -2,12 +2,12 @@
 
 namespace Domain\Ingestion\Jobs\Text;
 
-use Domain\Ingestion\Data\OCR\PageData;
-use Domain\Sources\Text\Events\TextIngestionEvent;
-use Domain\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Text\Models\SourceText;
+use Domain\Ingestion\Data\OCR\PageData;
+use Domain\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Ingestion\Services\TokenSplitter;
+use Domain\Sources\Text\Events\TextIngestionEvent;
+use Domain\Sources\Text\Models\SourceText;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -39,7 +39,7 @@ class TextIngestionJob implements ShouldQueue
 
         $texts = collect($splitter->split($file->getContent()));
 
-        $jobs = collect($texts)->map(fn (PageData $page) => new TextChunkIngestionJob($this->agent, $this->sourceText, $page));
+        $jobs = collect($texts)->map(fn (PageData $page): TextChunkIngestionJob => new TextChunkIngestionJob($this->agent, $this->sourceText, $page));
 
         dispatch(new SummaryIngestionJob($this->sourceText));
 
@@ -48,7 +48,7 @@ class TextIngestionJob implements ShouldQueue
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent Text ID: '.$this->sourceText->id)
-            ->then(function (Batch $batch) use ($agentTextId, $agent) {
+            ->then(function (Batch $batch) use ($agentTextId, $agent): void {
                 SourceText::find($agentTextId)?->update(['status' => 'ingested']);
                 TextIngestionEvent::dispatch(SourceText::find($agentTextId), $agent);
             })

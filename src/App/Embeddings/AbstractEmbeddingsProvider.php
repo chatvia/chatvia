@@ -7,6 +7,15 @@ use App\Embeddings\Contracts\EmbeddingsProviderInterface;
 abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
 {
     /**
+     * Default: providers with no query-side conventions just embed normally.
+     * Override (e.g. Qwen3) to apply instruction prefixes.
+     */
+    public function embedQuery(string $text, bool $returnAsText = false): string|array
+    {
+        return $this->embed($text, $returnAsText);
+    }
+
+    /**
      * Default implementation: no reranking support.
      *
      * @param  string  $query  The search query

@@ -65,7 +65,7 @@ interface Props {
     secondaryActions?: SecondaryAction[];
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const _props = withDefaults(defineProps<Props>(), {
     isSubmitting: false,
     hasUnsavedChanges: false,
     saveLabel: 'Save',

@@ -2,11 +2,12 @@
 
 namespace Domain\Ingestion\Jobs\Text;
 
-use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Agents\Models\Agent;
+use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Models\Chunk;
-use Domain\Sources\Text\Models\SourceText;
 use Domain\Ingestion\Services\ChunkEnhanceText;
+use Domain\Sources\Files\Models\SourceFile;
+use Domain\Sources\Text\Models\SourceText;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,7 +31,7 @@ class TextEnhanceChunkJob implements ShouldBeUnique, ShouldQueue
 
     public function __construct(
         public Agent $agent,
-        public SourceText $sourceText,
+        public SourceText|SourceFile $sourceText,
         private readonly Chunk $chunk,
         private readonly PageData $page,
         public ?PageData $previousPage = null,

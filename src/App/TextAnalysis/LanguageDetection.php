@@ -2,8 +2,8 @@
 
 namespace App\TextAnalysis;
 
-use App\LLM\Contracts\LLMProviderInterface;
 use App\Language\Models\Language;
+use App\LLM\Contracts\LLMProviderInterface;
 
 class LanguageDetection
 {

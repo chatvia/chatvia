@@ -2,9 +2,9 @@
 
 namespace Domain\Agents\Services;
 
-use Domain\Sources\Files\Data\FileAnalysisData;
 use App\Documents\PdfInfo;
 use App\Media\AudioDurationExtractor;
+use Domain\Sources\Files\Data\FileAnalysisData;
 use Illuminate\Http\UploadedFile;
 use LogicException;
 

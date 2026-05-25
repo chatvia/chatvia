@@ -23,6 +23,7 @@ interface AvailableFile {
     length: string;
     agents?: Array<{
         id: number;
+        external_id: string;
         name: string;
     }>;
 }

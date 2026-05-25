@@ -13,6 +13,30 @@ export default defineConfigWithVueTs(
         rules: {
             'vue/multi-word-component-names': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
+            // Allow leading-underscore identifiers to opt out of unused-var
+            // warnings — the convention for callback args you must accept
+            // but don't reference, and for refs kept for template binding.
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                    destructuredArrayIgnorePattern: '^_',
+                },
+            ],
+            // Permit plain `<script setup>` (no lang attribute) in addition
+            // to TypeScript. A handful of legacy chat-UI components are still
+            // plain JS — keep them out of strict TS until they're rewritten.
+            'vue/block-lang': [
+                'error',
+                {
+                    script: {
+                        lang: ['ts', 'tsx'],
+                        allowNoLang: true,
+                    },
+                },
+            ],
         },
     },
     prettier,

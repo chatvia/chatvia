@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Widget;
 
+use App\Widget\WidgetVerification;
 use Domain\Chat\Events\ChatHandoffEvent;
 use Domain\Chat\Models\ChatConversation;
-use App\Widget\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

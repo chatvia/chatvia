@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\Sources\Connectors;
 
-use Domain\Agents\Data\Resources\AgentMcpServerData;
 use App\Http\Requests\Agents\Connectors\AgentConnectorConnectRequest;
+use Domain\Agents\Data\Resources\AgentMcpServerData;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Services\Tooling\Mcp\McpException;
 use Domain\Connectors\Services\ConnectorCatalog;
@@ -22,7 +22,7 @@ class AgentConnectorConnectController
         abort_if($request->user()->cannot('update', $agent), 403);
 
         $connector = $this->catalog->findTokenConnector($slug);
-        abort_unless($connector, 404, 'Connector not available');
+        abort_unless($connector !== null, 404, 'Connector not available');
 
         // Token connectors must include a token; no-auth connectors must not.
         if ($connector->authStrategy === 'token' && ! $request->filled('token')) {

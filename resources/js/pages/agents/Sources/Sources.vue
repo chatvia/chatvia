@@ -11,7 +11,7 @@ import WebComponent from './WebComponent.vue';
 import YoutubeComponent from './YoutubeComponent.vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
 interface SourceStats {
@@ -148,7 +148,7 @@ const currentComponent = computed(() => {
 });
 
 // Handle content type selection
-const selectContentType = (typeId: string) => {
+const _selectContentType = (typeId: string) => {
     const contentType = contentTypes.find((type) => type.id === typeId);
 
     if (contentType?.route) {
@@ -182,7 +182,7 @@ const getStatCount = (statsKey: string | null): number | null => {
 };
 
 // Format label with count
-const formatLabel = (contentType: any): string => {
+const _formatLabel = (contentType: any): string => {
     if (isLoadingStats.value) {
         return contentType.label;
     }

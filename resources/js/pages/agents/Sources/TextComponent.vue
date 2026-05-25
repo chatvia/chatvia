@@ -18,7 +18,7 @@ import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
 interface TextEntry {

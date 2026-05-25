@@ -20,7 +20,7 @@ use App\Http\Controllers\Widget\WidgetThreadsStoreController;
 use App\Http\Controllers\Widget\WidgetTypingController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('widget')->group(function () {
+Route::prefix('widget')->group(function (): void {
     Route::post('/sessions/init', WidgetSessionInitController::class)->name('widget.sessions.init');
 
     Route::get('/threads', WidgetThreadsController::class)->name('widget.threads');

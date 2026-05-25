@@ -29,7 +29,7 @@ const showConfirmPassword = ref(false);
 const submit = () => {
     form.post(route('agents.invitations.accept'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
-        onError: (error) => {
+        onError: (_error) => {
             alert('Could not accept the invitation. Please try again.');
         },
     });

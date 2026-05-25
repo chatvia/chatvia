@@ -3,16 +3,16 @@
 namespace Domain\Ingestion\Jobs\Website;
 
 use App\Embeddings\Contracts\EmbeddingsProviderInterface;
-use Domain\Sources\Web\Events\UrlIngestionEvent;
-use Domain\Sources\Web\Events\WebsiteIngestionProgressEvent;
-use Domain\Agents\Models\Agent;
-use Domain\Sources\Web\Models\AgentWebsiteUrl;
-use Domain\Ingestion\Models\Chunk;
-use Domain\Sources\Web\Models\SourceWebsite;
 use App\LLM\Operations\Chunker;
+use Domain\Agents\Models\Agent;
+use Domain\Ingestion\Models\Chunk;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Ingestion\Services\Tidy\HTMLCleaner;
 use Domain\Ingestion\Services\TikToken;
+use Domain\Sources\Web\Events\UrlIngestionEvent;
+use Domain\Sources\Web\Events\WebsiteIngestionProgressEvent;
+use Domain\Sources\Web\Models\AgentWebsiteUrl;
+use Domain\Sources\Web\Models\SourceWebsite;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -88,7 +88,6 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
                     'type' => 'text',
                     'chunk_index' => $idx + 1,
                     'chunk' => $chunk,
-                    'questions' => [],
                     'summary' => null,
                     'chunked_using_model' => config('ai.models.chunker'),
                     'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
@@ -120,7 +119,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
             }
         }
 
-        DB::transaction(function () use ($website, $chunks) {
+        DB::transaction(function () use ($website, $chunks): void {
             $locked = SourceWebsite::query()
                 ->whereKey($website->id)
                 ->lockForUpdate()

@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-vue-next'
 import { inject, computed } from 'vue'
 import { cn } from '@/lib/utils'
 
-const props = defineProps<CalendarPrevProps & { isRange?: boolean }>()
+const props = defineProps<CalendarPrevProps & { isRange?: boolean; class?: string }>()
 
 // Check if we're in a RangeCalendar context
 const isRangeCalendar = inject('isRangeCalendar', false)

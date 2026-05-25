@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class ConversationUpdate
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $memory)
+    public function __invoke(Request $request, string $conversationId, ChatMemory $memory): void
     {
         $memory
             ->setAgent(current_agent())

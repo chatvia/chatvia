@@ -20,8 +20,8 @@ class ConnectorCatalog
     {
         return collect(config('connectors', []))
             ->filter(fn (array $entry) => $entry['visible'] ?? true)
-            ->map(fn (array $entry) => ConnectorData::fromArray($entry))
-            ->keyBy(fn (ConnectorData $c) => $c->slug);
+            ->map(fn (array $entry): ConnectorData => ConnectorData::fromArray($entry))
+            ->keyBy(fn (ConnectorData $c): string => $c->slug);
     }
 
     public function find(string $slug): ?ConnectorData

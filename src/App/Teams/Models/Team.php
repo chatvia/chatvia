@@ -2,35 +2,77 @@
 
 namespace App\Teams\Models;
 
+use App\Auth\Models\User;
+use Domain\Agents\Collections\AgentCollection;
+use Domain\Agents\Models\Agent;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $name
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read AgentCollection<int, Agent> $agents
+ * @property-read int|null $agents_count
+ * @property-read Collection<int, Invitation> $invitations
+ * @property-read int|null $invitations_count
+ * @property-read Collection<int, User> $members
+ * @property-read int|null $members_count
+ * @property-read User $owner
+ * @property-read Collection<int, Role> $roles
+ * @property-read int|null $roles_count
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereUserId($value)
+ *
+ * @mixin \Eloquent
+ */
+#[Fillable([
+    'name',
+    'user_id',
+])]
 class Team extends Model
 {
-    protected $fillable = [
-        'name',
-        'user_id',
-    ];
-
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * @return HasMany<Agent, $this>
+     */
     public function agents(): HasMany
     {
         return $this->hasMany(Agent::class);
     }
 
+    /**
+     * @return HasMany<Role, $this>
+     */
     public function roles(): HasMany
     {
         return $this->hasMany(Role::class);
     }
 
+    /**
+     * @return BelongsToMany<User, $this>
+     */
     public function members(): BelongsToMany
     {
         return $this
@@ -38,6 +80,9 @@ class Team extends Model
             ->withPivot('role_id');
     }
 
+    /**
+     * @return HasMany<Invitation, $this>
+     */
     public function invitations(): HasMany
     {
         return $this->hasMany(Invitation::class);
@@ -46,7 +91,7 @@ class Team extends Model
     public function hasUserWithEmail(string $email): bool
     {
         return $this->owner->email === $email
-            || $this->members->contains(fn ($user) => $user->email === $email);
+            || $this->members->contains(fn ($user): bool => $user->email === $email);
     }
 
     /**
@@ -83,7 +128,7 @@ class Team extends Model
             return null;
         }
 
-        return Role::find($membership->pivot->role_id);
+        return Role::find($membership->pivot->getAttribute('role_id'));
     }
 
     /**

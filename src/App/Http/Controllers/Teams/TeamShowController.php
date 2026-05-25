@@ -25,7 +25,7 @@ class TeamShowController
         $allMembers = collect([$team->owner])->concat($team->members);
 
         $members = $allMembers->map(
-            fn ($member) => TeamMemberData::fromUser($member, $team)
+            fn ($member): TeamMemberData => TeamMemberData::fromUser($member, $team)
         );
 
         $roles = $teamService->teamRoles($team);
@@ -36,13 +36,13 @@ class TeamShowController
             ->invitations()
             ->with('role')
             ->get()
-            ->map(fn ($invitation) => TeamInvitationData::fromModel($invitation));
+            ->map(fn ($invitation): TeamInvitationData => TeamInvitationData::fromModel($invitation));
 
         $currentMemberIds = $allMembers->pluck('id')->toArray();
         $managedUsers = $user->managedUsers()
             ->whereNotIn('id', $currentMemberIds)
             ->get()
-            ->map(fn ($managedUser) => ManagedUserData::fromModel($managedUser));
+            ->map(fn ($managedUser): ManagedUserData => ManagedUserData::fromModel($managedUser));
 
         return Inertia::render('teams/Show', [
             'team' => TeamData::fromModel($team),
@@ -52,7 +52,7 @@ class TeamShowController
             'pendingInvitations' => $pendingInvitations,
             'managedUsers' => $managedUsers,
             'isOwner' => $user->ownsTeam($team),
-            'userRole' => $user->teamRole($team)?->code ?? 'owner',
+            'userRole' => $user->teamRole($team)->code ?? 'owner',
             'availableRoles' => $teamService->defaultRoles(),
             'permissionsConfig' => $teamService->permissionsConfig(),
             'permissionGroups' => $teamService->permissionGroups(),

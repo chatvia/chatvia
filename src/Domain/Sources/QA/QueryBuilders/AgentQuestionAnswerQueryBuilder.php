@@ -2,9 +2,15 @@
 
 namespace Domain\Sources\QA\QueryBuilders;
 
+use Domain\Sources\QA\Models\AgentQuestionAnswer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @template TModel of AgentQuestionAnswer
+ *
+ * @extends Builder<TModel>
+ */
 class AgentQuestionAnswerQueryBuilder extends Builder
 {
     /**

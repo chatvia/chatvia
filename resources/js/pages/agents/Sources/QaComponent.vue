@@ -18,7 +18,7 @@ import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
 interface Question {
@@ -357,7 +357,7 @@ fetchQAEntries();
                     <!-- Questions -->
                     <div class="space-y-2">
                         <Label>Questions</Label>
-                        <div v-for="(question, index) in form.questions" :key="question.id" class="flex gap-2">
+                        <div v-for="question in form.questions" :key="question.id" class="flex gap-2">
                             <Input
                                 v-model="question.question"
                                 :placeholder="`Ex: How do I request a refund?`"

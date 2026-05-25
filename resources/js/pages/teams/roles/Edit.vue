@@ -16,11 +16,11 @@ import { type BreadcrumbItem } from '@/types';
 import { Bot, Check, ChevronDown, Info, Loader2 } from 'lucide-vue-next';
 
 // Use generated TypeScript types from DTOs
-type TeamData = App.Data.Resources.Team.TeamData;
-type TeamAgentData = App.Data.Resources.Team.TeamAgentData;
-type TeamRoleData = App.Data.Resources.Team.TeamRoleData;
-type PermissionMetaData = App.Data.Resources.Team.PermissionMetaData;
-type PermissionGroupData = App.Data.Resources.Team.PermissionGroupData;
+type TeamData = App.Teams.Data.Resources.TeamData;
+type TeamAgentData = App.Teams.Data.Resources.TeamAgentData;
+type TeamRoleData = App.Teams.Data.Resources.TeamRoleData;
+type PermissionMetaData = App.Teams.Data.Resources.PermissionMetaData;
+type PermissionGroupData = App.Teams.Data.Resources.PermissionGroupData;
 
 interface Props {
     team: TeamData;

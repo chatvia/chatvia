@@ -3,16 +3,23 @@
 namespace Domain\Agents\Models;
 
 use App\Auth\Models\User;
+use App\Teams\Models\Role;
 use App\Teams\Models\Team;
 use Domain\Agents\Collections\AgentCollection;
+use Domain\Agents\QueryBuilders\AgentQueryBuilder;
+use Domain\Agents\Services\FileAnalyzer;
 use Domain\Chat\Data\LlmModelData;
 use Domain\Chat\Models\ChatSession;
 use Domain\Chat\Models\ChatTopic;
 use Domain\Sources\Files\Enums\AgentFileStatusEnum;
-use Domain\Agents\QueryBuilders\AgentQueryBuilder;
-use Domain\Agents\Services\FileAnalyzer;
-use Support\Traits\HasSettings;
+use Domain\Sources\Files\Models\SourceFile;
+use Domain\Sources\Text\Models\SourceText;
+use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
 use Exception;
+use Illuminate\Database\Eloquent\Attributes\Appends;
+use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,26 +29,134 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Teams\Models\Role;
-use Domain\Sources\Files\Models\SourceFile;
-use Domain\Sources\Text\Models\SourceText;
-use Domain\Sources\Web\Models\SourceWebsite;
-use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
+use Support\Traits\HasSettings;
 
+/**
+ * @property int $id
+ * @property string $external_id
+ * @property int $user_id
+ * @property int $team_id
+ * @property string $type
+ * @property string $name
+ * @property string|null $sub_domain
+ * @property string|null $domain
+ * @property string|null $system_instructions
+ * @property bool $is_public
+ * @property bool $collect_leads
+ * @property string|null $jwt_secret
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read int|null $functions_count
+ * @property-read int|null $mcp_servers_count
+ * @property-read Collection<int, Llm> $activeLlms
+ * @property-read int|null $active_llms_count
+ * @property-read AgentSource|null $pivot
+ * @property-read Collection<int, SourceFile> $audioFiles
+ * @property-read int|null $audio_files_count
+ * @property-read string $chat_embed_url
+ * @property-read Collection<int, ChatSession> $chatSessions
+ * @property-read int|null $chat_sessions_count
+ * @property-read string $chat_url
+ * @property-read Collection<int, SourceFile> $files
+ * @property-read int|null $files_count
+ * @property-read Collection<int, AgentFunction> $functions
+ * @property-read Collection<int, Lead> $leads
+ * @property-read int|null $leads_count
+ * @property-read Collection<int, Llm> $llms
+ * @property-read int|null $llms_count
+ * @property-read Collection<int, AgentMcpServer> $mcpServers
+ * @property-read Collection<int, ModelSetting> $modelSettings
+ * @property-read int|null $model_settings_count
+ * @property-read Collection<int, SourceFile> $pdfFiles
+ * @property-read int|null $pdf_files_count
+ * @property-read mixed $permanent_url
+ * @property-read Collection<int, Role> $roles
+ * @property-read int|null $roles_count
+ * @property-read Collection<int, Starter> $starters
+ * @property-read int|null $starters_count
+ * @property-read Team $team
+ * @property-read Collection<int, SourceText> $texts
+ * @property-read int|null $texts_count
+ * @property-read Collection<int, ChatTopic> $topics
+ * @property-read int|null $topics_count
+ * @property-read mixed $url
+ * @property-read User $user
+ * @property-read Collection<int, SourceFile> $videoFiles
+ * @property-read int|null $video_files_count
+ * @property-read Collection<int, SourceWebsite> $websites
+ * @property-read int|null $websites_count
+ * @property-read Collection<int, SourceFile> $wordFiles
+ * @property-read int|null $word_files_count
+ * @property-read Collection<int, SourceYoutubeVideo> $youtubeVideos
+ * @property-read int|null $youtube_videos_count
+ *
+ * @method static AgentCollection<int, static> all($columns = ['*'])
+ * @method static AgentQueryBuilder<static>|Agent avgConversationDuration()
+ * @method static AgentQueryBuilder<static>|Agent avgFirstResponseTime()
+ * @method static AgentQueryBuilder<static>|Agent avgMessagesPerConversation()
+ * @method static AgentQueryBuilder<static>|Agent avgResponseTime()
+ * @method static AgentQueryBuilder<static>|Agent avgTokensPerMessage()
+ * @method static AgentQueryBuilder<static>|Agent conversationsByCountry()
+ * @method static AgentQueryBuilder<static>|Agent conversationsByDayOfWeek()
+ * @method static AgentQueryBuilder<static>|Agent conversationsByHour()
+ * @method static AgentQueryBuilder<static>|Agent conversationsTrend(int $days = 30)
+ * @method static AgentQueryBuilder<static>|Agent conversationsWithFeedback()
+ * @method static AgentQueryBuilder<static>|Agent countAssistantMessages()
+ * @method static AgentQueryBuilder<static>|Agent countConversations()
+ * @method static AgentQueryBuilder<static>|Agent dailyMessages(int $days)
+ * @method static \Database\Factories\AgentFactory factory($count = null, $state = [])
+ * @method static AgentQueryBuilder<static>|Agent firstDataDate()
+ * @method static AgentCollection<int, static> get($columns = ['*'])
+ * @method static AgentQueryBuilder<static>|Agent messagesByData(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate)
+ * @method static AgentQueryBuilder<static>|Agent mostAccessedFiles()
+ * @method static AgentQueryBuilder<static>|Agent mostUsedModels()
+ * @method static AgentQueryBuilder<static>|Agent newModelQuery()
+ * @method static AgentQueryBuilder<static>|Agent newQuery()
+ * @method static AgentQueryBuilder<static>|Agent peakActivityHour()
+ * @method static AgentQueryBuilder<static>|Agent query()
+ * @method static AgentQueryBuilder<static>|Agent satisfactionRate()
+ * @method static AgentQueryBuilder<static>|Agent topTopics(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate, int $limit = 10)
+ * @method static AgentQueryBuilder<static>|Agent topicsByDateRange(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate)
+ * @method static AgentQueryBuilder<static>|Agent totalTokensUsed()
+ * @method static AgentQueryBuilder<static>|Agent totalUserMessages()
+ * @method static AgentQueryBuilder<static>|Agent uniqueSessionsCount()
+ * @method static AgentQueryBuilder<static>|Agent whereCollectLeads($value)
+ * @method static AgentQueryBuilder<static>|Agent whereCreatedAt($value)
+ * @method static AgentQueryBuilder<static>|Agent whereDomain($value)
+ * @method static AgentQueryBuilder<static>|Agent whereExternalId($value)
+ * @method static AgentQueryBuilder<static>|Agent whereFunctionsCount($value)
+ * @method static AgentQueryBuilder<static>|Agent whereId($value)
+ * @method static AgentQueryBuilder<static>|Agent whereIsPublic($value)
+ * @method static AgentQueryBuilder<static>|Agent whereJwtSecret($value)
+ * @method static AgentQueryBuilder<static>|Agent whereMcpServersCount($value)
+ * @method static AgentQueryBuilder<static>|Agent whereName($value)
+ * @method static AgentQueryBuilder<static>|Agent whereSubDomain($value)
+ * @method static AgentQueryBuilder<static>|Agent whereSystemInstructions($value)
+ * @method static AgentQueryBuilder<static>|Agent whereTeamId($value)
+ * @method static AgentQueryBuilder<static>|Agent whereType($value)
+ * @method static AgentQueryBuilder<static>|Agent whereUpdatedAt($value)
+ * @method static AgentQueryBuilder<static>|Agent whereUserId($value)
+ * @method static AgentQueryBuilder<static>|Agent withStats()
+ * @method static AgentQueryBuilder<static>|Agent withTotalMembers()
+ * @method static AgentQueryBuilder<static>|Agent withTotalMessages()
+ * @method static AgentQueryBuilder<static>|Agent withUniqueUsers()
+ *
+ * @mixin \Eloquent
+ */
+#[Appends([
+    'url',
+    'permanent_url',
+    'chat_url',
+    'chat_embed_url',
+])]
+#[CollectedBy(AgentCollection::class)]
+#[Guarded(['id'])]
 class Agent extends Model
 {
     use HasFactory, HasSettings;
-
-    protected $guarded = ['id'];
-
-    protected $appends = [
-        'url',
-        'permanent_url',
-        'chat_url',
-        'chat_embed_url',
-    ];
 
     /**
      * Get the route key name for Laravel route model binding.
@@ -51,11 +166,17 @@ class Agent extends Model
         return 'external_id';
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<Team, $this>
+     */
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
@@ -63,6 +184,8 @@ class Agent extends Model
 
     /**
      * Get the roles that have access to this agent.
+     *
+     * @return BelongsToMany<Role, $this>
      */
     public function roles(): BelongsToMany
     {
@@ -114,6 +237,9 @@ class Agent extends Model
         }
     }
 
+    /**
+     * @return MorphToMany<SourceFile, $this, AgentSource>
+     */
     public function files(): MorphToMany
     {
         return $this
@@ -122,6 +248,9 @@ class Agent extends Model
             ->withTimestamps();
     }
 
+    /**
+     * @return MorphToMany<SourceWebsite, $this, AgentSource>
+     */
     public function websites(): MorphToMany
     {
         return $this->morphedByMany(SourceWebsite::class, 'sourceable', 'agent_sources')
@@ -129,6 +258,9 @@ class Agent extends Model
             ->withTimestamps();
     }
 
+    /**
+     * @return MorphToMany<SourceText, $this, AgentSource>
+     */
     public function texts(): MorphToMany
     {
         return $this->morphedByMany(SourceText::class, 'sourceable', 'agent_sources')
@@ -136,6 +268,9 @@ class Agent extends Model
             ->withTimestamps();
     }
 
+    /**
+     * @return MorphToMany<SourceYoutubeVideo, $this, AgentSource>
+     */
     public function youtubeVideos(): MorphToMany
     {
         return $this->morphedByMany(SourceYoutubeVideo::class, 'sourceable', 'agent_sources')
@@ -143,21 +278,33 @@ class Agent extends Model
             ->withTimestamps();
     }
 
+    /**
+     * @return HasMany<AgentFunction, $this>
+     */
     public function functions(): HasMany
     {
         return $this->hasMany(AgentFunction::class);
     }
 
+    /**
+     * @return HasMany<AgentMcpServer, $this>
+     */
     public function mcpServers(): HasMany
     {
         return $this->hasMany(AgentMcpServer::class);
     }
 
+    /**
+     * @return HasMany<Starter, $this>
+     */
     public function starters(): HasMany
     {
         return $this->hasMany(Starter::class);
     }
 
+    /**
+     * @return BelongsToMany<Llm, $this>
+     */
     public function llms(): BelongsToMany
     {
         return $this->belongsToMany(Llm::class);
@@ -170,11 +317,17 @@ class Agent extends Model
         });
     }
 
+    /**
+     * @return HasMany<Lead, $this>
+     */
     public function leads(): HasMany
     {
         return $this->hasMany(Lead::class);
     }
 
+    /**
+     * @return BelongsToMany<Llm, $this>
+     */
     public function activeLlms(): BelongsToMany
     {
         return $this->llms()->wherePivot('is_active', true);
@@ -236,14 +389,17 @@ class Agent extends Model
 
     public function chatUrl(): Attribute
     {
-        return Attribute::get(fn () => $this->url.'/chat');
+        return Attribute::get(fn (): string => $this->url.'/chat');
     }
 
     public function chatEmbedUrl(): Attribute
     {
-        return Attribute::get(fn () => $this->permanent_url.'/chat/embed');
+        return Attribute::get(fn (): string => $this->permanent_url.'/chat/embed');
     }
 
+    /**
+     * @return HasMany<ChatSession, $this>
+     */
     public function chatSessions(): HasMany
     {
         return $this->hasMany(ChatSession::class);
@@ -299,10 +455,5 @@ class Agent extends Model
     public function newEloquentBuilder($query): AgentQueryBuilder
     {
         return new AgentQueryBuilder($query);
-    }
-
-    public function newCollection(array $models = []): AgentCollection
-    {
-        return new AgentCollection($models);
     }
 }

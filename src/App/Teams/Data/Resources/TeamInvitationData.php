@@ -22,8 +22,8 @@ class TeamInvitationData extends Data
         return new self(
             id: $invitation->id,
             email: $invitation->email,
-            role: $invitation->role?->code,
-            role_name: $invitation->role?->name,
+            role: $invitation->role->code,
+            role_name: $invitation->role->name,
             created_at: $invitation->created_at->toDateTimeString(),
         );
     }

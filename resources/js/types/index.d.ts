@@ -44,6 +44,30 @@ export interface SharedData extends PageProps {
     subscriptionStartsAt?: string | null;
     permissions: Record<number, string[]>;
     currentTeam: CurrentTeam | null;
+
+    // Chat-flow / widget contexts share the resolved agent and surface flash
+    // messages, request schema, and the active subdomain. Most pages don't
+    // see these but typing them here keeps `$page.props.X` honest.
+    agent?: {
+        id: number;
+        external_id: string;
+        name: string;
+        [key: string]: unknown;
+    };
+    schema?: string;
+    environment?: string;
+    domain?: string;
+    subdomain?: string | null;
+    flash?: {
+        success?: string | null;
+        error?: string | null;
+        warning?: string | null;
+        info?: string | null;
+    };
+
+    // Server-side validation errors. Inertia adds these on every visit and
+    // are surfaced both at `$page.props.errors` and via `useForm`.
+    errors?: Record<string, string>;
 }
 
 export interface User {
@@ -56,7 +80,7 @@ export interface User {
     updated_at: string;
     is_paid: boolean;
     type: 'admin' | 'company' | 'staff';
-    capabilities?: App.Data.Resources.Billing.BillingPackageCapabilitiesData;
+    capabilities?: App.Billing.Data.Resources.BillingPackageCapabilitiesData;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

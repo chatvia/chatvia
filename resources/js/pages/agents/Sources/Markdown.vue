@@ -3,7 +3,7 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import Files from './Files.vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
 defineProps<Props>();

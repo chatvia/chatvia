@@ -91,7 +91,7 @@ class MarkdownHeaderTextSplitter
         }
 
         // Filter out empty chunks
-        $chunks = array_filter($chunks, fn ($chunk) => ! empty(trim($chunk['content'])));
+        $chunks = array_filter($chunks, fn ($chunk): bool => ! empty(trim($chunk['content'])));
 
         // If returnEachLine is true, further split chunks by lines
         if ($this->returnEachLine) {
@@ -175,7 +175,7 @@ class MarkdownHeaderTextSplitter
         // Remove headers at the same level or deeper
         $currentHeaders = array_filter(
             $currentHeaders,
-            fn ($h) => $h['level'] < $level
+            fn ($h): bool => $h['level'] < $level
         );
 
         // Add the new header
@@ -257,7 +257,7 @@ class MarkdownHeaderTextSplitter
         }
 
         $chunkSizes = array_map(
-            fn ($chunk) => mb_strlen($chunk['content']),
+            fn ($chunk): int => mb_strlen($chunk['content']),
             $chunks
         );
         $totalCharacters = array_sum($chunkSizes);

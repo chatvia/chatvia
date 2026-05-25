@@ -3,24 +3,14 @@
 namespace App\Console\Commands;
 
 use App\Auth\Models\User;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
+#[Description('Update free users monthly quotas')]
+#[Signature('app:update-free-users-quotas')]
 class UpdateFreeUsersQuotas extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'app:update-free-users-quotas';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Update free users monthly quotas';
-
     /**
      * Execute the console command.
      */
@@ -33,7 +23,7 @@ class UpdateFreeUsersQuotas extends Command
         $quotaLimit = config("billing.packages.{$defaultPackage}.quota_limits.monthly");
 
         $users = User::query()
-            ->whereHas('credit', function ($query) {
+            ->whereHas('credit', function ($query): void {
                 $query->where('ends_at', '<=', now()->addDay());
             })
             ->orWhereDoesntHave('credit')

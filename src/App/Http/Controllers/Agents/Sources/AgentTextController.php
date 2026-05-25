@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Agents\Sources;
 
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Text\Models\SourceText;
 use Domain\Ingestion\Services\Tidy\TextCleaner;
+use Domain\Sources\Text\Models\SourceText;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;

@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\KnowledgeFiles;
 
-use Domain\Sources\Files\Data\KnowledgeBase\KnowledgeFileData;
 use Domain\Agents\Models\Agent;
+use Domain\Sources\Files\Data\KnowledgeBase\KnowledgeFileData;
 use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Http\Request;
 
 class KnowledgeFilesListController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): array
     {
         // Get files with their associated agent info
         // Since files can belong to multiple agents, we return one row per file-agent combination
         $data = SourceFile::query()
-            ->join('agent_sources', function ($join) {
+            ->join('agent_sources', function ($join): void {
                 $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
                     ->where('agent_sources.sourceable_type', '=', SourceFile::class);
             })
@@ -27,13 +27,13 @@ class KnowledgeFilesListController
                 'agents.sub_domain as agent_sub_domain',
             ])
             ->get()
-            ->map(function ($file) {
+            ->map(function (SourceFile $file) {
                 // Create a temporary agent object for the data transformation
-                $file->agent = (object) [
-                    'id' => $file->agent_id,
-                    'name' => $file->agent_name,
-                    'sub_domain' => $file->agent_sub_domain,
-                ];
+                $file->setAttribute('agent', (object) [
+                    'id' => $file->getAttribute('agent_id'),
+                    'name' => $file->getAttribute('agent_name'),
+                    'sub_domain' => $file->getAttribute('agent_sub_domain'),
+                ]);
 
                 return $file;
             });

@@ -13,7 +13,7 @@ import { toast } from 'vue-sonner';
 import FunctionEditor from './FunctionEditor.vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
 const props = defineProps<Props>();
@@ -90,7 +90,7 @@ onMounted(fetchFunctions);
 
 <template>
     <AgentLayout :agent="agent">
-        <div class="space-y-6">
+        <div class="mx-auto w-full max-w-6xl space-y-6">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <h1 class="text-xl font-semibold">Functions</h1>

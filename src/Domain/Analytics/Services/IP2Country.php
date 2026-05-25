@@ -50,6 +50,6 @@ class IP2Country
     {
         $location = self::getLocationByIP($ip);
 
-        return $location?->countryCode ?? '';
+        return $location->countryCode ?? '';
     }
 }

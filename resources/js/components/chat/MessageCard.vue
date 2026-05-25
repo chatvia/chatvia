@@ -33,19 +33,18 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-    isChatExpanded: {
-        type: Boolean,
-        default: false,
-    },
 });
-const isChatExpanded = defineModel();
+// `isChatExpanded` is two-way via v-model so parents can collapse the chat
+// from outside. defineModel() registers the implicit `modelValue` prop and
+// emit — keep it out of the explicit defineProps to avoid a name collision.
+const isChatExpanded = defineModel < boolean > ('isChatExpanded', { default: false });
 const messageRef = ref(props.message);
 
 const marked = new Marked(
     markedHighlight({
         emptyLangClass: 'hljs',
         langPrefix: 'hljs language-',
-        highlight(code, lang, info) {
+        highlight(code, lang, _info) {
             const language = hljs.getLanguage(lang) ? lang : 'plaintext';
             return hljs.highlight(code, { language }).value;
         },
@@ -126,7 +125,7 @@ function toggleExportDropdown(messageId, event) {
     isExportDropdownOpen.value = newState;
 }
 
-const closeMenu = () => {
+const _closeMenu = () => {
     isExportDropdownOpen.value = false;
 };
 watch(
@@ -147,7 +146,7 @@ onMounted(() => {
     }
 });
 
-function startEditing() {
+function _startEditing() {
     if (props.message.role === 'user') {
         editedContent.value = props.message.content;
         isEditing.value = true;

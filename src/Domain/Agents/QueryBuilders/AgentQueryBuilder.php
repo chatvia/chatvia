@@ -2,10 +2,17 @@
 
 namespace Domain\Agents\QueryBuilders;
 
+use Domain\Agents\Models\Agent;
+use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @template TModel of Agent
+ *
+ * @extends Builder<TModel>
+ */
 class AgentQueryBuilder extends Builder
 {
     /**
@@ -97,7 +104,7 @@ class AgentQueryBuilder extends Builder
             ->value('avg_response_time');
     }
 
-    public function satisfactionRate()
+    public function satisfactionRate(): array
     {
         $agentId = $this->getModel()->id;
 
@@ -196,9 +203,9 @@ class AgentQueryBuilder extends Builder
         $agentId = $this->getModel()->id;
 
         return DB::table('agent_sources')
-            ->join('source_files', function ($join) {
+            ->join('source_files', function ($join): void {
                 $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', \Domain\Sources\Files\Models\SourceFile::class);
+                    ->where('agent_sources.sourceable_type', '=', SourceFile::class);
             })
             ->where('agent_sources.agent_id', $agentId)
             ->select([
@@ -266,7 +273,7 @@ class AgentQueryBuilder extends Builder
             ->orderBy('hour');
     }
 
-    public function peakActivityHour()
+    public function peakActivityHour(): ?int
     {
         $agentId = $this->getModel()->id;
 

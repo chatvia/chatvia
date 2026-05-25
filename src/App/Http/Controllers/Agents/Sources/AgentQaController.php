@@ -8,6 +8,7 @@ use Domain\Sources\QA\Models\AgentQuestionAnswer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -120,13 +121,13 @@ class AgentQaController
         return response()->json(['message' => 'Q&A entry unlinked successfully']);
     }
 
-    private function buildQaList(Agent $agent): \Illuminate\Support\Collection
+    private function buildQaList(Agent $agent): Collection
     {
         return AgentQuestionAnswer::query()
             ->where('agent_id', $agent->id)
             ->latest()
             ->get()
-            ->map(fn (AgentQuestionAnswer $qa) => [
+            ->map(fn (AgentQuestionAnswer $qa): array => [
                 'id' => $qa->id,
                 'title' => $qa->title,
                 'questions' => $this->parseQuestionsToArray($qa->questions),
@@ -145,7 +146,7 @@ class AgentQaController
 
         return collect(explode(', ', $questions))
             ->filter()
-            ->map(fn (string $question) => [
+            ->map(fn (string $question): array => [
                 'id' => Str::uuid()->toString(),
                 'question' => trim($question),
             ])

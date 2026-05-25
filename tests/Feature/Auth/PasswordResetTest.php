@@ -6,18 +6,18 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 
-describe('Forgot Password', function () {
-    beforeEach(function () {
+describe('Forgot Password', function (): void {
+    beforeEach(function (): void {
         Notification::fake();
     });
 
-    it('shows forgot password page to guests', function () {
+    it('shows forgot password page to guests', function (): void {
         $response = $this->get(route('password.request'));
 
         $response->assertOk();
     });
 
-    it('sends password reset link to valid email', function () {
+    it('sends password reset link to valid email', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
 
         $response = $this->post(route('password.email'), [
@@ -29,7 +29,7 @@ describe('Forgot Password', function () {
         Notification::assertSentTo($user, ResetPassword::class);
     });
 
-    it('does not reveal if email exists in database', function () {
+    it('does not reveal if email exists in database', function (): void {
         // Non-existent email should show same response as valid email
         $response = $this->post(route('password.email'), [
             'email' => 'nonexistent@example.com',
@@ -39,7 +39,7 @@ describe('Forgot Password', function () {
         $response->assertSessionHas('status');
     });
 
-    it('requires email field', function () {
+    it('requires email field', function (): void {
         $response = $this->post(route('password.email'), [
             'email' => '',
         ]);
@@ -47,7 +47,7 @@ describe('Forgot Password', function () {
         $response->assertSessionHasErrors('email');
     });
 
-    it('requires valid email format', function () {
+    it('requires valid email format', function (): void {
         $response = $this->post(route('password.email'), [
             'email' => 'not-an-email',
         ]);
@@ -55,7 +55,7 @@ describe('Forgot Password', function () {
         $response->assertSessionHasErrors('email');
     });
 
-    it('throttles password reset requests', function () {
+    it('throttles password reset requests', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
 
         // Make multiple requests
@@ -70,12 +70,12 @@ describe('Forgot Password', function () {
     });
 });
 
-describe('Password Reset', function () {
-    beforeEach(function () {
+describe('Password Reset', function (): void {
+    beforeEach(function (): void {
         Notification::fake();
     });
 
-    it('shows password reset page with valid token', function () {
+    it('shows password reset page with valid token', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
 
         $token = Password::createToken($user);
@@ -85,7 +85,7 @@ describe('Password Reset', function () {
         $response->assertOk();
     });
 
-    it('resets password with valid token and data', function () {
+    it('resets password with valid token and data', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('old-password'),
@@ -108,7 +108,7 @@ describe('Password Reset', function () {
         expect(Hash::check('old-password', $user->fresh()->password))->toBeFalse();
     });
 
-    it('rejects password reset with invalid token', function () {
+    it('rejects password reset with invalid token', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
 
         $response = $this->post(route('password.store'), [
@@ -124,7 +124,7 @@ describe('Password Reset', function () {
         expect(Hash::check('password', $user->fresh()->password))->toBeTrue();
     });
 
-    it('rejects password reset with expired token', function () {
+    it('rejects password reset with expired token', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
 
         $token = Password::createToken($user);
@@ -142,7 +142,7 @@ describe('Password Reset', function () {
         $response->assertSessionHasErrors('email');
     });
 
-    it('requires token', function () {
+    it('requires token', function (): void {
         $response = $this->post(route('password.store'), [
             'token' => '',
             'email' => 'test@example.com',
@@ -153,7 +153,7 @@ describe('Password Reset', function () {
         $response->assertSessionHasErrors('token');
     });
 
-    it('requires email', function () {
+    it('requires email', function (): void {
         $response = $this->post(route('password.store'), [
             'token' => 'some-token',
             'email' => '',
@@ -164,7 +164,7 @@ describe('Password Reset', function () {
         $response->assertSessionHasErrors('email');
     });
 
-    it('requires password', function () {
+    it('requires password', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
         $token = Password::createToken($user);
 
@@ -178,7 +178,7 @@ describe('Password Reset', function () {
         $response->assertSessionHasErrors('password');
     });
 
-    it('requires password confirmation', function () {
+    it('requires password confirmation', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
         $token = Password::createToken($user);
 
@@ -192,7 +192,7 @@ describe('Password Reset', function () {
         $response->assertSessionHasErrors('password');
     });
 
-    it('requires minimum password length', function () {
+    it('requires minimum password length', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
         $token = Password::createToken($user);
 
@@ -206,7 +206,7 @@ describe('Password Reset', function () {
         $response->assertSessionHasErrors('password');
     });
 
-    it('logs user in after successful password reset', function () {
+    it('logs user in after successful password reset', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('old-password'),
@@ -225,7 +225,7 @@ describe('Password Reset', function () {
         $response->assertSessionHas('status');
     });
 
-    it('invalidates old tokens after password reset', function () {
+    it('invalidates old tokens after password reset', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
 
         $oldToken = Password::createToken($user);
@@ -250,8 +250,8 @@ describe('Password Reset', function () {
     });
 });
 
-describe('Password Confirmation', function () {
-    it('shows password confirmation page to authenticated users', function () {
+describe('Password Confirmation', function (): void {
+    it('shows password confirmation page to authenticated users', function (): void {
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->get(route('password.confirm'));
@@ -259,7 +259,7 @@ describe('Password Confirmation', function () {
         $response->assertOk();
     });
 
-    it('confirms password with correct password', function () {
+    it('confirms password with correct password', function (): void {
         $user = User::factory()->create([
             'password' => Hash::make('password'),
         ]);
@@ -272,7 +272,7 @@ describe('Password Confirmation', function () {
         $response->assertSessionHasNoErrors();
     });
 
-    it('rejects confirmation with incorrect password', function () {
+    it('rejects confirmation with incorrect password', function (): void {
         $user = User::factory()->create([
             'password' => Hash::make('password'),
         ]);
@@ -284,7 +284,7 @@ describe('Password Confirmation', function () {
         $response->assertSessionHasErrors('password');
     });
 
-    it('requires password field for confirmation', function () {
+    it('requires password field for confirmation', function (): void {
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('password.confirm'), [

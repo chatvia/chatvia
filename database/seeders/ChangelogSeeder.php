@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Changelog\Models\Changelog;
 use App\Changelog\Models\ChangelogItem;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class ChangelogSeeder extends Seeder
@@ -18,7 +19,7 @@ class ChangelogSeeder extends Seeder
         foreach ($versions as $versionData) {
             $changelog = Changelog::create([
                 'version' => $versionData['version'],
-                'release_date' => \Carbon\Carbon::parse($versionData['release_date']),
+                'release_date' => Carbon::parse($versionData['release_date']),
             ]);
 
             $changes = $versionData['changes'] ?? [];

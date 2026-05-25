@@ -9,7 +9,7 @@ final class GoogleCallbackAuthController
 {
     public function __invoke(Request $request, SocialLoginAction $loginAction)
     {
-        $loginAction->execute('google', $request);
+        $loginAction->execute('google');
 
         return to_route('dashboard');
     }

@@ -3,9 +3,9 @@
 namespace Domain\Agents\Data\Resources\ChatLog;
 
 use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\Lead;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
-use Domain\Agents\Models\Lead;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
@@ -57,7 +57,7 @@ class ChatLogConversationsResourceData extends Data
         $excerpts = self::getFirstMessageExcerpts($conversationIds);
 
         $conversationsPaginator->through(
-            fn (ChatConversation $conversation) => ChatLogConversationData::fromConversation(
+            fn (ChatConversation $conversation): ChatLogConversationData => ChatLogConversationData::fromConversation(
                 $conversation,
                 $excerpts->get($conversation->id)
             )

@@ -5,6 +5,7 @@ namespace Domain\Chat\Services\Tooling\Mcp;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Connectors\Services\OAuth\McpOAuthFlow;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -23,7 +24,7 @@ use Throwable;
  */
 class McpClient
 {
-    private const PROTOCOL_VERSION = '2025-03-26';
+    private const PROTOCOL_VERSION = '2025-06-18';
 
     private const CLIENT_INFO = [
         'name' => 'chatvia',
@@ -42,9 +43,8 @@ class McpClient
         $this->ensureFreshToken($server);
 
         $sessionId = null;
-        $http = $this->request($server, $sessionId);
 
-        $initResponse = $this->rpc($http, $server, $sessionId, 'initialize', [
+        $initResponse = $this->rpc($server, $sessionId, 'initialize', [
             'protocolVersion' => self::PROTOCOL_VERSION,
             'capabilities' => (object) [],
             'clientInfo' => self::CLIENT_INFO,
@@ -56,9 +56,9 @@ class McpClient
             $sessionId = $initResponse['_session_id'];
         }
 
-        $this->notify($http, $server, $sessionId, 'notifications/initialized');
+        $this->notify($server, $sessionId, 'notifications/initialized');
 
-        $listResponse = $this->rpc($http, $server, $sessionId, 'tools/list', (object) []);
+        $listResponse = $this->rpc($server, $sessionId, 'tools/list', (object) []);
 
         $tools = $listResponse['body']['result']['tools'] ?? null;
 
@@ -66,7 +66,7 @@ class McpClient
             throw new McpException('MCP server returned a malformed tools/list response.');
         }
 
-        $this->closeSession($http, $server, $sessionId);
+        $this->closeSession($server, $sessionId);
 
         return $tools;
     }
@@ -84,9 +84,8 @@ class McpClient
         $this->ensureFreshToken($server);
 
         $sessionId = null;
-        $http = $this->request($server, $sessionId);
 
-        $initResponse = $this->rpc($http, $server, $sessionId, 'initialize', [
+        $initResponse = $this->rpc($server, $sessionId, 'initialize', [
             'protocolVersion' => self::PROTOCOL_VERSION,
             'capabilities' => (object) [],
             'clientInfo' => self::CLIENT_INFO,
@@ -96,9 +95,9 @@ class McpClient
             $sessionId = $initResponse['_session_id'];
         }
 
-        $this->notify($http, $server, $sessionId, 'notifications/initialized');
+        $this->notify($server, $sessionId, 'notifications/initialized');
 
-        $callResponse = $this->rpc($http, $server, $sessionId, 'tools/call', [
+        $callResponse = $this->rpc($server, $sessionId, 'tools/call', [
             'name' => $name,
             'arguments' => $arguments,
         ]);
@@ -113,7 +112,7 @@ class McpClient
             throw new McpException($message);
         }
 
-        $this->closeSession($http, $server, $sessionId);
+        $this->closeSession($server, $sessionId);
 
         return $result;
     }
@@ -143,11 +142,20 @@ class McpClient
         }
     }
 
+    /**
+     * Build a fresh PendingRequest for a single MCP call. Always builds anew
+     * so headers can't accumulate across calls — Laravel's withHeaders uses
+     * array_merge_recursive, which would nest repeated keys into arrays
+     * (sending the same header twice on the wire). Notion in particular
+     * treats two `Mcp-Session-Id` headers as a comma-joined value and
+     * 404s the request as "Session not found".
+     */
     private function request(AgentMcpServer $server, ?string $sessionId): PendingRequest
     {
         $headers = [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json, text/event-stream',
+            'MCP-Protocol-Version' => self::PROTOCOL_VERSION,
         ];
 
         foreach ((array) ($server->headers ?? []) as $h) {
@@ -178,7 +186,6 @@ class McpClient
      * @return array{body: array<string, mixed>, _session_id: ?string}
      */
     private function rpc(
-        PendingRequest $http,
         AgentMcpServer $server,
         ?string $sessionId,
         string $method,
@@ -187,7 +194,7 @@ class McpClient
         $id = (string) Str::uuid();
 
         try {
-            $response = $this->withSessionHeader($http, $sessionId)
+            $response = $this->request($server, $sessionId)
                 ->post($server->url, [
                     'jsonrpc' => '2.0',
                     'id' => $id,
@@ -234,10 +241,10 @@ class McpClient
      *
      * @param  array<string, mixed>|object  $params
      */
-    private function notify(PendingRequest $http, AgentMcpServer $server, ?string $sessionId, string $method, array|object $params = []): void
+    private function notify(AgentMcpServer $server, ?string $sessionId, string $method, array|object $params = []): void
     {
         try {
-            $this->withSessionHeader($http, $sessionId)
+            $this->request($server, $sessionId)
                 ->post($server->url, [
                     'jsonrpc' => '2.0',
                     'method' => $method,
@@ -248,7 +255,7 @@ class McpClient
         }
     }
 
-    private function closeSession(PendingRequest $http, AgentMcpServer $server, ?string $sessionId): void
+    private function closeSession(AgentMcpServer $server, ?string $sessionId): void
     {
         if (! $sessionId) {
             return;
@@ -257,19 +264,10 @@ class McpClient
         // Streamable HTTP servers expect DELETE on the same endpoint with
         // the session header to release server-side state.
         try {
-            $this->withSessionHeader($http, $sessionId)->delete($server->url);
+            $this->request($server, $sessionId)->delete($server->url);
         } catch (Throwable) {
             // Best-effort.
         }
-    }
-
-    private function withSessionHeader(PendingRequest $http, ?string $sessionId): PendingRequest
-    {
-        if (! $sessionId) {
-            return $http;
-        }
-
-        return $http->withHeaders(['Mcp-Session-Id' => $sessionId]);
     }
 
     /**
@@ -282,7 +280,7 @@ class McpClient
      *
      * @return array<string, mixed>|null
      */
-    private function decodeResponseBody(\Illuminate\Http\Client\Response $response): ?array
+    private function decodeResponseBody(Response $response): ?array
     {
         $contentType = strtolower((string) $response->header('Content-Type'));
 

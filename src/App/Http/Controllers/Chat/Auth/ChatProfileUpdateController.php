@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class ChatProfileUpdateController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): void
     {
         $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],

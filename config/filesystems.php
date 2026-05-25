@@ -1,5 +1,7 @@
 <?php
 
+use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNRegion;
+
 return [
 
     /*
@@ -92,7 +94,7 @@ return [
             'storage_zone' => env('BUNNYCDN_STORAGE_ZONE'),
             'pull_zone' => env('BUNNYCDN_PULL_ZONE'),
             'api_key' => env('BUNNYCDN_API_KEY'),
-            'region' => env('BUNNYCDN_REGION', \PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNRegion::DEFAULT),
+            'region' => env('BUNNYCDN_REGION', BunnyCDNRegion::DEFAULT),
             'throw' => true,
             'report' => true,
         ],

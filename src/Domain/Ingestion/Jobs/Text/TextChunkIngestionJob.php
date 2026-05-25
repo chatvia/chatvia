@@ -3,12 +3,12 @@
 namespace Domain\Ingestion\Jobs\Text;
 
 use App\Embeddings\Contracts\EmbeddingsProviderInterface;
-use Domain\Ingestion\Data\OCR\PageData;
-use Domain\Sources\Text\Events\TextIngestionProgressEvent;
 use Domain\Agents\Models\Agent;
+use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Models\Chunk;
-use Domain\Sources\Text\Models\SourceText;
 use Domain\Ingestion\Services\TikToken;
+use Domain\Sources\Text\Events\TextIngestionProgressEvent;
+use Domain\Sources\Text\Models\SourceText;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -52,7 +52,6 @@ class TextChunkIngestionJob implements ShouldBeUnique, ShouldQueue
             'type' => 'text',
             'chunk_index' => $this->page->pageNumber,
             'chunk' => $this->page->content,
-            'questions' => [],
             'summary' => '',
             'chunked_using_model' => config('ai.models.chunker'),
             'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
@@ -80,7 +79,7 @@ class TextChunkIngestionJob implements ShouldBeUnique, ShouldQueue
         );
     }
 
-    public function uniqueId()
+    public function uniqueId(): string
     {
         return 'agent:'.$this->agent->id.':sources:text:'.$this->sourceText->id.':page:'.$this->page->pageNumber;
     }

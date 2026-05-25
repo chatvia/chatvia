@@ -6,7 +6,7 @@ import { FileText, LoaderCircle } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 
 interface Props {
-    agent: App.Data.Resources.Agent.AgentResourceData;
+    agent: Domain.Agents.Data.Resources.AgentResourceData;
 }
 
 const props = defineProps<Props>();

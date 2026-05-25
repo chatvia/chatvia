@@ -9,7 +9,7 @@ class MicrosoftCallbackAuthController
 {
     public function __invoke(Request $request, SocialLoginAction $loginAction)
     {
-        $loginAction->execute('microsoft', $request);
+        $loginAction->execute('microsoft');
 
         return to_route('dashboard');
     }

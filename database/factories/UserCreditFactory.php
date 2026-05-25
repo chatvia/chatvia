@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Billing\Models\UserCredit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Billing\Models\UserCredit>
+ * @extends Factory<UserCredit>
  */
-class CreditFactory extends Factory
+class UserCreditFactory extends Factory
 {
     /**
      * Define the model's default state.

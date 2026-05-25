@@ -47,11 +47,11 @@ const resumeForm = useForm({});
 const cancelScheduleForm = useForm({});
 
 // Billing data
-const billingData = ref<App.Data.Resources.Billing.BillingResourceData | null>(null);
+const billingData = ref<App.Billing.Data.Resources.BillingResourceData | null>(null);
 const isLoadingBilling = ref(true);
 
 // Usage data
-const usageData = ref<App.Data.Resources.My.Usage.UsageResourceData | null>(null);
+const usageData = ref<App.Auth.Data.Resources.My.Usage.UsageResourceData | null>(null);
 const isLoadingUsage = ref(true);
 
 // ChatMessage credits dialog state

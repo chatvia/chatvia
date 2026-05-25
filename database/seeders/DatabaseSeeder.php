@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Domain\Agents\Models\Agent;
 use App\Auth\Models\User;
 use App\Prompts\PromptLoader;
+use App\Teams\Services\TeamService;
+use Domain\Agents\Models\Agent;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -56,7 +57,7 @@ class DatabaseSeeder extends Seeder
         // Get or create primary team
         $team = $user->primaryTeam();
         if (! $team) {
-            $team = app(\App\Teams\Services\TeamService::class)->createDefaultTeam($user);
+            $team = app(TeamService::class)->createDefaultTeam($user);
             $this->command->info("Created default team: {$team->name}");
         }
 

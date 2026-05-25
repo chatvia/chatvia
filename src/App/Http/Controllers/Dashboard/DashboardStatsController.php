@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\Auth\Models\User;
+use App\Billing\Models\UserQuota;
+use App\Teams\Models\Team;
 use Domain\Agents\Models\Lead;
 use Domain\Sources\Files\Models\SourceFile;
 use Domain\Sources\Web\Models\SourceWebsite;
-use App\Teams\Models\Team;
-use App\Auth\Models\User;
-use App\Billing\Models\UserQuota;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DashboardStatsController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): array
     {
         /** @var User $user */
         $user = $request->user();
@@ -108,7 +108,7 @@ class DashboardStatsController
     private function getKnowledgeSourcesBreakdown(User $user, $agentIds): array
     {
         $files = DB::table('source_files')
-            ->join('agent_sources', function ($join) {
+            ->join('agent_sources', function ($join): void {
                 $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
                     ->where('agent_sources.sourceable_type', '=', SourceFile::class);
             })
@@ -117,7 +117,7 @@ class DashboardStatsController
             ->count('source_files.id');
 
         $websites = DB::table('source_websites')
-            ->join('agent_sources', function ($join) {
+            ->join('agent_sources', function ($join): void {
                 $join->on('source_websites.id', '=', 'agent_sources.sourceable_id')
                     ->where('agent_sources.sourceable_type', '=', SourceWebsite::class);
             })
@@ -127,7 +127,7 @@ class DashboardStatsController
 
         $crawledPages = DB::table('source_website_urls')
             ->join('source_websites', 'source_websites.id', '=', 'source_website_urls.source_website_id')
-            ->join('agent_sources', function ($join) {
+            ->join('agent_sources', function ($join): void {
                 $join->on('source_websites.id', '=', 'agent_sources.sourceable_id')
                     ->where('agent_sources.sourceable_type', '=', SourceWebsite::class);
             })

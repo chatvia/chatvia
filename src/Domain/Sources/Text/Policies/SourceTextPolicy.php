@@ -2,8 +2,8 @@
 
 namespace Domain\Sources\Text\Policies;
 
-use Domain\Sources\Text\Models\SourceText;
 use App\Auth\Models\User;
+use Domain\Sources\Text\Models\SourceText;
 
 class SourceTextPolicy
 {

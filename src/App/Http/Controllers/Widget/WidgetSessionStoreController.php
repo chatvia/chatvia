@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Widget;
 
-use Domain\Chat\Services\Memory\ChatSession;
-use Domain\Analytics\Services\UserAgentParser;
 use App\Widget\WidgetVerification;
+use Domain\Analytics\Services\UserAgentParser;
+use Domain\Chat\Services\Memory\ChatSession;
 use Illuminate\Http\Request;
 
 class WidgetSessionStoreController

@@ -34,7 +34,7 @@ class UserAgentParserTest extends TestCase
 
         $this->assertEquals('Desktop', $result['device_type']);
         $this->assertEquals('Firefox', $result['browser']);
-        $this->assertEquals('Mac OS X 10.15', $result['os']);
+        $this->assertEquals('macOS 10.15', $result['os']);
     }
 
     public function test_parses_chrome_on_android(): void

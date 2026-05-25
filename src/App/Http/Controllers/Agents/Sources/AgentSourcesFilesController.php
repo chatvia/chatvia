@@ -6,10 +6,11 @@ use Domain\Agents\Data\Resources\SourceFileDataResource;
 use Domain\Agents\Models\Agent;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class AgentSourcesFilesController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Request $request, Agent $agent): Collection
     {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),

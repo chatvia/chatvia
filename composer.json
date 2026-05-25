@@ -118,9 +118,14 @@
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"php artisan inertia:start-ssr\" --names=server,queue,logs,ssr"
         ],
         "test": [
+            "Composer\\Config::disableProcessTimeout",
+            "@putenv APP_ENV=testing",
             "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "@php artisan test --parallel"
         ],
+        "format": "vendor/bin/pint",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=2G",
+        "refactor": "vendor/bin/rector process",
         "ci": [
             "composer audit",
             "npm audit report",

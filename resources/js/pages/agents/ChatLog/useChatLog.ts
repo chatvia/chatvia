@@ -350,6 +350,7 @@ export function useChatLog() {
             llm_icon: null,
             created_at: messageData.timestamp || new Date().toISOString(),
             agent_question_answer_id: null,
+            artifacts: messageData.artifacts ?? null,
             source: null,
             read_at: null,
         };

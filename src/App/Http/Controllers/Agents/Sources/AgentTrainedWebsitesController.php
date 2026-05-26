@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Agents\Sources;
 
 use Domain\Agents\Models\Agent;
+use Domain\Sources\Web\Actions\AttachWebsiteToAgentAction;
+use Domain\Sources\Web\Actions\DetachWebsiteFromAgentAction;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -36,29 +38,25 @@ class AgentTrainedWebsitesController
         return response()->json($websites);
     }
 
-    public function link(Request $request, Agent $agent, int $websiteId): JsonResponse
+    public function link(Request $request, Agent $agent, int $websiteId, AttachWebsiteToAgentAction $attach): JsonResponse
     {
         abort_if($request->user()->cannot('view', $agent), 404);
 
-        $request->validate([
-            'website_id' => ['required', 'exists:source_websites,id'],
-        ]);
+        $request->validate(['website_id' => ['required', 'exists:source_websites,id']]);
 
         /** @var SourceWebsite $website */
         $website = SourceWebsite::findOrFail($websiteId);
 
         abort_if($request->user()->cannot('view', $website), 403);
 
-        if ($agent->websites()->where('source_websites.id', $website->id)->exists()) {
+        if (! $attach->execute($agent, $website)) {
             return response()->json(['message' => 'This website is already attached to the agent.'], 422);
         }
-
-        $agent->websites()->attach($website->id);
 
         return response()->json(['message' => 'Website successfully attached to agent.']);
     }
 
-    public function unlink(Request $request, Agent $agent, int $websiteId): JsonResponse
+    public function unlink(Request $request, Agent $agent, int $websiteId, DetachWebsiteFromAgentAction $detach): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
 
@@ -67,7 +65,7 @@ class AgentTrainedWebsitesController
             ->where('source_websites.id', $websiteId)
             ->firstOrFail();
 
-        $agent->websites()->detach($website->id);
+        $detach->execute($agent, $website);
 
         return response()->json(['message' => 'Website unlinked from agent successfully.']);
     }

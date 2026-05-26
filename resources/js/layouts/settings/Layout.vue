@@ -15,10 +15,34 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/password',
     },
     {
+        title: 'API keys',
+        href: '/settings/api-keys',
+    },
+    {
+        title: 'Connectors',
+        href: '/settings/connectors',
+    },
+    {
+        title: 'Functions',
+        href: '/settings/functions',
+    },
+    {
         title: 'Appearance',
         href: '/settings/appearance',
     },
 ];
+
+const props = withDefaults(
+    defineProps<{
+        // 'narrow' is the default and matches the original Profile/Password
+        // forms (max-w-xl). 'wide' opens the content area for data-heavy pages
+        // like Connectors / Functions / API keys where a 576px column clips
+        // tables and the page ends up looking like the screenshot we just
+        // saw.
+        width?: 'narrow' | 'wide';
+    }>(),
+    { width: 'narrow' },
+);
 
 const page = usePage<SharedData>();
 
@@ -48,8 +72,8 @@ const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.locati
 
             <Separator class="my-6 md:hidden" />
 
-            <div class="flex-1 md:max-w-2xl">
-                <section class="max-w-xl space-y-12">
+            <div :class="['flex-1', props.width === 'wide' ? 'md:max-w-6xl' : 'md:max-w-2xl']">
+                <section :class="['space-y-12', props.width === 'wide' ? '' : 'max-w-xl']">
                     <slot />
                 </section>
             </div>

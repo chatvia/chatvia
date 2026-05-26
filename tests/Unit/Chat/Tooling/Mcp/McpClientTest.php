@@ -14,7 +14,6 @@ class McpClientTest extends TestCase
     {
         $server = new AgentMcpServer;
         $server->id = 99;
-        $server->agent_id = 1;
         $server->name = 'Test';
         $server->slug = 'test';
         $server->url = 'https://mcp.example.test/rpc';

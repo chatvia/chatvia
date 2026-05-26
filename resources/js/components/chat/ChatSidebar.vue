@@ -672,7 +672,19 @@ const switchToSelectedAgent = () => {
                 </AlertDialog>
 
                 <template v-if="(page.props.auth as any)?.user">
-                    <DropdownMenu>
+                    <!-- JWT-authenticated end-users get a plain Log out button —
+                         no Profile/My Agents since they don't have a Chatvia
+                         dashboard account. Regular users get the full dropdown. -->
+                    <button
+                        v-if="(page.props.auth as any)?.is_external_chat_user"
+                        class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
+                        @click="handleLogout"
+                    >
+                        <LogOut class="h-4 w-4" />
+                        <span class="flex-1 text-left">Log out</span>
+                    </button>
+
+                    <DropdownMenu v-else>
                         <DropdownMenuTrigger asChild>
                             <button
                                 class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"

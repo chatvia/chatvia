@@ -2,51 +2,23 @@
 
 namespace App\Http\Controllers\Billing;
 
+use App\Http\Requests\Billing\UpdateBillingInformationRequest;
+use Domain\Billing\Actions\UpdateBillingInformationAction;
 use Exception;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class BillingUpdateInformationController
 {
-    public function __invoke(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'address.line1' => 'required|string|max:255',
-            'address.line2' => 'nullable|string|max:255',
-            'address.city' => 'required|string|max:255',
-            'address.state' => 'required|string|max:255',
-            'address.postal_code' => 'required|string|max:20',
-            'address.country' => 'required|string|max:2',
-        ]);
-
-        $user = auth()->user();
-
+    public function __invoke(
+        UpdateBillingInformationRequest $request,
+        UpdateBillingInformationAction $update,
+    ): RedirectResponse {
         try {
-            // Update user basic information
-            $user->update([
-                'name' => $request->name,
-                'email' => $request->email,
-                'billing_address' => $request->address,
-            ]);
-
-            $user->updateStripeCustomer([
-                'name' => $request->name,
-                'email' => $request->email,
-                'address' => [
-                    'line1' => $request->address['line1'],
-                    'line2' => $request->address['line2'] ?? null,
-                    'city' => $request->address['city'],
-                    'state' => $request->address['state'],
-                    'postal_code' => $request->address['postal_code'],
-                    'country' => $request->address['country'],
-                ],
-            ]);
-
-            return redirect()->route('billing.payment-methods')->with('success', 'Billing information updated successfully');
-
-        } catch (Exception $exception) {
+            $update->execute($request->toData());
+        } catch (Exception) {
             return back()->withErrors(['billing' => 'Failed to update billing information']);
         }
+
+        return redirect()->route('billing.payment-methods')->with('success', 'Billing information updated successfully');
     }
 }

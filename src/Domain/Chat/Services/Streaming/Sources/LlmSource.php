@@ -12,7 +12,7 @@ use Domain\Chat\Services\Streaming\StreamEvent;
 use Domain\Chat\Services\Streaming\StreamTransformerResolver;
 use Domain\Chat\Services\Tooling\ToolDispatcherInterface;
 use Domain\Chat\Services\Tooling\ToolDisplayResolver;
-use Domain\Chat\Services\Tooling\ToolRegistry;
+use Domain\Chat\Services\Tooling\ToolSelector;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
@@ -27,7 +27,7 @@ class LlmSource
         private readonly StreamTransformerResolver $transformers,
         private readonly ChatService $chatService,
         private readonly RequestDedupeStore $dedupe,
-        private readonly ToolRegistry $tools,
+        private readonly ToolSelector $toolSelector,
         private readonly ToolDispatcherInterface $dispatcher,
         private readonly ToolDisplayResolver $displayResolver,
     ) {}
@@ -64,7 +64,11 @@ class LlmSource
 
         try {
             $agent = $context->requestData->agent;
-            $toolDefinitions = $this->tools->for($agent);
+            $toolDefinitions = $this->toolSelector->selectForTurn(
+                $agent,
+                $context->payload->message,
+                $context->requestData->conversationId,
+            );
 
             $iteration = 0;
             while ($iteration < self::MAX_TOOL_ITERATIONS) {
@@ -123,20 +127,33 @@ class LlmSource
                         brandColor: $display['brand_color'],
                     );
 
-                    $result = $this->dispatcher->dispatch($agent, $tc['name'], $tc['arguments']);
+                    $dispatched = $this->dispatcher->dispatch($agent, $tc['name'], $tc['arguments']);
+
+                    // Remember the tool name on the context so the
+                    // StickyToolResolver can keep it available on
+                    // follow-up turns of this conversation.
+                    $context->toolCallNames[] = $tc['name'];
 
                     $llmMessages[] = [
                         'role' => 'tool',
                         'tool_call_id' => $tc['id'],
-                        'content' => $result,
+                        'content' => $dispatched->text,
                     ];
+
+                    // Stash artifacts on the context so handleChatCompletion can
+                    // persist them onto the assistant message — otherwise charts
+                    // only exist for the duration of the live SSE stream.
+                    if ($dispatched->artifacts !== []) {
+                        $context->artifacts = array_merge($context->artifacts, $dispatched->artifacts);
+                    }
 
                     yield StreamEvent::tool(
                         assistantMessageId: $assistantId,
                         phase: 'end',
                         toolCallId: $tc['id'],
                         name: $tc['name'],
-                        result: $result,
+                        result: $dispatched->text,
+                        artifacts: $dispatched->artifacts !== [] ? $dispatched->artifacts : null,
                     );
                 }
 

@@ -28,6 +28,29 @@ class ChatContext
      */
     public array $pendingToolCalls = [];
 
+    /**
+     * Structured tool-result artifacts accumulated across the whole assistant
+     * turn (every tool call, every iteration). Each entry has the shape
+     * `['kind' => string, 'data' => mixed]` — e.g. `['kind' => 'echarts_option',
+     * 'data' => [...spec...]]`. Appended by LlmSource after each tool dispatch,
+     * then persisted into the assistant message's `metadata.artifacts` so the
+     * chart re-renders on page reload.
+     *
+     * @var array<int, array{kind: string, data: mixed}>
+     */
+    public array $artifacts = [];
+
+    /**
+     * Tool names invoked during this assistant turn. Appended by LlmSource
+     * as each tool_call is dispatched, then persisted into the assistant
+     * message's `metadata.tool_calls` so the StickyToolResolver can keep
+     * them available on follow-up turns (e.g. `search_issues` → `get_issue`
+     * where the second prompt is "tell me more about #3").
+     *
+     * @var array<int, string>
+     */
+    public array $toolCallNames = [];
+
     private float $startTime;
 
     private ?float $endTime = null;

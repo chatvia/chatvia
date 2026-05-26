@@ -16,6 +16,7 @@
         "aws/aws-sdk-php": "^3.351",
         "cesargb/laravel-magiclink": "^2.24",
         "crwlr/crawler": "^3.5",
+        "dedoc/scramble": "^0.13.23",
         "firebase/php-jwt": "^v7.0.5",
         "google/cloud-document-ai": "^2.2",
         "graham-campbell/markdown": "^16.0",

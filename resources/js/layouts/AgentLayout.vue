@@ -41,6 +41,7 @@ import {
     FileText,
     Globe,
     Heart,
+    KeyRound,
     LoaderCircle,
     Lock,
     MessageSquare,
@@ -219,6 +220,17 @@ const controlPanelNavigationItems = computed(() => {
     // Chat/Logs - only show if user has chat view permission
     if (hasPermission('agent.chat.view')) {
         baseItems.push({ id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' });
+    }
+
+    // API tokens - owner-only. Per-agent bearer tokens for the public API.
+    if (isOwner.value) {
+        baseItems.push({
+            id: 'api-tokens',
+            label: 'API tokens',
+            icon: KeyRound,
+            route: 'agents.api-tokens.index',
+            tooltip: 'Bearer tokens that authenticate calls to the agent via the public API',
+        });
     }
 
     // Rename - only show for team owners

@@ -17,6 +17,9 @@ use App\LLM\Scaleway;
 use App\Marketing\Models\Post;
 use App\Marketing\Observers\PostObserver;
 use App\Teams\Services\TeamService;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Domain\Agents\Models\AgentMcpServer;
@@ -45,6 +48,7 @@ use Domain\Sources\Youtube\Observers\SourceYoutubeVideoObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -241,6 +245,21 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('widgets', function ($request) {
             return Limit::perMinute(90)->by($request->ip());
+        });
+
+        RateLimiter::for('api', function ($request) {
+            return $request->user()
+                ? Limit::perMinute(300)->by($request->user()->getAuthIdentifier().'|'.$request->user()::class)
+                : Limit::perMinute(60)->by($request->ip());
+        });
+
+        // Scramble — scope OpenAPI discovery to /api/v1/* and declare the
+        // Sanctum bearer token as the single security requirement.
+        Scramble::routes(fn (Route $route): bool => str_starts_with($route->uri, 'api/v1/'));
+        Scramble::configure()->withDocumentTransformers(function (OpenApi $openApi): void {
+            $openApi->secure(
+                SecurityScheme::http('bearer', 'Bearer'),
+            );
         });
 
         // Parallel testing creates per-worker databases (testing_test_N) and

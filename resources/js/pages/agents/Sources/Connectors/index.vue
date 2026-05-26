@@ -1,18 +1,14 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import type { AgentMcpServer, Connector, ConnectorRow } from '@/types/connector';
+import type { AgentMcpServer, Connector } from '@/types/connector';
 import axios from 'axios';
-import { LoaderCircle, Plug, Plus, Search } from 'lucide-vue-next';
+import { LoaderCircle, Plug, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
-import AddConnectorModal from './AddConnectorModal.vue';
-import ConnectorDetailSheet from './ConnectorDetailSheet.vue';
-import TokenConnectModal from './TokenConnectModal.vue';
 
 interface Props {
     agent: { external_id: string; name: string };
@@ -20,44 +16,46 @@ interface Props {
 
 const props = defineProps<Props>();
 
+// Featured row state from the backend:
+//   - attached   — account-level row exists AND attached to this agent
+//   - unattached — account-level row exists, not attached to this agent
+//   - available  — no account-level row yet (connect it in Settings)
+type FeaturedState = 'attached' | 'unattached' | 'available';
+
+interface FeaturedRow {
+    connector: Connector;
+    state: FeaturedState;
+    server: AgentMcpServer | null;
+}
+
+interface CustomRow extends AgentMcpServer {
+    is_attached: boolean;
+}
+
 const loading = ref(true);
-const featured = ref<ConnectorRow[]>([]);
-const custom = ref<ConnectorRow[]>([]);
+const featured = ref<FeaturedRow[]>([]);
+const customConnectors = ref<CustomRow[]>([]);
 const search = ref('');
 
-const addOpen = ref(false);
-const detailRow = ref<ConnectorRow | null>(null);
-const detailOpen = ref(false);
-
-const tokenConnectTarget = ref<Connector | null>(null);
-const tokenConnectOpen = ref(false);
-
-function logoUrl(c: Connector | null): string | null {
-    if (!c) return null;
-    // Catalog entries can supply an explicit `logo_url` (e.g. a local SVG);
-    // otherwise we fall back to the brand mark from the simple-icons CDN.
+function logoUrl(c: Connector): string {
     return c.logoUrl ?? `https://cdn.simpleicons.org/${c.icon}/${c.brandColor}`;
 }
 
-function matches(row: ConnectorRow): boolean {
+function matches(row: { name: string; description?: string | null; url?: string }): boolean {
     const q = search.value.trim().toLowerCase();
     if (!q) return true;
-    const name = (row.connector?.name ?? row.server?.name ?? '').toLowerCase();
-    const description = (row.connector?.description ?? '').toLowerCase();
-    return name.includes(q) || description.includes(q);
+    return row.name.toLowerCase().includes(q) || (row.description ?? '').toLowerCase().includes(q) || (row.url ?? '').toLowerCase().includes(q);
 }
 
-const filteredFeatured = computed(() => featured.value.filter(matches));
-const filteredCustom = computed(() => custom.value.filter(matches));
-
-const totalCount = computed(() => featured.value.length + custom.value.length);
+const filteredFeatured = computed(() => featured.value.filter((f) => matches({ name: f.connector.name, description: f.connector.description })));
+const filteredCustom = computed(() => customConnectors.value.filter(matches));
 
 async function fetchAll(): Promise<void> {
     loading.value = true;
     try {
         const response = await axios.get(route('agents.sources.connectors.data', props.agent.external_id));
         featured.value = response.data.featured;
-        custom.value = response.data.custom;
+        customConnectors.value = response.data.custom;
     } catch (err) {
         console.error(err);
         toast.error('Failed to load connectors');
@@ -66,124 +64,74 @@ async function fetchAll(): Promise<void> {
     }
 }
 
-function relativeTime(iso: string | null | undefined): string {
-    if (!iso) return '—';
-    const ms = Date.now() - new Date(iso).getTime();
-    const day = 86_400_000;
-    const hour = 3_600_000;
-    const minute = 60_000;
-    if (ms < minute) return 'just now';
-    if (ms < hour) return Math.floor(ms / minute) + 'm ago';
-    if (ms < day) return Math.floor(ms / hour) + 'h ago';
-    const days = Math.floor(ms / day);
-    if (days < 30) return days + 'd ago';
-    const months = Math.floor(days / 30);
-    if (months < 12) return months + 'mo ago';
-    return Math.floor(months / 12) + 'y ago';
-}
+// Toggle = attach/detach. Greyed-out toggles (state === 'available') don't
+// fire — the Switch is disabled. The pivot row's existence IS the enabled
+// state; there's no separate flag.
+async function toggleFeatured(row: FeaturedRow): Promise<void> {
+    if (row.state === 'available' || !row.server) return;
 
-function openRow(row: ConnectorRow): void {
-    detailRow.value = row;
-    detailOpen.value = true;
-}
-
-async function startConnect(connector: Connector): Promise<void> {
-    if (connector.comingSoon) return;
-
-    if (connector.authStrategy === 'oauth') {
-        window.location.href = route('agents.sources.connectors.oauth.start', {
-            agent: props.agent.external_id,
-            slug: connector.slug,
+    if (row.state === 'attached') {
+        await detach(row.server.slug, () => {
+            const i = featured.value.findIndex((f) => f.connector.slug === row.connector.slug);
+            if (i !== -1) featured.value[i] = { ...featured.value[i], state: 'unattached' };
         });
-        return;
+    } else {
+        await attach(row.server.slug, () => {
+            const i = featured.value.findIndex((f) => f.connector.slug === row.connector.slug);
+            if (i !== -1) featured.value[i] = { ...featured.value[i], state: 'attached' };
+        });
     }
+}
 
-    if (connector.authStrategy === 'token') {
-        tokenConnectTarget.value = connector;
-        tokenConnectOpen.value = true;
-        return;
+async function toggleCustom(row: CustomRow): Promise<void> {
+    if (row.is_attached) {
+        await detach(row.slug, () => {
+            const i = customConnectors.value.findIndex((c) => c.external_id === row.external_id);
+            if (i !== -1) customConnectors.value[i] = { ...customConnectors.value[i], is_attached: false };
+        });
+    } else {
+        await attach(row.slug, () => {
+            const i = customConnectors.value.findIndex((c) => c.external_id === row.external_id);
+            if (i !== -1) customConnectors.value[i] = { ...customConnectors.value[i], is_attached: true };
+        });
     }
+}
 
-    // 'none' — no credentials, no modal. Just provision.
+async function attach(slug: string, onSuccess: () => void): Promise<void> {
     try {
-        const response = await axios.post(route('agents.sources.connectors.connect', { agent: props.agent.external_id, slug: connector.slug }));
-        onTokenConnected(response.data.data);
-        toast.success(`Connected ${connector.name}`);
-    } catch (e: unknown) {
-        const err = e as { response?: { data?: { message?: string } } };
-        toast.error(err.response?.data?.message ?? `Failed to connect ${connector.name}`);
-    }
-}
-
-function onTokenConnected(server: AgentMcpServer): void {
-    // Patch local state so the table updates without a full refetch.
-    const slug = server.connector_slug;
-    if (slug) {
-        const i = featured.value.findIndex((r) => r.connector?.slug === slug);
-        if (i !== -1) featured.value[i] = { ...featured.value[i], server };
-    }
-    // Refresh the detail row if it's currently open
-    if (detailRow.value?.connector?.slug === slug) {
-        detailRow.value = { ...detailRow.value, server };
-    }
-}
-
-function onCustomAdded(server: AgentMcpServer): void {
-    custom.value.unshift({ kind: 'custom', connector: null, server });
-}
-
-async function quickToggle(row: ConnectorRow): Promise<void> {
-    if (!row.server) return;
-    try {
-        const response = await axios.post(route('agents.sources.connectors.enable', { agent: props.agent.external_id, slug: row.server.slug }));
-        applyServerUpdate(response.data.data);
+        await axios.post(route('agents.sources.connectors.attach', { agent: props.agent.external_id, slug }));
+        onSuccess();
     } catch (err) {
         console.error(err);
-        toast.error('Failed to toggle');
+        toast.error('Failed to attach');
     }
 }
 
-function applyServerUpdate(updated: AgentMcpServer): void {
-    if (updated.connector_slug) {
-        const i = featured.value.findIndex((r) => r.connector?.slug === updated.connector_slug);
-        if (i !== -1) featured.value[i] = { ...featured.value[i], server: updated };
-    } else {
-        const i = custom.value.findIndex((r) => r.server?.external_id === updated.external_id);
-        if (i !== -1) custom.value[i] = { ...custom.value[i], server: updated };
-    }
-    if (detailRow.value?.server?.external_id === updated.external_id) {
-        detailRow.value = { ...detailRow.value, server: updated };
+async function detach(slug: string, onSuccess: () => void): Promise<void> {
+    try {
+        await axios.delete(route('agents.sources.connectors.detach', { agent: props.agent.external_id, slug }));
+        onSuccess();
+    } catch (err) {
+        console.error(err);
+        toast.error('Failed to detach');
     }
 }
 
-function applyRemoval(slug: string): void {
-    const f = featured.value.findIndex((r) => r.connector?.slug === slug);
-    if (f !== -1) featured.value[f] = { ...featured.value[f], server: null };
-    custom.value = custom.value.filter((r) => r.server?.slug !== slug);
-}
-
-onMounted(() => {
-    fetchAll();
-});
+onMounted(fetchAll);
 </script>
 
 <template>
-    <AgentLayout :agent="agent">
+    <AgentLayout :agent="agent" title="Connectors">
         <div class="mx-auto w-full max-w-6xl space-y-6">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-xl font-semibold">Connectors</h1>
-                        <Badge variant="secondary">Public preview</Badge>
-                    </div>
-                    <p class="text-muted-foreground text-sm">
-                        Plug third-party services into the chat. Pick from the catalog or add any MCP server by URL.
-                    </p>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-semibold">Connectors</h1>
+                    <Badge variant="secondary">Public preview</Badge>
                 </div>
-                <Button @click="addOpen = true">
-                    <Plus class="mr-1 h-4 w-4" />
-                    Add connector
-                </Button>
+                <p class="text-muted-foreground text-sm">
+                    Attach account-level connectors to this agent. Connect or add new ones in
+                    <a :href="route('settings.connectors.edit')" class="underline">Settings → Connectors</a>.
+                </p>
             </div>
 
             <div class="relative max-w-sm">
@@ -196,8 +144,6 @@ onMounted(() => {
                 Loading connectors
             </div>
 
-            <div v-else-if="totalCount === 0" class="text-muted-foreground py-12 text-center text-sm">No connectors yet.</div>
-
             <div v-else class="space-y-8">
                 <section v-if="filteredCustom.length > 0">
                     <h2 class="mb-3 text-base font-semibold">Custom connectors</h2>
@@ -205,36 +151,27 @@ onMounted(() => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead class="h-11 pl-5">Connector name</TableHead>
+                                    <TableHead class="h-11 pl-5">Connector</TableHead>
                                     <TableHead class="h-11 w-32">Tools</TableHead>
-                                    <TableHead class="h-11 w-32">Created</TableHead>
-                                    <TableHead class="h-11 w-32 pr-5 text-right">Enabled</TableHead>
+                                    <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow
-                                    v-for="row in filteredCustom"
-                                    :key="row.server!.external_id"
-                                    class="hover:bg-muted/40 cursor-pointer"
-                                    @click="openRow(row)"
-                                >
+                                <TableRow v-for="row in filteredCustom" :key="row.external_id">
                                     <TableCell class="py-4 pl-5">
                                         <div class="flex items-center gap-4">
                                             <div class="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
                                                 <Plug class="text-muted-foreground h-5 w-5" />
                                             </div>
                                             <div class="min-w-0">
-                                                <p class="leading-tight font-medium">{{ row.server!.name }}</p>
-                                                <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ row.server!.url }}</p>
+                                                <p class="leading-tight font-medium">{{ row.name }}</p>
+                                                <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ row.url }}</p>
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell class="py-4 text-sm">{{ row.server!.catalog_tools_count }}</TableCell>
-                                    <TableCell class="text-muted-foreground py-4 text-sm">
-                                        {{ relativeTime(row.server!.catalog_cached_at) }}
-                                    </TableCell>
-                                    <TableCell class="py-4 pr-5 text-right" @click.stop>
-                                        <Switch :model-value="row.server!.enabled" @update:model-value="quickToggle(row)" />
+                                    <TableCell class="py-4 text-sm">{{ row.catalog_tools_count }}</TableCell>
+                                    <TableCell class="py-4 pr-5">
+                                        <Switch :model-value="row.is_attached" @update:model-value="toggleCustom(row)" />
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -248,76 +185,55 @@ onMounted(() => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead class="h-11 pl-5">Connector name</TableHead>
-                                    <TableHead class="h-11 w-32">Authentications</TableHead>
-                                    <TableHead class="h-11 w-32">Created</TableHead>
-                                    <TableHead class="h-11 w-40 pr-5 text-right">Enabled</TableHead>
+                                    <TableHead class="h-11 pl-5">Connector</TableHead>
+                                    <TableHead class="h-11 w-32">Tools</TableHead>
+                                    <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow
-                                    v-for="row in filteredFeatured"
-                                    :key="row.connector!.slug"
-                                    class="hover:bg-muted/40 cursor-pointer"
-                                    @click="openRow(row)"
-                                >
+                                <TableRow v-for="row in filteredFeatured" :key="row.connector.slug">
                                     <TableCell class="py-4 pl-5">
                                         <div class="flex items-center gap-4">
                                             <div
                                                 class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
-                                                :style="{ backgroundColor: '#' + row.connector!.brandColor + '15' }"
+                                                :style="{ backgroundColor: '#' + row.connector.brandColor + '15' }"
                                             >
-                                                <img :src="logoUrl(row.connector)!" :alt="row.connector!.name" class="h-5 w-5" />
+                                                <img :src="logoUrl(row.connector)" :alt="row.connector.name" class="h-5 w-5" />
                                             </div>
                                             <div class="min-w-0">
-                                                <p class="leading-tight font-medium">{{ row.connector!.name }}</p>
+                                                <p class="leading-tight font-medium">{{ row.connector.name }}</p>
                                                 <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
-                                                    {{ row.connector!.description }}
+                                                    {{ row.connector.description }}
                                                 </p>
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell class="py-4 text-sm">{{ row.server ? 1 : 0 }}</TableCell>
-                                    <TableCell class="text-muted-foreground py-4 text-sm">
-                                        {{ relativeTime(row.server?.catalog_cached_at) }}
+                                    <TableCell class="py-4 text-sm">
+                                        {{ row.server ? row.server.catalog_tools_count : '—' }}
                                     </TableCell>
-                                    <TableCell class="py-4 pr-5 text-right" @click.stop>
-                                        <Switch v-if="row.server" :model-value="row.server.enabled" @update:model-value="quickToggle(row)" />
-                                        <Button
-                                            v-else-if="!row.connector!.comingSoon"
-                                            size="sm"
-                                            variant="outline"
-                                            @click="startConnect(row.connector!)"
-                                        >
-                                            Connect
-                                        </Button>
-                                        <Badge v-else variant="outline">Soon</Badge>
+                                    <TableCell class="py-4 pr-5">
+                                        <Badge v-if="row.connector.comingSoon" variant="outline">Soon</Badge>
+                                        <Switch
+                                            v-else
+                                            :model-value="row.state === 'attached'"
+                                            :disabled="row.state === 'available'"
+                                            :title="row.state === 'available' ? 'Connect this MCP in Settings first' : undefined"
+                                            @update:model-value="toggleFeatured(row)"
+                                        />
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
                     </div>
                 </section>
+
+                <div
+                    v-if="filteredFeatured.length === 0 && filteredCustom.length === 0"
+                    class="text-muted-foreground rounded-md border py-12 text-center text-sm"
+                >
+                    No connectors match your search.
+                </div>
             </div>
         </div>
-
-        <AddConnectorModal v-model:open="addOpen" :agent-id="agent.external_id" @added="onCustomAdded" />
-
-        <ConnectorDetailSheet
-            v-model:open="detailOpen"
-            :agent-id="agent.external_id"
-            :row="detailRow"
-            @updated="applyServerUpdate"
-            @removed="applyRemoval"
-            @connect-token="startConnect"
-            @connect-oauth="startConnect"
-        />
-
-        <TokenConnectModal
-            v-model:open="tokenConnectOpen"
-            :agent-id="agent.external_id"
-            :connector="tokenConnectTarget"
-            @connected="onTokenConnected"
-        />
     </AgentLayout>
 </template>

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Agents\Sources;
 
 use Domain\Agents\Models\Agent;
+use Domain\Sources\Web\Actions\BulkDeleteWebsiteUrlsAction;
+use Domain\Sources\Web\Actions\DeleteAgentWebsiteUrlAction;
+use Domain\Sources\Web\Actions\RetrainAgentWebsiteUrlAction;
 use Domain\Sources\Web\Models\AgentWebsiteUrl;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Illuminate\Contracts\Pagination\Paginator;
@@ -31,23 +34,36 @@ class AgentWebsiteLinksController
         return $query->latest('crawled_at')->simplePaginate(50);
     }
 
-    public function destroy(Request $request, Agent $agent, SourceWebsite $website, AgentWebsiteUrl $link): void
-    {
+    public function destroy(
+        Request $request,
+        Agent $agent,
+        SourceWebsite $website,
+        AgentWebsiteUrl $link,
+        DeleteAgentWebsiteUrlAction $delete,
+    ): void {
         abort_if($request->user()->cannot('delete', $website), 404);
 
-        $link->chunks()->delete();
-        $link->delete();
+        $delete->execute($link);
     }
 
-    public function retrain(Request $request, Agent $agent, SourceWebsite $website, AgentWebsiteUrl $link): void
-    {
+    public function retrain(
+        Request $request,
+        Agent $agent,
+        SourceWebsite $website,
+        AgentWebsiteUrl $link,
+        RetrainAgentWebsiteUrlAction $retrain,
+    ): void {
         abort_if($request->user()->cannot('delete', $website), 404);
 
-        $link->train($agent);
+        $retrain->execute($link, $agent);
     }
 
-    public function bulkDestroy(Request $request, Agent $agent, SourceWebsite $website): JsonResponse
-    {
+    public function bulkDestroy(
+        Request $request,
+        Agent $agent,
+        SourceWebsite $website,
+        BulkDeleteWebsiteUrlsAction $bulkDelete,
+    ): JsonResponse {
         abort_if($request->user()->cannot('delete', $website), 404);
 
         $validated = $request->validate([
@@ -55,13 +71,8 @@ class AgentWebsiteLinksController
             'link_ids.*' => ['required', 'integer', 'exists:source_website_urls,id'],
         ]);
 
-        $website->urls()
-            ->whereIn('id', $validated['link_ids'])
-            ->delete();
+        $count = $bulkDelete->execute($website, $validated['link_ids']);
 
-        return response()->json([
-            'message' => 'Links deleted successfully.',
-            'count' => count($validated['link_ids']),
-        ]);
+        return response()->json(['message' => 'Links deleted successfully.', 'count' => $count]);
     }
 }

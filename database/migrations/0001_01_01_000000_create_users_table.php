@@ -41,6 +41,8 @@ return new class extends Migration
 
             $table->string('deactivation_reason')->nullable();
 
+            $table->text('jwt_secret')->nullable();
+
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
             $table->timestamps();

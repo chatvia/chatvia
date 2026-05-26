@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers\Agents;
 
+use Domain\Agents\Actions\AttachExistingTopicToAgentAction;
+use Domain\Agents\Actions\CreateAgentTopicAction;
+use Domain\Agents\Actions\DetachTopicFromAgentAction;
+use Domain\Agents\Actions\UpdateChatTopicAction;
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Models\ChatTopic;
+use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -46,8 +51,12 @@ class AgentTopicsController
         ]);
     }
 
-    public function store(Request $request, Agent $agent): JsonResponse
-    {
+    public function store(
+        Request $request,
+        Agent $agent,
+        AttachExistingTopicToAgentAction $attach,
+        CreateAgentTopicAction $createTopic,
+    ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
 
@@ -58,18 +67,13 @@ class AgentTopicsController
 
             $topic = ChatTopic::findOrFail($validated['topic_id']);
 
-            if ($agent->topics()->where('chat_topics.id', $topic->id)->exists()) {
-                return response()->json([
-                    'message' => 'Topic already associated with this agent',
-                ], 422);
+            try {
+                $attach->execute($agent, $topic);
+            } catch (InviteRejectedException $e) {
+                return response()->json(['message' => $e->getMessage()], 422);
             }
 
-            $agent->topics()->attach($topic->id);
-
-            return response()->json([
-                'message' => 'Topic added successfully',
-                'topic' => $topic,
-            ]);
+            return response()->json(['message' => 'Topic added successfully', 'topic' => $topic]);
         }
 
         $validated = $request->validate([
@@ -77,33 +81,21 @@ class AgentTopicsController
             'description' => 'required|string|max:500',
         ]);
 
-        $existing = ChatTopic::query()
-            ->where('user_id', $request->user()->id)
-            ->where('topic', $validated['topic'])
-            ->exists();
-
-        if ($existing) {
-            return response()->json([
-                'message' => 'You already have a topic with this name',
-            ], 422);
+        try {
+            $topic = $createTopic->execute($agent, $request->user(), $validated['topic'], $validated['description']);
+        } catch (InviteRejectedException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        $topic = ChatTopic::create([
-            'user_id' => $request->user()->id,
-            'topic' => $validated['topic'],
-            'description' => $validated['description'],
-        ]);
-
-        $agent->topics()->attach($topic->id);
-
-        return response()->json([
-            'message' => 'Topic created successfully',
-            'topic' => $topic,
-        ]);
+        return response()->json(['message' => 'Topic created successfully', 'topic' => $topic]);
     }
 
-    public function update(Request $request, Agent $agent, ChatTopic $topic): JsonResponse
-    {
+    public function update(
+        Request $request,
+        Agent $agent,
+        ChatTopic $topic,
+        UpdateChatTopicAction $updateTopic,
+    ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
 
@@ -113,36 +105,28 @@ class AgentTopicsController
             'Topic not found for this agent',
         );
 
-        if ($topic->isSystem()) {
-            return response()->json(['message' => 'System topics cannot be modified'], 403);
-        }
-
-        if ($topic->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'You can only update your own topics'], 403);
-        }
-
         $validated = $request->validate([
             'topic' => ['required', 'string', 'max:255'],
             'description' => 'required|string|max:500',
         ]);
 
-        $duplicate = ChatTopic::query()
-            ->where('user_id', $request->user()->id)
-            ->where('topic', $validated['topic'])
-            ->where('id', '!=', $topic->id)
-            ->exists();
+        try {
+            $updateTopic->execute($topic, $request->user(), $validated['topic'], $validated['description']);
+        } catch (InviteRejectedException $e) {
+            $status = str_contains($e->getMessage(), 'System') ? 403 : 422;
 
-        if ($duplicate) {
-            return response()->json(['message' => 'You already have a topic with this name'], 422);
+            return response()->json(['message' => $e->getMessage()], $status);
         }
-
-        $topic->update($validated);
 
         return response()->json(['message' => 'Topic updated successfully', 'topic' => $topic]);
     }
 
-    public function destroy(Request $request, Agent $agent, ChatTopic $topic): JsonResponse
-    {
+    public function destroy(
+        Request $request,
+        Agent $agent,
+        ChatTopic $topic,
+        DetachTopicFromAgentAction $detach,
+    ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
 
@@ -152,11 +136,7 @@ class AgentTopicsController
             'Topic not found for this agent',
         );
 
-        $agent->topics()->detach($topic->id);
-
-        if ($topic->isUserDefined() && $topic->agents()->count() === 0) {
-            $topic->delete();
-        }
+        $detach->execute($agent, $topic);
 
         return response()->json(['message' => 'Topic removed successfully']);
     }

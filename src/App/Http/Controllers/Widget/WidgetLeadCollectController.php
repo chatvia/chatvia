@@ -2,72 +2,25 @@
 
 namespace App\Http\Controllers\Widget;
 
+use App\Http\Requests\Widget\CollectVisitorLeadRequest;
 use App\Widget\WidgetVerification;
-use Domain\Agents\Models\Llm;
-use Domain\Chat\Data\ChatOutputPayload;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Chat\Services\Memory\ChatMemory;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Domain\Agents\Actions\CollectVisitorLeadAction;
+use Illuminate\Http\Response;
 
 class WidgetLeadCollectController
 {
-    public function __invoke(Request $request, WidgetVerification $widgetVerification, ChatMemory $memory)
-    {
+    public function __invoke(
+        CollectVisitorLeadRequest $request,
+        WidgetVerification $widgetVerification,
+        CollectVisitorLeadAction $collectLead,
+    ): Response {
         $agentId = $request->header('X-AGENT-ID');
-        $threadId = $request->header('X-THREAD-ID');
-        $sessionId = $request->header('X-SESSION-ID');
 
         if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
-            return response()->json(['error' => 'Could not verify the agent'], 403);
+            return response('Could not verify the agent', 403);
         }
 
-        $agent = current_agent_from_widget();
-
-        $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:255'],
-            'email' => ['sometimes', 'email', 'max:255'],
-            'phone' => ['sometimes', 'string', 'max:255'],
-            'job_title' => ['sometimes', 'string', 'max:255'],
-            'company' => ['sometimes', 'string', 'max:255'],
-            'location' => ['sometimes', 'string', 'max:255'],
-            'message' => ['sometimes', 'string'],
-            'referrer_url' => ['nullable', 'string', 'max:255'],
-            'page_url' => ['nullable', 'string', 'max:255'],
-            'locale' => ['nullable', 'string', 'max:255'],
-            'user_agent' => ['sometimes', 'string', 'max:255'],
-        ]);
-
-        if (! $agent->leads()->where('email', $validated['email'])->exists()) {
-            $id = ChatConversation::where('external_id', $threadId)->value('id');
-            $agent->leads()->create(
-                array_merge($validated, [
-                    'chat_conversation_id' => $id,
-                    'ip_address' => $request->ip(),
-                    'referrer_url' => $request->input('referrer'),
-                    'locale' => $request->input('locale'),
-                    'page_url' => $request->input('page_url'),
-                ])
-            );
-
-            /** @var Llm $llm */
-            $llm = $agent->llms()->first();
-
-            $memory
-                ->setAgent($agent)
-                ->setExternalSessionId($sessionId)
-                ->setConversationId($threadId)
-                ->addMessageViaPayload(
-                    new ChatOutputPayload(
-                        external_session_id: $sessionId,
-                        external_conversation_id: $threadId,
-                        external_message_id: Str::uuid()->toString(),
-                        message: 'We have received your contact information. We will get back to you shortly. Thank you!',
-                        model: $llm->internal_name,
-                        sent_at: now(),
-                    )
-                );
-        }
+        $collectLead->execute($request->toData(current_agent_from_widget()));
 
         return response(status: 201);
     }

@@ -5,6 +5,7 @@ namespace Domain\Chat\Services\Tooling\Mcp;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Chat\Services\Tooling\ToolDispatcherInterface;
+use Domain\Chat\Services\Tooling\ToolDispatchResult;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -22,7 +23,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         private readonly McpClient $client,
     ) {}
 
-    public function dispatch(Agent $agent, string $name, string $arguments): string
+    public function dispatch(Agent $agent, string $name, string $arguments): ToolDispatchResult
     {
         [$slug, $toolName] = $this->parsePrefixedName($name);
 
@@ -51,7 +52,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
             $result = $this->client->callTool($server, $toolName, $args);
             $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
-            $payload = $this->flattenResult($result);
+            $dispatchResult = $this->extractResult($result);
 
             $server->forceFill([
                 'last_invoked_at' => now(),
@@ -65,7 +66,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
                 'latency_ms' => $latencyMs,
             ]);
 
-            return $payload;
+            return $dispatchResult;
         } catch (Throwable $e) {
             $server->forceFill([
                 'last_invoked_at' => now(),
@@ -119,15 +120,24 @@ class McpToolDispatcher implements ToolDispatcherInterface
     }
 
     /**
-     * MCP returns `{content: [{type:'text', text:'...'}, {type:'image', ...}], isError?: bool}`.
-     * The LLM needs a single string; flatten by concatenating text parts
-     * (which is what virtually every MCP server emits in practice). If the
-     * server flagged isError, prefix with the error convention so the LLM
-     * recognises it.
+     * MCP `tools/call` envelope is `{content: [...], isError?: bool,
+     * structuredContent?: {...}}`. We split it into two:
+     *
+     *   - `text`      → concatenated `type: 'text'` parts of `content`. This
+     *                   is what the LLM consumes on its next turn. Falls back
+     *                   to a JSON dump if no text part is present.
+     *
+     *   - `artifacts` → derived from `structuredContent`. Servers that
+     *                   render charts/maps/tables return a shape like
+     *                   `{echarts_option: {...}}` here — we promote any
+     *                   well-known key to a UI artifact the chat renderer
+     *                   knows how to display. Unknown keys are ignored so
+     *                   servers can ship structured side-data without us
+     *                   crashing.
      *
      * @param  array<string, mixed>  $result
      */
-    private function flattenResult(array $result): string
+    private function extractResult(array $result): ToolDispatchResult
     {
         $content = $result['content'] ?? [];
         $isError = (bool) ($result['isError'] ?? false);
@@ -141,13 +151,46 @@ class McpToolDispatcher implements ToolDispatcherInterface
             }
         }
 
-        $payload = $texts === [] ? json_encode($result) : implode("\n", $texts);
+        $text = $texts === [] ? json_encode($result) : implode("\n", $texts);
+        if ($isError) {
+            return $this->error($text);
+        }
 
-        return $isError ? $this->error($payload) : $payload;
+        $artifacts = $this->artifactsFromStructuredContent($result['structuredContent'] ?? null);
+
+        return new ToolDispatchResult($text, $artifacts);
     }
 
-    private function error(string $message): string
+    /**
+     * Promote a server's structured-content payload to renderable UI
+     * artifacts. Only well-known shapes are exposed today — anything else
+     * is dropped so the chat UI never has to defend against arbitrary JSON.
+     *
+     * Known shapes:
+     *   - `echarts_option` → ECharts JSON spec rendered as an interactive chart
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function artifactsFromStructuredContent(mixed $structured): array
     {
-        return 'Tool error: '.$message;
+        if (! is_array($structured)) {
+            return [];
+        }
+
+        $artifacts = [];
+
+        if (isset($structured['echarts_option']) && is_array($structured['echarts_option'])) {
+            $artifacts[] = [
+                'kind' => 'echarts_option',
+                'data' => $structured['echarts_option'],
+            ];
+        }
+
+        return $artifacts;
+    }
+
+    private function error(string $message): ToolDispatchResult
+    {
+        return ToolDispatchResult::text('Tool error: '.$message);
     }
 }

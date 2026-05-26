@@ -9,6 +9,9 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 #[TypeScript]
 class ChatLogMessageData extends Data
 {
+    /**
+     * @param  array<int, array{kind: string, data: mixed}>|null  $artifacts
+     */
     public function __construct(
         public string $id,
         public string $chat_conversation_id,
@@ -25,12 +28,15 @@ class ChatLogMessageData extends Data
         public ?string $llm_icon,
         public string $created_at,
         public ?int $agent_question_answer_id,
+        public ?array $artifacts = null,
         public ?string $source = null,
         public ?string $read_at = null,
     ) {}
 
     public static function fromMessage(ChatMessage $message): self
     {
+        $artifacts = $message->metadata['artifacts'] ?? null;
+
         return new self(
             id: (string) $message->id,
             chat_conversation_id: (string) $message->chat_conversation_id,
@@ -47,6 +53,7 @@ class ChatLogMessageData extends Data
             llm_icon: $message->llm?->icon,
             created_at: $message->created_at->toISOString(),
             agent_question_answer_id: $message->agent_question_answer_id,
+            artifacts: is_array($artifacts) ? $artifacts : null,
             source: $message->source,
             read_at: $message->read_at?->toISOString(),
         );

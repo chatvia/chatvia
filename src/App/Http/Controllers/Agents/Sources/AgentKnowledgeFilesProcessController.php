@@ -3,29 +3,16 @@
 namespace App\Http\Controllers\Agents\Sources;
 
 use Domain\Agents\Models\Agent;
-use Domain\Ingestion\Services\Ingestion;
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Sources\Files\Actions\ProcessAgentUploadedFilesAction;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeFilesProcessController
 {
-    public function __invoke(Request $request, Agent $agent, Ingestion $ingestion): void
+    public function __invoke(Request $request, Agent $agent, ProcessAgentUploadedFilesAction $process): void
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
+        abort_if($request->user()->cannot('view', $agent), 404);
+        abort_if(! has_permission_to_agent($agent, 'agent.sources.train.files'), 403);
 
-        abort_if(
-            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.files'),
-            code: 403,
-        );
-
-        $agent
-            ->files()
-            ->where('source_files.status', 'uploaded')
-            ->each(function (SourceFile $agentFile) use ($agent): void {
-                $agentFile->ingest($agent->id);
-            });
+        $process->execute($agent);
     }
 }

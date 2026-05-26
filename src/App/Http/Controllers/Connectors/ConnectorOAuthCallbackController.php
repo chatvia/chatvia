@@ -11,9 +11,9 @@ use Illuminate\Http\Request;
 
 /**
  * Single global callback for every OAuth-backed connector. The state
- * parameter identifies the in-flight session — including which agent it
- * belongs to — so we don't need per-agent callback URLs (which would
- * blow up the DCR registration).
+ * parameter identifies the in-flight session — including whether it was
+ * initiated from inside an agent (auto-attach intent) — so we land the
+ * user back on the right page.
  */
 class ConnectorOAuthCallbackController
 {
@@ -28,7 +28,7 @@ class ConnectorOAuthCallbackController
         $upstreamError = (string) $request->query('error', '');
 
         if ($upstreamError !== '') {
-            return $this->bounceToConnectorsWithError(
+            return $this->bounceWithError(
                 state: $state,
                 message: $request->query('error_description', $upstreamError),
             );
@@ -38,44 +38,45 @@ class ConnectorOAuthCallbackController
             return redirect('/')->with('error', 'OAuth callback is missing required parameters.');
         }
 
+        // Peek the pending state BEFORE complete() consumes it so we know
+        // where to redirect on success.
+        $autoAttachAgent = $this->peekAutoAttachAgent($state);
+
         try {
             $server = $this->flow->complete($state, $code);
         } catch (McpOAuthException $e) {
-            return $this->bounceToConnectorsWithError($state, $e->getMessage());
+            return $this->bounceWithError($state, $e->getMessage(), $autoAttachAgent);
         }
 
-        $agent = Agent::find($server->agent_id);
-        if (! $agent) {
-            return redirect('/')->with('error', 'Could not locate the agent for this connection.');
-        }
+        $successMessage = $this->connectorNameFor($server).' connected.';
 
-        return redirect()
-            ->route('agents.sources.connectors.index', $agent)
-            ->with('success', $this->connectorNameFor($server).' connected.');
+        return $autoAttachAgent
+            ? redirect()->route('agents.sources.connectors.index', $autoAttachAgent)->with('success', $successMessage)
+            : redirect()->route('settings.connectors.edit')->with('success', $successMessage);
     }
 
-    /**
-     * On failure we still want to land the user back on the connectors
-     * page for the right agent. We try to recover the agent from the
-     * (now-consumed) state payload if possible; otherwise fall back to
-     * a generic redirect.
-     */
-    private function bounceToConnectorsWithError(string $state, string $message): RedirectResponse
+    private function bounceWithError(string $state, string $message, ?Agent $autoAttachAgent = null): RedirectResponse
     {
-        if ($state !== '') {
-            $payload = cache()->pull('oauth:mcp:state:'.$state);
+        $autoAttachAgent ??= $this->peekAutoAttachAgent($state);
 
-            if (is_array($payload) && isset($payload['agent_id'])) {
-                $agent = Agent::find((int) $payload['agent_id']);
-                if ($agent) {
-                    return redirect()
-                        ->route('agents.sources.connectors.index', $agent)
-                        ->with('error', $message);
-                }
-            }
+        return $autoAttachAgent
+            ? redirect()->route('agents.sources.connectors.index', $autoAttachAgent)->with('error', $message)
+            : redirect()->route('settings.connectors.edit')->with('error', $message);
+    }
+
+    private function peekAutoAttachAgent(string $state): ?Agent
+    {
+        if ($state === '') {
+            return null;
         }
 
-        return redirect('/')->with('error', $message);
+        // get() doesn't consume — complete() will pull() it.
+        $payload = cache()->get('oauth:mcp:state:'.$state);
+        if (! is_array($payload) || empty($payload['auto_attach_agent_id'])) {
+            return null;
+        }
+
+        return Agent::find((int) $payload['auto_attach_agent_id']);
     }
 
     private function connectorNameFor(AgentMcpServer $server): string

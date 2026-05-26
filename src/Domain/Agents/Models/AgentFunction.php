@@ -2,19 +2,23 @@
 
 namespace Domain\Agents\Models;
 
+use App\Auth\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
  * @property int $id
  * @property string $external_id
- * @property int $agent_id
+ * @property int $user_id
  * @property string $name
  * @property string $description
  * @property ArrayObject<array-key, mixed> $parameters_schema
@@ -32,12 +36,12 @@ use Illuminate\Support\Str;
  * @property int $invocation_count
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Agent $agent
+ * @property-read User $user
+ * @property-read Collection<int, Agent> $agents
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereAgentId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereAuthType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereAuthValue($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereCreatedAt($value)
@@ -61,6 +65,7 @@ use Illuminate\Support\Str;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
+#[Table(name: 'functions')]
 class AgentFunction extends Model
 {
     use HasFactory;
@@ -77,6 +82,8 @@ class AgentFunction extends Model
             'max_response_bytes' => 'int',
             'invocation_count' => 'int',
             'last_invoked_at' => 'datetime',
+            'embedding' => 'array',
+            'embedded_at' => 'datetime',
         ];
     }
 
@@ -92,9 +99,17 @@ class AgentFunction extends Model
         });
     }
 
-    public function agent(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Agent::class);
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsToMany<Agent, $this>
+     */
+    public function agents(): BelongsToMany
+    {
+        return $this->belongsToMany(Agent::class, 'agent_function', 'function_id', 'agent_id');
     }
 
     public function getRouteKeyName(): string

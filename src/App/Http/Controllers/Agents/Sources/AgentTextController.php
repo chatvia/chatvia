@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers\Agents\Sources;
 
+use App\Auth\Models\User;
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
-use Domain\Ingestion\Services\Tidy\TextCleaner;
+use Domain\Sources\Text\Actions\CreateAgentSourceTextAction;
+use Domain\Sources\Text\Actions\DeleteAgentSourceTextAction;
+use Domain\Sources\Text\Actions\DetachSourceTextFromAgentAction;
+use Domain\Sources\Text\Actions\UpdateAgentSourceTextAction;
 use Domain\Sources\Text\Models\SourceText;
+use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,44 +50,24 @@ class AgentTextController
         return $text;
     }
 
-    public function store(Request $request, Agent $agent): void
+    public function store(Request $request, Agent $agent, CreateAgentSourceTextAction $create): void
     {
         abort_if($request->user()->cannot('update', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.sources.train.text'), 403);
 
-        $request->validate([
-            'content' => ['required', 'min:500'],
-        ]);
+        $request->validate(['content' => ['required', 'min:500']]);
 
-        $content = Str::of(TextCleaner::clean($request->input('content')))->trim()->toString();
+        /** @var User $user */
+        $user = $request->user();
 
-        $numberOfPages = (int) ceil(str_word_count($content) / 450);
-
-        abort_if(
-            $request->user()->canUploadPages($numberOfPages),
-            422,
-            'This document requires '.$numberOfPages.' pages.',
-        );
-
-        $filepath = 'users/'.$agent->user_id.'/agents/'.$agent->id.'/train/text/'.Str::uuid()->toString().'.txt';
-
-        Storage::put($filepath, $content);
-
-        /** @var SourceText $agentText */
-        $agentText = SourceText::create([
-            'user_id' => $request->user()->id,
-            'filepath' => $filepath,
-            'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
-            'length' => $numberOfPages, // 450 words = 1 page
-            'checksum' => md5($content),
-        ]);
-
-        $agent->texts()->attach($agentText->id);
-
-        $agentText->startTraining($agent);
+        try {
+            $create->execute($agent, $user, $request->input('content'));
+        } catch (InviteRejectedException $e) {
+            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
+        }
     }
 
-    public function update(Request $request, Agent $agent, int $id): void
+    public function update(Request $request, Agent $agent, int $id, UpdateAgentSourceTextAction $update): void
     {
         abort_if($request->user()->cannot('update', $agent), 404);
 
@@ -92,45 +77,19 @@ class AgentTextController
             ->where('source_texts.id', $id)
             ->firstOrFail();
 
-        $request->validate([
-            'content' => ['required', 'min:500'],
-        ]);
+        $request->validate(['content' => ['required', 'min:500']]);
 
-        $newContent = Str::of(TextCleaner::clean($request->input('content')))->trim()->toString();
+        /** @var User $user */
+        $user = $request->user();
 
-        $checksum = md5($newContent);
-
-        $numberOfPages = (int) ceil(str_word_count($newContent) / 450);
-
-        if ($agent->texts()->where('checksum', $checksum)->exists()) {
-            return;
+        try {
+            $update->execute($agent, $user, $sourceText, $request->input('content'));
+        } catch (InviteRejectedException $e) {
+            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
         }
-
-        abort_if(
-            $request->user()->canUploadPages($numberOfPages),
-            422,
-            'This document requires '.$numberOfPages.' pages.',
-        );
-
-        Storage::delete($sourceText->filepath);
-
-        $filepath = 'users/'.$agent->user_id.'/agents/'.$agent->id.'/train/text/'.Str::uuid()->toString().'.txt';
-        Storage::put($filepath, $newContent);
-
-        $sourceText->update([
-            'filepath' => $filepath,
-            'checksum' => $checksum,
-            'length' => $numberOfPages,
-            'status' => 'pending',
-            'excerpt' => Str::of($newContent)->limit(200)->replace("\n", ' ')->trim()->toString(),
-        ]);
-
-        $sourceText->chunks()->delete();
-
-        $sourceText->startTraining($agent);
     }
 
-    public function destroy(Request $request, Agent $agent, int $id): void
+    public function destroy(Request $request, Agent $agent, int $id, DeleteAgentSourceTextAction $delete): void
     {
         abort_if($request->user()->cannot('delete', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.sources.delete'), 403);
@@ -140,9 +99,21 @@ class AgentTextController
 
         abort_if($request->user()->cannot('delete', $text), 403);
 
-        $text->agents()->detach($agent->id);
-        $text->delete();
-        $text->chunks()->delete();
+        $delete->execute($agent, $text);
+    }
+
+    public function unlink(Request $request, Agent $agent, int $id, DetachSourceTextFromAgentAction $detach): JsonResponse
+    {
+        abort_if($request->user()->cannot('view', $agent), 404);
+
+        /** @var SourceText $text */
+        $text = $agent->texts()->where('source_texts.id', $id)->firstOrFail();
+
+        abort_if($request->user()->cannot('delete', $text), 403);
+
+        $detach->execute($agent, $text);
+
+        return response()->json(['message' => 'Text unlinked from agent successfully.']);
     }
 
     private function buildTextList(Agent $agent): Collection
@@ -160,19 +131,5 @@ class AgentTextController
 
             return $text;
         });
-    }
-
-    public function unlink(Request $request, Agent $agent, int $id): JsonResponse
-    {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
-        /** @var SourceText $text */
-        $text = $agent->texts()->where('source_texts.id', $id)->firstOrFail();
-
-        abort_if($request->user()->cannot('delete', $text), 403);
-
-        $text->agents()->detach($agent->id);
-
-        return response()->json(['message' => 'Text unlinked from agent successfully.']);
     }
 }

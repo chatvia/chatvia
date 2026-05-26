@@ -22,7 +22,9 @@ return new class extends Migration
             $table->text('system_instructions')->nullable();
             $table->boolean('is_public')->default(false);
             $table->boolean('collect_leads')->default(true);
-            $table->string('jwt_secret')->nullable();
+            $table->boolean('analytics_enabled')->default(true);
+            $table->json('metadata')->nullable();
+            $table->enum('created_via', ['dashboard', 'api'])->default('dashboard')->index();
             $table->timestamps();
         });
     }

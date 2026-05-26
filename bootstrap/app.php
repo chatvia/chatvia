@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Middleware\AuthenticateChatViaJwt;
 use App\Http\Middleware\AuthenticateMember;
 use App\Http\Middleware\AuthenticateMemberUsingToken;
 use App\Http\Middleware\ChatHandleInertiaRequests;
 use App\Http\Middleware\ContentSecurityPolicy;
 use App\Http\Middleware\EnsureAgentHasMessagesCapacity;
+use App\Http\Middleware\EnsureCanAccessApiAgent;
 use App\Http\Middleware\EnsureChatIsAccessible;
 use App\Http\Middleware\EnsureUserCanAccessAgent;
 use App\Http\Middleware\EnsureUserHasSubscription;
@@ -20,6 +22,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Http\Middleware\CheckAbilities;
+use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use Sentry\Laravel\Integration as SentryIntegration;
 
 $app = Application::configure(basePath: dirname(__DIR__))
@@ -56,6 +60,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             ResolveAgentFromSubdomain::class,
             RedirectToAgent::class,
             AuthenticateMemberUsingToken::class,
+            AuthenticateChatViaJwt::class,
             EnsureChatIsAccessible::class,
             EnsureAgentHasMessagesCapacity::class,
             //            ContentSecurityPolicy::class,
@@ -67,6 +72,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'guest.member' => MemberGuestMiddleware::class,
             'can.access.agent' => EnsureUserCanAccessAgent::class,
             'user.subscribed' => EnsureUserHasSubscription::class,
+            'api.agent' => EnsureCanAccessApiAgent::class,
+            'abilities' => CheckAbilities::class,
+            'ability' => CheckForAnyAbility::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

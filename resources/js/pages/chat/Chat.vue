@@ -93,6 +93,11 @@ const userHasScrolledUp = ref(false);
 const lastScrollTop = ref(0);
 const scrollAnimationFrame = ref(null);
 const messageSources = ref(new Map()); // Keyed by assistant message UUID (string)
+// Structured artifacts (charts, etc.) emitted by tool calls, keyed by
+// assistant message UUID. Each entry is the array of ToolArtifact blocks
+// that arrived across all tool calls in that assistant turn. Mirrors
+// `messageSources`; AssistantChatBubble consumes the matching entry.
+const messageArtifacts = ref(new Map());
 const scrollThrottleTimeout = ref(null); // For throttling scroll updates
 
 // In-flight function/tool calls keyed by tool_call_id. Populated by the
@@ -404,6 +409,21 @@ onMounted(async () => {
         .then((response) => {
             messages.value = response.data;
 
+            // Re-hydrate chart / tool artifacts from each persisted message.
+            // Without this, a page reload renders the LLM's "Here's a bar
+            // chart of …" caption with no chart underneath, because the
+            // runtime messageArtifacts Map is empty after a fresh mount.
+            messages.value.forEach((message) => {
+                if (
+                    message.role === 'assistant' &&
+                    message.id &&
+                    Array.isArray(message.metadata?.artifacts) &&
+                    message.metadata.artifacts.length > 0
+                ) {
+                    messageArtifacts.value.set(message.id, message.metadata.artifacts);
+                }
+            });
+
             loadingMessages.value = false;
 
             const modelId = getQueryParam('model') || defaultModel.value?.id;
@@ -535,7 +555,7 @@ function submitChat({
         onSources: (sources, id) => {
             if (id) messageSources.value.set(id, sources);
         },
-        onTool: (data) => {
+        onTool: (data, assistantMessageId) => {
             // Drives the branded "Calling <service>…" indicator. The
             // backend yields `tool { phase: 'start' }` before dispatching
             // and `{ phase: 'end' }` after — synchronous + in order with
@@ -555,6 +575,14 @@ function submitChat({
                 });
             } else if (data.phase === 'end') {
                 activeFunctionCalls.value.delete(data.tool_call_id);
+
+                // Capture any structured artifacts (charts, etc.) the tool
+                // returned. We append rather than replace because a single
+                // assistant turn can call multiple chart-emitting tools.
+                if (assistantMessageId && Array.isArray(data.artifacts) && data.artifacts.length > 0) {
+                    const existing = messageArtifacts.value.get(assistantMessageId) ?? [];
+                    messageArtifacts.value.set(assistantMessageId, [...existing, ...data.artifacts]);
+                }
             }
         },
         onError: (err) => {
@@ -644,6 +672,7 @@ const messageUpdated = (messageId, messageContent) => {
 
     if (previousAssistantId) {
         messageSources.value.delete(previousAssistantId);
+        messageArtifacts.value.delete(previousAssistantId);
     }
 
     userHasScrolledUp.value = false;
@@ -671,7 +700,10 @@ const messageDeleted = (messageId) => {
         // Delete the user message and its following assistant reply (if present).
         const next = messages.value[messageIndex + 1];
         if (next && next.role === 'assistant') {
-            if (next.id) messageSources.value.delete(next.id);
+            if (next.id) {
+                messageSources.value.delete(next.id);
+                messageArtifacts.value.delete(next.id);
+            }
             messages.value.splice(messageIndex, 2);
         } else {
             messages.value.splice(messageIndex, 1);
@@ -679,7 +711,10 @@ const messageDeleted = (messageId) => {
     } else {
         // Delete the assistant message and its preceding user message (if present).
         const prev = messages.value[messageIndex - 1];
-        if (message.id) messageSources.value.delete(message.id);
+        if (message.id) {
+            messageSources.value.delete(message.id);
+            messageArtifacts.value.delete(message.id);
+        }
         if (prev && prev.role === 'user') {
             messages.value.splice(messageIndex - 1, 2);
         } else {
@@ -729,7 +764,10 @@ async function reissue({ userMessageId, assistantMessageId, model, overrideConte
         return;
     }
 
-    if (assistantMessageId) messageSources.value.delete(assistantMessageId);
+    if (assistantMessageId) {
+        messageSources.value.delete(assistantMessageId);
+        messageArtifacts.value.delete(assistantMessageId);
+    }
 
     messages.value[userIndex] = { role: 'user', content: newContent, id: 0 };
     messages.value[assistantIndex] = { role: 'assistant', content: '', model: model.id, id: 0 };
@@ -853,6 +891,7 @@ const handleScrollToBottomClick = () => {
                                     :models="models"
                                     :defaultModel="defaultModel"
                                     :sources="message.id ? messageSources.get(message.id) || [] : []"
+                                    :artifacts="message.id ? messageArtifacts.get(message.id) || [] : []"
                                     :conversationId="conversation_id"
                                     :hideFeedback="isMessageStreaming(message)"
                                     :isThinking="isMessageStreaming(message) && !message.content"

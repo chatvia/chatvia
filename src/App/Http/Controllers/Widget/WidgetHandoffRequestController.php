@@ -3,20 +3,16 @@
 namespace App\Http\Controllers\Widget;
 
 use App\Widget\WidgetVerification;
-use Domain\Chat\Events\ChatHandoffEvent;
+use Domain\Chat\Actions\RequestHandoffAction;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Handles widget user requests for human assistance.
- * Sets the conversation to "pending" status so admins can see and accept.
- */
 readonly class WidgetHandoffRequestController
 {
     public function __construct(private WidgetVerification $widgetVerification) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, RequestHandoffAction $requestHandoff): JsonResponse
     {
         $request->validate([
             'conversation_id' => ['required', 'string'],
@@ -30,12 +26,10 @@ readonly class WidgetHandoffRequestController
             return response()->json(['error' => 'Missing session'], 400);
         }
 
-        // Verify domain is allowed for this agent
         if ($agentId && ! $this->widgetVerification->verifyByAgentExternalId($agentId, $request)) {
             return response()->json(['error' => 'Domain not allowed'], 403);
         }
 
-        // Verify session owns this conversation
         $conversation = ChatConversation::where('external_id', $conversationId)
             ->whereHas('session', fn ($q) => $q->where('external_id', $sessionId))
             ->first();
@@ -44,39 +38,17 @@ readonly class WidgetHandoffRequestController
             return response()->json(['error' => 'Conversation not found'], 404);
         }
 
-        // Check if already handed off
-        if ($conversation->handoff_status === 'human') {
-            return response()->json([
-                'status' => 'human',
-                'message' => 'Already connected to a human agent.',
-            ]);
-        }
+        $status = $requestHandoff->execute($conversation);
 
-        // Check if already pending
-        if ($conversation->handoff_status === 'pending') {
-            return response()->json([
-                'status' => 'pending',
-                'message' => 'Your request is pending. Please wait for an agent.',
-            ]);
-        }
-
-        // Set to pending
-        $conversation->update([
-            'handoff_status' => 'pending',
-        ]);
-
-        // Broadcast the pending status (admin dashboard can listen to this)
-        ChatHandoffEvent::dispatch(
-            $conversation->external_id,
-            'pending',
-            null,
-            null,
-        );
+        $messages = [
+            'human' => 'Already connected to a human agent.',
+            'pending' => 'Your request has been sent. Please wait for an agent to connect.',
+        ];
 
         return response()->json([
-            'status' => 'pending',
+            'status' => $status,
             'conversation_id' => $conversationId,
-            'message' => 'Your request has been sent. Please wait for an agent to connect.',
+            'message' => $messages[$status] ?? 'Your request is pending. Please wait for an agent.',
         ]);
     }
 }

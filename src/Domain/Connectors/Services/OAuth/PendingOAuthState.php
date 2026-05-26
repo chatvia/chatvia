@@ -9,7 +9,7 @@ namespace Domain\Connectors\Services\OAuth;
 class PendingOAuthState
 {
     public function __construct(
-        public readonly int $agentId,
+        public readonly int $userId,
         public readonly ?string $connectorSlug,
         public readonly string $authServerUrl,
         public readonly string $tokenEndpoint,
@@ -28,7 +28,7 @@ class PendingOAuthState
     public function toArray(): array
     {
         return [
-            'agent_id' => $this->agentId,
+            'user_id' => $this->userId,
             'connector_slug' => $this->connectorSlug,
             'auth_server_url' => $this->authServerUrl,
             'token_endpoint' => $this->tokenEndpoint,
@@ -48,7 +48,7 @@ class PendingOAuthState
     public static function fromArray(array $data): self
     {
         return new self(
-            agentId: (int) $data['agent_id'],
+            userId: (int) $data['user_id'],
             connectorSlug: $data['connector_slug'] ?? null,
             authServerUrl: (string) $data['auth_server_url'],
             tokenEndpoint: (string) $data['token_endpoint'],

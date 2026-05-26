@@ -1,66 +1,48 @@
-<script setup>
+<script setup lang="ts">
+import AssistantMessageBody from '@/components/chat/AssistantMessageBody.vue';
 import ConfirmationDialog from '@/components/chat/ConfirmationDialog.vue';
 import WaitingIndicator from '@/components/chat/WaitingIndicator.vue';
+import type { ToolArtifact } from '@/types/stream';
 import { usePage } from '@inertiajs/vue3';
 import { vOnClickOutside } from '@vueuse/components';
-import hljs from 'highlight.js';
-import { Marked } from 'marked';
-import markedAlert from 'marked-alert';
-import markedCodePreview from 'marked-code-preview';
-import { markedHighlight } from 'marked-highlight';
-import markedKatex from 'marked-katex-extension';
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, ref } from 'vue';
 
-const messageFeedback = ref({});
-const isExportDropdownOpen = ref({});
-const copiedMessageId = ref(null);
+// MessageCard is used by the chat log and handoff panel; both pass a
+// ChatLogMessageData row. Define the minimum shape we read so the prop
+// stays compatible with anything that exposes role/content/etc.
+interface MessageLike {
+    id: string | number;
+    role: 'user' | 'assistant' | string;
+    content: string;
+    model?: string;
+    artifacts?: ToolArtifact[] | null;
+}
+
+const messageFeedback = ref<Record<string | number, string>>({});
+const isExportDropdownOpen = ref<Record<string | number, boolean>>({});
+const copiedMessageId = ref<string | number | null>(null);
 const isEditing = ref(false);
 const editedContent = ref('');
-const page = usePage();
+const page = usePage<{ models?: any[]; defaultModel?: any }>();
 
-const emit = defineEmits(['messageUpdated']);
+const emit = defineEmits<{ messageUpdated: [id: string | number, content: string] }>();
 
-const props = defineProps({
-    message: {
-        type: Object,
-        required: true,
-    },
-    isThinking: {
-        type: Boolean,
-        default: false,
-    },
-    hideFeedback: {
-        type: Boolean,
-        default: false,
-    },
-});
+const props = defineProps<{
+    message: MessageLike;
+    isThinking?: boolean;
+    hideFeedback?: boolean;
+}>();
 // `isChatExpanded` is two-way via v-model so parents can collapse the chat
 // from outside. defineModel() registers the implicit `modelValue` prop and
 // emit — keep it out of the explicit defineProps to avoid a name collision.
-const isChatExpanded = defineModel < boolean > ('isChatExpanded', { default: false });
-const messageRef = ref(props.message);
+const isChatExpanded = defineModel<boolean>('isChatExpanded', { default: false });
 
-const marked = new Marked(
-    markedHighlight({
-        emptyLangClass: 'hljs',
-        langPrefix: 'hljs language-',
-        highlight(code, lang, _info) {
-            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-            return hljs.highlight(code, { language }).value;
-        },
-    }),
-);
-
-const availableModels = ref(page.props.models);
-const findModelIdx = (modelId) => {
+const availableModels = ref<any[]>(page.props.models ?? []);
+const findModelIdx = (modelId: string | undefined) => {
     return availableModels.value.find((m) => m.id === modelId) || page.props.defaultModel;
 };
 
-function formatMessage(content) {
-    return marked.use({ gfm: true }).use(markedKatex()).use(markedCodePreview()).use(markedAlert()).parse(content);
-}
-
-function provideFeedback(messageId, type) {
+function provideFeedback(messageId: string | number, type: string) {
     if (messageFeedback.value[messageId] === type) {
         delete messageFeedback.value[messageId];
     } else {
@@ -68,16 +50,12 @@ function provideFeedback(messageId, type) {
     }
 }
 
-const messageContentRef = ref();
-
-function copyMessageToClipboard(content, id) {
-    // Use the Clipboard API if available
+function copyMessageToClipboard(content: string, id: string | number) {
     if (navigator.clipboard) {
         navigator.clipboard
             .writeText(content)
             .then(() => {
                 copiedMessageId.value = id;
-                // Reset after 2 seconds
                 setTimeout(() => {
                     if (copiedMessageId.value === id) {
                         copiedMessageId.value = null;
@@ -93,7 +71,7 @@ function copyMessageToClipboard(content, id) {
     }
 }
 
-function fallbackCopyToClipboard(content, id) {
+function fallbackCopyToClipboard(content: string, id: string | number) {
     try {
         const tempTextarea = document.createElement('textarea');
         tempTextarea.value = content;
@@ -113,50 +91,26 @@ function fallbackCopyToClipboard(content, id) {
     }
 }
 
-function toggleExportDropdown(messageId, event) {
-    // Stop event propagation
+function toggleExportDropdown(messageId: string | number, event?: Event) {
     if (event) event.stopPropagation();
 
-    // Close all other export dropdowns
-    const newState = {};
+    const newState: Record<string | number, boolean> = {};
     if (!isExportDropdownOpen.value[messageId]) {
         newState[messageId] = true;
     }
     isExportDropdownOpen.value = newState;
 }
 
-const _closeMenu = () => {
-    isExportDropdownOpen.value = false;
-};
-watch(
-    () => props.message.content,
-    () => {
-        if (props.message.content) {
-            nextTick(() => {
-                setupCodeBlockCopyButtons();
-            });
-        }
-    },
-    { immediate: true },
-);
-
-onMounted(() => {
-    if (props.message.content) {
-        setupCodeBlockCopyButtons();
-    }
-});
-
 function _startEditing() {
     if (props.message.role === 'user') {
         editedContent.value = props.message.content;
         isEditing.value = true;
 
-        // Focus the textarea after the DOM updates
         nextTick(() => {
             const textareaElement = document.getElementById(`edit-message-${props.message.id}`);
             if (textareaElement) {
                 textareaElement.focus();
-                textareaElement.select();
+                (textareaElement as HTMLTextAreaElement).select();
             }
         });
     }
@@ -172,7 +126,6 @@ function saveEditedMessage() {
 
     try {
         const newMessage = editedContent.value.trim();
-        // messageRef.value.content = newMessage
         emit('messageUpdated', props.message.id, newMessage);
         isEditing.value = false;
     } catch (error) {
@@ -180,7 +133,7 @@ function saveEditedMessage() {
     }
 }
 
-function handleEditKeyDown(event) {
+function handleEditKeyDown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         saveEditedMessage();
@@ -189,67 +142,19 @@ function handleEditKeyDown(event) {
     }
 }
 
-function setupCodeBlockCopyButtons() {
-    if (!messageContentRef.value) return;
-
-    const codeBlocks = messageContentRef.value.querySelectorAll('pre');
-    codeBlocks.forEach((pre) => {
-        // Check if we already added a copy button to this pre
-        if (pre.querySelector('.code-copy-button')) return;
-
-        // Create the copy button
-        const copyButton = document.createElement('button');
-        copyButton.className = 'code-copy-button';
-        copyButton.setAttribute('aria-label', 'Copy code to clipboard');
-        copyButton.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-        `;
-
-        // Add click event to copy code
-        copyButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const code = pre.querySelector('code');
-
-            if (code) {
-                navigator.clipboard
-                    .writeText(code.textContent || '')
-                    .then(() => {
-                        copyButton.classList.add('copied');
-                        copyButton.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                        `;
-
-                        // Reset after 2 seconds
-                        setTimeout(() => {
-                            copyButton.classList.remove('copied');
-                            copyButton.innerHTML = `
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                            `;
-                        }, 2000);
-                    })
-                    .catch((err) => console.error('Failed to copy code: ', err));
-            }
-        });
-
-        // Add the button to the pre element
-        pre.style.position = 'relative';
-        pre.appendChild(copyButton);
-    });
-}
-
 const closeExportAsMenu = () => {
-    isExportDropdownOpen.value = false;
+    isExportDropdownOpen.value = {};
 };
 
-const deleteMessage = () => {};
+const deleteMessage = (_id: string | number) => {};
+
+// Export handlers referenced by the template but never implemented in
+// this component since the first commit — kept as no-ops so the template
+// type-checks under TS and behavior matches what it always was. Wire up
+// real export when the chat log gains that feature.
+const exportAsPdf = (_id: string | number) => {};
+const exportAsMarkdown = (_id: string | number) => {};
+const exportAsText = (_id: string | number) => {};
 </script>
 
 <template>
@@ -289,11 +194,8 @@ const deleteMessage = () => {};
                     </div>
                 </div>
                 <div v-else>
-                    <div v-if="messageRef.content" id="chat-ai-responses" ref="messageContentRef" v-html="formatMessage(message.content)"></div>
-
-                    <div v-else>
-                        <WaitingIndicator />
-                    </div>
+                    <AssistantMessageBody v-if="message.content" :content="message.content" :artifacts="message.artifacts ?? undefined" />
+                    <WaitingIndicator v-else />
                 </div>
 
                 <div

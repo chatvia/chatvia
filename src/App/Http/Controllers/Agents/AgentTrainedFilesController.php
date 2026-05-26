@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Agents;
 
+use Domain\Agents\Actions\LinkSourceFileToAgentAction;
+use Domain\Agents\Actions\UnlinkSourceFileFromAgentAction;
 use Domain\Agents\Data\Resources\AgentSourcesListData;
 use Domain\Agents\Models\Agent;
 use Domain\Sources\Files\Models\SourceFile;
@@ -32,30 +34,26 @@ class AgentTrainedFilesController
         return AgentSourcesListData::fromSources($data);
     }
 
-    public function link(Request $request, Agent $agent, int $fileId): void
+    public function link(Request $request, Agent $agent, int $fileId, LinkSourceFileToAgentAction $link): void
     {
         abort_if($request->user()->cannot('update', $agent), 403);
 
-        $request->validate([
-            'file_id' => ['required', 'exists:source_files,id'],
-        ]);
+        $request->validate(['file_id' => ['required', 'exists:source_files,id']]);
 
         /** @var SourceFile $file */
         $file = SourceFile::findOrFail($fileId);
 
         abort_if($request->user()->cannot('view', $file), 403);
 
-        $agent->files()->attach($file->id);
+        $link->execute($agent, $file);
     }
 
-    public function unlink(Request $request, Agent $agent, SourceFile $file): void
+    public function unlink(Request $request, Agent $agent, SourceFile $file, UnlinkSourceFileFromAgentAction $unlink): void
     {
         abort_if($request->user()->cannot('update', $agent), 404);
 
-        if ($file->agents()->count() > 1) {
+        if (! $unlink->execute($agent, $file)) {
             abort(400, 'File is linked to multiple agents and cannot be unlinked.');
         }
-
-        $agent->files()->detach($file->id);
     }
 }

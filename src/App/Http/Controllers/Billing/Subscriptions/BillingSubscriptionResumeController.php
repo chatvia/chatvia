@@ -2,28 +2,22 @@
 
 namespace App\Http\Controllers\Billing\Subscriptions;
 
+use App\Auth\Models\User;
+use Domain\Billing\Actions\ResumeSubscriptionAction;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Laravel\Cashier\Cashier;
 
 class BillingSubscriptionResumeController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, ResumeSubscriptionAction $resume): ?RedirectResponse
     {
-        $subscription = $request->user()->subscription();
+        /** @var User $user */
+        $user = $request->user();
 
-        if (! $subscription) {
+        if (! $resume->execute($user)) {
             return back()->with('error', 'No subscription found.');
         }
 
-        $stripeSubscription = $subscription->asStripeSubscription();
-
-        $scheduleId = $stripeSubscription->schedule;
-
-        if ($scheduleId) {
-            Cashier::stripe()->subscriptionSchedules->release($scheduleId);
-        }
-
-        $subscription->resume();
-
+        return null;
     }
 }

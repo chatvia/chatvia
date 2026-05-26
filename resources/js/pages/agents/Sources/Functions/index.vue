@@ -1,16 +1,14 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import type { AgentFunction } from '@/types/agent-function';
 import axios from 'axios';
-import { AlertCircle, FunctionSquare, LoaderCircle, Pencil, Plus, Trash2 } from 'lucide-vue-next';
-import { onMounted, ref } from 'vue';
+import { AlertCircle, FunctionSquare, LoaderCircle, Search } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
-import FunctionEditor from './FunctionEditor.vue';
 
 interface Props {
     agent: Domain.Agents.Data.Resources.AgentResourceData;
@@ -18,11 +16,21 @@ interface Props {
 
 const props = defineProps<Props>();
 
+interface FunctionRow extends AgentFunction {
+    is_attached: boolean;
+}
+
 const loading = ref(true);
-const functions = ref<AgentFunction[]>([]);
-const editorOpen = ref(false);
-const editing = ref<AgentFunction | null>(null);
-const deleteTarget = ref<AgentFunction | null>(null);
+const functions = ref<FunctionRow[]>([]);
+const search = ref('');
+
+const filtered = computed(() => {
+    const q = search.value.trim().toLowerCase();
+    if (!q) return functions.value;
+    return functions.value.filter(
+        (f) => f.name.toLowerCase().includes(q) || f.description.toLowerCase().includes(q) || f.webhook_url.toLowerCase().includes(q),
+    );
+});
 
 async function fetchFunctions(): Promise<void> {
     loading.value = true;
@@ -37,52 +45,34 @@ async function fetchFunctions(): Promise<void> {
     }
 }
 
-function openCreate(): void {
-    editing.value = null;
-    editorOpen.value = true;
-}
-
-function openEdit(fn: AgentFunction): void {
-    editing.value = fn;
-    editorOpen.value = true;
-}
-
-async function toggle(fn: AgentFunction): Promise<void> {
-    try {
-        const response = await axios.post(route('agents.sources.functions.toggle', { agent: props.agent.external_id, function: fn.external_id }));
-        const updated: AgentFunction = response.data.data;
-        const i = functions.value.findIndex((f) => f.external_id === fn.external_id);
-        if (i !== -1) functions.value[i] = updated;
-    } catch (err) {
-        console.error(err);
-        toast.error('Failed to toggle function');
-    }
-}
-
-async function confirmDelete(): Promise<void> {
-    const target = deleteTarget.value;
-    if (!target) return;
-    try {
-        await axios.delete(route('agents.sources.functions.delete', { agent: props.agent.external_id, function: target.external_id }));
-        functions.value = functions.value.filter((f) => f.external_id !== target.external_id);
-        toast.success(`Deleted ${target.name}`);
-    } catch (err) {
-        console.error(err);
-        toast.error('Failed to delete function');
-    } finally {
-        deleteTarget.value = null;
-    }
-}
-
-function onSaved(fn: AgentFunction): void {
-    const i = functions.value.findIndex((f) => f.external_id === fn.external_id);
-    if (i === -1) {
-        functions.value.unshift(fn);
+async function toggle(fn: FunctionRow): Promise<void> {
+    if (fn.is_attached) {
+        await detach(fn);
     } else {
-        functions.value[i] = fn;
+        await attach(fn);
     }
-    editorOpen.value = false;
-    editing.value = null;
+}
+
+async function attach(fn: FunctionRow): Promise<void> {
+    try {
+        await axios.post(route('agents.sources.functions.attach', { agent: props.agent.external_id, function: fn.external_id }));
+        const i = functions.value.findIndex((f) => f.external_id === fn.external_id);
+        if (i !== -1) functions.value[i] = { ...functions.value[i], is_attached: true };
+    } catch (err) {
+        console.error(err);
+        toast.error('Failed to attach function');
+    }
+}
+
+async function detach(fn: FunctionRow): Promise<void> {
+    try {
+        await axios.delete(route('agents.sources.functions.detach', { agent: props.agent.external_id, function: fn.external_id }));
+        const i = functions.value.findIndex((f) => f.external_id === fn.external_id);
+        if (i !== -1) functions.value[i] = { ...functions.value[i], is_attached: false };
+    } catch (err) {
+        console.error(err);
+        toast.error('Failed to detach function');
+    }
 }
 
 onMounted(fetchFunctions);
@@ -91,18 +81,17 @@ onMounted(fetchFunctions);
 <template>
     <AgentLayout :agent="agent">
         <div class="mx-auto w-full max-w-6xl space-y-6">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <h1 class="text-xl font-semibold">Functions</h1>
-                    <p class="text-muted-foreground text-sm">
-                        Let the chat call your own APIs as tools. Define a function with a JSON-Schema for its arguments and a webhook URL — when a
-                        user asks something the chat thinks needs your data, it will call your webhook and use the result in its reply.
-                    </p>
-                </div>
-                <Button @click="openCreate">
-                    <Plus class="mr-1 h-4 w-4" />
-                    New function
-                </Button>
+            <div>
+                <h1 class="text-xl font-semibold">Functions</h1>
+                <p class="text-muted-foreground text-sm">
+                    Attach account-level functions to this agent. Create or edit functions in
+                    <a :href="route('settings.functions.edit')" class="underline">Settings → Functions</a>.
+                </p>
+            </div>
+
+            <div class="relative max-w-sm">
+                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Input v-model="search" placeholder="Search functions" class="pl-9" />
             </div>
 
             <div v-if="loading" class="text-muted-foreground flex items-center gap-2 py-12 text-sm">
@@ -110,55 +99,58 @@ onMounted(fetchFunctions);
                 Loading functions
             </div>
 
-            <Card v-else-if="functions.length === 0">
-                <CardContent class="py-12 text-center">
-                    <FunctionSquare class="mx-auto mb-3 h-10 w-10 opacity-40" />
-                    <p class="font-medium">No functions yet</p>
-                    <p class="text-muted-foreground mt-1 text-sm">Create a function the chat can call when it needs live data.</p>
-                </CardContent>
-            </Card>
+            <div v-else-if="functions.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
+                <FunctionSquare class="mx-auto mb-3 h-10 w-10 opacity-40" />
+                <p class="font-medium">No functions yet</p>
+                <p class="mt-1">
+                    Create your first one in
+                    <a :href="route('settings.functions.edit')" class="underline">Settings → Functions</a>.
+                </p>
+            </div>
 
-            <div v-else class="grid gap-3">
-                <Card v-for="fn in functions" :key="fn.external_id">
-                    <CardContent class="flex items-center justify-between gap-4 py-4">
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-2">
-                                <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.name }}</code>
-                                <Badge v-if="!fn.enabled" variant="secondary">disabled</Badge>
-                                <Badge v-if="fn.last_error" variant="destructive" class="gap-1">
-                                    <AlertCircle class="h-3 w-3" />
-                                    last call failed
-                                </Badge>
-                            </div>
-                            <p class="text-muted-foreground mt-1 line-clamp-1 text-sm">{{ fn.description }}</p>
-                            <p class="text-muted-foreground mt-1 text-xs">
+            <div v-else-if="filtered.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
+                No functions match your search.
+            </div>
+
+            <div v-else class="rounded-lg border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead class="h-11 pl-5">Function</TableHead>
+                            <TableHead class="h-11 w-40">Webhook</TableHead>
+                            <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="fn in filtered" :key="fn.external_id">
+                            <TableCell class="py-4 pl-5">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.name }}</code>
+                                        <Badge v-if="!fn.enabled" variant="secondary">disabled</Badge>
+                                        <Badge v-if="fn.last_error" variant="destructive" class="gap-1">
+                                            <AlertCircle class="h-3 w-3" />
+                                            last call failed
+                                        </Badge>
+                                    </div>
+                                    <p class="text-muted-foreground mt-1 line-clamp-1 text-sm">{{ fn.description }}</p>
+                                </div>
+                            </TableCell>
+                            <TableCell class="text-muted-foreground py-4 text-xs">
                                 {{ fn.webhook_method }} {{ fn.webhook_url }}
-                                <span v-if="fn.invocation_count > 0"> · {{ fn.invocation_count }} calls</span>
-                            </p>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <Switch :model-value="fn.enabled" @update:model-value="toggle(fn)" />
-                            <Button variant="ghost" size="icon" @click="openEdit(fn)">
-                                <Pencil class="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" class="text-destructive" @click="deleteTarget = fn">
-                                <Trash2 class="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                            </TableCell>
+                            <TableCell class="py-4 pr-5">
+                                <Switch
+                                    :model-value="fn.is_attached"
+                                    :disabled="!fn.enabled"
+                                    :title="!fn.enabled ? 'Enable this function in Settings first' : undefined"
+                                    @update:model-value="toggle(fn)"
+                                />
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
         </div>
-
-        <FunctionEditor v-model:open="editorOpen" :agent-id="agent.external_id" :existing="editing" @saved="onSaved" />
-
-        <DeleteConfirmationDialog
-            :open="!!deleteTarget"
-            :title="`Delete function ${deleteTarget?.name ?? ''}?`"
-            description="The chat will no longer be able to call this function. This cannot be undone."
-            @cancel="deleteTarget = null"
-            @confirm="confirmDelete"
-        />
     </AgentLayout>
 </template>

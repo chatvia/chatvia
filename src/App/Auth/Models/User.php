@@ -17,6 +17,8 @@ use App\Teams\Services\TeamService;
 use Database\Factories\UserFactory;
 use Domain\Agents\Collections\AgentCollection;
 use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\AgentFunction;
+use Domain\Agents\Models\AgentMcpServer;
 use Domain\Agents\Models\Llm;
 use Domain\Agents\Models\ModelSetting;
 use Domain\Chat\Data\LlmModelData;
@@ -42,8 +44,10 @@ use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Laravel\Cashier\Billable;
 use Laravel\Cashier\Subscription;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Support\Traits\HasSettings;
 
@@ -155,11 +159,12 @@ use Support\Traits\HasSettings;
 #[Hidden([
     'password',
     'remember_token',
+    'jwt_secret',
 ])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use Billable, HasFactory, HasRoles, HasSettings, Notifiable;
+    use Billable, HasApiTokens, HasFactory, HasRoles, HasSettings, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -175,6 +180,55 @@ class User extends Authenticatable implements MustVerifyEmail
             'billing_address' => 'array',
             'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Account-level webhook-backed functions this customer owns. Each can be
+     * attached to any number of their agents via the `agent_function`
+     * pivot — see `Agent::functions()`.
+     *
+     * @return HasMany<AgentFunction, $this>
+     */
+    public function functions(): HasMany
+    {
+        return $this->hasMany(AgentFunction::class);
+    }
+
+    /**
+     * Account-level MCP servers this customer owns. Each can be attached to
+     * any number of their agents via `agent_mcp_server`.
+     *
+     * @return HasMany<AgentMcpServer, $this>
+     */
+    public function mcpServers(): HasMany
+    {
+        return $this->hasMany(AgentMcpServer::class);
+    }
+
+    /**
+     * Generates (or replaces) the shared HS256 secret used to sign end-user
+     * chat JWTs across this account's agents. Returns the plaintext so the
+     * caller can surface it once to the user — it's never retrievable after.
+     */
+    public function rotateJwtSecret(): string
+    {
+        $secret = Str::random(64);
+        $this->forceFill(['jwt_secret' => $secret])->save();
+
+        return $secret;
+    }
+
+    /**
+     * True when this User row was created by the JWT chat-auth flow to
+     * represent an external (customer-side) end-user — i.e. they do NOT
+     * have a Chatvia dashboard account. Detected via the synthetic email
+     * pattern used in [[AuthenticateChatViaJwt::upsertJwtUser()]]; the
+     * domain suffix is reserved by RFC 6761 ('.invalid') so the check
+     * cannot collide with any real email.
+     */
+    public function isExternalChatUser(): bool
+    {
+        return str_ends_with((string) $this->email, '@external.chatvia.invalid');
     }
 
     /**

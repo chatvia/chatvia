@@ -2,7 +2,7 @@
 
 namespace Domain\Connectors\Services;
 
-use Domain\Agents\Models\Agent;
+use App\Auth\Models\User;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Chat\Services\Tooling\Mcp\McpCatalog;
 use Domain\Chat\Services\Tooling\Mcp\McpException;
@@ -11,14 +11,12 @@ use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
- * Connects a token-based connector to an agent.
+ * Connects a token-based catalog connector at the account level. The
+ * resulting AgentMcpServer row is owned by the user and attached to
+ * agents via the `agent_mcp_server` pivot.
  *
- * Flow:
- *   1. Create (or update) the AgentMcpServer row from the connector preset
- *      + user token, all inside a transaction.
- *   2. Probe the server by forcing a catalog refresh (initialize + tools/list).
- *      If the probe fails, the transaction is rolled back so we never
- *      persist a broken connection.
+ * Enforces "one connector_slug per customer total" — upserts on
+ * (user_id, connector_slug).
  */
 class TokenConnectorAuthorizer
 {
@@ -31,18 +29,18 @@ class TokenConnectorAuthorizer
      *
      * @throws McpException when the token / endpoint fails validation
      */
-    public function connect(Agent $agent, ConnectorData $connector, ?string $token = null): array
+    public function connect(User $user, ConnectorData $connector, ?string $token = null): array
     {
-        return DB::transaction(function () use ($agent, $connector, $token) {
-            $server = AgentMcpServer::query()
-                ->where('agent_id', $agent->id)
+        return DB::transaction(function () use ($user, $connector, $token) {
+            $existing = AgentMcpServer::query()
+                ->where('user_id', $user->id)
                 ->where('connector_slug', $connector->slug)
                 ->first();
 
             $noAuth = $connector->authStrategy === 'none';
 
             $attrs = [
-                'agent_id' => $agent->id,
+                'user_id' => $user->id,
                 'connector_slug' => $connector->slug,
                 'name' => $connector->name,
                 'slug' => AgentMcpServer::makeSlug($connector->slug),
@@ -56,8 +54,9 @@ class TokenConnectorAuthorizer
                 'last_error' => null,
             ];
 
-            if ($server) {
-                $server->fill($attrs)->save();
+            if ($existing) {
+                $existing->fill($attrs)->save();
+                $server = $existing;
             } else {
                 $server = AgentMcpServer::create($attrs);
             }

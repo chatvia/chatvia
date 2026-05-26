@@ -1,5 +1,6 @@
 <?php
 
+use App\Auth\Models\User;
 use Domain\Agents\Models\Agent;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -9,27 +10,31 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('agent_mcp_servers', function (Blueprint $table) {
+        // Account-level MCP server definitions. One Linear MCP per customer,
+        // attachable to any number of their agents via the `agent_mcp_server`
+        // pivot. `user_id` names the owning account.
+        //
+        // Built-in connectors (`connector_slug IS NOT NULL`) live here too,
+        // identified by the catalog slug; the public API only exposes the
+        // raw user-defined ones (connector_slug NULL).
+        Schema::create('mcp_servers', function (Blueprint $table) {
             $table->id();
             $table->uuid('external_id')->unique();
 
-            $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
 
-            // If this row was provisioned by a connector preset (config/connectors.php),
-            // the slug is recorded here for display + bookkeeping. NULL for raw user-
-            // entered MCP servers (which the connector layer hides for now).
             $table->string('connector_slug', 40)->nullable()->index();
 
             $table->string('name', 64);                   // display label
-            $table->string('slug', 40);                   // used as tool-name prefix `mcp__{slug}__...`
+            $table->string('slug', 40);                   // tool-name prefix `mcp__{slug}__...`
 
             $table->text('url');                          // MCP endpoint
             $table->enum('transport', ['streamable_http', 'http_sse'])->default('streamable_http');
 
-            // Auth — same encryption-at-rest approach as AgentFunction.
+            // Auth — encrypted at rest in the model casts.
             $table->enum('auth_type', ['none', 'bearer', 'header'])->default('none');
-            $table->text('auth_value')->nullable();       // encrypted
-            $table->text('headers')->nullable();          // encrypted JSON
+            $table->text('auth_value')->nullable();
+            $table->text('headers')->nullable();
 
             $table->unsignedSmallInteger('timeout_ms')->default(30000);
             $table->boolean('enabled')->default(true)->index();
@@ -41,35 +46,37 @@ return new class extends Migration
             $table->text('last_error')->nullable();
             $table->unsignedBigInteger('invocation_count')->default(0);
 
-            $table->text('oauth_authorization_server')->nullable()->after('headers');
-            $table->text('oauth_token_endpoint')->nullable()->after('oauth_authorization_server');
-
-            // Long-lived refresh token (encrypted). Access token reuses the
-            // existing `auth_value` column so the McpClient bearer code path
-            // stays uniform between token-paste and OAuth connectors.
-            $table->text('oauth_refresh_token')->nullable()->after('oauth_token_endpoint');
-            $table->timestamp('oauth_expires_at')->nullable()->after('oauth_refresh_token');
-            $table->string('oauth_scopes', 255)->nullable()->after('oauth_expires_at');
+            // OAuth fields used by ConnectorOAuthFlow for catalog connectors
+            // that require an OAuth handshake (Linear, GitHub, etc.).
+            $table->text('oauth_authorization_server')->nullable();
+            $table->text('oauth_token_endpoint')->nullable();
+            $table->text('oauth_refresh_token')->nullable();
+            $table->timestamp('oauth_expires_at')->nullable();
+            $table->string('oauth_scopes', 255)->nullable();
 
             $table->timestamps();
 
-            $table->unique(['agent_id', 'slug']);
-            $table->index(['agent_id', 'enabled']);
+            $table->unique(['user_id', 'slug']);
         });
 
-        Schema::table('agents', function (Blueprint $table) {
-            // Counter cache — mirrors agents.functions_count. Lets ToolRegistry
-            // short-circuit to [] for agents with no MCP servers, zero DB cost.
-            $table->unsignedSmallInteger('mcp_servers_count')->default(0)->after('functions_count');
+        // Pivot — which agents have this MCP attached. Pure junction:
+        // presence of a row means "this agent can use this MCP." To pause,
+        // detach. Laravel-conventional pivot name: alphabetical singular
+        // of the two related models.
+        Schema::create('agent_mcp_server', function (Blueprint $table) {
+            $table->id();
+            $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
+            $table->foreignId('mcp_server_id')
+                ->constrained('mcp_servers')
+                ->cascadeOnDelete();
+
+            $table->primary(['agent_id', 'mcp_server_id']);
         });
     }
 
     public function down(): void
     {
-        Schema::table('agents', function (Blueprint $table) {
-            $table->dropColumn('mcp_servers_count');
-        });
-
-        Schema::dropIfExists('agent_mcp_servers');
+        Schema::dropIfExists('agent_mcp_server');
+        Schema::dropIfExists('mcp_servers');
     }
 };

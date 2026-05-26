@@ -19,7 +19,7 @@ class RoutingToolDispatcher implements ToolDispatcherInterface
         private readonly McpToolDispatcher $mcp,
     ) {}
 
-    public function dispatch(Agent $agent, string $name, string $arguments): string
+    public function dispatch(Agent $agent, string $name, string $arguments): ToolDispatchResult
     {
         return $this->router->isMcp($name)
             ? $this->mcp->dispatch($agent, $name, $arguments)

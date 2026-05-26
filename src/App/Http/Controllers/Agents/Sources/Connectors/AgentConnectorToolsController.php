@@ -3,48 +3,49 @@
 namespace App\Http\Controllers\Agents\Sources\Connectors;
 
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Services\Tooling\Mcp\McpCatalog;
+use Domain\Agents\Models\AgentMcpServer;
+use Domain\Agents\Models\McpTool;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Returns the cached MCP tool catalog (in OpenAI-shaped tool descriptors)
- * for a single connected server on this agent. The slug here is the
- * AgentMcpServer slug — which for presets is the connector slug, and for
- * custom servers is the slugified user-given name.
+ * Returns the MCP tool catalog (from the `mcp_tools` table) for a
+ * connector this agent has attached, along with each tool's per-server
+ * enabled flag and embedding-readiness flag.
  */
 class AgentConnectorToolsController
 {
-    public function __construct(
-        private readonly McpCatalog $catalog,
-    ) {}
-
     public function __invoke(Request $request, Agent $agent, string $slug): JsonResponse
     {
         abort_if($request->user()->cannot('view', $agent), 404);
 
-        $server = $agent->mcpServers()->where('slug', $slug)->first();
+        $server = AgentMcpServer::query()
+            ->where('user_id', $agent->user_id)
+            ->where('slug', $slug)
+            ->whereExists(function ($q) use ($agent): void {
+                $q->from('agent_mcp_server')
+                    ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
+                    ->where('agent_mcp_server.agent_id', $agent->id);
+            })
+            ->first();
+
         abort_unless($server !== null, 404);
 
-        $tools = $this->catalog->for($server);
+        $tools = $server->tools()->orderBy('name')->get();
 
-        // McpCatalog returns OpenAI shape; strip the wrapper to send a
-        // flatter list to the UI.
-        $flattened = array_map(fn (array $entry): array => [
-            'name' => (string) ($entry['function']['name'] ?? ''),
-            'short_name' => $this->stripPrefix((string) ($entry['function']['name'] ?? ''), $server->toolPrefix()),
-            'description' => (string) ($entry['function']['description'] ?? ''),
-            'parameters' => $entry['function']['parameters'] ?? new \stdClass,
-        ], $tools);
+        $flattened = $tools->map(fn (McpTool $tool): array => [
+            'name' => $server->toolPrefix().$tool->name,
+            'short_name' => $tool->name,
+            'description' => $tool->description,
+            'parameters' => $tool->input_schema,
+            'enabled' => $tool->enabled,
+            'embedded_at' => $tool->embedded_at?->toISOString(),
+            'id' => $tool->id,
+        ])->all();
 
         return response()->json([
             'tools' => $flattened,
             'cached_at' => $server->catalog_cached_at,
         ]);
-    }
-
-    private function stripPrefix(string $name, string $prefix): string
-    {
-        return str_starts_with($name, $prefix) ? substr($name, strlen($prefix)) : $name;
     }
 }

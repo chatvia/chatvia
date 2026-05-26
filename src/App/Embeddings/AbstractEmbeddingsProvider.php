@@ -3,16 +3,42 @@
 namespace App\Embeddings;
 
 use App\Embeddings\Contracts\EmbeddingsProviderInterface;
+use Illuminate\Support\Facades\Cache;
 
 abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
 {
     /**
-     * Default: providers with no query-side conventions just embed normally.
-     * Override (e.g. Qwen3) to apply instruction prefixes.
+     * Cached entry point for query embeddings. Same (model, text) always
+     * yields the same vector, so we cache for 24h to absorb retries,
+     * concurrent handlers, and common short messages. Subclasses with
+     * query-side conventions (Qwen3 instruction prefix, etc.) override
+     * `doEmbedQuery()`; the cache key is keyed on the raw text so the
+     * prefix doesn't leak into the key.
      */
-    public function embedQuery(string $text, bool $returnAsText = false): string|array
+    final public function embedQuery(string $text, bool $returnAsText = false): string|array
     {
-        return $this->embed($text, $returnAsText);
+        $vector = Cache::remember(
+            'embed:query:'.$this->getModel().':'.sha1($text),
+            now()->addDay(),
+            fn (): array => $this->doEmbedQuery($text),
+        );
+
+        return $returnAsText ? '['.implode(',', $vector).']' : $vector;
+    }
+
+    /**
+     * Hook for provider-specific query-side conventions. Default: embed
+     * the query as a plain document. Override to add instruction prefixes
+     * or switch input_type flags.
+     *
+     * @return array<int, float>
+     */
+    protected function doEmbedQuery(string $text): array
+    {
+        /** @var array<int, float> $vector */
+        $vector = $this->embed($text);
+
+        return $vector;
     }
 
     /**

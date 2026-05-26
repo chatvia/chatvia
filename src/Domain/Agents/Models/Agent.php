@@ -17,6 +17,8 @@ use Domain\Sources\Text\Models\SourceText;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
 use Exception;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -32,6 +34,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\Contracts\HasApiTokens as HasApiTokensContract;
+use Laravel\Sanctum\HasApiTokens;
 use Support\Traits\HasSettings;
 
 /**
@@ -46,11 +50,13 @@ use Support\Traits\HasSettings;
  * @property string|null $system_instructions
  * @property bool $is_public
  * @property bool $collect_leads
- * @property string|null $jwt_secret
+ * @property bool $analytics_enabled
+ * @property array<array-key, mixed>|null $metadata
+ * @property string $created_via
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read int|null $functions_count
- * @property-read int|null $mcp_servers_count
+ * @property-read Collection<int, AgentFunction> $functions
+ * @property-read Collection<int, AgentMcpServer> $mcpServers
  * @property-read Collection<int, Llm> $activeLlms
  * @property-read int|null $active_llms_count
  * @property-read AgentSource|null $pivot
@@ -130,7 +136,6 @@ use Support\Traits\HasSettings;
  * @method static AgentQueryBuilder<static>|Agent whereFunctionsCount($value)
  * @method static AgentQueryBuilder<static>|Agent whereId($value)
  * @method static AgentQueryBuilder<static>|Agent whereIsPublic($value)
- * @method static AgentQueryBuilder<static>|Agent whereJwtSecret($value)
  * @method static AgentQueryBuilder<static>|Agent whereMcpServersCount($value)
  * @method static AgentQueryBuilder<static>|Agent whereName($value)
  * @method static AgentQueryBuilder<static>|Agent whereSubDomain($value)
@@ -154,9 +159,9 @@ use Support\Traits\HasSettings;
 ])]
 #[CollectedBy(AgentCollection::class)]
 #[Guarded(['id'])]
-class Agent extends Model
+class Agent extends Model implements AuthenticatableContract, HasApiTokensContract
 {
-    use HasFactory, HasSettings;
+    use Authenticatable, HasApiTokens, HasFactory, HasSettings;
 
     /**
      * Get the route key name for Laravel route model binding.
@@ -279,19 +284,25 @@ class Agent extends Model
     }
 
     /**
-     * @return HasMany<AgentFunction, $this>
+     * Account-level functions attached to this agent. Presence of the
+     * pivot row means "attached"; to pause, detach.
+     *
+     * @return BelongsToMany<AgentFunction, $this>
      */
-    public function functions(): HasMany
+    public function functions(): BelongsToMany
     {
-        return $this->hasMany(AgentFunction::class);
+        return $this->belongsToMany(AgentFunction::class, 'agent_function', 'agent_id', 'function_id');
     }
 
     /**
-     * @return HasMany<AgentMcpServer, $this>
+     * Account-level MCP servers attached to this agent. Presence of the
+     * pivot row means "attached"; to pause, detach.
+     *
+     * @return BelongsToMany<AgentMcpServer, $this>
      */
-    public function mcpServers(): HasMany
+    public function mcpServers(): BelongsToMany
     {
-        return $this->hasMany(AgentMcpServer::class);
+        return $this->belongsToMany(AgentMcpServer::class, 'agent_mcp_server', 'agent_id', 'mcp_server_id');
     }
 
     /**
@@ -409,6 +420,9 @@ class Agent extends Model
     {
         return [
             'is_public' => 'boolean',
+            'collect_leads' => 'boolean',
+            'analytics_enabled' => 'boolean',
+            'metadata' => 'array',
         ];
     }
 

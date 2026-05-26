@@ -3,20 +3,25 @@
 namespace App\Http\Controllers\Teams;
 
 use App\Teams\Models\Team;
+use Domain\Teams\Actions\CancelTeamInvitationAction;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TeamCancelInvitationController
 {
-    public function __invoke(Request $request, Team $team, int $invitationId)
-    {
+    public function __invoke(
+        Request $request,
+        Team $team,
+        int $invitationId,
+        CancelTeamInvitationAction $cancel,
+    ): RedirectResponse {
         $user = $request->user();
 
         if (! $user->ownsTeam($team)) {
             abort(403, 'Only the team owner can cancel invitations.');
         }
 
-        $invitation = $team->invitations()->findOrFail($invitationId);
-        $invitation->delete();
+        $cancel->execute($team, $invitationId);
 
         return back()->with('success', 'Invitation cancelled.');
     }

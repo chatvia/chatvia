@@ -18,11 +18,14 @@ class ChatHandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
+                'is_external_chat_user' => $user?->isExternalChatUser() ?? false,
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),

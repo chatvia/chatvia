@@ -2,17 +2,22 @@
 
 namespace Domain\Agents\Models;
 
+use App\Auth\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
  * @property int $id
  * @property string $external_id
- * @property int $agent_id
+ * @property int $user_id
  * @property string|null $connector_slug
  * @property string $name
  * @property string $slug
@@ -35,12 +40,12 @@ use Illuminate\Support\Str;
  * @property string|null $oauth_scopes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Agent $agent
+ * @property-read User $user
+ * @property-read Collection<int, Agent> $agents
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereAgentId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereAuthType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereAuthValue($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereCatalogCachedAt($value)
@@ -69,6 +74,7 @@ use Illuminate\Support\Str;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
+#[Table(name: 'mcp_servers')]
 class AgentMcpServer extends Model
 {
     use HasFactory;
@@ -119,9 +125,32 @@ class AgentMcpServer extends Model
         });
     }
 
-    public function agent(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Agent::class);
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsToMany<Agent, $this>
+     */
+    public function agents(): BelongsToMany
+    {
+        return $this->belongsToMany(Agent::class, 'agent_mcp_server', 'mcp_server_id', 'agent_id');
+    }
+
+    /**
+     * Tools discovered on this server (via the most recent catalog sync).
+     *
+     * @return HasMany<McpTool, $this>
+     */
+    public function tools(): HasMany
+    {
+        return $this->hasMany(McpTool::class, 'mcp_server_id');
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'external_id';
     }
 
     public static function makeSlug(string $input): string

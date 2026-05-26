@@ -3,9 +3,9 @@
 namespace Tests\Unit\Services\Chat\Tooling;
 
 use Domain\Agents\Models\Agent;
+use Domain\Chat\Services\Tooling\ToolEntry;
 use Domain\Chat\Services\Tooling\ToolRegistry;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ToolRegistryTest extends TestCase
@@ -17,48 +17,35 @@ class ToolRegistryTest extends TestCase
         Cache::store('array')->flush();
     }
 
-    public function test_returns_empty_array_when_counter_is_zero_without_querying_db(): void
-    {
-        $agent = new Agent;
-        $agent->id = 999;
-        $agent->functions_count = 0;
-
-        DB::enableQueryLog();
-        $queriesBefore = count(DB::getQueryLog());
-
-        $result = app(ToolRegistry::class)->for($agent);
-
-        $queriesAfter = count(DB::getQueryLog());
-
-        $this->assertSame([], $result);
-        $this->assertSame($queriesBefore, $queriesAfter, 'No DB queries should run for zero-count agents.');
-    }
-
-    public function test_returns_empty_array_when_functions_count_attribute_is_missing(): void
-    {
-        $agent = new Agent;
-        $agent->id = 999;
-
-        $this->assertSame([], app(ToolRegistry::class)->for($agent));
-    }
-
-    public function test_caches_compiled_tools_payload_per_agent(): void
+    public function test_caches_compiled_pool_per_agent(): void
     {
         $agent = new Agent;
         $agent->id = 12345;
-        $agent->functions_count = 1;
+
+        $entry = new ToolEntry(
+            kind: 'mcp',
+            sourceId: 1,
+            name: 'get_weather',
+            description: 'desc',
+            parameters: ['type' => 'object'],
+            embedding: null,
+        );
+
+        Cache::shouldReceive('has')
+            ->once()
+            ->with('agent:tools:12345')
+            ->andReturn(false);
 
         Cache::shouldReceive('remember')
             ->once()
             ->with('agent:tools:12345', 3600, \Closure::class)
-            ->andReturn([[
-                'type' => 'function',
-                'function' => ['name' => 'get_weather', 'description' => 'desc', 'parameters' => ['type' => 'object']],
-            ]]);
+            ->andReturn([$entry]);
 
         $result = app(ToolRegistry::class)->for($agent);
 
-        $this->assertSame('get_weather', $result[0]['function']['name']);
+        $this->assertCount(1, $result);
+        $this->assertInstanceOf(ToolEntry::class, $result[0]);
+        $this->assertSame('get_weather', $result[0]->name);
     }
 
     public function test_forget_busts_the_per_agent_cache(): void

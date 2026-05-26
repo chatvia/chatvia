@@ -2,14 +2,21 @@
 
 namespace App\Http\Controllers\Auth\Social;
 
-use App\Auth\Actions\SocialLoginAction;
-use Illuminate\Http\Request;
+use Domain\Auth\Actions\SocialLoginAction;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 final class GoogleCallbackAuthController
 {
-    public function __invoke(Request $request, SocialLoginAction $loginAction)
+    public function __invoke(SocialLoginAction $loginAction): RedirectResponse
     {
-        $loginAction->execute('google');
+        $user = $loginAction->execute('google');
+
+        if (! $user) {
+            return to_route('login')->with('error', 'No account found!');
+        }
+
+        Auth::login($user);
 
         return to_route('dashboard');
     }

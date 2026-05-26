@@ -12,16 +12,40 @@
 
 return [
 
-    'chatvia' => [
-        'slug' => 'chatvia',
-        'name' => 'ChatVia',
-        'description' => 'ChatVia\'s own MCP server — live weather (OpenWeatherMap) and currency conversion (exchangerate-api).',
+    'weather' => [
+        'slug' => 'weather',
+        'name' => 'Weather',
+        'description' => 'Live weather (temperature, conditions, humidity, wind) for any city, powered by OpenWeatherMap.',
         'category' => 'Utilities',
-        'icon' => 'chatvia',
-        'brand_color' => 'FFFFFF',
-        'logo_url' => '/images/logo.svg',
+        'icon' => 'weather',
+        'brand_color' => '3B82F6',
+        'logo_url' => '/images/icons/weather.svg',
         'auth_strategy' => 'none',
-        'mcp_url' => env('APP_URL').'/mcp/chatvia',
+        'mcp_url' => env('APP_URL').'/mcp/weather',
+    ],
+
+    'currency' => [
+        'slug' => 'currency',
+        'name' => 'Currency Converter',
+        'description' => 'Convert amounts between any two currencies using current exchange rates (exchangerate-api).',
+        'category' => 'Utilities',
+        'icon' => 'currency',
+        'brand_color' => '10B981',
+        'logo_url' => '/images/icons/currency.svg',
+        'auth_strategy' => 'none',
+        'mcp_url' => env('APP_URL').'/mcp/currency',
+    ],
+
+    'charts' => [
+        'slug' => 'charts',
+        'name' => 'Charts',
+        'description' => 'Render interactive Apache ECharts charts inline in the chat — bar, line, pie, scatter, radar, gauge, heatmap, and more.',
+        'category' => 'Utilities',
+        'icon' => 'charts',
+        'brand_color' => '8B5CF6',
+        'logo_url' => '/images/icons/charts.svg',
+        'auth_strategy' => 'none',
+        'mcp_url' => env('APP_URL').'/mcp/charts',
     ],
 
     'stripe' => [

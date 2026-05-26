@@ -40,8 +40,9 @@ export interface AgentMcpServer {
 }
 
 /**
- * The row shape the list endpoint returns. `connector` is null for custom
- * rows; `server` is null for unconnected preset rows.
+ * The row shape Settings → Connectors returns. `connector` is null for
+ * custom rows; `server` is null for catalog rows the user hasn't connected
+ * yet.
  */
 export interface ConnectorRow {
     kind: 'featured' | 'custom';
@@ -55,10 +56,13 @@ export interface ConnectorListResponse {
 }
 
 export interface McpTool {
+    id?: number;
     name: string;
     short_name: string;
     description: string;
     parameters: Record<string, unknown>;
+    enabled: boolean;
+    embedded_at?: string | null;
 }
 
 export interface ConnectorToolsResponse {

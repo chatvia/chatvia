@@ -2,74 +2,23 @@
 
 namespace App\Http\Controllers\Teams\Roles;
 
-use App\Teams\Models\Permission;
-use App\Teams\Models\Role;
+use App\Http\Requests\Teams\Roles\SaveTeamRoleRequest;
 use App\Teams\Models\Team;
-use Domain\Agents\Models\Agent;
-use Illuminate\Http\Request;
+use Domain\Teams\Actions\CreateTeamRoleAction;
+use Domain\Teams\Exceptions\InviteRejectedException;
+use Illuminate\Http\RedirectResponse;
 
 class TeamRoleStoreController
 {
-    public function __invoke(Request $request, Team $team)
-    {
-        $user = $request->user();
-
-        if (! $user->ownsTeam($team)) {
-            abort(403, 'Only the team owner can create roles.');
-        }
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['string'],
-            'all_agents' => ['boolean'],
-            'agent_ids' => ['exclude_if:all_agents,true', 'required', 'array', 'min:1'],
-            'agent_ids.*' => ['string', 'exists:agents,external_id'],
-        ]);
-
-        $allAgents = $validated['all_agents'] ?? false;
-        $externalIds = $validated['agent_ids'] ?? [];
-
-        // Convert external_ids to actual agent IDs
-        $agentIds = $allAgents ? [] : Agent::whereIn('external_id', $externalIds)->pluck('id')->toArray();
-
-        if (! $allAgents && count($agentIds) !== count($externalIds)) {
-            return back()->withErrors(['agent_ids' => 'One or more selected agents are invalid.']);
-        }
-
-        $code = strtolower(str_replace(' ', '_', $validated['name']));
-
-        if ($team->roles()->where('code', $code)->exists()) {
-            return back()->withErrors(['name' => 'A role with this name already exists.']);
-        }
-
-        $role = Role::query()->create([
-            'name' => $validated['name'],
-            'code' => $code,
-            'team_id' => $team->id,
-            'guard_name' => 'web',
-        ]);
-
-        // Handle permissions - include agents.access-all if all_agents is true
-        $permissions = $validated['permissions'] ?? [];
-        if ($allAgents) {
-            $permissions[] = 'agents.access-all';
-        }
-
-        if (! empty($permissions)) {
-            $permissionModels = collect($permissions)->unique()->map(function ($permissionName) {
-                return Permission::firstOrCreate([
-                    'name' => $permissionName,
-                    'guard_name' => 'web',
-                ]);
-            });
-
-            $role->syncPermissions($permissionModels);
-        }
-
-        // Sync agents only if not accessing all agents
-        if (! $allAgents) {
-            $role->agents()->sync($agentIds);
+    public function __invoke(
+        SaveTeamRoleRequest $request,
+        Team $team,
+        CreateTeamRoleAction $createRole,
+    ): RedirectResponse {
+        try {
+            $createRole->execute($request->toData($team));
+        } catch (InviteRejectedException $e) {
+            return back()->withErrors([$e->field => $e->getMessage()]);
         }
 
         return redirect()->route('teams.show', $team)->with('success', 'Role created successfully.');

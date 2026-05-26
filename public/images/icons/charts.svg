@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+  <!-- Pie chart split into three slices -->
+  <path d="M12 3 A9 9 0 0 1 21 12 L12 12 Z" fill="currentColor" fill-opacity="0.55"/>
+  <path d="M21 12 A9 9 0 0 1 14 20.78 L12 12 Z" fill="currentColor" fill-opacity="0.3"/>
+  <path d="M14 20.78 A9 9 0 1 1 12 3 L12 12 Z" fill="currentColor" fill-opacity="0.15"/>
+  <circle cx="12" cy="12" r="9"/>
+  <line x1="12" y1="12" x2="12" y2="3"/>
+  <line x1="12" y1="12" x2="21" y2="12"/>
+  <line x1="12" y1="12" x2="14" y2="20.78"/>
+</svg>

@@ -2,7 +2,7 @@
 
 namespace Domain\Connectors\Services\OAuth;
 
-use Domain\Agents\Models\Agent;
+use App\Auth\Models\User;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Chat\Services\Tooling\Mcp\McpCatalog;
 use Domain\Connectors\Data\ConnectorData;
@@ -41,10 +41,10 @@ class McpOAuthFlow
      * user should be sent to. Caller is responsible for issuing the actual
      * HTTP redirect.
      */
-    public function begin(Agent $agent, ConnectorData $connector): string
+    public function begin(User $user, ConnectorData $connector): string
     {
         return $this->beginCommon(
-            agent: $agent,
+            user: $user,
             mcpUrl: $connector->mcpUrl,
             connectorSlug: $connector->slug,
             customName: null,
@@ -58,10 +58,10 @@ class McpOAuthFlow
      * catalog entry. The custom name + slug are carried through the pending
      * state so the callback can persist a row with `connector_slug = null`.
      */
-    public function beginCustom(Agent $agent, string $name, string $slug, string $mcpUrl): string
+    public function beginCustom(User $user, string $name, string $slug, string $mcpUrl): string
     {
         return $this->beginCommon(
-            agent: $agent,
+            user: $user,
             mcpUrl: $mcpUrl,
             connectorSlug: null,
             customName: $name,
@@ -71,7 +71,7 @@ class McpOAuthFlow
     }
 
     private function beginCommon(
-        Agent $agent,
+        User $user,
         string $mcpUrl,
         ?string $connectorSlug,
         ?string $customName,
@@ -99,7 +99,7 @@ class McpOAuthFlow
         $state = Str::random(48);
 
         $pending = new PendingOAuthState(
-            agentId: $agent->id,
+            userId: $user->id,
             connectorSlug: $connectorSlug,
             authServerUrl: $metadata->authServerUrl,
             tokenEndpoint: $client->token_endpoint,
@@ -153,13 +153,14 @@ class McpOAuthFlow
         return DB::transaction(function () use ($pending, $tokens) {
             $isCustom = $pending->connectorSlug === null;
 
-            $query = AgentMcpServer::query()->where('agent_id', $pending->agentId);
+            $query = AgentMcpServer::query()->where('user_id', $pending->userId);
+
             $server = $isCustom
                 ? $query->where('slug', $pending->customSlug)->whereNull('connector_slug')->first()
                 : $query->where('connector_slug', $pending->connectorSlug)->first();
 
             $attrs = [
-                'agent_id' => $pending->agentId,
+                'user_id' => $pending->userId,
                 'connector_slug' => $pending->connectorSlug,
                 'name' => $isCustom
                     ? (string) $pending->customName

@@ -45,6 +45,10 @@ return new class extends Migration
         DB::statement('CREATE INDEX chunks_embedding_bm25 ON chunks USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);');
         $this->createOptimizedVectorChordIndex();
 
+        // GIN index on the metadata JSONB column — accelerates queries that
+        // filter by metadata keys (e.g. retrieval scoping by source type).
+        DB::statement('CREATE INDEX chunks_metadata_gin_idx ON chunks USING GIN (metadata)');
+
         // Update table statistics for optimal query planning
         DB::statement('ANALYZE chunks');
     }

@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Analytics\Services\IP2Country;
-use Illuminate\Auth\Events\Registered;
+use App\Http\Requests\Auth\RegisterUserRequest;
+use Domain\Auth\Actions\RegisterUserAction;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,33 +17,11 @@ class RegisteredUserController extends Controller
         return Inertia::render('auth/Register');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterUserRequest $request, RegisterUserAction $registerUser): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'policy' => ['required', 'accepted'],
-            'terms' => ['required', 'accepted'],
-        ]);
-
-        $password = Hash::make($request->password);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $password,
-            'domain' => $request->host(),
-            'registered_ip' => $request->ip(),
-            'registered_country_code' => IP2Country::getCountryByIP($request->ip()),
-        ]);
-
-        event(new Registered($user));
+        $user = $registerUser->execute($request->toData());
 
         Auth::login($user);
-
-        // Ensure user has a current team set in database
-        $user->ensureCurrentTeam();
 
         return to_route('dashboard');
     }

@@ -68,6 +68,22 @@ class MessageManager
         } else {
             // For output messages, set llm_found_answer flag
             $append['llm_found_answer'] = $payload->llm_found_answer;
+
+            // Persist tool-result artifacts (e.g. ECharts specs) and the
+            // list of tool names this turn invoked onto the cached
+            // MessageData so /conversations/{id}/messages returns them on
+            // reload. Matches what gets written to the DB's
+            // `chat_messages.metadata` column by StoreChatMessageJob.
+            $metadataBuf = [];
+            if (! empty($payload->artifacts)) {
+                $metadataBuf['artifacts'] = $payload->artifacts;
+            }
+            if (! empty($payload->tool_calls)) {
+                $metadataBuf['tool_calls'] = $payload->tool_calls;
+            }
+            if ($metadataBuf !== []) {
+                $append['metadata'] = $metadataBuf;
+            }
         }
 
         $role = $isInputMessage ? 'user' : 'assistant';

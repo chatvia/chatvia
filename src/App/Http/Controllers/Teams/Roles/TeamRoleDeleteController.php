@@ -3,12 +3,19 @@
 namespace App\Http\Controllers\Teams\Roles;
 
 use App\Teams\Models\Team;
+use Domain\Teams\Actions\DeleteTeamRoleAction;
+use Domain\Teams\Exceptions\InviteRejectedException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TeamRoleDeleteController
 {
-    public function __invoke(Request $request, Team $team, int $roleId)
-    {
+    public function __invoke(
+        Request $request,
+        Team $team,
+        int $roleId,
+        DeleteTeamRoleAction $delete,
+    ): RedirectResponse {
         $user = $request->user();
 
         if (! $user->ownsTeam($team)) {
@@ -21,12 +28,11 @@ class TeamRoleDeleteController
             abort(403, 'Cannot delete the owner or admin role.');
         }
 
-        $membersWithRole = $team->members()->wherePivot('role_id', $roleModel->id)->count();
-        if ($membersWithRole > 0) {
-            return back()->with('error', 'Cannot delete this role. '.$membersWithRole.' member(s) are assigned to it.');
+        try {
+            $delete->execute($team, $roleModel);
+        } catch (InviteRejectedException $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        $roleModel->delete();
 
         return back()->with('success', 'Role deleted successfully.');
     }

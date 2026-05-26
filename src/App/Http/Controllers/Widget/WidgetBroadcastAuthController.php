@@ -49,7 +49,7 @@ readonly class WidgetBroadcastAuthController
         }
 
         // Get user info from session/lead for presence data
-        $userName = $this->getUserName($conversation);
+        $userName = $conversation->displayName() ?? 'Visitor';
 
         // Generate Pusher auth response for presence channel
         $pusher = new Pusher(
@@ -76,22 +76,5 @@ readonly class WidgetBroadcastAuthController
         $auth = $pusher->authorizePresenceChannel($channelName, $socketId, $sessionId, $presenceData['user_info']);
 
         return response()->json(json_decode($auth, true));
-    }
-
-    private function getUserName(ChatConversation $conversation): string
-    {
-        // Try to get name from lead
-        $lead = $conversation->lead;
-        if ($lead && $lead->name) {
-            return $lead->name;
-        }
-
-        // Try member
-        $member = $conversation->session->user;
-        if ($member && $member->name) {
-            return $member->name;
-        }
-
-        return 'Visitor';
     }
 }

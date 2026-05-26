@@ -49,6 +49,19 @@ export interface StreamDoneData {
     finished_at: string | null;
 }
 
+/**
+ * Structured side-channel payload attached to a tool result. The LLM does
+ * NOT see these — they're picked up by the chat renderer to mount inline
+ * widgets (charts, etc.). Each artifact is self-describing via `kind`;
+ * renderers switch on it.
+ */
+export interface ToolArtifact {
+    /** Discriminator. `echarts_option` mounts <EChartBlock>. Add more as you add widget types. */
+    kind: 'echarts_option' | string;
+    /** Free-form payload — interpretation is up to the kind-specific renderer. */
+    data: unknown;
+}
+
 export interface StreamToolData {
     phase: 'start' | 'delta' | 'end';
     tool_call_id: string;
@@ -61,6 +74,9 @@ export interface StreamToolData {
     label?: string;
     icon_url?: string | null;
     brand_color?: string | null;
+    // Sent on phase: 'end' when the tool returned structured side-channel
+    // payloads (e.g. an ECharts option). Absent for plain text tools.
+    artifacts?: ToolArtifact[];
 }
 
 interface BaseEnvelope {

@@ -7,6 +7,15 @@ export interface Message {
     updated_at?: string;
     feedback?: 'positive' | 'negative' | null;
     sources?: any[];
+    /**
+     * Free-form JSON metadata persisted on the message. Today it carries
+     * `artifacts` (chart specs) so the assistant bubble can re-render
+     * charts on page reload. The backend stores this in
+     * `chat_messages.metadata`.
+     */
+    metadata?: {
+        artifacts?: import('./stream').ToolArtifact[];
+    } | null;
     errorCode?: import('./stream').StreamErrorCode;
     errorRetryable?: boolean;
 }

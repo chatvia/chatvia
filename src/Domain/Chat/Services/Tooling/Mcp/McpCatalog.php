@@ -3,14 +3,19 @@
 namespace Domain\Chat\Services\Tooling\Mcp;
 
 use Domain\Agents\Models\AgentMcpServer;
-use Illuminate\Support\Facades\Cache;
+use Domain\Agents\Models\McpTool;
+use Domain\Chat\Jobs\EmbedMcpToolsJob;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Per-server tool catalog: fetch via McpClient, cache, return in the OpenAI
- * tools[] shape with the `mcp__{slug}__` prefix applied so a single flat
- * tool namespace works for the LLM.
+ * Manages the per-server tool catalog by syncing the MCP server's
+ * `tools/list` response into the `mcp_tools` table. Replaces the
+ * previous Redis-cached "compile to OpenAI shape" path — tools are
+ * now first-class rows that ToolRegistry queries directly, with
+ * embeddings populated asynchronously.
  */
 class McpCatalog
 {
@@ -18,57 +23,23 @@ class McpCatalog
         private readonly McpClient $client,
     ) {}
 
-    private const CACHE_TTL = 21600; // 6 hours
-
     /**
-     * Return the LLM-shaped tool list for a server. Empty array if disabled
-     * or fetch failed.
+     * Fetch the tool list from the MCP server and reconcile `mcp_tools`
+     * with it: upsert each returned tool, then delete rows for tools the
+     * server no longer exposes. Dispatches an embedding job for any rows
+     * whose embeddings are missing or stale.
      *
-     * @return array<int, array<string, mixed>>
+     * Throws on fetch failure — callers (Connect / Refresh flows) need
+     * to surface the error to the user.
+     *
+     * @return Collection<int, McpTool>
      */
-    public function for(AgentMcpServer $server, bool $forceRefresh = false): array
+    public function refresh(AgentMcpServer $server): Collection
     {
         if (! $server->enabled) {
-            return [];
+            return new Collection;
         }
 
-        $cacheKey = $this->cacheKey($server->id);
-
-        if ($forceRefresh) {
-            Cache::forget($cacheKey);
-        }
-
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($server): array {
-            return $this->fetchAndCompile($server);
-        });
-    }
-
-    /**
-     * Force a refresh AND return what we just fetched. Used by the connect
-     * flow to fail fast on a bad URL/token, and by the manual "Refresh
-     * tools" button.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    public function refresh(AgentMcpServer $server): array
-    {
-        Cache::forget($this->cacheKey($server->id));
-        $tools = $this->fetchAndCompile($server, throwOnError: true);
-        Cache::put($this->cacheKey($server->id), $tools, self::CACHE_TTL);
-
-        return $tools;
-    }
-
-    public function forget(AgentMcpServer $server): void
-    {
-        Cache::forget($this->cacheKey($server->id));
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function fetchAndCompile(AgentMcpServer $server, bool $throwOnError = false): array
-    {
         try {
             $rawTools = $this->client->fetchTools($server);
         } catch (Throwable $e) {
@@ -78,67 +49,59 @@ class McpCatalog
                 'error' => $e->getMessage(),
             ]);
 
-            $server->forceFill([
-                'last_error' => $e->getMessage(),
-            ])->save();
+            $server->forceFill(['last_error' => $e->getMessage()])->save();
 
-            if ($throwOnError) {
-                throw $e;
-            }
-
-            return [];
+            throw $e;
         }
 
-        $prefix = $server->toolPrefix();
-        $compiled = [];
+        $now = now();
+        $validatedNames = [];
 
-        foreach ($rawTools as $tool) {
-            if (! is_array($tool) || ! isset($tool['name']) || ! is_string($tool['name'])) {
-                continue;
+        DB::transaction(function () use ($server, $rawTools, $now, &$validatedNames): void {
+            foreach ($rawTools as $tool) {
+                if (! is_array($tool) || ! isset($tool['name']) || ! is_string($tool['name'])) {
+                    continue;
+                }
+
+                // The compiled tool name (`mcp__{slug}__{name}`) must satisfy
+                // OpenAI's tool-name regex when ToolRegistry reapplies the
+                // prefix. Skip names that won't survive that step.
+                $prefixed = $server->toolPrefix().$tool['name'];
+                if (! preg_match('/^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/', $prefixed)) {
+                    continue;
+                }
+
+                $validatedNames[] = $tool['name'];
+
+                McpTool::query()->updateOrCreate(
+                    ['mcp_server_id' => $server->id, 'name' => $tool['name']],
+                    [
+                        'description' => (string) ($tool['description'] ?? ''),
+                        'input_schema' => is_array($tool['inputSchema'] ?? null) ? $tool['inputSchema'] : ['type' => 'object', 'properties' => (object) []],
+                        'fetched_at' => $now,
+                    ],
+                );
             }
 
-            $prefixedName = $prefix.$tool['name'];
-
-            // OpenAI's tool name regex permits a-zA-Z0-9_-. Slugs are
-            // already constrained and MCP tool names are typically safe,
-            // but we re-validate defensively.
-            if (! preg_match('/^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/', $prefixedName)) {
-                continue;
+            // Drop rows the server stopped advertising. Empty-set case
+            // becomes "delete all for this server" without a NOT IN ().
+            $query = McpTool::query()->where('mcp_server_id', $server->id);
+            if ($validatedNames !== []) {
+                $query->whereNotIn('name', $validatedNames);
             }
-
-            $compiled[] = [
-                'type' => 'function',
-                'function' => [
-                    'name' => $prefixedName,
-                    'description' => (string) ($tool['description'] ?? ''),
-                    'parameters' => $this->schemaForLlm($tool['inputSchema'] ?? null),
-                ],
-            ];
-        }
+            $query->delete();
+        });
 
         $server->forceFill([
-            'catalog_cached_at' => now(),
-            'catalog_tools_count' => count($compiled),
+            'catalog_cached_at' => $now,
+            'catalog_tools_count' => count($validatedNames),
             'last_error' => null,
         ])->save();
 
-        return $compiled;
-    }
+        // Embedding refresh runs out-of-band. The job filters to rows that
+        // are new or whose `updated_at` advanced past `embedded_at`.
+        EmbedMcpToolsJob::dispatch($server->id);
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function schemaForLlm(mixed $schema): array
-    {
-        if (is_array($schema)) {
-            return $schema;
-        }
-
-        return ['type' => 'object', 'properties' => (object) []];
-    }
-
-    private function cacheKey(int $serverId): string
-    {
-        return 'agent:mcp:'.$serverId.':catalog';
+        return $server->tools()->orderBy('name')->get();
     }
 }

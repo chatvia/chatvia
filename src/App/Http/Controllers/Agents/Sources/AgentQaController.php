@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Agents\Sources;
 
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
+use Domain\Sources\QA\Actions\CreateAgentQaAction;
+use Domain\Sources\QA\Actions\DeleteAgentQaAction;
+use Domain\Sources\QA\Actions\UpdateAgentQaAction;
 use Domain\Sources\QA\Models\AgentQuestionAnswer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -48,7 +51,7 @@ class AgentQaController
         ]);
     }
 
-    public function store(Request $request, Agent $agent): RedirectResponse
+    public function store(Request $request, Agent $agent, CreateAgentQaAction $createQa): RedirectResponse
     {
         abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($request->user()->cannot('update', $agent), 404);
@@ -61,17 +64,17 @@ class AgentQaController
             'answer' => ['required', 'string', 'min:10'],
         ]);
 
-        AgentQuestionAnswer::create([
-            'agent_id' => $agent->id,
-            'title' => $validated['title'],
-            'questions' => $this->flattenQuestions($validated['questions']),
-            'answer' => $validated['answer'],
-        ]);
+        $createQa->execute(
+            agent: $agent,
+            title: $validated['title'],
+            questions: $validated['questions'],
+            answer: $validated['answer'],
+        );
 
         return back();
     }
 
-    public function update(Request $request, Agent $agent, int $id): RedirectResponse
+    public function update(Request $request, Agent $agent, int $id, UpdateAgentQaAction $updateQa): RedirectResponse
     {
         abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($request->user()->cannot('update', $agent), 404);
@@ -87,16 +90,17 @@ class AgentQaController
             'answer' => ['required', 'string', 'min:10'],
         ]);
 
-        $qa->update([
-            'title' => $validated['title'],
-            'questions' => $this->flattenQuestions($validated['questions']),
-            'answer' => $validated['answer'],
-        ]);
+        $updateQa->execute(
+            qa: $qa,
+            title: $validated['title'],
+            questions: $validated['questions'],
+            answer: $validated['answer'],
+        );
 
         return back();
     }
 
-    public function destroy(Request $request, Agent $agent, int $id): JsonResponse
+    public function destroy(Request $request, Agent $agent, int $id, DeleteAgentQaAction $deleteQa): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.sources.delete'), 403);
@@ -105,7 +109,7 @@ class AgentQaController
             ->where('agent_id', $agent->id)
             ->findOrFail($id);
 
-        $qa->delete();
+        $deleteQa->execute($qa);
 
         return response()->json(['message' => 'Q&A entry deleted successfully']);
     }
@@ -114,9 +118,6 @@ class AgentQaController
     {
         abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($request->user()->cannot('update', $agent), 404);
-
-        // TODO: Implement Q&A unlink logic
-        // This will be implemented by the backend team
 
         return response()->json(['message' => 'Q&A entry unlinked successfully']);
     }
@@ -152,16 +153,5 @@ class AgentQaController
             ])
             ->values()
             ->toArray();
-    }
-
-    /**
-     * Collapse the array-of-{question} payload into a comma-separated string.
-     */
-    private function flattenQuestions(array $questions): string
-    {
-        return collect($questions)
-            ->pluck('question')
-            ->filter()
-            ->implode(', ');
     }
 }

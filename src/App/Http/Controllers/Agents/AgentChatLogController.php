@@ -9,10 +9,10 @@ use Domain\Agents\Data\Resources\ChatLog\ChatLogMessagesResourceData;
 use Domain\Agents\Data\Resources\ChatLog\ChatLogTopicsResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Lead;
+use Domain\Chat\Actions\AdminDeleteConversationAction;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
-use Domain\Chat\Services\Memory\ChatMemory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -162,8 +162,8 @@ class AgentChatLogController
     public function destroyConversation(
         Request $request,
         Agent $agent,
-        ChatMemory $chatMemory,
         string $conversationId,
+        AdminDeleteConversationAction $deleteConversation,
     ): JsonResponse {
         abort_if($request->user()->cannot('view', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.chat.delete'), 403);
@@ -173,26 +173,7 @@ class AgentChatLogController
             ->where('external_id', $conversationId)
             ->firstOrFail();
 
-        $session = $conversation->session;
-
-        $chatMemory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->external_id)
-            ->setConversationId($conversation->external_id)
-            ->deleteConversation(deletedBy: 'admin');
-
-        $conversation->delete();
-
-        if ($session) {
-            $remaining = $session->conversations()->count();
-
-            if ($remaining === 0
-                && $session->last_activity_at
-                && $session->last_activity_at->lt(now()->subDays(30))
-            ) {
-                $session->delete();
-            }
-        }
+        $deleteConversation->execute($agent, $conversation);
 
         return response()->json(['success' => true, 'message' => 'Conversation deleted successfully.']);
     }

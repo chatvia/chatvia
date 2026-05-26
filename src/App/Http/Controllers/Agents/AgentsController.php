@@ -3,20 +3,18 @@
 namespace App\Http\Controllers\Agents;
 
 use App\Auth\Models\User;
-use App\Hosting\Subdomain;
 use App\Http\Requests\Agents\CreateAgentRequest;
-use App\Prompts\PromptLoader;
 use App\Teams\Models\Team;
 use App\Teams\Services\TeamService;
+use Domain\Agents\Actions\CreateAgentAction;
+use Domain\Agents\Actions\DeleteAgentAction;
+use Domain\Agents\Actions\UpdateAgentAction;
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Models\ChatTopic;
-use Domain\Ingestion\Services\Ingestion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -47,7 +45,7 @@ class AgentsController
         return Inertia::render('agents/AgentsIndex');
     }
 
-    public function store(CreateAgentRequest $request, Ingestion $ingestion, Subdomain $subdomain): RedirectResponse
+    public function store(CreateAgentRequest $request, CreateAgentAction $createAgent): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
@@ -63,43 +61,20 @@ class AgentsController
         }
 
         try {
-            DB::beginTransaction();
-
-            $validated = $request->validated();
-            $externalId = \Domain\Agents\Services\Agent::generateRandomExternalId();
-            $agentOwnerId = $user->isManagedUser() ? $user->managed_by_user_id : $user->id;
-
-            /** @var Agent $agent */
-            $agent = Agent::create([
-                'user_id' => $agentOwnerId,
-                'team_id' => $team->id,
-                'name' => $validated['name'],
-                'sub_domain' => $validated['type'] === 'knowledge_base' ? $externalId : null,
-                'system_instructions' => PromptLoader::load('knowledge/system'),
-                'is_public' => false,
-                'type' => $validated['type'],
-                'external_id' => $externalId,
-            ]);
-
-            $agent->setSetting(key: 'collect_leads', value: true, group: 'leads');
-
-            $agent->topics()->attach(ChatTopic::pluck('id'));
-
-            DB::commit();
-
-            return to_route('agents.sources', ['agent' => $agent, 'new' => true])
-                ->with('success', 'Agent created successfully.');
+            $agent = $createAgent->execute($user, $team, $request->validated());
         } catch (Throwable $exception) {
-            DB::rollBack();
             report($exception);
 
             return back()
                 ->withErrors(['general' => 'Failed to create agent. Please try again.'])
                 ->withInput();
         }
+
+        return to_route('agents.sources', ['agent' => $agent, 'new' => true])
+            ->with('success', 'Agent created successfully.');
     }
 
-    public function update(Request $request, Agent $agent): JsonResponse
+    public function update(Request $request, Agent $agent, UpdateAgentAction $updateAgent): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
 
@@ -109,12 +84,12 @@ class AgentsController
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
         ]);
 
-        $agent->update($validated);
+        $updateAgent->execute($agent, $validated);
 
         return response()->json(['success' => true]);
     }
 
-    public function destroy(Request $request, Agent $agent): RedirectResponse
+    public function destroy(Request $request, Agent $agent, DeleteAgentAction $deleteAgent): RedirectResponse
     {
         $user = $request->user();
         $team = current_team();
@@ -127,17 +102,12 @@ class AgentsController
             abort(404);
         }
 
-        $agent->delete();
+        $deleteAgent->execute($agent);
 
         return redirect()->route('agents.index');
     }
 
-    /**
-     * Rename an agent and (for knowledge-base agents) update its sub-domain.
-     * Kept as a custom action because the validation/auth rules differ from
-     * a generic update — only team owners may rename.
-     */
-    public function rename(Request $request, Agent $agent): RedirectResponse
+    public function rename(Request $request, Agent $agent, UpdateAgentAction $updateAgent): RedirectResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
 
@@ -177,7 +147,7 @@ class AgentsController
             $updateData['sub_domain'] = $validated['sub_domain'];
         }
 
-        $agent->update($updateData);
+        $updateAgent->execute($agent, $updateData);
 
         return back()->with('success', 'Agent updated successfully');
     }

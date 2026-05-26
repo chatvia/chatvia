@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Agents\Sources;
 
+use App\Auth\Models\User;
 use Domain\Agents\Models\Agent;
+use Domain\Sources\Web\Actions\DeleteSourceWebsiteAction;
+use Domain\Sources\Web\Actions\RetrainSourceWebsiteAction;
+use Domain\Sources\Web\Actions\StartAgentWebsiteCrawlAction;
 use Domain\Sources\Web\Data\Crawler\CrawlerData;
-use Domain\Sources\Web\Events\WebsiteCrawlerEvent;
-use Domain\Sources\Web\Jobs\Crawler\WebsiteCrawlerJob;
 use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Teams\Exceptions\InviteRejectedException;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
-use Throwable;
 
 class AgentWebsitesController
 {
@@ -37,7 +37,7 @@ class AgentWebsitesController
         });
     }
 
-    public function store(Request $request, Agent $agent): void
+    public function store(Request $request, Agent $agent, StartAgentWebsiteCrawlAction $startCrawl): void
     {
         abort_if($request->user()->cannot('view', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.sources.train.web'), 403);
@@ -49,12 +49,6 @@ class AgentWebsitesController
             'exclude_paths' => ['nullable'],
         ]);
 
-        if ($agent->websites()->where('url', $validated['url'])->exists()) {
-            throw ValidationException::withMessages([
-                'url' => 'This website has already been added to this agent.',
-            ]);
-        }
-
         if (! empty($validated['include_paths'])) {
             $validated['include_paths'] = $this->sanitizePaths($validated['include_paths']);
         }
@@ -63,64 +57,31 @@ class AgentWebsitesController
             $validated['exclude_paths'] = $this->sanitizePaths($validated['exclude_paths']);
         }
 
-        $data = CrawlerData::from($validated);
+        /** @var User $user */
+        $user = $request->user();
 
         try {
-            $response = Http::withOptions(['allow_redirects' => false])->get($data->url)->throw();
-        } catch (Throwable $throwable) {
-            report($throwable);
-            throw ValidationException::withMessages([
-                'url' => 'Failed to fetch the website. Please check the URL and try again.',
-            ]);
+            $startCrawl->execute($agent, $user, CrawlerData::from($validated));
+        } catch (InviteRejectedException $e) {
+            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
         }
-
-        if ($response->redirect()) {
-            $data->url = $response->header('Location');
-        }
-
-        $website = SourceWebsite::create([
-            'url' => $data->url,
-            'user_id' => $request->user()->id,
-            'status' => 'crawling',
-            'options' => $data->exclude('url')->toArray(),
-        ]);
-
-        $agent->websites()->attach($website->id);
-
-        WebsiteCrawlerEvent::dispatch($website, $agent);
-        WebsiteCrawlerJob::dispatch($website, $data, $agent);
     }
 
-    public function destroy(Request $request, Agent $agent, SourceWebsite $website): void
+    public function destroy(Request $request, Agent $agent, SourceWebsite $website, DeleteSourceWebsiteAction $delete): void
     {
         abort_if($request->user()->cannot('delete', $website), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.sources.delete'), 403);
 
-        if ($website->internal_chunking_batch_id) {
-            $batch = Bus::findBatch($website->internal_chunking_batch_id);
-
-            if ($batch && ! $batch->cancelled()) {
-                $batch->cancel();
-            }
-        }
-
-        $website->chunks()->delete();
-        $website->delete();
+        $delete->execute($website);
     }
 
-    public function train(Request $request, Agent $agent, SourceWebsite $website): RedirectResponse
+    public function train(Request $request, Agent $agent, SourceWebsite $website, RetrainSourceWebsiteAction $retrain): RedirectResponse
     {
         abort_if($request->user()->cannot('update', $website), 404);
 
-        $validated = $request->validate([
-            'recrawl' => ['nullable', 'boolean'],
-        ]);
+        $validated = $request->validate(['recrawl' => ['nullable', 'boolean']]);
 
-        if ($validated['recrawl'] ?? false) {
-            $website->startCrawling($agent->id);
-        } else {
-            $website->startTraining($agent->id);
-        }
+        $retrain->execute($website, $agent, (bool) ($validated['recrawl'] ?? false));
 
         return back()->with('success', 'Training started successfully');
     }

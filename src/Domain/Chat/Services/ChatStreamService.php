@@ -4,6 +4,8 @@ namespace Domain\Chat\Services;
 
 use App\Auth\Models\User;
 use App\Billing\Services\UserCreditSystem;
+use Domain\Chat\Actions\SendVisitorHandoffMessageAction;
+use Domain\Chat\Data\SendVisitorHandoffMessageData;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Services\Data\StreamRequestData;
 use Domain\Chat\Services\Streaming\ErrorCode;
@@ -24,7 +26,7 @@ readonly class ChatStreamService
         private ChatService $chatService,
         private StreamHandler $streamHandler,
         private UserCreditSystem $creditSystem,
-        private HandoffService $handoffService,
+        private SendVisitorHandoffMessageAction $sendVisitorMessage,
         private SseStreamer $streamer,
         private LlmSource $llmSource,
         private QASource $qaSource,
@@ -60,9 +62,9 @@ readonly class ChatStreamService
         // 1. Conversation handed off to a human — acknowledge and broadcast.
         if ($data->conversationId) {
             $conversation = ChatConversation::where('external_id', $data->conversationId)->first();
-            if ($conversation && $this->handoffService->isHandedOff($conversation)) {
+            if ($conversation && $conversation->isHandedOff()) {
                 if ($data->message->message) {
-                    $this->handoffService->sendUserMessage(
+                    $this->sendVisitorMessage->execute(new SendVisitorHandoffMessageData(
                         conversation: $conversation,
                         content: $data->message->message,
                         model: $data->message->model->external_name,
@@ -71,7 +73,7 @@ readonly class ChatStreamService
                         referrerUrl: $data->referrerUrl,
                         pageUrl: $data->pageUrl,
                         locale: $data->locale,
-                    );
+                    ));
                 }
 
                 return $this->streamer->respond(
@@ -131,9 +133,9 @@ readonly class ChatStreamService
 
         if ($data->conversationId) {
             $conversation = ChatConversation::where('external_id', $data->conversationId)->first();
-            if ($conversation && $this->handoffService->isHandedOff($conversation)) {
+            if ($conversation && $conversation->isHandedOff()) {
                 if ($data->message->message) {
-                    $this->handoffService->sendUserMessage(
+                    $this->sendVisitorMessage->execute(new SendVisitorHandoffMessageData(
                         conversation: $conversation,
                         content: $data->message->message,
                         model: $data->message->model->external_name,
@@ -142,7 +144,7 @@ readonly class ChatStreamService
                         referrerUrl: $data->referrerUrl,
                         pageUrl: $data->pageUrl,
                         locale: $data->locale,
-                    );
+                    ));
                 }
 
                 return $this->streamHandoffResponse($conversation);

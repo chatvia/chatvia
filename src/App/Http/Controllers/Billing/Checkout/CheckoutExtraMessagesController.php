@@ -2,31 +2,20 @@
 
 namespace App\Http\Controllers\Billing\Checkout;
 
-use Illuminate\Http\Request;
+use App\Auth\Models\User;
+use App\Http\Requests\Billing\BuyExtraMessageCreditsRequest;
+use Domain\Billing\Actions\BuyExtraMessageCreditsAction;
+use Laravel\Cashier\Checkout;
 
 class CheckoutExtraMessagesController
 {
-    public function __invoke(Request $request)
-    {
-        $request->validate([
-            'quantity' => ['required', 'integer', 'min:1'],
-        ]);
+    public function __invoke(
+        BuyExtraMessageCreditsRequest $request,
+        BuyExtraMessageCreditsAction $buy,
+    ): Checkout {
+        /** @var User $user */
+        $user = $request->user();
 
-        $items = [
-            config('billing.addons.extra_message_credits.stripe_price_id') => $request->input('quantity'),
-        ];
-
-        $session = [
-            'success_url' => route('billing.success'),
-            'cancel_url' => route('billing.index'),
-            'metadata' => [
-                'id' => 'extra_message_credits',
-                'type' => 'addon',
-                'quantity' => $request->input('quantity'),
-                'messages' => 1000 * $request->input('quantity'),
-            ],
-        ];
-
-        return $request->user()->checkout($items, $session);
+        return $buy->execute($user, (int) $request->integer('quantity'));
     }
 }

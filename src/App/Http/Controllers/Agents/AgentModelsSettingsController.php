@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Agents;
 
+use Domain\Agents\Actions\UpdateAgentLlmSettingsAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 
 class AgentModelsSettingsController
 {
-    public function __invoke(Request $request, Agent $agent): void
+    public function __invoke(Request $request, Agent $agent, UpdateAgentLlmSettingsAction $update): void
     {
         abort_if($request->user()->cannot('view', $agent), 404);
 
@@ -19,12 +20,13 @@ class AgentModelsSettingsController
             'frequency_penalty' => ['required', 'numeric', 'min:-2', 'max:2'],
         ]);
 
-        $agent->llms()->updateExistingPivot($agent->llms()->pluck('llms.id'), [
-            'temperature' => $request->input('temperature'),
-            'top_k' => $request->input('top_k'),
-            'top_p' => $request->input('top_p'),
-            'presence_penalty' => $request->input('presence_penalty'),
-            'frequency_penalty' => $request->input('frequency_penalty'),
-        ]);
+        $update->execute(
+            agent: $agent,
+            temperature: (float) $request->input('temperature'),
+            topK: (int) $request->input('top_k'),
+            topP: (float) $request->input('top_p'),
+            presencePenalty: (float) $request->input('presence_penalty'),
+            frequencyPenalty: (float) $request->input('frequency_penalty'),
+        );
     }
 }

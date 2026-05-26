@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Connectors\OAuth;
 
-use Domain\Agents\Models\Agent;
+use App\Auth\Models\User;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Chat\Services\Tooling\Mcp\McpCatalog;
 use Domain\Connectors\Data\ConnectorData;
@@ -43,13 +43,13 @@ class McpOAuthFlowTest extends TestCase
         ]);
     }
 
-    private function agent(): Agent
+    private function user(): User
     {
-        $agent = new Agent;
-        $agent->id = 7;
-        $agent->exists = true;
+        $user = new User;
+        $user->id = 7;
+        $user->exists = true;
 
-        return $agent;
+        return $user;
     }
 
     private function flowWithStubs(McpCatalog|MockObject $catalog): McpOAuthFlow
@@ -82,7 +82,7 @@ class McpOAuthFlowTest extends TestCase
         $catalog = $this->createMock(McpCatalog::class);
         $flow = $this->flowWithStubs($catalog);
 
-        $url = $flow->begin($this->agent(), $this->connector());
+        $url = $flow->begin($this->user(), $this->connector());
 
         $this->assertStringStartsWith('https://auth.example.test/authorize?', $url);
 
@@ -135,7 +135,6 @@ class McpOAuthFlowTest extends TestCase
             }
         };
         $hijacked->id = 42;
-        $hijacked->agent_id = 7;
         $hijacked->name = 'Fixture';
         $hijacked->slug = 'fixture';
         $hijacked->url = 'https://mcp.example.test/rpc';

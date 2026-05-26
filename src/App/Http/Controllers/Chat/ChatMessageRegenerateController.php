@@ -3,50 +3,31 @@
 namespace App\Http\Controllers\Chat;
 
 use App\Http\Controllers\Controller;
-use Domain\Chat\Services\Memory\ChatMemory;
-use Domain\Chat\Services\Memory\ChatSession;
+use App\Http\Requests\Chat\RegenerateChatMessageRequest;
+use Domain\Chat\Actions\RegenerateChatMessageAction;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ChatMessageRegenerateController extends Controller
 {
-    public function __invoke(Request $request, ChatMemory $memory, ChatSession $session): JsonResponse
-    {
-        $request->validate([
-            'conversation_id' => ['required', 'string'],
-            'assistant_message_id' => ['required', 'string'],
-            'user_message_id' => ['required', 'string'],
-        ]);
+    public function __invoke(
+        RegenerateChatMessageRequest $request,
+        RegenerateChatMessageAction $regenerate,
+    ): JsonResponse {
+        $result = $regenerate->execute(
+            agent: current_agent(),
+            conversationId: $request->string('conversation_id')->toString(),
+            assistantMessageId: $request->string('assistant_message_id')->toString(),
+            userMessageId: $request->string('user_message_id')->toString(),
+        );
 
-        $conversationId = $request->input('conversation_id');
-        $assistantMessageId = $request->input('assistant_message_id');
-        $userMessageId = $request->input('user_message_id');
-
-        $agent = current_agent();
-
-        $memory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->firstOrCreateChatSession($agent))
-            ->setConversationId($conversationId);
-
-        // Get the user message content and timestamps before deleting
-        $userMessage = $memory->getMessageById($userMessageId);
-
-        if (! $userMessage) {
+        if (! $result) {
             return response()->json(['error' => 'User message not found'], 404);
         }
 
-        $userMessageContent = $userMessage->content ?? '';
-        $userMessageCreatedAt = now()->toISOString();
-
-        // Delete both messages
-        $memory->deleteMessage($assistantMessageId);
-        $memory->deleteMessage($userMessageId);
-
         return response()->json([
             'success' => true,
-            'user_message_content' => $userMessageContent,
-            'created_at' => $userMessageCreatedAt,
+            'user_message_content' => $result->userMessageContent,
+            'created_at' => $result->createdAt,
         ]);
     }
 }

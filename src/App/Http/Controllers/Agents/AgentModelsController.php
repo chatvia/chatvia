@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Agents;
 
+use Domain\Agents\Actions\ToggleAgentLlmAction;
 use Domain\Agents\Data\Resources\AgentLlmDefaultSettingsData;
 use Domain\Agents\Data\Resources\AgentLlmSettingsData;
 use Domain\Agents\Data\Resources\AgentModelsResourceData;
 use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\Llm;
 use Domain\Chat\Data\LlmModelData;
 use Illuminate\Http\Request;
 
@@ -31,7 +31,7 @@ class AgentModelsController
         );
     }
 
-    public function toggle(Request $request, Agent $agent): void
+    public function toggle(Request $request, Agent $agent, ToggleAgentLlmAction $toggle): void
     {
         abort_if($request->user()->cannot('view', $agent), 404);
 
@@ -40,12 +40,10 @@ class AgentModelsController
             'status' => ['required', 'boolean'],
         ]);
 
-        $modelId = Llm::query()->where('external_name', $request->input('model_id'))->valueOrFail('id');
-
-        if ($request->boolean('status')) {
-            $agent->llms()->attach($modelId);
-        } else {
-            $agent->llms()->detach($modelId);
-        }
+        $toggle->execute(
+            agent: $agent,
+            modelExternalName: $request->string('model_id')->toString(),
+            enabled: $request->boolean('status'),
+        );
     }
 }

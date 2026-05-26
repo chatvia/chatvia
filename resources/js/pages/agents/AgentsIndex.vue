@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Bot, Code, Loader2, MessageSquare, Plus, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -14,15 +15,12 @@ const page = usePage<SharedData>();
 
 type Agent = Domain.Agents.Data.Resources.AgentResourceData;
 
-// Fetch agents from the server
 const agents = ref<Agent[]>([]);
 const isLoading = ref(true);
 const searchQuery = ref('');
 
-// Modal state
 const showCreateAgentModal = ref(false);
 
-// Permission checking - only team owners can create agents
 const canCreateAgent = computed(() => {
     const currentTeam = page.props.currentTeam;
     if (!currentTeam) return false;
@@ -41,7 +39,6 @@ onMounted(async () => {
     }
 });
 
-// Function to refresh agents list
 const refreshAgents = async () => {
     try {
         const response = await axios.get(route('agents.index'));
@@ -71,15 +68,14 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const getAgentTypeBadgeClass = (type: string) => {
+const getAgentTypeStyle = (type: string) => {
     const lowerType = type.toLowerCase();
     if (lowerType === 'knowledge_base') {
-        return 'rounded-full bg-green-100 p-2 text-green-700 dark:bg-green-900/20 dark:text-green-400';
+        return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
     } else if (lowerType === 'widget') {
-        return 'rounded-full bg-blue-100 p-2 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
-    } else {
-        return 'rounded-full bg-primary/10 p-2 text-primary';
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
     }
+    return 'bg-primary/10 text-primary';
 };
 
 const getAgentTypeIcon = (type: string) => {
@@ -88,9 +84,19 @@ const getAgentTypeIcon = (type: string) => {
         return MessageSquare;
     } else if (lowerType === 'widget') {
         return Code;
-    } else {
-        return Bot;
     }
+    return Bot;
+};
+
+const getAgentTypeLabel = (type: string) => {
+    const lowerType = type.toLowerCase();
+    if (lowerType === 'knowledge_base') return 'Knowledge base agent';
+    if (lowerType === 'widget') return 'Embeddable widget';
+    return 'Agent';
+};
+
+const openAgent = (agent: Agent) => {
+    router.visit(route('agents.manager', { agent: agent.external_id }));
 };
 </script>
 
@@ -98,33 +104,28 @@ const getAgentTypeIcon = (type: string) => {
     <AppLayout>
         <Head title="My Agents" />
 
-        <div class="container mx-auto max-w-5xl py-8">
-            <div class="mb-8 flex items-center justify-between">
+        <div class="mx-auto w-full max-w-6xl space-y-6 py-8">
+            <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight">My Agents</h1>
-                    <p class="text-muted-foreground mt-1">Create and manage your AI agents</p>
+                    <h1 class="text-xl font-semibold">My Agents</h1>
+                    <p class="text-muted-foreground text-sm">Create and manage your AI agents.</p>
                 </div>
-                <Button v-if="canCreateAgent" size="lg" @click="showCreateAgentModal = true" class="flex items-center gap-2">
-                    <Plus class="h-4 w-4" />
-                    Create Agent
+                <Button v-if="canCreateAgent" @click="showCreateAgentModal = true">
+                    <Plus class="mr-1 h-4 w-4" />
+                    Create agent
                 </Button>
             </div>
 
-            <!-- Search and filters -->
-            <div class="mb-6 flex items-center">
-                <div class="relative flex-1">
-                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                    <Input v-model="searchQuery" class="pl-10" placeholder="Search agents..." />
-                </div>
+            <div class="relative max-w-sm">
+                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Input v-model="searchQuery" placeholder="Search agents" class="pl-9" />
             </div>
 
-            <!-- Loading state -->
-            <div v-if="isLoading" class="flex h-64 items-center justify-center">
-                <Loader2 class="text-primary h-8 w-8 animate-spin" />
-                <span class="ml-2 text-lg">Loading agents...</span>
+            <div v-if="isLoading" class="text-muted-foreground flex items-center gap-2 py-12 text-sm">
+                <Loader2 class="h-4 w-4 animate-spin" />
+                Loading agents
             </div>
 
-            <!-- Empty state -->
             <Card v-else-if="agents.length === 0" class="flex h-64 flex-col items-center justify-center">
                 <Bot class="text-muted-foreground h-12 w-12 opacity-50" />
                 <h3 class="mt-4 text-xl font-medium">No agents yet</h3>
@@ -132,79 +133,66 @@ const getAgentTypeIcon = (type: string) => {
                     Create your first AI agent to start building conversational experiences
                 </p>
                 <p v-else class="text-muted-foreground mt-2 text-center">Only team owners can create agents. Contact your team owner.</p>
-                <Button v-if="canCreateAgent" size="lg" @click="showCreateAgentModal = true" class="flex items-center gap-2">
+                <Button v-if="canCreateAgent" size="lg" @click="showCreateAgentModal = true" class="mt-6 flex items-center gap-2">
                     <Plus class="h-4 w-4" />
-                    Create Agent
+                    Create agent
                 </Button>
             </Card>
 
-            <!-- No search results -->
-            <Card v-else-if="filteredAgents.length === 0" class="flex h-64 flex-col items-center justify-center">
-                <Search class="text-muted-foreground h-12 w-12 opacity-50" />
-                <h3 class="mt-4 text-xl font-medium">No matching agents</h3>
-                <p class="text-muted-foreground mt-2 text-center">No agents found matching "{{ searchQuery }}"</p>
-                <Button variant="outline" class="mt-6" @click="searchQuery = ''"> Clear Search </Button>
-            </Card>
+            <div v-else-if="filteredAgents.length === 0" class="text-muted-foreground py-12 text-center text-sm">
+                No agents found matching "{{ searchQuery }}".
+                <Button variant="link" class="ml-1 h-auto p-0" @click="searchQuery = ''">Clear search</Button>
+            </div>
 
-            <!-- Agents grid -->
-            <div v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <Card v-for="agent in filteredAgents" :key="agent.external_id" class="overflow-hidden">
-                    <CardHeader class="pb-3">
-                        <div class="flex items-center justify-between">
-                            <CardTitle class="flex items-center gap-2 text-xl">
-                                <Bot class="h-5 w-5 flex-shrink-0" />
-                                <span class="truncate">
-                                    <Link :href="route('agents.manager', { agent: agent.external_id })">{{ agent.name }}</Link>
-                                </span>
-                            </CardTitle>
-                            <div :class="getAgentTypeBadgeClass(agent.type)">
-                                <component :is="getAgentTypeIcon(agent.type)" class="h-4 w-4" />
-                            </div>
-                        </div>
-                    </CardHeader>
-
-                    <CardContent>
-                        <div class="grid gap-4 text-sm" :class="agent.type.toLowerCase() === 'widget' ? 'grid-cols-1' : 'grid-cols-2'">
-                            <div class="flex flex-col">
-                                <span class="text-muted-foreground">Messages</span>
-                                <span class="text-lg font-medium">{{ agent.total_messages || 0 }}</span>
-                            </div>
-                            <div v-if="agent.type.toLowerCase() !== 'widget'" class="flex flex-col">
-                                <span class="text-muted-foreground">Members</span>
-                                <span class="text-lg font-medium">{{ agent.total_members || 0 }}</span>
-                            </div>
-                            <div class="flex flex-col" :class="agent.type.toLowerCase() === 'widget' ? '' : 'col-span-2'">
-                                <span class="text-muted-foreground">Created</span>
-                                <span>{{ formatDate(agent.created_at) }}</span>
-                            </div>
-                        </div>
-                    </CardContent>
-
-                    <CardFooter class="flex justify-end border-t p-4">
-                        <Button as-child size="sm">
-                            <Link :href="route('agents.manager', { agent: agent.external_id })" class="gap-1"> Manage </Link>
-                        </Button>
-                    </CardFooter>
-                </Card>
+            <div v-else class="rounded-lg border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead class="h-11 pl-5">Agent name</TableHead>
+                            <TableHead class="h-11 w-32">Messages</TableHead>
+                            <TableHead class="h-11 w-32">Members</TableHead>
+                            <TableHead class="h-11 w-40">Created</TableHead>
+                            <TableHead class="h-11 w-32 pr-5 text-right">Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow
+                            v-for="agent in filteredAgents"
+                            :key="agent.external_id"
+                            class="hover:bg-muted/40 cursor-pointer"
+                            @click="openAgent(agent)"
+                        >
+                            <TableCell class="py-4 pl-5">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
+                                        :class="getAgentTypeStyle(agent.type)"
+                                    >
+                                        <component :is="getAgentTypeIcon(agent.type)" class="h-5 w-5" />
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="leading-tight font-medium">{{ agent.name }}</p>
+                                        <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ getAgentTypeLabel(agent.type) }}</p>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell class="py-4 text-sm">{{ agent.total_messages || 0 }}</TableCell>
+                            <TableCell class="py-4 text-sm">
+                                <span v-if="agent.type.toLowerCase() === 'widget'" class="text-muted-foreground">—</span>
+                                <span v-else>{{ agent.total_members || 0 }}</span>
+                            </TableCell>
+                            <TableCell class="text-muted-foreground py-4 text-sm">{{ formatDate(agent.created_at) }}</TableCell>
+                            <TableCell class="py-4 pr-5 text-right" @click.stop>
+                                <Button as-child size="sm" variant="outline">
+                                    <Link :href="route('agents.manager', { agent: agent.external_id })">Manage</Link>
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
         </div>
 
-        <!-- Create Agent Modal -->
         <CreateAgentModal v-model:open="showCreateAgentModal" @agent-created="refreshAgents" />
     </AppLayout>
 </template>
-
-<style scoped>
-.card-hover-effect {
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.card-hover-effect:hover {
-    transform: translateY(-2px);
-    box-shadow:
-        0 10px 25px -5px rgba(0, 0, 0, 0.1),
-        0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
-</style>

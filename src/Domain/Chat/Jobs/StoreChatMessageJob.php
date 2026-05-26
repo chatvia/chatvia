@@ -93,6 +93,25 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $completionTokens = $usageData['tokens_completion'] ?? null;
         $cost = $usageData['total_cost'] ?? null;
 
+        // Tool artifacts (charts, etc.) live in `metadata.artifacts` so they
+        // re-render on reload. `metadata.tool_calls` carries the list of
+        // tool names this assistant turn invoked so the sticky-tool
+        // resolver can keep recently-used tools in the router pool on
+        // follow-up turns. Both apply only to assistant rows.
+        $metadata = null;
+        if (! $isUserMessage) {
+            $metadataBuf = [];
+            if (! empty($this->payload->artifacts)) {
+                $metadataBuf['artifacts'] = $this->payload->artifacts;
+            }
+            if (! empty($this->payload->tool_calls)) {
+                $metadataBuf['tool_calls'] = $this->payload->tool_calls;
+            }
+            if ($metadataBuf !== []) {
+                $metadata = $metadataBuf;
+            }
+        }
+
         $messageData = [
             'external_id' => $this->payload->external_message_id,
             'chat_conversation_id' => $conversation->id,
@@ -109,6 +128,7 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'agent_question_answer_id' => ! $isUserMessage ? $this->payload->agent_question_answer_id : null,
             'source' => $this->payload->source,
             'llm_found_answer' => ! $isUserMessage ? ($this->payload->llm_found_answer ?? true) : true,
+            'metadata' => $metadata,
         ];
 
         $messageData['created_at'] = $this->payload->sent_at;

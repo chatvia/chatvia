@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers\Agents;
 
+use Domain\Agents\Actions\DeleteAgentSettingAction;
+use Domain\Agents\Actions\UpdateAgentSettingsAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 
 class AgentSettingsController
 {
-    public function update(Request $request, Agent $agent, string $group): void
-    {
+    public function update(
+        Request $request,
+        Agent $agent,
+        string $group,
+        UpdateAgentSettingsAction $updateSettings,
+    ): void {
         abort_if($request->user()->cannot('view', $agent), 404);
 
         $this->assertGroup($group);
@@ -17,21 +23,20 @@ class AgentSettingsController
 
         $settings = array_keys(config('model-settings.defaults.'.Agent::class.'.'.$group));
 
-        $requestData = array_filter(
+        $values = array_filter(
             $request->only($settings),
             fn ($value): bool => $value !== '' && $value !== null,
         );
 
-        foreach ($requestData as $key => $value) {
-            $agent->setSetting(key: $key, value: $value, group: $group);
-        }
-
-        // NOTE: prior implementation called settingsDelete($group, []) here with
-        // an empty array, which was a no-op; intentionally dropped.
+        $updateSettings->execute($agent, $group, $values);
     }
 
-    public function destroy(Request $request, Agent $agent, string $group): void
-    {
+    public function destroy(
+        Request $request,
+        Agent $agent,
+        string $group,
+        DeleteAgentSettingAction $deleteSetting,
+    ): void {
         abort_if($request->user()->cannot('view', $agent), 404);
 
         $this->assertGroup($group);
@@ -39,7 +44,7 @@ class AgentSettingsController
         $key = $request->input('key');
 
         if ($key) {
-            $agent->settingsDelete($group, $key);
+            $deleteSetting->execute($agent, $group, $key);
         }
     }
 

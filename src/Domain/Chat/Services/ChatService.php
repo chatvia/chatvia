@@ -230,6 +230,8 @@ readonly class ChatService
                     agent_question_answer_id: $context->qaMatch?->id,
                     source: $context->requestData->source,
                     llm_found_answer: $answerFound,
+                    artifacts: $context->artifacts,
+                    tool_calls: $context->toolCallNames,
                 )
             );
     }

@@ -59,6 +59,13 @@ final readonly class StreamEvent
      * The `start` phase optionally carries display metadata (`kind`,
      * `label`, `icon_url`, `brand_color`) so the chat UI can render a
      * branded icon + service name instead of a generic spinner.
+     *
+     * The `end` phase optionally carries `artifacts` — structured UI
+     * payloads the renderer mounts inline in the assistant bubble (e.g. an
+     * ECharts spec). The LLM does not see these; they're a side-channel
+     * for the UI. Each artifact is `{kind: string, data: mixed}`.
+     *
+     * @param  array<int, array<string, mixed>>|null  $artifacts
      */
     public static function tool(
         string $assistantMessageId,
@@ -72,6 +79,7 @@ final readonly class StreamEvent
         ?string $label = null,
         ?string $iconUrl = null,
         ?string $brandColor = null,
+        ?array $artifacts = null,
     ): self {
         $data = [
             'phase' => $phase,
@@ -100,6 +108,9 @@ final readonly class StreamEvent
         }
         if ($brandColor !== null) {
             $data['brand_color'] = $brandColor;
+        }
+        if ($artifacts !== null && $artifacts !== []) {
+            $data['artifacts'] = $artifacts;
         }
 
         return new self(EventType::Tool, $assistantMessageId, $data);

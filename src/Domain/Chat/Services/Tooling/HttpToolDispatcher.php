@@ -10,7 +10,7 @@ use Throwable;
 
 class HttpToolDispatcher implements ToolDispatcherInterface
 {
-    public function dispatch(Agent $agent, string $name, string $arguments): string
+    public function dispatch(Agent $agent, string $name, string $arguments): ToolDispatchResult
     {
         $function = AgentFunction::query()
             ->where('agent_id', $agent->id)
@@ -56,7 +56,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
                 'latency_ms' => $latency,
             ]);
 
-            return $truncated;
+            return ToolDispatchResult::text($truncated);
         } catch (Throwable $e) {
             $message = $e->getMessage();
             $this->record($function, error: $message);
@@ -126,8 +126,8 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         ])->save();
     }
 
-    private function error(string $message): string
+    private function error(string $message): ToolDispatchResult
     {
-        return 'Tool error: '.$message;
+        return ToolDispatchResult::text('Tool error: '.$message);
     }
 }

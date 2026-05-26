@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
 use Support\Traits\SupportsExternalId;
 
 /**
@@ -204,5 +205,43 @@ class ChatConversation extends Model
     public function shouldAiRespond(): bool
     {
         return in_array($this->handoff_status, ['ai', 'returned', null]);
+    }
+
+    public function displayName(): ?string
+    {
+        if ($this->lead?->name) {
+            return $this->lead->name;
+        }
+
+        return $this->session?->user?->name;
+    }
+
+    public function displayEmail(): ?string
+    {
+        if ($this->lead?->email) {
+            return $this->lead->email;
+        }
+
+        return $this->session?->user?->email;
+    }
+
+    public function canBeTakenOverBy(User $admin): bool
+    {
+        if ($this->isHandedOff() && $this->handoff_user_id !== $admin->id) {
+            return false;
+        }
+
+        $agent = $this->session?->agent;
+
+        if (! $agent) {
+            return false;
+        }
+
+        return Gate::forUser($admin)->allows('access-agent', $agent);
+    }
+
+    public function canBeReturnedBy(User $admin): bool
+    {
+        return $this->isHandedOff() && $this->handoff_user_id === $admin->id;
     }
 }

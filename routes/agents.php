@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Agents\AgentApiTokensController;
 use App\Http\Controllers\Agents\AgentChatLogController;
 use App\Http\Controllers\Agents\AgentChatLogReviseAnswerController;
 use App\Http\Controllers\Agents\AgentFileSummaryController;
@@ -50,22 +51,17 @@ use App\Http\Controllers\Agents\Sources\AgentWebsiteLinksController;
 use App\Http\Controllers\Agents\Sources\AgentWebsitesController;
 use App\Http\Controllers\Agents\Sources\AgentYoutubeController;
 use App\Http\Controllers\Agents\Sources\Audio\AgentSourceAudioController;
-use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorConnectController;
+use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorAttachController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorDisconnectController;
-use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorEnableController;
-use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorOAuthStartController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorRefreshController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsListController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorToolsController;
-use App\Http\Controllers\Agents\Sources\Connectors\AgentCustomConnectorAddController;
+use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionAttachController;
 use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionDeleteController;
 use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionsController;
 use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionsListController;
-use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionStoreController;
 use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionTestController;
-use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionToggleController;
-use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionUpdateController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourcesLinkTextController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourcesTrainedTextsListController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourceUnlinkTextController;
@@ -114,6 +110,11 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
 
         Route::get('persona', AgentShowPersonaController::class)->name('persona');
 
+        // API tokens (per-agent bearer tokens for the public API)
+        Route::get('api-tokens', [AgentApiTokensController::class, 'index'])->name('api-tokens.index');
+        Route::post('api-tokens', [AgentApiTokensController::class, 'store'])->name('api-tokens.store');
+        Route::delete('api-tokens/{tokenId}', [AgentApiTokensController::class, 'destroy'])->name('api-tokens.destroy');
+
         // Knowledge
         Route::get('sources', AgentKnowledgeSourcesController::class)->name('sources');
         Route::get('sources/stats', AgentKnowledgeSourcesStatsController::class)->name('sources.stats');
@@ -141,25 +142,25 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::delete('sources/qa/{id}', [AgentQaController::class, 'destroy'])->name('sources.qa.destroy');
         Route::post('sources/qa/{id}/unlink', [AgentQaController::class, 'unlink'])->name('sources.qa.unlink');
 
-        // Functions (LLM tool calls — webhook-backed)
+        // Functions (LLM tool calls — webhook-backed). Functions are owned at
+        // the account level (Settings → Functions); on the agent screen the
+        // user only attaches / detaches them. Attach = pivot exists; detach
+        // = pivot deleted. No per-attachment enabled flag.
         Route::get('sources/functions', AgentFunctionsController::class)->name('sources.functions.index');
         Route::get('sources/functions/data', AgentFunctionsListController::class)->name('sources.functions.data');
-        Route::post('sources/functions', AgentFunctionStoreController::class)->name('sources.functions.store');
-        Route::patch('sources/functions/{function}', AgentFunctionUpdateController::class)->name('sources.functions.update');
-        Route::post('sources/functions/{function}/toggle', AgentFunctionToggleController::class)->name('sources.functions.toggle');
+        Route::post('sources/functions/{function}/attach', AgentFunctionAttachController::class)->name('sources.functions.attach');
+        Route::delete('sources/functions/{function}', AgentFunctionDeleteController::class)->name('sources.functions.detach');
         Route::post('sources/functions/{function}/test', AgentFunctionTestController::class)->name('sources.functions.test');
-        Route::delete('sources/functions/{function}', AgentFunctionDeleteController::class)->name('sources.functions.delete');
 
-        // Connectors (preset-backed MCP servers — Notion, Stripe, GitHub, …)
+        // Connectors page — agents attach existing account-level connectors
+        // via the pivot. Creation/deletion of connector rows happens in
+        // /settings/connectors. Attach = pivot exists; detach = pivot deleted.
         Route::get('sources/connectors', AgentConnectorsController::class)->name('sources.connectors.index');
         Route::get('sources/connectors/data', AgentConnectorsListController::class)->name('sources.connectors.data');
-        Route::post('sources/connectors/custom', AgentCustomConnectorAddController::class)->name('sources.connectors.custom.add');
-        Route::post('sources/connectors/{slug}/connect', AgentConnectorConnectController::class)->name('sources.connectors.connect');
-        Route::get('sources/connectors/{slug}/oauth/start', AgentConnectorOAuthStartController::class)->name('sources.connectors.oauth.start');
-        Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)->name('sources.connectors.refresh');
+        Route::post('sources/connectors/{slug}/attach', AgentConnectorAttachController::class)->name('sources.connectors.attach');
+        Route::delete('sources/connectors/{slug}', AgentConnectorDisconnectController::class)->name('sources.connectors.detach');
         Route::get('sources/connectors/{slug}/tools', AgentConnectorToolsController::class)->name('sources.connectors.tools');
-        Route::post('sources/connectors/{slug}/enable', AgentConnectorEnableController::class)->name('sources.connectors.enable');
-        Route::delete('sources/connectors/{slug}', AgentConnectorDisconnectController::class)->name('sources.connectors.disconnect');
+        Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)->name('sources.connectors.refresh');
 
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
         Route::delete('sources/text/{id}', [AgentTextController::class, 'destroy'])->name('sources.text.destroy');

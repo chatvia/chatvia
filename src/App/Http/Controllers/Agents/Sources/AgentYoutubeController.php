@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers\Agents\Sources;
 
+use App\Auth\Models\User;
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
+use Domain\Sources\Youtube\Actions\AddAgentYoutubeVideoAction;
+use Domain\Sources\Youtube\Actions\DeleteAgentYoutubeVideoAction;
+use Domain\Sources\Youtube\Actions\RetrainAgentYoutubeVideoAction;
 use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
+use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,52 +35,30 @@ class AgentYoutubeController
         ]);
     }
 
-    public function store(Request $request, Agent $agent): JsonResponse
+    public function store(Request $request, Agent $agent, AddAgentYoutubeVideoAction $add): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
 
         $request->validate([
             'url' => ['required', 'url', 'regex:/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/'],
-        ], [
-            'url.regex' => 'Please enter a valid YouTube URL.',
-        ]);
+        ], ['url.regex' => 'Please enter a valid YouTube URL.']);
 
-        $url = $request->input('url');
+        /** @var User $user */
+        $user = $request->user();
 
-        if (! $this->extractVideoId($url)) {
+        try {
+            $add->execute($agent, $user, $request->string('url')->toString());
+        } catch (InviteRejectedException $e) {
             return response()->json([
-                'message' => 'Could not extract video ID from URL.',
-                'errors' => ['url' => ['Invalid YouTube URL format.']],
+                'message' => $e->getMessage(),
+                'errors' => [$e->field => [$e->getMessage()]],
             ], 422);
         }
-
-        $existing = $agent->youtubeVideos()
-            ->where('source_youtube_videos.url', $url)
-            ->exists();
-
-        if ($existing) {
-            return response()->json([
-                'message' => 'This video has already been added.',
-                'errors' => ['url' => ['This YouTube video has already been added to this agent.']],
-            ], 422);
-        }
-
-        /** @var SourceYoutubeVideo $youtubeVideo */
-        $youtubeVideo = SourceYoutubeVideo::create([
-            'user_id' => $request->user()->id,
-            'url' => $url,
-            'length' => 0, // updated during ingestion
-            'status' => 'pending',
-        ]);
-
-        $agent->youtubeVideos()->attach($youtubeVideo->id);
-
-        $youtubeVideo->startTraining($agent->id);
 
         return response()->json(['message' => 'YouTube video added successfully.']);
     }
 
-    public function destroy(Request $request, Agent $agent, SourceYoutubeVideo $youtube): JsonResponse
+    public function destroy(Request $request, Agent $agent, SourceYoutubeVideo $youtube, DeleteAgentYoutubeVideoAction $delete): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
         abort_unless(
@@ -83,20 +66,12 @@ class AgentYoutubeController
             404,
         );
 
-        $youtube->chunks()->where('agent_id', $agent->id)->delete();
-
-        $otherAgents = $youtube->agents()->where('agents.id', '!=', $agent->id)->exists();
-
-        if (! $otherAgents) {
-            $youtube->delete();
-        } else {
-            $agent->youtubeVideos()->detach($youtube->id);
-        }
+        $delete->execute($agent, $youtube);
 
         return response()->json(['message' => 'YouTube video deleted successfully.']);
     }
 
-    public function retrain(Request $request, Agent $agent, SourceYoutubeVideo $youtube): JsonResponse
+    public function retrain(Request $request, Agent $agent, SourceYoutubeVideo $youtube, RetrainAgentYoutubeVideoAction $retrain): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
         abort_unless(
@@ -104,15 +79,8 @@ class AgentYoutubeController
             404,
         );
 
-        $youtube->retrain($agent->id);
+        $retrain->execute($agent, $youtube);
 
         return response()->json(['message' => 'YouTube video retraining started.']);
-    }
-
-    private function extractVideoId(string $url): ?string
-    {
-        $pattern = '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/';
-
-        return preg_match($pattern, $url, $matches) ? $matches[1] : null;
     }
 }

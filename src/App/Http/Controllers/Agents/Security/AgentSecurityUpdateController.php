@@ -2,23 +2,19 @@
 
 namespace App\Http\Controllers\Agents\Security;
 
+use Domain\Agents\Actions\UpdateAgentSecurityAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 
 class AgentSecurityUpdateController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Request $request, Agent $agent, UpdateAgentSecurityAction $update)
     {
-        abort_if(
-            boolean: $request->user()->cannot('update', $agent),
-            code: 404,
-        );
+        abort_if($request->user()->cannot('update', $agent), 404);
 
-        $validated = $request->validate([
-            'is_public' => ['required', 'boolean'],
-        ]);
+        $request->validate(['is_public' => ['required', 'boolean']]);
 
-        $agent->update($validated);
+        $update->execute($agent, $request->boolean('is_public'));
 
         return back()->with('success', 'Security settings updated successfully');
     }

@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Teams;
 
 use App\Teams\Models\Team;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TeamSwitchController
 {
-    public function __invoke(Request $request, Team $team)
+    public function __invoke(Request $request, Team $team): RedirectResponse
     {
-        $user = $request->user();
-
-        if (! $user->switchTeam($team)) {
+        if (! $request->user()->switchTeam($team)) {
             abort(403, 'You do not have access to this team.');
         }
 

@@ -20,16 +20,12 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { AIModel, Message } from '@/types/chat';
+import type { ToolArtifact } from '@/types/stream';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import hljs from 'highlight.js';
 import { Check, Copy, Download, FileText, MessageSquare, Plug, RefreshCw, ThumbsDown, ThumbsUp, Trash2, Webhook } from 'lucide-vue-next';
-import { Marked } from 'marked';
-import markedAlert from 'marked-alert';
-import markedCodePreview from 'marked-code-preview';
-import { markedHighlight } from 'marked-highlight';
-import markedKatex from 'marked-katex-extension';
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
+import AssistantMessageBody from './AssistantMessageBody.vue';
 import SourcesDialog from './SourcesDialog.vue';
 import WaitingIndicator from './WaitingIndicator.vue';
 
@@ -54,6 +50,13 @@ const props = defineProps<{
     models?: AIModel[];
     defaultModel?: AIModel | null;
     sources?: any[];
+    /**
+     * Structured tool-call artifacts attached to this assistant turn —
+     * currently just ECharts options. Set by Chat.vue from the SSE `tool`
+     * end-phase artifact payload. The component renders each one inline
+     * above the markdown answer (the LLM's summary text references them).
+     */
+    artifacts?: ToolArtifact[];
     conversationId?: string;
     avatar?: string | null;
     isRTL?: boolean;
@@ -118,81 +121,8 @@ const modelUsed = computed(() => {
     return models.find((m) => m.id === props.message.model) || defaultModel;
 });
 
-const messageContentRef = ref<HTMLElement>();
 const isCopied = ref(false);
 const feedback = ref<'thumbs-up' | 'thumbs-down' | null>(null);
-
-const marked = new Marked(
-    markedHighlight({
-        emptyLangClass: 'hljs',
-        langPrefix: 'hljs language-',
-        highlight(code, lang) {
-            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-            return hljs.highlight(code, { language }).value;
-        },
-    }),
-);
-
-marked
-    .use({ gfm: true })
-    .use(
-        markedKatex({
-            throwOnError: false,
-            errorColor: '#cc0000',
-            strict: false,
-        }),
-    )
-    .use(markedCodePreview())
-    .use(markedAlert());
-
-function formatMessage(content: string): string {
-    const result = marked.parse(content);
-    return typeof result === 'string' ? result : '';
-}
-
-// Markdown + highlight.js parsing is expensive. While streaming, debounce
-// reparsing on a trailing edge — every ~60 ms is well under the threshold
-// where a user would notice the lag, but caps CPU on long responses.
-// When the stream ends, flush immediately so the final tokens land.
-const renderedHtml = ref('');
-let renderDebounce: ReturnType<typeof setTimeout> | null = null;
-
-function flushRender() {
-    if (renderDebounce) {
-        clearTimeout(renderDebounce);
-        renderDebounce = null;
-    }
-    renderedHtml.value = formatMessage(props.message.content ?? '');
-}
-
-watch(
-    () => props.message.content,
-    () => {
-        if (!props.isStreaming || renderedHtml.value === '') {
-            // Not streaming, or first paint — render immediately so the
-            // bubble doesn't flash empty for the debounce window.
-            flushRender();
-            return;
-        }
-        if (renderDebounce) return;
-        renderDebounce = setTimeout(() => {
-            renderDebounce = null;
-            renderedHtml.value = formatMessage(props.message.content ?? '');
-        }, 60);
-    },
-    { immediate: true },
-);
-
-watch(
-    () => props.isStreaming,
-    (streaming) => {
-        if (!streaming) flushRender();
-    },
-);
-
-onUnmounted(() => {
-    if (renderDebounce) clearTimeout(renderDebounce);
-});
 
 async function copyToClipboard() {
     try {
@@ -261,57 +191,6 @@ async function exportAs(format: 'pdf' | 'markdown' | 'text') {
     }
 }
 
-function setupCodeBlockCopyButtons() {
-    if (!messageContentRef.value) return;
-
-    const codeBlocks = messageContentRef.value.querySelectorAll('pre');
-    codeBlocks.forEach((pre) => {
-        if (pre.querySelector('.code-copy-button')) return;
-
-        const copyButton = document.createElement('button');
-        copyButton.className = 'code-copy-button';
-        copyButton.setAttribute('aria-label', 'Copy code to clipboard');
-
-        const copyIcon = document.createElement('span');
-        copyIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>`;
-        copyButton.appendChild(copyIcon);
-
-        copyButton.addEventListener('click', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const code = pre.querySelector('code');
-            if (code) {
-                try {
-                    await navigator.clipboard.writeText(code.textContent || '');
-                    copyButton.classList.add('copied');
-                    copyIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
-
-                    setTimeout(() => {
-                        copyButton.classList.remove('copied');
-                        copyIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>`;
-                    }, 2000);
-                } catch (err) {
-                    console.error('Failed to copy code:', err);
-                }
-            }
-        });
-
-        pre.style.position = 'relative';
-        pre.appendChild(copyButton);
-    });
-}
-
-watch(
-    () => props.message.content,
-    () => {
-        if (props.message.content) {
-            nextTick(() => setupCodeBlockCopyButtons());
-        }
-    },
-    { immediate: true },
-);
-
 watch(
     () => props.message.feedback,
     (value) => {
@@ -321,50 +200,22 @@ watch(
     },
     { immediate: true },
 );
-
-onMounted(() => {
-    if (props.message.content) {
-        setupCodeBlockCopyButtons();
-    }
-});
 </script>
 
 <template>
     <div class="flex w-full items-start">
         <div class="max-w-full min-w-0 flex-1">
-            <div class="prose prose-sm dark:prose-invert w-full max-w-none" :data-rtl="isRTL">
-                <div
-                    v-if="message.content"
-                    id="chat-ai-responses"
-                    ref="messageContentRef"
-                    class="streaming-content"
-                    :class="{ 'is-streaming': isStreaming }"
-                    v-html="renderedHtml"
-                ></div>
-                <div v-else class="flex items-center gap-2 py-1">
-                    <template v-if="isCallingExternal">
-                        <div class="external-call-stack flex items-center">
-                            <div
-                                v-for="(call, i) in stackedCalls"
-                                :key="call.tool_call_id"
-                                class="external-call-icon"
-                                :style="{ marginLeft: i === 0 ? '0' : '-6px', zIndex: stackedCalls.length - i }"
-                                :title="call.label"
-                            >
-                                <img v-if="call.icon_url" :src="call.icon_url" :alt="call.label" class="h-full w-full object-contain p-0.5" />
-                                <Webhook v-else-if="call.kind === 'function'" class="text-muted-foreground h-full w-full p-1" />
-                                <Plug v-else class="text-muted-foreground h-full w-full p-1" />
-                            </div>
-                            <span v-if="overflowCount > 0" class="text-muted-foreground ml-1 text-xs">+{{ overflowCount }}</span>
-                        </div>
-                        <span class="external-call-shimmer text-sm italic">{{ currentCallLabel }}</span>
-                    </template>
-                    <WaitingIndicator v-else />
-                </div>
-                <!-- Edge case: the LLM streamed some text before deciding to
-                     call a tool. Show the indicator below the content rather
-                     than next to the three dots. -->
-                <div v-if="message.content && isCallingExternal" class="mt-2 flex items-center gap-2 py-1 text-sm">
+            <AssistantMessageBody
+                :content="message.content ?? ''"
+                :artifacts="props.artifacts"
+                :is-streaming="isStreaming ?? false"
+                :is-rtl="isRTL ?? false"
+            />
+            <!-- Empty body: show the "still working" indicator. WaitingIndicator
+                 if the model is just thinking; branded tool-call icon stack if
+                 it's calling an MCP server or webhook function. -->
+            <div v-if="!message.content" class="flex items-center gap-2 py-1">
+                <template v-if="isCallingExternal">
                     <div class="external-call-stack flex items-center">
                         <div
                             v-for="(call, i) in stackedCalls"
@@ -379,8 +230,29 @@ onMounted(() => {
                         </div>
                         <span v-if="overflowCount > 0" class="text-muted-foreground ml-1 text-xs">+{{ overflowCount }}</span>
                     </div>
-                    <span class="external-call-shimmer italic">{{ currentCallLabel }}</span>
+                    <span class="external-call-shimmer text-sm italic">{{ currentCallLabel }}</span>
+                </template>
+                <WaitingIndicator v-else />
+            </div>
+            <!-- Edge case: the LLM streamed some text before deciding to
+                 call a tool. Show the indicator below the content rather
+                 than next to the three dots. -->
+            <div v-if="message.content && isCallingExternal" class="mt-2 flex items-center gap-2 py-1 text-sm">
+                <div class="external-call-stack flex items-center">
+                    <div
+                        v-for="(call, i) in stackedCalls"
+                        :key="call.tool_call_id"
+                        class="external-call-icon"
+                        :style="{ marginLeft: i === 0 ? '0' : '-6px', zIndex: stackedCalls.length - i }"
+                        :title="call.label"
+                    >
+                        <img v-if="call.icon_url" :src="call.icon_url" :alt="call.label" class="h-full w-full object-contain p-0.5" />
+                        <Webhook v-else-if="call.kind === 'function'" class="text-muted-foreground h-full w-full p-1" />
+                        <Plug v-else class="text-muted-foreground h-full w-full p-1" />
+                    </div>
+                    <span v-if="overflowCount > 0" class="text-muted-foreground ml-1 text-xs">+{{ overflowCount }}</span>
                 </div>
+                <span class="external-call-shimmer italic">{{ currentCallLabel }}</span>
             </div>
 
             <div v-if="message.content && !hideFeedback" class="mt-2 flex flex-wrap items-center justify-between gap-2">

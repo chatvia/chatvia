@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+  <!-- Two coins with arrows between them, suggesting exchange -->
+  <circle cx="7" cy="8" r="4.5"/>
+  <text x="7" y="10.5" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="6" font-weight="700" stroke="none" fill="currentColor">$</text>
+  <circle cx="17" cy="16" r="4.5"/>
+  <text x="17" y="18.5" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="6" font-weight="700" stroke="none" fill="currentColor">€</text>
+  <!-- Exchange arrows -->
+  <path d="M12 7 L15 9 L12 11" stroke-width="1.75"/>
+  <path d="M12 17 L9 15 L12 13" stroke-width="1.75"/>
+</svg>

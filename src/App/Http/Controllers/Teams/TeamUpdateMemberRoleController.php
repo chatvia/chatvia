@@ -3,31 +3,24 @@
 namespace App\Http\Controllers\Teams;
 
 use App\Auth\Models\User;
+use App\Http\Requests\Teams\UpdateMemberRoleRequest;
 use App\Teams\Models\Team;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Domain\Teams\Actions\UpdateTeamMemberRoleAction;
+use Illuminate\Http\RedirectResponse;
 
 class TeamUpdateMemberRoleController
 {
-    public function __invoke(Request $request, Team $team, User $member)
-    {
-        $user = $request->user();
-
-        if (! $user->ownsTeam($team)) {
-            abort(403, 'Only the team owner can update member roles.');
-        }
-
+    public function __invoke(
+        UpdateMemberRoleRequest $request,
+        Team $team,
+        User $member,
+        UpdateTeamMemberRoleAction $updateRole,
+    ): RedirectResponse {
         if ($team->user_id === $member->id) {
             abort(403, 'Cannot change the owner\'s role.');
         }
 
-        $validRoles = $team->roles()->where('code', '!=', 'owner')->pluck('code')->toArray();
-
-        $validated = $request->validate([
-            'role' => ['required', 'string', Rule::in($validRoles)],
-        ]);
-
-        $team->updateMember($member, $validated['role']);
+        $updateRole->execute($team, $member, $request->string('role')->toString());
 
         return back()->with('success', 'Member role updated successfully.');
     }

@@ -13,13 +13,18 @@ class HttpToolDispatcher implements ToolDispatcherInterface
     public function dispatch(Agent $agent, string $name, string $arguments): ToolDispatchResult
     {
         $function = AgentFunction::query()
-            ->where('agent_id', $agent->id)
+            ->where('user_id', $agent->user_id)
             ->where('name', $name)
             ->where('enabled', true)
+            ->whereExists(function ($q) use ($agent): void {
+                $q->from('agent_function')
+                    ->whereColumn('agent_function.function_id', 'functions.id')
+                    ->where('agent_function.agent_id', $agent->id);
+            })
             ->first();
 
         if (! $function) {
-            return $this->error("Function \"{$name}\" is not defined or disabled for this agent.");
+            return $this->error("Function \"{$name}\" is not attached to this agent or is disabled.");
         }
 
         $args = $this->decodeArgs($arguments);
@@ -104,14 +109,17 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             }
         }
 
-        if ($function->auth_type === 'bearer' && $function->auth_value) {
-            $headers['Authorization'] = 'Bearer '.$function->auth_value;
+        // auth_config shape varies per auth_type:
+        //   bearer → ['token' => '...']
+        //   header → ['name' => '...', 'value' => '...']
+        //   hmac   → ['secret' => '...'] (used by request body signing, not headers)
+        $config = $function->auth_config ?? [];
+
+        if ($function->auth_type === 'bearer' && ! empty($config['token'])) {
+            $headers['Authorization'] = 'Bearer '.$config['token'];
         }
-        if ($function->auth_type === 'header' && $function->auth_value) {
-            // For "header" auth we expect the user to have configured the
-            // header name in their custom headers — the value here is
-            // appended raw.
-            $headers['X-Auth'] = $function->auth_value;
+        if ($function->auth_type === 'header' && ! empty($config['name']) && isset($config['value'])) {
+            $headers[(string) $config['name']] = (string) $config['value'];
         }
 
         return $headers;

@@ -16,7 +16,7 @@ class CreateAgentFunctionAction
             'webhook_url' => $data->webhook_url,
             'webhook_method' => $data->webhook_method,
             'auth_type' => $data->auth_type,
-            'auth_value' => $data->auth_value,
+            'auth_config' => $data->auth_config,
             'enabled' => true,
         ]);
     }

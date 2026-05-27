@@ -26,6 +26,11 @@ class FileIngestionProgressEvent implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'FileIngestionProgressEvent';
+    }
+
     public function broadcastWith(): array
     {
         return [

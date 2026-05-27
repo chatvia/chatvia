@@ -7,7 +7,8 @@ use Spatie\LaravelData\Data;
 class ContentAnalysisData extends Data
 {
     public function __construct(
-        public ?string $questions,
+        /** @var string[] */
+        public array $questions,
         public string $document_type,
         public DocumentMetadataData $metadata,
         public string $language,

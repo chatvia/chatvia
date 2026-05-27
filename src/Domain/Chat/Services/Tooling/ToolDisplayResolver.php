@@ -38,7 +38,7 @@ class ToolDisplayResolver
         $slug = explode('__', $rest, 2)[0];
 
         $server = AgentMcpServer::query()
-            ->where('agent_id', $agent->id)
+            ->where('user_id', $agent->user_id)
             ->where('slug', $slug)
             ->first();
 

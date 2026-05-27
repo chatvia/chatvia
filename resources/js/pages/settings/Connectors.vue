@@ -172,11 +172,11 @@ onMounted(() => {
             <div class="w-full space-y-6">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-xl font-semibold">Connectors</h1>
-                            <Badge variant="secondary">Public preview</Badge>
-                        </div>
-                        <p class="text-muted-foreground text-sm">
+                        <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                            <Plug class="size-6" />
+                            Connectors
+                        </h1>
+                        <p class="text-muted-foreground mt-1 text-sm">
                             Plug third-party services into your account once, then attach them to any agent. Pick from the catalog or add any MCP
                             server by URL.
                         </p>

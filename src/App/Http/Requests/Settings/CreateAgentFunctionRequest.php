@@ -43,9 +43,12 @@ class CreateAgentFunctionRequest extends FormRequest
                 },
             ],
             'webhook_url' => ['required', 'url', 'max:2048'],
-            'webhook_method' => ['sometimes', 'in:POST,GET'],
+            'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
             'auth_type' => ['sometimes', 'in:none,bearer,header,hmac'],
-            'auth_value' => ['sometimes', 'nullable', 'string', 'max:8192'],
+            // Flat form payload; `toData()` reshapes these into the
+            // structured `auth_config` array per auth_type.
+            'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],
+            'auth_value' => ['nullable', 'required_if:auth_type,bearer,header,hmac', 'string', 'max:8192'],
         ];
     }
 
@@ -57,6 +60,18 @@ class CreateAgentFunctionRequest extends FormRequest
         /** @var array<string, mixed> $schema */
         $schema = json_decode($this->string('parameters_schema')->toString(), true);
 
+        $authType = $this->string('auth_type', 'none')->toString();
+
+        $authConfig = match ($authType) {
+            'bearer' => ['token' => (string) $this->input('auth_value')],
+            'header' => [
+                'name' => (string) $this->input('auth_header_name'),
+                'value' => (string) $this->input('auth_value'),
+            ],
+            'hmac' => ['secret' => (string) $this->input('auth_value')],
+            default => null,
+        };
+
         return new CreateAgentFunctionData(
             user: $user,
             name: $this->string('name')->toString(),
@@ -64,8 +79,8 @@ class CreateAgentFunctionRequest extends FormRequest
             parameters_schema: $schema,
             webhook_url: $this->string('webhook_url')->toString(),
             webhook_method: $this->string('webhook_method', 'POST')->toString(),
-            auth_type: $this->string('auth_type', 'none')->toString(),
-            auth_value: $this->input('auth_value'),
+            auth_type: $authType,
+            auth_config: $authConfig,
         );
     }
 }

@@ -39,7 +39,6 @@ class AgentConnectorToolsController
             'description' => $tool->description,
             'parameters' => $tool->input_schema,
             'enabled' => $tool->enabled,
-            'embedded_at' => $tool->embedded_at?->toISOString(),
             'id' => $tool->id,
         ])->all();
 

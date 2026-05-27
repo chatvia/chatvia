@@ -27,8 +27,8 @@ class AgentTextObserver
      */
     public function deleted(SourceText $agentText): void
     {
-        // Delete all chunks associated with this text
-        $agentText->chunks()->delete();
+        // Chunks (incl. summary) cleaned up by Chunkable::bootChunkable() via the
+        // deleting event — FK cascade handles chunk_references.
 
         // Detach all agents (removes agent_sources pivot records)
         $agentText->agents()->detach();

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
+use Pgvector\Laravel\Vector;
 use Illuminate\Support\Str;
 
 /**
@@ -27,10 +28,12 @@ use Illuminate\Support\Str;
  * @property array<array-key, mixed>|null $webhook_headers
  * @property string $webhook_secret
  * @property string $auth_type
- * @property string|null $auth_value
+ * @property array<string, string>|null $auth_config
  * @property int $timeout_ms
  * @property int $max_response_bytes
  * @property bool $enabled
+ * @property Vector|null $embedding
+ * @property string|null $embedding_bm25
  * @property Carbon|null $last_invoked_at
  * @property string|null $last_error
  * @property int $invocation_count
@@ -76,14 +79,13 @@ class AgentFunction extends Model
             'parameters_schema' => AsArrayObject::class,
             'webhook_headers' => 'encrypted:array',
             'webhook_secret' => 'encrypted',
-            'auth_value' => 'encrypted',
+            'auth_config' => 'encrypted:array',
             'enabled' => 'boolean',
             'timeout_ms' => 'int',
             'max_response_bytes' => 'int',
             'invocation_count' => 'int',
             'last_invoked_at' => 'datetime',
-            'embedding' => 'array',
-            'embedded_at' => 'datetime',
+            'embedding' => Vector::class,
         ];
     }
 

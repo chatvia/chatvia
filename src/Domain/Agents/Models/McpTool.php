@@ -27,7 +27,7 @@ use Pgvector\Laravel\Vector;
  * @property array<array-key, mixed> $input_schema
  * @property bool $enabled
  * @property Vector|null $embedding
- * @property Carbon|null $embedded_at
+ * @property string|null $embedding_bm25
  * @property Carbon $fetched_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -46,7 +46,6 @@ class McpTool extends Model
             'input_schema' => 'array',
             'enabled' => 'boolean',
             'embedding' => Vector::class,
-            'embedded_at' => 'datetime',
             'fetched_at' => 'datetime',
         ];
     }

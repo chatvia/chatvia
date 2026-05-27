@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import type { AgentFunction } from '@/types/agent-function';
 import axios from 'axios';
-import { AlertCircle, FunctionSquare, LoaderCircle, Search } from 'lucide-vue-next';
+import { AlertCircle, Code, FunctionSquare, LoaderCircle, Plus, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -80,76 +82,93 @@ onMounted(fetchFunctions);
 
 <template>
     <AgentLayout :agent="agent">
-        <div class="mx-auto w-full max-w-6xl space-y-6">
-            <div>
-                <h1 class="text-xl font-semibold">Functions</h1>
-                <p class="text-muted-foreground text-sm">
-                    Attach account-level functions to this agent. Create or edit functions in
-                    <a :href="route('settings.functions.edit')" class="underline">Settings → Functions</a>.
-                </p>
-            </div>
+        <div class="flex justify-center">
+            <div class="w-full max-w-6xl space-y-6">
+                <Card>
+                    <CardHeader>
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <CardTitle class="flex items-center gap-2">
+                                    <Code class="h-5 w-5" />
+                                    Functions
+                                </CardTitle>
+                                <CardDescription>
+                                    Attach account-level functions to this agent. Create or edit functions in Settings → Functions.
+                                </CardDescription>
+                            </div>
+                            <Button as-child variant="outline">
+                                <a :href="route('settings.functions.edit')">
+                                    <Plus class="mr-1 h-4 w-4" />
+                                    New function
+                                </a>
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent class="space-y-6">
+                        <div class="relative max-w-sm">
+                            <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input v-model="search" placeholder="Search functions" class="pl-9" />
+                        </div>
 
-            <div class="relative max-w-sm">
-                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                <Input v-model="search" placeholder="Search functions" class="pl-9" />
-            </div>
+                        <div v-if="loading" class="text-muted-foreground flex items-center gap-2 py-12 text-sm">
+                            <LoaderCircle class="h-4 w-4 animate-spin" />
+                            Loading functions
+                        </div>
 
-            <div v-if="loading" class="text-muted-foreground flex items-center gap-2 py-12 text-sm">
-                <LoaderCircle class="h-4 w-4 animate-spin" />
-                Loading functions
-            </div>
+                        <div v-else-if="functions.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
+                            <FunctionSquare class="mx-auto mb-3 h-10 w-10 opacity-40" />
+                            <p class="font-medium">No functions yet</p>
+                            <p class="mt-1">
+                                Create your first one in
+                                <a :href="route('settings.functions.edit')" class="underline">Settings → Functions</a>.
+                            </p>
+                        </div>
 
-            <div v-else-if="functions.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
-                <FunctionSquare class="mx-auto mb-3 h-10 w-10 opacity-40" />
-                <p class="font-medium">No functions yet</p>
-                <p class="mt-1">
-                    Create your first one in
-                    <a :href="route('settings.functions.edit')" class="underline">Settings → Functions</a>.
-                </p>
-            </div>
+                        <div v-else-if="filtered.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
+                            No functions match your search.
+                        </div>
 
-            <div v-else-if="filtered.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
-                No functions match your search.
-            </div>
-
-            <div v-else class="rounded-lg border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead class="h-11 pl-5">Function</TableHead>
-                            <TableHead class="h-11 w-40">Webhook</TableHead>
-                            <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow v-for="fn in filtered" :key="fn.external_id">
-                            <TableCell class="py-4 pl-5">
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-2">
-                                        <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.name }}</code>
-                                        <Badge v-if="!fn.enabled" variant="secondary">disabled</Badge>
-                                        <Badge v-if="fn.last_error" variant="destructive" class="gap-1">
-                                            <AlertCircle class="h-3 w-3" />
-                                            last call failed
-                                        </Badge>
-                                    </div>
-                                    <p class="text-muted-foreground mt-1 line-clamp-1 text-sm">{{ fn.description }}</p>
-                                </div>
-                            </TableCell>
-                            <TableCell class="text-muted-foreground py-4 text-xs">
-                                {{ fn.webhook_method }} {{ fn.webhook_url }}
-                            </TableCell>
-                            <TableCell class="py-4 pr-5">
-                                <Switch
-                                    :model-value="fn.is_attached"
-                                    :disabled="!fn.enabled"
-                                    :title="!fn.enabled ? 'Enable this function in Settings first' : undefined"
-                                    @update:model-value="toggle(fn)"
-                                />
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
+                        <div v-else class="rounded-lg border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead class="h-11 pl-5">Function</TableHead>
+                                        <TableHead class="h-11 w-40">Webhook</TableHead>
+                                        <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow v-for="fn in filtered" :key="fn.external_id">
+                                        <TableCell class="py-4 pl-5">
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-2">
+                                                    <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.name }}</code>
+                                                    <Badge v-if="!fn.enabled" variant="secondary">disabled</Badge>
+                                                    <Badge v-if="fn.last_error" variant="destructive" class="gap-1">
+                                                        <AlertCircle class="h-3 w-3" />
+                                                        last call failed
+                                                    </Badge>
+                                                </div>
+                                                <p class="text-muted-foreground mt-1 line-clamp-1 text-sm">{{ fn.description }}</p>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell class="text-muted-foreground py-4 text-xs">
+                                            {{ fn.webhook_method }} {{ fn.webhook_url }}
+                                        </TableCell>
+                                        <TableCell class="py-4 pr-5">
+                                            <Switch
+                                                :model-value="fn.is_attached"
+                                                :disabled="!fn.enabled"
+                                                :title="!fn.enabled ? 'Enable this function in Settings first' : undefined"
+                                                @update:model-value="toggle(fn)"
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     </AgentLayout>

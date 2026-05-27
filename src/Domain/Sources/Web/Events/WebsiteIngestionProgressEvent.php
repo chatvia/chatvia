@@ -26,6 +26,11 @@ class WebsiteIngestionProgressEvent implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'WebsiteIngestionProgressEvent';
+    }
+
     public function broadcastWith(): array
     {
         return [

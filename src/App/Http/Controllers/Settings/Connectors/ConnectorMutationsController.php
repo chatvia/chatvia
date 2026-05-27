@@ -69,7 +69,6 @@ class ConnectorMutationsController extends Controller
             'description' => $tool->description,
             'parameters' => $tool->input_schema,
             'enabled' => $tool->enabled,
-            'embedded_at' => $tool->embedded_at?->toISOString(),
         ])->all();
 
         return response()->json([

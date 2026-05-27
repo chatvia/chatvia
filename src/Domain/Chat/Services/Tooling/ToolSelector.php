@@ -11,8 +11,8 @@ use Throwable;
  * given turn. Sits between LlmSource and the rest of the tooling
  * layer:
  *
- *   - Pull the active pool from ToolRegistry.
- *   - Ask SemanticToolRouter to narrow it.
+ *   - Ask SemanticToolRouter for the ranked tool set (hybrid vector +
+ *     BM25 retrieval in SQL).
  *   - Union sticky tools from recent assistant turns of the conversation.
  *   - Flatten the result to the OpenAI `tools` shape LlmSource expects.
  *
@@ -33,20 +33,11 @@ class ToolSelector
      */
     public function selectForTurn(Agent $agent, string $userMessage, ?string $conversationId): array
     {
-        $pool = $this->registry->for($agent);
-
-        if ($pool === []) {
-            Log::debug('ToolSelector: empty pool, no tools shipped to model', [
-                'agent_id' => $agent->id,
-                'conversation_id' => $conversationId,
-            ]);
-
-            return [];
-        }
-
         try {
-            $routed = $this->router->route($userMessage, $pool);
+            $routed = $this->router->route($userMessage, $agent);
         } catch (Throwable $e) {
+            $pool = $this->registry->for($agent);
+
             Log::warning('Tool router failed; falling back to full pool', [
                 'agent_id' => $agent->id,
                 'pool_size' => count($pool),
@@ -54,6 +45,15 @@ class ToolSelector
             ]);
 
             return array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $pool);
+        }
+
+        if ($routed === []) {
+            Log::debug('ToolSelector: routing returned no tools', [
+                'agent_id' => $agent->id,
+                'conversation_id' => $conversationId,
+            ]);
+
+            return [];
         }
 
         $stickyNames = $conversationId !== null ? $this->sticky->resolve($conversationId) : [];
@@ -64,7 +64,11 @@ class ToolSelector
             foreach ($routed as $entry) {
                 $routedNames[$entry->name] = true;
             }
-            foreach ($pool as $entry) {
+            // Sticky union: pull anything the model used recently back
+            // into the set even if the router didn't rank it high enough
+            // this turn. Pulls from the full cached pool so it doesn't
+            // matter whether the sticky tool is MCP or function.
+            foreach ($this->registry->for($agent) as $entry) {
                 if (isset($routedNames[$entry->name])) {
                     continue;
                 }
@@ -78,7 +82,6 @@ class ToolSelector
         Log::debug('ToolSelector: tools shipped to model', [
             'agent_id' => $agent->id,
             'conversation_id' => $conversationId,
-            'pool_size' => count($pool),
             'shipped_count' => count($routed),
             'sticky_added' => $stickyAdded,
             'shipped_names' => array_map(static fn (ToolEntry $entry): string => $entry->name, $routed),

@@ -12,6 +12,22 @@ use Illuminate\Support\Facades\Storage;
 trait Chunkable
 {
     /**
+     * Auto-registered by Eloquent for any model using this trait. Cascades chunk
+     * deletion via the polymorphic key so the summary chunk (chunk_index=0) is
+     * caught too — the chunks() relation below scopes it out, so going through
+     * the relation would orphan it. FK cascade handles chunk_references cleanup.
+     */
+    public static function bootChunkable(): void
+    {
+        static::deleting(function ($model): void {
+            Chunk::query()
+                ->where('chunkable_type', $model->getMorphClass())
+                ->where('chunkable_id', $model->getKey())
+                ->delete();
+        });
+    }
+
+    /**
      * @return MorphMany<Chunk, $this>
      */
     public function chunks(): MorphMany

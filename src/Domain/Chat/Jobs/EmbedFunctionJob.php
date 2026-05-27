@@ -3,16 +3,18 @@
 namespace Domain\Chat\Jobs;
 
 use Domain\Agents\Models\AgentFunction;
+use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Populates `functions.embedding` for a single function. Dispatched by
- * the AgentFunction observer on create/update so user-defined webhook
- * functions are immediately scorable by the semantic router after they
- * appear or change.
+ * Populates `functions.embedding` (Qwen3 dense vector) and
+ * `functions.embedding_bm25` (BM25 sparse vector via llmlingua2) for a
+ * single function. Dispatched by the AgentFunction observer on
+ * create/update so user-defined webhook functions are immediately
+ * scorable by ToolHybridSearch alongside MCP tools.
  */
 class EmbedFunctionJob implements ShouldQueue
 {
@@ -33,7 +35,7 @@ class EmbedFunctionJob implements ShouldQueue
             $text = $function->name."\n\n".$function->description;
             $function->forceFill([
                 'embedding' => embed($text),
-                'embedded_at' => now(),
+                'embedding_bm25' => Bm25Tokenizer::expression($text),
             ])->save();
         } catch (Throwable $e) {
             Log::warning('Function embedding failed', [

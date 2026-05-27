@@ -62,7 +62,6 @@ export interface McpTool {
     description: string;
     parameters: Record<string, unknown>;
     enabled: boolean;
-    embedded_at?: string | null;
 }
 
 export interface ConnectorToolsResponse {

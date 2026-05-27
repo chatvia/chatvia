@@ -42,6 +42,32 @@ class Qwen3 extends AbstractEmbeddingsProvider
         return $vector;
     }
 
+    public function rerank(string $query, array $documents): ?array
+    {
+        $results = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer '.$this->getApiKey(),
+        ])
+            ->throw()
+            ->post($this->endpoint('/rerank'), [
+                'model' => $this->getModel(),
+                'query' => $query,
+                'documents' => $documents,
+            ])->json('results');
+
+        return collect($results)
+            ->map(fn ($item): array => [
+                'index' => $item['index'],
+                'relevance_score' => $item['relevance_score'],
+            ])
+            ->toArray();
+    }
+
+    public function supportsReranking(): bool
+    {
+        return true;
+    }
+
     public function getDimensions(): int
     {
         return 1024;

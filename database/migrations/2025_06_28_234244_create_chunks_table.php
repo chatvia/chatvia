@@ -31,6 +31,11 @@ return new class extends Migration
 
             $table->vector('embedding', 1024);
             $table->bm25vector('embedding_bm25');
+
+            $table->text('questions')->nullable();
+            $table->vector('questions_embedding', 1024)->nullable();
+            $table->bm25vector('questions_embedding_bm25')->nullable();
+
             $table->jsonb('metadata')->nullable();
 
             $table->string('checksum');
@@ -43,7 +48,9 @@ return new class extends Migration
         });
 
         DB::statement('CREATE INDEX chunks_embedding_bm25 ON chunks USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);');
+        DB::statement('CREATE INDEX chunks_questions_embedding_bm25 ON chunks USING bm25 (questions_embedding_bm25 bm25_catalog.bm25_ops);');
         $this->createOptimizedVectorChordIndex();
+        $this->createOptimizedQuestionsVectorChordIndex();
 
         // GIN index on the metadata JSONB column — accelerates queries that
         // filter by metadata keys (e.g. retrieval scoping by source type).
@@ -81,6 +88,34 @@ EOT;
 CREATE INDEX chunks_embedding_vchordrq_optimized
 ON chunks
 USING vchordrq (embedding vector_l2_ops)
+WITH (options = '{$indexOptions}');
+        ");
+    }
+
+    /**
+     * Same VectorChord config as above but for the questions vector. Fewer
+     * non-null rows than the main embedding (only enhanced chunks have it),
+     * but we keep the index large since lookup speed beats build cost.
+     */
+    private function createOptimizedQuestionsVectorChordIndex(): void
+    {
+        $buildThreads = min(8, (int) shell_exec('nproc 2>/dev/null') ?: 4);
+
+        $indexOptions = <<<EOT
+residual_quantization = true
+[build.internal]
+lists = [4096]
+build_threads = {$buildThreads}
+spherical_centroids = false
+sampling_factor = 512
+kmeans_iterations = 50
+
+EOT;
+
+        DB::statement("
+CREATE INDEX chunks_questions_embedding_vchordrq
+ON chunks
+USING vchordrq (questions_embedding vector_l2_ops)
 WITH (options = '{$indexOptions}');
         ");
     }

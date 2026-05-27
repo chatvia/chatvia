@@ -10,15 +10,14 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Compiles the **pool** of tools an agent can call into a uniform
- * `ToolEntry` list. The pool is the union of:
- *   - MCP tools (server enabled, tool enabled, server attached to this
- *     agent via `agent_mcp_server`)
- *   - Webhook functions (enabled, attached to this agent via
- *     `agent_function`)
+ * Pool catalog for an agent's tools — the full attached pool (MCP +
+ * webhook functions) as `ToolEntry[]`, cached for an hour. Used by the
+ * fallback path in `ToolSelector` (when query embedding fails) and by
+ * `asOpenAiTools()` (settings/diagnostics surfaces).
  *
- * `ToolSelector` then narrows this pool to what actually gets shipped
- * to the LLM on a given turn (semantic routing + sticky tools).
+ * Per-turn ranked retrieval is **not** here — see `ToolHybridSearch`,
+ * which does dense + BM25 hybrid across both `mcp_tools` and
+ * `functions` in a single RRF query.
  */
 class ToolRegistry
 {
@@ -56,34 +55,39 @@ class ToolRegistry
     }
 
     /**
+     * Convenience: same entries but already flattened to OpenAI shape.
+     * Used by the fallback path in ToolSelector when semantic routing
+     * fails — ship the whole pool rather than risking blocking the turn.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function asOpenAiTools(Agent $agent): array
+    {
+        return Collection::make($this->for($agent))
+            ->map(fn (ToolEntry $entry): array => $entry->toOpenAiFormat())
+            ->all();
+    }
+
+    /**
      * @return array<int, ToolEntry>
      */
     private function compile(int $agentId): array
     {
-        $entries = [];
-
-        foreach ($this->compileMcpTools($agentId) as $entry) {
-            $entries[] = $entry;
-        }
-        foreach ($this->compileWebhookTools($agentId) as $entry) {
-            $entries[] = $entry;
-        }
-
-        return $entries;
+        return [
+            ...$this->compileMcpTools($agentId),
+            ...$this->compileWebhookTools($agentId),
+        ];
     }
 
     /**
-     * MCP tools live in `mcp_tools` (one row per tool per server) and
-     * carry an inline embedding. We join through `mcp_servers` to honor
-     * server-level enable flags, require an `agent_mcp_server` pivot row
-     * (enabled) for this agent, and anti-join `agent_mcp_tool` to drop
-     * tools the agent has hard-disabled.
+     * Full attached-MCP pool, no ranking. Used by the cache + fallback
+     * path; per-turn ranked retrieval goes through `McpToolHybridSearch`.
      *
      * @return array<int, ToolEntry>
      */
     private function compileMcpTools(int $agentId): array
     {
-        $query = McpTool::query()
+        $tools = McpTool::query()
             ->select(['mcp_tools.*', 'mcp_servers.slug as server_slug'])
             ->join('mcp_servers', 'mcp_servers.id', '=', 'mcp_tools.mcp_server_id')
             ->join('agent_mcp_server', function ($join) use ($agentId): void {
@@ -93,23 +97,8 @@ class ToolRegistry
             ->where('mcp_servers.enabled', true)
             ->where('mcp_tools.enabled', true)
             ->orderBy('mcp_servers.slug')
-            ->orderBy('mcp_tools.name');
-
-        $startedAt = microtime(true);
-        $tools = $query->get();
-        $elapsedMs = (microtime(true) - $startedAt) * 1000;
-
-        $withEmbedding = $tools->filter(static fn (McpTool $t): bool => $t->embedding !== null)->count();
-
-        Log::debug('ToolRegistry: mcp_tools queried from DB', [
-            'agent_id' => $agentId,
-            'sql' => $query->toRawSql(),
-            'row_count' => $tools->count(),
-            'with_embedding' => $withEmbedding,
-            'without_embedding' => $tools->count() - $withEmbedding,
-            'elapsed_ms' => round($elapsedMs, 2),
-            'tool_names' => $tools->pluck('name')->all(),
-        ]);
+            ->orderBy('mcp_tools.name')
+            ->get();
 
         return $tools->map(function (McpTool $tool): ToolEntry {
             $prefix = 'mcp__'.$tool->getAttribute('server_slug').'__';
@@ -120,7 +109,7 @@ class ToolRegistry
                 name: $prefix.$tool->name,
                 description: $tool->description,
                 parameters: $tool->input_schema ?? [],
-                embedding: $tool->embedding?->toArray(),
+                embedding: null,
             );
         })->all();
     }
@@ -149,35 +138,15 @@ class ToolRegistry
                 ? []
                 : (is_object($schema) && method_exists($schema, 'toArray') ? $schema->toArray() : (array) $schema);
 
-            // PHPStan can't see the `embedding` cast on AgentFunction
-            // until the column lands in the schema-driven model docblock
-            // (post-migrate), so narrow defensively here.
-            $rawEmbedding = $fn->getAttribute('embedding');
-            $embedding = is_array($rawEmbedding) ? array_values(array_map('floatval', $rawEmbedding)) : null;
-
             return new ToolEntry(
                 kind: 'function',
                 sourceId: $fn->id,
                 name: $fn->name,
                 description: $fn->description,
                 parameters: $parameters,
-                embedding: $embedding,
+                embedding: null,
             );
         })->all();
-    }
-
-    /**
-     * Convenience: same entries but already flattened to OpenAI shape.
-     * Used by the fallback path in ToolSelector when semantic routing
-     * fails — ship the whole pool rather than risking blocking the turn.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    public function asOpenAiTools(Agent $agent): array
-    {
-        return Collection::make($this->for($agent))
-            ->map(fn (ToolEntry $entry): array => $entry->toOpenAiFormat())
-            ->all();
     }
 
     private function cacheKey(int $agentId): string

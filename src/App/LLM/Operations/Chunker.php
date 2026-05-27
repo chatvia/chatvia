@@ -31,7 +31,7 @@ class Chunker
         $res = $this->provider->completion([
             'model' => config('ai.models.chunker'),
             'temperature' => 0.0,
-            'max_tokens' => 1024,
+            'max_tokens' => 8096,
             'messages' => [
                 [
                     'role' => 'system',
@@ -42,24 +42,57 @@ class Chunker
                     'content' => $userPrompt,
                 ],
             ],
+            'response_format' => [
+                'type' => 'json_schema',
+                'json_schema' => [
+                    'name' => 'document_chunk',
+                    'strict' => true,
+                    'schema' => $this->documentChunkSchema(),
+                ],
+            ],
         ])->throw();
 
-        $result = $res->json('choices.0.message.content');
+        $content = $res->json('choices.0.message.content');
 
-        // Try to get content from standard field
-        $data = $this->extractSummaryAndQuestions(
-            $result,
-            $page->content
-        );
+        Log::info($content);
 
-        Log::info($result);
+        $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
-        $data['cost'] = $this->calculateCost(
-            input: $systemPrompt.$userPrompt,
-            output: $res,
-        );
+        return DocumentChunk::from([
+            'chunk' => $page->content,
+            'summary' => $decoded['summary'],
+            'questions' => $decoded['questions'],
+            'cost' => $this->calculateCost(
+                input: $systemPrompt.$userPrompt,
+                output: $res,
+            ),
+        ]);
+    }
 
-        return DocumentChunk::from($data);
+    /**
+     * Strict JSON schema for the chunker response — the LLM MUST return
+     * exactly this shape, no XML tags, no closing-tag truncation risk.
+     */
+    private function documentChunkSchema(): array
+    {
+        return [
+            'type' => 'object',
+            'properties' => [
+                'summary' => [
+                    'type' => 'string',
+                    'description' => '2-5 sentences capturing the target page\'s key ideas in natural language.',
+                ],
+                'questions' => [
+                    'type' => 'array',
+                    'items' => ['type' => 'string'],
+                    'minItems' => 5,
+                    'maxItems' => 7,
+                    'description' => '5-7 distinct questions the target page answers. Each question is its own array item — do NOT number them.',
+                ],
+            ],
+            'required' => ['summary', 'questions'],
+            'additionalProperties' => false,
+        ];
     }
 
     public function chunkHtml($html): array
@@ -128,39 +161,4 @@ class Chunker
             );
     }
 
-    /**
-     * Extract <Chunk>, <Summary>, and <Questions> XML tags and return clean chunk
-     */
-    private function extractSummaryAndQuestions(string $llmResponse, string $originalChunk): array
-    {
-        $chunk = null;
-        $summary = '';
-        $questions = [];
-
-        // Extract <Chunk> tag
-        if (preg_match('/<EnhancedChunk>(.*?)<\/EnhancedChunk>/s', $llmResponse, $chunkMatches)) {
-            $chunk = trim($chunkMatches[1]);
-        }
-
-        // Extract <Summary> tag
-        if (preg_match('/<Summary>(.*?)<\/Summary>/s', $llmResponse, $summaryMatches)) {
-            $summary = trim($summaryMatches[1]);
-        }
-
-        // Extract <Questions> tag
-        if (preg_match('/<Questions>(.*?)<\/Questions>/s', $llmResponse, $questionsMatches)) {
-            $questionsText = trim($questionsMatches[1]);
-            // Split questions by newlines and filter out empty lines
-            $questions = array_values(array_filter(
-                array_map('trim', explode("\n", $questionsText)),
-                fn ($q): bool => ! empty($q)
-            ));
-        }
-
-        return [
-            'chunk' => $chunk ?? $originalChunk,
-            'summary' => $summary,
-            'questions' => $questions,
-        ];
-    }
 }

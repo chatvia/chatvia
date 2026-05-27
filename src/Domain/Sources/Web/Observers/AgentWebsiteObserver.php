@@ -27,8 +27,8 @@ class AgentWebsiteObserver
      */
     public function deleted(SourceWebsite $agentWebsite): void
     {
-        // Delete all chunks associated with this website
-        $agentWebsite->chunks()->delete();
+        // Chunks (incl. summary) cleaned up by Chunkable::bootChunkable() via the
+        // deleting event — FK cascade handles chunk_references.
 
         // Detach all agents (removes agent_sources pivot records)
         $agentWebsite->agents()->detach();

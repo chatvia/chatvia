@@ -33,6 +33,9 @@ use Pgvector\Laravel\Vector;
  * @property string|null $chunked_using_model
  * @property string|null $embedding_model
  * @property string|null $summary
+ * @property string|null $questions
+ * @property Vector|null $questions_embedding
+ * @property string|null $questions_embedding_bm25
  * @property numeric $cost_in_cents
  * @property int $tokens
  * @property Vector $embedding
@@ -49,8 +52,6 @@ use Pgvector\Laravel\Vector;
  * @property-read mixed $images
  * @property-read Collection<int, AgentWebsiteUrl> $links
  * @property-read int|null $links_count
- * @property-read Collection<int, ChunkQuestion> $questions
- * @property-read int|null $questions_count
  * @property-read Collection<int, ChunkReference> $references
  * @property-read int|null $references_count
  *
@@ -128,11 +129,6 @@ class Chunk extends Model
                 ->map(fn ($image) => Storage::url($image))
                 ->toArray();
         });
-    }
-
-    public function questions(): HasMany
-    {
-        return $this->hasMany(ChunkQuestion::class);
     }
 
     public function references(): HasMany

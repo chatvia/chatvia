@@ -8,7 +8,6 @@ use App\LLM\Operations\CostCalculator;
 use App\LLM\Operations\Summarizer;
 use App\Prompts\PromptLoader;
 use Domain\Ingestion\Models\Chunk;
-use Domain\Ingestion\Models\ChunkQuestion;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Ingestion\Services\TikToken;
 use Domain\Sources\Files\Models\SourceFile;
@@ -64,13 +63,8 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 
         $summary = app(Summarizer::class)->fromUrl($pdfFileUrl);
 
-        // Extract questions separately
-        $questions = null;
-        if ($contentAnalysis->questions) {
-            $questions = is_array($contentAnalysis->questions)
-                ? $contentAnalysis->questions
-                : [$contentAnalysis->questions];
-        }
+        // Schema guarantees questions is array<string> with 5-7 items.
+        $questionsText = implode("\n", $contentAnalysis->questions);
 
         // Calculate LLM cost for summarization and analysis
         $costInCents = app(CostCalculator::class)->calculateCostInCents(
@@ -80,12 +74,17 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             pricePerOutputMilToken: 8.0,
         );
 
-        // Add embedding cost
+        // Add embedding cost (chunk + questions)
         $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents += app(CostCalculator::class)
             ->calculateCostInCents(strip_tags($summary), '', $embeddingPrice, 0.0);
 
-        $chunk = Chunk::query()->create([
+        if ($questionsText !== '') {
+            $costInCents += app(CostCalculator::class)
+                ->calculateCostInCents($questionsText, '', $embeddingPrice, 0.0);
+        }
+
+        Chunk::query()->create([
             'user_id' => $this->source->user_id,
             'chunkable_type' => get_class($this->source),
             'chunkable_id' => $this->source->id,
@@ -93,6 +92,9 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'chunk_index' => 0,
             'chunk' => $summary,
             'summary' => '',
+            'questions' => $questionsText !== '' ? $questionsText : null,
+            'questions_embedding' => $questionsText !== '' ? embed($questionsText, true) : null,
+            'questions_embedding_bm25' => $questionsText !== '' ? Bm25Tokenizer::expression($questionsText) : null,
             'chunked_using_model' => config('ai.models.chunker'),
             'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
             'cost_in_cents' => $costInCents,
@@ -103,14 +105,6 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'checksum' => hash('xxh128', $summary),
             'retrieval_count' => 0,
         ]);
-
-        foreach ($questions ?? [] as $question) {
-            ChunkQuestion::query()->create([
-                'chunk_id' => $chunk->id,
-                'question' => $question,
-                'embedding' => embed($question, true),
-            ]);
-        }
 
         Storage::delete($pdfFilepath);
     }

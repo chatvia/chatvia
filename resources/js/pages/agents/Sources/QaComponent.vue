@@ -11,7 +11,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { useForm } from '@inertiajs/vue3';
-import { useEcho } from '@laravel/echo-vue';
 import axios from 'axios';
 import { AlertCircle, CheckCircle, ChevronDown, Edit3, HelpCircle, LoaderCircle, Plus, Save, Trash2, Unlink } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -45,15 +44,8 @@ const { hasPermission } = useTeamPermissions();
 // Check if user can delete sources
 const canDeleteSources = computed(() => hasPermission('agent.sources.delete'));
 
-// WebSocket event listener for QA ingestion status updates
-useEcho(`agents.${props.agent.external_id}.ingestion.qa`, 'QAIngestionEvent', (e) => {
-    handleIngestionUpdate(e);
-});
-
-// WebSocket event listener for QA ingestion progress updates
-useEcho(`agents.${props.agent.external_id}.qa.progress`, 'QAIngestionProgressEvent', (e) => {
-    handleQAIngestionProgress(e);
-});
+// Q&A creation is synchronous (a single DB insert with no chunking or embedding),
+// so there's no ingestion progress to broadcast. No websocket listeners needed.
 
 // State
 const qaEntries = ref<QAEntry[]>([]);
@@ -251,25 +243,6 @@ const fetchQAEntries = async () => {
         toast.error('Failed to load Q&A entries');
     } finally {
         isLoading.value = false;
-    }
-};
-
-const handleIngestionUpdate = (event: any) => {
-    const entry = qaEntries.value.find((e) => e.id === event.qaId);
-    if (entry) {
-        entry.status = event.status;
-        if (event.status === 'ingested') {
-            toast.success('Q&A entry ingested successfully');
-        } else if (event.status === 'failed') {
-            toast.error('Q&A entry ingestion failed');
-        }
-    }
-};
-
-const handleQAIngestionProgress = (event: any) => {
-    const entry = qaEntries.value.find((e) => e.id === event.qaId);
-    if (entry) {
-        entry.progress = event.progress;
     }
 };
 

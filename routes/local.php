@@ -4,8 +4,8 @@ use Domain\Analytics\Services\TopicAnalysis;
 use Illuminate\Http\Request;
 
 if (app()->isLocal()) {
-    Route::get('playground', function (): void {
-        dd(app(TopicAnalysis::class)->analyze('How to login?'));
+    Route::get('test', function (): array {
+        return ['order_id' => 123, 'status' => 'shipped'];
     });
 
     // Test webhook for the Functions feature. Returns a fixed value so we

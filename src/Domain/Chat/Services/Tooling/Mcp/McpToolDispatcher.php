@@ -32,13 +32,18 @@ class McpToolDispatcher implements ToolDispatcherInterface
         }
 
         $server = AgentMcpServer::query()
-            ->where('agent_id', $agent->id)
+            ->where('user_id', $agent->user_id)
             ->where('slug', $slug)
             ->where('enabled', true)
+            ->whereExists(function ($q) use ($agent): void {
+                $q->from('agent_mcp_server')
+                    ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
+                    ->where('agent_mcp_server.agent_id', $agent->id);
+            })
             ->first();
 
         if (! $server) {
-            return $this->error("MCP server \"{$slug}\" is not configured or disabled for this agent.");
+            return $this->error("MCP server \"{$slug}\" is not attached to this agent or is disabled.");
         }
 
         $args = $this->decodeArgs($arguments);
@@ -63,6 +68,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
             Log::info('MCP tool dispatched', [
                 'server' => $server->slug,
                 'tool' => $toolName,
+                'args' => $this->summarizeArgs($args),
                 'latency_ms' => $latencyMs,
             ]);
 
@@ -77,6 +83,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
             Log::warning('MCP tool dispatch failed', [
                 'server' => $server->slug,
                 'tool' => $toolName,
+                'args' => $this->summarizeArgs($args),
                 'error' => $e->getMessage(),
             ]);
 
@@ -192,5 +199,23 @@ class McpToolDispatcher implements ToolDispatcherInterface
     private function error(string $message): ToolDispatchResult
     {
         return ToolDispatchResult::text('Tool error: '.$message);
+    }
+
+    /**
+     * JSON-encode tool args for logging; truncate so a giant inline
+     * payload (HTML body, base64 image, etc.) doesn't blow up the log.
+     *
+     * @param  array<string, mixed>  $args
+     */
+    private function summarizeArgs(array $args): string
+    {
+        $encoded = json_encode($args, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if ($encoded === false) {
+            return '<unserializable>';
+        }
+
+        return mb_strlen($encoded) > 500
+            ? mb_substr($encoded, 0, 500).'…[truncated]'
+            : $encoded;
     }
 }

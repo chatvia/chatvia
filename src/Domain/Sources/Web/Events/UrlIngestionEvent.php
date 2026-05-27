@@ -23,6 +23,11 @@ class UrlIngestionEvent implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'UrlIngestionEvent';
+    }
+
     public function broadcastWith(): array
     {
         return [

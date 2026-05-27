@@ -98,8 +98,10 @@ class McpCatalog
             'last_error' => null,
         ])->save();
 
-        // Embedding refresh runs out-of-band. The job filters to rows that
-        // are new or whose `updated_at` advanced past `embedded_at`.
+        // Embedding refresh runs out-of-band. The job re-embeds any row
+        // whose `embedding` or `embedding_bm25` is NULL — the catalog
+        // upsert leaves both columns alone, so only newly inserted rows
+        // get picked up here today.
         EmbedMcpToolsJob::dispatch($server->id);
 
         return $server->tools()->orderBy('name')->get();

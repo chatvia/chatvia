@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -122,117 +123,125 @@ onMounted(fetchAll);
 
 <template>
     <AgentLayout :agent="agent" title="Connectors">
-        <div class="mx-auto w-full max-w-6xl space-y-6">
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-semibold">Connectors</h1>
-                    <Badge variant="secondary">Public preview</Badge>
-                </div>
-                <p class="text-muted-foreground text-sm">
-                    Attach account-level connectors to this agent. Connect or add new ones in
-                    <a :href="route('settings.connectors.edit')" class="underline">Settings → Connectors</a>.
-                </p>
-            </div>
+        <div class="flex justify-center">
+            <div class="w-full max-w-6xl space-y-6">
+                <Card>
+                    <CardHeader>
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <CardTitle class="flex items-center gap-2">
+                                    <Plug class="h-5 w-5" />
+                                    Connectors
+                                </CardTitle>
+                                <CardDescription>
+                                    Attach account-level connectors to this agent. Connect or add new ones in
+                                    <a :href="route('settings.connectors.edit')" class="underline">Settings → Connectors</a>.
+                                </CardDescription>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent class="space-y-6">
+                        <div class="relative max-w-sm">
+                            <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input v-model="search" placeholder="Search connectors" class="pl-9" />
+                        </div>
 
-            <div class="relative max-w-sm">
-                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                <Input v-model="search" placeholder="Search connectors" class="pl-9" />
-            </div>
+                        <div v-if="loading" class="text-muted-foreground flex items-center gap-2 py-12 text-sm">
+                            <LoaderCircle class="h-4 w-4 animate-spin" />
+                            Loading connectors
+                        </div>
 
-            <div v-if="loading" class="text-muted-foreground flex items-center gap-2 py-12 text-sm">
-                <LoaderCircle class="h-4 w-4 animate-spin" />
-                Loading connectors
-            </div>
+                        <div v-else class="space-y-8">
+                            <section v-if="filteredCustom.length > 0">
+                                <h2 class="mb-3 text-base font-semibold">Custom connectors</h2>
+                                <div class="rounded-lg border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead class="h-11 pl-5">Connector</TableHead>
+                                                <TableHead class="h-11 w-32">Tools</TableHead>
+                                                <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            <TableRow v-for="row in filteredCustom" :key="row.external_id">
+                                                <TableCell class="py-4 pl-5">
+                                                    <div class="flex items-center gap-4">
+                                                        <div class="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
+                                                            <Plug class="text-muted-foreground h-5 w-5" />
+                                                        </div>
+                                                        <div class="min-w-0">
+                                                            <p class="leading-tight font-medium">{{ row.name }}</p>
+                                                            <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ row.url }}</p>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell class="py-4 text-sm">{{ row.catalog_tools_count }}</TableCell>
+                                                <TableCell class="py-4 pr-5">
+                                                    <Switch :model-value="row.is_attached" @update:model-value="toggleCustom(row)" />
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </section>
 
-            <div v-else class="space-y-8">
-                <section v-if="filteredCustom.length > 0">
-                    <h2 class="mb-3 text-base font-semibold">Custom connectors</h2>
-                    <div class="rounded-lg border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead class="h-11 pl-5">Connector</TableHead>
-                                    <TableHead class="h-11 w-32">Tools</TableHead>
-                                    <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="row in filteredCustom" :key="row.external_id">
-                                    <TableCell class="py-4 pl-5">
-                                        <div class="flex items-center gap-4">
-                                            <div class="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
-                                                <Plug class="text-muted-foreground h-5 w-5" />
-                                            </div>
-                                            <div class="min-w-0">
-                                                <p class="leading-tight font-medium">{{ row.name }}</p>
-                                                <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ row.url }}</p>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell class="py-4 text-sm">{{ row.catalog_tools_count }}</TableCell>
-                                    <TableCell class="py-4 pr-5">
-                                        <Switch :model-value="row.is_attached" @update:model-value="toggleCustom(row)" />
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-                </section>
+                            <section v-if="filteredFeatured.length > 0">
+                                <div class="rounded-lg border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead class="h-11 pl-5">Connector</TableHead>
+                                                <TableHead class="h-11 w-32">Tools</TableHead>
+                                                <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            <TableRow v-for="row in filteredFeatured" :key="row.connector.slug">
+                                                <TableCell class="py-4 pl-5">
+                                                    <div class="flex items-center gap-4">
+                                                        <div
+                                                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
+                                                            :style="{ backgroundColor: '#' + row.connector.brandColor + '15' }"
+                                                        >
+                                                            <img :src="logoUrl(row.connector)" :alt="row.connector.name" class="h-5 w-5" />
+                                                        </div>
+                                                        <div class="min-w-0">
+                                                            <p class="leading-tight font-medium">{{ row.connector.name }}</p>
+                                                            <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
+                                                                {{ row.connector.description }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell class="py-4 text-sm">
+                                                    {{ row.server ? row.server.catalog_tools_count : '—' }}
+                                                </TableCell>
+                                                <TableCell class="py-4 pr-5">
+                                                    <Badge v-if="row.connector.comingSoon" variant="outline">Soon</Badge>
+                                                    <Switch
+                                                        v-else
+                                                        :model-value="row.state === 'attached'"
+                                                        :disabled="row.state === 'available'"
+                                                        :title="row.state === 'available' ? 'Connect this MCP in Settings first' : undefined"
+                                                        @update:model-value="toggleFeatured(row)"
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </section>
 
-                <section v-if="filteredFeatured.length > 0">
-                    <h2 class="mb-3 text-base font-semibold">Featured connectors</h2>
-                    <div class="rounded-lg border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead class="h-11 pl-5">Connector</TableHead>
-                                    <TableHead class="h-11 w-32">Tools</TableHead>
-                                    <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="row in filteredFeatured" :key="row.connector.slug">
-                                    <TableCell class="py-4 pl-5">
-                                        <div class="flex items-center gap-4">
-                                            <div
-                                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
-                                                :style="{ backgroundColor: '#' + row.connector.brandColor + '15' }"
-                                            >
-                                                <img :src="logoUrl(row.connector)" :alt="row.connector.name" class="h-5 w-5" />
-                                            </div>
-                                            <div class="min-w-0">
-                                                <p class="leading-tight font-medium">{{ row.connector.name }}</p>
-                                                <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
-                                                    {{ row.connector.description }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell class="py-4 text-sm">
-                                        {{ row.server ? row.server.catalog_tools_count : '—' }}
-                                    </TableCell>
-                                    <TableCell class="py-4 pr-5">
-                                        <Badge v-if="row.connector.comingSoon" variant="outline">Soon</Badge>
-                                        <Switch
-                                            v-else
-                                            :model-value="row.state === 'attached'"
-                                            :disabled="row.state === 'available'"
-                                            :title="row.state === 'available' ? 'Connect this MCP in Settings first' : undefined"
-                                            @update:model-value="toggleFeatured(row)"
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-                </section>
-
-                <div
-                    v-if="filteredFeatured.length === 0 && filteredCustom.length === 0"
-                    class="text-muted-foreground rounded-md border py-12 text-center text-sm"
-                >
-                    No connectors match your search.
-                </div>
+                            <div
+                                v-if="filteredFeatured.length === 0 && filteredCustom.length === 0"
+                                class="text-muted-foreground rounded-md border py-12 text-center text-sm"
+                            >
+                                No connectors match your search.
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     </AgentLayout>

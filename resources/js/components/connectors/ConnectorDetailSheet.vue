@@ -7,7 +7,8 @@ import Switch from '@/components/ui/switch/Switch.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { AgentMcpServer, Connector, McpTool } from '@/types/connector';
 import axios from 'axios';
-import { CheckCircle2, ChevronRight, LoaderCircle, Plug, RefreshCw, Unplug } from 'lucide-vue-next';
+import { CheckCircle2, ChevronRight, LoaderCircle, Plug, RefreshCw, Search, Unplug } from 'lucide-vue-next';
+import { Input } from '@/components/ui/input';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -58,6 +59,15 @@ const tools = ref<McpTool[]>([]);
 const toolsLoading = ref(false);
 const refreshing = ref(false);
 const expanded = ref<Record<string, boolean>>({});
+const toolSearch = ref('');
+
+const filteredTools = computed(() => {
+    const q = toolSearch.value.trim().toLowerCase();
+    if (!q) return tools.value;
+    return tools.value.filter(
+        (t) => t.short_name.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q),
+    );
+});
 const disconnectOpen = ref(false);
 
 const connector = computed(() => props.row?.connector ?? null);
@@ -121,6 +131,7 @@ watch(
         tools.value = [];
         expanded.value = {};
         activeTab.value = 'overview';
+        toolSearch.value = '';
     },
 );
 
@@ -351,12 +362,22 @@ const connectButtonLabel = computed(() => {
                     </div>
 
                     <div v-else>
+                        <div class="relative mb-3">
+                            <Search class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                            <Input v-model="toolSearch" placeholder="Search tools" class="pl-9" />
+                        </div>
+
                         <div class="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
                             <span>Interactive tools</span>
-                            <Badge variant="secondary">{{ tools.length }}</Badge>
+                            <Badge variant="secondary">{{ filteredTools.length }}<template v-if="filteredTools.length !== tools.length"> / {{ tools.length }}</template></Badge>
                         </div>
-                        <div class="divide-border divide-y">
-                            <div v-for="tool in tools" :key="tool.name" class="py-4 first:pt-0 last:pb-0">
+
+                        <div v-if="filteredTools.length === 0" class="text-muted-foreground py-6 text-center text-sm">
+                            No tools match your search.
+                        </div>
+
+                        <div v-else class="divide-border divide-y">
+                            <div v-for="tool in filteredTools" :key="tool.name" class="py-4 first:pt-0 last:pb-0">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0 flex-1">
                                         <p class="font-medium" :class="{ 'text-muted-foreground line-through': !tool.enabled }">

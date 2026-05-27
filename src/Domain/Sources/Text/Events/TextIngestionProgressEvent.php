@@ -26,6 +26,11 @@ class TextIngestionProgressEvent implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'TextIngestionProgressEvent';
+    }
+
     public function broadcastWith(): array
     {
         return [

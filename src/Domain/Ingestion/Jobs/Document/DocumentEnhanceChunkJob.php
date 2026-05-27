@@ -9,7 +9,6 @@ use App\LLM\Operations\Vision;
 use Domain\Agents\Models\Agent;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Models\Chunk;
-use Domain\Ingestion\Models\ChunkQuestion;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Bus\Queueable;
@@ -83,12 +82,10 @@ class DocumentEnhanceChunkJob implements ShouldQueue
         );
 
         $summary = $enhancedChunk->summary;
-        $questions = $enhancedChunk->questions;
+        $questionsText = implode("\n", $enhancedChunk->questions);
 
-        // Embed chunk content only (with image/table descriptions, which describe
-        // the same content). Summary and questions are stored separately to avoid
-        // diluting the chunk's vector and confusing the embedding model with mixed
-        // intent (chunk = answer, questions = question).
+        // Build the chunk's embedding input: page content + image/table
+        // descriptions (which describe the same source content in prose form).
         $chunkEmbeddingText = $this->page->content;
 
         if ($describedImages) {
@@ -99,14 +96,21 @@ class DocumentEnhanceChunkJob implements ShouldQueue
             $chunkEmbeddingText .= "\n\n".$describedTables;
         }
 
+        // Contextual Retrieval (per Anthropic cookbook): prepend the LLM-generated
+        // summary so the vector and BM25 representations include document-level
+        // context. The cookbook reports +5pp Pass@10 from this alone. Questions
+        // still live in their own column for independent HyDE-style matching.
+        $contextualizedChunk = $summary !== ''
+            ? $summary."\n\n".$chunkEmbeddingText
+            : $chunkEmbeddingText;
+
         $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents = app(CostCalculator::class)
-            ->calculateCostInCents($chunkEmbeddingText, '', $embeddingPrice, 0.0) + $enhancedChunk->cost;
+            ->calculateCostInCents($contextualizedChunk, '', $embeddingPrice, 0.0) + $enhancedChunk->cost;
 
-        // Embed each question separately and embedding cost on top.
-        foreach ($questions as $question) {
+        if ($questionsText !== '') {
             $costInCents += app(CostCalculator::class)
-                ->calculateCostInCents($question, '', $embeddingPrice, 0.0);
+                ->calculateCostInCents($questionsText, '', $embeddingPrice, 0.0);
         }
 
         $tables = array_values(array_filter(
@@ -115,8 +119,11 @@ class DocumentEnhanceChunkJob implements ShouldQueue
         ));
 
         $this->chunk->update([
-            'embedding' => embed($chunkEmbeddingText),
-            'embedding_bm25' => Bm25Tokenizer::expression($chunkEmbeddingText),
+            'embedding' => embed($contextualizedChunk),
+            'embedding_bm25' => Bm25Tokenizer::expression($contextualizedChunk),
+            'questions' => $questionsText !== '' ? $questionsText : null,
+            'questions_embedding' => $questionsText !== '' ? embed($questionsText, true) : null,
+            'questions_embedding_bm25' => $questionsText !== '' ? Bm25Tokenizer::expression($questionsText) : null,
             'cost_in_cents' => $costInCents,
             'summary' => $summary,
             'enhanced' => true,
@@ -128,18 +135,6 @@ class DocumentEnhanceChunkJob implements ShouldQueue
                 ],
             ],
         ]);
-
-        // Re-enhance safety: drop any previously-generated question rows for this
-        // chunk before fanning out, so retries don't accumulate duplicates.
-        ChunkQuestion::query()->where('chunk_id', $this->chunk->id)->delete();
-
-        foreach ($questions as $question) {
-            ChunkQuestion::query()->create([
-                'chunk_id' => $this->chunk->id,
-                'question' => $question,
-                'embedding' => embed($question, true),
-            ]);
-        }
     }
 
     public function failed(Throwable $e): void

@@ -13,8 +13,8 @@ class SourceFileObserver
 
     public function deleted(SourceFile $agentFile): void
     {
-        // Delete all chunks associated with this file
-        $agentFile->chunks()->delete();
+        // Chunks (incl. summary) cleaned up by Chunkable::bootChunkable() via the
+        // deleting event — FK cascade handles chunk_references.
 
         // Detach all agents (removes agent_sources pivot records)
         $agentFile->agents()->detach();

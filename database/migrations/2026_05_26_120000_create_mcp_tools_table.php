@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -9,10 +10,14 @@ return new class extends Migration
     public function up(): void
     {
         // First-class storage for MCP tool definitions discovered via
-        // `tools/list` on each connected server. Previously these lived
-        // only in a 6h Redis cache; promoting to rows gives us a clean
-        // home for embeddings, queryability, and per-server tool
-        // enable/disable.
+        // `tools/list` on each connected server. Two retrieval signals live
+        // here side-by-side:
+        //   - `embedding`     → Qwen3 dense vector, for semantic search.
+        //   - `embedding_bm25` → BM25-tokenized (llmlingua2), for lexical
+        //                        match on exact terms the user types.
+        // SemanticToolRouter fuses both via Reciprocal Rank Fusion in SQL,
+        // so a query like "render a heatmap" still finds the chart tool
+        // even when GitHub vocabulary dominates the dense-vector signal.
         Schema::create('mcp_tools', function (Blueprint $table) {
             $table->id();
             $table->foreignId('mcp_server_id')
@@ -33,14 +38,10 @@ return new class extends Migration
             // true on catalog sync.
             $table->boolean('enabled')->default(true);
 
-            // Inline embedding (Qwen3 = 1024 dims). Stored as native
-            // pgvector for storage-size parity with `chunks` and to keep
-            // the option of SQL-side similarity if the pool grows.
-            // Scoring still happens in PHP today (see SemanticToolRouter)
-            // because per-agent pools are small and the registry caches.
-            // Populated by EmbedMcpToolsJob after each catalog sync.
+            // Dense + sparse vectors. Both populated by EmbedMcpToolsJob
+            // from `name + description` after each catalog sync.
             $table->vector('embedding', 1024)->nullable();
-            $table->timestamp('embedded_at')->nullable();
+            $table->bm25vector('embedding_bm25')->nullable();
 
             // Bumped on every catalog sync; rows whose fetched_at didn't
             // advance after a sync are tools the server no longer exposes
@@ -51,6 +52,16 @@ return new class extends Migration
 
             $table->unique(['mcp_server_id', 'name']);
         });
+
+        // BM25 index — used by SemanticToolRouter's RRF query.
+        DB::statement('CREATE INDEX mcp_tools_embedding_bm25 ON mcp_tools USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
+
+        // vchordrq index for fast approximate cosine on the dense embedding.
+        // L2-ops matches the operator used elsewhere (chunks); cosine is
+        // equivalent on L2-normalised vectors which is what Qwen3 returns.
+        DB::statement('CREATE INDEX mcp_tools_embedding_vchordrq ON mcp_tools USING vchordrq (embedding vector_l2_ops)');
+
+        DB::statement('ANALYZE mcp_tools');
     }
 
     public function down(): void

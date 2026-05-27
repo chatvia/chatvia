@@ -62,8 +62,11 @@ class ContentAnalyzer
             'type' => 'object',
             'properties' => [
                 'questions' => [
-                    'type' => 'string',
-                    'description' => 'Generate a few questions about the document.',
+                    'type' => 'array',
+                    'items' => ['type' => 'string'],
+                    'minItems' => 5,
+                    'maxItems' => 7,
+                    'description' => 'Generate 5-7 distinct questions the document answers. Each question MUST be a separate array item — do NOT number them, do NOT join them into one string.',
                 ],
                 'document_type' => [
                     'type' => 'string',
@@ -183,6 +186,7 @@ class ContentAnalyzer
                 ],
             ],
             'required' => [
+                'questions',
                 'document_type',
                 'metadata',
                 'language',

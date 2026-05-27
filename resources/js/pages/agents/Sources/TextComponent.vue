@@ -41,12 +41,12 @@ const { hasPermission } = useTeamPermissions();
 const canDeleteSources = computed(() => hasPermission('agent.sources.delete'));
 
 // WebSocket event listener for text ingestion status updates
-useEcho(`agents.${props.agent.external_id}.ingestion.text`, 'TextIngestionEvent', (e) => {
+useEcho(`agents.${props.agent.external_id}.ingestion.text`, '.TextIngestionEvent', (e) => {
     handleIngestionUpdate(e);
 });
 
 // WebSocket event listener for text ingestion progress updates
-useEcho(`agents.${props.agent.external_id}.texts.progress`, 'TextIngestionProgressEvent', (e) => {
+useEcho(`agents.${props.agent.external_id}.texts.progress`, '.TextIngestionProgressEvent', (e) => {
     handleTextIngestionProgress(e);
 });
 

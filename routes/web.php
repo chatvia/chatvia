@@ -73,6 +73,7 @@ Route::get(
     ConnectorOAuthCallbackController::class,
 )->middleware(['web', 'auth'])->name('connectors.oauth.callback');
 
+
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

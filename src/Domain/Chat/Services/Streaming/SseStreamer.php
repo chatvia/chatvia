@@ -30,6 +30,15 @@ class SseStreamer
 
     private function pump(iterable $events): void
     {
+        // Long-running tool chains (e.g. fetch commits → render chart →
+        // write follow-up turn) routinely exceed the PHP-FPM default of
+        // 30s. Disable the wall-clock limit for the stream — the
+        // client-disconnect check inside `emit()` is the real
+        // termination signal here, not max_execution_time.
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+
         if (function_exists('ignore_user_abort')) {
             ignore_user_abort(false);
         }

@@ -1,34 +1,34 @@
 <script setup lang="ts">
 import Heading from '@/components/Heading.vue';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { type NavItem, type SharedData } from '@/types';
+import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
+import { Code, KeyRound, Lock, Palette, Plug, User, type LucideIcon } from 'lucide-vue-next';
 
-const sidebarNavItems: NavItem[] = [
+interface NavSection {
+    title: string;
+    items: { title: string; href: string; icon: LucideIcon }[];
+}
+
+const sections: NavSection[] = [
     {
-        title: 'Profile',
-        href: '/settings/profile',
+        title: 'Account',
+        items: [
+            { title: 'Profile', href: '/settings/profile', icon: User },
+            { title: 'Password', href: '/settings/password', icon: Lock },
+            { title: 'API keys', href: '/settings/api-keys', icon: KeyRound },
+        ],
     },
     {
-        title: 'Password',
-        href: '/settings/password',
+        title: 'Integrations',
+        items: [
+            { title: 'Connectors', href: '/settings/connectors', icon: Plug },
+            { title: 'Functions', href: '/settings/functions', icon: Code },
+        ],
     },
     {
-        title: 'API keys',
-        href: '/settings/api-keys',
-    },
-    {
-        title: 'Connectors',
-        href: '/settings/connectors',
-    },
-    {
-        title: 'Functions',
-        href: '/settings/functions',
-    },
-    {
-        title: 'Appearance',
-        href: '/settings/appearance',
+        title: 'Preferences',
+        items: [{ title: 'Appearance', href: '/settings/appearance', icon: Palette }],
     },
 ];
 
@@ -37,8 +37,7 @@ const props = withDefaults(
         // 'narrow' is the default and matches the original Profile/Password
         // forms (max-w-xl). 'wide' opens the content area for data-heavy pages
         // like Connectors / Functions / API keys where a 576px column clips
-        // tables and the page ends up looking like the screenshot we just
-        // saw.
+        // tables.
         width?: 'narrow' | 'wide';
     }>(),
     { width: 'narrow' },
@@ -47,26 +46,41 @@ const props = withDefaults(
 const page = usePage<SharedData>();
 
 const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
+
+function isActive(href: string): boolean {
+    return currentPath === href || currentPath.startsWith(href + '/');
+}
 </script>
 
 <template>
     <div class="px-4 py-6">
         <Heading title="Settings" description="Manage your profile and account settings" />
 
-        <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:space-x-12">
-            <aside class="w-full max-w-xl lg:w-48">
-                <nav class="flex flex-col space-y-1 space-x-0">
-                    <Button
-                        v-for="item in sidebarNavItems"
-                        :key="item.href"
-                        variant="ghost"
-                        :class="['w-full justify-start', { 'bg-muted': currentPath === item.href }]"
-                        as-child
-                    >
-                        <Link :href="item.href">
+        <div class="flex flex-col items-start space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:space-x-12">
+            <aside class="w-full lg:sticky lg:top-32 lg:w-56 lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto">
+                <nav class="flex flex-col gap-6">
+                    <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">
+                        <p class="text-muted-foreground px-3 text-xs font-medium tracking-wide uppercase">
+                            {{ section.title }}
+                        </p>
+                        <Link
+                            v-for="item in section.items"
+                            :key="item.href"
+                            :href="item.href"
+                            :class="[
+                                'group inline-flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                                isActive(item.href)
+                                    ? 'bg-accent text-accent-foreground font-medium'
+                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                            ]"
+                        >
+                            <component
+                                :is="item.icon"
+                                :class="['h-4 w-4 shrink-0', isActive(item.href) ? 'text-accent-foreground' : 'text-muted-foreground group-hover:text-foreground']"
+                            />
                             {{ item.title }}
                         </Link>
-                    </Button>
+                    </div>
                 </nav>
             </aside>
 

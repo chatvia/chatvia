@@ -6,7 +6,6 @@ use App\LLM\Operations\Chunker;
 use App\LLM\Operations\CostCalculator;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Models\Chunk;
-use Domain\Ingestion\Models\ChunkQuestion;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 
 class ChunkEnhanceText
@@ -25,35 +24,35 @@ class ChunkEnhanceText
 
         $summary = $enhancedChunk->summary;
         $questions = $enhancedChunk->questions;
+        $questionsText = implode("\n", $questions);
 
-        // Embed only the chunk's own content. Summary and questions live in
-        // dedicated columns / chunk_questions rows so the chunk vector stays
-        // a clean representation of the source text.
+        // Contextual Retrieval (per Anthropic cookbook): prepend the LLM-generated
+        // summary to the chunk text before embedding. The summary situates the
+        // chunk in its document context, which lifts Pass@10 by ~5pp in the
+        // cookbook's evaluation. Questions still live in their own column for
+        // independent HyDE-style matching.
+        $contextualizedChunk = $summary !== ''
+            ? $summary."\n\n".$page->content
+            : $page->content;
+
         $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents = app(CostCalculator::class)
-            ->calculateCostInCents($page->content, '', $embeddingPrice, 0.0) + $enhancedChunk->cost;
+            ->calculateCostInCents($contextualizedChunk, '', $embeddingPrice, 0.0) + $enhancedChunk->cost;
 
-        foreach ($questions as $question) {
+        if ($questionsText !== '') {
             $costInCents += app(CostCalculator::class)
-                ->calculateCostInCents($question, '', $embeddingPrice, 0.0);
+                ->calculateCostInCents($questionsText, '', $embeddingPrice, 0.0);
         }
 
         $chunk->update([
-            'embedding' => embed($page->content),
-            'embedding_bm25' => Bm25Tokenizer::expression($page->content),
+            'embedding' => embed($contextualizedChunk),
+            'embedding_bm25' => Bm25Tokenizer::expression($contextualizedChunk),
+            'questions' => $questionsText !== '' ? $questionsText : null,
+            'questions_embedding' => $questionsText !== '' ? embed($questionsText, true) : null,
+            'questions_embedding_bm25' => $questionsText !== '' ? Bm25Tokenizer::expression($questionsText) : null,
             'cost_in_cents' => $costInCents,
             'summary' => $summary,
             'enhanced' => true,
         ]);
-
-        ChunkQuestion::query()->where('chunk_id', $chunk->id)->delete();
-
-        foreach ($questions as $question) {
-            ChunkQuestion::query()->create([
-                'chunk_id' => $chunk->id,
-                'question' => $question,
-                'embedding' => embed($question, true),
-            ]);
-        }
     }
 }

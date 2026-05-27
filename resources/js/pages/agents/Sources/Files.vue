@@ -87,7 +87,7 @@ const maxFilesToUpload = 20;
 const props = defineProps<Props>();
 
 // WebSocket event listener for file ingestion progress updates
-useEcho(`agents.${props.agent.external_id}.files.progress`, 'FileIngestionProgressEvent', (e) => {
+useEcho(`agents.${props.agent.external_id}.files.progress`, '.FileIngestionProgressEvent', (e) => {
     handleFileIngestionProgress(e);
 });
 

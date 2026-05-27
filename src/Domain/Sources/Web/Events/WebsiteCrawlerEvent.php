@@ -27,6 +27,11 @@ class WebsiteCrawlerEvent implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'WebsiteCrawlerEvent';
+    }
+
     public function broadcastWith(): array
     {
         return [

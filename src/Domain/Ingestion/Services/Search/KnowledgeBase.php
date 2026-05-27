@@ -2,7 +2,6 @@
 
 namespace Domain\Ingestion\Services\Search;
 
-use App\Embeddings\Cohere;
 use App\Embeddings\Contracts\EmbeddingsProviderInterface;
 use App\LLM\Operations\SearchDecision;
 use Domain\Agents\Models\Agent;
@@ -62,11 +61,14 @@ class KnowledgeBase
             // Dispatch stats update to background job for better performance
             UpdateRetrievalStatsJob::dispatch($results, $agent);
 
-            // Only rerank if we have multiple results and reranking is enabled in config
-            if (count($results) > 1 && config('vector.search.rerank', true)) {
-                $results = $this->rerank($query, $results);
+            // Only rerank if we have multiple results, reranking is enabled in
+            // config, and the configured embeddings provider supports it.
+            $provider = app(EmbeddingsProviderInterface::class);
+            if (count($results) > 1 && config('vector.search.rerank', true) && $provider->supportsReranking()) {
+                $results = $this->rerank($query, $results, $provider);
             } else {
-                // When reranking is disabled, use DB confidence score to filter and limit
+                // When reranking is disabled or unsupported, use DB confidence
+                // score to filter and limit.
                 $results = $this->filterByDbConfidence($results);
             }
 
@@ -90,11 +92,11 @@ class KnowledgeBase
             ->toArray();
     }
 
-    private function rerank(string $query, array $results): array
+    private function rerank(string $query, array $results, EmbeddingsProviderInterface $provider): array
     {
         try {
             $chunks = collect($results)->pluck('chunk')->toArray();
-            $rerankedResults = app(Cohere::class)->rerank($query, $chunks);
+            $rerankedResults = $provider->rerank($query, $chunks);
 
             // Get relevance threshold from config (default: 0.5)
             $relevanceThreshold = config('vector.search.relevance_threshold');

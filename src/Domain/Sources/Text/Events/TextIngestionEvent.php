@@ -24,6 +24,11 @@ class TextIngestionEvent implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'TextIngestionEvent';
+    }
+
     public function broadcastWith(): array
     {
         return [

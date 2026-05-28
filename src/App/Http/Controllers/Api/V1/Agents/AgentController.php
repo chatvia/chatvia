@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\V1\Agents;
 
 use App\Auth\Models\User;
-use App\Http\Resources\Api\V1\AgentTransformer;
+use App\Http\Resources\Api\V1\AgentData;
 use App\Prompts\PromptLoader;
+use App\Teams\Models\Team;
+use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Services\Agent as AgentService;
 use Domain\Chat\Models\ChatTopic;
@@ -14,74 +16,73 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * @tags Agents
- *
  * Customer-facing CRUD for AI agents. Only `knowledge_base` agents can be
  * provisioned via the API — widget agents must be created in the dashboard.
  */
+#[Group(name: 'Agents', weight: 10)]
 class AgentController
 {
     /**
      * List agents
      *
-     * Returns every agent the master-token owner has access to in their
-     * primary team. Agent tokens cannot reach this endpoint.
+     * Returns every agent across all your teams. Pass `?team_id=` to list only
+     * one team's agents.
+     *
+     * @return array{data: list<AgentData>}
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): array
     {
         /** @var User $user */
         $user = $request->user();
+        $owner = $user->isManagedUser() ? $user->manager : $user;
 
-        $team = $user->primaryTeam();
+        $query = Agent::query()
+            ->whereIn('team_id', $owner->ownedTeams()->select('id'))
+            ->with('team')
+            ->latest();
 
-        if (! $team) {
-            return response()->json(['data' => []]);
+        if ($request->filled('team_id')) {
+            $team = $owner->ownedTeams()->where('external_id', $request->query('team_id'))->first();
+
+            if (! $team) {
+                throw ValidationException::withMessages(['team_id' => 'Team not found.']);
+            }
+
+            $query->where('team_id', $team->id);
         }
 
-        $agents = $team->agents()->latest()->get();
-
-        return response()->json([
-            'data' => $agents->map(fn (Agent $a): array => AgentTransformer::toArray($a))->all(),
-        ]);
+        return ['data' => $query->get()->map(fn (Agent $agent): AgentData => AgentData::fromModel($agent))->all()];
     }
 
     /**
      * Create agent
      *
-     * Provisions a new knowledge-base agent under the caller's primary team.
-     * The response includes the agent details and a one-time bearer token in
-     * `token.plaintext` — store it immediately; it cannot be fetched later.
+     * Provisions a new knowledge-base agent. Pass `team_id` to place it in a
+     * specific team; omit it to use your primary team.
      *
-     * End-user chat JWTs are signed with the account-wide `jwt_secret`, not a
-     * per-agent secret. Generate or rotate that secret via
-     * `POST /api/v1/jwt-secret` before issuing chat tokens.
+     * @return array{data: AgentData}
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request): array
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:255'],
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
             'metadata' => ['sometimes', 'nullable', 'array'],
-            'token_name' => ['sometimes', 'string', 'max:64'],
+            'team_id' => ['sometimes', 'nullable', 'string'],
         ]);
 
         /** @var User $user */
         $user = $request->user();
-        $team = $user->primaryTeam();
+        $owner = $user->isManagedUser() ? $user->manager : $user;
 
-        if (! $team) {
-            throw ValidationException::withMessages([
-                'team' => 'You must create a team in the dashboard before provisioning agents via API.',
-            ]);
-        }
+        $team = $this->resolveTeam($owner, $validated['team_id'] ?? null);
 
-        $agent = DB::transaction(function () use ($validated, $user, $team) {
+        $agent = DB::transaction(function () use ($validated, $owner, $team): Agent {
             $externalId = AgentService::generateRandomExternalId();
-            $ownerId = $user->isManagedUser() ? $user->managed_by_user_id : $user->id;
 
             /** @var Agent $agent */
             $agent = Agent::create([
-                'user_id' => $ownerId,
+                'user_id' => $owner->id,
                 'team_id' => $team->id,
                 'name' => $validated['name'],
                 'type' => 'knowledge_base',
@@ -92,7 +93,7 @@ class AgentController
                 'collect_leads' => true,
                 'analytics_enabled' => true,
                 'metadata' => $validated['metadata'] ?? null,
-                'created_via' => 'api',
+                'created_via' => 'external',
             ]);
 
             $agent->topics()->attach(ChatTopic::pluck('id'));
@@ -100,28 +101,17 @@ class AgentController
             return $agent;
         });
 
-        $token = $agent->createToken(
-            $validated['token_name'] ?? 'Initial',
-            ['agent:read', 'agent:write', 'chat:send', 'sources:write', 'mcps:write', 'functions:write'],
-        );
-
-        return response()->json([
-            'agent' => AgentTransformer::toArray($agent),
-            'token' => [
-                'id' => $token->accessToken->id,
-                'name' => $token->accessToken->name,
-                'plaintext' => $token->plainTextToken,
-                'abilities' => $token->accessToken->abilities,
-            ],
-        ], 201);
+        return ['data' => AgentData::fromModel($agent)];
     }
 
     /**
      * Get agent
+     *
+     * @return array{data: AgentData}
      */
-    public function show(Request $request, Agent $agent): JsonResponse
+    public function show(Request $request, Agent $agent): array
     {
-        return response()->json(['agent' => AgentTransformer::toArray($agent)]);
+        return ['data' => AgentData::fromModel($agent)];
     }
 
     /**
@@ -129,8 +119,10 @@ class AgentController
      *
      * Patch top-level agent fields. Settings (appearance, persona, etc.) use
      * the dedicated `/settings/{group}` endpoint.
+     *
+     * @return array{data: AgentData}
      */
-    public function update(Request $request, Agent $agent): JsonResponse
+    public function update(Request $request, Agent $agent): array
     {
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'min:3', 'max:255'],
@@ -143,20 +135,49 @@ class AgentController
 
         $agent->update($validated);
 
-        return response()->json(['agent' => AgentTransformer::toArray($agent->refresh())]);
+        return ['data' => AgentData::fromModel($agent->refresh())];
     }
 
     /**
      * Delete agent
      *
-     * Cascades: deletes all tokens, conversations, sources, MCPs, and functions
-     * attached to the agent.
+     * Also deletes all conversations, sources, MCPs, and functions attached to
+     * the agent.
      */
     public function destroy(Request $request, Agent $agent): JsonResponse
     {
-        $agent->tokens()->delete();
         $agent->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Resolve the team an agent will belong to: the given owned team (by its
+     * external id) or the owner's primary team when none is supplied.
+     */
+    private function resolveTeam(User $owner, ?string $teamExternalId): Team
+    {
+        if ($teamExternalId === null || $teamExternalId === '') {
+            $team = $owner->primaryTeam();
+
+            if (! $team) {
+                throw ValidationException::withMessages([
+                    'team_id' => 'Create a team first via POST /api/v1/teams.',
+                ]);
+            }
+
+            return $team;
+        }
+
+        /** @var Team|null $team */
+        $team = $owner->ownedTeams()->where('external_id', $teamExternalId)->first();
+
+        if (! $team) {
+            throw ValidationException::withMessages([
+                'team_id' => 'Team not found.',
+            ]);
+        }
+
+        return $team;
     }
 }

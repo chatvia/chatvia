@@ -10,7 +10,7 @@
         "credits": 1,
         "input_price_per_1m_tokens": 0.15,
         "output_price_per_1m_tokens": 0.60,
-        "is_default": true
+        "is_default": false
     },
     {
         "internal_name": "llama-3.3-70b-instruct",
@@ -77,19 +77,6 @@
         "credits": 1,
         "input_price_per_1m_tokens": 0.25,
         "output_price_per_1m_tokens": 0.50,
-        "is_default": false
-    },
-    {
-        "internal_name": "holo2-30b-a3b",
-        "external_name": "holo2-30b",
-        "descriptive_name": "Holo2 30B",
-        "description": "Advanced open-source model with strong multilingual capabilities and reasoning.",
-        "context_window": 100000,
-        "icon": "holo.svg",
-        "location": "eu",
-        "credits": 1,
-        "input_price_per_1m_tokens": 0.30,
-        "output_price_per_1m_tokens": 0.70,
-        "is_default": false
+        "is_default": true
     }
 ]

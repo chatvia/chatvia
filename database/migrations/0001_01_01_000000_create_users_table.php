@@ -10,11 +10,14 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->uuid('external_id')->unique()->after('id');
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->nullable()->unique();
+            $table->string('contact_email')->nullable();
             $table->timestamp('email_verified_at')->index()->nullable();
             $table->string('password');
             $table->enum('type', ['admin', 'company', 'staff'])->default('company')->index();
+            $table->enum('created_via', ['internal', 'external'])->default('internal')->index();
             $table->rememberToken();
 
             $table->foreignId('managed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
@@ -40,8 +43,6 @@ return new class extends Migration
             $table->string('domain')->nullable();
 
             $table->string('deactivation_reason')->nullable();
-
-            $table->text('jwt_secret')->nullable();
 
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('last_login_at')->nullable();

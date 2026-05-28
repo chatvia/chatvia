@@ -27,7 +27,8 @@ class UpdateTeamRoleAction
         return DB::transaction(function () use ($role, $data, $agentIds): Role {
             $role->update(['name' => $data->name]);
 
-            $permissions = $data->permissions;
+            // Chat-only teams carry no dashboard permissions — only agent access.
+            $permissions = $data->team->can_access_dashboard ? $data->permissions : [];
             if ($data->allAgents) {
                 $permissions[] = 'agents.access-all';
             }

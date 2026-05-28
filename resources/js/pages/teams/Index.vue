@@ -1,27 +1,29 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 import InputError from '@/components/InputError.vue';
+import TeamAccessRadio from '@/components/teams/TeamAccessRadio.vue';
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Loader2, LogOut, Plus, Search, Trash2, Users } from 'lucide-vue-next';
+import { Loader2, LogOut, MoreHorizontal, Plus, Search, Settings, Trash2, Users } from 'lucide-vue-next';
 
 type Team = App.Teams.Data.Resources.TeamListItemData;
 
@@ -44,10 +46,12 @@ const isCreateDialogOpen = ref(false);
 
 const createForm = useForm({
     name: '',
+    can_access_dashboard: true,
 });
 
 const leaveForm = useForm({});
 const deleteForm = useForm<{ team?: string }>({});
+const teamToLeave = ref<Team | null>(null);
 const teamToDelete = ref<Team | null>(null);
 
 const filteredTeams = computed(() => {
@@ -69,8 +73,19 @@ const createTeam = () => {
     });
 };
 
-const leaveTeam = (team: Team) => {
-    leaveForm.post(route('teams.leave', team.id), {});
+const leaveTeam = () => {
+    if (!teamToLeave.value) return;
+
+    leaveForm.post(route('teams.leave', teamToLeave.value.id), {
+        onSuccess: () => {
+            teamToLeave.value = null;
+        },
+    });
+};
+
+const openDelete = (team: Team) => {
+    teamToDelete.value = team;
+    deleteForm.clearErrors();
 };
 
 const deleteTeam = () => {
@@ -83,7 +98,13 @@ const deleteTeam = () => {
     });
 };
 
-const _formatDate = (dateString: string) => {
+const formatRole = (role: string) =>
+    role
+        .split('_')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+
+const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -96,25 +117,21 @@ const _formatDate = (dateString: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Teams" />
 
-        <div class="container mx-auto max-w-5xl py-8">
-            <!-- Header -->
-            <div class="mb-8 flex items-center justify-between">
+        <div class="mx-auto w-full max-w-6xl space-y-6 py-8">
+            <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight">Teams</h1>
-                    <p class="text-muted-foreground mt-1">Manage your teams and collaborate with others</p>
+                    <h1 class="text-xl font-semibold">Teams</h1>
+                    <p class="text-muted-foreground text-sm">Manage your teams and collaborate with others.</p>
                 </div>
-                <Button size="lg" @click="isCreateDialogOpen = true" class="flex items-center gap-2">
-                    <Plus class="h-4 w-4" />
+                <Button @click="isCreateDialogOpen = true">
+                    <Plus class="mr-1 h-4 w-4" />
                     Create Team
                 </Button>
             </div>
 
-            <!-- Search -->
-            <div class="mb-6 flex items-center">
-                <div class="relative flex-1">
-                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                    <Input v-model="searchQuery" class="pl-10" placeholder="Search teams..." />
-                </div>
+            <div class="relative max-w-sm">
+                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Input v-model="searchQuery" placeholder="Search teams" class="pl-9" />
             </div>
 
             <!-- Empty state -->
@@ -129,92 +146,103 @@ const _formatDate = (dateString: string) => {
             </Card>
 
             <!-- No search results -->
-            <Card v-else-if="filteredTeams.length === 0" class="flex h-64 flex-col items-center justify-center">
-                <Search class="text-muted-foreground h-12 w-12 opacity-50" />
-                <h3 class="mt-4 text-xl font-medium">No matching teams</h3>
-                <p class="text-muted-foreground mt-2 text-center">No teams found matching "{{ searchQuery }}"</p>
-                <Button variant="outline" class="mt-6" @click="searchQuery = ''"> Clear Search </Button>
-            </Card>
+            <div v-else-if="filteredTeams.length === 0" class="text-muted-foreground py-12 text-center text-sm">
+                No teams found matching "{{ searchQuery }}".
+                <Button variant="link" class="ml-1 h-auto p-0" @click="searchQuery = ''">Clear search</Button>
+            </div>
 
-            <!-- Teams Grid -->
-            <div v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <Card v-for="team in filteredTeams" :key="team.id" class="overflow-hidden">
-                    <CardHeader class="pb-3">
-                        <div class="flex items-center justify-between">
-                            <CardTitle class="flex items-center gap-2 text-xl">
-                                <Users class="h-5 w-5 flex-shrink-0" />
-                                <span class="truncate">
-                                    <Link :href="route('teams.show', team.id)">{{ team.name }}</Link>
-                                </span>
-                            </CardTitle>
-                            <div v-if="team.is_primary" class="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-medium">Primary</div>
-                        </div>
-                    </CardHeader>
-
-                    <CardContent>
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div class="flex flex-col">
-                                <span class="text-muted-foreground">Agents</span>
-                                <span class="text-lg font-medium">{{ team.agents_count }}</span>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-muted-foreground">Members</span>
-                                <span class="text-lg font-medium">{{ team.members_count }}</span>
-                            </div>
-                        </div>
-                    </CardContent>
-
-                    <CardFooter class="flex justify-between border-t p-4">
-                        <div class="flex items-center gap-1">
-                            <!-- Leave Team -->
-                            <AlertDialog v-if="!team.is_owner">
-                                <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-muted-foreground hover:text-destructive">
-                                        <LogOut class="mr-1 h-4 w-4" />
-                                        Leave
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Leave Team</AlertDialogTitle>
-                                        <AlertDialogDescription> Are you sure you want to leave "{{ team.name }}"? </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                            @click="leaveTeam(team)"
-                                            :disabled="leaveForm.processing"
+            <!-- Teams table -->
+            <div v-else class="rounded-lg border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead class="h-11 pl-5">Team name</TableHead>
+                            <TableHead class="h-11 w-28">Agents</TableHead>
+                            <TableHead class="h-11 w-28">Members</TableHead>
+                            <TableHead class="h-11 w-40">Created</TableHead>
+                            <TableHead class="h-11 w-16 pr-5"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow
+                            v-for="team in filteredTeams"
+                            :key="team.id"
+                            class="hover:bg-muted/40 cursor-pointer"
+                            @click="router.visit(route('teams.show', team.id))"
+                        >
+                            <TableCell class="py-4 pl-5">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
+                                        <Users class="h-5 w-5" />
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <p class="leading-tight font-medium">{{ team.name }}</p>
+                                            <Badge v-if="team.is_primary" variant="secondary">Primary</Badge>
+                                        </div>
+                                        <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ formatRole(team.role) }}</p>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell class="py-4 text-sm">{{ team.agents_count }}</TableCell>
+                            <TableCell class="py-4 text-sm">{{ team.members_count }}</TableCell>
+                            <TableCell class="text-muted-foreground py-4 text-sm">{{ formatDate(team.created_at) }}</TableCell>
+                            <TableCell class="py-4 pr-5 text-right" @click.stop>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" size="icon" class="h-8 w-8">
+                                            <MoreHorizontal class="h-4 w-4" />
+                                            <span class="sr-only">Open menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem as-child>
+                                            <Link :href="route('teams.show', team.id)" class="cursor-pointer">
+                                                <Settings class="mr-2 h-4 w-4" />
+                                                Manage
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            v-if="!team.is_owner"
+                                            class="text-destructive focus:text-destructive cursor-pointer"
+                                            @select="teamToLeave = team"
                                         >
+                                            <LogOut class="mr-2 h-4 w-4" />
                                             Leave
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-
-                            <!-- Delete Team -->
-                            <Button
-                                v-if="canDeleteTeam(team)"
-                                variant="ghost"
-                                size="sm"
-                                class="text-muted-foreground hover:text-destructive"
-                                @click.prevent="
-                                    teamToDelete = team;
-                                    deleteForm.clearErrors();
-                                "
-                            >
-                                <Trash2 class="mr-1 h-4 w-4" />
-                                Delete
-                            </Button>
-                        </div>
-
-                        <Button as-child size="sm">
-                            <Link :href="route('teams.show', team.id)"> Manage </Link>
-                        </Button>
-                    </CardFooter>
-                </Card>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            v-if="canDeleteTeam(team)"
+                                            class="text-destructive focus:text-destructive cursor-pointer"
+                                            @select="openDelete(team)"
+                                        >
+                                            <Trash2 class="mr-2 h-4 w-4" />
+                                            Delete
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
         </div>
+
+        <!-- Leave Team Confirmation -->
+        <AlertDialog :open="!!teamToLeave" @update:open="(open) => !open && (teamToLeave = null)">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Leave Team</AlertDialogTitle>
+                    <AlertDialogDescription> Are you sure you want to leave "{{ teamToLeave?.name }}"? </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <Button variant="destructive" @click="leaveTeam" :disabled="leaveForm.processing">
+                        <Loader2 v-if="leaveForm.processing" class="mr-2 size-4 animate-spin" />
+                        Leave
+                    </Button>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
         <!-- Delete Team Confirmation -->
         <AlertDialog :open="!!teamToDelete" @update:open="(open) => !open && (teamToDelete = null)">
@@ -252,6 +280,7 @@ const _formatDate = (dateString: string) => {
                             <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" required />
                             <InputError :message="createForm.errors.name" />
                         </div>
+                        <TeamAccessRadio v-model="createForm.can_access_dashboard" />
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" @click="isCreateDialogOpen = false"> Cancel </Button>

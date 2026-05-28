@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Chat;
 
+use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
@@ -9,11 +10,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * @tags Conversations
- *
  * Read and delete chat conversations. Conversations are created implicitly
  * when end-users chat through the agent's URL.
  */
+#[Group(name: 'Conversations', weight: 80)]
 class ChatConversationController
 {
     /**
@@ -66,7 +66,7 @@ class ChatConversationController
         $messages = $conversation->messages()->orderBy('id')->get();
 
         return response()->json([
-            'conversation' => [
+            'data' => [
                 'id' => $conversation->external_id,
                 'title' => $conversation->title,
                 'sentiment' => $conversation->sentiment,

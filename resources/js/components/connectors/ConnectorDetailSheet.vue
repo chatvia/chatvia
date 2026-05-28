@@ -2,13 +2,14 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
+import { useAgentAttachments } from '@/composables/useAgentAttachments';
+import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Switch from '@/components/ui/switch/Switch.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { AgentMcpServer, Connector, McpTool } from '@/types/connector';
 import axios from 'axios';
-import { CheckCircle2, ChevronRight, LoaderCircle, Plug, RefreshCw, Search, Unplug } from 'lucide-vue-next';
-import { Input } from '@/components/ui/input';
+import { Check, CheckCircle2, ChevronRight, Copy, LoaderCircle, Plug, RefreshCw, Search, Unplug } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -52,9 +53,12 @@ const emit = defineEmits<{
     removed: [slug: string];
     'connect-token': [connector: Connector];
     'connect-oauth': [connector: Connector];
+    'agents-changed': [];
 }>();
 
-const activeTab = ref<'overview' | 'tools'>('overview');
+const activeTab = ref<'overview' | 'tools' | 'agents'>('overview');
+const agentMgmt = useAgentAttachments('connector');
+const agentsLoaded = ref(false);
 const tools = ref<McpTool[]>([]);
 const toolsLoading = ref(false);
 const refreshing = ref(false);
@@ -64,9 +68,7 @@ const toolSearch = ref('');
 const filteredTools = computed(() => {
     const q = toolSearch.value.trim().toLowerCase();
     if (!q) return tools.value;
-    return tools.value.filter(
-        (t) => t.short_name.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q),
-    );
+    return tools.value.filter((t) => t.short_name.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q));
 });
 const disconnectOpen = ref(false);
 
@@ -75,6 +77,15 @@ const server = computed(() => props.row?.server ?? null);
 const displayName = computed(() => connector.value?.name ?? server.value?.name ?? '');
 const description = computed(() => connector.value?.description ?? 'Custom MCP server added directly via URL.');
 const isConnected = computed(() => server.value !== null);
+const idCopied = ref(false);
+
+async function copyServerId(): Promise<void> {
+    if (!server.value) return;
+    await navigator.clipboard.writeText(server.value.external_id);
+    idCopied.value = true;
+    setTimeout(() => (idCopied.value = false), 2000);
+}
+
 const isAgentMode = computed(() => props.mode === 'agent');
 const isAgentScope = computed(() => server.value?.scope === 'agent');
 const brandColor = computed(() => connector.value?.brandColor ?? '6B7280');
@@ -132,8 +143,28 @@ watch(
         expanded.value = {};
         activeTab.value = 'overview';
         toolSearch.value = '';
+        agentMgmt.reset();
+        agentsLoaded.value = false;
     },
 );
+
+// Lazy-load the agent lists the first time the user opens Agents/Attach.
+watch(
+    () => [props.open, props.row?.server?.slug, activeTab.value],
+    async () => {
+        if (!props.open || !server.value) return;
+        if (activeTab.value !== 'agents') return;
+        if (agentsLoaded.value) return;
+        agentsLoaded.value = true;
+        await agentMgmt.load(server.value.slug);
+    },
+);
+
+async function onToggleAttachment(agentId: string): Promise<void> {
+    if (!server.value) return;
+    await agentMgmt.toggleAttachment(server.value.slug, agentId);
+    emit('agents-changed');
+}
 
 // Route builders — single switch point for the two modes.
 function toolsRoute(slug: string): string {
@@ -204,9 +235,7 @@ async function toggleToolEnabled(tool: McpTool): Promise<void> {
     const previous = tool.enabled;
     tool.enabled = !previous;
     try {
-        const response = await axios.post(
-            route('settings.connectors.tools.toggle', { slug: server.value.slug, tool: tool.id }),
-        );
+        const response = await axios.post(route('settings.connectors.tools.toggle', { slug: server.value.slug, tool: tool.id }));
         tool.enabled = response.data.enabled;
     } catch (e: unknown) {
         tool.enabled = previous;
@@ -287,9 +316,10 @@ const connectButtonLabel = computed(() => {
             </SheetHeader>
 
             <Tabs v-model="activeTab" class="px-6 pt-5">
-                <TabsList class="grid w-full grid-cols-2">
+                <TabsList class="grid w-full grid-cols-3">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="tools" :disabled="!isConnected">Tools</TabsTrigger>
+                    <TabsTrigger value="agents" :disabled="!isConnected">Agents</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" class="space-y-6 pt-6">
@@ -302,6 +332,22 @@ const connectButtonLabel = computed(() => {
                     </div>
 
                     <dl v-if="isConnected" class="divide-border divide-y text-sm">
+                        <div v-if="server" class="grid grid-cols-3 gap-4 py-3 first:pt-0">
+                            <dt class="text-muted-foreground col-span-1">Server ID</dt>
+                            <dd class="col-span-2 flex min-w-0 items-center gap-1.5">
+                                <code class="min-w-0 flex-1 truncate font-mono text-xs" :title="server?.external_id">{{ server?.external_id }}</code>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    class="h-6 shrink-0 px-1.5"
+                                    title="Copy server ID — pass as mcp_id when attaching via the API"
+                                    @click="copyServerId"
+                                >
+                                    <Check v-if="idCopied" class="size-3.5 text-green-600" />
+                                    <Copy v-else class="size-3.5" />
+                                </Button>
+                            </dd>
+                        </div>
                         <div class="grid grid-cols-3 gap-4 py-3 first:pt-0">
                             <dt class="text-muted-foreground col-span-1">Endpoint</dt>
                             <dd class="col-span-2 font-mono text-xs leading-relaxed break-all">{{ server?.url }}</dd>
@@ -369,7 +415,10 @@ const connectButtonLabel = computed(() => {
 
                         <div class="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
                             <span>Interactive tools</span>
-                            <Badge variant="secondary">{{ filteredTools.length }}<template v-if="filteredTools.length !== tools.length"> / {{ tools.length }}</template></Badge>
+                            <Badge variant="secondary"
+                                >{{ filteredTools.length
+                                }}<template v-if="filteredTools.length !== tools.length"> / {{ tools.length }}</template></Badge
+                            >
                         </div>
 
                         <div v-if="filteredTools.length === 0" class="text-muted-foreground py-6 text-center text-sm">
@@ -393,7 +442,9 @@ const connectButtonLabel = computed(() => {
                                     <Switch
                                         v-if="!isAgentMode && tool.id !== undefined && server && tools.length > 1"
                                         :model-value="tool.enabled"
-                                        :title="tool.enabled ? 'Tool active — disable for all agents using this connector' : 'Tool disabled — re-enable'"
+                                        :title="
+                                            tool.enabled ? 'Tool active — disable for all agents using this connector' : 'Tool disabled — re-enable'
+                                        "
                                         @update:model-value="toggleToolEnabled(tool)"
                                     />
                                 </div>
@@ -410,6 +461,34 @@ const connectButtonLabel = computed(() => {
                             </div>
                         </div>
                     </div>
+                </TabsContent>
+
+                <TabsContent value="agents" class="pt-6">
+                    <p class="text-muted-foreground mb-3 text-sm">Toggle which of your agents can use this connector.</p>
+
+                    <div v-if="agentMgmt.loading.value" class="text-muted-foreground flex items-center gap-2 py-6 text-sm">
+                        <LoaderCircle class="size-4 animate-spin" />
+                        Loading agents
+                    </div>
+
+                    <div v-else-if="agentMgmt.all.value.length === 0" class="text-muted-foreground py-6 text-center text-sm">
+                        You have no agents yet.
+                    </div>
+
+                    <ul v-else class="divide-border divide-y">
+                        <li
+                            v-for="agent in agentMgmt.all.value"
+                            :key="agent.id"
+                            class="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                        >
+                            <span class="truncate text-sm font-medium">{{ agent.name }}</span>
+                            <Switch
+                                :model-value="agent.attached"
+                                :disabled="agentMgmt.busyId.value === agent.id"
+                                @update:model-value="() => onToggleAttachment(agent.id)"
+                            />
+                        </li>
+                    </ul>
                 </TabsContent>
             </Tabs>
 

@@ -4,6 +4,7 @@ namespace Domain\Chat\Services\Tooling\Mcp;
 
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
+use Domain\Chat\Services\Tooling\ToolCallerIdentity;
 use Domain\Chat\Services\Tooling\ToolDispatcherInterface;
 use Domain\Chat\Services\Tooling\ToolDispatchResult;
 use Illuminate\Support\Facades\Log;
@@ -54,7 +55,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         $start = microtime(true);
 
         try {
-            $result = $this->client->callTool($server, $toolName, $args);
+            $result = $this->client->callTool($server, $toolName, $args, ToolCallerIdentity::headers($agent));
             $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
             $dispatchResult = $this->extractResult($result);

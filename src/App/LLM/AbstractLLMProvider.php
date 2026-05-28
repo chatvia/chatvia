@@ -43,6 +43,7 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
             'headers' => $this->headers(),
             'json' => $json,
             'stream' => true,
+            'read_timeout' => 120,
         ]);
     }
 

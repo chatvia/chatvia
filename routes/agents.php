@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Agents\AgentApiTokensController;
 use App\Http\Controllers\Agents\AgentChatLogController;
 use App\Http\Controllers\Agents\AgentChatLogReviseAnswerController;
 use App\Http\Controllers\Agents\AgentFileSummaryController;
@@ -74,7 +73,7 @@ use App\Http\Controllers\Agents\Workflow\AgentWorkflowController;
 use App\Http\Controllers\CountriesListController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group(function (): void {
+Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'])->prefix('my/')->group(function (): void {
     Route::get('agents', [AgentsController::class, 'index'])->name('agents.index');
     Route::post('agents', [AgentsController::class, 'store'])->name('agents.store');
 
@@ -109,11 +108,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed'])->prefix('my/')->group
         Route::get('playground', AgentPlaygroundController::class)->name('playground');
 
         Route::get('persona', AgentShowPersonaController::class)->name('persona');
-
-        // API tokens (per-agent bearer tokens for the public API)
-        Route::get('api-tokens', [AgentApiTokensController::class, 'index'])->name('api-tokens.index');
-        Route::post('api-tokens', [AgentApiTokensController::class, 'store'])->name('api-tokens.store');
-        Route::delete('api-tokens/{tokenId}', [AgentApiTokensController::class, 'destroy'])->name('api-tokens.destroy');
 
         // Knowledge
         Route::get('sources', AgentKnowledgeSourcesController::class)->name('sources');

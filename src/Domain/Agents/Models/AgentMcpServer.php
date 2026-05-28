@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
+use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id
@@ -77,7 +77,7 @@ use Illuminate\Support\Str;
 #[Table(name: 'mcp_servers')]
 class AgentMcpServer extends Model
 {
-    use HasFactory;
+    use HasExternalId, HasFactory;
 
     protected function casts(): array
     {
@@ -116,9 +116,6 @@ class AgentMcpServer extends Model
     protected static function booted(): void
     {
         static::creating(function (self $server): void {
-            if (! $server->external_id) {
-                $server->external_id = (string) Str::uuid();
-            }
             if (! $server->slug && $server->name) {
                 $server->slug = self::makeSlug($server->name);
             }

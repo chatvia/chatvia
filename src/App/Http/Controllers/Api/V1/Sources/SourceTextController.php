@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Sources;
 
+use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Domain\Ingestion\Services\Tidy\TextCleaner;
 use Domain\Sources\Text\Models\SourceText;
@@ -11,13 +12,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * @tags Knowledge Sources
- *
  * Ingest a raw block of text as a knowledge source. After upload the text is
  * cleaned, persisted as a file, and queued for chunking + embedding. Poll
  * the source via `GET /sources` to track the `status` field through the
  * pipeline (`pending` → `processing` → `trained`).
  */
+#[Group(name: 'Knowledge Sources', weight: 70)]
 class SourceTextController
 {
     /**
@@ -51,7 +51,7 @@ class SourceTextController
         $text->startTraining($agent);
 
         return response()->json([
-            'source' => [
+            'data' => [
                 'id' => $text->id,
                 'kind' => 'text',
                 'length_pages' => $text->length,

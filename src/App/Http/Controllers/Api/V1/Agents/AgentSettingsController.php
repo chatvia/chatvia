@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\Api\V1\Agents;
 
+use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
- * @tags Agent Settings
- *
- * Read and patch agent settings groups. Each group has its own validation
- * schema defined in `config/model-settings.php`. Supported groups:
+ * Read and patch agent settings groups. Each group has its own set of
+ * supported fields. Supported groups:
  *
  *   • appearance  — colors, logo, welcome message, chat window text
  *   • widget      — embed widget position, theme, sites
  *   • embed       — sidebar / theme switcher options for embedded view
  *   • leads       — lead form fields and copy
  */
+#[Group(name: 'Agents', weight: 10)]
 class AgentSettingsController
 {
     /**
@@ -29,7 +29,7 @@ class AgentSettingsController
     {
         $this->assertGroup($group);
 
-        return response()->json(['settings' => $agent->settings($group)]);
+        return response()->json(['data' => $agent->settings($group)]);
     }
 
     /**
@@ -64,7 +64,7 @@ class AgentSettingsController
             $agent->setSetting(key: $key, value: $value, group: $group);
         }
 
-        return response()->json(['settings' => $agent->settings($group)]);
+        return response()->json(['data' => $agent->settings($group)]);
     }
 
     private function assertGroup(string $group): void

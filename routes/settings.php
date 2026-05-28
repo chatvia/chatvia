@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Settings\ApiKeysController;
 use App\Http\Controllers\Settings\Connectors\ConnectController;
+use App\Http\Controllers\Settings\Connectors\ConnectorAgentsController;
 use App\Http\Controllers\Settings\Connectors\ConnectorMutationsController;
 use App\Http\Controllers\Settings\Connectors\ConnectorsController;
 use App\Http\Controllers\Settings\Connectors\CustomAddController;
 use App\Http\Controllers\Settings\Connectors\OAuthStartController;
+use App\Http\Controllers\Settings\FunctionAgentsController;
 use App\Http\Controllers\Settings\FunctionsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -31,7 +33,7 @@ use App\Http\Middleware\DenyIfStaff;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::redirect('settings', '/settings/profile');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -61,9 +63,21 @@ Route::middleware('auth')->group(function (): void {
         ->whereNumber('tool')
         ->name('settings.connectors.tools.toggle');
 
+    // Manage which agents use a connector (from the Connectors sheet).
+    Route::get('settings/connectors/{slug}/agents', [ConnectorAgentsController::class, 'index'])->name('settings.connectors.agents.index');
+    Route::post('settings/connectors/{slug}/agents/{agent}', [ConnectorAgentsController::class, 'attach'])->name('settings.connectors.agents.attach');
+    Route::delete('settings/connectors/{slug}/agents/{agent}', [ConnectorAgentsController::class, 'detach'])->name('settings.connectors.agents.detach');
+
     Route::get('settings/functions', [FunctionsController::class, 'edit'])->name('settings.functions.edit');
     Route::post('settings/functions', [FunctionsController::class, 'store'])->name('settings.functions.store');
+    Route::patch('settings/functions/{external_id}', [FunctionsController::class, 'update'])->name('settings.functions.update');
+    Route::post('settings/functions/{external_id}/toggle', [FunctionsController::class, 'toggle'])->name('settings.functions.toggle');
     Route::delete('settings/functions/{external_id}', [FunctionsController::class, 'destroy'])->name('settings.functions.destroy');
+
+    // Manage which agents use a function (from the Functions sheet).
+    Route::get('settings/functions/{external_id}/agents', [FunctionAgentsController::class, 'index'])->name('settings.functions.agents.index');
+    Route::post('settings/functions/{external_id}/agents/{agent}', [FunctionAgentsController::class, 'attach'])->name('settings.functions.agents.attach');
+    Route::delete('settings/functions/{external_id}/agents/{agent}', [FunctionAgentsController::class, 'detach'])->name('settings.functions.agents.detach');
 
     Route::get('settings/usage', SettingsUsageController::class)->name('settings.usage');
 

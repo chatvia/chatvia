@@ -63,22 +63,6 @@ async function fetchAll(): Promise<void> {
     }
 }
 
-function relativeTime(iso: string | null | undefined): string {
-    if (!iso) return '—';
-    const ms = Date.now() - new Date(iso).getTime();
-    const day = 86_400_000;
-    const hour = 3_600_000;
-    const minute = 60_000;
-    if (ms < minute) return 'just now';
-    if (ms < hour) return Math.floor(ms / minute) + 'm ago';
-    if (ms < day) return Math.floor(ms / hour) + 'h ago';
-    const days = Math.floor(ms / day);
-    if (days < 30) return days + 'd ago';
-    const months = Math.floor(days / 30);
-    if (months < 12) return months + 'mo ago';
-    return Math.floor(months / 12) + 'y ago';
-}
-
 function isRowActionable(row: ConnectorRow): boolean {
     return row.connector === null || !row.connector.comingSoon;
 }
@@ -208,7 +192,7 @@ onMounted(() => {
                                     <TableRow>
                                         <TableHead class="h-11 pl-5">Connector name</TableHead>
                                         <TableHead class="h-11 w-32">Tools</TableHead>
-                                        <TableHead class="h-11 w-32">Created</TableHead>
+                                        <TableHead class="h-11 w-32">Agents</TableHead>
                                         <TableHead class="h-11 w-32 pr-5 text-right">Enabled</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -231,9 +215,7 @@ onMounted(() => {
                                             </div>
                                         </TableCell>
                                         <TableCell class="py-4 text-sm">{{ row.server!.catalog_tools_count }}</TableCell>
-                                        <TableCell class="text-muted-foreground py-4 text-sm">
-                                            {{ relativeTime(row.server!.catalog_cached_at) }}
-                                        </TableCell>
+                                        <TableCell class="py-4 text-sm">{{ row.server!.agents_count }}</TableCell>
                                         <TableCell class="py-4 pr-5 text-right" @click.stop>
                                             <Switch :model-value="row.server!.enabled" @update:model-value="quickToggle(row)" />
                                         </TableCell>
@@ -251,7 +233,7 @@ onMounted(() => {
                                     <TableRow>
                                         <TableHead class="h-11 pl-5">Connector name</TableHead>
                                         <TableHead class="h-11 w-32">Tools</TableHead>
-                                        <TableHead class="h-11 w-32">Created</TableHead>
+                                        <TableHead class="h-11 w-32">Agents</TableHead>
                                         <TableHead class="h-11 w-40 pr-5 text-right">Enabled</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -279,9 +261,7 @@ onMounted(() => {
                                             </div>
                                         </TableCell>
                                         <TableCell class="py-4 text-sm">{{ row.server?.catalog_tools_count ?? '—' }}</TableCell>
-                                        <TableCell class="text-muted-foreground py-4 text-sm">
-                                            {{ relativeTime(row.server?.catalog_cached_at) }}
-                                        </TableCell>
+                                        <TableCell class="py-4 text-sm">{{ row.server?.agents_count ?? '—' }}</TableCell>
                                         <TableCell class="py-4 pr-5 text-right" @click.stop>
                                             <Switch v-if="row.server" :model-value="row.server.enabled" @update:model-value="quickToggle(row)" />
                                             <Button
@@ -312,6 +292,7 @@ onMounted(() => {
                 @removed="applyRemoval"
                 @connect-token="startConnect"
                 @connect-oauth="startConnect"
+                @agents-changed="fetchAll"
             />
 
             <TokenConnectModal v-model:open="tokenConnectOpen" :connector="tokenConnectTarget" @connected="onTokenConnected" />

@@ -13,8 +13,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
-use Pgvector\Laravel\Vector;
 use Illuminate\Support\Str;
+use Pgvector\Laravel\Vector;
+use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id
@@ -71,7 +72,7 @@ use Illuminate\Support\Str;
 #[Table(name: 'functions')]
 class AgentFunction extends Model
 {
-    use HasFactory;
+    use HasExternalId, HasFactory;
 
     protected function casts(): array
     {
@@ -92,9 +93,6 @@ class AgentFunction extends Model
     protected static function booted(): void
     {
         static::creating(function (self $function): void {
-            if (! $function->external_id) {
-                $function->external_id = (string) Str::uuid();
-            }
             if (! $function->webhook_secret) {
                 $function->webhook_secret = Str::random(48);
             }

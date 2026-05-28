@@ -9,7 +9,7 @@ class CreateApiKeyAction
 {
     public function execute(CreateApiKeyData $data): CreatedApiKeyData
     {
-        $token = $data->user->createToken($data->name, ['agents:manage']);
+        $token = $data->user->createToken($data->name);
 
         return new CreatedApiKeyData(
             id: $token->accessToken->id,

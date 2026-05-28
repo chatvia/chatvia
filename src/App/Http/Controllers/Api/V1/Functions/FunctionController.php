@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Api\V1\Functions;
 
 use App\Auth\Models\User;
+use App\Http\Resources\Api\V1\FunctionData;
+use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 /**
- * @tags Functions
- *
  * Account-level webhook-backed functions. Define a function once (e.g.
  * `get_order_status`) and attach it to any number of your agents via
  * `POST /api/v1/agents/{id}/functions`. Each function declares a name and
@@ -19,23 +20,22 @@ use Illuminate\Http\Request;
  *
  * Auth credentials (`auth_config`, `webhook_headers`, `webhook_secret`) are
  * encrypted at rest and never returned in responses.
- *
- * Master token required (ability `agents:manage`).
  */
+#[Group(name: 'Functions', weight: 60)]
 class FunctionController
 {
     /**
      * List functions
+     *
+     * @return array{data: list<FunctionData>}
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): array
     {
         /** @var User $user */
         $user = $request->user();
         $functions = $user->functions()->latest()->get();
 
-        return response()->json([
-            'data' => $functions->map(fn (AgentFunction $f): array => $this->transform($f))->all(),
-        ]);
+        return ['data' => $functions->map(fn (AgentFunction $function): FunctionData => FunctionData::fromModel($function))->all()];
     }
 
     /**
@@ -43,8 +43,10 @@ class FunctionController
      *
      * `parameters_schema` is the JSON-schema shown to the LLM. Use the
      * standard JSON-schema vocabulary: `{type: "object", properties: {...}, required: [...]}`.
+     *
+     * @return array{data: FunctionData}
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request): array
     {
         /** @var User $user */
         $user = $request->user();
@@ -64,10 +66,9 @@ class FunctionController
         ]);
 
         if ($user->functions()->where('name', $validated['name'])->exists()) {
-            return response()->json([
-                'message' => 'A function with this name already exists on your account.',
-                'errors' => ['name' => ['Function name must be unique per account.']],
-            ], 422);
+            throw ValidationException::withMessages([
+                'name' => 'A function with this name already exists on your account.',
+            ]);
         }
 
         $authType = $validated['auth_type'] ?? 'none';
@@ -85,25 +86,29 @@ class FunctionController
             'enabled' => $validated['enabled'] ?? true,
         ]);
 
-        return response()->json(['function' => $this->transform($function)], 201);
+        return ['data' => FunctionData::fromModel($function)];
     }
 
     /**
      * Get function
+     *
+     * @return array{data: FunctionData}
      */
-    public function show(Request $request, AgentFunction $function): JsonResponse
+    public function show(Request $request, AgentFunction $function): array
     {
         $this->assertOwnership($request, $function);
 
-        return response()->json(['function' => $this->transform($function)]);
+        return ['data' => FunctionData::fromModel($function)];
     }
 
     /**
      * Update function
      *
      * Changes propagate instantly to every agent the function is attached to.
+     *
+     * @return array{data: FunctionData}
      */
-    public function update(Request $request, AgentFunction $function): JsonResponse
+    public function update(Request $request, AgentFunction $function): array
     {
         $this->assertOwnership($request, $function);
 
@@ -130,13 +135,13 @@ class FunctionController
 
         $function->update($validated);
 
-        return response()->json(['function' => $this->transform($function->refresh())]);
+        return ['data' => FunctionData::fromModel($function->refresh())];
     }
 
     /**
      * Delete function
      *
-     * Also detaches it from every agent (CASCADE on the pivot).
+     * Also removes it from every agent it's attached to.
      */
     public function destroy(Request $request, AgentFunction $function): JsonResponse
     {
@@ -152,28 +157,6 @@ class FunctionController
         /** @var User $user */
         $user = $request->user();
         abort_if($function->user_id !== $user->id, 404);
-    }
-
-    private function transform(AgentFunction $f): array
-    {
-        return [
-            'id' => $f->external_id,
-            'name' => $f->name,
-            'description' => $f->description,
-            'parameters_schema' => $f->parameters_schema,
-            'webhook' => [
-                'url' => $f->webhook_url,
-                'method' => $f->webhook_method,
-                'has_headers' => $f->webhook_headers !== null && $f->webhook_headers !== [],
-            ],
-            'auth_type' => $f->auth_type,
-            'has_auth_value' => $f->auth_config !== null,
-            'timeout_ms' => $f->timeout_ms,
-            'enabled' => $f->enabled,
-            'last_invoked_at' => $f->last_invoked_at?->toIso8601String(),
-            'invocation_count' => $f->invocation_count,
-            'created_at' => $f->created_at?->toIso8601String(),
-        ];
     }
 
     /**

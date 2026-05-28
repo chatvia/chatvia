@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Sources;
 
+use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Domain\Sources\Web\Data\Crawler\CrawlerData;
 use Domain\Sources\Web\Events\WebsiteCrawlerEvent;
@@ -15,11 +16,10 @@ use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
- * @tags Knowledge Sources
- *
  * Crawl a website and ingest its content. The crawler follows links inside
  * the host (subject to include/exclude path rules) and chunks each page.
  */
+#[Group(name: 'Knowledge Sources', weight: 70)]
 class SourceUrlController
 {
     /**
@@ -70,7 +70,7 @@ class SourceUrlController
         WebsiteCrawlerJob::dispatch($website, $data, $agent);
 
         return response()->json([
-            'source' => [
+            'data' => [
                 'id' => $website->id,
                 'kind' => 'url',
                 'name' => $website->url,

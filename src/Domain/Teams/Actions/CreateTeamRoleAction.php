@@ -40,7 +40,8 @@ class CreateTeamRoleAction
                 'guard_name' => 'web',
             ]);
 
-            $permissions = $data->permissions;
+            // Chat-only teams carry no dashboard permissions — only agent access.
+            $permissions = $data->team->can_access_dashboard ? $data->permissions : [];
             if ($data->allAgents) {
                 $permissions[] = 'agents.access-all';
             }

@@ -14,8 +14,12 @@ return new class extends Migration
     {
         Schema::create('teams', static function (Blueprint $table) {
             $table->id();
+            $table->uuid('external_id')->unique();
             $table->unsignedInteger('user_id');
             $table->string('name');
+            // false = chat-only team: members can't open the dashboard, and its
+            // roles carry agent access only (no dashboard permissions).
+            $table->boolean('can_access_dashboard')->default(true);
             $table->timestamps();
         });
     }

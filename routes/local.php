@@ -1,11 +1,16 @@
 <?php
 
-use Domain\Analytics\Services\TopicAnalysis;
 use Illuminate\Http\Request;
 
 if (app()->isLocal()) {
-    Route::get('test', function (): array {
-        return ['order_id' => 123, 'status' => 'shipped'];
+    Route::get('test', function (Request $request): array {
+        logger()->info(print_r($request->headers->all(), true));
+
+        return [
+            'order_id' => 123,
+            'status' => 'shipped',
+            'headers' => print_r($request->headers->all(), true),
+        ];
     });
 
     // Test webhook for the Functions feature. Returns a fixed value so we

@@ -25,6 +25,7 @@ class AgentMcpServerData extends Data
         public ?CarbonInterface $last_invoked_at,
         public ?string $last_error,
         public int $invocation_count,
+        public int $agents_count = 0,
     ) {}
 
     public static function fromModel(AgentMcpServer $server): self
@@ -44,6 +45,7 @@ class AgentMcpServerData extends Data
             last_invoked_at: $server->last_invoked_at,
             last_error: $server->last_error,
             invocation_count: $server->invocation_count,
+            agents_count: $server->agents_count ?? $server->agents()->count(),
         );
     }
 }

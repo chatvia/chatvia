@@ -37,6 +37,7 @@ export interface AgentMcpServer {
     last_invoked_at: string | null;
     last_error: string | null;
     invocation_count: number;
+    agents_count: number;
 }
 
 /**

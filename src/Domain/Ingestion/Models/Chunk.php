@@ -17,8 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Pgvector\Laravel\Vector;
+use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id
@@ -88,14 +88,7 @@ use Pgvector\Laravel\Vector;
 #[Guarded(['id'])]
 class Chunk extends Model
 {
-    protected static function booted(): void
-    {
-        static::creating(function ($model): void {
-            if (! $model->external_id) {
-                $model->external_id = Str::uuid()->toString();
-            }
-        });
-    }
+    use HasExternalId;
 
     public function newEloquentBuilder($query): ChunkQueryBuilder
     {

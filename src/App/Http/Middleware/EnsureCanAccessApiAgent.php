@@ -10,14 +10,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Guards /api/v1/agents/{agent}/... endpoints.
- *
- * The authenticated principal may be either:
- *  - a User (master token) — must own the agent's team, OR
- *  - an Agent (agent token) — must match the route's resolved agent.
- *
- * Built-in connector MCP servers and similar internal-only entities are filtered
- * elsewhere; this middleware only handles agent ownership.
+ * Guards /api/v1/agents/{agent}/... endpoints: the authenticated account
+ * (the bearer-token owner) must own the agent's team.
  */
 class EnsureCanAccessApiAgent
 {
@@ -32,16 +26,8 @@ class EnsureCanAccessApiAgent
 
         $principal = $request->user();
 
-        if ($principal instanceof Agent) {
-            return $principal->getKey() === $agent->getKey()
-                ? $next($request)
-                : $this->forbidden();
-        }
-
-        if ($principal instanceof User) {
-            return $principal->ownsTeam($agent->team)
-                ? $next($request)
-                : $this->forbidden();
+        if ($principal instanceof User && $principal->ownsTeam($agent->team)) {
+            return $next($request);
         }
 
         return $this->forbidden();

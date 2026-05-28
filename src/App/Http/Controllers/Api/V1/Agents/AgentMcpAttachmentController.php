@@ -2,42 +2,44 @@
 
 namespace App\Http\Controllers\Api\V1\Agents;
 
+use App\Http\Resources\Api\V1\McpServerData;
+use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * @tags Agent MCP Attachments
- *
- * Attach / detach account-level MCP servers to a specific agent. The MCP
- * definitions themselves are managed via `/api/v1/mcps` — this endpoint
- * only manages which agents can use which definitions. Presence of the
- * pivot row means "attached"; to pause, detach.
+ * Attach / detach MCP servers to a specific agent. Any server connected to
+ * your account — whether added by URL or picked from the catalog — can be
+ * attached by its `id`. An attached server stays available to the agent until
+ * you detach it.
  */
+#[Group(name: 'MCP Servers', weight: 50)]
 class AgentMcpAttachmentController
 {
     /**
      * List attached MCPs
+     *
+     * @return array{data: list<McpServerData>}
      */
-    public function index(Request $request, Agent $agent): JsonResponse
+    public function index(Request $request, Agent $agent): array
     {
-        $servers = $agent->mcpServers()
-            ->whereNull('connector_slug')
-            ->get();
+        $servers = $agent->mcpServers()->get();
 
-        return response()->json([
-            'data' => $servers->map(fn (AgentMcpServer $m): array => $this->transform($m))->all(),
-        ]);
+        return ['data' => $servers->map(fn (AgentMcpServer $server): McpServerData => McpServerData::fromModel($server))->all()];
     }
 
     /**
      * Attach MCP
      *
-     * Body: `{ mcp_id: string }`. The `mcp_id` is the `id` returned by
-     * `POST /api/v1/mcps`. Idempotent — re-attaching is a no-op.
+     * Body: `{ mcp_id: string }` — the server's `id`, copied from the
+     * dashboard (Connectors) or returned by `GET /api/v1/mcps`. Idempotent —
+     * re-attaching is a no-op.
+     *
+     * @return array{data: McpServerData}
      */
-    public function store(Request $request, Agent $agent): JsonResponse
+    public function store(Request $request, Agent $agent): array
     {
         $validated = $request->validate([
             'mcp_id' => ['required', 'string'],
@@ -47,7 +49,7 @@ class AgentMcpAttachmentController
 
         $agent->mcpServers()->syncWithoutDetaching([$server->id]);
 
-        return response()->json(['mcp' => $this->transform($server->fresh())], 201);
+        return ['data' => McpServerData::fromModel($server->fresh())];
     }
 
     /**
@@ -69,24 +71,9 @@ class AgentMcpAttachmentController
         /** @var AgentMcpServer $server */
         $server = AgentMcpServer::query()
             ->where('user_id', $agent->user_id)
-            ->whereNull('connector_slug')
             ->where('external_id', $externalId)
             ->firstOrFail();
 
         return $server;
-    }
-
-    private function transform(AgentMcpServer $server): array
-    {
-        return [
-            'id' => $server->external_id,
-            'name' => $server->name,
-            'slug' => $server->slug,
-            'url' => $server->url,
-            'transport' => $server->transport,
-            'auth_type' => $server->auth_type,
-            'enabled' => $server->enabled,
-            'created_at' => $server->created_at?->toIso8601String(),
-        ];
     }
 }

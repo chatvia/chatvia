@@ -19,6 +19,7 @@ Write the summary as if explaining to a colleague — natural, conversational, n
 - NO academic throat-clearing or meta-commentary
 - Use plain language, not jargon-heavy prose
 - Be specific and concrete, not vague and abstract
+- Preserve proper nouns and identifiers exactly as written. Do not generalize them into category words.
 
 ## Questions Guidelines
 
@@ -26,6 +27,7 @@ Write the summary as if explaining to a colleague — natural, conversational, n
 - Vary specificity — some narrow, some broader
 - Each question is a separate string in the JSON array
 - Do NOT number them, do NOT prefix with bullets, do NOT join them into one string
+- When the page introduces proper nouns or named identifiers, include at least one question that uses each name verbatim — in addition to broader thematic questions, not in place of them.
 
 ## Output Format
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Sources;
 
+use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
  * Lists all knowledge sources attached to an agent, regardless of type.
  * Each entry includes ingestion status so customers can poll for completion.
  */
+#[Group(name: 'Knowledge Sources', weight: 70)]
 class SourceListController
 {
     public function __invoke(Request $request, Agent $agent): JsonResponse

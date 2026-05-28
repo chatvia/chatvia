@@ -3,9 +3,11 @@
 namespace Domain\Chat\Services\Streaming;
 
 use Domain\Chat\Services\ChatContext;
+use Domain\Chat\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Generator;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
 
 class OpenAiCompatibleTransformer implements StreamTransformer
 {
@@ -20,7 +22,11 @@ class OpenAiCompatibleTransformer implements StreamTransformer
                 return;
             }
 
-            $chunk = $body->read(1024);
+            try {
+                $chunk = $body->read(1024);
+            } catch (RuntimeException $e) {
+                throw new UpstreamStreamClosed(previous: $e);
+            }
             if ($chunk === '') {
                 continue;
             }

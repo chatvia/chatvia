@@ -11,9 +11,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 use Spatie\Permission\Models\Role as SpatieRole;
+use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id
+ * @property string|null $external_id
  * @property int|null $team_id
  * @property string $name
  * @property string|null $code
@@ -55,6 +57,8 @@ use Spatie\Permission\Models\Role as SpatieRole;
 ])]
 class Role extends SpatieRole
 {
+    use HasExternalId;
+
     /**
      * Get the team this role belongs to.
      */

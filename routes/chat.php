@@ -57,9 +57,9 @@ Route::prefix('/chat')
         Route::delete('/conversations/{conversationId}', ConversationDeleteController::class)->name('conversations.delete');
         Route::delete('/conversations', ChatDeleteAllConversationsController::class)->name('conversations.delete.all');
 
-        Route::middleware('auth')->group(function (): void {
-            Route::post('logout', ChatLogoutController::class)->name('chat.logout');
-        });
+        // Reachable by both logged-in members and link-signed-in visitors;
+        // the controller invalidates the session (clearing the sign-in grant).
+        Route::post('logout', ChatLogoutController::class)->name('chat.logout');
 
         Route::get('starters', ChatStartersController::class)->name('chat.starters');
         Route::patch('/messages/feedback', ChatMessageFeedbackController::class)->name('chat.messages.feedback');

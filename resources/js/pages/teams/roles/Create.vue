@@ -267,8 +267,8 @@ const toggleAgentSelection = (agentId: string) => {
                         </CardContent>
                     </Card>
 
-                    <!-- Permissions -->
-                    <Card>
+                    <!-- Permissions (hidden for chat-only teams) -->
+                    <Card v-if="team.can_access_dashboard">
                         <CardHeader>
                             <CardTitle>Permissions</CardTitle>
                             <CardDescription>

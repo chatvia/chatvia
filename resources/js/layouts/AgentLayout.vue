@@ -39,13 +39,14 @@ import {
     Database,
     Eye,
     FileText,
+    FunctionSquare,
     Globe,
     Heart,
-    KeyRound,
     LoaderCircle,
     Lock,
     MessageSquare,
     Pencil,
+    Plug,
     SmilePlus,
     Sparkles,
     Trash2,
@@ -212,6 +213,28 @@ const controlPanelNavigationItems = computed(() => {
         });
     }
 
+    // Functions - top-level item, only show if user has functions permission
+    if (hasPermission('agent.sources.train.functions')) {
+        baseItems.push({
+            id: 'functions',
+            label: 'Functions',
+            icon: FunctionSquare,
+            route: 'agents.sources.functions.index',
+            tooltip: 'Manage custom functions your agent can call',
+        });
+    }
+
+    // Connectors - top-level item, only show if user has connectors permission
+    if (hasPermission('agent.sources.train.connectors')) {
+        baseItems.push({
+            id: 'connectors',
+            label: 'Connectors',
+            icon: Plug,
+            route: 'agents.sources.connectors.index',
+            tooltip: 'Attach connectors so your agent can use external tools',
+        });
+    }
+
     // Leads - only show if user has leads permission
     if (hasPermission('agent.leads.view')) {
         baseItems.push({ id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads.index', tooltip: 'Manage leads captured by your agent' });
@@ -220,17 +243,6 @@ const controlPanelNavigationItems = computed(() => {
     // Chat/Logs - only show if user has chat view permission
     if (hasPermission('agent.chat.view')) {
         baseItems.push({ id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' });
-    }
-
-    // API tokens - owner-only. Per-agent bearer tokens for the public API.
-    if (isOwner.value) {
-        baseItems.push({
-            id: 'api-tokens',
-            label: 'API tokens',
-            icon: KeyRound,
-            route: 'agents.api-tokens.index',
-            tooltip: 'Bearer tokens that authenticate calls to the agent via the public API',
-        });
     }
 
     // Rename - only show for team owners
@@ -332,7 +344,10 @@ const isActiveRoute = (routeName: string) => {
 };
 
 const analyticsSubmenuOpen = ref(isActiveRoute('agents.analytics.*'));
-const sourcesSubmenuOpen = ref(isActiveRoute('agents.sources.*'));
+// Functions and Connectors are now top-level items, so don't auto-open Sources on those routes.
+const sourcesSubmenuOpen = ref(
+    isActiveRoute('agents.sources.*') && !isActiveRoute('agents.sources.functions.*') && !isActiveRoute('agents.sources.connectors.*'),
+);
 
 // Source stats
 const sourceStats = ref<any>(null);

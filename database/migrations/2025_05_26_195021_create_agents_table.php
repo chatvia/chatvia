@@ -24,7 +24,7 @@ return new class extends Migration
             $table->boolean('collect_leads')->default(true);
             $table->boolean('analytics_enabled')->default(true);
             $table->json('metadata')->nullable();
-            $table->enum('created_via', ['dashboard', 'api'])->default('dashboard')->index();
+            $table->enum('created_via', ['internal', 'external'])->default('internal')->index();
             $table->timestamps();
         });
     }

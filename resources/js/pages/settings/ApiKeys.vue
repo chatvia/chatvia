@@ -3,6 +3,16 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
 import InputError from '@/components/InputError.vue';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -46,14 +56,20 @@ const submit = () => {
     });
 };
 
-const revoke = (token: TokenRow) => {
-    if (!confirm(`Revoke "${token.name}"? Any service using this token will stop working immediately.`)) {
-        return;
-    }
+const revokeOpen = ref(false);
+const tokenToRevoke = ref<TokenRow | null>(null);
 
-    router.delete(route('api-keys.destroy', { tokenId: token.id }), {
+const revoke = (token: TokenRow) => {
+    tokenToRevoke.value = token;
+    revokeOpen.value = true;
+};
+
+const confirmRevoke = () => {
+    if (!tokenToRevoke.value) return;
+    router.delete(route('api-keys.destroy', { tokenId: tokenToRevoke.value.id }), {
         preserveScroll: true,
     });
+    revokeOpen.value = false;
 };
 
 // One-time reveal dialog: shows when a fresh token comes back from the server,
@@ -95,8 +111,8 @@ const dismissDialog = () => {
                         API keys
                     </h1>
                     <p class="text-muted-foreground mt-1 text-sm">
-                        Master tokens used to provision agents and rotate per-agent secrets via the
-                        <a class="underline" href="/docs/api" target="_blank">Chatvia API</a>.
+                        Account keys for the <a class="underline" href="/docs/api" target="_blank">Chatvia API</a> — create and manage agents,
+                        knowledge, MCP servers, and functions.
                     </p>
                 </div>
 
@@ -186,6 +202,25 @@ const dismissDialog = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <!-- Revoke confirmation -->
+            <AlertDialog v-model:open="revokeOpen">
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Revoke API key</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Revoke <span class="font-medium">{{ tokenToRevoke?.name }}</span
+                            >? Any service using this token will stop working immediately. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmRevoke">
+                            Revoke
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </SettingsLayout>
     </AppLayout>
 </template>

@@ -25,7 +25,7 @@ class ChatHandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $user,
-                'is_external_chat_user' => $user?->isExternalChatUser() ?? false,
+                'is_external_chat_user' => $user?->isExternal() ?? false,
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),

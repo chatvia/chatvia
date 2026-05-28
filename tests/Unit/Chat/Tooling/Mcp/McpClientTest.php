@@ -106,6 +106,50 @@ class McpClientTest extends TestCase
         $this->assertSame('pong', $result['content'][0]['text']);
     }
 
+    public function test_call_tool_stamps_caller_identity_headers(): void
+    {
+        Http::fake(function ($request) {
+            $body = $request->data();
+            $method = $body['method'] ?? '';
+
+            if ($method === 'initialize') {
+                return Http::response([
+                    'jsonrpc' => '2.0',
+                    'id' => $body['id'],
+                    'result' => ['protocolVersion' => '2025-06-18'],
+                ], 200, ['Mcp-Session-Id' => 's']);
+            }
+            if ($method === 'notifications/initialized') {
+                return Http::response('', 202);
+            }
+            if ($method === 'tools/call') {
+                return Http::response([
+                    'jsonrpc' => '2.0',
+                    'id' => $body['id'],
+                    'result' => [
+                        'content' => [['type' => 'text', 'text' => 'ok']],
+                        'isError' => false,
+                    ],
+                ]);
+            }
+
+            return Http::response('', 200);
+        });
+
+        (new McpClient)->callTool($this->server(), 'ping', [], [
+            'X-Chatvia-Agent-Id' => 'agent-uuid',
+            'X-Chatvia-User-Id' => 'user-uuid',
+        ]);
+
+        Http::assertSent(function ($request) {
+            $body = $request->data();
+
+            return ($body['method'] ?? null) === 'tools/call'
+                && $request->header('X-Chatvia-Agent-Id') === ['agent-uuid']
+                && $request->header('X-Chatvia-User-Id') === ['user-uuid'];
+        });
+    }
+
     public function test_session_and_protocol_headers_are_not_duplicated_across_calls(): void
     {
         // Regression guard: Laravel's PendingRequest::withHeaders uses

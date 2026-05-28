@@ -17,8 +17,6 @@ use Domain\Sources\Text\Models\SourceText;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
 use Exception;
-use Illuminate\Auth\Authenticatable;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -34,8 +32,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Laravel\Sanctum\Contracts\HasApiTokens as HasApiTokensContract;
-use Laravel\Sanctum\HasApiTokens;
 use Support\Traits\HasSettings;
 
 /**
@@ -159,9 +155,9 @@ use Support\Traits\HasSettings;
 ])]
 #[CollectedBy(AgentCollection::class)]
 #[Guarded(['id'])]
-class Agent extends Model implements AuthenticatableContract, HasApiTokensContract
+class Agent extends Model
 {
-    use Authenticatable, HasApiTokens, HasFactory, HasSettings;
+    use HasFactory, HasSettings;
 
     /**
      * Get the route key name for Laravel route model binding.

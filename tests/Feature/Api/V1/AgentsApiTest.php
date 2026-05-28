@@ -1,22 +1,22 @@
 <?php
 
 use App\Auth\Models\User;
-use App\Auth\Services\AgentJwtVerifier;
+use App\Auth\Services\AgentSignInTokenService;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
-use Firebase\JWT\JWT;
+use Domain\Auth\Actions\CreateExternalUserAction;
+use Domain\Teams\Actions\CreateTeamAction;
+use Domain\Teams\Data\CreateTeamData;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->user);
 
-    [$this->masterToken, $this->masterPlain] = (function () {
-        $token = $this->user->createToken('master', ['agents:manage']);
-
-        return [$token->accessToken, $token->plainTextToken];
-    })();
+    // One account-level key authenticates everything — no per-agent tokens,
+    // no abilities.
+    $this->token = $this->user->createToken('account')->plainTextToken;
 });
 
 function authHeaders(string $token): array
@@ -26,27 +26,39 @@ function authHeaders(string $token): array
 
 describe('POST /api/v1/agents', function (): void {
 
-    it('creates a knowledge-base agent and returns the api token', function (): void {
-        $response = $this->withHeaders(authHeaders($this->masterPlain))
-            ->postJson('/api/v1/agents', ['name' => 'Support Bot']);
+    it('creates a knowledge-base agent and returns just the agent', function (): void {
+        $response = $this->withHeaders(authHeaders($this->token))
+            ->postJson('/api/v1/agents', ['name' => 'Support Bot'])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Support Bot')
+            ->assertJsonPath('data.type', 'knowledge_base')
+            ->assertJsonPath('data.created_via', 'external')
+            ->assertJsonStructure(['data' => ['id', 'url', 'permanent_url']]);
 
-        $response->assertCreated()
-            ->assertJsonPath('agent.name', 'Support Bot')
-            ->assertJsonPath('agent.type', 'knowledge_base')
-            ->assertJsonPath('agent.created_via', 'api')
-            ->assertJsonStructure([
-                'agent' => ['id', 'url', 'chat_url', 'embed_url'],
-                'token' => ['id', 'plaintext', 'abilities'],
-            ])
-            ->assertJsonMissing(['jwt_secret']);
+        // No per-agent token is minted anymore — the account key is the only key.
+        expect($response->json())->not->toHaveKey('token');
     });
 
-    it('rejects requests with no master ability', function (): void {
-        $agentToken = createAgentForUser($this->user)->createToken('agent', ['chat:send'])->plainTextToken;
+    it('creates an agent in a specific team via team_id', function (): void {
+        $team = app(CreateTeamAction::class)->execute(
+            new CreateTeamData(owner: $this->user, name: 'Side Team'),
+        );
 
-        $this->withHeaders(authHeaders($agentToken))
-            ->postJson('/api/v1/agents', ['name' => 'x'])
-            ->assertForbidden();
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson('/api/v1/agents', ['name' => 'Team Bot', 'team_id' => $team->external_id])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Team Bot');
+
+        expect($team->agents()->where('name', 'Team Bot')->exists())->toBeTrue();
+    });
+
+    it('rejects a team_id the caller does not own', function (): void {
+        $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson('/api/v1/agents', ['name' => 'X', 'team_id' => $otherUser->primaryTeam()->external_id])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['team_id']);
     });
 
     it('rejects unauthenticated requests', function (): void {
@@ -54,69 +66,99 @@ describe('POST /api/v1/agents', function (): void {
     });
 
     it('validates name', function (): void {
-        $this->withHeaders(authHeaders($this->masterPlain))
+        $this->withHeaders(authHeaders($this->token))
             ->postJson('/api/v1/agents', ['name' => 'x'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
     });
 });
 
+describe('GET /api/v1/agents', function (): void {
+
+    it('lists agents across all teams and nests the team object', function (): void {
+        $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(owner: $this->user, name: 'Team B'));
+        createAgentForUser($this->user, 'In Primary');
+        createAgentInTeam($this->user, $teamB->id, 'In B');
+
+        $body = $this->withHeaders(authHeaders($this->token))
+            ->getJson('/api/v1/agents')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->json('data');
+
+        expect($body[0]['team']['id'])->toBeString()
+            ->and($body[0]['team']['name'])->toBeString();
+    });
+
+    it('filters agents by team_id', function (): void {
+        $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(owner: $this->user, name: 'Team B'));
+        createAgentForUser($this->user, 'In Primary');
+        createAgentInTeam($this->user, $teamB->id, 'In B');
+
+        $this->withHeaders(authHeaders($this->token))
+            ->getJson('/api/v1/agents?team_id='.$teamB->external_id)
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'In B')
+            ->assertJsonPath('data.0.team.id', $teamB->external_id)
+            ->assertJsonPath('data.0.team.name', 'Team B');
+    });
+});
+
 describe('PATCH /api/v1/agents/{agent}', function (): void {
 
-    it('lets the master token patch metadata + flags', function (): void {
+    it('patches metadata + flags', function (): void {
         $agent = createAgentForUser($this->user);
 
-        $this->withHeaders(authHeaders($this->masterPlain))
+        $this->withHeaders(authHeaders($this->token))
             ->patchJson("/api/v1/agents/{$agent->external_id}", [
                 'metadata' => ['external_user_id' => 'cus_42'],
                 'analytics_enabled' => false,
                 'collect_leads' => false,
             ])
             ->assertOk()
-            ->assertJsonPath('agent.metadata.external_user_id', 'cus_42')
-            ->assertJsonPath('agent.analytics_enabled', false)
-            ->assertJsonPath('agent.collect_leads', false);
+            ->assertJsonPath('data.metadata.external_user_id', 'cus_42')
+            ->assertJsonPath('data.analytics_enabled', false)
+            ->assertJsonPath('data.collect_leads', false);
     });
 
-    it('lets the agent token patch itself', function (): void {
-        $agent = createAgentForUser($this->user);
-        $agentToken = $agent->createToken('agent', ['agent:write'])->plainTextToken;
-
-        $this->withHeaders(authHeaders($agentToken))
-            ->patchJson("/api/v1/agents/{$agent->external_id}", ['name' => 'Renamed'])
-            ->assertOk()
-            ->assertJsonPath('agent.name', 'Renamed');
-    });
-
-    it('rejects an agent token patching a different agent', function (): void {
-        $myAgent = createAgentForUser($this->user);
+    it('forbids reaching an agent owned by another account', function (): void {
         $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $otherAgent = createAgentForUser($otherUser);
 
-        $myToken = $myAgent->createToken('mine', ['agent:write'])->plainTextToken;
-
-        $this->withHeaders(authHeaders($myToken))
+        $this->withHeaders(authHeaders($this->token))
             ->patchJson("/api/v1/agents/{$otherAgent->external_id}", ['name' => 'evil'])
             ->assertForbidden();
     });
 });
 
-describe('Sanctum ability scoping', function (): void {
+describe('DELETE /api/v1/agents/{agent}', function (): void {
 
-    it('blocks chat ability from creating agents', function (): void {
+    it('deletes the caller’s own agent', function (): void {
         $agent = createAgentForUser($this->user);
-        $chatOnly = $agent->createToken('chat-only', ['chat:send'])->plainTextToken;
 
-        $this->withHeaders(authHeaders($chatOnly))
-            ->postJson('/api/v1/agents', ['name' => 'x'])
+        $this->withHeaders(authHeaders($this->token))
+            ->deleteJson("/api/v1/agents/{$agent->external_id}")
+            ->assertNoContent();
+
+        expect(Agent::whereKey($agent->id)->exists())->toBeFalse();
+    });
+
+    it('forbids deleting another account’s agent', function (): void {
+        $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $otherAgent = createAgentForUser($otherUser);
+
+        $this->withHeaders(authHeaders($this->token))
+            ->deleteJson("/api/v1/agents/{$otherAgent->external_id}")
             ->assertForbidden();
+
+        expect(Agent::whereKey($otherAgent->id)->exists())->toBeTrue();
     });
 });
 
 describe('Account-level MCPs + attach/detach', function (): void {
 
     it('lists only custom (non-connector) MCPs at the account level', function (): void {
-        // Custom — exposed.
         AgentMcpServer::create([
             'user_id' => $this->user->id,
             'name' => 'Custom one',
@@ -127,7 +169,6 @@ describe('Account-level MCPs + attach/detach', function (): void {
             'connector_slug' => null,
         ]);
 
-        // Built-in connector — never exposed via the public API.
         AgentMcpServer::create([
             'user_id' => $this->user->id,
             'name' => 'Built-in Slack',
@@ -138,14 +179,14 @@ describe('Account-level MCPs + attach/detach', function (): void {
             'connector_slug' => 'slack',
         ]);
 
-        $this->withHeaders(authHeaders($this->masterPlain))
+        $this->withHeaders(authHeaders($this->token))
             ->getJson('/api/v1/mcps')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Custom one');
     });
 
-    it('attaches an account MCP to an agent and lists it under that agent', function (): void {
+    it('attaches an account MCP to an agent then detaches it', function (): void {
         $agent = createAgentForUser($this->user);
 
         $mcp = AgentMcpServer::create([
@@ -158,156 +199,77 @@ describe('Account-level MCPs + attach/detach', function (): void {
             'connector_slug' => null,
         ]);
 
-        $this->withHeaders(authHeaders($this->masterPlain))
+        $this->withHeaders(authHeaders($this->token))
             ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $mcp->external_id])
-            ->assertCreated();
+            ->assertOk();
 
-        $this->withHeaders(authHeaders($this->masterPlain))
+        $this->withHeaders(authHeaders($this->token))
             ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Linear');
 
-        // Detach
-        $this->withHeaders(authHeaders($this->masterPlain))
+        $this->withHeaders(authHeaders($this->token))
             ->deleteJson("/api/v1/agents/{$agent->external_id}/mcps/{$mcp->external_id}")
             ->assertNoContent();
 
-        $this->withHeaders(authHeaders($this->masterPlain))
+        $this->withHeaders(authHeaders($this->token))
             ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
             ->assertOk()
             ->assertJsonCount(0, 'data');
     });
-});
 
-describe('POST /api/v1/jwt-secret', function (): void {
+    it('attaches a catalog connector by id (not just custom servers)', function (): void {
+        $agent = createAgentForUser($this->user);
 
-    it('generates a secret on first call and rotates on subsequent calls', function (): void {
-        expect($this->user->fresh()->jwt_secret)->toBeNull();
+        // A catalog-backed server (connector_slug set). The attach endpoint
+        // accepts any server connected to the account, not only custom ones.
+        $mcp = AgentMcpServer::create([
+            'user_id' => $this->user->id,
+            'name' => 'Weather',
+            'slug' => 'weather',
+            'url' => 'https://chatvia.test/mcp/weather',
+            'transport' => 'streamable_http',
+            'auth_type' => 'none',
+            'connector_slug' => 'weather',
+        ]);
 
-        $first = $this->withHeaders(authHeaders($this->masterPlain))
-            ->postJson('/api/v1/jwt-secret')
-            ->assertCreated()
-            ->json('jwt_secret');
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $mcp->external_id])
+            ->assertOk();
 
-        expect($first)->toHaveLength(64);
-        expect($this->user->fresh()->jwt_secret)->toBe($first);
-
-        $second = $this->withHeaders(authHeaders($this->masterPlain))
-            ->postJson('/api/v1/jwt-secret')
-            ->assertCreated()
-            ->json('jwt_secret');
-
-        expect($second)->toHaveLength(64)->not->toBe($first);
-        expect($this->user->fresh()->jwt_secret)->toBe($second);
-    });
-
-    it('shows whether a secret is configured without leaking it', function (): void {
-        $this->withHeaders(authHeaders($this->masterPlain))
-            ->getJson('/api/v1/jwt-secret')
+        $this->withHeaders(authHeaders($this->token))
+            ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
             ->assertOk()
-            ->assertExactJson(['configured' => false]);
-
-        $this->user->rotateJwtSecret();
-
-        $this->withHeaders(authHeaders($this->masterPlain))
-            ->getJson('/api/v1/jwt-secret')
-            ->assertOk()
-            ->assertExactJson(['configured' => true]);
-    });
-
-    it('forbids non-master tokens', function (): void {
-        $agentToken = createAgentForUser($this->user)->createToken('t', ['chat:send'])->plainTextToken;
-
-        $this->withHeaders(authHeaders($agentToken))
-            ->postJson('/api/v1/jwt-secret')
-            ->assertForbidden();
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Weather');
     });
 });
 
-describe('POST /api/v1/agents/{agent}/chat-tokens', function (): void {
+describe('Account-level MCPs', function (): void {
 
-    it('mints a JWT that the verifier accepts and returns the redirect URL', function (): void {
-        $agent = createAgentForUser($this->user);
-        $agentToken = $agent->createToken('t', ['chat:send'])->plainTextToken;
+    it('lists and deletes a custom MCP (created in the dashboard, not via the API)', function (): void {
+        $headers = authHeaders($this->token);
 
-        $response = $this->withHeaders(authHeaders($agentToken))
-            ->postJson("/api/v1/agents/{$agent->external_id}/chat-tokens", [
-                'sub' => 'cus_42',
-                'name' => 'Jane',
-                'email' => 'jane@example.com',
-                'ttl_seconds' => 600,
-            ]);
-
-        $response->assertCreated()
-            ->assertJsonStructure(['token', 'chat_url', 'expires_at']);
-
-        expect($response->json('chat_url'))->toContain('?token='.$response->json('token'));
-
-        $verified = app(AgentJwtVerifier::class)->verify($agent, $response->json('token'));
-        expect($verified)->not->toBeNull()
-            ->and($verified['sub'])->toBe('cus_42')
-            ->and($verified['name'])->toBe('Jane');
-    });
-
-    it('rejects ttl_seconds beyond the max', function (): void {
-        $agent = createAgentForUser($this->user);
-        $token = $agent->createToken('t', ['chat:send'])->plainTextToken;
-
-        $this->withHeaders(authHeaders($token))
-            ->postJson("/api/v1/agents/{$agent->external_id}/chat-tokens", [
-                'sub' => 'cus_42',
-                'ttl_seconds' => 99999,
-            ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['ttl_seconds']);
-    });
-
-    it('requires sub', function (): void {
-        $agent = createAgentForUser($this->user);
-        $token = $agent->createToken('t', ['chat:send'])->plainTextToken;
-
-        $this->withHeaders(authHeaders($token))
-            ->postJson("/api/v1/agents/{$agent->external_id}/chat-tokens", [])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['sub']);
-    });
-
-    it('forbids tokens without chat:send ability', function (): void {
-        $agent = createAgentForUser($this->user);
-        $readOnly = $agent->createToken('t', ['agent:read'])->plainTextToken;
-
-        $this->withHeaders(authHeaders($readOnly))
-            ->postJson("/api/v1/agents/{$agent->external_id}/chat-tokens", ['sub' => 'cus_42'])
-            ->assertForbidden();
-    });
-});
-
-describe('Account-level MCPs CRUD', function (): void {
-
-    it('creates, lists, and deletes an account MCP via /api/v1/mcps', function (): void {
-        $headers = authHeaders($this->masterPlain);
-
-        $created = $this->withHeaders($headers)
-            ->postJson('/api/v1/mcps', [
-                'name' => 'Linear',
-                'url' => 'https://mcp.linear.app',
-                'auth_type' => 'bearer',
-                'auth_value' => 'lin_api_xxx',
-            ])
-            ->assertCreated()
-            ->json('mcp');
-
-        expect($created['name'])->toBe('Linear');
-        expect($created['has_auth_value'])->toBeTrue();
+        $mcp = AgentMcpServer::create([
+            'user_id' => $this->user->id,
+            'name' => 'Linear',
+            'slug' => 'linear',
+            'url' => 'https://mcp.linear.app',
+            'transport' => 'streamable_http',
+            'auth_type' => 'bearer',
+            'auth_value' => 'lin_api_xxx',
+            'connector_slug' => null,
+        ]);
 
         $this->withHeaders($headers)
             ->getJson('/api/v1/mcps')
             ->assertOk()
-            ->assertJsonCount(1, 'data');
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Linear');
 
         $this->withHeaders($headers)
-            ->deleteJson('/api/v1/mcps/'.$created['id'])
+            ->deleteJson('/api/v1/mcps/'.$mcp->external_id)
             ->assertNoContent();
 
         $this->withHeaders($headers)
@@ -320,7 +282,7 @@ describe('Account-level MCPs CRUD', function (): void {
 describe('Account-level Functions CRUD', function (): void {
 
     it('creates and deletes an account function via /api/v1/functions', function (): void {
-        $headers = authHeaders($this->masterPlain);
+        $headers = authHeaders($this->token);
 
         $created = $this->withHeaders($headers)
             ->postJson('/api/v1/functions', [
@@ -329,10 +291,11 @@ describe('Account-level Functions CRUD', function (): void {
                 'parameters_schema' => ['type' => 'object', 'properties' => (object) []],
                 'webhook_url' => 'https://acme.example.com/webhooks/orders',
             ])
-            ->assertCreated()
-            ->json('function');
+            ->assertOk()
+            ->json('data');
 
         expect($created['name'])->toBe('get_order_status');
+        expect($created['webhook']['method'])->toBe('POST');
 
         $this->withHeaders($headers)
             ->getJson('/api/v1/functions')
@@ -345,72 +308,101 @@ describe('Account-level Functions CRUD', function (): void {
     });
 });
 
-describe('AgentJwtVerifier', function (): void {
+describe('POST /api/v1/agents/{agent}/sign-in-links', function (): void {
 
-    it('verifies a valid HS256 token signed with the account secret', function (): void {
+    it('returns a ready-to-open url for an end-user', function (): void {
         $agent = createAgentForUser($this->user);
+        $endUser = app(CreateExternalUserAction::class)->execute($this->user, 'Jane');
 
-        $jwt = JWT::encode(
-            ['sub' => 'cus_42', 'email' => 'e@x.com', 'exp' => now()->addMinutes(5)->timestamp],
-            $this->user->fresh()->jwt_secret,
-            'HS256',
-        );
+        $response = $this->withHeaders(authHeaders($this->token))
+            ->postJson("/api/v1/agents/{$agent->external_id}/sign-in-links", [
+                'user_id' => $endUser->external_id,
+                'ttl_seconds' => 600,
+            ]);
 
-        $result = app(AgentJwtVerifier::class)->verify($agent, $jwt);
+        $response->assertOk()->assertJsonStructure(['data' => ['url', 'expires_at']]);
 
-        expect($result)->not->toBeNull()
-            ->and($result['sub'])->toBe('cus_42')
-            ->and($result['email'])->toBe('e@x.com');
+        $url = $response->json('data.url');
+        expect($url)->toContain('?token=');
+        $token = explode('?token=', $url)[1];
+
+        // The minted token resolves to this agent + end-user.
+        expect(app(AgentSignInTokenService::class)->verify($token))
+            ->toEqual(['agent_id' => $agent->id, 'user_id' => $endUser->id]);
     });
 
-    it('rejects a token signed with the wrong secret', function (): void {
+    it('requires a user_id', function (): void {
         $agent = createAgentForUser($this->user);
 
-        $jwt = JWT::encode(
-            ['sub' => 'cus_42', 'exp' => now()->addMinutes(5)->timestamp],
-            'wrong-secret-'.str_repeat('a', 60),
-            'HS256',
-        );
-
-        expect(app(AgentJwtVerifier::class)->verify($agent, $jwt))->toBeNull();
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson("/api/v1/agents/{$agent->external_id}/sign-in-links", [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['user_id']);
     });
 
-    it('rejects an expired token', function (): void {
+    it('rejects ttl_seconds beyond the max', function (): void {
         $agent = createAgentForUser($this->user);
+        $endUser = app(CreateExternalUserAction::class)->execute($this->user, 'Jane');
 
-        $jwt = JWT::encode(
-            ['sub' => 'cus_42', 'exp' => now()->subSeconds(10)->timestamp],
-            $this->user->fresh()->jwt_secret,
-            'HS256',
-        );
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson("/api/v1/agents/{$agent->external_id}/sign-in-links", [
+                'user_id' => $endUser->external_id,
+                'ttl_seconds' => 99999,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['ttl_seconds']);
+    });
 
-        expect(app(AgentJwtVerifier::class)->verify($agent, $jwt))->toBeNull();
+    it('forbids minting a link for another account’s agent', function (): void {
+        $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $otherAgent = createAgentForUser($otherUser);
+
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson("/api/v1/agents/{$otherAgent->external_id}/sign-in-links", ['user_id' => 'x'])
+            ->assertForbidden();
+    });
+});
+
+describe('AgentSignInTokenService', function (): void {
+
+    it('issues a token resolving to the agent + user, multi-use until expiry', function (): void {
+        $agent = createAgentForUser($this->user);
+        $endUser = app(CreateExternalUserAction::class)->execute($this->user, 'Jane');
+        $service = app(AgentSignInTokenService::class);
+
+        $token = $service->generate($agent, $endUser)['token'];
+        $expected = ['agent_id' => $agent->id, 'user_id' => $endUser->id];
+
+        expect($service->verify($token))->toEqual($expected);
+        // Multi-use: a second lookup still resolves (not consumed).
+        expect($service->verify($token))->toEqual($expected);
+    });
+
+    it('returns null for an unknown token', function (): void {
+        expect(app(AgentSignInTokenService::class)->verify('nope'))->toBeNull();
     });
 });
 
 /**
- * Test helper — creates an agent in the user's primary team and ensures the
- * user has a jwt_secret (since JWT signing relies on the account-level secret
- * now). Matches what POST /agents + POST /jwt-secret would do.
+ * Test helper — creates an agent in the user's primary team.
  */
-function createAgentForUser(User $user): Agent
+function createAgentForUser(User $user, string $name = 'Test Agent'): Agent
 {
-    $team = $user->primaryTeam();
+    return createAgentInTeam($user, $user->primaryTeam()->id, $name);
+}
 
-    if (! $user->jwt_secret) {
-        $user->rotateJwtSecret();
-    }
-
+function createAgentInTeam(User $user, int $teamId, string $name = 'Test Agent'): Agent
+{
     return Agent::create([
         'user_id' => $user->id,
-        'team_id' => $team->id,
-        'name' => 'Test Agent',
+        'team_id' => $teamId,
+        'name' => $name,
         'type' => 'knowledge_base',
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'is_public' => false,
         'collect_leads' => true,
         'analytics_enabled' => true,
-        'created_via' => 'api',
+        'created_via' => 'external',
     ]);
 }

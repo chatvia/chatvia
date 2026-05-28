@@ -5,6 +5,12 @@
     "description": "The skeleton application for the Laravel framework.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://satis.dedoc.co"
+        }
+    ],
     "require": {
         "php": "^8.4",
         "ext-dom": "*",
@@ -17,6 +23,7 @@
         "cesargb/laravel-magiclink": "^2.24",
         "crwlr/crawler": "^3.5",
         "dedoc/scramble": "^0.13.23",
+        "dedoc/scramble-pro": "^0.9.2",
         "firebase/php-jwt": "^v7.0.5",
         "google/cloud-document-ai": "^2.2",
         "graham-campbell/markdown": "^16.0",

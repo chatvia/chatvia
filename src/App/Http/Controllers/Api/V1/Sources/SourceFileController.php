@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Sources;
 
+use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Domain\Sources\Files\Enums\AgentFileStatusEnum;
 use Domain\Sources\Files\Models\SourceFile;
@@ -9,12 +10,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * @tags Knowledge Sources
- *
  * Upload a file (PDF / Word / audio / video) as a knowledge source. The
  * file is persisted, attached to the agent, and queued for ingestion.
  * Allowed MIME types match the dashboard upload — anything else is rejected.
  */
+#[Group(name: 'Knowledge Sources', weight: 70)]
 class SourceFileController
 {
     /**
@@ -38,7 +38,7 @@ class SourceFileController
         $sourceFile = $agent->addFile($file, AgentFileStatusEnum::UPLOADED);
 
         return response()->json([
-            'source' => [
+            'data' => [
                 'id' => $sourceFile->id,
                 'kind' => 'file',
                 'name' => $sourceFile->filename,

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import TeamAccessRadio from '@/components/teams/TeamAccessRadio.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { Auth, SharedData } from '@/types';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
@@ -54,6 +55,7 @@ watch(isOpen, (open) => {
 
 const createForm = useForm({
     name: '',
+    can_access_dashboard: true,
 });
 
 const isSwitching = ref(false);
@@ -157,6 +159,7 @@ const createTeam = () => {
                             <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" required />
                             <InputError :message="createForm.errors.name" />
                         </div>
+                        <TeamAccessRadio v-model="createForm.can_access_dashboard" />
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" @click="isCreateDialogOpen = false"> Cancel </Button>

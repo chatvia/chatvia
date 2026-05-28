@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { SharedData } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Bot, Code, Loader2, MessageSquare, Plus, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -151,8 +151,7 @@ const openAgent = (agent: Agent) => {
                             <TableHead class="h-11 pl-5">Agent name</TableHead>
                             <TableHead class="h-11 w-32">Messages</TableHead>
                             <TableHead class="h-11 w-32">Members</TableHead>
-                            <TableHead class="h-11 w-40">Created</TableHead>
-                            <TableHead class="h-11 w-32 pr-5 text-right">Action</TableHead>
+                            <TableHead class="h-11 w-40 pr-5">Created</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -181,12 +180,7 @@ const openAgent = (agent: Agent) => {
                                 <span v-if="agent.type.toLowerCase() === 'widget'" class="text-muted-foreground">—</span>
                                 <span v-else>{{ agent.total_members || 0 }}</span>
                             </TableCell>
-                            <TableCell class="text-muted-foreground py-4 text-sm">{{ formatDate(agent.created_at) }}</TableCell>
-                            <TableCell class="py-4 pr-5 text-right" @click.stop>
-                                <Button as-child size="sm" variant="outline">
-                                    <Link :href="route('agents.manager', { agent: agent.external_id })">Manage</Link>
-                                </Button>
-                            </TableCell>
+                            <TableCell class="text-muted-foreground py-4 pr-5 text-sm">{{ formatDate(agent.created_at) }}</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>

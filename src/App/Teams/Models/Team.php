@@ -12,9 +12,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id
+ * @property string $external_id
  * @property int $user_id
  * @property string $name
  * @property Carbon|null $created_at
@@ -43,9 +45,22 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'name',
     'user_id',
+    'can_access_dashboard',
 ])]
 class Team extends Model
 {
+    use HasExternalId;
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'can_access_dashboard' => 'boolean',
+        ];
+    }
+
     /**
      * @return BelongsTo<User, $this>
      */

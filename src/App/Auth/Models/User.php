@@ -30,6 +30,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -44,15 +45,17 @@ use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Laravel\Cashier\Billable;
 use Laravel\Cashier\Subscription;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Support\Concerns\HasExternalId;
+use Support\Enums\CreatedVia;
 use Support\Traits\HasSettings;
 
 /**
  * @property int $id
+ * @property string $external_id
  * @property string $name
  * @property string $email
  * @property Carbon|null $email_verified_at
@@ -159,12 +162,11 @@ use Support\Traits\HasSettings;
 #[Hidden([
     'password',
     'remember_token',
-    'jwt_secret',
 ])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use Billable, HasApiTokens, HasFactory, HasRoles, HasSettings, Notifiable;
+    use Billable, HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -179,6 +181,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'trial_ends_at' => 'datetime',
             'billing_address' => 'array',
             'last_login_at' => 'datetime',
+            'created_via' => CreatedVia::class,
         ];
     }
 
@@ -206,29 +209,30 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Generates (or replaces) the shared HS256 secret used to sign end-user
-     * chat JWTs across this account's agents. Returns the plaintext so the
-     * caller can surface it once to the user — it's never retrievable after.
+     * True when this user is a customer's end-user (created via the API), not a
+     * Chatvia account/staff member.
      */
-    public function rotateJwtSecret(): string
+    public function isExternal(): bool
     {
-        $secret = Str::random(64);
-        $this->forceFill(['jwt_secret' => $secret])->save();
-
-        return $secret;
+        return $this->created_via === CreatedVia::External;
     }
 
-    /**
-     * True when this User row was created by the JWT chat-auth flow to
-     * represent an external (customer-side) end-user — i.e. they do NOT
-     * have a Chatvia dashboard account. Detected via the synthetic email
-     * pattern used in [[AuthenticateChatViaJwt::upsertJwtUser()]]; the
-     * domain suffix is reserved by RFC 6761 ('.invalid') so the check
-     * cannot collide with any real email.
-     */
+    /** @deprecated use isExternal() — kept for existing callers. */
     public function isExternalChatUser(): bool
     {
-        return str_ends_with((string) $this->email, '@external.chatvia.invalid');
+        return $this->isExternal();
+    }
+
+    /** @param Builder<User> $query */
+    public function scopeInternal($query)
+    {
+        return $query->where('created_via', CreatedVia::Internal);
+    }
+
+    /** @param Builder<User> $query */
+    public function scopeExternal($query)
+    {
+        return $query->where('created_via', CreatedVia::External);
     }
 
     /**
@@ -713,7 +717,12 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function managedUsers(): HasMany
     {
-        return $this->hasMany(User::class, 'managed_by_user_id');
+        return $this->hasMany(User::class, 'managed_by_user_id')->where('created_via', CreatedVia::Internal);
+    }
+
+    public function externalUsers(): HasMany
+    {
+        return $this->hasMany(User::class, 'managed_by_user_id')->where('created_via', CreatedVia::External);
     }
 
     /**
@@ -787,6 +796,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function staff(): HasMany
     {
-        return $this->hasMany(User::class, 'managed_by_user_id');
+        return $this->hasMany(User::class, 'managed_by_user_id')->where('created_via', CreatedVia::Internal);
+    }
+
+    /**
+     * Whether this user may open the control panel. True if they own any team or
+     * belong to a team that allows dashboard access. Members of chat-only teams
+     * (and users with no team) are blocked.
+     */
+    public function canAccessDashboard(): bool
+    {
+        return $this->ownedTeams()->exists()
+            || $this->memberTeams()->where('teams.can_access_dashboard', true)->exists();
     }
 }

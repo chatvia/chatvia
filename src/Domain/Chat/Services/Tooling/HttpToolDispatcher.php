@@ -36,7 +36,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
 
         try {
             $request = Http::timeout(max(1, (int) ceil($function->timeout_ms / 1000)))
-                ->withHeaders($this->headers($function));
+                ->withHeaders($this->headers($function, $agent));
 
             $response = $function->webhook_method === 'GET'
                 ? $request->get($function->webhook_url, $args)
@@ -96,7 +96,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
     /**
      * @return array<string, string>
      */
-    private function headers(AgentFunction $function): array
+    private function headers(AgentFunction $function, Agent $agent): array
     {
         $headers = [
             'Accept' => 'application/json',
@@ -122,7 +122,9 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             $headers[(string) $config['name']] = (string) $config['value'];
         }
 
-        return $headers;
+        // Identity headers are stamped last so a customer's webhook_headers
+        // can't shadow them.
+        return array_merge($headers, ToolCallerIdentity::headers($agent));
     }
 
     private function record(AgentFunction $function, ?string $error = null): void

@@ -77,9 +77,10 @@ class McpClient
      * can ingest.
      *
      * @param  array<string, mixed>  $arguments
+     * @param  array<string, string>  $identityHeaders  Caller-identity headers (agent + user) stamped on every request in the session.
      * @return array<string, mixed>
      */
-    public function callTool(AgentMcpServer $server, string $name, array $arguments): array
+    public function callTool(AgentMcpServer $server, string $name, array $arguments, array $identityHeaders = []): array
     {
         $this->ensureFreshToken($server);
 
@@ -89,18 +90,18 @@ class McpClient
             'protocolVersion' => self::PROTOCOL_VERSION,
             'capabilities' => (object) [],
             'clientInfo' => self::CLIENT_INFO,
-        ]);
+        ], $identityHeaders);
 
         if ($initResponse['_session_id']) {
             $sessionId = $initResponse['_session_id'];
         }
 
-        $this->notify($server, $sessionId, 'notifications/initialized');
+        $this->notify($server, $sessionId, 'notifications/initialized', identityHeaders: $identityHeaders);
 
         $callResponse = $this->rpc($server, $sessionId, 'tools/call', [
             'name' => $name,
             'arguments' => $arguments,
-        ]);
+        ], $identityHeaders);
 
         $result = $callResponse['body']['result'] ?? null;
 
@@ -112,7 +113,7 @@ class McpClient
             throw new McpException($message);
         }
 
-        $this->closeSession($server, $sessionId);
+        $this->closeSession($server, $sessionId, $identityHeaders);
 
         return $result;
     }
@@ -150,7 +151,10 @@ class McpClient
      * treats two `Mcp-Session-Id` headers as a comma-joined value and
      * 404s the request as "Session not found".
      */
-    private function request(AgentMcpServer $server, ?string $sessionId): PendingRequest
+    /**
+     * @param  array<string, string>  $identityHeaders
+     */
+    private function request(AgentMcpServer $server, ?string $sessionId, array $identityHeaders = []): PendingRequest
     {
         $headers = [
             'Content-Type' => 'application/json',
@@ -175,6 +179,10 @@ class McpClient
             $headers['Mcp-Session-Id'] = $sessionId;
         }
 
+        // Identity headers are stamped last so a server's custom headers
+        // can't shadow them.
+        $headers = array_merge($headers, $identityHeaders);
+
         return Http::timeout(max(1, (int) ceil($server->timeout_ms / 1000)))
             ->withHeaders($headers);
     }
@@ -183,6 +191,7 @@ class McpClient
      * Send a JSON-RPC request and return the parsed envelope.
      *
      * @param  array<string, mixed>|object  $params
+     * @param  array<string, string>  $identityHeaders
      * @return array{body: array<string, mixed>, _session_id: ?string}
      */
     private function rpc(
@@ -190,11 +199,12 @@ class McpClient
         ?string $sessionId,
         string $method,
         array|object $params,
+        array $identityHeaders = [],
     ): array {
         $id = (string) Str::uuid();
 
         try {
-            $response = $this->request($server, $sessionId)
+            $response = $this->request($server, $sessionId, $identityHeaders)
                 ->post($server->url, [
                     'jsonrpc' => '2.0',
                     'id' => $id,
@@ -240,11 +250,12 @@ class McpClient
      * Fire-and-forget JSON-RPC notification (no id, no expected response body).
      *
      * @param  array<string, mixed>|object  $params
+     * @param  array<string, string>  $identityHeaders
      */
-    private function notify(AgentMcpServer $server, ?string $sessionId, string $method, array|object $params = []): void
+    private function notify(AgentMcpServer $server, ?string $sessionId, string $method, array|object $params = [], array $identityHeaders = []): void
     {
         try {
-            $this->request($server, $sessionId)
+            $this->request($server, $sessionId, $identityHeaders)
                 ->post($server->url, [
                     'jsonrpc' => '2.0',
                     'method' => $method,
@@ -255,7 +266,10 @@ class McpClient
         }
     }
 
-    private function closeSession(AgentMcpServer $server, ?string $sessionId): void
+    /**
+     * @param  array<string, string>  $identityHeaders
+     */
+    private function closeSession(AgentMcpServer $server, ?string $sessionId, array $identityHeaders = []): void
     {
         if (! $sessionId) {
             return;
@@ -264,7 +278,7 @@ class McpClient
         // Streamable HTTP servers expect DELETE on the same endpoint with
         // the session header to release server-side state.
         try {
-            $this->request($server, $sessionId)->delete($server->url);
+            $this->request($server, $sessionId, $identityHeaders)->delete($server->url);
         } catch (Throwable) {
             // Best-effort.
         }

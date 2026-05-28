@@ -35,7 +35,7 @@ class ConnectorsController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $servers = $user->mcpServers()->orderBy('created_at')->get();
+        $servers = $user->mcpServers()->withCount('agents')->orderBy('created_at')->get();
         $serversByConnector = $servers->whereNotNull('connector_slug')->keyBy('connector_slug');
 
         $featured = $this->catalog->all()->values()->map(function ($connector) use ($serversByConnector) {

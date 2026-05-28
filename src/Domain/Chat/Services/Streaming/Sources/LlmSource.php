@@ -7,6 +7,7 @@ use Domain\Chat\Services\ChatContext;
 use Domain\Chat\Services\ChatService;
 use Domain\Chat\Services\Streaming\ErrorCode;
 use Domain\Chat\Services\Streaming\Exceptions\ClientDisconnected;
+use Domain\Chat\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Chat\Services\Streaming\RequestDedupeStore;
 use Domain\Chat\Services\Streaming\StreamEvent;
 use Domain\Chat\Services\Streaming\StreamTransformerResolver;
@@ -183,7 +184,7 @@ class LlmSource
             $this->rememberForReplay($context, partial: true);
 
             return;
-        } catch (RequestException $e) {
+        } catch (RequestException|UpstreamStreamClosed $e) {
             Log::error('Chat stream upstream error', [
                 'exception' => $e::class,
                 'message' => $e->getMessage(),

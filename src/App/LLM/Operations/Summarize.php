@@ -3,7 +3,6 @@
 namespace App\LLM\Operations;
 
 use App\LLM\Contracts\LLMProviderInterface;
-use App\Prompts\PromptLoader;
 
 class Summarize
 {
@@ -20,11 +19,11 @@ class Summarize
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => PromptLoader::load('summarization/system'),
+                    'content' => prompt('summarization/system'),
                 ],
                 [
                     'role' => 'user',
-                    'content' => template(PromptLoader::load('summarization/user'), ['content' => $content]),
+                    'content' => prompt('summarization/user', ['content' => $content]),
                 ],
             ],
         ])->json('choices.0.message.content');

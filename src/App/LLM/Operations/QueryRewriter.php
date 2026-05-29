@@ -3,7 +3,6 @@
 namespace App\LLM\Operations;
 
 use App\LLM\Contracts\LLMProviderInterface;
-use App\Prompts\PromptLoader;
 
 class QueryRewriter
 {
@@ -24,7 +23,7 @@ class QueryRewriter
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => PromptLoader::load('knowledge/rewrite-query'),
+                    'content' => prompt('knowledge/rewrite-query'),
                 ],
                 [
                     'role' => 'user',

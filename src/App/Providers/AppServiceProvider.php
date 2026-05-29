@@ -57,6 +57,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
 use League\Flysystem\Filesystem;
@@ -126,6 +127,22 @@ class AppServiceProvider extends ServiceProvider
 
             return $matches[1] ?? $host.($this->getPort() === 80 ? '' : ':'.$this->getPort());
         });
+
+        Request::macro('agentSlug', function () {
+            $agent = $this->query('agent');
+
+            if (is_string($agent) && $agent !== '') {
+                return $agent;
+            }
+
+            $sub = $this->subdomain();
+
+            if ($sub !== null && $sub !== 'www') {
+                return $sub;
+            }
+
+            return $this->hasSession() ? $this->session()->get('chat_agent') : null;
+        });
     }
 
     /**
@@ -138,6 +155,10 @@ class AppServiceProvider extends ServiceProvider
         //        Cashier::keepIncompleteSubscriptionsActive();
 
         Stripe::setApiKey(config('cashier.secret'));
+
+        // Prompts are Blade views (markdown + Blade) loaded via the `prompt()`
+        // helper, e.g. prompt('knowledge/system') → resources/prompts/knowledge/system.blade.php.
+        View::addNamespace('prompts', resource_path('prompts'));
 
         // Policies travel with their models — replace `\Models\` with
         // `\Policies\` in the FQCN to find the corresponding policy.

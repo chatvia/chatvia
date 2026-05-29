@@ -2,7 +2,6 @@
 
 namespace Domain\Chat\Services;
 
-use App\Prompts\PromptLoader;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Services\Data\StreamRequestData;
@@ -85,15 +84,15 @@ readonly class MessageProcessor
 
     private function buildSystemPrompt(StreamRequestData $data): array
     {
-        $systemPrompt = $data->agent->system_instructions;
+        $systemPrompt = $data->agent->resolveSystemInstructions();
 
-        $systemPrompt .= PromptLoader::load('knowledge/preconditions');
+        $systemPrompt .= prompt('knowledge/preconditions');
 
         if ($data->canCollectLead) {
             if ($data->leadAlreadyCollected) {
-                $systemPrompt .= "\n\n".PromptLoader::load('leads/lead-collected');
+                $systemPrompt .= "\n\n".prompt('leads/lead-collected');
             } else {
-                $systemPrompt .= "\n\n".PromptLoader::load('leads/lead-collect');
+                $systemPrompt .= "\n\n".prompt('leads/lead-collect');
             }
         }
 

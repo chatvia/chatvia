@@ -44,6 +44,7 @@ use Support\Traits\HasSettings;
  * @property string|null $sub_domain
  * @property string|null $domain
  * @property string|null $system_instructions
+ * @property int|null $agent_prompt_id
  * @property bool $is_public
  * @property bool $collect_leads
  * @property bool $analytics_enabled
@@ -51,6 +52,7 @@ use Support\Traits\HasSettings;
  * @property string $created_via
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read AgentPrompt|null $agentPrompt
  * @property-read Collection<int, AgentFunction> $functions
  * @property-read Collection<int, AgentMcpServer> $mcpServers
  * @property-read Collection<int, Llm> $activeLlms
@@ -181,6 +183,30 @@ class Agent extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    /**
+     * The reusable library prompt attached to this agent, if any. When set it
+     * takes precedence over system_instructions when building the system prompt.
+     *
+     * @return BelongsTo<AgentPrompt, $this>
+     */
+    public function agentPrompt(): BelongsTo
+    {
+        return $this->belongsTo(AgentPrompt::class);
+    }
+
+    /**
+     * Resolve the effective system prompt for this agent, in precedence order:
+     * attached library prompt → the agent's own custom instructions → the
+     * built-in default. The default is applied at runtime so the stored
+     * `system_instructions` can legitimately be null.
+     */
+    public function resolveSystemInstructions(): string
+    {
+        return $this->agentPrompt?->prompt
+            ?? $this->system_instructions
+            ?? prompt('knowledge/system');
     }
 
     /**

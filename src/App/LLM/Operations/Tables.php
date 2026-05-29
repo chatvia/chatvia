@@ -3,7 +3,6 @@
 namespace App\LLM\Operations;
 
 use App\LLM\Contracts\LLMProviderInterface;
-use App\Prompts\PromptLoader;
 
 class Tables
 {
@@ -15,7 +14,7 @@ class Tables
     {
         $tables = collect($tables)->implode("\n\n");
 
-        $prompt = PromptLoader::load('tables/describe', [
+        $prompt = prompt('tables/describe', [
             'tables' => $tables,
         ]);
 

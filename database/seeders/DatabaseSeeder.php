@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Auth\Models\User;
-use App\Prompts\PromptLoader;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
 use Illuminate\Database\Seeder;
@@ -68,7 +67,7 @@ class DatabaseSeeder extends Seeder
                 'team_id' => $team->id,
                 'name' => 'Knowledge Base',
                 'sub_domain' => 'knowledge',
-                'system_instructions' => PromptLoader::load('knowledge/system'),
+                'system_instructions' => prompt('knowledge/system'),
                 'is_public' => 1,
                 'type' => 'knowledge_base',
                 'external_id' => 'e8c75295bf6572',
@@ -84,7 +83,7 @@ class DatabaseSeeder extends Seeder
                 'team_id' => $team->id,
                 'name' => 'Support Widget',
                 'sub_domain' => 'support',
-                'system_instructions' => PromptLoader::load('knowledge/system'),
+                'system_instructions' => prompt('knowledge/system'),
                 'is_public' => 1,
                 'type' => 'widget',
                 'external_id' => '407f7fdfa1cf18',

@@ -15,6 +15,10 @@ class StreamRequestDataFactory
      */
     public function forChat(Request $request, Agent $agent, string $externalSessionId, string $conversationId): StreamRequestData
     {
+        // Resolve the agent's library prompt up front so buildSystemPrompt()
+        // doesn't trigger a lazy query mid-stream.
+        $agent->loadMissing('agentPrompt');
+
         return new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(
@@ -41,16 +45,21 @@ class StreamRequestDataFactory
     public function forWidget(
         Request $request,
         Agent $agent,
-        Llm $llm,
         string $sessionId,
         string $threadId,
         bool $leadCollected,
         bool $isPlayground,
     ): StreamRequestData {
+        $agent->loadMissing('agentPrompt');
+
         return new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(
-                model: $llm,
+                // The widget's model is the one selected in its Model
+                // settings, persisted as the agent's active attached llm
+                // (AgentModelsController + ToggleAgentLlmAction). Honor the
+                // is_active pivot flag instead of grabbing an arbitrary row.
+                model: $agent->activeLlms()->first(),
                 message: $request->input('content'),
             ),
             externalSessionId: $sessionId,

@@ -3,7 +3,7 @@ import Heading from '@/components/Heading.vue';
 import { Separator } from '@/components/ui/separator';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Code, KeyRound, Lock, Palette, Plug, User, type LucideIcon } from 'lucide-vue-next';
+import { Code, KeyRound, Lock, MessageSquareText, Palette, Plug, User, type LucideIcon } from 'lucide-vue-next';
 
 interface NavSection {
     title: string;
@@ -24,6 +24,7 @@ const sections: NavSection[] = [
         items: [
             { title: 'Connectors', href: '/settings/connectors', icon: Plug },
             { title: 'Functions', href: '/settings/functions', icon: Code },
+            { title: 'Prompts', href: '/settings/prompts', icon: MessageSquareText },
         ],
     },
     {

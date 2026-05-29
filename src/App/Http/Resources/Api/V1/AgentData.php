@@ -55,9 +55,17 @@ class AgentData extends Data
          */
         public CreatedVia $created_via,
         /**
-         * The system prompt that steers how the agent answers.
+         * The custom system prompt that steers how the agent answers. Null when
+         * the agent uses a reusable library prompt (`prompt_id`) instead.
          */
         public ?string $system_instructions,
+        /**
+         * ID of the reusable library prompt attached to this agent, if any. When
+         * set it provides the agent's instructions in place of
+         * `system_instructions`. Pass `prompt_id` on create/update to attach one;
+         * the two are mutually exclusive.
+         */
+        public ?string $prompt_id,
         /**
          * Subdomain the agent's chat is served from.
          */
@@ -97,6 +105,7 @@ class AgentData extends Data
             metadata: $agent->metadata ?? [],
             created_via: CreatedVia::from($agent->created_via),
             system_instructions: $agent->system_instructions,
+            prompt_id: $agent->agentPrompt?->external_id,
             sub_domain: $agent->sub_domain,
             domain: $agent->domain,
             url: $agent->url,

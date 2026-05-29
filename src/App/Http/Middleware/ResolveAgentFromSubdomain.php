@@ -11,18 +11,22 @@ class ResolveAgentFromSubdomain
 {
     public function handle(Request $request, Closure $next)
     {
-        $subdomain = $request->subdomain();
+        $explicit = $request->query('agent');
 
-        if ($subdomain) {
-            $agent = Agent::resolveAgentFromSubdomain($request->subdomain());
+        if (is_string($explicit) && $explicit !== '' && $request->hasSession()) {
+            $request->session()->put('chat_agent', $explicit);
+        }
 
-            if (! $agent) {
+        $slug = $request->agentSlug();
+
+        if ($slug) {
+            if (! Agent::resolveAgentFromSubdomain($slug)) {
                 return Inertia::render('agents/chat/AgentNotFound');
             }
         }
 
         $request->merge([
-            'agent' => $subdomain,
+            'agent' => $slug,
         ]);
 
         return $next($request);

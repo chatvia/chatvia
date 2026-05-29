@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Settings;
 
 use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
-use App\Teams\Services\TeamService;
 use Domain\Agents\Actions\AttachFunctionToAgentAction;
 use Domain\Agents\Actions\DetachFunctionFromAgentAction;
+use Domain\Agents\Collections\AgentCollection;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
@@ -14,13 +14,12 @@ use Illuminate\Http\Request;
 
 /**
  * Manage which of the account's agents use a given function, from the
- * account-level Settings → Functions sheet. Scoped to the current team's
- * accessible agents. Returns JSON consumed by the Vue sheet over axios.
+ * account-level Settings → Functions sheet. Lists every agent in the account,
+ * across all teams — functions are an account-level resource. Returns JSON
+ * consumed by the Vue sheet over axios.
  */
 class FunctionAgentsController extends Controller
 {
-    public function __construct(private readonly TeamService $teams) {}
-
     public function index(Request $request, string $external_id): JsonResponse
     {
         return response()->json($this->payload($request, $this->function($request, $external_id)));
@@ -52,22 +51,20 @@ class FunctionAgentsController extends Controller
 
     private function agent(Request $request, string $externalId): Agent
     {
-        $agent = $this->accessibleAgents($request)->firstWhere('external_id', $externalId);
+        $agent = $this->accountAgents($request)->firstWhere('external_id', $externalId);
 
         abort_if($agent === null, 404);
 
         return $agent;
     }
 
-    private function accessibleAgents(Request $request)
+    /** Every agent in the account, across all teams — function assignments are account-level, not team-scoped. */
+    private function accountAgents(Request $request): AgentCollection
     {
         /** @var User $user */
         $user = $request->user();
-        $team = current_team();
 
-        abort_if($team === null, 404);
-
-        return $this->teams->accessibleAgents($user, $team);
+        return $user->agents;
     }
 
     /**
@@ -80,7 +77,7 @@ class FunctionAgentsController extends Controller
         $attached = [];
         $available = [];
 
-        foreach ($this->accessibleAgents($request) as $agent) {
+        foreach ($this->accountAgents($request) as $agent) {
             $row = ['id' => $agent->external_id, 'name' => $agent->name];
 
             if ($attachedIds->contains($agent->id)) {

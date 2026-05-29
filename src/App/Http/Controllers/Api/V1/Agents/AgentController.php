@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\V1\Agents;
 
 use App\Auth\Models\User;
 use App\Http\Resources\Api\V1\AgentData;
-use App\Prompts\PromptLoader;
 use App\Teams\Models\Team;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
@@ -38,7 +37,7 @@ class AgentController
 
         $query = Agent::query()
             ->whereIn('team_id', $owner->ownedTeams()->select('id'))
-            ->with('team')
+            ->with(['team', 'agentPrompt'])
             ->latest();
 
         if ($request->filled('team_id')) {
@@ -67,6 +66,7 @@ class AgentController
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:255'],
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
+            'prompt_id' => ['sometimes', 'nullable', 'string', 'prohibits:system_instructions'],
             'metadata' => ['sometimes', 'nullable', 'array'],
             'team_id' => ['sometimes', 'nullable', 'string'],
         ]);
@@ -76,8 +76,9 @@ class AgentController
         $owner = $user->isManagedUser() ? $user->manager : $user;
 
         $team = $this->resolveTeam($owner, $validated['team_id'] ?? null);
+        $agentPromptId = $this->resolvePromptId($owner, $validated['prompt_id'] ?? null);
 
-        $agent = DB::transaction(function () use ($validated, $owner, $team): Agent {
+        $agent = DB::transaction(function () use ($validated, $owner, $team, $agentPromptId): Agent {
             $externalId = AgentService::generateRandomExternalId();
 
             /** @var Agent $agent */
@@ -88,7 +89,9 @@ class AgentController
                 'type' => 'knowledge_base',
                 'sub_domain' => $externalId,
                 'external_id' => $externalId,
-                'system_instructions' => $validated['system_instructions'] ?? PromptLoader::load('knowledge/system'),
+                // A library prompt and a custom prompt are mutually exclusive.
+                'system_instructions' => $agentPromptId === null ? ($validated['system_instructions'] ?? null) : null,
+                'agent_prompt_id' => $agentPromptId,
                 'is_public' => false,
                 'collect_leads' => true,
                 'analytics_enabled' => true,
@@ -127,13 +130,29 @@ class AgentController
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'min:3', 'max:255'],
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
+            'prompt_id' => ['sometimes', 'nullable', 'string', 'prohibits:system_instructions'],
             'metadata' => ['sometimes', 'nullable', 'array'],
             'collect_leads' => ['sometimes', 'boolean'],
             'analytics_enabled' => ['sometimes', 'boolean'],
             'is_public' => ['sometimes', 'boolean'],
         ]);
 
-        $agent->update($validated);
+        /** @var User $user */
+        $user = $request->user();
+        $owner = $user->isManagedUser() ? $user->manager : $user;
+
+        $attributes = collect($validated)->except('prompt_id')->all();
+
+        // A library prompt and a custom prompt are mutually exclusive: whichever
+        // the request carries wins and clears the other.
+        if ($request->has('prompt_id')) {
+            $attributes['agent_prompt_id'] = $this->resolvePromptId($owner, $validated['prompt_id'] ?? null);
+            $attributes['system_instructions'] = null;
+        } elseif ($request->has('system_instructions')) {
+            $attributes['agent_prompt_id'] = null;
+        }
+
+        $agent->update($attributes);
 
         return ['data' => AgentData::fromModel($agent->refresh())];
     }
@@ -179,5 +198,26 @@ class AgentController
         }
 
         return $team;
+    }
+
+    /**
+     * Resolve a reusable prompt's id (its external id) to the internal id,
+     * scoped to the owner. Returns null when no prompt id is supplied.
+     */
+    private function resolvePromptId(User $owner, ?string $promptExternalId): ?int
+    {
+        if ($promptExternalId === null || $promptExternalId === '') {
+            return null;
+        }
+
+        $prompt = $owner->prompts()->where('external_id', $promptExternalId)->first();
+
+        if (! $prompt) {
+            throw ValidationException::withMessages([
+                'prompt_id' => 'Prompt not found.',
+            ]);
+        }
+
+        return $prompt->id;
     }
 }

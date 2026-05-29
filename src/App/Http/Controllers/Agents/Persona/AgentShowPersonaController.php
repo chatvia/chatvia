@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agents\Persona;
 
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\AgentPrompt;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -16,6 +17,19 @@ class AgentShowPersonaController
             code: 404,
         );
 
-        return Inertia::render('agents/Persona', ['agent' => AgentResourceData::fromModel($agent)]);
+        $agent->loadMissing('agentPrompt');
+
+        return Inertia::render('agents/Persona', [
+            'agent' => AgentResourceData::fromModel($agent),
+            'prompts' => $request->user()->prompts()
+                ->latest()
+                ->get()
+                ->map(fn (AgentPrompt $p): array => [
+                    'id' => $p->external_id,
+                    'name' => $p->name,
+                    'prompt' => $p->prompt,
+                ])
+                ->all(),
+        ]);
     }
 }

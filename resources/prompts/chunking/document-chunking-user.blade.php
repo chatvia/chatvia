@@ -1,11 +1,11 @@
 <PreviousPage>
-{previous_page}
+{!! $previous_page !!}
 </PreviousPage>
 
 <TargetPage>
-{target_page}
+{!! $target_page !!}
 </TargetPage>
 
 <NextPage>
-{next_page}
+{!! $next_page !!}
 </NextPage>

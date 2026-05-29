@@ -11,10 +11,17 @@ class RedirectToAgent
     public function handle(Request $request, Closure $next): Response
     {
         $subdomain = $request->subdomain();
+        $explicit = $request->query('agent');
         $path = $request->path();
 
-        if ($subdomain && $subdomain !== 'www' && ! str_starts_with($path, 'chat')) {
-            return to_route('chat.home');
+        if (! str_starts_with($path, 'chat')) {
+            if ($subdomain && $subdomain !== 'www') {
+                return to_route('chat.home');
+            }
+
+            if (is_string($explicit) && $explicit !== '') {
+                return to_route('chat.home', ['agent' => $explicit]);
+            }
         }
 
         return $next($request);

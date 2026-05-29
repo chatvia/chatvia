@@ -12,14 +12,14 @@ class EnsureChatIsAccessible
 {
     public function handle(Request $request, Closure $next)
     {
-        $subdomain = $request->subdomain();
+        $slug = $request->agentSlug();
         $path = $request->path();
 
         if (! str_starts_with($path, 'chat')) {
             return to_route('chat.home');
         }
 
-        $agent = Agent::resolveAgentFromSubdomain($subdomain);
+        $agent = Agent::resolveAgentFromSubdomain($slug);
 
         if (! $agent) {
             return Inertia::render('agents/chat/AgentNotFound');

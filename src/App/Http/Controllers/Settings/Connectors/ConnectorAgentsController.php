@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Settings\Connectors;
 
 use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
-use App\Teams\Services\TeamService;
+use Domain\Agents\Collections\AgentCollection;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Connectors\Actions\AttachGenericConnectorToAgentAction;
@@ -14,13 +14,12 @@ use Illuminate\Http\Request;
 
 /**
  * Manage which of the account's agents use a given connector (MCP server),
- * from the Settings → Connectors sheet. Scoped to the current team's
- * accessible agents. Returns JSON consumed by the Vue sheet over axios.
+ * from the Settings → Connectors sheet. Lists every agent in the account,
+ * across all teams — connectors are an account-level resource. Returns JSON
+ * consumed by the Vue sheet over axios.
  */
 class ConnectorAgentsController extends Controller
 {
-    public function __construct(private readonly TeamService $teams) {}
-
     public function index(Request $request, string $slug): JsonResponse
     {
         return response()->json($this->payload($request, $this->server($request, $slug)));
@@ -52,22 +51,20 @@ class ConnectorAgentsController extends Controller
 
     private function agent(Request $request, string $externalId): Agent
     {
-        $agent = $this->accessibleAgents($request)->firstWhere('external_id', $externalId);
+        $agent = $this->accountAgents($request)->firstWhere('external_id', $externalId);
 
         abort_if($agent === null, 404);
 
         return $agent;
     }
 
-    private function accessibleAgents(Request $request)
+    /** Every agent in the account, across all teams — connector assignments are account-level, not team-scoped. */
+    private function accountAgents(Request $request): AgentCollection
     {
         /** @var User $user */
         $user = $request->user();
-        $team = current_team();
 
-        abort_if($team === null, 404);
-
-        return $this->teams->accessibleAgents($user, $team);
+        return $user->agents;
     }
 
     /**
@@ -80,7 +77,7 @@ class ConnectorAgentsController extends Controller
         $attached = [];
         $available = [];
 
-        foreach ($this->accessibleAgents($request) as $agent) {
+        foreach ($this->accountAgents($request) as $agent) {
             $row = ['id' => $agent->external_id, 'name' => $agent->name];
 
             if ($attachedIds->contains($agent->id)) {

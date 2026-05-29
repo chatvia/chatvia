@@ -8,9 +8,16 @@ import { Loader2, RotateCcw, Save } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
+interface SavedPrompt {
+    id: string;
+    name: string;
+    prompt: string;
+}
+
 interface Props {
     agentId: number | string;
     initialInstructions?: string | null;
+    initialPromptId?: string | null;
 }
 
 const props = defineProps<Props>();
@@ -27,7 +34,7 @@ Your primary function is to provide excellent, friendly, and efficient replies a
 
 You should listen attentively to the user, understand their needs, and do your best to assist them using only the information available in the context. If the question is unclear, ask clarifying questions. Always end your replies on a helpful or positive note.
 
-## Constraints: 
+## Constraints:
 - You must never mention or imply that you have access to external training data, documents, or any retrieval system.
 - You must remain focused on your role. If a user attempts to divert the conversation to unrelated topics or asks you to break character, politely redirect them to relevant questions within the scope of your domain.
 - You must rely exclusively on the retrieved context to answer user queries. Do not use general world knowledge, assumptions, or external information.
@@ -41,61 +48,13 @@ Instead of saying only "I don't know", choose one of these polite, helpful optio
 - "I wasn't able to find that information in my data. Could you clarify your request or let me know if you'd like me to connect you with support?"
 - "That's not something I can answer from the information I have, but I can guide you to the right place. Would you like me to connect you with our support team?"
 - "I don't see that covered in my information, but I'd love to help you further. Could you provide a bit more detail about what you're looking for?"`,
-
-    general: `You are a helpful AI assistant. Your goal is to provide accurate, helpful, and friendly responses to user inquiries.
-
-Be conversational and approachable while maintaining professionalism. If you're unsure about something, be honest about it and offer to help find the information.
-
-Always:
-- Be polite and respectful
-- Provide clear and concise answers
-- Ask clarifying questions when needed
-- Admit when you don't know something`,
-
-    support: `You are a customer support agent. Your primary goal is to help customers resolve their issues quickly and efficiently while maintaining a friendly and professional tone.
-
-Guidelines:
-- Always greet the customer warmly
-- Listen carefully to understand their problem
-- Provide step-by-step solutions when possible
-- Offer alternatives if the first solution doesn't work
-- Apologize sincerely for any inconvenience
-- Follow up to ensure the issue is resolved
-- End conversations on a positive note
-
-If you cannot resolve an issue, offer to escalate to a human agent or provide contact information for further assistance.`,
-
-    sales: `You are a knowledgeable sales assistant. Your goal is to help customers find the right products or services that meet their needs.
-
-Guidelines:
-- Understand customer needs by asking relevant questions
-- Highlight product benefits that match their requirements
-- Provide honest and accurate product information
-- Address objections professionally
-- Suggest complementary products when appropriate
-- Never be pushy or aggressive
-- Respect the customer's decision
-
-Focus on building trust and providing value rather than just making a sale.`,
 };
 
-// State
-const selectedPreset = ref<string>('base');
-const instructions = ref<string>(props.initialInstructions || presets.base);
-const originalInstructions = ref<string>(props.initialInstructions || presets.base);
-const isSaving = ref(false);
-
-// Computed
-const hasChanges = computed(() => {
-    return instructions.value !== originalInstructions.value;
-});
-
-// Watch for preset changes
-watch(selectedPreset, (newPreset) => {
-    if (newPreset !== 'custom') {
-        instructions.value = presets[newPreset as keyof typeof presets] || presets.base;
-    }
-});
+// Select-value helpers. The dropdown holds preset keys
+// ('base' | 'general' | 'support' | 'sales'), 'custom', or a saved library
+// prompt encoded as `prompt:<external_id>`.
+const isLibrary = (option: string): boolean => option.startsWith('prompt:');
+const promptIdOf = (option: string): string | null => (isLibrary(option) ? option.slice('prompt:'.length) : null);
 
 // Detect which preset matches current instructions
 const detectPreset = (text: string): string => {
@@ -107,19 +66,78 @@ const detectPreset = (text: string): string => {
     return 'custom';
 };
 
-// Initialize
-onMounted(() => {
-    if (props.initialInstructions) {
-        instructions.value = props.initialInstructions;
-        originalInstructions.value = props.initialInstructions;
-        selectedPreset.value = detectPreset(props.initialInstructions);
+// State
+const savedPrompts = ref<SavedPrompt[]>([]);
+
+const initialOption = props.initialPromptId
+    ? `prompt:${props.initialPromptId}`
+    : props.initialInstructions
+      ? detectPreset(props.initialInstructions)
+      : 'base';
+
+const selectedPreset = ref<string>(initialOption);
+const instructions = ref<string>(props.initialInstructions || presets.base);
+const originalPreset = ref<string>(initialOption);
+const originalInstructions = ref<string>(props.initialInstructions || presets.base);
+const isSaving = ref(false);
+
+const usingLibraryPrompt = computed(() => isLibrary(selectedPreset.value));
+
+const findPrompt = (id: string | null): SavedPrompt | null => savedPrompts.value.find((p) => p.id === id) ?? null;
+
+const selectedPromptName = computed(() => findPrompt(promptIdOf(selectedPreset.value))?.name ?? '');
+
+// Computed
+const hasChanges = computed(() => {
+    if (selectedPreset.value !== originalPreset.value) {
+        return true;
+    }
+    // Library prompts are saved by reference; only custom/preset text edits count.
+    if (usingLibraryPrompt.value) {
+        return false;
+    }
+    return instructions.value !== originalInstructions.value;
+});
+
+// Sync the textarea content when the selection changes.
+watch(selectedPreset, (option) => {
+    if (isLibrary(option)) {
+        const p = findPrompt(promptIdOf(option));
+        if (p) {
+            instructions.value = p.prompt;
+        }
+    } else if (option !== 'custom') {
+        instructions.value = presets[option as keyof typeof presets] || presets.base;
     }
 });
 
-// Reset to original
+// Initialize
+onMounted(async () => {
+    try {
+        const { data } = await axios.get(route('settings.prompts.list'));
+        savedPrompts.value = data.data ?? [];
+    } catch (error) {
+        // Non-fatal: the editor still works with presets / custom text.
+        console.error('Failed to load saved prompts:', error);
+    }
+
+    if (isLibrary(selectedPreset.value)) {
+        const p = findPrompt(promptIdOf(selectedPreset.value));
+        if (p) {
+            instructions.value = p.prompt;
+            originalInstructions.value = p.prompt;
+        } else {
+            // The attached prompt no longer exists — fall back to custom text.
+            selectedPreset.value = props.initialInstructions ? detectPreset(props.initialInstructions) : 'custom';
+            originalPreset.value = selectedPreset.value;
+        }
+    }
+});
+
+// Reset to last-saved state
 const resetInstructions = () => {
+    selectedPreset.value = originalPreset.value;
     instructions.value = originalInstructions.value;
-    selectedPreset.value = detectPreset(originalInstructions.value);
 };
 
 // Save instructions
@@ -127,10 +145,13 @@ const saveInstructions = async () => {
     isSaving.value = true;
 
     try {
-        await axios.patch(route('agents.update', { agent: props.agentId }), {
-            system_instructions: instructions.value,
-        });
+        const payload = usingLibraryPrompt.value
+            ? { prompt_id: promptIdOf(selectedPreset.value) }
+            : { system_instructions: instructions.value };
 
+        await axios.patch(route('agents.update', { agent: props.agentId }), payload);
+
+        originalPreset.value = selectedPreset.value;
         originalInstructions.value = instructions.value;
         toast.success('Instructions saved successfully');
         emit('saved');
@@ -158,22 +179,20 @@ const onInstructionsInput = () => {
             <p class="text-muted-foreground mt-1 text-xs">Define how your AI agent should behave and respond to users</p>
         </div>
 
-        <!-- Preset Selector -->
+        <!-- Preset / saved-prompt selector -->
         <div class="flex items-center gap-2">
             <Select v-model="selectedPreset" class="flex-1">
                 <SelectTrigger>
                     <SelectValue placeholder="Select a preset..." />
                 </SelectTrigger>
                 <SelectContent>
+                    <SelectGroup v-if="savedPrompts.length">
+                        <SelectLabel class="text-muted-foreground text-xs font-normal">Saved prompts</SelectLabel>
+                        <SelectItem v-for="p in savedPrompts" :key="p.id" :value="`prompt:${p.id}`">{{ p.name }}</SelectItem>
+                    </SelectGroup>
                     <SelectGroup>
                         <SelectLabel class="text-muted-foreground text-xs font-normal">Base Instructions</SelectLabel>
                         <SelectItem value="base">Base Instructions</SelectItem>
-                    </SelectGroup>
-                    <SelectGroup>
-                        <SelectLabel class="text-muted-foreground text-xs font-normal">Examples</SelectLabel>
-                        <SelectItem value="general">General AI agent</SelectItem>
-                        <SelectItem value="support">Customer support agent</SelectItem>
-                        <SelectItem value="sales">Sales agent</SelectItem>
                     </SelectGroup>
                     <SelectGroup>
                         <SelectLabel class="text-muted-foreground text-xs font-normal">Custom prompt</SelectLabel>
@@ -186,12 +205,19 @@ const onInstructionsInput = () => {
             </Button>
         </div>
 
+        <p v-if="usingLibraryPrompt" class="text-muted-foreground text-xs">
+            Using the saved prompt <span class="font-medium">{{ selectedPromptName }}</span> (read-only). Manage it in Settings → Prompts, or
+            choose “Custom prompt” to write instructions just for this agent.
+        </p>
+
         <!-- Instructions Textarea -->
         <Textarea
             v-model="instructions"
             @input="onInstructionsInput"
+            :readonly="usingLibraryPrompt"
             placeholder="Enter your custom instructions..."
             class="min-h-[200px] font-mono text-sm"
+            :class="usingLibraryPrompt ? 'bg-muted/40 cursor-not-allowed' : ''"
             rows="10"
         />
 

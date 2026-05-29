@@ -13,4 +13,4 @@ Rules:
 - If there are multiple tables, label them as "Table 1:", "Table 2:", etc., and separate with a blank line.
 
 Tables:
-{tables}
+{!! $tables !!}

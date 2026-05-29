@@ -11,18 +11,15 @@ use Domain\Agents\Models\Agent;
  */
 final class ToolCallerIdentity
 {
-    public const AGENT_HEADER = 'X-Chatvia-Agent-Id';
-
-    public const USER_HEADER = 'X-Chatvia-User-Id';
-
     /**
      * @return array<string, string>
      */
     public static function headers(Agent $agent): array
     {
         return [
-            self::AGENT_HEADER => $agent->external_id,
-            self::USER_HEADER => $agent->user->external_id,
+            'X-Chatvia-Agent-Id' => $agent->external_id,
+            'X-Chatvia-User-Id' => $agent->user->external_id,
+            'X-Chatvia-Metadata' => json_encode($agent->metadata),
         ];
     }
 }

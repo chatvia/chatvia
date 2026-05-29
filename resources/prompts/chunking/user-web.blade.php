@@ -1,3 +1,3 @@
 ## Web Page HTML
 
-{html}
+{!! $html !!}

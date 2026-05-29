@@ -109,10 +109,27 @@ if (! function_exists('template')) {
     }
 }
 
+if (! function_exists('prompt')) {
+    /**
+     * Render a prompt Blade view (markdown + Blade) to a string.
+     *
+     * Accepts slash- or dot-style names: prompt('knowledge/follow-up/user')
+     * resolves resources/prompts/knowledge/follow-up/user.blade.php via the
+     * `prompts::` view namespace. Pass variables as the second argument; use
+     * {!! $var !!} in the prompt file so text isn't HTML-escaped.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    function prompt(string $name, array $data = []): string
+    {
+        return view('prompts::'.str_replace('/', '.', $name), $data)->render();
+    }
+}
+
 if (! function_exists('current_agent')) {
     function current_agent(): ?AgentModel
     {
-        return Agent::resolveAgentFromSubdomain(request()->subdomain());
+        return Agent::resolveAgentFromSubdomain(request()->agentSlug());
     }
 }
 

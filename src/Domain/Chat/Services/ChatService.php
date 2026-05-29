@@ -7,6 +7,7 @@ use App\LLM\Operations\QueryRewriter;
 use Carbon\Carbon;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\ChatOutputPayload;
+use Domain\Chat\Jobs\GenerateConversationTitleJob;
 use Domain\Chat\Services\Data\StreamRequestData;
 use Domain\Chat\Services\Memory\ChatMemory;
 use Illuminate\Support\Collection;
@@ -170,12 +171,11 @@ readonly class ChatService
         $this->saveAssistantMessage($context);
 
         if (count($context->llmMessages) <= 2) {
-            $this
-                ->memory
-                ->setAgent($context->requestData->agent)
-                ->setExternalSessionId($context->requestData->externalSessionId)
-                ->setConversationId($context->requestData->conversationId)
-                ->updateConversationTitleFromMessages();
+            GenerateConversationTitleJob::dispatch(
+                agent: $context->requestData->agent,
+                externalSessionId: $context->requestData->externalSessionId,
+                conversationId: $context->requestData->conversationId,
+            );
         }
 
         if ($context->requestData->streamSources) {

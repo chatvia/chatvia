@@ -4,7 +4,6 @@ namespace App\LLM\Operations;
 
 use App\LLM\Contracts\LLMProviderInterface;
 use App\LLM\Mistral;
-use App\Prompts\PromptLoader;
 use Domain\Ingestion\Data\Chunking\DocumentChunk;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Services\TikToken;
@@ -18,11 +17,9 @@ class Chunker
 
     public function chunkDocument(PageData $page, ?PageData $prevPage = null, ?PageData $nextPage = null): DocumentChunk
     {
-        $systemPrompt = PromptLoader::load('chunking/document-chunking-system');
+        $systemPrompt = prompt('chunking/document-chunking-system');
 
-        $userPrompt = PromptLoader::load('chunking/document-chunking-user');
-
-        $userPrompt = template($userPrompt, [
+        $userPrompt = prompt('chunking/document-chunking-user', [
             'previous_page' => $prevPage?->content,
             'target_page' => $page->content,
             'next_page' => $nextPage?->content,
@@ -97,11 +94,9 @@ class Chunker
 
     public function chunkHtml($html): array
     {
-        $systemPrompt = PromptLoader::load('chunking/web');
+        $systemPrompt = prompt('chunking/web');
 
-        $userPrompt = PromptLoader::load('chunking/user-web');
-
-        $userPrompt = template($userPrompt, [
+        $userPrompt = prompt('chunking/user-web', [
             'html' => $html,
         ]);
 
@@ -160,5 +155,4 @@ class Chunker
                 pricePerOutputMilToken: config('ai.pricing.chunker_output_per_million_tokens'),
             );
     }
-
 }

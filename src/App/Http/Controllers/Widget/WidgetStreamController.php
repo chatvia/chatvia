@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Widget;
 
 use App\Widget\WidgetVerification;
-use Domain\Agents\Models\Llm;
 use Domain\Chat\Services\ChatStreamService;
 use Domain\Chat\Services\Streaming\StreamRequestDataFactory;
 use Illuminate\Http\Request;
@@ -35,9 +34,6 @@ readonly class WidgetStreamController
             })
             ->exists();
 
-        /** @var Llm $llm */
-        $llm = $agent->llms()->first();
-
         $referer = $request->header('referer') ?: $request->server('HTTP_REFERER');
         $isPlayground = str_starts_with((string) $referer, route('agents.widget.preview', ['agent' => $agent]));
 
@@ -45,7 +41,6 @@ readonly class WidgetStreamController
             $this->factory->forWidget(
                 $request,
                 $agent,
-                $llm,
                 $sessionId,
                 $threadId,
                 $leadCollected,

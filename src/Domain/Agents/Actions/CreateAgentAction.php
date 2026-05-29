@@ -3,7 +3,6 @@
 namespace Domain\Agents\Actions;
 
 use App\Auth\Models\User;
-use App\Prompts\PromptLoader;
 use App\Teams\Models\Team;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Services\Agent as AgentService;
@@ -27,7 +26,6 @@ class CreateAgentAction
                 'team_id' => $team->id,
                 'name' => $attributes['name'],
                 'sub_domain' => $attributes['type'] === 'knowledge_base' ? $externalId : null,
-                'system_instructions' => PromptLoader::load('knowledge/system'),
                 'is_public' => false,
                 'type' => $attributes['type'],
                 'external_id' => $externalId,

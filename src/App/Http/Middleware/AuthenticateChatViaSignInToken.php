@@ -60,12 +60,12 @@ class AuthenticateChatViaSignInToken
 
     private function resolveAgent(Request $request): ?Agent
     {
-        $subdomain = $request->subdomain();
+        $slug = $request->agentSlug();
 
-        if (! $subdomain) {
+        if (! $slug) {
             return null;
         }
 
-        return AgentService::resolveAgentFromSubdomain($subdomain);
+        return AgentService::resolveAgentFromSubdomain($slug);
     }
 }

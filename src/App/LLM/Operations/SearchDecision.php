@@ -3,7 +3,6 @@
 namespace App\LLM\Operations;
 
 use App\LLM\Contracts\LLMProviderInterface;
-use App\Prompts\PromptLoader;
 
 class SearchDecision
 {
@@ -24,11 +23,11 @@ class SearchDecision
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => PromptLoader::load('knowledge/follow-up/system'),
+                    'content' => prompt('knowledge/follow-up/system'),
                 ],
                 [
                     'role' => 'user',
-                    'content' => PromptLoader::load('knowledge/follow-up/user', [
+                    'content' => prompt('knowledge/follow-up/user', [
                         'retrieved_chunks' => empty($chunks) ? '' : collect($chunks)->implode("\n\n"),
                         'user_query' => $userQuery,
                     ]),

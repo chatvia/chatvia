@@ -3,7 +3,6 @@
 namespace App\LLM\Operations;
 
 use App\LLM\Contracts\LLMProviderInterface;
-use App\Prompts\PromptLoader;
 use Intervention\Image\Laravel\Facades\Image;
 
 class Vision
@@ -18,7 +17,7 @@ class Vision
             $image = Image::read(file_get_contents($image))->toJpeg()->toDataUri();
         }
 
-        $prompt = PromptLoader::load('image/describe');
+        $prompt = prompt('image/describe');
 
         $response = $this->provider->completion([
             'model' => config('ai.models.vision'),

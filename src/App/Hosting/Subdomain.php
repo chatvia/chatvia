@@ -3,7 +3,6 @@
 namespace App\Hosting;
 
 use App\LLM\Contracts\LLMProviderInterface;
-use App\Prompts\PromptLoader;
 use Domain\Agents\Models\Agent;
 use Illuminate\Support\Str;
 
@@ -21,7 +20,7 @@ class Subdomain
             'messages' => [
                 [
                     'role' => 'user',
-                    'content' => PromptLoader::load('subdomain/generate'),
+                    'content' => prompt('subdomain/generate'),
                 ],
             ],
 

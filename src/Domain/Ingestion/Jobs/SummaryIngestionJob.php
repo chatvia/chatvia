@@ -6,7 +6,6 @@ use App\Embeddings\Contracts\EmbeddingsProviderInterface;
 use App\LLM\Operations\ContentAnalyzer;
 use App\LLM\Operations\CostCalculator;
 use App\LLM\Operations\Summarizer;
-use App\Prompts\PromptLoader;
 use Domain\Ingestion\Models\Chunk;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Ingestion\Services\TikToken;
@@ -69,7 +68,7 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
         // Calculate LLM cost for summarization and analysis
         $costInCents = app(CostCalculator::class)->calculateCostInCents(
             inputText: '',
-            outputText: PromptLoader::load('file/describe').strip_tags($summary),
+            outputText: prompt('file/describe').strip_tags($summary),
             pricePerInputMilToken: 2.0,
             pricePerOutputMilToken: 8.0,
         );

@@ -53,6 +53,25 @@ it('detaches a connector from an agent', function (): void {
     expect($this->server->agents()->whereKey($this->agent->id)->exists())->toBeFalse();
 });
 
+it('lists and attaches agents from another team in the same account', function (): void {
+    $otherTeam = app(TeamService::class)->createDefaultTeam($this->user);
+    $otherTeamAgent = makeTeamAgent($this->user, 'Sales Bot', $otherTeam);
+
+    $this->actingAs($this->user)
+        ->getJson(route('settings.connectors.agents.index', ['slug' => $this->server->slug]))
+        ->assertOk()
+        ->assertJsonCount(2, 'available');
+
+    $this->actingAs($this->user)
+        ->postJson(route('settings.connectors.agents.attach', [
+            'slug' => $this->server->slug,
+            'agent' => $otherTeamAgent->external_id,
+        ]))
+        ->assertOk();
+
+    expect($this->server->agents()->whereKey($otherTeamAgent->id)->exists())->toBeTrue();
+});
+
 it('reports the attached agent count via the connectors data endpoint', function (): void {
     $this->agent->mcpServers()->attach($this->server->id);
 

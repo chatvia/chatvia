@@ -3,7 +3,6 @@
 namespace App\LLM\Operations;
 
 use App\LLM\Mistral;
-use App\Prompts\PromptLoader;
 
 class Summarizer
 {
@@ -20,7 +19,7 @@ class Summarizer
                     'content' => [
                         [
                             'type' => 'text',
-                            'text' => PromptLoader::load('summarization/system'),
+                            'text' => prompt('summarization/system'),
                         ],
                         [
                             'type' => 'document_url',

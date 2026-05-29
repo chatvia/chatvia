@@ -9,7 +9,7 @@ final class ChatStartersController
 {
     public function __invoke(Request $request)
     {
-        $agent = Agent::resolveAgentFromSubdomain($request->subdomain());
+        $agent = Agent::resolveAgentFromSubdomain($request->agentSlug());
 
         return $agent->starters;
     }

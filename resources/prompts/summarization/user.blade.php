@@ -9,5 +9,5 @@ Do not add opinions or interpretations.
 Write a summary that captures the main idea of the document at a high level.
 
 <Content>
-{content}
+{!! $content !!}
 </Content>

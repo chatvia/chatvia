@@ -20,6 +20,10 @@ return new class extends Migration
             $table->string('sub_domain')->nullable()->unique();
             $table->string('domain')->nullable()->unique();
             $table->text('system_instructions')->nullable();
+            // Optional reference to a reusable library prompt (Settings → Prompts).
+            // When set it takes precedence over system_instructions; nullOnDelete so
+            // deleting a library prompt detaches it and the agent falls back.
+            $table->foreignId('agent_prompt_id')->nullable()->constrained('agent_prompts')->nullOnDelete();
             $table->boolean('is_public')->default(false);
             $table->boolean('collect_leads')->default(true);
             $table->boolean('analytics_enabled')->default(true);

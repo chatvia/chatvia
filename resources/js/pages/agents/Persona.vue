@@ -4,31 +4,53 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { useForm } from '@inertiajs/vue3';
+import { Link, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Bot, LoaderCircle, Save } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
+interface PromptOption {
+    id: string;
+    name: string;
+    prompt: string;
+}
+
 interface Props {
     agent: Domain.Agents.Data.Resources.AgentResourceData;
+    prompts: PromptOption[];
 }
 
 const props = defineProps<Props>();
 const isGeneratingSubdomain = ref(false);
 
+// 'saved' = use a reusable library prompt (prompt_id); 'custom' = write
+// instructions inline (system_instructions). The two are mutually exclusive.
+const initialMode: 'saved' | 'custom' = props.agent.prompt_id ? 'saved' : 'custom';
+const mode = ref<'saved' | 'custom'>(initialMode);
+
 const form = useForm({
     name: props.agent.name,
     sub_domain: props.agent.sub_domain,
+    prompt_id: props.agent.prompt_id ?? null,
     system_instructions: props.agent.system_instructions,
 });
+
+const selectedPrompt = computed(() => props.prompts.find((p) => p.id === form.prompt_id) ?? null);
 
 const isSubmitting = ref(false);
 
 const updateGeneralSettings = () => {
     isSubmitting.value = true;
-    form.patch(route('agents.update', props.agent.external_id), {
+    // Send only the active prompt source so the backend can apply mutual
+    // exclusivity (prompt_id and system_instructions can't both be present).
+    form.transform((data) => ({
+        name: data.name,
+        sub_domain: data.sub_domain,
+        ...(mode.value === 'saved' ? { prompt_id: data.prompt_id } : { system_instructions: data.system_instructions }),
+    })).patch(route('agents.update', props.agent.external_id), {
         preserveScroll: true,
         onSuccess: () => {
             isSubmitting.value = false;
@@ -49,9 +71,13 @@ const generateNewSubdomain = () => {
 
 // Computed properties for header actions
 const hasUnsavedChanges = computed(() => {
-    return (
-        form.name !== props.agent.name || form.sub_domain !== props.agent.sub_domain || form.system_instructions !== props.agent.system_instructions
-    );
+    const promptChanged =
+        mode.value !== initialMode ||
+        (mode.value === 'saved'
+            ? form.prompt_id !== (props.agent.prompt_id ?? null)
+            : form.system_instructions !== props.agent.system_instructions);
+
+    return form.name !== props.agent.name || form.sub_domain !== props.agent.sub_domain || promptChanged;
 });
 
 const hasFormErrors = computed(() => {
@@ -143,20 +169,61 @@ const hasFormErrors = computed(() => {
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="instructions" required>System Instructions</Label>
-                                <Textarea
-                                    id="instructions"
-                                    v-model="form.system_instructions"
-                                    :error="form.errors.system_instructions"
-                                    placeholder="You are a helpful assistant that specializes in..."
-                                    rows="15"
-                                />
-                                <p v-if="form.errors.system_instructions" class="text-destructive text-sm">
-                                    {{ form.errors.system_instructions }}
-                                </p>
+                                <Label required>Instructions</Label>
                                 <p class="text-muted-foreground text-sm">
-                                    These instructions tell the AI how to behave, what tone to use, and what its purpose is
+                                    Reuse a saved prompt from your library, or write custom instructions for this agent.
                                 </p>
+                                <Tabs v-model="mode" class="mt-1">
+                                    <TabsList class="grid w-full max-w-sm grid-cols-2">
+                                        <TabsTrigger value="saved">Saved prompt</TabsTrigger>
+                                        <TabsTrigger value="custom">Custom</TabsTrigger>
+                                    </TabsList>
+
+                                    <TabsContent value="saved" class="mt-4 space-y-3">
+                                        <div
+                                            v-if="prompts.length === 0"
+                                            class="text-muted-foreground rounded-lg border py-8 text-center text-sm"
+                                        >
+                                            You have no saved prompts yet.
+                                            <Link href="/settings/prompts" class="text-foreground underline underline-offset-2">Create one</Link>
+                                            in Settings → Prompts.
+                                        </div>
+                                        <template v-else>
+                                            <select
+                                                v-model="form.prompt_id"
+                                                class="border-input bg-background h-9 w-full max-w-sm rounded-md border px-3 text-sm"
+                                            >
+                                                <option :value="null" disabled>Select a prompt…</option>
+                                                <option v-for="p in prompts" :key="p.id" :value="p.id">{{ p.name }}</option>
+                                            </select>
+                                            <div v-if="selectedPrompt" class="bg-muted/40 max-h-72 overflow-y-auto rounded-md border p-4">
+                                                <p class="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+                                                    {{ selectedPrompt.name }}
+                                                </p>
+                                                <pre class="text-foreground font-sans text-sm whitespace-pre-wrap">{{ selectedPrompt.prompt }}</pre>
+                                            </div>
+                                            <p v-if="form.errors.prompt_id" class="text-destructive text-sm">
+                                                {{ form.errors.prompt_id }}
+                                            </p>
+                                        </template>
+                                    </TabsContent>
+
+                                    <TabsContent value="custom" class="mt-4 grid gap-2">
+                                        <Textarea
+                                            id="instructions"
+                                            v-model="form.system_instructions"
+                                            :error="form.errors.system_instructions"
+                                            placeholder="You are a helpful assistant that specializes in..."
+                                            rows="15"
+                                        />
+                                        <p v-if="form.errors.system_instructions" class="text-destructive text-sm">
+                                            {{ form.errors.system_instructions }}
+                                        </p>
+                                        <p class="text-muted-foreground text-sm">
+                                            These instructions tell the AI how to behave, what tone to use, and what its purpose is
+                                        </p>
+                                    </TabsContent>
+                                </Tabs>
                             </div>
                         </div>
                     </CardContent>

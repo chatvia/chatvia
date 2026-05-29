@@ -11,6 +11,7 @@ use App\Http\Controllers\Settings\FunctionAgentsController;
 use App\Http\Controllers\Settings\FunctionsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\PromptsController;
 use App\Http\Controllers\SettingsUsageController;
 use App\Http\Controllers\Teams\Roles\TeamRoleCreateShowController;
 use App\Http\Controllers\Teams\Roles\TeamRoleDeleteController;
@@ -78,6 +79,14 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::get('settings/functions/{external_id}/agents', [FunctionAgentsController::class, 'index'])->name('settings.functions.agents.index');
     Route::post('settings/functions/{external_id}/agents/{agent}', [FunctionAgentsController::class, 'attach'])->name('settings.functions.agents.attach');
     Route::delete('settings/functions/{external_id}/agents/{agent}', [FunctionAgentsController::class, 'detach'])->name('settings.functions.agents.detach');
+
+    // Account-level reusable prompts (Prompt Manager). Authored here, attached
+    // to agents from each agent's Persona page via `agent_prompt_id`.
+    Route::get('settings/prompts', [PromptsController::class, 'edit'])->name('settings.prompts.edit');
+    Route::get('settings/prompts/list', [PromptsController::class, 'list'])->name('settings.prompts.list');
+    Route::post('settings/prompts', [PromptsController::class, 'store'])->name('settings.prompts.store');
+    Route::patch('settings/prompts/{external_id}', [PromptsController::class, 'update'])->name('settings.prompts.update');
+    Route::delete('settings/prompts/{external_id}', [PromptsController::class, 'destroy'])->name('settings.prompts.destroy');
 
     Route::get('settings/usage', SettingsUsageController::class)->name('settings.usage');
 

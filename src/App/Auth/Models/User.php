@@ -19,6 +19,7 @@ use Domain\Agents\Collections\AgentCollection;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Domain\Agents\Models\AgentMcpServer;
+use Domain\Agents\Models\AgentPrompt;
 use Domain\Agents\Models\Llm;
 use Domain\Agents\Models\ModelSetting;
 use Domain\Chat\Data\LlmModelData;
@@ -195,6 +196,18 @@ class User extends Authenticatable implements MustVerifyEmail
     public function functions(): HasMany
     {
         return $this->hasMany(AgentFunction::class);
+    }
+
+    /**
+     * Account-level reusable prompts this customer owns (Settings → Prompts).
+     * Each can be attached to any number of their agents via
+     * `agents.agent_prompt_id` — see `Agent::agentPrompt()`.
+     *
+     * @return HasMany<AgentPrompt, $this>
+     */
+    public function prompts(): HasMany
+    {
+        return $this->hasMany(AgentPrompt::class);
     }
 
     /**

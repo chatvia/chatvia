@@ -3,7 +3,6 @@
 namespace App\LLM\Operations;
 
 use App\LLM\Mistral;
-use App\Prompts\PromptLoader;
 use Domain\Analytics\Data\ContentAnalysisData;
 use Exception;
 
@@ -24,7 +23,7 @@ class ContentAnalyzer
                     'content' => [
                         [
                             'type' => 'text',
-                            'text' => PromptLoader::load('summarization/system'),
+                            'text' => prompt('summarization/system'),
                         ],
                         [
                             'type' => 'document_url',

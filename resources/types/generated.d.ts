@@ -238,6 +238,7 @@ name: string;
 sub_domain: string | null;
 domain: string | null;
 system_instructions: string | null;
+prompt_id: string | null;
 is_public: boolean;
 collect_leads: boolean;
 url: string;

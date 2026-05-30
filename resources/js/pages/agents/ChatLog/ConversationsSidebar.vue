@@ -3,7 +3,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Calendar, Circle, Download, Filter, Globe, LoaderCircle, RefreshCcw, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
+import { Calendar, Circle, Download, Filter, Globe, LoaderCircle, MessageSquare, RefreshCcw, Search, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
+
+type ConversationSource = 'hosted_chat' | 'widget' | 'bar';
+
+const sourceMeta: Record<ConversationSource, { label: string; icon: typeof Globe }> = {
+    hosted_chat: { label: 'Hosted Chat', icon: MessageSquare },
+    widget: { label: 'Widget', icon: Globe },
+    bar: { label: 'Bar', icon: Search },
+};
 import { useChatLog } from './useChatLog';
 
 const {
@@ -283,6 +291,17 @@ import { ref } from 'vue';
                             class="flex items-center gap-2 text-[11px]"
                             :class="currentConversationId === c.conversation_id ? 'opacity-70' : 'opacity-50'"
                         >
+                            <Tooltip v-if="c.source && sourceMeta[c.source as ConversationSource]">
+                                <TooltipTrigger as-child>
+                                    <component
+                                        :is="sourceMeta[c.source as ConversationSource].icon"
+                                        class="h-3 w-3 flex-shrink-0"
+                                    />
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                    {{ sourceMeta[c.source as ConversationSource].label }}
+                                </TooltipContent>
+                            </Tooltip>
                             <img
                                 v-if="c.country && getFlagPath(c.country)"
                                 :src="getFlagPath(c.country)!"

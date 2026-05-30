@@ -72,41 +72,24 @@ class ChatLogConversationsResourceData extends Data
     }
 
     /**
-     * @return Collection<string, string>
+     * @return Collection<int, string>
      */
     private static function getFirstMessageExcerpts(Collection $conversationIds): Collection
     {
-        if ($conversationIds->isEmpty()) {
-            return collect();
-        }
-
-        $firstMessagesRaw = ChatMessage::query()
-            ->whereIn('chat_conversation_id', $conversationIds)
-            ->orderBy('created_at')
-            ->get(['chat_conversation_id', 'content', 'created_at']);
-
-        $firstPerConversation = collect();
-        foreach ($firstMessagesRaw as $message) {
-            if (! $firstPerConversation->has($message->chat_conversation_id)) {
-                $firstPerConversation->put(
-                    $message->chat_conversation_id,
-                    str($message->content)->stripTags()->limit(80)->value()
-                );
-            }
-        }
-
-        return $firstPerConversation;
+        return ChatMessage::query()->firstExcerptsForConversations($conversationIds);
     }
 
+    /**
+     * @return Collection<int, int>
+     */
     private static function getLeadConversationIds(Agent $agent): Collection
     {
-        $allConversationIds = ChatConversation::query()
-            ->forAgent($agent->id)
-            ->pluck('id');
-
+        // leads.agent_id pins the row to this agent, so chat_conversation_id is
+        // guaranteed to belong to one of the agent's conversations. No need to
+        // pre-resolve every conversation id client-side.
         return Lead::query()
             ->where('agent_id', $agent->id)
-            ->whereIn('chat_conversation_id', $allConversationIds)
+            ->whereNotNull('chat_conversation_id')
             ->pluck('chat_conversation_id');
     }
 }

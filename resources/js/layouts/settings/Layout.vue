@@ -1,30 +1,53 @@
 <script setup lang="ts">
 import Heading from '@/components/Heading.vue';
 import { Separator } from '@/components/ui/separator';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Code, KeyRound, Lock, MessageSquareText, Palette, Plug, User, type LucideIcon } from 'lucide-vue-next';
+import { Code, KeyRound, LayoutTemplate, Lock, MessageSquareText, Palette, Plug, User, Users, type LucideIcon } from 'lucide-vue-next';
+import { computed } from 'vue';
+
+interface NavItem {
+    title: string;
+    href: string;
+    icon: LucideIcon;
+    permission?: string;
+}
 
 interface NavSection {
     title: string;
-    items: { title: string; href: string; icon: LucideIcon }[];
+    items: NavItem[];
 }
 
-const sections: NavSection[] = [
+const { hasPermission } = useTeamPermissions();
+
+const allSections: NavSection[] = [
     {
         title: 'Account',
         items: [
             { title: 'Profile', href: '/settings/profile', icon: User },
             { title: 'Password', href: '/settings/password', icon: Lock },
-            { title: 'API keys', href: '/settings/api-keys', icon: KeyRound },
+            { title: 'API keys', href: '/settings/api-keys', icon: KeyRound, permission: 'account.api_keys' },
         ],
     },
     {
         title: 'Integrations',
         items: [
-            { title: 'Connectors', href: '/settings/connectors', icon: Plug },
-            { title: 'Functions', href: '/settings/functions', icon: Code },
-            { title: 'Prompts', href: '/settings/prompts', icon: MessageSquareText },
+            { title: 'Connectors', href: '/settings/connectors', icon: Plug, permission: 'account.connectors' },
+            { title: 'Functions', href: '/settings/functions', icon: Code, permission: 'account.functions' },
+        ],
+    },
+    {
+        title: 'Library',
+        items: [
+            { title: 'Prompts', href: '/settings/prompts', icon: MessageSquareText, permission: 'account.prompts' },
+            { title: 'Templates', href: '/settings/templates', icon: LayoutTemplate, permission: 'account.templates' },
+        ],
+    },
+    {
+        title: 'People',
+        items: [
+            { title: 'Members', href: '/settings/members', icon: Users, permission: 'account.members.manage' },
         ],
     },
     {
@@ -32,6 +55,15 @@ const sections: NavSection[] = [
         items: [{ title: 'Appearance', href: '/settings/appearance', icon: Palette }],
     },
 ];
+
+const sections = computed<NavSection[]>(() =>
+    allSections
+        .map((section) => ({
+            ...section,
+            items: section.items.filter((item) => !item.permission || hasPermission(item.permission)),
+        }))
+        .filter((section) => section.items.length > 0),
+);
 
 const props = withDefaults(
     defineProps<{

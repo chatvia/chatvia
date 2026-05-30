@@ -10,6 +10,7 @@ use Domain\Ingestion\Models\Chunk;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class KnowledgeBase
@@ -47,15 +48,17 @@ class KnowledgeBase
         $accuracyLevel = config('vector.search.mode', 'default');
         $quantize = config('vector.quantization.rabitq.enabled', true);
 
-        // Use ChunkQueryBuilder for the search
-        $chunkBuilder = Chunk::query();
-        $chunkBuilder->configureSearchAccuracy($accuracyLevel, $this->vectorChordConfig);
-
-        // If reranking is enabled, fetch more candidates for better filtering
-        // Since we filter by threshold (not limit), fetch enough candidates to ensure quality options
         $maxChunks = config('vector.search.max_chunks', 3);
-        $candidateLimit = config('vector.search.rerank', false) ? 12 : ($maxChunks * 2); // Fetch extra for filtering
-        $results = $chunkBuilder->hybridSearchForAgent($agent, $query, $vectorString, $candidateLimit, $quantize);
+        $candidateLimit = config('vector.search.rerank', false) ? 12 : ($maxChunks * 2);
+
+        // SET LOCAL needs a transaction so vchordrq settings don't leak
+        // across requests on pooled connections (pgbouncer / Octane).
+        $results = DB::transaction(function () use ($agent, $query, $vectorString, $candidateLimit, $quantize, $accuracyLevel): array {
+            $chunkBuilder = Chunk::query();
+            $chunkBuilder->configureSearchAccuracy($accuracyLevel, $this->vectorChordConfig);
+
+            return $chunkBuilder->hybridSearchForAgent($agent, $query, $vectorString, $candidateLimit, $quantize);
+        });
 
         if ($results) {
             // Dispatch stats update to background job for better performance

@@ -9,7 +9,7 @@ class CancelSubscriptionAction
 {
     public function execute(User $user): void
     {
-        $subscription = $user->subscription();
+        $subscription = $user->accountBilling()?->subscription();
 
         if ($subscription) {
             $currentMetadata = $subscription->asStripeSubscription()->metadata->toArray();

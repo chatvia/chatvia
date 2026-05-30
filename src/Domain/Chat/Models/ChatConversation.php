@@ -6,6 +6,7 @@ use App\Auth\Models\User;
 use App\Language\Models\Language;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Lead;
+use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\QueryBuilders\ChatConversationQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -26,6 +27,7 @@ use Support\Traits\SupportsExternalId;
  * @property int $chat_session_id
  * @property int|null $language_id
  * @property int|null $chat_topic_id
+ * @property ConversationSource $source
  * @property bool $visible
  * @property string|null $title
  * @property string|null $sentiment
@@ -92,6 +94,7 @@ use Support\Traits\SupportsExternalId;
     'chat_session_id',
     'language_id',
     'chat_topic_id',
+    'source',
     'visible',
     'title',
     'sentiment',
@@ -113,6 +116,7 @@ class ChatConversation extends Model
     protected function casts(): array
     {
         return [
+            'source' => ConversationSource::class,
             'handoff_at' => 'datetime',
             'last_activity_at' => 'datetime',
         ];

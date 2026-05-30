@@ -3,9 +3,14 @@
 namespace Domain\Agents\Observers;
 
 use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\AgentSource;
 use Domain\Agents\Models\Llm;
 use Domain\Agents\Services\Agent as AgentHelper;
 use Domain\Chat\Models\ChatSession;
+use Domain\Sources\Files\Models\SourceFile;
+use Domain\Sources\Text\Models\SourceText;
+use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Facades\Storage;
 
 class AgentObserver
@@ -14,28 +19,12 @@ class AgentObserver
     {
         AgentHelper::cacheAgentName($agent->sub_domain);
 
-        $user = $agent->user;
+        // Every agent exposes Hosted Chat / Widget / Bar surfaces; each surface
+        // picks its own model(s) in setup. Attach every LLM the owner has access
+        // to so per-surface model pickers have the full catalogue to choose from.
+        $llmIds = $agent->user->llms()->pluck('id')->toArray();
 
-        $defaultLlm = Llm::query()
-            ->select('id')
-            ->where('is_default', true)
-            ->value('id');
-
-        $llms = $user->llms();
-        $agentLlms = $agent->isStandalone() ? $llms->pluck('id')->toArray() : [$defaultLlm];
-
-        $llmIds = Llm::query()
-            ->select('id')
-            ->whereIn('id', $agentLlms)
-            ->get()
-            ->pluck('id')
-            ->toArray();
-
-        $agent
-            ->llms()
-            ->attach(
-                $llmIds
-            );
+        $agent->llms()->attach($llmIds);
     }
 
     public function updated(Agent $agent): void
@@ -45,62 +34,37 @@ class AgentObserver
 
     /**
      * Handle the Agent "deleting" event.
-     * This fires BEFORE the agent is deleted, so we can still query relationships.
+     *
+     * Resolves "sources attached only to this agent" in SQL (one EXISTS query
+     * per source type) instead of N×(count) per-row loops. Sources still
+     * shared with other agents are left intact; the agent_sources rows for
+     * this agent are cleaned up by the cascadeOnDelete FK on agent_id.
      */
     public function deleting(Agent $agent): void
     {
-        // Clean up files that are only used by this agent
-        $agent->files->each(function ($file) use ($agent): void {
-            // Check if this file is only attached to this agent
-            if ($file->agents()->count() === 1) {
-                // Delete the file (observer will handle storage cleanup)
-                $file->delete();
-            } else {
-                // Just detach from this agent
-                $agent->files()->detach($file->id);
-            }
-        });
+        foreach ([SourceFile::class, SourceWebsite::class, SourceText::class, SourceYoutubeVideo::class] as $type) {
+            $exclusiveIds = AgentSource::exclusiveSourceIds($agent->id, $type);
 
-        // Clean up websites that are only used by this agent
-        $agent->websites->each(function ($website) use ($agent): void {
-            // Check if this website is only attached to this agent
-            if ($website->agents()->count() === 1) {
-                // Delete the website (observer will handle related cleanup)
-                $website->delete();
-            } else {
-                // Just detach from this agent
-                $agent->websites()->detach($website->id);
+            if ($exclusiveIds->isNotEmpty()) {
+                // Use ->each(fn) on the eloquent set so per-model observers
+                // (storage cleanup, chunk cascade) still fire for each row.
+                $type::whereIn('id', $exclusiveIds)
+                    ->cursor()
+                    ->each(fn ($model) => $model->delete());
             }
-        });
+        }
 
-        // Clean up texts that are only used by this agent
-        $agent->texts->each(function ($text) use ($agent): void {
-            // Check if this text is only attached to this agent
-            if ($text->agents()->count() === 1) {
-                // Delete the text (observer will handle related cleanup)
-                $text->delete();
-            } else {
-                // Just detach from this agent
-                $agent->texts()->detach($text->id);
-            }
-        });
+        $memory = app(\Domain\Chat\Services\Memory\ChatSession::class);
 
-        // Clean up YouTube videos that are only used by this agent
-        $agent->youtubeVideos->each(function ($video) use ($agent): void {
-            // Check if this video is only attached to this agent
-            if ($video->agents()->count() === 1) {
-                // Delete the video (observer will handle related cleanup)
-                $video->delete();
-            } else {
-                // Just detach from this agent
-                $agent->youtubeVideos()->detach($video->id);
-            }
-        });
+        ChatSession::query()
+            ->where('agent_id', $agent->id)
+            ->select(['id'])
+            ->cursor()
+            ->each(function (ChatSession $session) use ($memory): void {
+                $memory->deleteSession($session->id);
+            });
 
-        $agent->chatSessions->each(function (ChatSession $chatSession): void {
-            app(\Domain\Chat\Services\Memory\ChatSession::class)->deleteSession($chatSession->id);
-            $chatSession->delete();
-        });
+        ChatSession::query()->where('agent_id', $agent->id)->delete();
     }
 
     public function deleted(Agent $agent): void

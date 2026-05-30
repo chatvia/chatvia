@@ -37,7 +37,7 @@ class RoleMemberController
         /** @var User $user */
         $user = User::query()
             ->where('external_id', $validated['user_id'])
-            ->where('managed_by_user_id', $owner->id)
+            ->where('workspace_id', $owner->id)
             ->firstOrFail();
 
         $action->execute($team, $role, $user);
@@ -50,6 +50,6 @@ class RoleMemberController
         /** @var User $account */
         $account = $request->user();
 
-        return $account->isManagedUser() ? $account->manager : $account;
+        return $account->belongsToWorkspace() ? $account->workspace : $account;
     }
 }

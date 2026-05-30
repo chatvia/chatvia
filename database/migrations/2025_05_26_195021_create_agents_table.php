@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('external_id', 20)->unique();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Team::class)->constrained()->cascadeOnDelete();
-            $table->enum('type', ['knowledge_base', 'widget', 'search']);
             $table->string('name');
             $table->string('sub_domain')->nullable()->unique();
             $table->string('domain')->nullable()->unique();
@@ -24,11 +23,20 @@ return new class extends Migration
             // When set it takes precedence over system_instructions; nullOnDelete so
             // deleting a library prompt detaches it and the agent falls back.
             $table->foreignId('agent_prompt_id')->nullable()->constrained('agent_prompts')->nullOnDelete();
+            // Optional reference to a reusable account-level template (Settings →
+            // Templates). When set, the agent's appearance/widget/models/starters/
+            // prompt are read from the template at runtime; nullOnDelete detaches.
+            $table->foreignId('agent_template_id')->nullable()->constrained('agent_templates')->nullOnDelete();
             $table->boolean('is_public')->default(false);
-            $table->boolean('collect_leads')->default(true);
             $table->boolean('analytics_enabled')->default(true);
             $table->json('metadata')->nullable();
             $table->enum('created_via', ['internal', 'external'])->default('internal')->index();
+
+            // Encrypted at rest. HMAC-signs this agent's chat (?token=) and widget
+            // (data-auth) sign-in tokens; one secret per agent so regenerating
+            // only invalidates that agent's links.
+            $table->text('auth_secret')->nullable();
+
             $table->timestamps();
         });
     }

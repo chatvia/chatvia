@@ -24,6 +24,6 @@ class BuyExtraMessageCreditsAction
             ],
         ];
 
-        return $user->checkout($items, $session);
+        return $user->accountBilling()->checkout($items, $session);
     }
 }

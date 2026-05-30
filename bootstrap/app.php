@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Middleware\AuthenticateChatterUsingToken;
 use App\Http\Middleware\AuthenticateChatViaSignInToken;
 use App\Http\Middleware\AuthenticateMember;
-use App\Http\Middleware\AuthenticateMemberUsingToken;
 use App\Http\Middleware\ChatHandleInertiaRequests;
 use App\Http\Middleware\ContentSecurityPolicy;
 use App\Http\Middleware\EnsureAgentHasMessagesCapacity;
@@ -58,7 +58,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->group('chat', [
             ResolveAgentFromSubdomain::class,
             RedirectToAgent::class,
-            AuthenticateMemberUsingToken::class,
+            AuthenticateChatterUsingToken::class,
             AuthenticateChatViaSignInToken::class,
             EnsureChatIsAccessible::class,
             EnsureAgentHasMessagesCapacity::class,

@@ -5,6 +5,7 @@ namespace App\Teams\Services;
 use App\Auth\Models\User;
 use App\Teams\Data\Resources\PermissionGroupData;
 use App\Teams\Data\Resources\PermissionMetaData;
+use App\Teams\Data\Resources\PermissionScopeData;
 use App\Teams\Data\Resources\RoleConfigData;
 use App\Teams\Data\Resources\TeamAgentData;
 use App\Teams\Data\Resources\TeamRoleData;
@@ -14,6 +15,7 @@ use App\Teams\Models\Team;
 use App\Teams\Notifications\TeamInvitationNotification;
 use Domain\Agents\Models\Agent;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use RuntimeException;
 
@@ -66,7 +68,7 @@ class TeamService
      */
     public function canInviteMembers(Team $team): bool
     {
-        return $team->owner->subscribed() || $team->owner->onTrial();
+        return $team->owner->hasActiveSubscription();
     }
 
     /**
@@ -97,6 +99,16 @@ class TeamService
     {
         return collect(config('team-permissions.groups', []))
             ->map(fn ($data): PermissionGroupData => PermissionGroupData::fromConfig($data))
+            ->all();
+    }
+
+    /**
+     * @return array<string, PermissionScopeData>
+     */
+    public function permissionScopes(): array
+    {
+        return collect(config('team-permissions.scopes', []))
+            ->map(fn ($data): PermissionScopeData => PermissionScopeData::fromConfig($data))
             ->all();
     }
 
@@ -220,21 +232,38 @@ class TeamService
     }
 
     /**
-     * Get user's permissions for all teams (for Inertia shared data).
+     * Get the user's permissions for every team they own or belong to.
+     *
+     * Resolved in two queries: one for owned teams (all-permissions fan-out),
+     * one for membership-derived permissions joining team_user → roles →
+     * permissions. Replaces the per-team N×(teamRole+permissions) loop.
+     *
+     * @return array<int, array<int, string>>
      */
     public function userPermissionsMap(User $user): array
     {
         $allPermissions = $this->permissionCodes();
         $permissions = [];
 
-        // Get all teams (owned + member)
-        $allTeams = $user->ownedTeams->concat($user->memberTeams);
+        DB::table('teams')
+            ->where('user_id', $user->id)
+            ->pluck('id')
+            ->each(function (int $teamId) use (&$permissions, $allPermissions): void {
+                $permissions[$teamId] = $allPermissions;
+            });
 
-        foreach ($allTeams as $team) {
-            $permissions[$team->id] = $user->ownsTeam($team)
-                ? $allPermissions
-                : $user->teamPermissions($team);
-        }
+        DB::table('team_user')
+            ->join('role_has_permissions', 'role_has_permissions.role_id', '=', 'team_user.role_id')
+            ->join('permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
+            ->where('team_user.user_id', $user->id)
+            ->select('team_user.team_id', 'permissions.name')
+            ->get()
+            ->groupBy('team_id')
+            ->each(function ($rows, int $teamId) use (&$permissions): void {
+                if (! isset($permissions[$teamId])) {
+                    $permissions[$teamId] = $rows->pluck('name')->unique()->values()->all();
+                }
+            });
 
         return $permissions;
     }

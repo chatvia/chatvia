@@ -100,6 +100,7 @@ name: string;
 email: string;
 };
 export type PermissionGroupData = {
+scope: string;
 label: string;
 description: string | null;
 permissions: Array<string>;
@@ -108,6 +109,10 @@ export type PermissionMetaData = {
 label: string;
 description: string;
 requires: Array<string>;
+};
+export type PermissionScopeData = {
+label: string;
+description: string;
 };
 export type RoleConfigData = {
 name: string;
@@ -123,7 +128,6 @@ export type TeamData = {
 id: number;
 name: string;
 owner: App.Teams.Data.Resources.TeamOwnerData;
-can_access_dashboard: boolean;
 };
 export type TeamInvitationData = {
 id: number;
@@ -240,7 +244,6 @@ domain: string | null;
 system_instructions: string | null;
 prompt_id: string | null;
 is_public: boolean;
-collect_leads: boolean;
 url: string;
 permanent_url: string;
 chat_url: string;
@@ -259,6 +262,11 @@ markdown: number;
 audio: number;
 video: number;
 youtube: number;
+};
+export type AgentTemplatePickerData = {
+id: string;
+name: string;
+type: string;
 };
 export type LeadResourceData = {
 id: number;
@@ -316,6 +324,14 @@ export type ChatLogConversationsResourceData = {
 conversations: any;
 lead_conversation_ids: Array<any>;
 };
+export type ChatLogCountriesResourceData = {
+countries: { [key: number]: Domain.Agents.Data.Resources.ChatLog.ChatLogCountryData };
+};
+export type ChatLogCountryData = {
+id: number;
+code: string;
+name: string;
+};
 export type ChatLogLeadData = {
 id: number;
 name: string | null;
@@ -354,6 +370,45 @@ export type ChatLogMessagesResourceData = {
 messages: any;
 conversation_title: string | null;
 lead: Domain.Agents.Data.Resources.ChatLog.ChatLogLeadData | null;
+};
+export type ChatLogPulseConversationData = {
+id: string;
+sentiment: string | null;
+tone: string | null;
+total_messages: number;
+user_messages: number;
+};
+export type ChatLogPulseMessageData = {
+index: number;
+content_preview: string;
+tone: string | null;
+sentiment: string | null;
+sentiment_score: number;
+tone_score: number;
+created_at: string;
+};
+export type ChatLogPulsePeakData = {
+index: number;
+tone: string | null;
+sentiment: string | null;
+};
+export type ChatLogPulseResourceData = {
+messages: { [key: number]: Domain.Agents.Data.Resources.ChatLog.ChatLogPulseMessageData };
+summary: Domain.Agents.Data.Resources.ChatLog.ChatLogPulseSummaryData;
+conversation: Domain.Agents.Data.Resources.ChatLog.ChatLogPulseConversationData;
+};
+export type ChatLogPulseSnapshotData = {
+tone: string | null;
+sentiment: string | null;
+};
+export type ChatLogPulseSummaryData = {
+started_as: Domain.Agents.Data.Resources.ChatLog.ChatLogPulseSnapshotData | null;
+ended_as: Domain.Agents.Data.Resources.ChatLog.ChatLogPulseSnapshotData | null;
+peak_negative: Domain.Agents.Data.Resources.ChatLog.ChatLogPulsePeakData | null;
+peak_positive: Domain.Agents.Data.Resources.ChatLog.ChatLogPulsePeakData | null;
+avg_sentiment: number;
+trend: string;
+resolution: boolean;
 };
 export type ChatLogTopicData = {
 id: number;
@@ -502,5 +557,32 @@ location: string;
 reasoning: boolean;
 credits: number;
 is_selected: boolean;
+};
+}
+declare namespace Domain.Connectors.Data {
+export type AccountConnectorRowData = {
+kind: string;
+connector: any | null;
+server: Domain.Agents.Data.Resources.AgentMcpServerData | null;
+};
+export type AccountConnectorsResourceData = {
+featured: { [key: number]: Domain.Connectors.Data.AccountConnectorRowData };
+custom: { [key: number]: Domain.Connectors.Data.AccountConnectorRowData };
+};
+export type ConnectorToolData = {
+id: number;
+name: string;
+short_name: string;
+description: string | null;
+parameters: any;
+enabled: boolean;
+};
+export type ConnectorToolsResourceData = {
+tools: { [key: number]: Domain.Connectors.Data.ConnectorToolData };
+cached_at: string | null;
+};
+export type ToggledConnectorToolData = {
+id: number;
+enabled: boolean;
 };
 }

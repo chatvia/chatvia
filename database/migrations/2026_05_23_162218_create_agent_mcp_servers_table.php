@@ -64,13 +64,14 @@ return new class extends Migration
         // detach. Laravel-conventional pivot name: alphabetical singular
         // of the two related models.
         Schema::create('agent_mcp_server', function (Blueprint $table) {
-            $table->id();
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
             $table->foreignId('mcp_server_id')
                 ->constrained('mcp_servers')
                 ->cascadeOnDelete();
 
             $table->primary(['agent_id', 'mcp_server_id']);
+            // Reverse direction: "which agents have this MCP attached?"
+            $table->index('mcp_server_id');
         });
     }
 

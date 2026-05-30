@@ -3,6 +3,7 @@
 use App\Auth\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,8 +17,15 @@ return new class extends Migration
             $table->string('description');
             $table->timestamps();
 
+            // Per-user uniqueness (user_id non-null rows).
             $table->unique(['user_id', 'topic']);
         });
+
+        // Global topics use user_id = NULL; (NULL, 'foo') is not equal to
+        // (NULL, 'foo') in standard SQL, so the user_id+topic unique above does
+        // not protect them. This partial unique ensures the seeder can't insert
+        // duplicate globals on re-run.
+        DB::statement('CREATE UNIQUE INDEX chat_topics_global_topic_unique ON chat_topics (topic) WHERE user_id IS NULL');
 
         Schema::create('agent_topic', function (Blueprint $table) {
             $table->id();
@@ -25,6 +33,8 @@ return new class extends Migration
             $table->foreignId('chat_topic_id')->constrained('chat_topics')->cascadeOnDelete();
 
             $table->unique(['agent_id', 'chat_topic_id']);
+            // Reverse direction: "which agents are tagged with this topic?"
+            $table->index('chat_topic_id');
         });
 
         DB::table('chat_topics')->insert([

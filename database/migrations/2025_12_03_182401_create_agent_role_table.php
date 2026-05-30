@@ -14,9 +14,13 @@ return new class extends Migration
         // Create pivot table for role-agent access
         Schema::create('agent_role', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
-            $table->foreignId('agent_id')->constrained()->onDelete('cascade');
+            $table->foreignId('role_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('agent_id')->constrained()->cascadeOnDelete();
+
             $table->unique(['role_id', 'agent_id']);
+            // Reverse direction: "what roles can access this agent?" — used by
+            // TeamService::roleCanAccessAgent / accessibleAgents.
+            $table->index('agent_id');
         });
 
     }

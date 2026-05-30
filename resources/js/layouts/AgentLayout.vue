@@ -32,7 +32,9 @@ import { toast } from 'vue-sonner';
 import axios from 'axios';
 import {
     BarChart3,
+    Bot,
     BotIcon,
+    Building2,
     ChevronDown,
     ChevronRight,
     Code,
@@ -47,10 +49,13 @@ import {
     MessageSquare,
     Pencil,
     Plug,
+    Search,
+    ShieldCheck,
     SmilePlus,
     Sparkles,
     Trash2,
     UserCheck,
+    Users,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -110,28 +115,44 @@ const toggleSidebar = () => {
 
 // Remove breadcrumbs as we're creating a knowledge_base layout
 
-const uiNavigationItems = computed(() => {
-    const baseItems = [];
+// Every agent exposes three independent surfaces — Hosted Chat (standalone
+// chat page at the agent's subdomain), Widget (embeddable floating bubble),
+// and Bar (embeddable search bar). Setup splits them into separate
+// configuration sub-pages (each surface is independent); Playground stays
+// a single page with an in-page surface toggle. Persona is shared across
+// every surface, so it lives at the top level — outside Setup — rather
+// than as a sub-tab on each surface page.
+const setupSubItems = [
+    { id: 'setup-hosted-chat', label: 'Hosted Chat', icon: MessageSquare, route: 'agents.setup.hosted_chat' },
+    { id: 'setup-widget', label: 'Widget', icon: Globe, route: 'agents.setup.widget' },
+    { id: 'setup-bar', label: 'Bar', icon: Search, route: 'agents.setup.bar' },
+];
 
-    // Only show Playground for non-widget agents (owners only, or users with setup permission)
-    if (props.agent.type !== 'widget' && hasPermission('agent.setup')) {
+const uiNavigationItems = computed(() => {
+    const baseItems: any[] = [];
+
+    if (hasPermission('agent.setup')) {
         baseItems.push({
             id: 'playground',
             label: 'Playground',
             icon: BotIcon,
             route: 'agents.playground',
-            tooltip: 'Test your agent in the playground',
+            tooltip: 'Preview your agent on every surface',
         });
-    }
-
-    // Show Widget or Embed based on agent type - only if user has setup permission
-    if (hasPermission('agent.setup')) {
         baseItems.push({
-            id: 'embed',
+            id: 'setup',
             label: 'Setup',
-            icon: props.agent.type === 'widget' ? Globe : Code,
-            route: props.agent.type === 'widget' ? 'agents.widget' : 'agents.embed',
-            tooltip: props.agent.type === 'widget' ? 'Configure and preview chat widget' : 'Generate embed code for your website',
+            icon: Code,
+            route: 'agents.setup.hosted_chat',
+            tooltip: 'Configure each surface independently',
+            subItems: setupSubItems,
+        });
+        baseItems.push({
+            id: 'persona',
+            label: 'Persona',
+            icon: Bot,
+            route: 'agents.persona',
+            tooltip: 'Identity and instructions — shared across every surface',
         });
     }
 
@@ -162,21 +183,23 @@ const hasAnyAnalyticsPermission = computed(() =>
     ]),
 );
 
-const controlPanelNavigationItems = computed(() => {
-    const baseItems: any[] = [];
+// Sidebar Management section, split into labelled subgroups for readability.
+// Each group is filtered by the same permission checks the flat list used; an
+// empty group disappears entirely so users only see sections they can act on.
+const managementGroups = computed(() => {
+    const groups: { id: string; label: string; items: any[] }[] = [];
 
-    // Analytics - only show if user has any analytics permission
+    // Insights — analytics + raw chat logs + captured leads
+    const insights: any[] = [];
     if (hasAnyAnalyticsPermission.value) {
         const analyticsSubItems = [];
 
         if (hasPermission('agent.analytics.chats')) {
             analyticsSubItems.push({ id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' });
         }
-
         if (hasPermission('agent.analytics.metrics')) {
             analyticsSubItems.push({ id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' });
         }
-
         if (hasPermission('agent.analytics.sentiment')) {
             analyticsSubItems.push({ id: 'analytics-sentiment', label: 'Sentiment', icon: SmilePlus, route: 'agents.analytics.sentiment' });
         }
@@ -191,7 +214,7 @@ const controlPanelNavigationItems = computed(() => {
         }
 
         if (analyticsSubItems.length > 0) {
-            baseItems.push({
+            insights.push({
                 id: 'analytics',
                 label: 'Analytics',
                 icon: BarChart3,
@@ -201,10 +224,18 @@ const controlPanelNavigationItems = computed(() => {
             });
         }
     }
+    if (hasPermission('agent.chat.view')) {
+        insights.push({ id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' });
+    }
+    if (hasPermission('agent.leads.view')) {
+        insights.push({ id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads.index', tooltip: 'Manage leads captured by your agent' });
+    }
+    if (insights.length) groups.push({ id: 'insights', label: 'Insights', items: insights });
 
-    // Sources - only show if user has any source training permission
+    // Training — knowledge sources and tools the agent can call
+    const training: any[] = [];
     if (hasAnySourcePermission.value) {
-        baseItems.push({
+        training.push({
             id: 'knowledge',
             label: 'Sources',
             icon: Database,
@@ -212,10 +243,8 @@ const controlPanelNavigationItems = computed(() => {
             tooltip: 'Manage agent knowledge and training data',
         });
     }
-
-    // Functions - top-level item, only show if user has functions permission
     if (hasPermission('agent.sources.train.functions')) {
-        baseItems.push({
+        training.push({
             id: 'functions',
             label: 'Functions',
             icon: FunctionSquare,
@@ -223,10 +252,8 @@ const controlPanelNavigationItems = computed(() => {
             tooltip: 'Manage custom functions your agent can call',
         });
     }
-
-    // Connectors - top-level item, only show if user has connectors permission
     if (hasPermission('agent.sources.train.connectors')) {
-        baseItems.push({
+        training.push({
             id: 'connectors',
             label: 'Connectors',
             icon: Plug,
@@ -234,23 +261,47 @@ const controlPanelNavigationItems = computed(() => {
             tooltip: 'Attach connectors so your agent can use external tools',
         });
     }
+    if (training.length) groups.push({ id: 'training', label: 'Training', items: training });
 
-    // Leads - only show if user has leads permission
-    if (hasPermission('agent.leads.view')) {
-        baseItems.push({ id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads.index', tooltip: 'Manage leads captured by your agent' });
+    // Access — who can chat with the agent and how they prove it
+    const access: any[] = [];
+    if (hasPermission('agent.members.manage')) {
+        access.push({
+            id: 'members',
+            label: 'Members',
+            icon: Users,
+            route: 'agents.members.index',
+            tooltip: 'People granted access to chat with this agent',
+        });
     }
-
-    // Chat/Logs - only show if user has chat view permission
-    if (hasPermission('agent.chat.view')) {
-        baseItems.push({ id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' });
+    if (hasPermission('agent.identity.manage')) {
+        access.push({
+            id: 'identity',
+            label: 'Security',
+            icon: ShieldCheck,
+            route: 'agents.identity',
+            tooltip: 'Access control and signing secret for this agent',
+        });
     }
+    if (access.length) groups.push({ id: 'access', label: 'Access', items: access });
 
-    // Rename - only show for team owners
+    // Settings — agent metadata (business contact, rename)
+    const settings: any[] = [];
+    if (hasPermission('agent.business_profile.manage')) {
+        settings.push({
+            id: 'business-profile',
+            label: 'Business',
+            icon: Building2,
+            route: 'agents.business-profile',
+            tooltip: 'Real contact details the agent quotes when asked',
+        });
+    }
     if (isOwner.value) {
-        baseItems.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
+        settings.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
     }
+    if (settings.length) groups.push({ id: 'settings', label: 'Settings', items: settings });
 
-    return baseItems;
+    return groups;
 });
 
 // Danger Zone navigation items - only show for team owners
@@ -296,19 +347,12 @@ const deleteAgent = () => {
 };
 
 const renameAgent = () => {
-    if (!renameForm.name.trim()) {
+    if (!renameForm.name.trim() || !renameForm.sub_domain.trim()) {
         return;
     }
 
-    if (props.agent.type === 'knowledge_base' && !renameForm.sub_domain.trim()) {
-        return;
-    }
-
-    // Update form data - trim and lowercase subdomain
     renameForm.name = renameForm.name.trim();
-    if (props.agent.type === 'knowledge_base') {
-        renameForm.sub_domain = renameForm.sub_domain.trim().toLowerCase();
-    }
+    renameForm.sub_domain = renameForm.sub_domain.trim().toLowerCase();
 
     renameForm.patch(route('agents.rename', { agent: props.agent.external_id }), {
         preserveScroll: true,
@@ -344,6 +388,7 @@ const isActiveRoute = (routeName: string) => {
 };
 
 const analyticsSubmenuOpen = ref(isActiveRoute('agents.analytics.*'));
+const setupSubmenuOpen = ref(isActiveRoute('agents.setup.*'));
 // Functions and Connectors are now top-level items, so don't auto-open Sources on those routes.
 const sourcesSubmenuOpen = ref(
     isActiveRoute('agents.sources.*') && !isActiveRoute('agents.sources.functions.*') && !isActiveRoute('agents.sources.connectors.*'),
@@ -429,30 +474,90 @@ onMounted(() => {
 
                 <!-- Sidebar Content -->
                 <SidebarContent class="!gap-6 overflow-y-auto">
-                    <!-- Navigation Section -->
+                    <!-- Navigation Section — Playground (single page with
+                         in-page surface toggle) + Setup (three independent
+                         surface sub-pages). -->
                     <SidebarGroup class="py-0 pt-2">
                         <SidebarMenu class="space-y-1">
                             <SidebarMenuItem v-for="item in uiNavigationItems" :key="item.id">
-                                <SidebarMenuButton
-                                    as-child
-                                    :is-active="isActiveRoute(item.route)"
-                                    :tooltip="item.tooltip"
-                                    class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                >
-                                    <Link :href="route(item.route, { agent: agent.external_id })">
-                                        <component :is="item.icon" />
-                                        <span>{{ item.label }}</span>
-                                    </Link>
-                                </SidebarMenuButton>
+                                <!-- Simple top-level item (no sub-menu) — e.g. Playground -->
+                                <template v-if="!item.subItems">
+                                    <SidebarMenuButton
+                                        as-child
+                                        :is-active="isActiveRoute(item.route)"
+                                        :tooltip="item.tooltip"
+                                        class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                    >
+                                        <Link :href="route(item.route, { agent: agent.external_id })">
+                                            <component :is="item.icon" />
+                                            <span>{{ item.label }}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </template>
+
+                                <!-- Parent with sub-menu (Setup) -->
+                                <template v-else>
+                                    <!-- Collapsed state - show dropdown on click -->
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger as-child>
+                                            <div class="hidden group-data-[collapsible=icon]:block">
+                                                <SidebarMenuButton :tooltip="item.tooltip" class="cursor-pointer">
+                                                    <component :is="item.icon" />
+                                                    <span>{{ item.label }}</span>
+                                                </SidebarMenuButton>
+                                            </div>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent side="right" align="start" :side-offset="5" :align-offset="0" class="w-56">
+                                            <DropdownMenuItem v-for="subItem in item.subItems" :key="subItem.id" as-child>
+                                                <Link :href="route(subItem.route, { agent: agent.external_id })" class="flex items-center gap-2">
+                                                    <component :is="subItem.icon" class="h-4 w-4" />
+                                                    <span>{{ subItem.label }}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+
+                                    <!-- Expanded state - show parent + chevron toggle.
+                                         The parent isn't marked active when a child is open —
+                                         only the selected sub-item gets the filled highlight. -->
+                                    <div class="block group-data-[collapsible=icon]:hidden">
+                                        <SidebarMenuButton
+                                            @click="setupSubmenuOpen = !setupSubmenuOpen"
+                                            :tooltip="item.tooltip"
+                                            class="cursor-pointer"
+                                        >
+                                            <component :is="item.icon" />
+                                            <span>{{ item.label }}</span>
+                                            <ChevronDown
+                                                class="ml-auto h-4 w-4 transition-transform duration-200"
+                                                :class="{ 'rotate-180': setupSubmenuOpen }"
+                                            />
+                                        </SidebarMenuButton>
+                                    </div>
+                                    <SidebarMenuSub v-if="setupSubmenuOpen" class="mt-1 space-y-0.5 group-data-[collapsible=icon]:hidden">
+                                        <SidebarMenuSubItem v-for="subItem in item.subItems" :key="subItem.id">
+                                            <SidebarMenuSubButton
+                                                as-child
+                                                :is-active="isActiveRoute(subItem.route)"
+                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                            >
+                                                <Link :href="route(subItem.route, { agent: agent.external_id })">
+                                                    <component :is="subItem.icon" class="h-4 w-4" />
+                                                    <span>{{ subItem.label }}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                    </SidebarMenuSub>
+                                </template>
                             </SidebarMenuItem>
                         </SidebarMenu>
                     </SidebarGroup>
 
-                    <!-- Management Section -->
-                    <SidebarGroup class="py-0">
-                        <SidebarGroupLabel class="mb-2 px-2">Management</SidebarGroupLabel>
+                    <!-- Management — split into labelled subgroups (Insights, Training, Access, Settings) -->
+                    <SidebarGroup v-for="group in managementGroups" :key="group.id" class="py-0">
+                        <SidebarGroupLabel class="mb-2 px-2">{{ group.label }}</SidebarGroupLabel>
                         <SidebarMenu class="space-y-1">
-                            <template v-for="item in controlPanelNavigationItems" :key="item.id">
+                            <template v-for="item in group.items" :key="item.id">
                                 <!-- Analytics item with submenu -->
                                 <SidebarMenuItem v-if="item.id === 'analytics'">
                                     <!-- Collapsed state - show dropdown on click -->
@@ -606,27 +711,28 @@ onMounted(() => {
                         </SidebarMenu>
                     </SidebarGroup>
 
-                    <!-- Separator before Danger Zone -->
-                    <div class="px-2 py-2">
-                        <div class="border-border border-t"></div>
-                    </div>
+                    <!-- Danger Zone pinned to the bottom via mt-auto so it sits below empty space when the sidebar is short. -->
+                    <div class="mt-auto">
+                        <div class="px-2 py-2">
+                            <div class="border-border border-t"></div>
+                        </div>
 
-                    <!-- Danger Zone Section -->
-                    <SidebarGroup class="py-0">
-                        <SidebarGroupLabel class="text-destructive mb-2 px-2">Danger Zone</SidebarGroupLabel>
-                        <SidebarMenu class="space-y-1">
-                            <SidebarMenuItem v-for="item in dangerZoneNavigationItems" :key="item.id">
-                                <SidebarMenuButton
-                                    @click="showDeleteDialog = true"
-                                    :tooltip="item.tooltip"
-                                    class="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                                >
-                                    <component :is="item.icon" />
-                                    <span>{{ item.label }}</span>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </SidebarMenu>
-                    </SidebarGroup>
+                        <SidebarGroup class="py-0">
+                            <SidebarGroupLabel class="text-destructive mb-2 px-2">Danger Zone</SidebarGroupLabel>
+                            <SidebarMenu class="space-y-1">
+                                <SidebarMenuItem v-for="item in dangerZoneNavigationItems" :key="item.id">
+                                    <SidebarMenuButton
+                                        @click="showDeleteDialog = true"
+                                        :tooltip="item.tooltip"
+                                        class="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                                    >
+                                        <component :is="item.icon" />
+                                        <span>{{ item.label }}</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            </SidebarMenu>
+                        </SidebarGroup>
+                    </div>
                 </SidebarContent>
             </Sidebar>
 
@@ -695,7 +801,6 @@ onMounted(() => {
                                 </div>
 
                                 <Badge
-                                    v-if="agent.type === 'knowledge_base'"
                                     :variant="agent.is_public ? 'destructive' : 'secondary'"
                                     :class="[
                                         'text-xs',
@@ -789,8 +894,7 @@ onMounted(() => {
                         </p>
                     </div>
 
-                    <!-- Subdomain field for knowledge_base only -->
-                    <div v-if="agent.type === 'knowledge_base'">
+                    <div>
                         <label for="subdomain" class="text-foreground mb-2 block text-sm font-medium"> Subdomain </label>
                         <div class="flex">
                             <span
@@ -824,9 +928,7 @@ onMounted(() => {
                     <Button variant="outline" @click="showRenameDialog = false"> Cancel </Button>
                     <Button
                         @click="renameAgent"
-                        :disabled="
-                            renameForm.processing || !renameForm.name.trim() || (agent.type === 'knowledge_base' && !renameForm.sub_domain.trim())
-                        "
+                        :disabled="renameForm.processing || !renameForm.name.trim() || !renameForm.sub_domain.trim()"
                     >
                         <LoaderCircle v-if="renameForm.processing" class="mr-2 h-4 w-4 animate-spin" />
                         Save

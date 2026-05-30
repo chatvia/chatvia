@@ -1,0 +1,108 @@
+/*
+ * Shared highlight.js token theme (GitHub light / dark palette).
+ *
+ * highlight.js ships no colors — only class names — so the colors must live
+ * somewhere. Defining them once here means every consumer (the Identity
+ * Verification docs, JsonCodeEditor, chat code blocks, …) shares one theme
+ * instead of each hand-rolling its own. Dark mode keys off the `.dark` class
+ * that useAppearance toggles on <html>.
+ *
+ * Components may still override individual tokens in their own scoped styles;
+ * those win on specificity and are left untouched.
+ */
+
+.hljs {
+    color: var(--foreground);
+    background: transparent;
+}
+
+.hljs-comment,
+.hljs-quote {
+    color: #6e7781;
+    font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-meta,
+.hljs-doctag {
+    color: #cf222e;
+}
+
+.hljs-string,
+.hljs-meta .hljs-string,
+.hljs-regexp {
+    color: #0a3069;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-attr,
+.hljs-attribute {
+    color: #0550ae;
+}
+
+.hljs-title,
+.hljs-title.function_ {
+    color: #8250df;
+}
+
+.hljs-built_in,
+.hljs-type,
+.hljs-title.class_ {
+    color: #953800;
+}
+
+.hljs-name {
+    color: #116329;
+}
+
+.hljs-tag,
+.hljs-punctuation {
+    color: var(--muted-foreground);
+}
+
+/* Dark mode — GitHub "dark" palette. */
+.dark .hljs-comment,
+.dark .hljs-quote {
+    color: #8b949e;
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-meta,
+.dark .hljs-doctag {
+    color: #ff7b72;
+}
+
+.dark .hljs-string,
+.dark .hljs-meta .hljs-string,
+.dark .hljs-regexp {
+    color: #a5d6ff;
+}
+
+.dark .hljs-number,
+.dark .hljs-literal,
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-attr,
+.dark .hljs-attribute {
+    color: #79c0ff;
+}
+
+.dark .hljs-title,
+.dark .hljs-title.function_ {
+    color: #d2a8ff;
+}
+
+.dark .hljs-built_in,
+.dark .hljs-type,
+.dark .hljs-title.class_ {
+    color: #ffa657;
+}
+
+.dark .hljs-name {
+    color: #7ee787;
+}

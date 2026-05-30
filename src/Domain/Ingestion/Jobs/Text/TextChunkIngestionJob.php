@@ -61,7 +61,6 @@ class TextChunkIngestionJob implements ShouldBeUnique, ShouldQueue
             'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($this->page->content).", 'llmlingua2')"),
             'metadata' => [],
             'checksum' => $this->page->checksum,
-            'retrieval_count' => 0,
         ]);
 
         TextIngestionProgressEvent::dispatch(

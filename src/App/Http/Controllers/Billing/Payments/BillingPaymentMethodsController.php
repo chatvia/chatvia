@@ -13,11 +13,12 @@ class BillingPaymentMethodsController
     {
         /** @var User $user */
         $user = $request->user();
+        $billing = $user->accountBilling();
 
         return Inertia::render('billing/PaymentMethods', [
-            'paymentMethods' => $request->user()->paymentMethods()->map(function (PaymentMethod $paymentMethod) use ($user) {
+            'paymentMethods' => $billing->paymentMethods()->map(function (PaymentMethod $paymentMethod) use ($billing) {
                 $stripe = $paymentMethod->asStripePaymentMethod();
-                $default = $user->defaultPaymentMethod();
+                $default = $billing->defaultPaymentMethod();
                 $defaultId = $default instanceof PaymentMethod
                     ? $default->asStripePaymentMethod()->id
                     : null;
@@ -30,12 +31,11 @@ class BillingPaymentMethodsController
                     'is_default' => $stripe->id === $defaultId,
                 ];
             }),
-            'intent' => $request->user()->createSetupIntent(),
+            'intent' => $billing->createSetupIntent(),
             'stripeKey' => config('cashier.key'),
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,
-                'billing_address' => $user->billing_address ?? null,
             ],
         ]);
     }

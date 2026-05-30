@@ -45,21 +45,10 @@ use Support\Concerns\HasExternalId;
 #[Fillable([
     'name',
     'user_id',
-    'can_access_dashboard',
 ])]
 class Team extends Model
 {
     use HasExternalId;
-
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'can_access_dashboard' => 'boolean',
-        ];
-    }
 
     /**
      * @return BelongsTo<User, $this>

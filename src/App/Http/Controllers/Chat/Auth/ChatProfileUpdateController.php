@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
-use App\Http\Requests\Chat\UpdateChatMemberProfileRequest;
-use Domain\Auth\Actions\UpdateChatMemberProfileAction;
+use App\Http\Requests\Chat\UpdateChatterProfileRequest;
+use Domain\Auth\Actions\UpdateChatterProfileAction;
 
 class ChatProfileUpdateController
 {
     public function __invoke(
-        UpdateChatMemberProfileRequest $request,
-        UpdateChatMemberProfileAction $update,
+        UpdateChatterProfileRequest $request,
+        UpdateChatterProfileAction $update,
     ): void {
         $update->execute($request->toData());
     }

@@ -113,8 +113,7 @@ class SourceFile extends Model implements ChunkableContract
     {
         return $this
             ->morphToMany(Agent::class, 'sourceable', 'agent_sources')
-            ->using(AgentSource::class)
-            ->withTimestamps();
+            ->using(AgentSource::class);
     }
 
     public function ingest(int $agentId): void

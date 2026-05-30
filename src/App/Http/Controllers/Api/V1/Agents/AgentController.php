@@ -33,7 +33,7 @@ class AgentController
     {
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->isManagedUser() ? $user->manager : $user;
+        $owner = $user->belongsToWorkspace() ? $user->workspace : $user;
 
         $query = Agent::query()
             ->whereIn('team_id', $owner->ownedTeams()->select('id'))
@@ -73,7 +73,7 @@ class AgentController
 
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->isManagedUser() ? $user->manager : $user;
+        $owner = $user->belongsToWorkspace() ? $user->workspace : $user;
 
         $team = $this->resolveTeam($owner, $validated['team_id'] ?? null);
         $agentPromptId = $this->resolvePromptId($owner, $validated['prompt_id'] ?? null);
@@ -93,7 +93,6 @@ class AgentController
                 'system_instructions' => $agentPromptId === null ? ($validated['system_instructions'] ?? null) : null,
                 'agent_prompt_id' => $agentPromptId,
                 'is_public' => false,
-                'collect_leads' => true,
                 'analytics_enabled' => true,
                 'metadata' => $validated['metadata'] ?? null,
                 'created_via' => 'external',
@@ -132,14 +131,13 @@ class AgentController
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
             'prompt_id' => ['sometimes', 'nullable', 'string', 'prohibits:system_instructions'],
             'metadata' => ['sometimes', 'nullable', 'array'],
-            'collect_leads' => ['sometimes', 'boolean'],
             'analytics_enabled' => ['sometimes', 'boolean'],
             'is_public' => ['sometimes', 'boolean'],
         ]);
 
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->isManagedUser() ? $user->manager : $user;
+        $owner = $user->belongsToWorkspace() ? $user->workspace : $user;
 
         $attributes = collect($validated)->except('prompt_id')->all();
 

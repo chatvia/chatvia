@@ -19,6 +19,8 @@ class OAuthStartController extends Controller
 
     public function __invoke(Request $request, string $slug): RedirectResponse
     {
+        abort_unless(has_team_permission('account.connectors'), 404);
+
         $connector = $this->catalog->find($slug);
         abort_unless($connector && $connector->authStrategy === 'oauth' && ! $connector->comingSoon, 404);
 

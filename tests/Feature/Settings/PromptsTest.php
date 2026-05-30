@@ -83,7 +83,6 @@ it('deletes a prompt and detaches it from agents', function (): void {
         'sub_domain' => Str::random(14),
         'agent_prompt_id' => $prompt->id,
         'is_public' => false,
-        'collect_leads' => true,
         'analytics_enabled' => true,
         'created_via' => 'internal',
     ]);

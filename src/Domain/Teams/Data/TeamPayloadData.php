@@ -11,11 +11,6 @@ class TeamPayloadData extends Data
          * The team's name.
          */
         public string $name,
-        /**
-         * Whether members of this team can access the dashboard. Set false for a
-         * chat-only team — its members can only chat with the team's agents.
-         */
-        public bool $can_access_dashboard = true,
     ) {}
 
     /**
@@ -25,7 +20,6 @@ class TeamPayloadData extends Data
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'can_access_dashboard' => ['sometimes', 'boolean'],
         ];
     }
 }

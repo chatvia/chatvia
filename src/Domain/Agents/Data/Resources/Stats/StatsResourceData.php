@@ -63,27 +63,38 @@ class StatsResourceData extends Data
 
         $days = (int) $startDate->diffInDays($endDate) + 1;
 
-        $firstDate = $agent->firstDataDate();
-        $satisfactionRate = $agent->satisfactionRate();
+        // Single-pass aggregate replaces ~12 previously-separate queries.
+        $agg = $agent->aggregateStats();
+
+        $positive = (int) ($agg->positive_feedback ?? 0);
+        $negative = (int) ($agg->negative_feedback ?? 0);
 
         return self::from([
-            'total_messages' => $agent->countAssistantMessages(),
-            'total_conversations' => $agent->countConversations(),
+            'total_messages' => (int) ($agg->total_assistant ?? 0),
+            'total_conversations' => (int) ($agg->total_conversations ?? 0),
             'total_members' => 0,
-            'total_user_messages' => $agent->totalUserMessages(),
-            'unique_sessions' => $agent->uniqueSessionsCount(),
-            'avg_response_time' => $agent->avgResponseTime(),
-            'avg_first_response_time' => self::formatSeconds($agent->avgFirstResponseTime()),
-            'avg_messages_per_conversation' => $agent->avgMessagesPerConversation(),
-            'avg_conversation_duration' => self::formatSeconds($agent->avgConversationDuration()),
-            'avg_tokens_per_message' => $agent->avgTokensPerMessage(),
-            'total_tokens_used' => $agent->totalTokensUsed(),
-            'peak_activity_hour' => $agent->peakActivityHour(),
-            'conversations_with_feedback' => $agent->conversationsWithFeedback(),
+            'total_user_messages' => (int) ($agg->total_user ?? 0),
+            'unique_sessions' => (int) ($agg->unique_sessions ?? 0),
+            'avg_response_time' => $agg->avg_response_ms !== null
+                ? round(((float) $agg->avg_response_ms) / 1000, 1)
+                : null,
+            'avg_first_response_time' => self::formatSeconds(
+                $agg->avg_first_response_seconds !== null ? (float) $agg->avg_first_response_seconds : null
+            ),
+            'avg_messages_per_conversation' => $agg->avg_messages_per_conversation !== null
+                ? round((float) $agg->avg_messages_per_conversation, 1)
+                : null,
+            'avg_conversation_duration' => self::formatSeconds(
+                $agg->avg_conversation_duration_seconds !== null ? (float) $agg->avg_conversation_duration_seconds : null
+            ),
+            'avg_tokens_per_message' => $agg->avg_tokens !== null ? (int) round((float) $agg->avg_tokens) : null,
+            'total_tokens_used' => $agg->total_tokens !== null ? (int) $agg->total_tokens : null,
+            'peak_activity_hour' => $agg->peak_hour !== null ? (int) $agg->peak_hour : null,
+            'conversations_with_feedback' => (int) ($agg->conversations_with_feedback ?? 0),
             'feedback' => [
-                'positive' => $satisfactionRate['positive'] ?? 0,
-                'negative' => $satisfactionRate['negative'] ?? 0,
-                'total' => $satisfactionRate['total'] ?? 0,
+                'positive' => $positive,
+                'negative' => $negative,
+                'total' => $positive + $negative,
             ],
             'messages_last_week' => self::getMessagesInRange($agent, $startDate, $endDate),
             'model_usage' => self::mostUsedModels($agent),
@@ -93,7 +104,7 @@ class StatsResourceData extends Data
             'activity_by_hour' => self::getActivityByHour($agent),
             'activity_by_day_of_week' => self::getActivityByDayOfWeek($agent),
             'top_knowledge' => self::mostAccessedFiles($agent),
-            'first_data_date' => $firstDate?->format('Y-m-d'),
+            'first_data_date' => $agg->first_data_date ? (string) $agg->first_data_date : null,
             'last_updated' => now(),
         ]);
     }

@@ -18,28 +18,32 @@ class AgentMetricsDataController
             code: 404,
         );
 
-        // Get conversation statistics using AgentQueryBuilder methods
-        $totalMessages = $agent->countAssistantMessages();
-        $totalConversations = $agent->countConversations();
-        $avgMessagesPerConversation = $agent->avgMessagesPerConversation();
-        $uniqueSessions = $agent->uniqueSessionsCount();
+        // Single aggregate replaces ~12 separate query/join chains.
+        $agg = $agent->aggregateStats();
 
-        // Feedback statistics
-        $satisfactionData = $agent->satisfactionRate();
-        $conversationsWithFeedback = $agent->conversationsWithFeedback();
-        $totalPositiveFeedback = $satisfactionData['positive'];
-        $totalNegativeFeedback = $satisfactionData['negative'];
+        $totalMessages = (int) ($agg->total_assistant ?? 0);
+        $totalConversations = (int) ($agg->total_conversations ?? 0);
+        $avgMessagesPerConversation = $agg->avg_messages_per_conversation !== null
+            ? round((float) $agg->avg_messages_per_conversation, 1)
+            : 0;
+        $uniqueSessions = (int) ($agg->unique_sessions ?? 0);
 
-        // Performance metrics
-        $avgResponseTime = $agent->avgResponseTime();
-        $avgFirstResponseTime = $agent->avgFirstResponseTime();
-        $avgConversationDuration = $agent->avgConversationDuration();
+        $totalPositiveFeedback = (int) ($agg->positive_feedback ?? 0);
+        $totalNegativeFeedback = (int) ($agg->negative_feedback ?? 0);
+        $conversationsWithFeedback = (int) ($agg->conversations_with_feedback ?? 0);
 
-        // Token statistics
-        $totalTokens = $agent->totalTokensUsed();
-        $avgTokensPerMessage = $agent->avgTokensPerMessage();
+        $avgResponseTime = $agg->avg_response_ms !== null ? ((float) $agg->avg_response_ms) / 1000 : null;
+        $avgFirstResponseTime = $agg->avg_first_response_seconds !== null
+            ? (float) $agg->avg_first_response_seconds
+            : null;
+        $avgConversationDuration = $agg->avg_conversation_duration_seconds !== null
+            ? (float) $agg->avg_conversation_duration_seconds
+            : null;
 
-        // Model usage statistics
+        $totalTokens = $agg->total_tokens !== null ? (int) $agg->total_tokens : null;
+        $avgTokensPerMessage = $agg->avg_tokens !== null ? (int) round((float) $agg->avg_tokens) : null;
+
+        // Model usage statistics (still its own grouped query)
         $modelUsageData = $agent->mostUsedModels()->get();
         $llms = Llm::query()
             ->whereIn('external_name', $modelUsageData->pluck('model_external_name')->toArray())

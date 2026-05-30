@@ -19,7 +19,7 @@ class AgentConnectorDisconnectController
         abort_if($request->user()->cannot('update', $agent), 403);
 
         $server = AgentMcpServer::query()
-            ->where('user_id', $agent->user_id)
+            ->ownedBySameAccountAs($agent)
             ->where('slug', $slug)
             ->first();
 

@@ -56,7 +56,7 @@ class TeamController
         }
 
         return ['data' => TeamData::fromModel($action->execute(
-            new CreateTeamData(owner: $owner, name: $payload->name, canAccessDashboard: $payload->can_access_dashboard),
+            new CreateTeamData(owner: $owner, name: $payload->name),
         ))];
     }
 
@@ -70,7 +70,7 @@ class TeamController
         abort_unless($this->accountOwner($request)->ownsTeam($team), 403);
 
         return ['data' => TeamData::fromModel($action->execute(
-            new UpdateTeamData(team: $team, name: $payload->name, canAccessDashboard: $payload->can_access_dashboard),
+            new UpdateTeamData(team: $team, name: $payload->name),
         ))];
     }
 
@@ -79,6 +79,6 @@ class TeamController
         /** @var User $account */
         $account = $request->user();
 
-        return $account->isManagedUser() ? $account->manager : $account;
+        return $account->belongsToWorkspace() ? $account->workspace : $account;
     }
 }

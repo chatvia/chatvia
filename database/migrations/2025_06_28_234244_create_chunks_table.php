@@ -12,20 +12,19 @@ return new class extends Migration
     {
         Schema::create('chunks', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->unique()->nullable();
+            $table->uuid('external_id')->default(DB::raw('gen_random_uuid()'))->unique();
             $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnDelete();
 
-            // The parent model this chunk belongs to
             $table->morphs('chunkable');
 
             $table->enum('type', ['text', 'image', 'table']);
 
             $table->unsignedInteger('chunk_index');
             $table->text('chunk');
+            $table->text('summary')->nullable();
             $table->boolean('enhanced')->default(false);
             $table->string('chunked_using_model')->nullable();
             $table->string('embedding_model')->nullable();
-            $table->text('summary')->nullable()->after('chunk');
             $table->decimal('cost_in_cents', 10, 3)->default(0);
             $table->unsignedInteger('tokens');
 
@@ -39,12 +38,18 @@ return new class extends Migration
             $table->jsonb('metadata')->nullable();
 
             $table->string('checksum');
-            $table->unsignedInteger('retrieval_count')->default(0);
-            $table->timestamp('last_retrieved_at')->nullable()->index();
             $table->timestamps();
 
             $table->unique(['chunkable_type', 'chunkable_id', 'checksum']);
 
+            // Drives the candidate_chunks join in ChunkQueryBuilder::hybridSearchForAgent
+            // (allowed.chunkable_id, allowed.chunkable_type) — id first because it is
+            // more selective than type. Morph's auto index is (type, id), which the
+            // hybrid query cannot use as a seek.
+            $table->index(['chunkable_id', 'chunkable_type'], 'chunks_chunkable_lookup_idx');
+
+            // For Chunk::page() prev/next lookups.
+            $table->index(['chunkable_type', 'chunkable_id', 'chunk_index'], 'chunks_page_idx');
         });
 
         DB::statement('CREATE INDEX chunks_embedding_bm25 ON chunks USING bm25 (embedding_bm25 bm25_catalog.bm25_ops);');

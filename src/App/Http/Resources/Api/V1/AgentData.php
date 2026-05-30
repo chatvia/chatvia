@@ -5,7 +5,6 @@ namespace App\Http\Resources\Api\V1;
 use Carbon\CarbonInterface;
 use Domain\Agents\Models\Agent;
 use Spatie\LaravelData\Data;
-use Support\Enums\AgentType;
 use Support\Enums\CreatedVia;
 
 /**
@@ -27,17 +26,9 @@ class AgentData extends Data
          */
         public string $name,
         /**
-         * Agent kind. Only `knowledge_base` agents can be created via the API.
-         */
-        public AgentType $type,
-        /**
          * Whether the agent's chat is reachable publicly, without a sign-in link.
          */
         public bool $is_public,
-        /**
-         * Whether the agent asks visitors for their contact details in chat.
-         */
-        public bool $collect_leads,
         /**
          * Whether conversation analytics are recorded for this agent.
          */
@@ -98,9 +89,7 @@ class AgentData extends Data
             id: $agent->external_id,
             team: TeamRefData::fromModel($agent->team),
             name: $agent->name,
-            type: AgentType::from($agent->type),
             is_public: (bool) $agent->is_public,
-            collect_leads: (bool) $agent->collect_leads,
             analytics_enabled: (bool) $agent->analytics_enabled,
             metadata: $agent->metadata ?? [],
             created_via: CreatedVia::from($agent->created_via),

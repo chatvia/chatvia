@@ -11,6 +11,7 @@ import axios from 'axios';
 import { AlertCircle, Code, FunctionSquare, LoaderCircle, Plus, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import {Link} from "@inertiajs/vue3";
 
 interface Props {
     agent: Domain.Agents.Data.Resources.AgentResourceData;
@@ -96,12 +97,6 @@ onMounted(fetchFunctions);
                                     Attach account-level functions to this agent. Create or edit functions in Settings → Functions.
                                 </CardDescription>
                             </div>
-                            <Button as-child variant="outline">
-                                <a :href="route('settings.functions.edit')">
-                                    <Plus class="mr-1 h-4 w-4" />
-                                    New function
-                                </a>
-                            </Button>
                         </div>
                     </CardHeader>
                     <CardContent class="space-y-6">
@@ -120,7 +115,7 @@ onMounted(fetchFunctions);
                             <p class="font-medium">No functions yet</p>
                             <p class="mt-1">
                                 Create your first one in
-                                <a :href="route('settings.functions.edit')" class="underline">Settings → Functions</a>.
+                                <Link :href="route('settings.functions.edit')" class="underline">Settings → Functions</Link>.
                             </p>
                         </div>
 

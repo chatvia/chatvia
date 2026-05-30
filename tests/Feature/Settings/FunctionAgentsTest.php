@@ -32,7 +32,6 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'is_public' => false,
-        'collect_leads' => true,
         'analytics_enabled' => true,
         'created_via' => 'external',
     ]);

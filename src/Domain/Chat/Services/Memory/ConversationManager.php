@@ -5,9 +5,12 @@ namespace Domain\Chat\Services\Memory;
 use App\Auth\Models\User;
 use App\LLM\Operations\TitleGenerator;
 use Domain\Chat\Data\Memory\ConversationData;
+use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatConversation;
+use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -20,7 +23,7 @@ readonly class ConversationManager
         private string $sessionId
     ) {}
 
-    public function createConversation(string $title): string
+    public function createConversation(string $title, ConversationSource $source): string
     {
         // Ensure the session exists in database
         $agent = $this->cache->getAgent();
@@ -34,6 +37,7 @@ readonly class ConversationManager
         // so it exists when widget tries to subscribe or check handoff status
         $conversation = ChatConversation::create([
             'chat_session_id' => $session->id,
+            'source' => $source,
             'title' => $title,
         ]);
 
@@ -121,17 +125,30 @@ readonly class ConversationManager
     {
         $sessionId = ChatSession::query()->where('external_id', $this->sessionId)->value('id');
 
-        // Soft delete all conversations for this session
-        $conversations = ChatConversation::where('chat_session_id', $sessionId)->get();
+        if (! $sessionId) {
+            $this->cache->flush();
 
-        /** @var ChatConversation $conversation */
-        foreach ($conversations as $conversation) {
-            $conversation->messages()->update(['content' => null]);
-            $conversation->update(['deleted_by' => $deletedBy]);
-            $conversation->delete();
+            return;
         }
 
-        // Clear cache
+        DB::transaction(function () use ($sessionId, $deletedBy): void {
+            $conversationIds = ChatConversation::query()
+                ->where('chat_session_id', $sessionId)
+                ->select('id');
+
+            ChatMessage::query()
+                ->whereIn('chat_conversation_id', $conversationIds)
+                ->update(['content' => null]);
+
+            ChatConversation::query()
+                ->where('chat_session_id', $sessionId)
+                ->update([
+                    'deleted_by' => $deletedBy,
+                    'deleted_at' => now(),
+                    'updated_at' => now(),
+                ]);
+        });
+
         $this->cache->flush();
     }
 

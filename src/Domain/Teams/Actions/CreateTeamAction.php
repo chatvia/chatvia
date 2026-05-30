@@ -19,7 +19,6 @@ class CreateTeamAction
             $team = Team::create([
                 'name' => $data->name,
                 'user_id' => $data->owner->id,
-                'can_access_dashboard' => $data->canAccessDashboard,
             ]);
 
             $this->teamService->createDefaultRoles($team);

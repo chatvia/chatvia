@@ -47,7 +47,6 @@ class StreamRequestDataFactory
         Agent $agent,
         string $sessionId,
         string $threadId,
-        bool $leadCollected,
         bool $isPlayground,
     ): StreamRequestData {
         $agent->loadMissing('agentPrompt');
@@ -59,7 +58,10 @@ class StreamRequestDataFactory
                 // settings, persisted as the agent's active attached llm
                 // (AgentModelsController + ToggleAgentLlmAction). Honor the
                 // is_active pivot flag instead of grabbing an arbitrary row.
-                model: $agent->activeLlms()->first(),
+                // A templated widget instead uses the template's model list.
+                model: $agent->agent_template_id
+                    ? $agent->resolvedLlms()->first()
+                    : $agent->activeLlms()->first(),
                 message: $request->input('content'),
             ),
             externalSessionId: $sessionId,
@@ -67,8 +69,6 @@ class StreamRequestDataFactory
             saveUserMessageImmediately: true,
             streamSources: false,
             streamLanguage: false,
-            canCollectLead: $agent->canCollectLeads(),
-            leadAlreadyCollected: $leadCollected,
             source: $isPlayground ? 'playground' : null,
             ipAddress: $request->ip(),
             userAgent: $request->userAgent(),

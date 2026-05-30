@@ -15,14 +15,14 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
 
             $table->unsignedInteger('messages')->default(0);
-
             $table->timestamp('started_at');
-
             $table->timestamp('ends_at');
 
+            // Prevent two overlapping grants per user with identical start.
             $table->unique(['user_id', 'started_at']);
-            $table->unique(['user_id', 'ends_at']);
-            $table->index(['user_id', 'started_at', 'ends_at']);
+            // BitmapAnd handles "active credit for user X" via the unique above
+            // plus an ends_at range scan — no need for a 3-col composite.
+            $table->index(['user_id', 'ends_at']);
         });
 
         Schema::create('user_usages', function (Blueprint $table) {
@@ -37,15 +37,13 @@ return new class extends Migration
         Schema::create('user_addons', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->string('type')->index(); // 'extra_message_credits', 'extra_agents'
-            $table->unsignedInteger('amount')->default(0); // e.g., 1000 messages, 1 agent
-            $table->string('stripe_id')->nullable()->index(); // Links to Cashier
-            $table->timestamp('started_at')->nullable(); // When add-on is active
-            $table->timestamp('ends_at')->nullable(); // When add-on expires (if canceled)
+            $table->string('type'); // 'extra_message_credits', 'extra_agents'
+            $table->unsignedInteger('amount')->default(0);
+            $table->string('stripe_id')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('ends_at')->nullable();
 
-            $table->unique(['user_id', 'started_at']);
-            $table->unique(['user_id', 'ends_at']);
-            $table->index(['user_id', 'type', 'started_at', 'ends_at']);
+            $table->index(['user_id', 'type', 'ends_at']);
         });
     }
 

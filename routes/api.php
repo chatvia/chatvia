@@ -16,7 +16,7 @@ use App\Http\Controllers\Api\V1\Teams\RoleController;
 use App\Http\Controllers\Api\V1\Teams\RoleMemberController;
 use App\Http\Controllers\Api\V1\Teams\TeamController;
 use App\Http\Controllers\Api\V1\Users\ExternalUserController;
-use App\Http\Controllers\WebhookChunkController;
+use App\Http\Controllers\Webhooks\WebhookChunkController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/chunk', WebhookChunkController::class)->name('webhook.chunk');

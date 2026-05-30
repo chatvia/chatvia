@@ -12,7 +12,7 @@ class SourceWebsitePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->type === 'admin';
+        return $user->isAdmin();
     }
 
     /**

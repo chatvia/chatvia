@@ -209,7 +209,13 @@ readonly class ChatStreamService
 
     private function userIsSubscribed(User $user): bool
     {
-        return $user->isAdmin() || $user->subscribed() || $user->onTrial();
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        $billing = $user->billing;
+
+        return (bool) ($billing?->subscribed() || $billing?->onTrial());
     }
 
     private function userCanSendMessages(int $userId): bool

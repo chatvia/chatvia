@@ -5,7 +5,7 @@ use App\Auth\Services\AgentSignInTokenService;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
-use Domain\Auth\Actions\CreateExternalUserAction;
+use Domain\Auth\Actions\CreateChatterAction;
 use Domain\Teams\Actions\CreateTeamAction;
 use Domain\Teams\Data\CreateTeamData;
 use Illuminate\Support\Str;
@@ -114,12 +114,10 @@ describe('PATCH /api/v1/agents/{agent}', function (): void {
             ->patchJson("/api/v1/agents/{$agent->external_id}", [
                 'metadata' => ['external_user_id' => 'cus_42'],
                 'analytics_enabled' => false,
-                'collect_leads' => false,
             ])
             ->assertOk()
             ->assertJsonPath('data.metadata.external_user_id', 'cus_42')
-            ->assertJsonPath('data.analytics_enabled', false)
-            ->assertJsonPath('data.collect_leads', false);
+            ->assertJsonPath('data.analytics_enabled', false);
     });
 
     it('forbids reaching an agent owned by another account', function (): void {
@@ -310,9 +308,9 @@ describe('Account-level Functions CRUD', function (): void {
 
 describe('POST /api/v1/agents/{agent}/sign-in-links', function (): void {
 
-    it('returns a ready-to-open url for an end-user', function (): void {
+    it('returns a ready-to-open url for a chatter', function (): void {
         $agent = createAgentForUser($this->user);
-        $endUser = app(CreateExternalUserAction::class)->execute($this->user, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
 
         $response = $this->withHeaders(authHeaders($this->token))
             ->postJson("/api/v1/agents/{$agent->external_id}/sign-in-links", [
@@ -326,9 +324,13 @@ describe('POST /api/v1/agents/{agent}/sign-in-links', function (): void {
         expect($url)->toContain('?token=');
         $token = explode('?token=', $url)[1];
 
-        // The minted token resolves to this agent + end-user.
-        expect(app(AgentSignInTokenService::class)->verify($token))
-            ->toEqual(['agent_id' => $agent->id, 'user_id' => $endUser->id]);
+        // The minted token resolves to this agent + end-user. Refresh first so we
+        // read the secret that minting lazily provisioned on the account, as a
+        // separate verifying request would — not the stale pre-mint relation
+        // cached on this instance.
+        $agent->refresh();
+        expect(app(AgentSignInTokenService::class)->verify($token, $agent)?->id)
+            ->toBe($endUser->id);
     });
 
     it('requires a user_id', function (): void {
@@ -342,7 +344,7 @@ describe('POST /api/v1/agents/{agent}/sign-in-links', function (): void {
 
     it('rejects ttl_seconds beyond the max', function (): void {
         $agent = createAgentForUser($this->user);
-        $endUser = app(CreateExternalUserAction::class)->execute($this->user, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
 
         $this->withHeaders(authHeaders($this->token))
             ->postJson("/api/v1/agents/{$agent->external_id}/sign-in-links", [
@@ -367,19 +369,21 @@ describe('AgentSignInTokenService', function (): void {
 
     it('issues a token resolving to the agent + user, multi-use until expiry', function (): void {
         $agent = createAgentForUser($this->user);
-        $endUser = app(CreateExternalUserAction::class)->execute($this->user, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
         $service = app(AgentSignInTokenService::class);
 
-        $token = $service->generate($agent, $endUser)['token'];
-        $expected = ['agent_id' => $agent->id, 'user_id' => $endUser->id];
+        $token = $service->issue($endUser, $agent)['token'];
 
-        expect($service->verify($token))->toEqual($expected);
-        // Multi-use: a second lookup still resolves (not consumed).
-        expect($service->verify($token))->toEqual($expected);
+        // Multi-use: a repeat lookup still resolves to the same end-user
+        // (the token is not consumed).
+        expect($service->verify($token, $agent)?->id)->toBe($endUser->id);
+        expect($service->verify($token, $agent)?->id)->toBe($endUser->id);
     });
 
     it('returns null for an unknown token', function (): void {
-        expect(app(AgentSignInTokenService::class)->verify('nope'))->toBeNull();
+        $agent = createAgentForUser($this->user);
+
+        expect(app(AgentSignInTokenService::class)->verify('nope', $agent))->toBeNull();
     });
 });
 
@@ -401,7 +405,6 @@ function createAgentInTeam(User $user, int $teamId, string $name = 'Test Agent')
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'is_public' => false,
-        'collect_leads' => true,
         'analytics_enabled' => true,
         'created_via' => 'external',
     ]);

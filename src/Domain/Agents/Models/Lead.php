@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int|null $agent_id
  * @property int $chat_conversation_id
+ * @property int|null $assigned_to
+ * @property string $status
  * @property string|null $name
  * @property string|null $email
  * @property string|null $phone
@@ -29,6 +31,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $locale
  * @property string|null $ip_address
  * @property string|null $user_agent
+ * @property Carbon|null $contacted_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Agent|null $agent

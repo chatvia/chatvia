@@ -5,13 +5,11 @@ namespace App\Http\Middleware;
 use App\Auth\Models\User;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Blocks users who may not open the control panel — i.e. members of chat-only
- * teams. Runs after `auth`, so a user is always present. Such a user is logged
- * out and sent back to the login screen; their session only grants chat access.
+ * Blocks `chatter` users from any dashboard route. Their session is valid for
+ * `/chat` and stays valid; we just don't let them open the control panel.
  */
 class EnsureCanAccessDashboard
 {
@@ -21,13 +19,7 @@ class EnsureCanAccessDashboard
         $user = $request->user();
 
         if ($user && ! $user->canAccessDashboard()) {
-            Auth::guard('web')->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->route('login')->withErrors([
-                'email' => 'This account does not have access to the dashboard.',
-            ]);
+            return redirect()->route('home');
         }
 
         return $next($request);

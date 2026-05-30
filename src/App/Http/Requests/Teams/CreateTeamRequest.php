@@ -20,7 +20,6 @@ class CreateTeamRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'can_access_dashboard' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -32,7 +31,6 @@ class CreateTeamRequest extends FormRequest
         return new CreateTeamData(
             owner: $user,
             name: $this->string('name')->toString(),
-            canAccessDashboard: $this->has('can_access_dashboard') ? $this->boolean('can_access_dashboard') : true,
         );
     }
 }

@@ -11,13 +11,13 @@ interface AgentsPayload {
     available: Agent[];
 }
 
-type Kind = 'function' | 'connector';
+type Kind = 'function' | 'connector' | 'member';
 
 /**
- * Drives the Agents tab in the Functions and Connectors sheets — a single
- * list of every accessible agent with one toggle (on = attached). Both
- * resources expose identical endpoints, so only the route names and the id
- * param key differ.
+ * Drives the Agents tab in the Functions, Connectors, and Members sheets —
+ * a single list of every accessible agent with one toggle (on = attached).
+ * All three resources expose identical endpoints; only the route names and
+ * the id param key differ.
  */
 export function useAgentAttachments(kind: Kind) {
     const attached = ref<Agent[]>([]);
@@ -26,8 +26,10 @@ export function useAgentAttachments(kind: Kind) {
     const busyId = ref<string | null>(null);
 
     function url(action: 'index' | 'attach' | 'detach', resourceId: string, agentId?: string): string {
-        const params = kind === 'function' ? { external_id: resourceId, agent: agentId } : { slug: resourceId, agent: agentId };
-        return route(`settings.${kind === 'function' ? 'functions' : 'connectors'}.agents.${action}`, params);
+        const segment = kind === 'function' ? 'functions' : kind === 'connector' ? 'connectors' : 'members';
+        const idKey = kind === 'function' ? 'external_id' : kind === 'connector' ? 'slug' : 'chatter';
+        const params: Record<string, string | undefined> = { [idKey]: resourceId, agent: agentId };
+        return route(`settings.${segment}.agents.${action}`, params);
     }
 
     function apply(payload: AgentsPayload): void {

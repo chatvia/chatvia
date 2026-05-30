@@ -1,15 +1,16 @@
 <?php
 
-use App\Http\Controllers\Billing\BillingController;
-use App\Http\Controllers\Billing\BillingDataController;
-use App\Http\Controllers\Billing\BillingPaymentMethodAddController;
-use App\Http\Controllers\Billing\BillingPaymentSuccessController;
-use App\Http\Controllers\Billing\BillingUpdateInformationController;
 use App\Http\Controllers\Billing\Checkout\CheckoutExtraMessagesController;
-use App\Http\Controllers\Billing\InvoicesController;
+use App\Http\Controllers\Billing\Home\BillingController;
+use App\Http\Controllers\Billing\Home\BillingDataController;
+use App\Http\Controllers\Billing\Home\BillingUpdateInformationController;
+use App\Http\Controllers\Billing\Invoices\InvoicesController;
+use App\Http\Controllers\Billing\Payments\BillingPaymentMethodAddController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDefaultController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDeleteController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodsController;
+use App\Http\Controllers\Billing\Payments\BillingPaymentSuccessController;
+use App\Http\Controllers\Billing\Plans\PlansController;
 use App\Http\Controllers\Billing\Stripe\BillingStripePortalController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscribeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscribeFailureController;
@@ -17,18 +18,17 @@ use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionCancelControll
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionChangeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionResumeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionScheduleCancelController;
-use App\Http\Controllers\PlansController;
-use App\Http\Middleware\DenyIfStaff;
+use App\Http\Middleware\DenyIfEmployee;
 use Illuminate\Support\Facades\Route;
 
 Route::get('subscribe', BillingSubscribeController::class)
-    ->middleware(['auth', 'verified', DenyIfStaff::class])
+    ->middleware(['auth', 'verified', DenyIfEmployee::class])
     ->name('subscribe');
 
 Route::get('subscribe/failure', BillingSubscribeFailureController::class)
     ->name('subscribe.failure');
 
-Route::middleware(['auth', 'verified', DenyIfStaff::class, 'can.access.dashboard'])->prefix('billing')->name('billing.')->group(function (): void {
+Route::middleware(['auth', 'verified', DenyIfEmployee::class, 'can.access.dashboard'])->prefix('billing')->name('billing.')->group(function (): void {
 
     Route::get('addons/extra-message-credits', CheckoutExtraMessagesController::class)
         ->name('addons.extra-message-credits');

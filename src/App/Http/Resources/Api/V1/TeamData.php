@@ -24,11 +24,6 @@ class TeamData extends Data
          */
         public string $name,
         /**
-         * Whether members of this team can access the dashboard. False means a
-         * chat-only team.
-         */
-        public bool $can_access_dashboard,
-        /**
          * Agents that belong to this team.
          *
          * @var list<AgentRefData>
@@ -51,7 +46,6 @@ class TeamData extends Data
         return new self(
             id: $team->external_id,
             name: $team->name,
-            can_access_dashboard: $team->can_access_dashboard,
             agents: $team->agents->map(fn (Agent $agent): AgentRefData => AgentRefData::fromModel($agent))->all(),
             roles: $team->roles->map(fn (Role $role): RoleData => RoleData::fromModel($role))->all(),
             created_at: $team->created_at,

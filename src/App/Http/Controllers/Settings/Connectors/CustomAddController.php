@@ -30,6 +30,8 @@ class CustomAddController extends Controller
         AddCustomConnectorRequest $request,
         ProvisionCustomMcpServerAction $provision,
     ): JsonResponse {
+        abort_unless(has_team_permission('account.connectors'), 404);
+
         /** @var User $user */
         $user = $request->user();
         $strategy = $request->string('auth_strategy')->toString();

@@ -3,42 +3,20 @@
 namespace App\Http\Controllers\Agents\Sources\Text;
 
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Text\Models\SourceText;
+use Domain\Sources\Text\Actions\ListAttachableTextsForAgentAction;
+use Domain\Sources\Text\Data\TrainedTextRowData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class AgentSourcesTrainedTextsListController
 {
-    public function __invoke(Request $request, Agent $agent)
+    /**
+     * @return Collection<int, TrainedTextRowData>
+     */
+    public function __invoke(Request $request, Agent $agent, ListAttachableTextsForAgentAction $list): Collection
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
+        abort_if($request->user()->cannot('view', $agent), 404);
 
-        $currentAgentTextIds = $agent->texts()->pluck('source_texts.id');
-
-        $texts = SourceText::query()
-            ->where('user_id', $request->user()->id)
-            ->where('status', 'ingested')
-            ->whereNotIn('id', $currentAgentTextIds)
-            ->with(['agents' => function ($query): void {
-                $query->select('agents.id', 'agents.name');
-            }])
-            ->get()
-            ->map(function (SourceText $text) {
-                return [
-                    'id' => $text->id,
-                    'excerpt' => substr($text->content, 0, 200),
-                    'word_count' => str_word_count($text->content),
-                    'agents' => $text->agents->map(function (Agent $agent) {
-                        return [
-                            'id' => $agent->id,
-                            'name' => $agent->name,
-                        ];
-                    }),
-                ];
-            });
-
-        return response()->json($texts);
+        return $list->execute($request->user(), $agent);
     }
 }

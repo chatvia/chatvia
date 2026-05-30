@@ -34,13 +34,14 @@ class AgentSignInLinkController
     {
         /** @var User $account */
         $account = $request->user();
-        $owner = $account->isManagedUser() ? $account->manager : $account;
+        $owner = $account->belongsToWorkspace() ? $account->workspace : $account;
 
-        $user = $owner->externalUsers()->where('external_id', $payload->user_id)->firstOrFail();
+        $user = $owner->external_id === $payload->user_id ? $owner :
+            $owner->users()->where('external_id', $payload->user_id)->firstOrFail();
 
-        $result = $this->tokens->generate(
-            agent: $agent,
+        $result = $this->tokens->issue(
             user: $user,
+            agent: $agent,
             ttlSeconds: $payload->ttl_seconds ?? AgentSignInTokenService::DEFAULT_TTL_SECONDS,
         );
 

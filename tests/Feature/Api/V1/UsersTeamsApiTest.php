@@ -9,6 +9,7 @@ use Domain\Teams\Data\CreateTeamData;
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->user);
+    $this->agent = createTemplateAgent($this->user);
     $this->token = $this->user->createToken('account')->plainTextToken;
 });
 
@@ -19,29 +20,53 @@ function apiHeaders(string $token): array
 
 describe('POST /api/v1/users', function (): void {
 
-    it('creates an external end-user and returns its external id', function (): void {
+    it('creates a chatter granted to the given agent and returns its external id', function (): void {
         $body = $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/users', ['name' => 'Jane', 'email' => 'jane@acme.test'])
+            ->postJson('/api/v1/users', [
+                'name' => 'Jane',
+                'agent_id' => $this->agent->external_id,
+            ])
             ->assertOk()
             ->assertJsonPath('data.name', 'Jane')
-            ->assertJsonPath('data.contact_email', 'jane@acme.test')
-            ->assertJsonPath('data.created_via', 'external')
-            ->assertJsonStructure(['data' => ['id', 'name', 'contact_email', 'created_via', 'created_at']])
+            ->assertJsonStructure(['data' => ['id', 'name', 'created_at']])
             ->json('data');
 
         // id is the opaque external id (uuid), not a guessable integer.
         expect($body['id'])->toBeString()->not->toBe('1');
 
         $created = User::where('external_id', $body['id'])->firstOrFail();
-        expect($created->managed_by_user_id)->toBe($this->user->id)
-            ->and($created->email)->toBeNull();
+
+        expect($created->workspace_id)->toBe($this->user->id)
+            ->and($created->isChatter())->toBeTrue()
+            ->and($created->email)->toBeNull()
+            ->and($created->accessibleAgents()->whereKey($this->agent->id)->exists())->toBeTrue();
     });
 
     it('requires a name', function (): void {
         $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/users', [])
+            ->postJson('/api/v1/users', ['agent_id' => $this->agent->external_id])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
+    });
+
+    it('requires an agent_id', function (): void {
+        $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/users', ['name' => 'Jane'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['agent_id']);
+    });
+
+    it('rejects an agent owned by a different account', function (): void {
+        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $otherAgent = createTemplateAgent($other);
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/users', [
+                'name' => 'Jane',
+                'agent_id' => $otherAgent->external_id,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['agent_id']);
     });
 });
 
@@ -59,16 +84,6 @@ describe('POST /api/v1/teams', function (): void {
 
         $team = Team::where('external_id', $body['id'])->firstOrFail();
         expect($team->user_id)->toBe($this->user->id);
-    });
-
-    it('creates a chat-only team', function (): void {
-        $body = $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/teams', ['name' => 'Customers', 'can_access_dashboard' => false])
-            ->assertOk()
-            ->assertJsonPath('data.can_access_dashboard', false)
-            ->json('data');
-
-        expect(Team::where('external_id', $body['id'])->firstOrFail()->can_access_dashboard)->toBeFalse();
     });
 });
 

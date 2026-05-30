@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Agents\Sources\Functions;
 
 use Domain\Agents\Actions\AttachFunctionToAgentAction;
+use Domain\Agents\Data\Resources\AgentFunctionAttachResultData;
 use Domain\Agents\Data\Resources\AgentFunctionData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AgentFunctionAttachController
@@ -16,17 +16,14 @@ class AgentFunctionAttachController
         Agent $agent,
         AgentFunction $function,
         AttachFunctionToAgentAction $attach,
-    ): JsonResponse {
+    ): AgentFunctionAttachResultData {
         abort_if($request->user()->cannot('update', $agent), 403);
         abort_unless($function->user_id === $agent->user_id, 404);
 
         $attached = $attach->execute($agent, $function);
 
-        return response()->json([
-            'data' => [
-                ...AgentFunctionData::fromModel($attached)->toArray(),
-                'is_attached' => true,
-            ],
-        ], 201);
+        return new AgentFunctionAttachResultData(
+            data: AgentFunctionData::fromModel($attached),
+        );
     }
 }

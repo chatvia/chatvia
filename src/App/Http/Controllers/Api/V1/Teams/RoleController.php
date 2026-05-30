@@ -80,6 +80,6 @@ class RoleController
         /** @var User $account */
         $account = $request->user();
 
-        return $account->isManagedUser() ? $account->manager : $account;
+        return $account->belongsToWorkspace() ? $account->workspace : $account;
     }
 }

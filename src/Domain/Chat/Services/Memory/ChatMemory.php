@@ -68,13 +68,14 @@ class ChatMemory implements ChatMemoryInterface
     }
 
     /**
-     * Create a new conversation with the given title.
+     * Create a new conversation with the given title, originating from the
+     * given surface.
      */
-    public function createConversation(string $title): string
+    public function createConversation(string $title, \Domain\Chat\Enums\ConversationSource $source): string
     {
         $this->ensureInitialized();
 
-        return $this->conversationManager->createConversation($title);
+        return $this->conversationManager->createConversation($title, $source);
     }
 
     /**

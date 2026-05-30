@@ -10,6 +10,5 @@ class CreateTeamData extends Data
     public function __construct(
         public User $owner,
         public string $name,
-        public bool $canAccessDashboard = true,
     ) {}
 }

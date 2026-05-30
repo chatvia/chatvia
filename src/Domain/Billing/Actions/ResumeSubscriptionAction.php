@@ -9,7 +9,7 @@ class ResumeSubscriptionAction
 {
     public function execute(User $user): bool
     {
-        $subscription = $user->subscription();
+        $subscription = $user->accountBilling()?->subscription();
 
         if (! $subscription) {
             return false;

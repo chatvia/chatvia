@@ -81,8 +81,7 @@ class SourceText extends Model implements ChunkableContract
     public function agents(): MorphToMany
     {
         return $this->morphToMany(Agent::class, 'sourceable', 'agent_sources')
-            ->using(AgentSource::class)
-            ->withTimestamps();
+            ->using(AgentSource::class);
     }
 
     public function startTraining(?Agent $agent = null): void

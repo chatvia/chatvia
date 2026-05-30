@@ -2,6 +2,7 @@
 
 namespace Domain\Agents\Data\Resources\ChatLog;
 
+use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatConversation;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -15,6 +16,7 @@ class ChatLogConversationData extends Data
         public int $messages_count,
         public ?string $first_message_excerpt,
         public ?string $title,
+        public ConversationSource $source,
         public ?string $country,
         public ?string $country_name,
         public ?string $user_agent,
@@ -39,6 +41,7 @@ class ChatLogConversationData extends Data
             messages_count: $conversation->messages_count ?? 0,
             first_message_excerpt: $excerpt,
             title: $conversation->title,
+            source: $conversation->source,
             country: $conversation->session->country?->code,
             country_name: $conversation->session->country?->name,
             user_agent: $conversation->session->user_agent,

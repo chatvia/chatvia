@@ -10,7 +10,11 @@ return new class extends Migration
     {
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
-            $table->morphs('tokenable');
+            // numericMorphs (no auto index) — the longer composite below
+            // covers (type, id) as its prefix, so the morphs() auto index
+            // would be a redundant duplicate.
+            $table->string('tokenable_type');
+            $table->unsignedBigInteger('tokenable_id');
             $table->string('name');
             $table->string('token', 64)->unique();
             $table->text('abilities')->nullable();

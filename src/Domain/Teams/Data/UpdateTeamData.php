@@ -10,6 +10,5 @@ class UpdateTeamData extends Data
     public function __construct(
         public Team $team,
         public string $name,
-        public bool $canAccessDashboard = true,
     ) {}
 }

@@ -18,6 +18,7 @@ interface Props {
     agentId: number | string;
     initialInstructions?: string | null;
     initialPromptId?: string | null;
+    locked?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -181,7 +182,7 @@ const onInstructionsInput = () => {
 
         <!-- Preset / saved-prompt selector -->
         <div class="flex items-center gap-2">
-            <Select v-model="selectedPreset" class="flex-1">
+            <Select v-model="selectedPreset" :disabled="locked" class="flex-1">
                 <SelectTrigger>
                     <SelectValue placeholder="Select a preset..." />
                 </SelectTrigger>
@@ -200,7 +201,7 @@ const onInstructionsInput = () => {
                     </SelectGroup>
                 </SelectContent>
             </Select>
-            <Button type="button" variant="outline" size="icon" @click="resetInstructions" :disabled="!hasChanges" title="Reset to saved">
+            <Button type="button" variant="outline" size="icon" @click="resetInstructions" :disabled="!hasChanges || locked" title="Reset to saved">
                 <RotateCcw class="h-4 w-4" />
             </Button>
         </div>
@@ -214,15 +215,15 @@ const onInstructionsInput = () => {
         <Textarea
             v-model="instructions"
             @input="onInstructionsInput"
-            :readonly="usingLibraryPrompt"
+            :readonly="usingLibraryPrompt || locked"
             placeholder="Enter your custom instructions..."
             class="min-h-[200px] font-mono text-sm"
-            :class="usingLibraryPrompt ? 'bg-muted/40 cursor-not-allowed' : ''"
+            :class="usingLibraryPrompt || locked ? 'bg-muted/40 cursor-not-allowed' : ''"
             rows="10"
         />
 
         <!-- Save Button -->
-        <div class="border-t pt-3">
+        <div v-if="!locked" class="border-t pt-3">
             <Button @click="saveInstructions" :disabled="!hasChanges || isSaving" size="sm">
                 <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
                 <Save v-else class="mr-2 h-4 w-4" />

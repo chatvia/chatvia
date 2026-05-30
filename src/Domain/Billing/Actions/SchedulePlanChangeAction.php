@@ -16,15 +16,16 @@ class SchedulePlanChangeAction
     public function execute(SchedulePlanChangeData $data): bool
     {
         $user = $data->user;
+        $userBilling = $user->accountBilling();
 
-        if (! $user->subscribed()) {
+        if (! $userBilling?->subscribed()) {
             return false;
         }
 
         $toPackage = $this->billing->getPackageByName($data->package);
         $newPriceId = $data->isYearly ? $toPackage['stripe_yearly_price_id'] : $toPackage['stripe_monthly_price_id'];
 
-        $subscription = $user->subscription();
+        $subscription = $userBilling->subscription();
 
         if (! $subscription) {
             return false;

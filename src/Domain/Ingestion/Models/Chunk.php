@@ -2,8 +2,6 @@
 
 namespace Domain\Ingestion\Models;
 
-use Domain\Agents\Collections\AgentCollection;
-use Domain\Agents\Models\Agent;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\QueryBuilders\ChunkQueryBuilder;
 use Domain\Sources\Web\Models\AgentWebsiteUrl;
@@ -11,7 +9,6 @@ use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -42,12 +39,8 @@ use Support\Concerns\HasExternalId;
  * @property string $embedding_bm25
  * @property array<array-key, mixed>|null $metadata
  * @property string $checksum
- * @property int $retrieval_count
- * @property string|null $last_retrieved_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read AgentCollection<int, Agent> $agents
- * @property-read int|null $agents_count
  * @property-read Model|\Eloquent $chunkable
  * @property-read mixed $images
  * @property-read Collection<int, AgentWebsiteUrl> $links
@@ -74,9 +67,7 @@ use Support\Concerns\HasExternalId;
  * @method static ChunkQueryBuilder<static>|Chunk whereEnhanced($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereExternalId($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereId($value)
- * @method static ChunkQueryBuilder<static>|Chunk whereLastRetrievedAt($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereMetadata($value)
- * @method static ChunkQueryBuilder<static>|Chunk whereRetrievalCount($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereSummary($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereTokens($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereType($value)
@@ -102,11 +93,6 @@ class Chunk extends Model
             'keywords' => 'json',
             'metadata' => 'json',
         ];
-    }
-
-    public function agents(): BelongsToMany
-    {
-        return $this->belongsToMany(Agent::class, 'agent_chunk');
     }
 
     public function chunkable(): MorphTo

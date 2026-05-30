@@ -74,13 +74,14 @@ return new class extends Migration
         // To pause, detach. Conventional name: alphabetical singular of
         // the two related models.
         Schema::create('agent_function', function (Blueprint $table) {
-            $table->id();
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
             $table->foreignId('function_id')
                 ->constrained('functions')
                 ->cascadeOnDelete();
 
             $table->primary(['agent_id', 'function_id']);
+            // Reverse direction: "which agents have this function attached?"
+            $table->index('function_id');
         });
     }
 

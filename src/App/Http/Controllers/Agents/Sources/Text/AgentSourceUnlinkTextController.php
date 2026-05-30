@@ -5,18 +5,16 @@ namespace App\Http\Controllers\Agents\Sources\Text;
 use Domain\Agents\Models\Agent;
 use Domain\Sources\Text\Actions\DetachSourceTextFromAgentAction;
 use Domain\Sources\Text\Models\SourceText;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AgentSourceUnlinkTextController
 {
-    public function __invoke(Request $request, Agent $agent, int $textId, DetachSourceTextFromAgentAction $detach)
+    public function __invoke(Request $request, Agent $agent, int $textId, DetachSourceTextFromAgentAction $detach): JsonResponse
     {
-        $user = $request->user();
+        $text = SourceText::findOrFail($textId);
 
-        /** @var SourceText $text */
-        $text = SourceText::find($textId);
-
-        abort_if($user->cannot('view', $text), 403);
+        abort_if($request->user()->cannot('view', $text), 403);
 
         $detach->execute($agent, $text);
 

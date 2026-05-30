@@ -5,6 +5,7 @@ namespace Domain\Chat\Actions;
 use App\LLM\Operations\QueryRewriter;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\CreateConversationData;
+use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Services\Memory\ChatMemory;
 use Domain\Chat\Services\Memory\ChatSession;
 use Illuminate\Support\Str;
@@ -26,7 +27,7 @@ class CreateConversationAction
         $conversationId = $this->memory
             ->setAgent($data->agent)
             ->setExternalSessionId($sessionId)
-            ->createConversation(title: 'New Chat');
+            ->createConversation(title: 'New Chat', source: ConversationSource::HostedChat);
 
         $payload = ChatInputPayload::from([
             'external_session_id' => $sessionId,

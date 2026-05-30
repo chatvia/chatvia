@@ -4,11 +4,10 @@ namespace App\Http\Resources\Api\V1;
 
 use Domain\Agents\Models\Agent;
 use Spatie\LaravelData\Data;
-use Support\Enums\AgentType;
 
 /**
- * A lightweight agent reference (id, name, type), nested under a team in the
- * teams tree.
+ * A lightweight agent reference (id, name), nested under a team in the teams
+ * tree.
  */
 class AgentRefData extends Data
 {
@@ -21,10 +20,6 @@ class AgentRefData extends Data
          * Display name of the agent.
          */
         public string $name,
-        /**
-         * Agent kind.
-         */
-        public AgentType $type,
     ) {}
 
     public static function fromModel(Agent $agent): self
@@ -32,7 +27,6 @@ class AgentRefData extends Data
         return new self(
             id: $agent->external_id,
             name: $agent->name,
-            type: AgentType::from($agent->type),
         );
     }
 }

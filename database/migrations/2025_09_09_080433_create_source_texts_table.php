@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('source_texts', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->index()->nullable();
+            $table->uuid('external_id')->unique()->nullable();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
 
             $table->string('language')->nullable();
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('internal_ingestion_job_id')->unique()->nullable();
             $table->string('internal_chunking_batch_id')->unique()->nullable();
 
-            $table->enum('status', ['pending', 'ingesting', 'failed', 'ingested'])->default('pending')->index();
+            $table->enum('status', ['pending', 'ingesting', 'failed', 'ingested'])->default('pending');
             $table->unsignedInteger('took_in_seconds')->default(0);
             $table->text('failure_reason')->nullable();
             $table->unsignedInteger('retrieval_count')->default(0);
@@ -38,6 +38,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'checksum']);
+            $table->index(['user_id', 'status']);
         });
     }
 

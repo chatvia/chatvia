@@ -10,7 +10,7 @@ use Throwable;
 
 class HttpToolDispatcher implements ToolDispatcherInterface
 {
-    public function dispatch(Agent $agent, string $name, string $arguments): ToolDispatchResult
+    public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null): ToolDispatchResult
     {
         $function = AgentFunction::query()
             ->where('user_id', $agent->user_id)
@@ -36,7 +36,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
 
         try {
             $request = Http::timeout(max(1, (int) ceil($function->timeout_ms / 1000)))
-                ->withHeaders($this->headers($function, $agent));
+                ->withHeaders($this->headers($function, $agent, $conversationExternalId));
 
             $response = $function->webhook_method === 'GET'
                 ? $request->get($function->webhook_url, $args)
@@ -96,7 +96,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
     /**
      * @return array<string, string>
      */
-    private function headers(AgentFunction $function, Agent $agent): array
+    private function headers(AgentFunction $function, Agent $agent, ?string $conversationExternalId = null): array
     {
         $headers = [
             'Accept' => 'application/json',
@@ -124,7 +124,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
 
         // Identity headers are stamped last so a customer's webhook_headers
         // can't shadow them.
-        return array_merge($headers, ToolCallerIdentity::headers($agent));
+        return array_merge($headers, ToolCallerIdentity::headers($agent, $conversationExternalId));
     }
 
     private function record(AgentFunction $function, ?string $error = null): void

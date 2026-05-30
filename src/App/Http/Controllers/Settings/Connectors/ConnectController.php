@@ -24,6 +24,8 @@ class ConnectController extends Controller
 
     public function __invoke(Request $request, string $slug): JsonResponse
     {
+        abort_unless(has_team_permission('account.connectors'), 404);
+
         $connector = $this->catalog->findTokenConnector($slug);
         abort_unless($connector !== null, 404, 'Connector not available');
 

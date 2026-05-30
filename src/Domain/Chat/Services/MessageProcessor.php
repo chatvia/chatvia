@@ -88,12 +88,15 @@ readonly class MessageProcessor
 
         $systemPrompt .= prompt('knowledge/preconditions');
 
-        if ($data->canCollectLead) {
-            if ($data->leadAlreadyCollected) {
-                $systemPrompt .= "\n\n".prompt('leads/lead-collected');
-            } else {
-                $systemPrompt .= "\n\n".prompt('leads/lead-collect');
-            }
+        $business = array_filter($data->agent->settings('business')->toArray(), static fn ($v): bool => filled($v));
+        if ($business !== []) {
+            $systemPrompt .= "\n\n".prompt('business/profile', [
+                'email' => $business['email'] ?? null,
+                'phone' => $business['phone'] ?? null,
+                'website' => $business['website'] ?? null,
+                'address' => $business['address'] ?? null,
+                'opening_hours' => $business['opening_hours'] ?? null,
+            ]);
         }
 
         return [

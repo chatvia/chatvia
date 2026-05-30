@@ -23,7 +23,8 @@ class BillingResourceData extends Data
     public static function fromUser(User $user): self
     {
         $currentPackage = $user->getCurrentPackage();
-        $subscription = $user->subscription();
+        $billing = $user->accountBilling();
+        $subscription = $billing?->subscription();
         $subscriptionData = null;
         $pendingPlanChange = null;
 
@@ -42,10 +43,10 @@ class BillingResourceData extends Data
 
         return new self(
             current_package: BillingCurrentPackageData::fromArray($currentPackage),
-            on_trial: $user->onTrial(),
-            trial_ends_at: $user->trialEndsAt()?->toFormattedDateString(),
+            on_trial: (bool) $billing?->onTrial(),
+            trial_ends_at: $billing?->trialEndsAt()?->toFormattedDateString(),
             subscription: $subscriptionData,
-            subscribed: $user->subscribed(),
+            subscribed: (bool) $billing?->subscribed(),
             subscription_canceled: (bool) $subscription?->canceled(),
             pending_plan_change: $pendingPlanChange,
         );

@@ -4,9 +4,9 @@ namespace Support\Traits;
 
 use Domain\Agents\Models\Agent;
 use Domain\Ingestion\Models\Chunk;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Facades\Storage;
 
 trait Chunkable
@@ -36,11 +36,13 @@ trait Chunkable
     }
 
     /**
-     * @return BelongsToMany<Agent, $this>
+     * Agents this source is attached to via the polymorphic agent_sources pivot.
+     *
+     * @return MorphToMany<Agent, $this>
      */
-    public function agents(): BelongsToMany
+    public function agents(): MorphToMany
     {
-        return $this->belongsToMany(Agent::class, 'agent_chunk');
+        return $this->morphToMany(Agent::class, 'sourceable', 'agent_sources');
     }
 
     public function tempUrl(): string
@@ -72,15 +74,23 @@ trait Chunkable
             ->where('chunk_index', 0);
     }
 
-    public function images()
+    /**
+     * Image URLs pulled out of `metadata->images` keys across this source's
+     * chunks. Filtered + projected in SQL so we only ship rows that actually
+     * have images, instead of loading every chunk's metadata into PHP.
+     *
+     * @return array<int, string>
+     */
+    public function images(): array
     {
         return $this->chunks()
-            ->select('metadata')
-            ->get()
-            ->reject(fn ($item): bool => count($item['metadata']['images'] ?? []) === 0)
-            ->pluck('metadata.images')
-            ->map(fn ($images) => collect($images)->keys()->map(fn ($image) => Storage::disk('public')->url($image))->toArray())
-            ->flatten()
+            ->whereRaw("jsonb_typeof(metadata->'images') = 'object'")
+            ->selectRaw("metadata->'images' AS images")
+            ->pluck('images')
+            ->flatMap(fn ($json) => collect(is_string($json) ? json_decode($json, true) : (array) $json)->keys())
+            ->unique()
+            ->map(fn (string $path): string => Storage::disk('public')->url($path))
+            ->values()
             ->toArray();
     }
 }

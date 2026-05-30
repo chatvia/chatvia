@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Auth\Models\User;
 use App\Auth\Observers\UserObserver;
+use App\Billing\Models\UserBilling;
 use App\Documents\Contracts\DocumentOCRInterface;
 use App\Embeddings\Cohere;
 use App\Embeddings\Contracts\EmbeddingsProviderInterface;
@@ -23,10 +24,14 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Domain\Agents\Models\AgentMcpServer;
+use Domain\Agents\Models\AgentPrompt;
+use Domain\Agents\Models\AgentTemplate;
 use Domain\Agents\Models\ModelSetting;
 use Domain\Agents\Observers\AgentFunctionObserver;
 use Domain\Agents\Observers\AgentMcpServerObserver;
 use Domain\Agents\Observers\AgentObserver;
+use Domain\Agents\Observers\AgentPromptObserver;
+use Domain\Agents\Observers\AgentTemplateObserver;
 use Domain\Agents\Observers\ModelSettingObserver;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
@@ -156,6 +161,12 @@ class AppServiceProvider extends ServiceProvider
 
         Stripe::setApiKey(config('cashier.secret'));
 
+        // The `Billable` trait lives on `UserBilling`, not `User`, so Cashier
+        // resolves customers (e.g. `Cashier::findBillable($stripeId)`) to a
+        // `UserBilling` row. The owning `User` is reachable via
+        // `$billing->user` / `User::billing()` HasOne.
+        Cashier::useCustomerModel(UserBilling::class);
+
         // Prompts are Blade views (markdown + Blade) loaded via the `prompt()`
         // helper, e.g. prompt('knowledge/system') → resources/prompts/knowledge/system.blade.php.
         View::addNamespace('prompts', resource_path('prompts'));
@@ -220,6 +231,8 @@ class AppServiceProvider extends ServiceProvider
         Agent::observe(AgentObserver::class);
         AgentFunction::observe(AgentFunctionObserver::class);
         AgentMcpServer::observe(AgentMcpServerObserver::class);
+        AgentPrompt::observe(AgentPromptObserver::class);
+        AgentTemplate::observe(AgentTemplateObserver::class);
         SourceFile::observe(SourceFileObserver::class);
         SourceText::observe(AgentTextObserver::class);
         SourceWebsite::observe(AgentWebsiteObserver::class);
@@ -243,11 +256,11 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
 
-            if ($user->isCompany()) {
+            if ($user->isWorkspace()) {
                 return $agent->user_id === $user->id;
             }
 
-            // Staff users: check team-based access with permissions
+            // Employee users: check team-based access with permissions
             // Use the user's current_team_id from the database (works in all contexts including broadcasting)
             $team = $user->currentTeam ?? $user->ensureCurrentTeam();
 
@@ -264,8 +277,27 @@ class AppServiceProvider extends ServiceProvider
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
         });
 
+        // Bulk gate for every /widget/* endpoint. Per-IP because widget
+        // traffic is unauthenticated for public agents and we want a single
+        // ceiling regardless of how many sessions an IP spins up.
         RateLimiter::for('widgets', function ($request) {
             return Limit::perMinute(90)->by($request->ip());
+        });
+
+        // Stream endpoint specifically — every call costs an LLM invocation,
+        // so we throttle by session (or IP when there's no session) at a
+        // much lower budget than the bulk widget gate.
+        RateLimiter::for('widget-stream', function ($request) {
+            $key = $request->header('X-SESSION-ID') ?: $request->ip();
+
+            return Limit::perMinute(20)->by('widget-stream|'.$key);
+        });
+
+        // Auth exchange runs once per page load for protected widgets. A
+        // tight per-IP cap removes JWT-verification brute force as a DoS
+        // surface (defence in depth — verify() is already constant-time).
+        RateLimiter::for('widget-exchange', function ($request) {
+            return Limit::perMinute(10)->by('widget-exchange|'.$request->ip());
         });
 
         RateLimiter::for('api', function ($request) {

@@ -213,15 +213,7 @@ class LeadSeeder extends Seeder
             return;
         }
 
-        // Get agents that collect leads for this user
-        $agents = Agent::where('user_id', $user->id)
-            ->where('collect_leads', true)
-            ->get();
-
-        if ($agents->isEmpty()) {
-            // Fall back to all agents if none have lead collection enabled
-            $agents = Agent::where('user_id', $user->id)->get();
-        }
+        $agents = Agent::where('user_id', $user->id)->get();
 
         if ($agents->isEmpty()) {
             $this->command->warn('No agents found for demo user.');

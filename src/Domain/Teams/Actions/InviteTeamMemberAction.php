@@ -34,7 +34,7 @@ class InviteTeamMemberAction
         if ($data->userId) {
             $existingUser = User::findOrFail($data->userId);
 
-            if ($existingUser->managed_by_user_id !== $data->inviter->id) {
+            if ($existingUser->workspace_id !== $data->inviter->id) {
                 throw new InviteRejectedException('user_id', 'You can only add users you have invited.');
             }
 

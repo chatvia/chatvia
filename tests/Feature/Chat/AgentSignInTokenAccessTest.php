@@ -5,7 +5,7 @@ use App\Auth\Services\AgentSignInTokenService;
 use App\Http\Middleware\AuthenticateChatViaSignInToken;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
-use Domain\Auth\Actions\CreateExternalUserAction;
+use Domain\Auth\Actions\CreateChatterAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -15,13 +15,18 @@ beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
     $this->agent = makeSignInAgent($this->owner);
-    $this->endUser = app(CreateExternalUserAction::class)->execute($this->owner, 'Jane');
+
+    // The chatter signs in to the agent — CreateChatterAction provisions the
+    // user and attaches the agent_user grant in one shot. Without that grant
+    // canAccessAgent() would refuse and verify() would return null.
+    $this->endUser = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+
     $this->service = app(AgentSignInTokenService::class);
     $this->middleware = app(AuthenticateChatViaSignInToken::class);
 });
 
 it('logs the end-user in on a valid token and strips it from the URL', function (): void {
-    $token = $this->service->generate($this->agent, $this->endUser)['token'];
+    $token = $this->service->issue($this->endUser, $this->agent)['token'];
     $request = signInChatRequest($this->agent, $token);
 
     $response = $this->middleware->handle($request, fn () => new Response('next'));
@@ -50,7 +55,7 @@ it('ignores an unknown or expired token (no login)', function (): void {
 
 it('ignores a token minted for a different agent (no login)', function (): void {
     $other = makeSignInAgent($this->owner);
-    $token = $this->service->generate($other, $this->endUser)['token'];
+    $token = $this->service->issue($this->endUser, $other)['token'];
 
     $request = signInChatRequest($this->agent, $token);
 
@@ -60,7 +65,7 @@ it('ignores a token minted for a different agent (no login)', function (): void 
 });
 
 it('keeps the end-user authed across the post-sign-in redirect (full HTTP flow)', function (): void {
-    $token = $this->service->generate($this->agent, $this->endUser)['token'];
+    $token = $this->service->issue($this->endUser, $this->agent)['token'];
     $host = $this->agent->sub_domain.'.chatvia.test';
 
     $this->get("https://{$host}/chat?token={$token}")
@@ -84,7 +89,6 @@ function makeSignInAgent(User $owner): Agent
         'external_id' => Str::random(14),
         'sub_domain' => Str::lower(Str::random(12)),
         'is_public' => false,
-        'collect_leads' => true,
         'analytics_enabled' => true,
     ]);
 }

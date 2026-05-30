@@ -7,12 +7,11 @@ use Domain\Agents\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Test-invoke a function. Currently a 501 stub — full HTTP dispatch lands later.
+ */
 class AgentFunctionTestController
 {
-    /**
-     * Test-invoke a function with user-supplied args. Slice 1 returns
-     * 501 — the real HTTP dispatcher arrives in Slice 3.
-     */
     public function __invoke(Request $request, Agent $agent, AgentFunction $function): JsonResponse
     {
         abort_if($request->user()->cannot('view', $agent), 403);

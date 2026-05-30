@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 
 if (app()->isLocal()) {
+
+
     Route::get('test', function (Request $request): array {
         logger()->info(print_r($request->headers->all(), true));
 

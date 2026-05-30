@@ -7,13 +7,10 @@ use Domain\Agents\Models\Agent;
 class UpdateAgentLeadsSettingsAction
 {
     /**
-     * @param  array<int, mixed>  $fields
+     * @param  array<string, array{title: string, required: bool}>  $fields
      */
-    public function execute(Agent $agent, bool $collectLeads, string $title, array $fields): void
+    public function execute(Agent $agent, array $fields): void
     {
-        $agent->update(['collect_leads' => $collectLeads]);
-
-        $agent->setSetting('title', $title, 'leads');
         $agent->setSetting('fields', $fields, 'leads');
     }
 }

@@ -2,31 +2,31 @@
 
 use App\Http\Controllers\Chat\Auth\ChatLoginController;
 use App\Http\Controllers\Chat\Auth\ChatLogoutController;
-use App\Http\Controllers\Chat\Auth\ChatMemberAgentsController;
-use App\Http\Controllers\Chat\Auth\ChatMemberSwitchAgentController;
 use App\Http\Controllers\Chat\Auth\ChatProfileUpdateController;
 use App\Http\Controllers\Chat\Auth\ChatShowLoginController;
-use App\Http\Controllers\Chat\ChatAppearanceController;
-use App\Http\Controllers\Chat\ChatController;
-use App\Http\Controllers\Chat\ChatDeleteAllConversationsController;
-use App\Http\Controllers\Chat\ChatEmbedController;
-use App\Http\Controllers\Chat\ChatEmbedHomeController;
-use App\Http\Controllers\Chat\ChatHomeController;
-use App\Http\Controllers\Chat\ChatMessageDeleteController;
-use App\Http\Controllers\Chat\ChatMessageFeedbackController;
-use App\Http\Controllers\Chat\ChatMessageRegenerateController;
-use App\Http\Controllers\Chat\ChatMessagesUsage;
-use App\Http\Controllers\Chat\ChatModelsListController;
-use App\Http\Controllers\Chat\ChatSourcesController;
-use App\Http\Controllers\Chat\ChatStartersController;
-use App\Http\Controllers\Chat\ChatStreamController;
-use App\Http\Controllers\Chat\ChatTranscriptionController;
+use App\Http\Controllers\Chat\Auth\ChatterAgentsController;
+use App\Http\Controllers\Chat\Auth\ChatterSwitchAgentController;
+use App\Http\Controllers\Chat\Conversations\ChatDeleteAllConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationCreateController;
 use App\Http\Controllers\Chat\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Chat\Conversations\ConversationMessagesController;
 use App\Http\Controllers\Chat\Conversations\ConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
+use App\Http\Controllers\Chat\Embed\ChatEmbedController;
+use App\Http\Controllers\Chat\Embed\ChatEmbedHomeController;
 use App\Http\Controllers\Chat\Export\ChatExportController;
+use App\Http\Controllers\Chat\Home\ChatAppearanceController;
+use App\Http\Controllers\Chat\Home\ChatController;
+use App\Http\Controllers\Chat\Home\ChatHomeController;
+use App\Http\Controllers\Chat\Home\ChatSourcesController;
+use App\Http\Controllers\Chat\Home\ChatStartersController;
+use App\Http\Controllers\Chat\Messages\ChatMessageDeleteController;
+use App\Http\Controllers\Chat\Messages\ChatMessageFeedbackController;
+use App\Http\Controllers\Chat\Messages\ChatMessageRegenerateController;
+use App\Http\Controllers\Chat\Models\ChatModelsListController;
+use App\Http\Controllers\Chat\Stream\ChatStreamController;
+use App\Http\Controllers\Chat\Transcription\ChatTranscriptionController;
+use App\Http\Controllers\Chat\Usage\ChatMessagesUsage;
 
 Route::get('/chat/appearance', ChatAppearanceController::class)->name('chat.appearance');
 
@@ -44,9 +44,9 @@ Route::prefix('/chat')
         Route::get('embed/c/{conversationId}', ChatEmbedController::class)->name('chat.embed.show');
 
         Route::get('/models', ChatModelsListController::class)->name('chat.models.index');
-        Route::get('/agents', ChatMemberAgentsController::class)->name('chat.member.agents');
+        Route::get('/agents', ChatterAgentsController::class)->name('chat.agents.index');
 
-        Route::post('/agents/switch/{agent}', ChatMemberSwitchAgentController::class)->name('chat.member.agents.switch');
+        Route::post('/agents/switch/{agent}', ChatterSwitchAgentController::class)->name('chat.agents.switch');
 
         Route::post('/stream/{conversationId}', ChatStreamController::class)->name('chat.stream');
 

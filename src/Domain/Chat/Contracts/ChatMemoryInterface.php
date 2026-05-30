@@ -8,6 +8,7 @@ use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\ChatOutputPayload;
 use Domain\Chat\Data\Memory\ConversationData;
 use Domain\Chat\Data\Memory\MessageData;
+use Domain\Chat\Enums\ConversationSource;
 
 /**
  * Interface for chat memory operations, defining the contract for conversation management,
@@ -27,7 +28,7 @@ interface ChatMemoryInterface
     /**
      * Conversation management
      */
-    public function createConversation(string $title): string;
+    public function createConversation(string $title, ConversationSource $source): string;
 
     public function updateConversationTitle(string $title): void;
 

@@ -6,6 +6,7 @@ use App\Auth\Models\User;
 use App\Country\Models\Country;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Llm;
+use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
@@ -294,6 +295,7 @@ class ChatSeeder extends Seeder
                 // Create the conversation with meaningful messages
                 $conversation = ChatConversation::create([
                     'chat_session_id' => $session->id,
+                    'source' => ConversationSource::cases()[array_rand(ConversationSource::cases())],
                     'title' => $scenario['title'],
                     'sentiment' => $scenario['sentiment'],
                     'tone' => $scenario['tone'],

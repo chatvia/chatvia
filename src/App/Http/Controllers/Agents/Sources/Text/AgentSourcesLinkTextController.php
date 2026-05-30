@@ -2,23 +2,19 @@
 
 namespace App\Http\Controllers\Agents\Sources\Text;
 
+use App\Http\Requests\Agents\Sources\LinkSourceTextRequest;
 use Domain\Agents\Models\Agent;
 use Domain\Sources\Text\Actions\AttachSourceTextToAgentAction;
 use Domain\Sources\Text\Models\SourceText;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class AgentSourcesLinkTextController
 {
-    public function __invoke(Request $request, Agent $agent, int $textId, AttachSourceTextToAgentAction $attach)
+    public function __invoke(LinkSourceTextRequest $request, Agent $agent, int $textId, AttachSourceTextToAgentAction $attach): JsonResponse
     {
-        $request->validate(['text_id' => ['required', 'exists:source_texts,id']]);
+        $text = SourceText::findOrFail($textId);
 
-        $user = $request->user();
-
-        /** @var SourceText $text */
-        $text = SourceText::find($textId);
-
-        abort_if($user->cannot('view', $text), 403);
+        abort_if($request->user()->cannot('view', $text), 403);
 
         if (! $attach->execute($agent, $text)) {
             return response()->json(['message' => 'This text is already attached to the agent.'], 422);

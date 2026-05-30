@@ -17,10 +17,10 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
-            $table->string('url')->index();
+            $table->string('url');
             $table->string('title')->nullable();
             $table->text('description')->nullable();
-            $table->string('checksum')->index()->nullable();
+            $table->string('checksum')->nullable();
             $table->string('parser')->nullable();
             $table->string('parser_filepath')->nullable();
             $table->unsignedInteger('expected_chunks')->nullable();
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('internal_chunking_batch_id')->nullable();
             $table->string('external_parsing_job_id')->nullable();
             $table->jsonb('metadata')->nullable();
-            $table->enum('status', ['uploaded', 'pending', 'ingesting', 'failed', 'ingested'])->default('pending')->index();
+            $table->enum('status', ['uploaded', 'pending', 'ingesting', 'failed', 'ingested'])->default('pending');
             $table->unsignedInteger('took_in_seconds')->default(0);
             $table->text('failure_reason')->nullable();
             $table->unsignedInteger('retrieval_count')->default(0);
@@ -37,6 +37,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'checksum']);
+            $table->index(['user_id', 'status']);
         });
     }
 

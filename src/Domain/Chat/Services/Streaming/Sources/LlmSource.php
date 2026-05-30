@@ -128,7 +128,12 @@ class LlmSource
                         brandColor: $display['brand_color'],
                     );
 
-                    $dispatched = $this->dispatcher->dispatch($agent, $tc['name'], $tc['arguments']);
+                    $dispatched = $this->dispatcher->dispatch(
+                        $agent,
+                        $tc['name'],
+                        $tc['arguments'],
+                        $context->requestData->conversationId,
+                    );
 
                     // Remember the tool name on the context so the
                     // StickyToolResolver can keep it available on

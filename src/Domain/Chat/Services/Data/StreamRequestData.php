@@ -16,8 +16,6 @@ class StreamRequestData extends Data
         public bool $saveUserMessageImmediately = false,
         public bool $streamSources = false,
         public bool $streamLanguage = false,
-        public bool $canCollectLead = true,
-        public bool $leadAlreadyCollected = false,
         public ?string $source = null,
         public ?string $ipAddress = null,
         public ?string $userAgent = null,

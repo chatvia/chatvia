@@ -20,7 +20,9 @@ class SubscribeUserAction
             ? $plans[$data->package]['stripe_yearly_price_id']
             : $plans[$data->package]['stripe_monthly_price_id'];
 
-        return $data->user
+        $billing = $data->user->accountBilling();
+
+        return $billing
             ->newSubscription(type: 'default', prices: $stripePriceId)
             ->withMetadata([
                 'id' => strtolower($data->package),
@@ -28,7 +30,7 @@ class SubscribeUserAction
                 'from_package' => $data->user->plan,
                 'to_package' => strtolower($data->package),
                 'is_yearly' => $data->yearly,
-                'user_subscribed' => $data->user->subscribed(),
+                'user_subscribed' => (bool) $billing->subscribed(),
             ])
             ->when(config('billing.trial.days') !== 0, function (SubscriptionBuilder $subscription): void {
                 $subscription->trialDays((int) config('billing.trial.days'));

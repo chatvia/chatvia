@@ -8,6 +8,7 @@ use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Support\Enums\UserType;
 
 class AcceptTeamInvitationAction
 {
@@ -26,7 +27,7 @@ class AcceptTeamInvitationAction
         /** @var User $owner */
         $owner = $team->owner;
 
-        if (! $owner->subscribed() && ! $owner->onTrial()) {
+        if (! $owner->hasActiveSubscription()) {
             throw new InviteRejectedException('invitation', 'The team owner does not have an active subscription.');
         }
 
@@ -49,8 +50,8 @@ class AcceptTeamInvitationAction
                     'email' => $invitation->email,
                     'password' => Hash::make($data->password),
                     'email_verified_at' => now(),
-                    'managed_by_user_id' => $owner->id,
-                    'type' => 'staff',
+                    'workspace_id' => $owner->id,
+                    'type' => UserType::Employee,
                 ]);
 
                 event(new Registered($user));

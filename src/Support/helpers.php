@@ -182,6 +182,37 @@ if (! function_exists('has_permission_to_agent')) {
     }
 }
 
+if (! function_exists('has_team_permission')) {
+    /**
+     * Check if the current user has a team-level (non-agent-scoped) permission
+     * in their current team. Owners and platform admins always pass.
+     */
+    function has_team_permission(string $permission): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        $team = current_team();
+
+        if (! $team) {
+            return false;
+        }
+
+        if ($user->ownsTeam($team)) {
+            return true;
+        }
+
+        return $user->hasTeamPermission($team, $permission);
+    }
+}
+
 if (! function_exists('get_file_type')) {
     function get_file_type(string $mimeType): string
     {

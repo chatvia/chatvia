@@ -45,10 +45,10 @@ class AuthenticateChatViaSignInToken
             return $next($request);
         }
 
-        $payload = $this->tokens->verify($token);
+        $user = $this->tokens->verify($token, $agent);
 
-        if ($payload !== null && $payload['agent_id'] === $agent->id) {
-            Auth::guard('web')->loginUsingId($payload['user_id']);
+        if ($user !== null) {
+            Auth::guard('web')->login($user);
         }
 
         if ($request->isMethod('GET')) {

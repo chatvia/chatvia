@@ -11,8 +11,8 @@ import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertTriangle, Download, ExternalLink, Eye, LoaderCircle, Search, Settings, Trash2, Users } from 'lucide-vue-next';
-import { computed, onMounted, ref, watch } from 'vue';
+import { AlertTriangle, Download, ExternalLink, Eye, LoaderCircle, Plug, Search, Settings, Trash2, Users } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -20,6 +20,8 @@ interface Props {
     settings?: {
         fields?: any;
     } | null;
+    leadsConnectorAttached: boolean;
+    connectorsUrl: string;
 }
 
 const props = defineProps<Props>();
@@ -66,7 +68,6 @@ const getLeadFieldsFromSettings = (): Record<LeadFieldKey, LeadFieldConfig> => {
                 result[key] = {
                     title: settingValue.title || defaultField.title,
                     required: Boolean(settingValue.required),
-                    enabled: Boolean(settingValue.enabled ?? defaultField.enabled),
                 };
             } else {
                 result[key] = createDefaultLeadField(key);
@@ -84,12 +85,6 @@ const getLeadFieldsFromSettings = (): Record<LeadFieldKey, LeadFieldConfig> => {
     return result;
 };
 
-// Get dynamic form title from settings
-const getFormTitleFromSettings = (): string => {
-    const leadsSettings = props.settings?.fields; // This is settings('leads')
-    return leadsSettings?.title || '';
-};
-
 // State
 const searchQuery = ref('');
 const selectedLeads = ref<number[]>([]);
@@ -102,43 +97,27 @@ const selectedLeadForView = ref<Domain.Agents.Data.Resources.LeadResourceData | 
 // Settings dialog state
 const showSettingsDialog = ref(false);
 type LeadFieldKey = 'name' | 'email' | 'phone' | 'job_title' | 'company' | 'location' | 'message';
-type LeadFieldConfig = { title: string; required: boolean; enabled: boolean };
+type LeadFieldConfig = { title: string; required: boolean };
 const leadFieldOrder: LeadFieldKey[] = ['name', 'email', 'phone', 'job_title', 'company', 'location', 'message'];
 
 // Create default field configuration when no settings exist
 const createDefaultLeadField = (key: LeadFieldKey): LeadFieldConfig => {
     const defaults: Record<LeadFieldKey, LeadFieldConfig> = {
-        name: { title: 'Name', required: false, enabled: true },
-        email: { title: 'Email', required: false, enabled: true },
-        phone: { title: 'Phone', required: false, enabled: false },
-        job_title: { title: 'Job Title', required: false, enabled: false },
-        company: { title: 'Company', required: false, enabled: false },
-        location: { title: 'Location', required: false, enabled: false },
-        message: { title: 'Message', required: false, enabled: false },
+        name: { title: 'Name', required: true },
+        email: { title: 'Email', required: true },
+        phone: { title: 'Phone', required: false },
+        job_title: { title: 'Job Title', required: false },
+        company: { title: 'Company', required: false },
+        location: { title: 'Location', required: false },
+        message: { title: 'Message', required: false },
     };
     return defaults[key];
 };
 
 // Inertia form for settings
 const settingsForm = useForm({
-    collect_leads: false as boolean,
-    title: getFormTitleFromSettings(),
     fields: getLeadFieldsFromSettings(),
 });
-
-// Watch for changes to collect_leads to automatically enable name and email
-watch(
-    () => settingsForm.collect_leads,
-    (newValue) => {
-        if (newValue) {
-            // When lead collection is enabled, name and email must be enabled and required
-            settingsForm.fields.name.required = true;
-            settingsForm.fields.name.enabled = true;
-            settingsForm.fields.email.required = true;
-            settingsForm.fields.email.enabled = true;
-        }
-    },
-);
 
 // Computed properties
 const filteredLeads = computed(() => {
@@ -217,23 +196,9 @@ const openSettings = () => {
         return;
     }
 
-    // Clear any previous errors when opening the dialog
     settingsForm.clearErrors();
 
-    // Initialize from props.agent
-    settingsForm.collect_leads = Boolean(props.agent?.collect_leads);
-
-    // Get current settings from the dynamic functions
-    settingsForm.title = getFormTitleFromSettings();
     settingsForm.fields = getLeadFieldsFromSettings();
-
-    // If lead collection is enabled, ensure name and email are always enabled and required
-    if (settingsForm.collect_leads) {
-        settingsForm.fields.name.required = true;
-        settingsForm.fields.name.enabled = true;
-        settingsForm.fields.email.required = true;
-        settingsForm.fields.email.enabled = true;
-    }
 
     showSettingsDialog.value = true;
 };
@@ -340,6 +305,28 @@ const cancelDelete = () => {
                 </CardHeader>
                 <CardContent>
                     <div class="space-y-4">
+                        <!-- Leads connector not attached -->
+                        <div
+                            v-if="!leadsConnectorAttached"
+                            class="flex flex-col gap-3 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900/50 dark:bg-amber-950/30 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                            <div class="flex items-start gap-3">
+                                <Plug class="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
+                                <div>
+                                    <p class="font-medium text-amber-900 dark:text-amber-200">
+                                        Leads connector isn't attached to this agent
+                                    </p>
+                                    <p class="mt-1 text-amber-800/80 dark:text-amber-200/80">
+                                        The agent can't capture leads from chat until you attach the Leads connector. The field settings below
+                                        still apply once it's enabled.
+                                    </p>
+                                </div>
+                            </div>
+                            <Button as-child variant="outline" size="sm" class="shrink-0">
+                                <Link :href="connectorsUrl">Open Connectors</Link>
+                            </Button>
+                        </div>
+
                         <!-- Search and Actions Bar -->
                         <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                             <!-- Search Input -->
@@ -503,31 +490,23 @@ const cancelDelete = () => {
             <DialogContent class="sm:max-w-xl">
                 <DialogHeader>
                     <DialogTitle>Lead Settings</DialogTitle>
-                    <DialogDescription> Enable lead collection and customize field titles and required flags. </DialogDescription>
+                    <DialogDescription>
+                        Pick which contact details the agent should ask for. Attach the Leads connector to this agent (Connectors tab) to enable
+                        capture.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <!-- Display form errors at the top -->
                 <FormErrors :errors="settingsForm.errors" title="Validation Error" class="mb-4" />
 
                 <div class="space-y-6">
-                    <div class="flex items-center gap-3">
-                        <Checkbox id="collect-leads" v-model="settingsForm.collect_leads" />
-                        <label for="collect-leads" class="cursor-pointer text-sm">Enable lead collection</label>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-sm font-medium">Form Title</label>
-                        <Input v-model="settingsForm.title" placeholder="e.g. Contact details" :disabled="!settingsForm.collect_leads" />
-                    </div>
-
                     <div class="space-y-4">
                         <div class="text-sm font-medium">Fields</div>
-                        <div class="overflow-hidden rounded-lg border" :class="{ 'pointer-events-none opacity-50': !settingsForm.collect_leads }">
+                        <div class="overflow-hidden rounded-lg border">
                             <!-- Table Header -->
                             <div class="bg-muted/50 border-b px-4 py-3">
-                                <div class="grid grid-cols-3 gap-4 text-sm font-medium">
+                                <div class="grid grid-cols-2 gap-4 text-sm font-medium">
                                     <div>Field</div>
-                                    <div class="text-center">Enabled</div>
                                     <div class="text-center">Required</div>
                                 </div>
                             </div>
@@ -537,10 +516,7 @@ const cancelDelete = () => {
                                 <div
                                     v-for="key in leadFieldOrder"
                                     :key="key"
-                                    class="hover:bg-muted/30 grid grid-cols-3 items-center gap-4 px-4 py-4 transition-colors"
-                                    :class="{
-                                        'bg-blue-50/50 dark:bg-blue-950/20': settingsForm.collect_leads && (key === 'name' || key === 'email'),
-                                    }"
+                                    class="hover:bg-muted/30 grid grid-cols-2 items-center gap-4 px-4 py-4 transition-colors"
                                 >
                                     <!-- Field Name -->
                                     <div class="flex flex-col">
@@ -549,24 +525,9 @@ const cancelDelete = () => {
                                         </span>
                                     </div>
 
-                                    <!-- Enabled Checkbox -->
-                                    <div class="flex justify-center">
-                                        <Checkbox
-                                            :id="`field-${key}-enabled`"
-                                            v-model="settingsForm.fields[key].enabled"
-                                            :disabled="!settingsForm.collect_leads || key === 'name' || key === 'email'"
-                                        />
-                                    </div>
-
                                     <!-- Required Checkbox -->
                                     <div class="flex justify-center">
-                                        <Checkbox
-                                            :id="`field-${key}-required`"
-                                            v-model="settingsForm.fields[key].required"
-                                            :disabled="
-                                                !settingsForm.collect_leads || !settingsForm.fields[key].enabled || key === 'name' || key === 'email'
-                                            "
-                                        />
+                                        <Checkbox :id="`field-${key}-required`" v-model="settingsForm.fields[key].required" />
                                     </div>
                                 </div>
                             </div>

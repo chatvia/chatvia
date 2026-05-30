@@ -4,6 +4,7 @@ namespace App\Auth\Models;
 
 use App\Billing\Data\Resources\BillingPackageCapabilitiesData;
 use App\Billing\Models\UserAddon;
+use App\Billing\Models\UserBilling;
 use App\Billing\Models\UserCredit;
 use App\Billing\Models\UserQuota;
 use App\Billing\Models\UserUsage;
@@ -20,10 +21,10 @@ use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Agents\Models\AgentPrompt;
+use Domain\Agents\Models\AgentTemplate;
 use Domain\Agents\Models\Llm;
 use Domain\Agents\Models\ModelSetting;
 use Domain\Chat\Data\LlmModelData;
-use Domain\Chat\Models\ChatMessage;
 use Domain\Sources\Files\Models\SourceFile;
 use Domain\Sources\Text\Models\SourceText;
 use Domain\Sources\Web\Models\SourceWebsite;
@@ -31,7 +32,6 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -46,12 +46,12 @@ use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
-use Laravel\Cashier\Billable;
-use Laravel\Cashier\Subscription;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Support\Concerns\HasExternalId;
-use Support\Enums\CreatedVia;
+use Support\Enums\SocialProvider;
+use Support\Enums\UserSource;
+use Support\Enums\UserType;
 use Support\Traits\HasSettings;
 
 /**
@@ -61,19 +61,11 @@ use Support\Traits\HasSettings;
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
- * @property string $type
+ * @property UserType $type
+ * @property UserSource $source
  * @property string|null $remember_token
- * @property int|null $managed_by_user_id
+ * @property int|null $workspace_id
  * @property int|null $current_team_id
- * @property string|null $stripe_id
- * @property string|null $pm_type
- * @property string|null $pm_last_four
- * @property Carbon|null $trial_ends_at
- * @property string|null $google_id
- * @property string|null $microsoft_id
- * @property string|null $slack_id
- * @property string|null $linkedin_id
- * @property string|null $x_id
  * @property string|null $registered_ip
  * @property string|null $registered_country_code
  * @property string|null $domain
@@ -82,11 +74,16 @@ use Support\Traits\HasSettings;
  * @property Carbon|null $last_login_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Collection<int, Agent> $accessibleAgents
+ * @property-read int|null $accessible_agents_count
  * @property-read Collection<int, UserAddon> $addons
  * @property-read int|null $addons_count
  * @property-read AgentCollection<int, Agent> $agents
  * @property-read int|null $agents_count
+ * @property-read UserBilling|null $billing
  * @property-read BillingPackageCapabilitiesData $capabilities
+ * @property-read Collection<int, User> $chatters
+ * @property-read int|null $chatters_count
  * @property-read UserCredit|null $credit
  * @property-read Collection<int, UserCredit> $credits
  * @property-read int|null $credits_count
@@ -94,7 +91,7 @@ use Support\Traits\HasSettings;
  * @property-read bool $is_paid
  * @property-read Collection<int, User> $managedUsers
  * @property-read int|null $managed_users_count
- * @property-read User|null $manager
+ * @property-read User|null $workspace
  * @property-read Collection<int, Team> $memberTeams
  * @property-read int|null $member_teams_count
  * @property-read Collection<int, ModelSetting> $modelSettings
@@ -109,19 +106,17 @@ use Support\Traits\HasSettings;
  * @property-read UserQuota|null $quota
  * @property-read Collection<int, Role> $roles
  * @property-read int|null $roles_count
+ * @property-read Collection<int, UserSocial> $socials
+ * @property-read int|null $socials_count
  * @property-read Collection<int, User> $staff
  * @property-read int|null $staff_count
- * @property-read Collection<int, Subscription> $subscriptions
- * @property-read int|null $subscriptions_count
  * @property-read Collection<int, Ticket> $tickets
  * @property-read int|null $tickets_count
  * @property-read UserUsage|null $usage
  *
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User hasExpiredGenericTrial()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User onGenericTrial()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User permission($permissions, bool $without = false)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User role($roles, ?string $guard = null, bool $without = false)
@@ -133,25 +128,17 @@ use Support\Traits\HasSettings;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereDomain($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereGoogleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastLoginAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLinkedinId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereManagedByUserId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereMicrosoftId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereWorkspaceId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePmLastFour($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePmType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRegisteredCountryCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRegisteredIp($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereSlackId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereStripeId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTrialEndsAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereSource($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereXId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, ?string $guard = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTeam($teams)
@@ -167,7 +154,7 @@ use Support\Traits\HasSettings;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use Billable, HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, Notifiable;
+    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -179,10 +166,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'trial_ends_at' => 'datetime',
-            'billing_address' => 'array',
             'last_login_at' => 'datetime',
-            'created_via' => CreatedVia::class,
+            'type' => UserType::class,
+            'source' => UserSource::class,
         ];
     }
 
@@ -211,6 +197,18 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Account-level reusable agent templates this customer owns (Settings →
+     * Templates). Each bundles appearance/widget/models/starters/prompt and can
+     * be attached to any number of their agents via `agents.agent_template_id`.
+     *
+     * @return HasMany<AgentTemplate, $this>
+     */
+    public function templates(): HasMany
+    {
+        return $this->hasMany(AgentTemplate::class);
+    }
+
+    /**
      * Account-level MCP servers this customer owns. Each can be attached to
      * any number of their agents via `agent_mcp_server`.
      *
@@ -222,39 +220,22 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * True when this user is a customer's end-user (created via the API), not a
-     * Chatvia account/staff member.
-     */
-    public function isExternal(): bool
-    {
-        return $this->created_via === CreatedVia::External;
-    }
-
-    /** @deprecated use isExternal() — kept for existing callers. */
-    public function isExternalChatUser(): bool
-    {
-        return $this->isExternal();
-    }
-
-    /** @param Builder<User> $query */
-    public function scopeInternal($query)
-    {
-        return $query->where('created_via', CreatedVia::Internal);
-    }
-
-    /** @param Builder<User> $query */
-    public function scopeExternal($query)
-    {
-        return $query->where('created_via', CreatedVia::External);
-    }
-
-    /**
-     * Get the effective user (manager if managed, otherwise self).
-     * Used for resource access like quota, agents, credits, etc.
+     * Get the effective user (workspace owner if this is an employee/chatter,
+     * otherwise self). Used for resource access like quota, agents, credits, etc.
      */
     protected function effectiveUser(): self
     {
-        return $this->managed_by_user_id ? $this->manager : $this;
+        return $this->workspace_id ? $this->workspace : $this;
+    }
+
+    /**
+     * Cashier customer for this user's account — the workspace owner's
+     * `UserBilling` row, or null if the workspace has none yet. Use this
+     * anywhere you'd otherwise reach for `$user->subscribed()` etc.
+     */
+    public function accountBilling(): ?UserBilling
+    {
+        return $this->effectiveUser()->billing;
     }
 
     public function agents(): HasMany
@@ -264,18 +245,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $effectiveUser->hasMany(Agent::class);
     }
 
-    public function messages()
-    {
-        return ChatMessage::query()
-            ->whereHas('conversation.session.member', function ($query): void {
-                $query->where('user_id', $this->id);
-            });
-    }
-
     public function getCurrentPackage(): array
     {
         $effectiveUser = $this->effectiveUser();
-        $stripePrice = $effectiveUser->subscription()?->stripe_price;
+        $stripePrice = $effectiveUser->billing?->subscription()?->stripe_price;
 
         $billing = app(Billing::class);
 
@@ -286,35 +259,36 @@ class User extends Authenticatable implements MustVerifyEmail
         return $billing->getPackageByPriceId($stripePrice, true);
     }
 
-    public function isStaff(): bool
-    {
-        return $this->type === 'staff';
-    }
-
     public function isAdmin(): bool
     {
-        return $this->type === 'admin';
+        return $this->type === UserType::Admin;
     }
 
-    public function isCompany(): bool
+    public function isWorkspace(): bool
     {
-        return $this->type === 'company';
+        return $this->type === UserType::Workspace;
+    }
+
+    public function isEmployee(): bool
+    {
+        return $this->type === UserType::Employee;
+    }
+
+    public function isChatter(): bool
+    {
+        return $this->type === UserType::Chatter;
     }
 
     public function hasActiveSubscription(): bool
     {
-        $effectiveUser = $this->effectiveUser();
+        $billing = $this->effectiveUser()->billing;
 
-        return $effectiveUser->subscribed() || $effectiveUser->onTrial();
+        return (bool) ($billing?->subscribed() || $billing?->onTrial());
     }
 
     public function capabilities(): Attribute
     {
-        if ($this->managed_by_user_id) {
-            $plan = $this->manager->plan;
-        } else {
-            $plan = $this->plan;
-        }
+        $plan = $this->workspace_id ? $this->workspace->plan : $this->plan;
 
         return Attribute::get(fn (): BillingPackageCapabilitiesData => BillingPackageCapabilitiesData::forPlan($plan));
     }
@@ -328,8 +302,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function cancelSubscription(): void
     {
-        $effectiveUser = $this->effectiveUser();
-        $effectiveUser->subscription()?->cancel();
+        $this->effectiveUser()->billing?->subscription()?->cancel();
     }
 
     public function canUploadPages(int $amount): bool
@@ -399,8 +372,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function syncPendingPlanChanges(): ?array
     {
-        $effectiveUser = $this->effectiveUser();
-        $subscription = $effectiveUser->subscription();
+        $subscription = $this->effectiveUser()->billing?->subscription();
 
         if (! $subscription) {
             return null;
@@ -609,13 +581,12 @@ class User extends Authenticatable implements MustVerifyEmail
             return null;
         }
 
-        $membership = $this->memberTeams()->where('teams.id', $team->id)->first();
-
-        if (! $membership) {
-            return null;
-        }
-
-        return Role::find($membership->pivot->getAttribute('role_id'));
+        return Role::query()
+            ->join('team_user', 'team_user.role_id', '=', 'roles.id')
+            ->where('team_user.team_id', $team->id)
+            ->where('team_user.user_id', $this->id)
+            ->select('roles.*')
+            ->first();
     }
 
     /**
@@ -670,11 +641,11 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the user who manages this user (the team owner who invited them).
+     * The workspace owner this employee/chatter belongs to.
      */
-    public function manager(): BelongsTo
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'managed_by_user_id');
+        return $this->belongsTo(User::class, 'workspace_id');
     }
 
     /**
@@ -724,30 +695,86 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get all users managed by this user (invited via their teams).
+     * Employees (collaborators) this user manages.
      *
      * @return HasMany<User, $this>
      */
     public function managedUsers(): HasMany
     {
-        return $this->hasMany(User::class, 'managed_by_user_id')->where('created_via', CreatedVia::Internal);
-    }
-
-    public function externalUsers(): HasMany
-    {
-        return $this->hasMany(User::class, 'managed_by_user_id')->where('created_via', CreatedVia::External);
+        return $this->hasMany(User::class, 'workspace_id')->where('type', UserType::Employee);
     }
 
     /**
-     * Check if this user was invited (managed by someone else).
+     * Chatters this user has provisioned (via the API).
+     *
+     * @return HasMany<User, $this>
      */
-    public function isManagedUser(): bool
+    public function chatters(): HasMany
     {
-        return $this->managed_by_user_id !== null;
+        return $this->hasMany(User::class, 'workspace_id')->where('type', UserType::Chatter);
+    }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class, 'workspace_id');
+    }
+
+    /**
+     * Agents a chatter has been explicitly granted access to (via the
+     * `agent_user` pivot). Empty for non-chatter types; their agent reach is
+     * still resolved through teams + roles via {@see TeamService}.
+     *
+     * @return BelongsToMany<Agent, $this>
+     */
+    public function accessibleAgents(): BelongsToMany
+    {
+        return $this->belongsToMany(Agent::class, 'agent_user');
+    }
+
+    /**
+     * External OAuth identities linked to this user. One row per provider.
+     *
+     * @return HasMany<UserSocial, $this>
+     */
+    public function socials(): HasMany
+    {
+        return $this->hasMany(UserSocial::class);
+    }
+
+    /**
+     * Resolve the user's provider-side id for a single OAuth provider, or null.
+     */
+    public function socialId(SocialProvider $provider): ?string
+    {
+        return $this->socials()->where('provider', $provider)->value('provider_id');
+    }
+
+    /**
+     * Stripe-side billing state. Only workspace owners (and admins) ever have a
+     * row; chatters and employees do not.
+     *
+     * @return HasOne<UserBilling, $this>
+     */
+    public function billing(): HasOne
+    {
+        return $this->hasOne(UserBilling::class);
+    }
+
+    /**
+     * Check whether this user belongs to a workspace (employee / chatter).
+     * Workspace owners and admins return false.
+     */
+    public function belongsToWorkspace(): bool
+    {
+        return $this->workspace_id !== null;
     }
 
     public function canAccessAgent(Agent $agent): bool
     {
+        if ($this->isChatter()) {
+            return $this->accessibleAgents()->whereKey($agent->id)->exists();
+        }
+
         return app(TeamService::class)->canAccessAgent(
             user: $this,
             team: $this->currentTeam,
@@ -809,17 +836,15 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function staff(): HasMany
     {
-        return $this->hasMany(User::class, 'managed_by_user_id')->where('created_via', CreatedVia::Internal);
+        return $this->hasMany(User::class, 'workspace_id')->where('type', UserType::Employee);
     }
 
     /**
-     * Whether this user may open the control panel. True if they own any team or
-     * belong to a team that allows dashboard access. Members of chat-only teams
-     * (and users with no team) are blocked.
+     * Whether this user may open the control panel. Only chatters are
+     * blocked — admins, workspace owners, and employees all reach the dashboard.
      */
     public function canAccessDashboard(): bool
     {
-        return $this->ownedTeams()->exists()
-            || $this->memberTeams()->where('teams.can_access_dashboard', true)->exists();
+        return $this->type !== UserType::Chatter;
     }
 }

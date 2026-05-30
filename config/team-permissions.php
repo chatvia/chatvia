@@ -143,6 +143,46 @@ return [
             'description' => 'Download leads as CSV or integrate with CRM',
             'requires' => ['agent.leads.view'],
         ],
+
+        // Agent administration (per-agent owner-style actions)
+        'agent.members.manage' => [
+            'label' => 'Agent Members',
+            'description' => 'Invite, view, and remove people granted access to this agent',
+        ],
+        'agent.business_profile.manage' => [
+            'label' => 'Agent Business Profile',
+            'description' => 'Edit the real business contact details the agent quotes when asked',
+        ],
+        'agent.identity.manage' => [
+            'label' => 'Agent Identity Verification',
+            'description' => 'View and use the per-agent signing secret for sign-in tokens',
+        ],
+
+        // Account (team-level settings — Settings sidebar items)
+        'account.api_keys' => [
+            'label' => 'API keys',
+            'description' => 'Create and revoke personal API tokens',
+        ],
+        'account.connectors' => [
+            'label' => 'Connectors',
+            'description' => 'Manage account-level third-party connectors (MCP servers)',
+        ],
+        'account.functions' => [
+            'label' => 'Functions',
+            'description' => 'Define webhook functions agents can call',
+        ],
+        'account.prompts' => [
+            'label' => 'Prompts',
+            'description' => 'Manage the shared prompts library',
+        ],
+        'account.templates' => [
+            'label' => 'Templates',
+            'description' => 'Manage agent templates used when spinning up new agents',
+        ],
+        'account.members.manage' => [
+            'label' => 'Members',
+            'description' => 'View, reset password, and remove chat members across the workspace',
+        ],
     ],
 
     /*
@@ -161,21 +201,51 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Permission Scopes
+    |--------------------------------------------------------------------------
+    |
+    | Top-level categories that group all permissions by what they govern.
+    | 'agent' permissions apply per-agent (to the agents the role grants access
+    | to); 'account' permissions apply once across the whole account / team
+    | and live under the Settings menu.
+    |
+    */
+
+    'scopes' => [
+        'agent' => [
+            'label' => 'Agent permissions',
+            'description' => 'What this role can do inside each agent it has access to. These actions apply per agent — picked from the Agent Access list above.',
+        ],
+        'account' => [
+            'label' => 'Account permissions',
+            'description' => 'Shared, account-wide tools and settings. These apply once across every agent and are managed from the Settings menu.',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Permission Groups (for UI display)
     |--------------------------------------------------------------------------
+    |
+    | Each group belongs to a scope. Within a scope, groups render side-by-side
+    | as cards on the Create / Edit Role page.
+    |
     */
 
     'groups' => [
-        'agent' => [
-            'label' => 'Agent',
-            'description' => 'Agent management',
+        // --- Agent scope ---
+        'setup' => [
+            'scope' => 'agent',
+            'label' => 'Setup',
+            'description' => 'Edit the agent itself — personality, models, widget, embed.',
             'permissions' => [
                 'agent.setup',
             ],
         ],
         'sources' => [
+            'scope' => 'agent',
             'label' => 'Sources',
-            'description' => 'Training management',
+            'description' => 'Manage the training data the agent learns from.',
             'permissions' => [
                 'agent.sources.train.files',
                 'agent.sources.train.text',
@@ -187,8 +257,9 @@ return [
             ],
         ],
         'chat' => [
+            'scope' => 'agent',
             'label' => 'Chat',
-            'description' => 'Conversation management',
+            'description' => 'Read, take over, export, or delete live conversations.',
             'permissions' => [
                 'agent.chat.view',
                 'agent.chat.pulse',
@@ -198,8 +269,9 @@ return [
             ],
         ],
         'analytics' => [
+            'scope' => 'agent',
             'label' => 'Analytics',
-            'description' => 'View performance data',
+            'description' => 'Inspect usage, sentiment, tone, topics, and source performance.',
             'permissions' => [
                 'agent.analytics.chats',
                 'agent.analytics.metrics',
@@ -210,19 +282,67 @@ return [
             ],
         ],
         'topics' => [
+            'scope' => 'agent',
             'label' => 'Topics',
-            'description' => 'Manage conversation topics',
+            'description' => 'Curate the topics conversations are grouped under.',
             'permissions' => [
                 'agent.topics.manage',
             ],
         ],
         'leads' => [
+            'scope' => 'agent',
             'label' => 'Leads',
-            'description' => 'Lead management',
+            'description' => 'See, configure, and export leads captured by the agent.',
             'permissions' => [
                 'agent.leads.view',
                 'agent.leads.settings',
                 'agent.leads.export',
+            ],
+        ],
+        'administration' => [
+            'scope' => 'agent',
+            'label' => 'Administration',
+            'description' => 'Owner-style per-agent tasks — members, business identity, signing secret.',
+            'permissions' => [
+                'agent.members.manage',
+                'agent.business_profile.manage',
+                'agent.identity.manage',
+            ],
+        ],
+
+        // --- Account scope ---
+        'security' => [
+            'scope' => 'account',
+            'label' => 'Security',
+            'description' => 'Personal credentials used to call the public API.',
+            'permissions' => [
+                'account.api_keys',
+            ],
+        ],
+        'integrations' => [
+            'scope' => 'account',
+            'label' => 'Integrations',
+            'description' => 'Connect third-party services and custom webhook functions, then attach them to any agent.',
+            'permissions' => [
+                'account.connectors',
+                'account.functions',
+            ],
+        ],
+        'library' => [
+            'scope' => 'account',
+            'label' => 'Library',
+            'description' => 'Reusable building blocks — prompts and agent templates shared across the account.',
+            'permissions' => [
+                'account.prompts',
+                'account.templates',
+            ],
+        ],
+        'people' => [
+            'scope' => 'account',
+            'label' => 'People',
+            'description' => 'Manage the chat members granted access to your agents.',
+            'permissions' => [
+                'account.members.manage',
             ],
         ],
     ],

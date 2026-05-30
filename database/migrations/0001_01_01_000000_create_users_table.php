@@ -10,32 +10,20 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->unique()->after('id');
+            $table->uuid('external_id')->unique();
             $table->string('name');
-            $table->string('email')->nullable()->unique();
-            $table->string('contact_email')->nullable();
-            $table->timestamp('email_verified_at')->index()->nullable();
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('type', ['admin', 'company', 'staff'])->default('company')->index();
-            $table->enum('created_via', ['internal', 'external'])->default('internal')->index();
+            $table->enum('type', ['admin', 'workspace', 'employee', 'chatter'])->default('workspace')->index();
+            $table->enum('source', ['dashboard', 'api'])->default('dashboard')->index();
             $table->rememberToken();
 
-            $table->foreignId('managed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('workspace_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('current_team_id')
                 ->nullable()
                 ->constrained('teams')
                 ->nullOnDelete();
-
-            $table->string('stripe_id')->nullable()->index();
-            $table->string('pm_type')->nullable();
-            $table->string('pm_last_four', 4)->nullable();
-            $table->timestamp('trial_ends_at')->nullable();
-
-            $table->string('google_id')->index()->nullable();
-            $table->string('microsoft_id')->index()->nullable();
-            $table->string('slack_id')->index()->nullable();
-            $table->string('linkedin_id')->index()->nullable();
-            $table->string('x_id')->index()->nullable();
 
             $table->ipAddress('registered_ip')->nullable();
             $table->char('registered_country_code', 5)->nullable();

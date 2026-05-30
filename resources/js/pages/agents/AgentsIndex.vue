@@ -8,7 +8,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import type { SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Bot, Code, Loader2, MessageSquare, Plus, Search } from 'lucide-vue-next';
+import { Bot, Loader2, Plus, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 const page = usePage<SharedData>();
@@ -55,7 +55,6 @@ const filteredAgents = computed(() => {
     return agents.value.filter(
         (agent) =>
             agent.name.toLowerCase().includes(query) ||
-            agent.type.toLowerCase().includes(query) ||
             (agent.sub_domain && agent.sub_domain.toLowerCase().includes(query)),
     );
 });
@@ -66,33 +65,6 @@ const formatDate = (dateString: string) => {
         month: 'short',
         day: 'numeric',
     });
-};
-
-const getAgentTypeStyle = (type: string) => {
-    const lowerType = type.toLowerCase();
-    if (lowerType === 'knowledge_base') {
-        return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
-    } else if (lowerType === 'widget') {
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
-    }
-    return 'bg-primary/10 text-primary';
-};
-
-const getAgentTypeIcon = (type: string) => {
-    const lowerType = type.toLowerCase();
-    if (lowerType === 'knowledge_base') {
-        return MessageSquare;
-    } else if (lowerType === 'widget') {
-        return Code;
-    }
-    return Bot;
-};
-
-const getAgentTypeLabel = (type: string) => {
-    const lowerType = type.toLowerCase();
-    if (lowerType === 'knowledge_base') return 'Knowledge base agent';
-    if (lowerType === 'widget') return 'Embeddable widget';
-    return 'Agent';
 };
 
 const openAgent = (agent: Agent) => {
@@ -163,23 +135,16 @@ const openAgent = (agent: Agent) => {
                         >
                             <TableCell class="py-4 pl-5">
                                 <div class="flex items-center gap-4">
-                                    <div
-                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
-                                        :class="getAgentTypeStyle(agent.type)"
-                                    >
-                                        <component :is="getAgentTypeIcon(agent.type)" class="h-5 w-5" />
+                                    <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
+                                        <Bot class="h-5 w-5" />
                                     </div>
                                     <div class="min-w-0">
                                         <p class="leading-tight font-medium">{{ agent.name }}</p>
-                                        <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ getAgentTypeLabel(agent.type) }}</p>
                                     </div>
                                 </div>
                             </TableCell>
                             <TableCell class="py-4 text-sm">{{ agent.total_messages || 0 }}</TableCell>
-                            <TableCell class="py-4 text-sm">
-                                <span v-if="agent.type.toLowerCase() === 'widget'" class="text-muted-foreground">—</span>
-                                <span v-else>{{ agent.total_members || 0 }}</span>
-                            </TableCell>
+                            <TableCell class="py-4 text-sm">{{ agent.total_members || 0 }}</TableCell>
                             <TableCell class="text-muted-foreground py-4 pr-5 text-sm">{{ formatDate(agent.created_at) }}</TableCell>
                         </TableRow>
                     </TableBody>

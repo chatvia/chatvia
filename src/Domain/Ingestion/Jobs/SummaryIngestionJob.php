@@ -102,7 +102,6 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'embedding_bm25' => Bm25Tokenizer::expression(strip_tags($summary)),
             'metadata' => $contentAnalysis->metadata->toArray(),
             'checksum' => hash('xxh128', $summary),
-            'retrieval_count' => 0,
         ]);
 
         Storage::delete($pdfFilepath);

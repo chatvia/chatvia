@@ -3,7 +3,6 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 import InputError from '@/components/InputError.vue';
-import TeamAccessRadio from '@/components/teams/TeamAccessRadio.vue';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -46,7 +45,6 @@ const isCreateDialogOpen = ref(false);
 
 const createForm = useForm({
     name: '',
-    can_access_dashboard: true,
 });
 
 const leaveForm = useForm({});
@@ -280,7 +278,6 @@ const formatDate = (dateString: string) => {
                             <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" required />
                             <InputError :message="createForm.errors.name" />
                         </div>
-                        <TeamAccessRadio v-model="createForm.can_access_dashboard" />
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" @click="isCreateDialogOpen = false"> Cancel </Button>

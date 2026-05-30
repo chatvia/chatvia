@@ -2,56 +2,34 @@
 
 namespace App\Http\Controllers\Api\V1\Sources;
 
+use App\Http\Requests\Api\V1\Sources\UploadSourceFileRequest;
+use App\Http\Resources\Api\V1\UploadedSourceFileData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Files\Enums\AgentFileStatusEnum;
+use Domain\Sources\Files\Actions\UploadKnowledgeSourceFileAction;
 use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 /**
- * Upload a file (PDF / Word / audio / video) as a knowledge source. The
- * file is persisted, attached to the agent, and queued for ingestion.
- * Allowed MIME types match the dashboard upload — anything else is rejected.
+ * Upload a file (PDF / Word / audio / video) as a knowledge source.
  */
 #[Group(name: 'Knowledge Sources', weight: 70)]
 class SourceFileController
 {
-    /**
-     * Upload file
-     *
-     * Multipart form upload. Field name: `file`. Max size enforced by the
-     * server's upload limit and the per-user page quota.
-     */
-    public function store(Request $request, Agent $agent): JsonResponse
+    /** @return JsonResponse|array{data: UploadedSourceFileData} */
+    public function store(UploadSourceFileRequest $request, Agent $agent, UploadKnowledgeSourceFileAction $upload): JsonResponse|array
     {
-        $request->validate(['file' => ['required', 'file']]);
-
-        $file = $request->file('file');
-
-        if (! is_pdf_file($file) && ! is_word_file($file) && ! is_audio_file($file) && ! is_video_file($file)) {
-            return response()->json([
-                'message' => 'Unsupported file type. Accepted: PDF, Word, audio, video.',
-            ], 422);
+        try {
+            $sourceFile = $upload->execute($agent, $request->file('file'));
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        $sourceFile = $agent->addFile($file, AgentFileStatusEnum::UPLOADED);
-
-        return response()->json([
-            'data' => [
-                'id' => $sourceFile->id,
-                'kind' => 'file',
-                'name' => $sourceFile->filename,
-                'mime_type' => $sourceFile->mime_type,
-                'size_kb' => $sourceFile->size_in_kb,
-                'status' => $sourceFile->status,
-            ],
-        ], 201);
+        return ['data' => UploadedSourceFileData::fromModel($sourceFile)];
     }
 
-    /**
-     * Delete file source
-     */
     public function destroy(Request $request, Agent $agent, int $source): JsonResponse
     {
         /** @var SourceFile $file */

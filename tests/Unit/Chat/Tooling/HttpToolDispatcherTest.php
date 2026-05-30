@@ -20,7 +20,6 @@ it('stamps the agent and owner identity headers on the webhook request', functio
         'external_id' => Str::random(14),
         'sub_domain' => Str::lower(Str::random(12)),
         'is_public' => false,
-        'collect_leads' => false,
         'analytics_enabled' => false,
         'created_via' => 'external',
     ]);

@@ -28,7 +28,7 @@ class AgentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isCompany();
+        return $user->isAdmin() || $user->isWorkspace();
     }
 
     /**

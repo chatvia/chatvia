@@ -22,7 +22,7 @@ class AgentQueryBuilder extends Builder
     {
         return $this->addSelect([
             'total_members' => DB::table('users')
-                ->whereColumn('users.managed_by_user_id', 'agents.user_id')
+                ->whereColumn('users.workspace_id', 'agents.user_id')
                 ->selectRaw('count(*)'),
         ]);
     }
@@ -63,6 +63,89 @@ class AgentQueryBuilder extends Builder
             ->withTotalMembers()
             ->withTotalMessages()
             ->withUniqueUsers();
+    }
+
+    /**
+     * Single-pass aggregate over visible messages of this agent. Replaces ~12
+     * separately-issued count/avg queries that all rejoined the same chain.
+     *
+     * Returns: total_assistant, total_user, total_conversations, avg_response_ms,
+     * total_tokens, avg_tokens, positive_feedback, negative_feedback,
+     * conversations_with_feedback, avg_messages_per_conversation,
+     * avg_conversation_duration_seconds, avg_first_response_seconds, peak_hour,
+     * first_data_date, unique_sessions.
+     */
+    public function aggregateStats(): object
+    {
+        $agentId = $this->getModel()->id;
+
+        $sql = <<<'SQL'
+WITH conv AS (
+    SELECT cc.id, cc.created_at
+    FROM chat_conversations cc
+    JOIN chat_sessions cs ON cs.id = cc.chat_session_id
+    WHERE cs.agent_id = ?
+      AND cc.visible = true
+      AND cc.deleted_at IS NULL
+),
+msg AS (
+    SELECT cm.id, cm.chat_conversation_id, cm.role, cm.feedback,
+           cm.response_time_ms, cm.prompt_tokens, cm.completion_tokens, cm.created_at
+    FROM chat_messages cm
+    JOIN conv ON conv.id = cm.chat_conversation_id
+),
+per_conv AS (
+    SELECT chat_conversation_id,
+           COUNT(*) AS msg_count,
+           EXTRACT(EPOCH FROM (MAX(created_at) - MIN(created_at))) AS duration_seconds,
+           MIN(CASE WHEN role = 'user'      THEN created_at END) AS first_user_at,
+           MIN(CASE WHEN role = 'assistant' THEN created_at END) AS first_assistant_at
+    FROM msg
+    GROUP BY chat_conversation_id
+),
+hour_bucket AS (
+    SELECT EXTRACT(HOUR FROM created_at)::int AS hour, COUNT(*) AS c
+    FROM conv
+    GROUP BY 1
+    ORDER BY c DESC
+    LIMIT 1
+),
+session_counts AS (
+    SELECT COUNT(*) AS unique_sessions
+    FROM chat_sessions
+    WHERE agent_id = ?
+)
+SELECT
+    COUNT(*) FILTER (WHERE m.role = 'assistant')                                       AS total_assistant,
+    COUNT(*) FILTER (WHERE m.role = 'user')                                            AS total_user,
+    COUNT(DISTINCT m.chat_conversation_id)                                             AS total_conversations,
+    AVG(m.response_time_ms) FILTER (WHERE m.role = 'assistant')                        AS avg_response_ms,
+    SUM(COALESCE(m.prompt_tokens, 0) + COALESCE(m.completion_tokens, 0))
+        FILTER (WHERE m.role = 'assistant')                                            AS total_tokens,
+    AVG(COALESCE(m.prompt_tokens, 0) + COALESCE(m.completion_tokens, 0))
+        FILTER (WHERE m.role = 'assistant')                                            AS avg_tokens,
+    COUNT(*) FILTER (WHERE m.feedback = 'positive' AND m.role = 'assistant')           AS positive_feedback,
+    COUNT(*) FILTER (WHERE m.feedback = 'negative' AND m.role = 'assistant')           AS negative_feedback,
+    COUNT(DISTINCT m.chat_conversation_id)
+        FILTER (WHERE m.feedback IS NOT NULL)                                          AS conversations_with_feedback,
+    (SELECT AVG(msg_count) FROM per_conv)                                              AS avg_messages_per_conversation,
+    (SELECT AVG(duration_seconds) FROM per_conv WHERE duration_seconds > 0)            AS avg_conversation_duration_seconds,
+    (SELECT AVG(EXTRACT(EPOCH FROM (first_assistant_at - first_user_at)))
+        FROM per_conv WHERE first_user_at IS NOT NULL AND first_assistant_at > first_user_at) AS avg_first_response_seconds,
+    (SELECT hour FROM hour_bucket)                                                     AS peak_hour,
+    (SELECT MIN(created_at)::date FROM conv)                                           AS first_data_date,
+    (SELECT unique_sessions FROM session_counts)                                       AS unique_sessions
+FROM msg m
+SQL;
+
+        return DB::selectOne($sql, [$agentId, $agentId]) ?? (object) [
+            'total_assistant' => 0, 'total_user' => 0, 'total_conversations' => 0,
+            'avg_response_ms' => null, 'total_tokens' => 0, 'avg_tokens' => null,
+            'positive_feedback' => 0, 'negative_feedback' => 0,
+            'conversations_with_feedback' => 0, 'avg_messages_per_conversation' => null,
+            'avg_conversation_duration_seconds' => null, 'avg_first_response_seconds' => null,
+            'peak_hour' => null, 'first_data_date' => null, 'unique_sessions' => 0,
+        ];
     }
 
     public function countAssistantMessages()

@@ -23,10 +23,8 @@
 
             <!-- Resizable split: configuration content | live preview -->
             <ResizablePanelGroup direction="horizontal" auto-save-id="widget-setup-preview" class="min-w-0 flex-1">
-                <!-- Configuration Content -->
                 <ResizablePanel :default-size="62" :min-size="35">
                     <div class="flex h-full flex-col overflow-hidden">
-                        <!-- Permission Warning Banner -->
                         <Alert v-if="!canEdit" variant="destructive" class="rounded-none border-x-0 border-t-0">
                             <Shield class="h-4 w-4" />
                             <AlertTitle>View Only</AlertTitle>
@@ -36,50 +34,23 @@
                         </Alert>
 
                         <div class="flex-1 overflow-y-auto" :class="{ 'pointer-events-none opacity-60 select-none': !canEdit }">
+                            <div v-if="attached_template" class="px-6 pt-6">
+                                <AgentTemplateBanner :agent-id="agent.external_id" :attached-template="attached_template" />
+                            </div>
+
                             <!-- Text Panel -->
-                            <div v-if="activeTab === 'text'" class="space-y-6 p-6">
+                            <div v-if="activeTab === 'info'" class="space-y-6 p-6">
                                 <form @submit.prevent="updateWidgetSettings" class="space-y-6">
-                                    <div class="space-y-2">
-                                        <Label for="chat_window_title">Chat Title</Label>
-                                        <Input id="chat_window_title" v-model="appearanceForm.chat_window_title" placeholder="Chat with us" />
-                                        <p v-if="appearanceForm.errors.chat_window_title" class="text-destructive text-sm">
-                                            {{ appearanceForm.errors.chat_window_title }}
-                                        </p>
-                                        <p class="text-muted-foreground text-xs">This title appears at the top of the chat window</p>
-                                    </div>
+                                    <TextSection
+                                        v-model:welcome-message="appearanceForm.welcome_message"
+                                        v-model:chat-window-title="appearanceForm.chat_window_title"
+                                        v-model:chat-footer-text="appearanceForm.chat_footer_text"
+                                        v-model:composer-placeholder="appearanceForm.composer_placeholder"
+                                        :errors="appearanceForm.errors as Record<string, string | undefined>"
+                                        :disabled="locked"
+                                    />
 
-                                    <div class="space-y-2">
-                                        <Label for="welcome_message">Welcome Message</Label>
-                                        <Input
-                                            id="welcome_message"
-                                            v-model="appearanceForm.welcome_message"
-                                            placeholder="Hello! How can I help you today?"
-                                        />
-                                        <p v-if="appearanceForm.errors.welcome_message" class="text-destructive text-sm">
-                                            {{ appearanceForm.errors.welcome_message }}
-                                        </p>
-                                        <p class="text-muted-foreground text-xs">First message users see when opening the widget</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <Label>Chat Bubbles</Label>
-                                        <p class="text-muted-foreground mb-2 text-xs">Quick message prompts to help users start conversations</p>
-
-                                        <TagsInput v-model="widgetForm.bubbles" class="w-full">
-                                            <TagsInputItem v-for="(bubble, index) in widgetForm.bubbles" :key="index" :value="bubble">
-                                                <TagsInputItemText />
-                                                <TagsInputItemDelete />
-                                            </TagsInputItem>
-                                            <TagsInputInput placeholder="e.g., How can I help you?" />
-                                        </TagsInput>
-
-                                        <p v-if="widgetForm.errors.bubbles" class="text-destructive text-sm">
-                                            {{ widgetForm.errors.bubbles }}
-                                        </p>
-                                    </div>
-
-                                    <!-- Save Button -->
-                                    <div class="border-t pt-4">
+                                    <div v-if="!locked" class="border-t pt-4">
                                         <Button type="submit" :disabled="!canEdit || isSubmitting || !hasUnsavedChanges" size="sm">
                                             <Save class="mr-2 h-4 w-4" />
                                             {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
@@ -89,175 +60,118 @@
                                 </form>
                             </div>
 
-                            <!-- Persona Panel -->
-                            <div v-if="activeTab === 'persona'" class="p-6">
-                                <AgentPersonaEditor
-                                    :agent-id="agent.external_id"
-                                    :initial-instructions="agent.system_instructions"
-                                    :initial-prompt-id="agent.prompt_id"
-                                    @saved="refreshPreview"
-                                />
-                            </div>
-
                             <!-- Starters Panel -->
-                            <div v-if="activeTab === 'starters'" class="space-y-4 p-6">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <h3 class="text-sm font-medium">Conversation Starters</h3>
-                                        <p class="text-muted-foreground mt-1 text-xs">Suggest questions to help users start conversations</p>
-                                    </div>
-                                    <Button type="button" variant="outline" size="sm" @click="showAddStarterDialog = true" :disabled="!canEdit">
-                                        <PlusCircle class="mr-2 h-4 w-4" />
-                                        Add Starter
-                                    </Button>
-                                </div>
+                            <div v-if="activeTab === 'starters'" class="space-y-6 p-6">
+                                <div class="space-y-4">
+                                    <StartersSection v-model:starters="starters" :disabled="locked" />
 
-                                <div class="rounded-md border">
-                                    <div v-if="starters.length === 0" class="text-muted-foreground p-4 text-center text-sm">
-                                        No starter messages yet
-                                    </div>
-                                    <div
-                                        v-for="starter in starters"
-                                        :key="starter.id"
-                                        class="flex items-center justify-between border-b p-3 last:border-0"
-                                    >
-                                        <div class="flex items-center gap-3">
-                                            <MessageSquare class="text-muted-foreground h-4 w-4" />
-                                            <div class="text-sm">{{ starter.text }}</div>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            class="text-destructive hover:text-destructive/80 h-8 w-8 p-0"
-                                            size="sm"
-                                            variant="ghost"
-                                            :disabled="!canEdit"
-                                            @click="removeStarter(starter.id)"
-                                        >
-                                            <Trash2 class="h-4 w-4" />
+                                    <div v-if="!locked">
+                                        <Button type="button" size="sm" :disabled="!canEdit || isSavingStarters" @click="saveStarters">
+                                            <Save class="mr-2 h-4 w-4" />
+                                            {{ isSavingStarters ? 'Saving...' : 'Save starters' }}
                                         </Button>
-                                    </div>
-                                </div>
-
-                                <Alert>
-                                    <Info class="h-4 w-4" />
-                                    <AlertDescription>
-                                        Good starter messages are specific questions that showcase your agent's capabilities
-                                    </AlertDescription>
-                                </Alert>
-                            </div>
-
-                            <!-- Models Panel -->
-                            <div v-if="activeTab === 'models'" class="p-6">
-                                <AgentModelSelector
-                                    :agent-id="agent.external_id"
-                                    description="Select which AI model to use for your widget"
-                                    @saved="refreshPreview"
-                                />
-                            </div>
-
-                            <!-- Colors Panel -->
-                            <div v-if="activeTab === 'colors'" class="space-y-2 p-6">
-                                <Label>Widget Color</Label>
-                                <p class="text-muted-foreground mb-3 text-xs">Choose the primary color for your widget</p>
-
-                                <div class="relative inline-block cursor-pointer" @click="showColorPicker = true">
-                                    <div
-                                        class="border-border h-20 w-20 rounded-lg border-2 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md"
-                                        :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"
-                                    >
-                                        <div class="flex h-full items-center justify-center">
-                                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-lg">
-                                                <div
-                                                    class="h-6 w-6 rounded-full"
-                                                    :style="{ backgroundColor: `var(--${appearanceForm.color_theme}-${appearanceForm.color_shade})` }"
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <p v-if="appearanceForm.errors.color_theme" class="text-destructive text-sm">
-                                    {{ appearanceForm.errors.color_theme }}
-                                </p>
-                            </div>
-
-                            <!-- Behavior Panel -->
-                            <div v-if="activeTab === 'behavior'" class="space-y-6 p-6">
-                                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                    <div class="space-y-2">
-                                        <Label for="position">Position</Label>
-                                        <Select v-model="widgetForm.position" @update:model-value="saveBehaviorSettings">
-                                            <SelectTrigger class="w-full">
-                                                <SelectValue placeholder="Select position" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="bottom-right">Bottom Right</SelectItem>
-                                                <SelectItem value="bottom-left">Bottom Left</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <p class="text-muted-foreground text-xs">Where the widget appears on the page</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <Label for="window_size">Window Size</Label>
-                                        <Select v-model="widgetForm.window_size" @update:model-value="saveBehaviorSettings">
-                                            <SelectTrigger class="w-full">
-                                                <SelectValue placeholder="Select size" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="small">Small</SelectItem>
-                                                <SelectItem value="medium">Medium</SelectItem>
-                                                <SelectItem value="large">Large</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <p class="text-muted-foreground text-xs">Chat window dimensions</p>
                                     </div>
                                 </div>
 
                                 <Separator />
 
                                 <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <div class="space-y-0.5">
-                                            <Label for="show_on_load">Auto-open Widget</Label>
-                                            <p class="text-muted-foreground text-xs">Automatically show widget when page loads</p>
-                                        </div>
-                                        <Switch
-                                            id="show_on_load"
-                                            :model-value="widgetForm.show_on_load"
-                                            @update:model-value="
-                                                (value: any) => {
-                                                    widgetForm.show_on_load = value;
-                                                    saveBehaviorSettings();
-                                                }
-                                            "
-                                        />
+                                    <div>
+                                        <h3 class="text-sm font-medium">Chat Bubbles</h3>
+                                        <p class="text-muted-foreground mt-1 text-xs">
+                                            Quick message prompts shown next to the widget bubble. Press Enter to add each one.
+                                        </p>
                                     </div>
 
-                                    <div v-if="widgetForm.show_on_load" class="space-y-2">
-                                        <Label for="show_on_load_delay">Display Delay (ms)</Label>
-                                        <Input
-                                            id="show_on_load_delay"
-                                            v-model.number="widgetForm.show_on_load_delay"
-                                            type="number"
-                                            min="0"
-                                            step="100"
-                                            placeholder="500"
-                                            @blur="saveBehaviorSettings"
-                                        />
-                                        <p class="text-muted-foreground text-xs">Time to wait before showing the widget</p>
+                                    <TagsInput v-model="widgetForm.bubbles" :disabled="locked" class="w-full">
+                                        <TagsInputItem v-for="(bubble, index) in widgetForm.bubbles" :key="index" :value="bubble">
+                                            <TagsInputItemText />
+                                            <TagsInputItemDelete />
+                                        </TagsInputItem>
+                                        <TagsInputInput placeholder="e.g., How can I help you?" />
+                                    </TagsInput>
+
+                                    <p v-if="widgetForm.errors.bubbles" class="text-destructive text-sm">
+                                        {{ widgetForm.errors.bubbles }}
+                                    </p>
+
+                                    <div v-if="!locked">
+                                        <Button type="button" size="sm" :disabled="!canEdit || isSavingBubbles" @click="saveBubbles">
+                                            <Save class="mr-2 h-4 w-4" />
+                                            {{ isSavingBubbles ? 'Saving...' : 'Save bubbles' }}
+                                        </Button>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Models Panel -->
+                            <div v-if="activeTab === 'models'" class="space-y-6 p-6">
+                                <ModelsSection
+                                    v-model:models="modelsForm.models"
+                                    v-model:llm-settings="modelsForm.llm_settings"
+                                    :catalog="catalog"
+                                    single
+                                    show-response-settings
+                                    :disabled="locked"
+                                />
+
+                                <div v-if="!locked" class="border-t pt-4">
+                                    <Button type="button" size="sm" :disabled="!canEdit || !hasModelChanges || isSavingModels" @click="saveModels">
+                                        <Save class="mr-2 h-4 w-4" />
+                                        {{ isSavingModels ? 'Saving...' : 'Save model' }}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <!-- Branding Panel -->
+                            <div v-if="activeTab === 'branding'" class="space-y-6 p-6">
+                                <BrandingSection
+                                    v-model:color-theme="appearanceForm.color_theme"
+                                    v-model:color-shade="appearanceForm.color_shade"
+                                    :avatar-preview="avatarPreview"
+                                    :logo-preview="logoPreview"
+                                    :errors="appearanceForm.errors as Record<string, string | undefined>"
+                                    :disabled="locked"
+                                    @color-apply="saveColorSettings"
+                                    @avatar-select="onAvatarSelect"
+                                    @avatar-remove="removeAvatar"
+                                    @logo-select="onLogoSelect"
+                                    @logo-remove="removeLogo"
+                                />
+                            </div>
+
+                            <!-- Behavior Panel -->
+                            <div v-if="activeTab === 'behavior'" class="space-y-6 p-6">
+                                <BehaviorSection
+                                    v-model:position="widgetForm.position"
+                                    v-model:window-size="widgetForm.window_size"
+                                    v-model:show-on-load="widgetForm.show_on_load"
+                                    v-model:show-on-load-delay="widgetForm.show_on_load_delay"
+                                    v-model:theme-color="widgetForm.theme_color"
+                                    v-model:theme-shade="widgetForm.theme_shade"
+                                    show-widget-color
+                                    :disabled="locked"
+                                    @update:position="saveBehaviorSettings"
+                                    @update:window-size="saveBehaviorSettings"
+                                    @update:show-on-load="saveBehaviorSettings"
+                                    @theme-apply="saveBehaviorSettings"
+                                />
+
+                                <div v-if="widgetForm.show_on_load" class="border-t pt-4">
+                                    <Button type="button" size="sm" @click="saveBehaviorSettings" :disabled="locked || !canEdit">
+                                        <Save class="mr-2 h-4 w-4" />
+                                        Save delay
+                                    </Button>
                                 </div>
 
                                 <Alert>
                                     <Info class="h-4 w-4" />
-                                    <AlertDescription> Position, window size, and chat bubbles are visible in preview mode </AlertDescription>
+                                    <AlertDescription>Position, window size, theme color, and chat bubbles are visible in preview mode</AlertDescription>
                                 </Alert>
                             </div>
 
                             <!-- Embed Panel -->
                             <div v-if="activeTab === 'embed'" class="space-y-6 p-6">
-                                <!-- Allowed Websites Section -->
                                 <form @submit.prevent="saveSecuritySettings">
                                     <Alert v-if="!widgetForm.sites || widgetForm.sites.length === 0" variant="destructive" class="mb-4">
                                         <Shield class="h-4 w-4" />
@@ -267,28 +181,15 @@
                                         </AlertDescription>
                                     </Alert>
 
-                                    <div class="space-y-2">
-                                        <Label>Allowed Websites</Label>
-                                        <p class="text-muted-foreground mb-2 text-xs">
-                                            Enter domains that can use this widget (without https://). Press Enter to add.
-                                        </p>
+                                    <SecuritySection
+                                        v-model:sites="widgetForm.sites"
+                                        :show-is-public="false"
+                                        show-sites
+                                        :errors="widgetForm.errors as Record<string, string | undefined>"
+                                        :disabled="locked"
+                                    />
 
-                                        <TagsInput v-model="widgetForm.sites" class="w-full">
-                                            <TagsInputItem v-for="(site, index) in widgetForm.sites" :key="index" :value="site">
-                                                <TagsInputItemText />
-                                                <TagsInputItemDelete />
-                                            </TagsInputItem>
-                                            <TagsInputInput placeholder="example.com" />
-                                        </TagsInput>
-
-                                        <p v-if="widgetForm.errors.sites" class="text-destructive text-sm">
-                                            {{ widgetForm.errors.sites }}
-                                        </p>
-
-                                        <p class="text-muted-foreground text-xs">Examples: example.com, www.example.com, *.example.com</p>
-                                    </div>
-
-                                    <div class="pt-3">
+                                    <div v-if="!locked" class="pt-3">
                                         <Button type="submit" :disabled="!canEdit || !hasSecurityChanges" size="sm">
                                             <Save class="mr-2 h-4 w-4" />
                                             Save Domains
@@ -296,10 +197,10 @@
                                     </div>
                                 </form>
 
-                                <!-- Language Selection Section -->
+                                <!-- Language Selection -->
                                 <div class="space-y-2 border-t pt-4">
                                     <Label for="widget-language">Widget Language</Label>
-                                    <Select v-model="selectedLanguage">
+                                    <Select v-model="selectedLanguage" :disabled="locked" @update:model-value="saveBehaviorSettings">
                                         <SelectTrigger id="widget-language" class="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
@@ -314,7 +215,36 @@
                                     </p>
                                 </div>
 
-                                <!-- Embed Code Section -->
+                                <!-- Theme Selection -->
+                                <div class="space-y-2 border-t pt-4">
+                                    <Label for="widget-theme">Widget Theme</Label>
+                                    <Select v-model="selectedTheme" :disabled="locked" @update:model-value="saveBehaviorSettings">
+                                        <SelectTrigger id="widget-theme" class="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="auto">Auto (System)</SelectItem>
+                                            <SelectItem value="light">Light</SelectItem>
+                                            <SelectItem value="dark">Dark</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <p class="text-muted-foreground text-xs">
+                                        Choose the widget color scheme. Auto follows the visitor's operating system preference.
+                                    </p>
+                                </div>
+
+                                <!-- Display Mode -->
+                                <div class="flex items-center justify-between border-t pt-4">
+                                    <div class="space-y-0.5">
+                                        <Label for="widget-bar-mode">Bar mode</Label>
+                                        <p class="text-muted-foreground text-xs">
+                                            Embed as a launcher bar that opens a slider panel, instead of a floating chat bubble.
+                                        </p>
+                                    </div>
+                                    <Switch id="widget-bar-mode" v-model="isBarMode" />
+                                </div>
+
+                                <!-- Embed Code -->
                                 <div class="space-y-4 border-t pt-4">
                                     <div>
                                         <h3 class="mb-1 text-sm font-medium">Installation Code</h3>
@@ -340,7 +270,19 @@
                                         </div>
                                     </div>
 
-                                    <!-- JavaScript API Button -->
+                                    <Alert v-if="isProtected">
+                                        <Shield class="h-4 w-4" />
+                                        <AlertTitle>This widget is protected</AlertTitle>
+                                        <AlertDescription>
+                                            Replace
+                                            <code class="bg-muted rounded px-1 py-0.5 text-xs">YOUR_SIGNED_TOKEN</code>
+                                            with a JWT you sign on your server for each visitor — without a valid token the widget won't load.
+                                            <Link :href="route('agents.identity', { agent: props.agent.external_id })" class="text-primary font-medium hover:underline">
+                                                Open Security settings
+                                            </Link>
+                                        </AlertDescription>
+                                    </Alert>
+
                                     <Button type="button" variant="outline" class="w-full justify-start gap-2" @click="showApiDocsDialog = true">
                                         <Terminal class="h-4 w-4" />
                                         JavaScript API Documentation
@@ -356,10 +298,19 @@
                 <!-- Live Preview -->
                 <ResizablePanel :default-size="38" :min-size="25">
                     <div class="bg-background flex h-full flex-col">
-                        <!-- Preview Header -->
                         <div class="flex flex-shrink-0 items-center justify-between border-b px-4 py-3">
                             <span class="text-muted-foreground text-sm font-medium">Live Preview</span>
                             <div class="flex items-center gap-1">
+                                <RadioGroup v-model="mode" orientation="horizontal" class="mr-2 flex items-center gap-3">
+                                    <div class="flex items-center gap-1.5">
+                                        <RadioGroupItem id="preview-mode-widget" value="widget" />
+                                        <Label for="preview-mode-widget" class="text-muted-foreground cursor-pointer text-xs">Widget</Label>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <RadioGroupItem id="preview-mode-bar" value="bar" />
+                                        <Label for="preview-mode-bar" class="text-muted-foreground cursor-pointer text-xs">Bar</Label>
+                                    </div>
+                                </RadioGroup>
                                 <Button type="button" variant="ghost" size="sm" class="h-8 gap-1.5" @click="refreshPreview">
                                     <RotateCcw class="h-3.5 w-3.5" />
                                     <span class="text-xs">Refresh</span>
@@ -371,7 +322,6 @@
                             </div>
                         </div>
 
-                        <!-- Preview Frame -->
                         <div class="flex-1 overflow-hidden">
                             <iframe
                                 :key="previewKey"
@@ -386,167 +336,7 @@
             </ResizablePanelGroup>
         </div>
 
-        <!-- Widget Preview Modal -->
         <PreviewModal v-model="showPreviewModal" preview-type="widget" :preview-url="fullPreviewUrl" iframe-title="Widget Preview" />
-
-        <!-- Color Picker Dialog -->
-        <Dialog v-model:open="showColorPicker">
-            <DialogContent class="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle class="flex items-center gap-2">
-                        <Palette class="h-5 w-5" />
-                        Choose Widget Color
-                    </DialogTitle>
-                    <DialogDescription> Select a color and shade for your widget's primary theme </DialogDescription>
-                </DialogHeader>
-
-                <div class="space-y-6">
-                    <!-- Color Grid -->
-                    <div class="grid grid-cols-8 gap-2">
-                        <div
-                            v-for="theme in [
-                                'black',
-                                'red',
-                                'orange',
-                                'amber',
-                                'yellow',
-                                'lime',
-                                'green',
-                                'emerald',
-                                'teal',
-                                'cyan',
-                                'sky',
-                                'blue',
-                                'indigo',
-                                'violet',
-                                'purple',
-                                'fuchsia',
-                                'pink',
-                                'rose',
-                                'slate',
-                                'gray',
-                                'zinc',
-                                'neutral',
-                                'stone',
-                            ]"
-                            :key="theme"
-                            class="group relative cursor-pointer"
-                            @click="appearanceForm.color_theme = theme"
-                        >
-                            <div
-                                class="h-12 w-full rounded-lg border-2 shadow-sm transition-all duration-200"
-                                :class="{
-                                    'border-primary ring-primary/20 ring-2': appearanceForm.color_theme === theme,
-                                    'border-border hover:border-primary/50 hover:shadow-md': appearanceForm.color_theme !== theme,
-                                }"
-                                :style="{
-                                    backgroundColor: `var(--${theme}-${appearanceForm.color_shade})`,
-                                }"
-                            >
-                                <div class="flex h-full items-center justify-center">
-                                    <div
-                                        v-if="appearanceForm.color_theme === theme"
-                                        class="flex h-6 w-6 scale-100 transform items-center justify-center rounded-full bg-white shadow-lg transition-transform duration-200"
-                                    >
-                                        <div
-                                            class="h-3 w-3 rounded-full"
-                                            :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"
-                                        ></div>
-                                    </div>
-                                    <div
-                                        v-else
-                                        class="flex h-6 w-6 scale-75 transform items-center justify-center rounded-full bg-white/80 opacity-0 shadow-sm transition-all duration-200 group-hover:scale-100 group-hover:opacity-100"
-                                    >
-                                        <div
-                                            class="h-3 w-3 rounded-full"
-                                            :style="{ backgroundColor: `var(--${theme}-${appearanceForm.color_shade})` }"
-                                        ></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <p
-                                class="mt-1 text-center text-xs font-medium capitalize transition-colors duration-200"
-                                :class="{
-                                    'text-primary': appearanceForm.color_theme === theme,
-                                    'text-muted-foreground': appearanceForm.color_theme !== theme,
-                                }"
-                            >
-                                {{ theme }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Color Shade Slider -->
-                    <div class="space-y-2">
-                        <Label class="text-sm">Color Intensity</Label>
-                        <div class="px-1">
-                            <input
-                                type="range"
-                                min="50"
-                                max="950"
-                                step="50"
-                                v-model="appearanceForm.color_shade"
-                                class="slider h-3 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
-                                :style="{
-                                    background: `linear-gradient(to right, var(--${appearanceForm.color_theme}-50), var(--${appearanceForm.color_theme}-950))`,
-                                }"
-                                @input="
-                                    (e: Event) => {
-                                        const target = e.target as HTMLInputElement;
-                                        const value = parseInt(target.value);
-                                        const validShades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-                                        const closest = validShades.reduce((prev, curr) =>
-                                            Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev,
-                                        );
-                                        appearanceForm.color_shade = closest;
-                                    }
-                                "
-                            />
-                        </div>
-                        <div class="text-muted-foreground flex justify-between text-xs">
-                            <span>Light</span>
-                            <span class="font-medium">{{ appearanceForm.color_shade }}</span>
-                            <span>Dark</span>
-                        </div>
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button
-                        @click="
-                            () => {
-                                saveColorSettings();
-                                showColorPicker = false;
-                            }
-                        "
-                        :disabled="!canEdit"
-                    >
-                        Apply & Save
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        <!-- Add Starter Dialog -->
-        <Dialog v-model:open="showAddStarterDialog">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Add Starter Message</DialogTitle>
-                    <DialogDescription> Create a new conversation starter for your users </DialogDescription>
-                </DialogHeader>
-                <div class="py-4">
-                    <Label class="mb-2" for="starter-message">Message Text</Label>
-                    <Textarea id="starter-message" v-model="starterMessageForm.text" placeholder="E.g., How can I track my order?" rows="3" />
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" @click="showAddStarterDialog = false"> Cancel </Button>
-                    <Button :disabled="!canEdit || !starterMessageForm.text.trim()" @click="addStarterMessage">
-                        <PlusCircle class="mr-2 h-4 w-4" />
-                        Add Message
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
 
         <!-- JavaScript API Documentation Dialog -->
         <Dialog v-model:open="showApiDocsDialog">
@@ -556,11 +346,10 @@
                         <Terminal class="h-5 w-5" />
                         JavaScript API
                     </DialogTitle>
-                    <DialogDescription> Control the chat widget programmatically using these methods and events </DialogDescription>
+                    <DialogDescription>Control the chat widget programmatically using these methods and events</DialogDescription>
                 </DialogHeader>
 
                 <div class="flex-1 space-y-6 overflow-y-auto pr-2">
-                    <!-- Methods Table -->
                     <div class="space-y-3">
                         <div class="flex items-center gap-2">
                             <Zap class="h-4 w-4 text-amber-500" />
@@ -586,7 +375,6 @@
                         </div>
                     </div>
 
-                    <!-- Events Section -->
                     <div class="space-y-3">
                         <div class="flex items-center gap-2">
                             <Zap class="h-4 w-4 text-emerald-500" />
@@ -639,7 +427,6 @@
                         </div>
                     </div>
 
-                    <!-- Quick Example -->
                     <Alert class="bg-primary/5 border-primary/20">
                         <Info class="text-primary h-4 w-4" />
                         <AlertDescription class="text-sm">
@@ -652,7 +439,7 @@
                 </div>
 
                 <DialogFooter class="mt-4">
-                    <Button variant="outline" @click="showApiDocsDialog = false"> Close </Button>
+                    <Button variant="outline" @click="showApiDocsDialog = false">Close</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -660,45 +447,41 @@
 </template>
 
 <script setup lang="ts">
-import AgentModelSelector from '@/components/agents/AgentModelSelector.vue';
-import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
+import AgentTemplateBanner from '@/components/agents/AgentTemplateBanner.vue';
+import BehaviorSection from '@/components/agents/sections/BehaviorSection.vue';
+import BrandingSection from '@/components/agents/sections/BrandingSection.vue';
+import ModelsSection from '@/components/agents/sections/ModelsSection.vue';
+import SecuritySection from '@/components/agents/sections/SecuritySection.vue';
+import StartersSection from '@/components/agents/sections/StartersSection.vue';
+import TextSection from '@/components/agents/sections/TextSection.vue';
 import PreviewModal from '@/components/PreviewModal.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
-import { Textarea } from '@/components/ui/textarea';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { useForm } from '@inertiajs/vue3';
+import { Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import {
-    Bot,
-    Brain,
-    Code,
-    Copy,
-    Eye,
-    Info,
-    MessageSquare,
-    Palette,
-    PlusCircle,
-    RotateCcw,
-    Save,
-    Settings,
-    Shield,
-    Terminal,
-    Trash2,
-    Type,
-    Zap,
-} from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { Brain, Code, Copy, Eye, Image, Info, MessageSquare, RotateCcw, Save, Settings, Shield, Terminal, Type, Zap } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { route } from 'ziggy-js';
+
+type AIModel = Domain.Chat.Data.LlmModelData;
+
+interface LlmSettings {
+    temperature: number;
+    top_k: number;
+    top_p: number;
+    presence_penalty: number;
+    frequency_penalty: number;
+}
 
 interface Props {
     agent: Domain.Agents.Data.Resources.AgentResourceData;
@@ -706,19 +489,29 @@ interface Props {
     appearanceSettings: any;
     embedScriptUrl: string;
     availableLanguages: Record<string, string>;
-    starters: Array<{ id: number; text: string }>;
+    starters: string[];
     has_permission: boolean;
+    agent_template_id: string | null;
+    attached_template: { id: string; name: string } | null;
+    catalog: AIModel[];
+    selectedModels: string[];
+    llmSettings: LlmSettings;
+    defaultLlmSettings: LlmSettings;
 }
 
 const props = defineProps<Props>();
 
-// Permission check
 const canEdit = computed(() => props.has_permission);
 
-// Separate forms for different setting groups
+// When a template is attached the agent reads its config from the template, so
+// the per-agent setup fields are locked until the user detaches.
+const locked = computed(() => props.agent_template_id !== null);
+
 const appearanceForm = useForm({
-    welcome_message: props.appearanceSettings.welcome_message,
-    chat_window_title: props.appearanceSettings.chat_window_title,
+    welcome_message: props.appearanceSettings.welcome_message ?? '',
+    chat_window_title: props.appearanceSettings.chat_window_title ?? '',
+    chat_footer_text: props.appearanceSettings.chat_footer_text ?? '',
+    composer_placeholder: props.appearanceSettings.composer_placeholder ?? '',
     color_theme: props.appearanceSettings.color_theme,
     color_shade: props.appearanceSettings.color_shade,
 });
@@ -728,36 +521,66 @@ const widgetForm = useForm({
     show_on_load: props.widgetSettings.show_on_load,
     show_on_load_delay: props.widgetSettings.show_on_load_delay,
     window_size: props.widgetSettings.window_size,
-    bubbles: props.widgetSettings.bubbles || [], // Initialize bubbles
-    sites: props.widgetSettings.sites || [], // Initialize sites
+    theme_color: props.widgetSettings.theme_color ?? props.appearanceSettings.color_theme,
+    theme_shade: props.widgetSettings.theme_shade ?? props.appearanceSettings.color_shade,
+    bubbles: props.widgetSettings.bubbles || [],
+    sites: props.widgetSettings.sites || [],
 });
 
-// Menu items for navigation
+const modelsForm = useForm({
+    models: [...props.selectedModels],
+    llm_settings: { ...props.llmSettings } as LlmSettings,
+});
+
+const originalModelIds = ref<string[]>([...props.selectedModels]);
+const originalLlmSettings = ref<LlmSettings>({ ...props.llmSettings });
+
+// Persona lives at the agent level (top-level sidebar item) since it's shared
+// across every surface — it's intentionally NOT a sub-tab here.
 const menuItems = [
-    { value: 'text', label: 'Text', icon: Type },
-    { value: 'persona', label: 'Persona', icon: Bot },
+    { value: 'info', label: 'Text', icon: Type },
     { value: 'starters', label: 'Starters', icon: MessageSquare },
     { value: 'models', label: 'Model', icon: Brain },
-    { value: 'colors', label: 'Colors', icon: Palette },
+    { value: 'branding', label: 'Branding', icon: Image },
     { value: 'behavior', label: 'Behavior', icon: Settings },
     { value: 'embed', label: 'Embed', icon: Code },
 ];
 
-// States
-const activeTab = ref('text');
+const activeTab = ref('info');
 const isPreviewResizing = ref(false);
 const isSubmitting = ref(false);
 const showSuccessMessage = ref(false);
 const showPreviewModal = ref(false);
-const showColorPicker = ref(false);
 const previewKey = ref(0);
-const showAddStarterDialog = ref(false);
-const starterMessageForm = ref({ text: '' });
-const starters = ref(props.starters || []);
+const starters = ref<string[]>(props.starters || []);
+const isSavingStarters = ref(false);
+const isSavingBubbles = ref(false);
+const isSavingModels = ref(false);
+const avatarPreview = ref<string | null>(props.appearanceSettings.avatar || null);
+const logoPreview = ref<string | null>(props.appearanceSettings.logo || null);
 const showApiDocsDialog = ref(false);
-const selectedLanguage = ref('auto');
+const selectedLanguage = ref(props.widgetSettings.language ?? 'auto');
+const selectedTheme = ref<'auto' | 'light' | 'dark'>(props.widgetSettings.theme ?? 'auto');
 
-// API documentation data
+// A protected widget (is_public = false) requires a signed `data-auth` JWT to
+// load; a public one embeds with no token. The toggle lives on the Security
+// page now — here we just read the current state to shape the embed snippet.
+const isProtected = computed(() => !props.agent.is_public);
+
+// Widget display mode: 'widget' (floating chat bubble) or 'bar' (launcher bar).
+// Local-only choice that drives the live preview and the generated embed snippet.
+const mode = ref<'widget' | 'bar'>('widget');
+const isBarMode = computed({
+    get: () => mode.value === 'bar',
+    set: (value: boolean) => {
+        mode.value = value ? 'bar' : 'widget';
+    },
+});
+
+watch(mode, () => {
+    previewKey.value += 1;
+});
+
 const apiMethods = [
     { method: 'window.chatvia.open()', description: 'Opens the chat window' },
     { method: 'window.chatvia.close()', description: 'Closes the chat window' },
@@ -803,81 +626,58 @@ const copyApiCode = async (code: string) => {
     }
 };
 
-// Computed properties for header button states
 const hasUnsavedChanges = computed(() => {
-    // Check if any form data has changed from initial values
-    const appearanceChanged =
-        appearanceForm.welcome_message !== props.appearanceSettings.welcome_message ||
-        appearanceForm.chat_window_title !== props.appearanceSettings.chat_window_title ||
-        appearanceForm.color_theme !== props.appearanceSettings.color_theme ||
-        appearanceForm.color_shade !== props.appearanceSettings.color_shade;
-
-    const widgetChanged =
-        widgetForm.position !== props.widgetSettings.position ||
-        widgetForm.show_on_load !== props.widgetSettings.show_on_load ||
-        widgetForm.show_on_load_delay !== props.widgetSettings.show_on_load_delay ||
-        widgetForm.window_size !== props.widgetSettings.window_size ||
-        JSON.stringify(widgetForm.bubbles) !== JSON.stringify(props.widgetSettings.bubbles || []) ||
-        JSON.stringify(widgetForm.sites) !== JSON.stringify(props.widgetSettings.sites || []);
-
-    return appearanceChanged || widgetChanged;
-});
-
-const _hasFormErrors = computed(() => {
-    return Object.keys(appearanceForm.errors).length > 0 || Object.keys(widgetForm.errors).length > 0;
+    return (
+        appearanceForm.welcome_message !== (props.appearanceSettings.welcome_message ?? '') ||
+        appearanceForm.chat_window_title !== (props.appearanceSettings.chat_window_title ?? '') ||
+        appearanceForm.chat_footer_text !== (props.appearanceSettings.chat_footer_text ?? '') ||
+        appearanceForm.composer_placeholder !== (props.appearanceSettings.composer_placeholder ?? '')
+    );
 });
 
 const hasSecurityChanges = computed(() => {
     return JSON.stringify(widgetForm.sites) !== JSON.stringify(props.widgetSettings.sites || []);
 });
 
-const updateWidgetSettings = async () => {
+const hasModelChanges = computed(() => {
+    const modelsChanged =
+        modelsForm.models.length !== originalModelIds.value.length ||
+        modelsForm.models.some((id) => !originalModelIds.value.includes(id));
+    const settingsChanged = (Object.keys(modelsForm.llm_settings) as (keyof LlmSettings)[]).some(
+        (key) => modelsForm.llm_settings[key] !== originalLlmSettings.value[key],
+    );
+    return modelsChanged || settingsChanged;
+});
+
+const updateWidgetSettings = () => {
     isSubmitting.value = true;
     showSuccessMessage.value = false;
 
-    try {
-        // Send text/appearance settings
-        await new Promise((resolve, reject) => {
-            appearanceForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
-                preserveScroll: true,
-                onSuccess: () => resolve(true),
-                onError: () => reject(new Error('Appearance settings failed')),
-            });
-        });
+    const textForm = useForm({
+        welcome_message: appearanceForm.welcome_message,
+        chat_window_title: appearanceForm.chat_window_title,
+        chat_footer_text: appearanceForm.chat_footer_text,
+        composer_placeholder: appearanceForm.composer_placeholder,
+    });
 
-        // Then send widget settings (bubbles)
-        const textForm = useForm({
-            bubbles: widgetForm.bubbles,
-        });
-
-        await new Promise((resolve, reject) => {
-            textForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
-                preserveScroll: true,
-                onSuccess: () => resolve(true),
-                onError: () => reject(new Error('Widget settings failed')),
-            });
-        });
-
-        // Both requests succeeded
-        isSubmitting.value = false;
-        showSuccessMessage.value = true;
-
-        // Refresh preview after successful save
-        previewKey.value += 1;
-
-        setTimeout(() => {
-            showSuccessMessage.value = false;
-        }, 3000);
-    } catch (error) {
-        isSubmitting.value = false;
-        console.error('Failed to save settings:', error);
-    }
+    textForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            isSubmitting.value = false;
+            showSuccessMessage.value = true;
+            previewKey.value += 1;
+            setTimeout(() => {
+                showSuccessMessage.value = false;
+            }, 3000);
+        },
+        onError: () => {
+            isSubmitting.value = false;
+        },
+    });
 };
 
 const saveSecuritySettings = () => {
-    const securityForm = useForm({
-        sites: widgetForm.sites,
-    });
+    const securityForm = useForm({ sites: widgetForm.sites });
 
     securityForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
         preserveScroll: true,
@@ -915,12 +715,17 @@ const saveBehaviorSettings = () => {
         show_on_load: widgetForm.show_on_load,
         show_on_load_delay: widgetForm.show_on_load_delay,
         window_size: widgetForm.window_size,
+        theme_color: widgetForm.theme_color,
+        theme_shade: widgetForm.theme_shade,
+        language: selectedLanguage.value,
+        theme: selectedTheme.value,
     });
 
     behaviorForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Behavior settings updated');
+            previewKey.value += 1;
         },
         onError: () => {
             toast.error('Failed to update behavior settings');
@@ -939,9 +744,16 @@ const embedSnippet = computed(() => {
         `  src="${props.embedScriptUrl}"`,
         `  data-agent-id="${props.agent.external_id}"`,
         `  data-language="${selectedLanguage.value}"`,
-        '  defer>',
-        '</scr' + 'ipt>',
+        `  data-theme="${selectedTheme.value}"`,
     ];
+    if (mode.value === 'bar') {
+        scriptLines.push(`  data-mode="bar"`);
+    }
+    if (isProtected.value) {
+        scriptLines.push(`  data-auth="YOUR_SIGNED_TOKEN"`);
+    }
+    scriptLines.push('  defer>');
+    scriptLines.push('</scr' + 'ipt>');
     return scriptLines.join('\n');
 });
 
@@ -954,19 +766,16 @@ const copyEmbedSnippet = async () => {
     }
 };
 
-// Live preview URL that updates with current settings
 const previewUrl = computed(() => {
     const baseUrl = route('agents.widget.preview', { agent: props.agent.external_id });
-    return `${baseUrl}?language=${selectedLanguage.value}`;
+    return `${baseUrl}?language=${selectedLanguage.value}&mode=${mode.value}&theme=${selectedTheme.value}`;
 });
 
-// Full preview URL - just adds full-preview=true to the base URL
 const fullPreviewUrl = computed(() => {
     const baseUrl = route('agents.widget.preview', { agent: props.agent.external_id });
-    return `${baseUrl}?full-preview=true&language=${selectedLanguage.value}`;
+    return `${baseUrl}?full-preview=true&language=${selectedLanguage.value}&mode=${mode.value}&theme=${selectedTheme.value}`;
 });
 
-// Methods for preview management
 const refreshPreview = () => {
     previewKey.value += 1;
 };
@@ -975,38 +784,162 @@ const openFullPreview = () => {
     showPreviewModal.value = true;
 };
 
-// Starters functionality
-const addStarterMessage = () => {
+const saveStarters = () => {
+    isSavingStarters.value = true;
     axios
-        .post(route('agents.starters.store', props.agent.external_id), { text: starterMessageForm.value.text })
-        .then((response) => {
-            showAddStarterDialog.value = false;
-            starters.value.push({
-                id: response.data.id,
-                text: response.data.text,
-            });
-            starterMessageForm.value.text = '';
-            toast.success('Starter message added');
-            previewKey.value += 1;
-        })
-        .catch(() => {
-            toast.error('Failed to add starter message');
-        });
-};
-
-const removeStarter = (id: number) => {
-    axios
-        .delete(route('agents.starters.destroy', { agent: props.agent.external_id, id }))
+        .put(route('agents.starters.update', { agent: props.agent.external_id }), { text: starters.value })
         .then(() => {
-            starters.value = starters.value.filter((starter) => starter.id !== id);
-            toast.success('Starter message removed');
+            toast.success('Starters saved');
             previewKey.value += 1;
         })
         .catch(() => {
-            toast.error('Failed to remove starter message');
+            toast.error('Failed to save starters');
+        })
+        .finally(() => {
+            isSavingStarters.value = false;
         });
 };
 
-// Models functionality
-// Preview updates only when Save is clicked - removed auto-update watcher
+const saveBubbles = () => {
+    isSavingBubbles.value = true;
+    const bubblesForm = useForm({ bubbles: widgetForm.bubbles });
+    bubblesForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Bubbles saved');
+            previewKey.value += 1;
+            isSavingBubbles.value = false;
+        },
+        onError: () => {
+            toast.error('Failed to save bubbles');
+            isSavingBubbles.value = false;
+        },
+    });
+};
+
+// Diff selection against the originally-enabled list, then fire one toggle
+// PATCH per change. After model writes settle, persist the LLM tuning sliders.
+const saveModels = async () => {
+    isSavingModels.value = true;
+
+    try {
+        const toEnable = modelsForm.models.filter((id) => !originalModelIds.value.includes(id));
+        const toDisable = originalModelIds.value.filter((id) => !modelsForm.models.includes(id));
+
+        for (const modelId of toEnable) {
+            await axios.patch(route('agents.models.toggle', { agent: props.agent.external_id }), {
+                model_id: modelId,
+                status: true,
+            });
+        }
+        for (const modelId of toDisable) {
+            await axios.patch(route('agents.models.toggle', { agent: props.agent.external_id }), {
+                model_id: modelId,
+                status: false,
+            });
+        }
+
+        await axios.patch(route('agents.models.settings.update', { agent: props.agent.external_id }), modelsForm.llm_settings);
+
+        originalModelIds.value = [...modelsForm.models];
+        originalLlmSettings.value = { ...modelsForm.llm_settings };
+        toast.success('Model saved');
+        previewKey.value += 1;
+    } catch (error) {
+        console.error('Failed to save model:', error);
+        toast.error('Failed to save model');
+    } finally {
+        isSavingModels.value = false;
+    }
+};
+
+const onAvatarSelect = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        if (e.target && typeof e.target.result === 'string') {
+            avatarPreview.value = e.target.result;
+        }
+    };
+    reader.readAsDataURL(file);
+
+    const uploadForm = useForm({ avatar: file });
+
+    uploadForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success('Avatar updated successfully');
+            previewKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to update avatar');
+        },
+    });
+};
+
+const removeAvatar = () => {
+    router.delete(
+        route('agents.settings.delete', {
+            agent: props.agent.external_id,
+            group: 'appearance',
+            key: 'avatar',
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                avatarPreview.value = null;
+                toast.success('Avatar removed successfully');
+                previewKey.value += 1;
+            },
+            onError: () => {
+                toast.error('Failed to remove avatar');
+            },
+        },
+    );
+};
+
+const onLogoSelect = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        if (e.target && typeof e.target.result === 'string') {
+            logoPreview.value = e.target.result;
+        }
+    };
+    reader.readAsDataURL(file);
+
+    const uploadForm = useForm({ logo: file });
+
+    uploadForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success('Logo updated successfully');
+            previewKey.value += 1;
+        },
+        onError: () => {
+            toast.error('Failed to update logo');
+        },
+    });
+};
+
+const removeLogo = () => {
+    router.delete(
+        route('agents.settings.delete', {
+            agent: props.agent.external_id,
+            group: 'appearance',
+            key: 'logo',
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                logoPreview.value = null;
+                toast.success('Logo removed successfully');
+                previewKey.value += 1;
+            },
+            onError: () => {
+                toast.error('Failed to remove logo');
+            },
+        },
+    );
+};
 </script>

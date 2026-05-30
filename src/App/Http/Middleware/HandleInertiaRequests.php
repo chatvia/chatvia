@@ -38,12 +38,15 @@ class HandleInertiaRequests extends Middleware
                 'error' => $request->session()->get('error'),
                 'warning' => $request->session()->get('warning'),
                 'info' => $request->session()->get('info'),
+                // One-shot payloads flashed by a controller — e.g. the signed
+                // accept URL after an agent-member invitation is sent.
+                'invitation' => $request->session()->get('invitation'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'subscribed' => $request->user()?->hasActiveSubscription(),
-            'onTrial' => $request->user()?->onTrial(),
-            'trialEndsAt' => $request->user()?->onTrial() ? $request->user()->subscription()?->trial_ends_at?->format('F j, Y') : null,
-            'subscriptionStartsAt' => $request->user()?->onTrial() ? $request->user()->subscription()?->trial_ends_at?->format('F j, Y') : null,
+            'onTrial' => $request->user()?->accountBilling()?->onTrial(),
+            'trialEndsAt' => $request->user()?->accountBilling()?->onTrial() ? $request->user()->accountBilling()?->subscription()?->trial_ends_at?->format('F j, Y') : null,
+            'subscriptionStartsAt' => $request->user()?->accountBilling()?->onTrial() ? $request->user()->accountBilling()?->subscription()?->trial_ends_at?->format('F j, Y') : null,
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
 

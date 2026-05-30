@@ -18,6 +18,8 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained('roles')->cascadeOnUpdate()->restrictOnDelete();
 
             $table->unique(['team_id', 'user_id']);
+            // Reverse direction: "what teams am I a member of?" used by User::memberTeams.
+            $table->index('user_id');
         });
     }
 

@@ -2,28 +2,22 @@
 
 namespace App\Http\Controllers\Api\V1\Agents;
 
+use App\Http\Requests\Api\V1\Agents\UpdateAgentSettingsRequest;
 use Dedoc\Scramble\Attributes\Group;
+use Domain\Agents\Actions\UpdateAgentSettingsGroupAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Read and patch agent settings groups. Each group has its own set of
- * supported fields. Supported groups:
- *
- *   • appearance  — colors, logo, welcome message, chat window text
- *   • widget      — embed widget position, theme, sites
- *   • embed       — sidebar / theme switcher options for embedded view
- *   • leads       — lead form fields and copy
+ * Read and patch agent settings groups.
  */
 #[Group(name: 'Agents', weight: 10)]
 class AgentSettingsController
 {
     /**
-     * Get settings
-     *
-     * Returns the merged defaults + saved values for a settings group.
+     * Get settings — merged defaults + saved values for one group.
      */
     public function show(Request $request, Agent $agent, string $group): JsonResponse
     {
@@ -33,36 +27,11 @@ class AgentSettingsController
     }
 
     /**
-     * Update settings
-     *
-     * Partially updates a settings group. Only keys present in the request
-     * body are written; omitted keys keep their existing value or fall back
-     * to the default.
+     * Update settings — partial write into a single group.
      */
-    public function update(Request $request, Agent $agent, string $group): JsonResponse
+    public function update(UpdateAgentSettingsRequest $request, Agent $agent, string $group, UpdateAgentSettingsGroupAction $update): JsonResponse
     {
-        $this->assertGroup($group);
-
-        $rules = config('model-settings.validation.'.$group);
-
-        if (! is_array($rules)) {
-            throw ValidationException::withMessages([
-                'group' => "Settings group '$group' is not exposed in the API.",
-            ]);
-        }
-
-        $request->validate($rules);
-
-        $allowedKeys = array_keys(config('model-settings.defaults.'.Agent::class.'.'.$group, []));
-
-        $payload = array_filter(
-            $request->only($allowedKeys),
-            fn ($value): bool => $value !== '' && $value !== null,
-        );
-
-        foreach ($payload as $key => $value) {
-            $agent->setSetting(key: $key, value: $value, group: $group);
-        }
+        $update->execute($agent, $group, $request->validated());
 
         return response()->json(['data' => $agent->settings($group)]);
     }

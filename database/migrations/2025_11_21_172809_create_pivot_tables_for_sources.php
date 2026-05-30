@@ -18,7 +18,6 @@ return new class extends Migration
             $table->morphs('sourceable');
             $table->unsignedInteger('retrieval_count')->default(0);
             $table->timestamp('last_retrieved_at')->nullable()->index();
-            $table->timestamps();
             $table->unique(['agent_id', 'sourceable_id', 'sourceable_type'], 'agent_sources_unique');
         });
     }

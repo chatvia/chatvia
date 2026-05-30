@@ -27,11 +27,9 @@ class EnsureUserHasSubscription
             return $next($request);
         }
 
-        $userSubscribed = $user->isCompany() ?
-            $user->subscribed() :
-            $user->manager->subscribed();
+        $billing = ($user->isWorkspace() ? $user : $user->workspace)?->billing;
 
-        if (! $userSubscribed) {
+        if (! $billing?->subscribed()) {
             return redirect()->route('billing.packages');
         }
 

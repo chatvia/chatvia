@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <!-- Bubble -->
+    <path
+        d="M256 42C145 42 60 120 60 220C60 278 88 324 136 358L114 444L205 398C221 401 238 403 256 403C367 403 452 328 452 228C452 128 367 42 256 42Z"
+        fill="#F1F1F1"
+        stroke="#303030"
+        stroke-width="18"
+        stroke-linejoin="round"
+    />
+
+    <!-- Left eye -->
+    <circle cx="190" cy="205" r="27" fill="#303030"/>
+
+    <!-- Wink eye -->
+    <path
+        d="M302 205C314 191 337 189 352 198"
+        stroke="#303030"
+        stroke-width="18"
+        stroke-linecap="round"
+    />
+
+    <!-- Smile -->
+    <path
+        d="M184 292C206 334 307 334 330 292"
+        stroke="#303030"
+        stroke-width="20"
+        stroke-linecap="round"
+    />
+</svg>

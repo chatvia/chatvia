@@ -150,6 +150,37 @@ class AgentMcpServer extends Model
         return 'external_id';
     }
 
+    /**
+     * Scope to servers in the agent owner's account that this agent has on
+     * its `agent_mcp_server` pivot — used by the agent-side connector
+     * controllers to resolve a row.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<self>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
+     */
+    public function scopeAttachedToAgent($query, Agent $agent)
+    {
+        return $query
+            ->where('user_id', $agent->user_id)
+            ->whereExists(function ($q) use ($agent): void {
+                $q->from('agent_mcp_server')
+                    ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
+                    ->where('agent_mcp_server.agent_id', $agent->id);
+            });
+    }
+
+    /**
+     * Scope to all servers in the agent owner's account (regardless of whether
+     * this specific agent has them attached).
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<self>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
+     */
+    public function scopeOwnedBySameAccountAs($query, Agent $agent)
+    {
+        return $query->where('user_id', $agent->user_id);
+    }
+
     public static function makeSlug(string $input): string
     {
         $slug = preg_replace('/[^a-z0-9_]+/', '_', strtolower($input)) ?? 'mcp';

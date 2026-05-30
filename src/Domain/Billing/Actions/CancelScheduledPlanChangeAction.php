@@ -10,11 +10,13 @@ class CancelScheduledPlanChangeAction
 {
     public function execute(User $user): bool
     {
-        if (! $user->subscribed()) {
+        $billing = $user->accountBilling();
+
+        if (! $billing?->subscribed()) {
             return false;
         }
 
-        $subscription = $user->subscription();
+        $subscription = $billing->subscription();
 
         if (! $subscription) {
             return false;

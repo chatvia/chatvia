@@ -6,6 +6,7 @@ use App\Widget\WidgetVerification;
 use Domain\Agents\Models\Agent;
 use Domain\Analytics\Services\UserAgentParser;
 use Domain\Chat\Data\InitializedWidgetSessionData;
+use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatSession;
 use Domain\Chat\Services\Memory\ChatMemory;
 
@@ -64,7 +65,7 @@ class InitializeWidgetSessionAction
             $threadExternalId = $this->memory
                 ->setAgent($agent)
                 ->setExternalSessionId($session->external_id)
-                ->createConversation('New Chat');
+                ->createConversation('New Chat', ConversationSource::Widget);
 
             $isNewThread = true;
         }

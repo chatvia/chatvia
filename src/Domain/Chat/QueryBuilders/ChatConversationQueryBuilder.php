@@ -83,14 +83,10 @@ class ChatConversationQueryBuilder extends Builder
 
     public function filterBySource(?string $source): self
     {
-        return $this->when($source, function ($query) use ($source): void {
-            match ($source) {
-                'widget' => $query->whereHas('messages', fn ($q) => $q->where('source', 'widget')),
-                'playground' => $query->whereHas('messages', fn ($q) => $q->where('source', 'playground')),
-                'api' => $query->whereHas('messages', fn ($q) => $q->where('source', 'api')),
-                default => null,
-            };
-        });
+        // Each conversation carries its originating surface on the
+        // `chat_conversations.source` enum (hosted_chat / widget / bar). A
+        // simple equality filter — no message-level whereHas needed.
+        return $this->when($source, fn ($query) => $query->where('source', $source));
     }
 
     public function filterByOnlineStatus(?bool $onlineOnly): self

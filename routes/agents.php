@@ -1,23 +1,7 @@
 <?php
 
-use App\Http\Controllers\Agents\AgentChatLogController;
-use App\Http\Controllers\Agents\AgentChatLogReviseAnswerController;
-use App\Http\Controllers\Agents\AgentFileSummaryController;
-use App\Http\Controllers\Agents\AgentHandoffController;
-use App\Http\Controllers\Agents\AgentKnowledgeFilesAnalyzeController;
-use App\Http\Controllers\Agents\AgentLeadsController;
-use App\Http\Controllers\Agents\AgentLeadsExportController;
-use App\Http\Controllers\Agents\AgentLeadsSettingsController;
 use App\Http\Controllers\Agents\AgentManagerController;
-use App\Http\Controllers\Agents\AgentModelsController;
-use App\Http\Controllers\Agents\AgentModelsSettingsController;
-use App\Http\Controllers\Agents\AgentPlaygroundController;
 use App\Http\Controllers\Agents\AgentsController;
-use App\Http\Controllers\Agents\AgentSettingsController;
-use App\Http\Controllers\Agents\AgentsGenerateRandomSubDomainController;
-use App\Http\Controllers\Agents\AgentStartersController;
-use App\Http\Controllers\Agents\AgentTopicsController as TopicsResourceController;
-use App\Http\Controllers\Agents\AgentTrainedFilesController;
 use App\Http\Controllers\Agents\Analytics\AgentAnalyticsController;
 use App\Http\Controllers\Agents\Analytics\AgentAnalyticsDataController;
 use App\Http\Controllers\Agents\Analytics\AgentChartDataController;
@@ -31,24 +15,37 @@ use App\Http\Controllers\Agents\Analytics\AgentToneController;
 use App\Http\Controllers\Agents\Analytics\AgentToneDataController;
 use App\Http\Controllers\Agents\Analytics\AgentTopicsController;
 use App\Http\Controllers\Agents\Analytics\AgentTopicsDataController;
+use App\Http\Controllers\Agents\BusinessProfile\AgentBusinessProfileController;
+use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
+use App\Http\Controllers\Agents\ChatLog\AgentChatLogReviseAnswerController;
+use App\Http\Controllers\Agents\ChatLog\ConversationMessagesController as ChatLogConversationMessagesController;
+use App\Http\Controllers\Agents\ChatLog\ConversationPulseController as ChatLogConversationPulseController;
+use App\Http\Controllers\Agents\ChatLog\ConversationsController as ChatLogConversationsController;
+use App\Http\Controllers\Agents\ChatLog\CountriesController as ChatLogCountriesController;
+use App\Http\Controllers\Agents\ChatLog\TopicsController as ChatLogTopicsController;
 use App\Http\Controllers\Agents\Embed\EmbedController;
+use App\Http\Controllers\Agents\Handoff\AgentHandoffController;
+use App\Http\Controllers\Agents\Identity\AgentIdentityController;
+use App\Http\Controllers\Agents\Identity\RegenerateAgentAuthSecretController;
+use App\Http\Controllers\Agents\Handoff\HandoffTypingController;
+use App\Http\Controllers\Agents\Handoff\MarkHandoffReadController;
+use App\Http\Controllers\Agents\Handoff\ReturnHandoffController;
+use App\Http\Controllers\Agents\Handoff\SendHandoffMessageController;
+use App\Http\Controllers\Agents\Handoff\TakeoverHandoffController;
+use App\Http\Controllers\Agents\Leads\AgentLeadsController;
+use App\Http\Controllers\Agents\Leads\AgentLeadsExportController;
+use App\Http\Controllers\Agents\Leads\AgentLeadsSettingsController;
+use App\Http\Controllers\Agents\Members\AgentMembersController;
+use App\Http\Controllers\Agents\Models\AgentModelsController;
+use App\Http\Controllers\Agents\Models\AgentModelsSettingsController;
+use App\Http\Controllers\Agents\Models\ToggleAgentModelController;
 use App\Http\Controllers\Agents\Persona\AgentShowPersonaController;
+use App\Http\Controllers\Agents\Bar\BarPreviewController;
+use App\Http\Controllers\Agents\Playground\AgentPlaygroundController;
+use App\Http\Controllers\Agents\Setup\BarSetupController;
+use App\Http\Controllers\Agents\RenameAgentController;
 use App\Http\Controllers\Agents\Security\AgentSecurityUpdateController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeFilesProcessController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeFileUploadController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeMarkdownController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeSourcesStatsController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeUploadedFilesDeleteController;
-use App\Http\Controllers\Agents\Sources\AgentKnowledgeWebController;
-use App\Http\Controllers\Agents\Sources\AgentQaController;
-use App\Http\Controllers\Agents\Sources\AgentSourcesFilesController;
-use App\Http\Controllers\Agents\Sources\AgentTextController;
-use App\Http\Controllers\Agents\Sources\AgentTrainedWebsitesController;
-use App\Http\Controllers\Agents\Sources\AgentWebsiteLinksController;
-use App\Http\Controllers\Agents\Sources\AgentWebsitesController;
-use App\Http\Controllers\Agents\Sources\AgentYoutubeController;
+use App\Http\Controllers\Agents\Settings\AgentSettingsController;
 use App\Http\Controllers\Agents\Sources\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorAttachController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorDisconnectController;
@@ -56,21 +53,49 @@ use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorRefreshControll
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorsListController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorToolsController;
+use App\Http\Controllers\Agents\Sources\Files\AgentFileSummaryController;
+use App\Http\Controllers\Agents\Sources\Files\AgentKnowledgeFilesAnalyzeController;
+use App\Http\Controllers\Agents\Sources\Files\AgentKnowledgeFilesController;
+use App\Http\Controllers\Agents\Sources\Files\AgentKnowledgeFilesProcessController;
+use App\Http\Controllers\Agents\Sources\Files\AgentKnowledgeFileUploadController;
+use App\Http\Controllers\Agents\Sources\Files\AgentKnowledgeMarkdownController;
+use App\Http\Controllers\Agents\Sources\Files\AgentKnowledgeSourcesController;
+use App\Http\Controllers\Agents\Sources\Files\AgentKnowledgeSourcesStatsController;
+use App\Http\Controllers\Agents\Sources\Files\AgentKnowledgeUploadedFilesDeleteController;
+use App\Http\Controllers\Agents\Sources\Files\AgentKnowledgeWebController;
+use App\Http\Controllers\Agents\Sources\Files\AgentSourcesFilesController;
+use App\Http\Controllers\Agents\Sources\Files\AgentTrainedFilesController;
 use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionAttachController;
 use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionDeleteController;
 use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionsController;
 use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionsListController;
 use App\Http\Controllers\Agents\Sources\Functions\AgentFunctionTestController;
+use App\Http\Controllers\Agents\Sources\Qa\AgentQaController;
+use App\Http\Controllers\Agents\Sources\Qa\DetachAgentQaController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourcesLinkTextController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourcesTrainedTextsListController;
 use App\Http\Controllers\Agents\Sources\Text\AgentSourceUnlinkTextController;
+use App\Http\Controllers\Agents\Sources\Text\AgentTextController;
+use App\Http\Controllers\Agents\Sources\Text\DetachAgentTextController;
 use App\Http\Controllers\Agents\Sources\Video\AgentSourceFileDeleteController;
 use App\Http\Controllers\Agents\Sources\Video\AgentSourceVideoController;
+use App\Http\Controllers\Agents\Sources\Web\AgentTrainedWebsitesController;
+use App\Http\Controllers\Agents\Sources\Web\AgentWebsiteLinksController;
+use App\Http\Controllers\Agents\Sources\Web\AgentWebsitesController;
+use App\Http\Controllers\Agents\Sources\Web\BulkDestroyAgentWebsiteLinksController;
+use App\Http\Controllers\Agents\Sources\Web\RetrainAgentWebsiteLinkController;
+use App\Http\Controllers\Agents\Sources\Web\TrainAgentWebsiteController;
+use App\Http\Controllers\Agents\Sources\Youtube\AgentYoutubeController;
+use App\Http\Controllers\Agents\Sources\Youtube\RetrainAgentYoutubeController;
+use App\Http\Controllers\Agents\Starters\AgentStartersController;
+use App\Http\Controllers\Agents\SubDomain\AgentsGenerateRandomSubDomainController;
 use App\Http\Controllers\Agents\Team\AgentTeamController;
+use App\Http\Controllers\Agents\Templates\AgentTemplateController;
+use App\Http\Controllers\Agents\Topics\AgentTopicsController as TopicsResourceController;
 use App\Http\Controllers\Agents\Widget\WidgetController;
 use App\Http\Controllers\Agents\Widget\WidgetPreviewController;
 use App\Http\Controllers\Agents\Workflow\AgentWorkflowController;
-use App\Http\Controllers\CountriesListController;
+use App\Http\Controllers\Countries\CountriesListController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'])->prefix('my/')->group(function (): void {
@@ -105,9 +130,19 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::patch('/update', [AgentsController::class, 'update'])->name('update');
 
         Route::get('widget/preview', WidgetPreviewController::class)->name('widget.preview');
+        Route::get('bar/preview', BarPreviewController::class)->name('bar.preview');
+
+        // Playground — a single page with an in-page surface toggle (Hosted Chat
+        // / Widget / Bar). Widget and Bar previews render the agent embedded in
+        // a real-looking host page so the admin sees the real customer-facing
+        // experience, not a configurator chrome.
         Route::get('playground', AgentPlaygroundController::class)->name('playground');
 
         Route::get('persona', AgentShowPersonaController::class)->name('persona');
+
+        Route::get('business-profile', [AgentBusinessProfileController::class, 'show'])->name('business-profile');
+        Route::patch('business-profile', [AgentBusinessProfileController::class, 'update'])->name('business-profile.update');
+        Route::delete('business-profile', [AgentBusinessProfileController::class, 'destroy'])->name('business-profile.destroy');
 
         // Knowledge
         Route::get('sources', AgentKnowledgeSourcesController::class)->name('sources');
@@ -121,20 +156,20 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('sources/youtube', [AgentYoutubeController::class, 'index'])->name('sources.youtube.index');
         Route::post('sources/youtube', [AgentYoutubeController::class, 'store'])->name('sources.youtube.store');
         Route::delete('sources/youtube/{youtube}', [AgentYoutubeController::class, 'destroy'])->name('sources.youtube.destroy');
-        Route::post('sources/youtube/{youtube}/retrain', [AgentYoutubeController::class, 'retrain'])->name('sources.youtube.retrain');
+        Route::post('sources/youtube/{youtube}/retrain', RetrainAgentYoutubeController::class)->name('sources.youtube.retrain');
 
         Route::get('sources/text', [AgentTextController::class, 'index'])->name('sources.text.index');
         Route::post('sources/text', [AgentTextController::class, 'store'])->name('sources.text.store');
         Route::get('sources/text/{id}', [AgentTextController::class, 'show'])->name('sources.text.show');
         Route::patch('sources/text/{id}', [AgentTextController::class, 'update'])->name('sources.text.update');
-        Route::post('sources/text/{id}/unlink', [AgentTextController::class, 'unlink'])->name('sources.text.unlink');
+        Route::post('sources/text/{id}/unlink', DetachAgentTextController::class)->name('sources.text.unlink');
 
         Route::get('sources/qa', [AgentQaController::class, 'index'])->name('sources.qa.index');
         Route::post('sources/qa', [AgentQaController::class, 'store'])->name('sources.qa.store');
         Route::get('sources/qa/{id}', [AgentQaController::class, 'show'])->name('sources.qa.show');
         Route::patch('sources/qa/{id}', [AgentQaController::class, 'update'])->name('sources.qa.update');
         Route::delete('sources/qa/{id}', [AgentQaController::class, 'destroy'])->name('sources.qa.destroy');
-        Route::post('sources/qa/{id}/unlink', [AgentQaController::class, 'unlink'])->name('sources.qa.unlink');
+        Route::post('sources/qa/{id}/unlink', DetachAgentQaController::class)->name('sources.qa.unlink');
 
         // Functions (LLM tool calls — webhook-backed). Functions are owned at
         // the account level (Settings → Functions); on the agent screen the
@@ -166,44 +201,70 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('sources/websites', [AgentWebsitesController::class, 'index'])->name('sources.websites.index');
         Route::post('sources/websites', [AgentWebsitesController::class, 'store'])->name('sources.websites.store');
         Route::delete('sources/websites/{website}', [AgentWebsitesController::class, 'destroy'])->name('sources.websites.destroy');
-        Route::post('sources/websites/{website}/train', [AgentWebsitesController::class, 'train'])->name('sources.websites.train');
+        Route::post('sources/websites/{website}/train', TrainAgentWebsiteController::class)->name('sources.websites.train');
 
         Route::get('sources/websites/{website}/links', [AgentWebsiteLinksController::class, 'index'])->name('sources.websites.links.index');
         Route::delete('sources/websites/{website}/links/{link}', [AgentWebsiteLinksController::class, 'destroy'])->name('sources.websites.links.destroy');
-        Route::post('sources/websites/{website}/links/{link}/retrain', [AgentWebsiteLinksController::class, 'retrain'])->name('sources.websites.links.retrain');
-        Route::post('sources/websites/{website}/links/bulk-destroy', [AgentWebsiteLinksController::class, 'bulkDestroy'])->name('sources.websites.links.bulk-destroy');
+        Route::post('sources/websites/{website}/links/{link}/retrain', RetrainAgentWebsiteLinkController::class)->name('sources.websites.links.retrain');
+        Route::post('sources/websites/{website}/links/bulk-destroy', BulkDestroyAgentWebsiteLinksController::class)->name('sources.websites.links.bulk-destroy');
 
-        // Starters API endpoints (used by Widget and Embed components)
-        Route::post('starters', [AgentStartersController::class, 'store'])->name('starters.store');
-        Route::delete('starters/{id}', [AgentStartersController::class, 'destroy'])->name('starters.destroy');
+        // Starters API endpoint (used by Widget and Embed components)
+        Route::put('starters', [AgentStartersController::class, 'update'])->name('starters.update');
+
+        // Attach/detach an account-level template. Attach flips the agent to
+        // read-through; detach copies the template config onto the agent.
+        Route::post('template', [AgentTemplateController::class, 'store'])->name('template.store');
+        Route::delete('template', [AgentTemplateController::class, 'destroy'])->name('template.destroy');
 
         Route::get('leads', [AgentLeadsController::class, 'index'])->name('leads.index');
         Route::delete('leads', [AgentLeadsController::class, 'destroy'])->name('leads.destroy');
         Route::patch('leads/settings', AgentLeadsSettingsController::class)->name('leads.settings');
         Route::post('leads/export', AgentLeadsExportController::class)->name('leads.export');
 
+        // Chatter members. index lists every workspace chatter (with a
+        // `has_access` flag for this agent); store invites a brand-new
+        // chatter; grant gives an existing chatter access to this agent;
+        // destroy revokes this agent's grant (user record stays).
+        Route::get('members', [AgentMembersController::class, 'index'])->name('members.index');
+        Route::post('members', [AgentMembersController::class, 'store'])->name('members.store');
+        Route::post('members/{chatter}/grant', [AgentMembersController::class, 'grant'])->name('members.grant');
+        Route::delete('members/{chatter}', [AgentMembersController::class, 'destroy'])->name('members.destroy');
+
         Route::get('logs', [AgentChatLogController::class, 'index'])->name('logs');
-        Route::get('logs/conversations', [AgentChatLogController::class, 'conversations'])->name('logs.conversations');
-        Route::get('logs/messages/{conversation}', [AgentChatLogController::class, 'messages'])->name('logs.messages');
-        Route::get('logs/conversations/{conversation}/pulse', [AgentChatLogController::class, 'pulse'])->name('logs.pulse');
-        Route::get('logs/topics', [AgentChatLogController::class, 'topics'])->name('logs.topics');
-        Route::get('logs/countries', [AgentChatLogController::class, 'countries'])->name('logs.countries');
-        Route::delete('logs/conversations/{conversation}', [AgentChatLogController::class, 'destroyConversation'])->name('logs.delete-conversation');
+        Route::get('logs/conversations', [ChatLogConversationsController::class, 'index'])->name('logs.conversations');
+        Route::get('logs/messages/{conversation}', ChatLogConversationMessagesController::class)->name('logs.messages');
+        Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->name('logs.pulse');
+        Route::get('logs/topics', ChatLogTopicsController::class)->name('logs.topics');
+        Route::get('logs/countries', ChatLogCountriesController::class)->name('logs.countries');
+        Route::delete('logs/conversations/{conversation}', [ChatLogConversationsController::class, 'destroy'])->name('logs.delete-conversation');
         Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->name('logs.revise-answer');
 
         // Handoff (Admin Takeover) Routes
         Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->name('handoff.pending');
-        Route::post('handoff/{conversation}/takeover', [AgentHandoffController::class, 'takeover'])->name('handoff.takeover');
-        Route::post('handoff/{conversation}/return', [AgentHandoffController::class, 'return'])->name('handoff.return');
-        Route::post('handoff/{conversation}/message', [AgentHandoffController::class, 'message'])->name('handoff.message');
-        Route::post('handoff/{conversation}/typing', [AgentHandoffController::class, 'typing'])->name('handoff.typing');
-        Route::post('handoff/{conversation}/mark-read', [AgentHandoffController::class, 'markRead'])->name('handoff.mark-read');
+        Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->name('handoff.takeover');
+        Route::post('handoff/{conversation}/return', ReturnHandoffController::class)->name('handoff.return');
+        Route::post('handoff/{conversation}/message', SendHandoffMessageController::class)->name('handoff.message');
+        Route::post('handoff/{conversation}/typing', HandoffTypingController::class)->name('handoff.typing');
+        Route::post('handoff/{conversation}/mark-read', MarkHandoffReadController::class)->name('handoff.mark-read');
 
-        Route::get('widget', WidgetController::class)->name('widget');
-        Route::get('embed', EmbedController::class)->name('embed');
+        // Setup — three independent surface configuration pages. Each surface
+        // owns its complete settings (text / starters / colors / branding / model
+        // / embed) — no shared storage between Widget and Bar. The bare
+        // `agents.setup` name redirects to Hosted Chat (the default landing).
+        Route::get('setup', fn (\Domain\Agents\Models\Agent $agent) => to_route('agents.setup.hosted_chat', ['agent' => $agent]))
+            ->name('setup');
+        Route::get('setup/hosted-chat', EmbedController::class)->name('setup.hosted_chat');
+        Route::get('setup/widget', WidgetController::class)->name('setup.widget');
+        Route::get('setup/bar', BarSetupController::class)->name('setup.bar');
 
         //        Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
         Route::patch('security', AgentSecurityUpdateController::class)->name('security.update');
+
+        // Per-agent signing secret. Owner mints sign-in tokens (chat ?token= and
+        // widget data-auth) on their backend; regenerating invalidates every
+        // token previously signed for this agent.
+        Route::get('identity', AgentIdentityController::class)->name('identity');
+        Route::post('identity/regenerate', RegenerateAgentAuthSecretController::class)->name('identity.regenerate');
 
         // Settings
         Route::post('settings/{group}', [AgentSettingsController::class, 'update'])->name('settings.update');
@@ -211,7 +272,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
 
         // Models API
         Route::get('/models', [AgentModelsController::class, 'index'])->name('models.index');
-        Route::patch('/models/toggle', [AgentModelsController::class, 'toggle'])->name('models.toggle');
+        Route::patch('/models/toggle', ToggleAgentModelController::class)->name('models.toggle');
         Route::patch('/models/settings', AgentModelsSettingsController::class)->name('models.settings.update');
 
         // Members
@@ -221,12 +282,12 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('workflow', AgentWorkflowController::class)->name('workflow');
 
         // Rename Agent
-        Route::patch('rename', [AgentsController::class, 'rename'])->name('rename');
+        Route::patch('rename', RenameAgentController::class)->name('rename');
 
         // Linking / Unlinking Source Files
         Route::get('sources/trained-files', [AgentTrainedFilesController::class, 'index'])->name('sources.list');
-        Route::post('sources/trained-files/{fileId}/link', [AgentTrainedFilesController::class, 'link'])->name('sources.files.link');
-        Route::post('sources/trained-files/{file}/unlink', [AgentTrainedFilesController::class, 'unlink'])->name('sources.files.unlink');
+        Route::post('sources/trained-files/{fileId}/link', [AgentTrainedFilesController::class, 'store'])->name('sources.files.link');
+        Route::post('sources/trained-files/{file}/unlink', [AgentTrainedFilesController::class, 'destroy'])->name('sources.files.unlink');
 
         // Text Sources
         Route::get('sources/trained-texts', AgentSourcesTrainedTextsListController::class)->name('sources.texts.list');
@@ -235,8 +296,8 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
 
         // Website Sources (cross-agent shared pool)
         Route::get('sources/trained-websites', [AgentTrainedWebsitesController::class, 'index'])->name('sources.trained-websites.index');
-        Route::post('sources/trained-websites/{websiteId}/link', [AgentTrainedWebsitesController::class, 'link'])->name('sources.trained-websites.link');
-        Route::post('sources/trained-websites/{websiteId}/unlink', [AgentTrainedWebsitesController::class, 'unlink'])->name('sources.trained-websites.unlink');
+        Route::post('sources/trained-websites/{websiteId}/link', [AgentTrainedWebsitesController::class, 'store'])->name('sources.trained-websites.link');
+        Route::post('sources/trained-websites/{websiteId}/unlink', [AgentTrainedWebsitesController::class, 'destroy'])->name('sources.trained-websites.unlink');
 
         // Delete Agent
         Route::delete('/', [AgentsController::class, 'destroy'])->name('delete');

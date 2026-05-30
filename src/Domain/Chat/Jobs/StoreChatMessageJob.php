@@ -69,10 +69,22 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         }
 
         /** @var ChatConversation $conversation */
-        $conversation = ChatConversation::firstOrCreate([
-            'external_id' => $this->payload->external_conversation_id,
-            'chat_session_id' => $session->id,
-        ]);
+        $conversation = ChatConversation::firstOrCreate(
+            [
+                'external_id' => $this->payload->external_conversation_id,
+                'chat_session_id' => $session->id,
+            ],
+            // Failsafe: the conversation should already exist (created upfront by
+            // ConversationManager). When it doesn't, derive the surface from the
+            // message-level source — widget messages create a Widget conversation;
+            // everything else (playground previews, api-driven) default to Hosted
+            // Chat which is the standalone surface most callers exercise.
+            [
+                'source' => $this->payload->source === 'widget'
+                    ? \Domain\Chat\Enums\ConversationSource::Widget
+                    : \Domain\Chat\Enums\ConversationSource::HostedChat,
+            ],
+        );
 
         $conversation->update([
             'last_activity_at' => now(),

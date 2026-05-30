@@ -34,6 +34,8 @@ use Illuminate\Support\Carbon;
 ])]
 class Invitation extends Model
 {
+    protected $table = 'team_invitations';
+
     /**
      * Get the team this invitation is for.
      */

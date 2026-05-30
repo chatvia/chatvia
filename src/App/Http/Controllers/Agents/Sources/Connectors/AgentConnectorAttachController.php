@@ -6,7 +6,7 @@ use Domain\Agents\Data\Resources\AgentMcpServerData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Connectors\Actions\AttachGenericConnectorToAgentAction;
-use Illuminate\Http\JsonResponse;
+use Domain\Connectors\Data\AgentConnectorAttachResultData;
 use Illuminate\Http\Request;
 
 class AgentConnectorAttachController
@@ -16,11 +16,11 @@ class AgentConnectorAttachController
         Agent $agent,
         string $slug,
         AttachGenericConnectorToAgentAction $attach,
-    ): JsonResponse {
+    ): AgentConnectorAttachResultData {
         abort_if($request->user()->cannot('update', $agent), 403);
 
         $server = AgentMcpServer::query()
-            ->where('user_id', $agent->user_id)
+            ->ownedBySameAccountAs($agent)
             ->where('slug', $slug)
             ->first();
 
@@ -28,11 +28,8 @@ class AgentConnectorAttachController
 
         $fresh = $attach->execute($agent, $server);
 
-        return response()->json([
-            'data' => [
-                ...AgentMcpServerData::fromModel($fresh)->toArray(),
-                'is_attached' => true,
-            ],
-        ], 201);
+        return new AgentConnectorAttachResultData(
+            data: AgentMcpServerData::fromModel($fresh),
+        );
     }
 }

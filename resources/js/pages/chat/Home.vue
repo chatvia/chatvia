@@ -164,7 +164,7 @@ async function createNewConversation(message, model) {
 }
 
 function handleStarterClick(starter) {
-    selectedStarter.value = starter.text;
+    selectedStarter.value = starter;
 }
 </script>
 
@@ -199,13 +199,13 @@ function handleStarterClick(starter) {
                     <div v-if="starters.length > 0" class="mb-8">
                         <div class="mx-auto grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
                             <button
-                                v-for="starter in starters"
-                                :key="starter.id"
+                                v-for="(starter, index) in starters"
+                                :key="index"
                                 @click="handleStarterClick(starter)"
                                 class="group border-border/60 bg-card hover:bg-muted/50 hover:border-border cursor-pointer rounded-xl border px-4 py-3 text-left transition-all duration-150"
                             >
                                 <p class="text-foreground/80 group-hover:text-foreground line-clamp-2 text-sm leading-relaxed">
-                                    {{ starter.text }}
+                                    {{ starter }}
                                 </p>
                             </button>
                         </div>

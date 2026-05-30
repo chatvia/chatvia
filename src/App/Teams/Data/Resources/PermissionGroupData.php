@@ -9,6 +9,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 class PermissionGroupData extends Data
 {
     public function __construct(
+        public string $scope,
         public string $label,
         public ?string $description,
         /** @var string[] */
@@ -18,6 +19,7 @@ class PermissionGroupData extends Data
     public static function fromConfig(array $data): self
     {
         return new self(
+            scope: $data['scope'] ?? 'agent',
             label: $data['label'],
             description: $data['description'] ?? null,
             permissions: $data['permissions'] ?? [],

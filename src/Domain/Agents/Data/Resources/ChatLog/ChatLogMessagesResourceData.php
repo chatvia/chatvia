@@ -15,10 +15,14 @@ class ChatLogMessagesResourceData extends Data
         public LengthAwarePaginator $messages,
         public ?string $conversation_title,
         public ?ChatLogLeadData $lead,
+        public ChatLogHandoffStatusData $handoff,
     ) {}
 
-    public static function fromPaginator(LengthAwarePaginator $messages, ?Lead $lead = null): self
-    {
+    public static function fromPaginator(
+        LengthAwarePaginator $messages,
+        ChatLogHandoffStatusData $handoff,
+        ?Lead $lead = null,
+    ): self {
         $conversationTitle = null;
         if ($messages->isNotEmpty()) {
             $firstMessage = $messages->first();
@@ -33,6 +37,7 @@ class ChatLogMessagesResourceData extends Data
             messages: $messages,
             conversation_title: $conversationTitle,
             lead: $lead ? ChatLogLeadData::fromLead($lead) : null,
+            handoff: $handoff,
         );
     }
 }

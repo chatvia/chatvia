@@ -13,7 +13,8 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Chunk::class)->constrained()->cascadeOnDelete();
             $table->morphs('referenceable');
-            $table->timestamps();
+
+            $table->unique(['chunk_id', 'referenceable_type', 'referenceable_id'], 'chunk_references_unique');
         });
     }
 

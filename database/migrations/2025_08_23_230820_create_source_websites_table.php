@@ -11,18 +11,18 @@ return new class extends Migration
     {
         Schema::create('source_websites', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->index()->nullable();
+            $table->uuid('external_id')->unique()->nullable();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
             $table->string('url');
             $table->string('filepath')->unique()->nullable();
-            $table->string('checksum')->index()->nullable();
+            $table->string('checksum')->nullable();
             $table->jsonb('options')->nullable();
             $table->unsignedInteger('expected_chunks')->nullable();
             $table->string('internal_ingestion_job_id')->unique()->nullable();
             $table->string('internal_chunking_batch_id')->unique()->nullable();
-            $table->enum('status', ['pending', 'crawling', 'crawled', 'ingesting', 'failed', 'ingested'])->default('pending')->index();
+            $table->enum('status', ['pending', 'crawling', 'crawled', 'ingesting', 'failed', 'ingested'])->default('pending');
             $table->unsignedInteger('took_in_seconds')->default(0);
             $table->text('failure_reason')->nullable();
             $table->unsignedInteger('retrieval_count')->default(0);
@@ -30,6 +30,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'url']);
+            $table->index(['user_id', 'status']);
         });
     }
 

@@ -17,9 +17,11 @@ const props = withDefaults(
         agentId: number | string;
         description?: string;
         multiple?: boolean;
+        locked?: boolean;
     }>(),
     {
         multiple: false,
+        locked: false,
     },
 );
 
@@ -235,7 +237,7 @@ onMounted(() => {
         <div v-else class="space-y-3">
             <Popover v-model:open="isDropdownOpen">
                 <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" :aria-expanded="isDropdownOpen" class="h-10 w-full justify-between font-normal">
+                    <Button variant="outline" role="combobox" :aria-expanded="isDropdownOpen" :disabled="locked" class="h-10 w-full justify-between font-normal">
                         <div class="flex items-center gap-2 truncate">
                             <img
                                 v-if="selectedModelIcon"
@@ -345,7 +347,7 @@ onMounted(() => {
             </Popover>
 
             <!-- Divider and Save Button -->
-            <div class="border-t pt-3">
+            <div v-if="!locked" class="border-t pt-3">
                 <Button @click="saveSelection" :disabled="!hasChanges || isSaving" size="sm">
                     <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
                     <Save v-else class="mr-2 h-4 w-4" />

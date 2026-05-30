@@ -12,13 +12,14 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
-
             $table->foreignId('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
+            $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();
 
-            // Core contact info
+            $table->enum('status', ['new', 'contacted', 'qualified', 'converted', 'lost'])->default('new');
+
             $table->string('name')->nullable();
-            $table->string('email')->nullable()->index();
-            $table->string('phone', 50)->nullable()->index();
+            $table->string('email')->nullable();
+            $table->string('phone', 50)->nullable();
             $table->string('job_title')->nullable();
             $table->string('company')->nullable();
             $table->string('location')->nullable();
@@ -29,12 +30,14 @@ return new class extends Migration
             $table->string('locale', 10)->nullable();
 
             $table->ipAddress()->nullable();
-
             $table->text('user_agent')->nullable();
 
+            $table->timestamp('contacted_at')->nullable();
             $table->timestamps();
 
             $table->unique(['agent_id', 'email']);
+            $table->index(['agent_id', 'created_at']);
+            $table->index(['agent_id', 'status']);
         });
     }
 

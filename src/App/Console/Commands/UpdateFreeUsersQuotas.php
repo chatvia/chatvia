@@ -32,7 +32,7 @@ class UpdateFreeUsersQuotas extends Command
         /** @var User $user */
         foreach ($users as $user) {
             // Only refresh credits if user has active subscription or is on trial
-            if ($user->subscribed('default') || $user->onTrial()) {
+            if ($user->hasActiveSubscription()) {
                 $user->creditSystem()->addCredit($quotaLimit, now()->addMonth());
             }
         }

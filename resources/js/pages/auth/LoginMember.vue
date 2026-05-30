@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons.vue';
 import InputError from '@/components/InputError.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useColorTheme } from '@/composables/useColorTheme';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle, Lock, Mail, Users } from 'lucide-vue-next';
+import { LoaderCircle, Lock, Mail } from 'lucide-vue-next';
 import { onMounted } from 'vue';
 
 const props = defineProps<{
@@ -112,20 +113,23 @@ onMounted(() => {
                 <!-- Login Button -->
                 <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="4" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
-                    <span v-if="!form.processing">Access Workspace</span>
+                    <span v-if="!form.processing">Start Chatting</span>
                     <span v-else>Signing in...</span>
                 </Button>
             </form>
 
-            <!-- Member Information -->
-            <div class="space-y-3 pt-4 text-center">
-                <div class="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/50">
-                    <p class="text-sm text-blue-700 dark:text-blue-300">
-                        <Users class="mr-1 inline h-4 w-4" />
-                        Team member access only. Contact your administrator if you need an account.
-                    </p>
+            <!-- Divider -->
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <span class="w-full border-t"></span>
+                </div>
+                <div class="relative flex justify-center text-sm uppercase">
+                    <span class="bg-background text-muted-foreground px-4 font-medium">Or</span>
                 </div>
             </div>
+
+            <!-- Social Login Buttons (reusable component shared with the main Login page) -->
+            <SocialLoginButtons />
         </div>
     </AuthBase>
 </template>

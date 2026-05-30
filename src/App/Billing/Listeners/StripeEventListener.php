@@ -3,6 +3,7 @@
 namespace App\Billing\Listeners;
 
 use App\Auth\Models\User;
+use App\Billing\Models\UserBilling;
 use App\Billing\Notifications\TrialWelcomeNotification;
 use App\Teams\Services\TeamService;
 use Exception;
@@ -82,7 +83,8 @@ class StripeEventListener
             return;
         }
 
-        $user = User::query()->where('stripe_id', $data['customer'])->first();
+        $billing = UserBilling::query()->where('stripe_id', $data['customer'])->first();
+        $user = $billing?->user;
 
         if (! $user) {
             Log::warning('User not found for invoice payment', ['customer' => $data['customer']]);
@@ -96,7 +98,7 @@ class StripeEventListener
             $isYearly = ($metadata['is_yearly'] ?? 'false') === 'true';
             $package = $metadata['to_package'] ?? $metadata['package'] ?? 'starter';
 
-            $subscription = $user->subscription();
+            $subscription = $billing->subscription();
 
             // End trial period if the subscription is still on trial
             // This transitions the subscription from 'trialing' to 'active' status
@@ -140,8 +142,8 @@ class StripeEventListener
         // Get metadata from checkout.session.completed event
         $metadata = $data['metadata'] ?? [];
 
-        // Check if user already exists by stripe_id
-        $existingUser = User::query()->where('stripe_id', $data['customer'])->first();
+        // Check if user already exists by stripe_id (on user_billing)
+        $existingUser = UserBilling::query()->where('stripe_id', $data['customer'])->first()?->user;
 
         if ($existingUser) {
             $this->grantSubscriptionFromMetadata($existingUser, $metadata);
@@ -160,7 +162,7 @@ class StripeEventListener
             $existingUserByEmail = User::query()->where('email', $email)->first();
 
             if ($existingUserByEmail) {
-                $existingUserByEmail->update(['stripe_id' => $data['customer']]);
+                $existingUserByEmail->billing()->updateOrCreate([], ['stripe_id' => $data['customer']]);
                 $this->grantSubscriptionFromMetadata($existingUserByEmail, $metadata);
 
                 return;
@@ -178,18 +180,19 @@ class StripeEventListener
             // Get user IP from metadata (captured at checkout)
             $userIp = $metadata['user_ip'] ?? null;
 
-            // Create new user
+            // Create new user (the observer auto-provisions the UserBilling row)
             /** @var User $user */
             $user = User::create([
                 'name' => $name,
                 'email' => $email,
                 'password' => Hash::make($password),
-                'stripe_id' => $data['customer'],
                 'domain' => parse_url(config('app.url'), PHP_URL_HOST),
                 'registered_ip' => $userIp,
                 'registered_country_code' => $countryCode,
                 'email_verified_at' => now(),
             ]);
+
+            $user->billing()->update(['stripe_id' => $data['customer']]);
 
             app(TeamService::class)->createDefaultTeam($user);
 
@@ -263,7 +266,7 @@ class StripeEventListener
     {
         $metadata = $data['metadata'];
 
-        $user = User::query()->where('stripe_id', $data['customer'])->first();
+        $user = UserBilling::query()->where('stripe_id', $data['customer'])->first()?->user;
 
         if (! $user) {
             return;

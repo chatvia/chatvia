@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatSession;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,6 +23,7 @@ class ChatConversationFactory extends Factory
     {
         return [
             'chat_session_id' => ChatSession::factory(),
+            'source' => $this->faker->randomElement(ConversationSource::cases()),
             'title' => $this->faker->optional(0.7)->sentence(3),
         ];
     }

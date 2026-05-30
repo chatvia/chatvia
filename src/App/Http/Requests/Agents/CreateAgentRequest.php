@@ -16,7 +16,6 @@ class CreateAgentRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string'],
-            'type' => ['required', 'string', 'in:knowledge_base,widget,search'],
         ];
     }
 }

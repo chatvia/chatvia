@@ -19,7 +19,7 @@ return new class extends Migration
     {
         Schema::create('chat_sessions', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->unique()->index();
+            $table->uuid('external_id')->unique();
 
             $table->foreignIdFor(Agent::class)->nullable()->constrained()->cascadeOnDelete();
             $table->foreignIdFor(User::class)->nullable()->constrained()->cascadeOnDelete();
@@ -34,14 +34,14 @@ return new class extends Migration
             $table->string('region')->nullable();
             $table->string('city')->nullable();
             $table->string('zip_code', 20)->nullable();
-            $table->string('time_zone', 10)->nullable();
+            $table->string('time_zone', 64)->nullable(); // IANA tz names can be 32+ chars
             $table->boolean('is_proxy')->nullable();
 
             $table->text('user_agent')->nullable();
 
-            $table->string('device_type')->nullable()->index();
-            $table->string('browser')->nullable()->index();
-            $table->string('os')->nullable()->index();
+            $table->string('device_type')->nullable();
+            $table->string('browser')->nullable();
+            $table->string('os')->nullable();
 
             $table->text('referrer_url')->nullable();
             $table->text('page_url')->nullable();
@@ -58,11 +58,17 @@ return new class extends Migration
 
         Schema::create('chat_conversations', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->unique()->index();
+            $table->uuid('external_id')->unique();
 
             $table->foreignId('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
             $table->foreignIdFor(Language::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(ChatTopic::class)->nullable()->constrained()->nullOnDelete();
+
+            // Which surface this conversation originated from — Hosted Chat,
+            // Widget, or Bar. Set once at insert; drives chat-log filtering and
+            // analytics segmentation. The agent itself no longer has a `type`;
+            // a single agent can be exposed through any/all three surfaces.
+            $table->enum('source', ['hosted_chat', 'widget', 'bar'])->index();
 
             $table->boolean('visible')->index()->default(false);
 
@@ -82,28 +88,28 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['chat_session_id', 'created_at']);
-            $table->index('chat_topic_id'); // For topic filtering
-            $table->index('updated_at'); // For ORDER BY latest activity
+            $table->index('chat_topic_id');
+            $table->index('updated_at'); // ORDER BY latest activity in chat-log
         });
 
         Schema::create('chat_messages', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->unique()->index();
+            $table->uuid('external_id')->unique();
 
             $table->foreignId('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
             $table->foreignIdFor(Llm::class)->nullable()->constrained()->restrictOnDelete();
             $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->constrained()->nullOnDelete();
 
-            $table->string('generation_id')->nullable()->index();
+            $table->string('generation_id')->nullable();
 
             $table->unsignedInteger('message_credits')->default(1);
 
-            $table->string('source')->nullable()->index();
+            $table->string('source')->nullable();
 
             $table->text('content')->nullable();
             $table->json('metadata')->nullable();
 
-            $table->enum('role', ['user', 'assistant', 'agent'])->index();
+            $table->enum('role', ['user', 'assistant', 'agent']);
             $table->decimal('confidence_score', 5, 4)->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
@@ -111,111 +117,64 @@ return new class extends Migration
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 
-            $table->boolean('is_response_from_qa')->nullable()->index();
-
-            $table->boolean('llm_found_answer')->nullable()->index();
+            $table->boolean('is_response_from_qa')->nullable();
+            $table->boolean('llm_found_answer')->nullable();
 
             $table->unsignedInteger('response_time_ms')->nullable();
             $table->unsignedInteger('prompt_tokens')->nullable();
             $table->unsignedInteger('completion_tokens')->nullable();
-            $table->decimal('cost', 10, 6)->nullable()->index();
+            $table->decimal('cost', 10, 6)->nullable();
 
-            $table->boolean('is_usage_counted')->nullable()->index();
+            $table->boolean('is_usage_counted')->nullable();
 
             $table->timestamps();
 
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('read_at')->nullable();
 
+            // Hot path: paginating a conversation's messages newest-first.
             $table->index(['chat_conversation_id', 'created_at']);
-            $table->index(['role', 'created_at']);
+            // Per-model analytics ordering.
             $table->index(['llm_id', 'created_at']);
-            $table->index(['feedback', 'created_at']);
-
-            // Indexes for conversation filtering (sentiment, tone, confidence, source)
-            $table->index(['chat_conversation_id', 'sentiment']);
-            $table->index(['chat_conversation_id', 'tone']);
-            $table->index(['chat_conversation_id', 'confidence_score']);
-            $table->index(['chat_conversation_id', 'source']);
         });
 
-        // Create basic indexes immediately (within transaction)
-        $this->createBasicIndexes();
+        $this->createPartialIndexes();
     }
 
-    private function createBasicIndexes(): void
+    /**
+     * Partial indexes covering the queries that actually run. Each filter is
+     * either a hot dashboard predicate (assistant role, feedback present) or
+     * an admin sweep (expires_at cleanup). Everything dropped from the
+     * original migration was either dead, dominated by another index, or
+     * indexing a near-boolean column with no selectivity.
+     */
+    private function createPartialIndexes(): void
     {
-        // Create regular indexes (non-concurrent) within the transaction
-        DB::statement('CREATE INDEX messages_active_idx ON chat_messages (chat_conversation_id, created_at)');
+        // Latest-message lookups per conversation, restricted to assistant.
         DB::statement("CREATE INDEX messages_assistant_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'assistant'");
+        // Same for user side — drives unread / read-receipt queries.
         DB::statement("CREATE INDEX messages_user_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'user'");
-
-        // Date-based indexes for analytics
-        DB::statement('CREATE INDEX messages_created_date_idx ON chat_messages USING btree (date(created_at))');
-        DB::statement('CREATE INDEX messages_year_month_idx ON chat_messages USING btree (extract(year from created_at), extract(month from created_at))');
-
-        // Performance indexes for common queries
+        // Feedback dashboards: positive/negative ratios over time.
         DB::statement('CREATE INDEX messages_feedback_date_idx ON chat_messages (feedback, created_at) WHERE feedback IS NOT NULL');
+        // TTL-style cleanup sweep.
         DB::statement('CREATE INDEX messages_expires_cleanup_idx ON chat_messages (expires_at) WHERE expires_at IS NOT NULL');
-
-        // Conversation-level indexes
-        DB::statement('CREATE INDEX conversations_active_idx ON chat_conversations (chat_session_id, created_at)');
-
-        // Multi-language full-text search indexes
-        $this->createMultiLanguageSearchIndexes();
-    }
-
-    private function createMultiLanguageSearchIndexes(): void
-    {
-        // Simple text search using trigrams (language-agnostic)
-        DB::statement('CREATE INDEX messages_content_trigram_idx ON chat_messages USING gin(content gin_trgm_ops)');
-
-        // Multi-language full-text search with simple configuration
-        DB::statement('CREATE INDEX messages_content_simple_search_idx ON chat_messages USING gin(to_tsvector(\'simple\', content))');
-
-        // Conversation title search (language-agnostic)
-        DB::statement('CREATE INDEX conversations_title_trigram_idx ON chat_conversations USING gin(title gin_trgm_ops) WHERE title IS NOT NULL');
     }
 
     public function down(): void
     {
-        // Drop custom indexes first
-        $this->dropCustomIndexes();
-
-        Schema::dropIfExists('chat_messages');
-        Schema::dropIfExists('chat_conversations');
-        Schema::dropIfExists('chat_sessions');
-    }
-
-    private function dropCustomIndexes(): void
-    {
         $indexes = [
-            'messages_active_idx',
             'messages_assistant_active_idx',
             'messages_user_active_idx',
-            'messages_created_date_idx',
-            'messages_year_month_idx',
             'messages_feedback_date_idx',
             'messages_expires_cleanup_idx',
-            'conversations_active_idx',
-            'sessions_type_agent_date_idx',
-            'sessions_user_recent_idx',
-            // Multi-language search indexes
-            'messages_content_trigram_idx',
-            'messages_content_simple_search_idx',
-            'conversations_title_trigram_idx',
-            // Language-specific indexes
-            'messages_content_en_idx',
-            'messages_content_es_idx',
-            'messages_content_fr_idx',
-            'messages_content_de_idx',
-            'messages_content_pt_idx',
-            'messages_content_ru_idx',
-            'messages_content_ar_idx',
         ];
 
         foreach ($indexes as $index) {
             DB::statement("DROP INDEX IF EXISTS {$index}");
         }
+
+        Schema::dropIfExists('chat_messages');
+        Schema::dropIfExists('chat_conversations');
+        Schema::dropIfExists('chat_sessions');
     }
 };

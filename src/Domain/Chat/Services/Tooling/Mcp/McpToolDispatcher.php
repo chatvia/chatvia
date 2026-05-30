@@ -24,7 +24,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         private readonly McpClient $client,
     ) {}
 
-    public function dispatch(Agent $agent, string $name, string $arguments): ToolDispatchResult
+    public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null): ToolDispatchResult
     {
         [$slug, $toolName] = $this->parsePrefixedName($name);
 
@@ -55,7 +55,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         $start = microtime(true);
 
         try {
-            $result = $this->client->callTool($server, $toolName, $args, ToolCallerIdentity::headers($agent));
+            $result = $this->client->callTool($server, $toolName, $args, ToolCallerIdentity::headers($agent, $conversationExternalId));
             $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
             $dispatchResult = $this->extractResult($result);

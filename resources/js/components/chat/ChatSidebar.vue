@@ -62,6 +62,7 @@ interface Conversation {
 
 interface Agent {
     id: number;
+    external_id: string;
     name: string;
     sub_domain: string;
     url: string;
@@ -316,12 +317,17 @@ const deleteConversation = async () => {
         // Refresh the conversations list after successful deletion
         loadConversations();
 
-        // Check if we're currently viewing the conversation we just deleted
-        const currentRoute = route().current();
+        // If we just deleted the conversation we're currently viewing, send
+        // the user back to the agent's home (new-chat) screen. We only care
+        // about the `conversationId` param — its presence already means
+        // we're on a chat.show-style route; the route name varies between
+        // surfaces (regular chat, embed, …).
         const currentConversationId = route().params?.conversationId;
 
-        if (currentRoute === props.newChatRoute && currentConversationId === deletedConversationId) {
-            // Redirect to chat home if we deleted the current conversation
+        if (
+            currentConversationId !== undefined &&
+            String(currentConversationId) === String(deletedConversationId)
+        ) {
             router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }), {
                 preserveState: false,
                 preserveScroll: false,
@@ -391,7 +397,7 @@ const loadAgents = async () => {
 
     isLoadingAgents.value = true;
     try {
-        const response = await axios.get(route('chat.member.agents'));
+        const response = await axios.get(route('chat.agents.index'));
         agents.value = response.data;
 
         // Set the current agent as selected based on subdomain
@@ -436,8 +442,8 @@ const switchToSelectedAgent = () => {
     console.log('Sending switch request for agent:', selectedAgent.value.id);
 
     agentSwitchForm.post(
-        route('chat.member.agents.switch', {
-            agent: selectedAgent.value.id,
+        route('chat.agents.switch', {
+            agent: selectedAgent.value.external_id,
         }),
         {
             preserveState: true,
@@ -671,49 +677,35 @@ const switchToSelectedAgent = () => {
                     </AlertDialogContent>
                 </AlertDialog>
 
-                <template v-if="(page.props.auth as any)?.user">
-                    <!-- JWT-authenticated end-users get a plain Log out button —
-                         no Profile/My Agents since they don't have a Chatvia
-                         dashboard account. Regular users get the full dropdown. -->
-                    <button
-                        v-if="(page.props.auth as any)?.is_external_chat_user"
-                        class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
-                        @click="handleLogout"
-                    >
-                        <LogOut class="h-4 w-4" />
-                        <span class="flex-1 text-left">Log out</span>
-                    </button>
-
-                    <DropdownMenu v-else>
-                        <DropdownMenuTrigger asChild>
-                            <button
-                                class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
-                            >
-                                <Avatar class="h-7 w-7">
-                                    <AvatarImage :src="(page.props.auth as any)?.user?.avatar || ''" />
-                                    <AvatarFallback class="text-xs">{{ (page.props.auth as any)?.user?.name?.charAt(0) || 'U' }}</AvatarFallback>
-                                </Avatar>
-                                <span class="flex-1 truncate text-left">{{ (page.props.auth as any)?.user?.name || 'User' }}</span>
-                                <MoreVertical class="text-muted-foreground h-4 w-4" />
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" side="top" class="w-56">
-                            <DropdownMenuItem class="cursor-pointer" @click="openProfileDialog">
-                                <User class="mr-2 h-4 w-4" />
-                                <span>Profile</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem class="cursor-pointer" @click="openAgentsDialog">
-                                <Bot class="mr-2 h-4 w-4" />
-                                <span>My Agents</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
-                                <LogOut class="mr-2 h-4 w-4" />
-                                <span>Log out</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </template>
+                <DropdownMenu v-if="(page.props.auth as any)?.user">
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
+                        >
+                            <Avatar class="h-7 w-7">
+                                <AvatarImage :src="(page.props.auth as any)?.user?.avatar || ''" />
+                                <AvatarFallback class="text-xs">{{ (page.props.auth as any)?.user?.name?.charAt(0) || 'U' }}</AvatarFallback>
+                            </Avatar>
+                            <span class="flex-1 truncate text-left">{{ (page.props.auth as any)?.user?.name || 'User' }}</span>
+                            <MoreVertical class="text-muted-foreground h-4 w-4" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" side="top" class="w-56">
+                        <DropdownMenuItem class="cursor-pointer" @click="openProfileDialog">
+                            <User class="mr-2 h-4 w-4" />
+                            <span>Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem class="cursor-pointer" @click="openAgentsDialog">
+                            <Bot class="mr-2 h-4 w-4" />
+                            <span>My Agents</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
+                            <LogOut class="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
     </div>

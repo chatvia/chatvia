@@ -96,7 +96,6 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
                     'embedding' => embed($chunk, true),
                     'embedding_bm25' => Bm25Tokenizer::expression($chunk),
                     'metadata' => [],
-                    'retrieval_count' => 0,
                 ]
             );
 

@@ -65,6 +65,49 @@ return [
     */
     'defaults' => [
         Agent::class => [
+            // Hosted Chat surface — standalone full-page chat served at the
+            // agent's subdomain. Carries its own text / branding / model(s) +
+            // embed-iframe behaviour; independent from Widget and Bar.
+            'hosted_chat' => [
+                'avatar' => null,
+                'logo' => null,
+                'color_theme' => 'black',
+                'color_shade' => 700,
+                'welcome_message' => 'What can I help with? ',
+                'chat_window_title' => 'Chat',
+                'chat_footer_text' => 'Consider checking important information',
+                'composer_placeholder' => 'Ask anything...',
+                // Multi-model picker — admin sets the allow-list + default, the
+                // public chat lets the user pick from this list at conversation
+                // start.
+                'models' => [],
+                'default_model' => null,
+                // Embed-iframe behaviour (used by /chat/embed).
+                'remove_sidebar' => false,
+                'hide_sidebar_on_page_load' => false,
+                'enable_theme_switcher' => true,
+                'default_theme' => 'auto',
+                'enable_chat_expand' => true,
+            ],
+            // Bar surface — embeddable cmd-K style search bar that opens a
+            // focused chat overlay. Single model, surface-specific trigger
+            // + placement; independent from Hosted Chat and Widget.
+            'bar' => [
+                'avatar' => null,
+                'logo' => null,
+                'color_theme' => 'black',
+                'color_shade' => 700,
+                'welcome_message' => 'What can I help with? ',
+                'chat_window_title' => 'Chat',
+                'chat_footer_text' => '',
+                'composer_placeholder' => 'Ask anything...',
+                'model' => null,
+                'trigger' => 'cmd+k',
+                'placement' => 'top',
+            ],
+            // Kept for back-compat with the existing Embed page (Setup → Hosted
+            // Chat reuses the same Vue component). Once Setup is rewritten to
+            // read from `hosted_chat` directly, this can be removed.
             'appearance' => [
                 'avatar' => null,
                 'logo' => null,
@@ -75,15 +118,29 @@ return [
                 'chat_footer_text' => 'Consider checking important information',
                 'composer_placeholder' => 'Ask anything...',
             ],
+            // Widget surface — embeddable floating-bubble + chat panel. Single
+            // model, surface-specific position / size / theme; independent
+            // from Hosted Chat and Bar.
             'widget' => [
+                'avatar' => null,
+                'logo' => null,
+                'color_theme' => 'black',
+                'color_shade' => 700,
+                'welcome_message' => 'What can I help with? ',
+                'chat_window_title' => 'Chat',
+                'chat_footer_text' => '',
+                'composer_placeholder' => 'Ask anything...',
+                'model' => null,
                 'sites' => [],
                 'position' => 'bottom-right',
                 'window_size' => 'large',
+                'theme' => 'auto',
                 'theme_color' => 'black',
                 'theme_shade' => 700,
                 'show_on_load' => false,
                 'show_on_load_delay' => 500,
                 'bubbles' => [],
+                'language' => 'auto',
             ],
             'embed' => [
                 'remove_sidebar' => false,
@@ -93,48 +150,25 @@ return [
                 'enable_chat_expand' => true,
             ],
             'leads' => [
-                'title' => 'Get in touch',
                 'fields' => [
-                    'name' => [
-                        'title' => 'Name',
-                        'required' => true,
-                        'enabled' => true,
-                    ],
-                    'email' => [
-                        'title' => 'Email',
-                        'required' => true,
-                        'enabled' => true,
-                    ],
-                    'phone' => [
-                        'title' => 'Phone Number',
-                        'required' => false,
-                        'enabled' => true,
-                    ],
-                    'job_title' => [
-                        'title' => 'Job Title',
-                        'required' => false,
-                        'enabled' => false,
-                    ],
-                    'company' => [
-                        'title' => 'Company',
-                        'required' => false,
-                        'enabled' => false,
-                    ],
-                    'location' => [
-                        'title' => 'Location',
-                        'required' => false,
-                        'enabled' => false,
-                    ],
-                    'message' => [
-                        'title' => 'Message',
-                        'required' => false,
-                        'enabled' => false,
-                    ],
+                    'name' => ['title' => 'Name', 'required' => true],
+                    'email' => ['title' => 'Email', 'required' => true],
+                    'phone' => ['title' => 'Phone Number', 'required' => false],
+                    'job_title' => ['title' => 'Job Title', 'required' => false],
+                    'company' => ['title' => 'Company', 'required' => false],
+                    'location' => ['title' => 'Location', 'required' => false],
+                    'message' => ['title' => 'Message', 'required' => false],
                 ],
                 'success' => [
-                    'title' => 'Thank you',
                     'message' => 'Your information has been received and someone will get back to you soon.',
                 ],
+            ],
+            'business' => [
+                'email' => null,
+                'phone' => null,
+                'website' => null,
+                'address' => null,
+                'opening_hours' => null,
             ],
         ],
     ],
@@ -163,12 +197,16 @@ return [
             'enabled' => ['nullable', 'boolean'],
             'sites' => ['nullable', 'array'],
             'theme' => ['nullable', 'in:auto,light,dark'],
+            'theme_color' => ['nullable', 'string'],
+            'theme_shade' => ['nullable', 'integer', 'min:50', 'max:950'],
             'position' => ['nullable', 'in:bottom-right,bottom-left,top-right,top-left'],
             'window_size' => ['nullable', 'in:small,medium,large'],
             'primary_color' => ['nullable', 'string'],
             'show_theme_switcher' => ['nullable', 'boolean'],
             'show_on_load' => ['nullable', 'boolean'],
             'show_on_load_delay' => ['nullable', 'integer'],
+            'language' => ['nullable', 'string'],
+            'bubbles' => ['nullable', 'array'],
         ],
         'embed' => [
             'remove_sidebar' => ['nullable', 'boolean'],
@@ -177,6 +215,26 @@ return [
             'default_theme' => ['nullable', 'in:auto,dark,light'],
             'enable_chat_expand' => ['nullable', 'boolean'],
             'model' => ['nullable', 'string'],
+        ],
+        'business' => [
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'website' => ['nullable', 'url', 'max:255'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'opening_hours' => ['nullable', 'string', 'max:1000'],
+        ],
+        'bar' => [
+            'avatar' => ['nullable', 'image'],
+            'logo' => ['nullable', 'image'],
+            'welcome_message' => ['nullable', 'string', 'max:500'],
+            'chat_window_title' => ['nullable', 'string', 'max:120'],
+            'chat_footer_text' => ['nullable', 'string', 'max:500'],
+            'composer_placeholder' => ['nullable', 'string', 'max:200'],
+            'color_theme' => ['nullable', 'string'],
+            'color_shade' => ['nullable', 'integer', 'min:50', 'max:950'],
+            'model' => ['nullable', 'string', 'exists:llms,external_name'],
+            'trigger' => ['nullable', 'in:cmd+k,cmd+j,cmd+/,/,shift+/'],
+            'placement' => ['nullable', 'in:top,top-right,bottom,bottom-right'],
         ],
     ],
 ];

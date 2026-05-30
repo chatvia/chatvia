@@ -11,16 +11,16 @@ return new class extends Migration
     {
         Schema::create('source_files', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->index()->nullable();
+            $table->uuid('external_id')->unique()->nullable();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
             $table->string('filename');
-            $table->enum('filetype', ['pdf', 'word', 'image', 'video', 'audio', 'spreadsheet', 'presentation', 'text', 'markdown'])->index();
+            $table->enum('filetype', ['pdf', 'word', 'image', 'video', 'audio', 'spreadsheet', 'presentation', 'text', 'markdown']);
             $table->string('filepath')->unique();
             $table->decimal('size_in_kb');
-            $table->string('mime_type')->index();
-            $table->string('checksum')->index();
+            $table->string('mime_type');
+            $table->string('checksum');
             $table->string('parser')->nullable();
             $table->string('parser_filepath')->nullable()->unique();
             $table->unsignedInteger('expected_chunks')->nullable();
@@ -28,8 +28,8 @@ return new class extends Migration
             $table->string('internal_ingestion_job_id')->unique()->nullable();
             $table->string('internal_chunking_batch_id')->unique()->nullable();
             $table->string('external_parsing_job_id')->unique()->nullable();
-            $table->jsonb('metadata')->index()->nullable();
-            $table->enum('status', ['uploaded', 'pending', 'ingesting', 'failed', 'ingested'])->default('pending')->index();
+            $table->jsonb('metadata')->nullable();
+            $table->enum('status', ['uploaded', 'pending', 'ingesting', 'failed', 'ingested'])->default('pending');
             $table->unsignedInteger('took_in_seconds')->default(0);
             $table->text('failure_reason')->nullable();
             $table->unsignedInteger('retrieval_count')->default(0);
@@ -37,6 +37,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'checksum']);
+            // List queries scan by owner + status.
+            $table->index(['user_id', 'status']);
         });
     }
 

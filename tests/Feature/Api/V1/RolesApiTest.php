@@ -4,7 +4,7 @@ use App\Auth\Models\User;
 use App\Teams\Models\Role;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
-use Domain\Auth\Actions\CreateExternalUserAction;
+use Domain\Auth\Actions\CreateChatterAction;
 use Domain\Teams\Actions\CreateTeamAction;
 use Domain\Teams\Actions\CreateTeamRoleAction;
 use Domain\Teams\Data\CreateTeamData;
@@ -33,7 +33,6 @@ function makeRoleAgent(User $user, string $name): Agent
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'is_public' => false,
-        'collect_leads' => true,
         'analytics_enabled' => true,
         'created_via' => 'external',
     ]);
@@ -162,7 +161,8 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
 
     it('assigns a user to a role', function (): void {
         $role = makeRole($this->user, 'Support');
-        $endUser = app(CreateExternalUserAction::class)->execute($this->user, 'Jane');
+        $agent = makeRoleAgent($this->user, 'Bot');
+        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
 
         $this->withHeaders(roleHeaders($this->token))
             ->postJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}/users", [
@@ -177,7 +177,8 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
     it('moves a user to the new role on reassignment (one role per team)', function (): void {
         $roleA = makeRole($this->user, 'A');
         $roleB = makeRole($this->user, 'B');
-        $endUser = app(CreateExternalUserAction::class)->execute($this->user, 'Jane');
+        $agent = makeRoleAgent($this->user, 'Bot');
+        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
 
         foreach ([$roleA, $roleB] as $role) {
             $this->withHeaders(roleHeaders($this->token))

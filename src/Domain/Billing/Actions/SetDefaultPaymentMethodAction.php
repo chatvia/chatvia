@@ -8,6 +8,6 @@ class SetDefaultPaymentMethodAction
 {
     public function execute(User $user, string $paymentMethodId): void
     {
-        $user->updateDefaultPaymentMethod($paymentMethodId);
+        $user->accountBilling()?->updateDefaultPaymentMethod($paymentMethodId);
     }
 }

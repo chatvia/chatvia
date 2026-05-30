@@ -27,6 +27,7 @@ class TeamRoleCreateShowController
             'agents' => $this->teamService->teamAgents($team),
             'permissionsConfig' => $this->teamService->permissionsConfig(),
             'permissionGroups' => $this->teamService->permissionGroups(),
+            'permissionScopes' => $this->teamService->permissionScopes(),
         ]);
     }
 }

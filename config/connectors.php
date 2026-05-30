@@ -48,6 +48,18 @@ return [
         'mcp_url' => env('APP_URL').'/mcp/charts',
     ],
 
+    'leads' => [
+        'slug' => 'leads',
+        'name' => 'Leads',
+        'description' => 'Capture visitor contact details (name, email, phone, and more)',
+        'category' => 'Sales',
+        'icon' => 'leads',
+        'brand_color' => 'F59E0B',
+        'logo_url' => '/images/icons/leads.svg',
+        'auth_strategy' => 'none',
+        'mcp_url' => env('APP_URL').'/mcp/leads',
+    ],
+
     'stripe' => [
         'slug' => 'stripe',
         'name' => 'Stripe',

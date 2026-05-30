@@ -15,7 +15,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -35,6 +34,7 @@ class AgentsController
 
             $agents = $team->agents()
                 ->whereIn('id', $accessibleAgentIds)
+                ->with(['agentPrompt:id,external_id'])
                 ->withStats()
                 ->latest()
                 ->get();
@@ -136,48 +136,4 @@ class AgentsController
         return redirect()->route('agents.index');
     }
 
-    public function rename(Request $request, Agent $agent, UpdateAgentAction $updateAgent): RedirectResponse
-    {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        $user = $request->user();
-        $team = current_team();
-
-        if (! $team || ! $user->ownsTeam($team)) {
-            abort(403, 'Only team owners can rename agents.');
-        }
-
-        if ($agent->team_id !== $team->id) {
-            abort(404);
-        }
-
-        $rules = [
-            'name' => [
-                'required', 'string', 'max:255',
-                Rule::unique('agents', 'name')
-                    ->ignore($agent->id)
-                    ->where('user_id', $request->user()->id),
-            ],
-        ];
-
-        if ($agent->type === 'knowledge_base') {
-            $rules['sub_domain'] = [
-                'required', 'string', 'min:3', 'max:63',
-                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('agents', 'sub_domain')->ignore($agent->id),
-            ];
-        }
-
-        $validated = $request->validate($rules);
-
-        $updateData = ['name' => $validated['name']];
-
-        if ($agent->type === 'knowledge_base' && isset($validated['sub_domain'])) {
-            $updateData['sub_domain'] = $validated['sub_domain'];
-        }
-
-        $updateAgent->execute($agent, $updateData);
-
-        return back()->with('success', 'Agent updated successfully');
-    }
 }

@@ -199,9 +199,7 @@ readonly class ChatService
 
     private function saveAssistantMessage(ChatContext $context): void
     {
-        $strip = '<ShowLeadForm/>';
-
-        $message = str_replace($strip, '', $context->streamedMessage);
+        $message = $context->streamedMessage;
 
         // Check if the response contains the answer_not_found tag
         $answerFound = ! str_contains($message, '<NoAnswer/>');

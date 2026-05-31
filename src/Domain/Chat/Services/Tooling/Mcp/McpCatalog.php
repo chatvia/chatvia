@@ -36,7 +36,7 @@ class McpCatalog
      */
     public function refresh(AgentMcpServer $server): Collection
     {
-        if (! $server->enabled) {
+        if (! $server->is_enabled) {
             return new Collection;
         }
 

@@ -6,6 +6,7 @@ use App\Auth\Models\User;
 use App\Http\Resources\Api\V1\McpServerData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\AgentMcpServer;
+use Domain\Connectors\Actions\DeleteMcpServerAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -51,9 +52,9 @@ class McpServerController
      *
      * Also removes it from every agent it's attached to.
      */
-    public function destroy(Request $request, string $mcp): JsonResponse
+    public function destroy(Request $request, string $mcp, DeleteMcpServerAction $deleteServer): JsonResponse
     {
-        $this->findCustom($request, $mcp)->delete();
+        $deleteServer->execute($this->findCustom($request, $mcp));
 
         return response()->json(null, 204);
     }

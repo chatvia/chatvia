@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Settings\Account\ApiKeysController;
+use App\Http\Controllers\Settings\Account\PasskeysController;
 use App\Http\Controllers\Settings\Account\PasswordController;
 use App\Http\Controllers\Settings\Account\ProfileController;
+use App\Http\Controllers\Settings\Account\SocialController;
+use App\Http\Controllers\Settings\Account\TwoFactorController;
 use App\Http\Controllers\Settings\Connectors\ConnectController;
 use App\Http\Controllers\Settings\Connectors\ConnectorAgentsController;
 use App\Http\Controllers\Settings\Connectors\ConnectorsController;
@@ -13,17 +16,15 @@ use App\Http\Controllers\Settings\Connectors\RefreshConnectorController;
 use App\Http\Controllers\Settings\Connectors\ToggleConnectorController;
 use App\Http\Controllers\Settings\Connectors\ToggleConnectorToolController;
 use App\Http\Controllers\Settings\Functions\FunctionAgentsController;
-use App\Http\Controllers\Settings\Members\SettingsMembersController;
 use App\Http\Controllers\Settings\Functions\FunctionsController;
 use App\Http\Controllers\Settings\Functions\ToggleFunctionController;
+use App\Http\Controllers\Settings\Members\SettingsMembersController;
 use App\Http\Controllers\Settings\Prompts\PromptsController;
-use App\Http\Controllers\Settings\Templates\AgentTemplatesController;
-use App\Http\Controllers\Settings\Templates\AgentTemplatesListController;
 use App\Http\Controllers\Settings\Usage\SettingsUsageController;
 use App\Http\Controllers\Teams\Crud\TeamDeleteController;
 use App\Http\Controllers\Teams\Crud\TeamLeaveController;
-use App\Http\Controllers\Teams\Crud\TeamShowController;
 use App\Http\Controllers\Teams\Crud\TeamsHomeController;
+use App\Http\Controllers\Teams\Crud\TeamShowController;
 use App\Http\Controllers\Teams\Crud\TeamsStoreController;
 use App\Http\Controllers\Teams\Crud\TeamUpdateController;
 use App\Http\Controllers\Teams\Members\TeamCancelInvitationController;
@@ -48,8 +49,19 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('settings/password', [PasswordController::class, 'edit'])->name('password.edit');
-    Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
+    Route::get('settings/password', [PasswordController::class, 'edit'])->name('settings.password.edit');
+    Route::put('settings/password', [PasswordController::class, 'update'])->name('settings.password.update');
+
+    Route::get('settings/two-factor', [TwoFactorController::class, 'edit'])->name('settings.two-factor.edit');
+    Route::get('settings/passkeys', [PasskeysController::class, 'edit'])->name('settings.passkeys.edit');
+
+    Route::get('settings/social', [SocialController::class, 'edit'])->name('settings.social.edit');
+    Route::get('settings/social/{provider}/connect', [SocialController::class, 'connect'])
+        ->middleware('throttle:10,1')
+        ->name('settings.social.connect');
+    Route::delete('settings/social/{provider}', [SocialController::class, 'disconnect'])
+        ->middleware('throttle:10,1')
+        ->name('settings.social.disconnect');
 
     Route::get('settings/api-keys', [ApiKeysController::class, 'edit'])->name('api-keys.edit');
     Route::post('settings/api-keys', [ApiKeysController::class, 'store'])->name('api-keys.store');
@@ -73,8 +85,8 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
 
     // Manage which agents use a connector (from the Connectors sheet).
     Route::get('settings/connectors/{slug}/agents', [ConnectorAgentsController::class, 'index'])->name('settings.connectors.agents.index');
-    Route::post('settings/connectors/{slug}/agents/{agent}', [ConnectorAgentsController::class, 'store'])->name('settings.connectors.agents.store');
-    Route::delete('settings/connectors/{slug}/agents/{agent}', [ConnectorAgentsController::class, 'destroy'])->name('settings.connectors.agents.destroy');
+    Route::post('settings/connectors/{slug}/agents/{agent}', [ConnectorAgentsController::class, 'store'])->name('settings.connectors.agents.attach');
+    Route::delete('settings/connectors/{slug}/agents/{agent}', [ConnectorAgentsController::class, 'destroy'])->name('settings.connectors.agents.detach');
 
     Route::get('settings/functions', [FunctionsController::class, 'edit'])->name('settings.functions.edit');
     Route::post('settings/functions', [FunctionsController::class, 'store'])->name('settings.functions.store');
@@ -84,8 +96,8 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
 
     // Manage which agents use a function (from the Functions sheet).
     Route::get('settings/functions/{external_id}/agents', [FunctionAgentsController::class, 'index'])->name('settings.functions.agents.index');
-    Route::post('settings/functions/{external_id}/agents/{agent}', [FunctionAgentsController::class, 'store'])->name('settings.functions.agents.store');
-    Route::delete('settings/functions/{external_id}/agents/{agent}', [FunctionAgentsController::class, 'destroy'])->name('settings.functions.agents.destroy');
+    Route::post('settings/functions/{external_id}/agents/{agent}', [FunctionAgentsController::class, 'store'])->name('settings.functions.agents.attach');
+    Route::delete('settings/functions/{external_id}/agents/{agent}', [FunctionAgentsController::class, 'destroy'])->name('settings.functions.agents.detach');
 
     // Account-level reusable prompts (Prompt Manager). Authored here, attached
     // to agents from each agent's Persona page via `agent_prompt_id`.
@@ -94,17 +106,6 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::post('settings/prompts', [PromptsController::class, 'store'])->name('settings.prompts.store');
     Route::patch('settings/prompts/{external_id}', [PromptsController::class, 'update'])->name('settings.prompts.update');
     Route::delete('settings/prompts/{external_id}', [PromptsController::class, 'destroy'])->name('settings.prompts.destroy');
-
-    // Account-level reusable agent templates (Settings → Templates). A template
-    // bundles appearance/widget/models/starters/prompt; while attached to an
-    // agent the agent reads its config from the template at runtime.
-    Route::get('settings/templates', [AgentTemplatesController::class, 'index'])->name('settings.templates.index');
-    Route::get('settings/templates/list', AgentTemplatesListController::class)->name('settings.templates.list');
-    Route::get('settings/templates/create', [AgentTemplatesController::class, 'create'])->name('settings.templates.create');
-    Route::post('settings/templates', [AgentTemplatesController::class, 'store'])->name('settings.templates.store');
-    Route::get('settings/templates/{external_id}/edit', [AgentTemplatesController::class, 'edit'])->name('settings.templates.edit');
-    Route::put('settings/templates/{external_id}', [AgentTemplatesController::class, 'update'])->name('settings.templates.update');
-    Route::delete('settings/templates/{external_id}', [AgentTemplatesController::class, 'destroy'])->name('settings.templates.destroy');
 
     Route::get('settings/usage', SettingsUsageController::class)->name('settings.usage');
 

@@ -6,6 +6,7 @@ use App\Http\Requests\Api\V1\Sources\UploadSourceFileRequest;
 use App\Http\Resources\Api\V1\UploadedSourceFileData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
+use Domain\Sources\Files\Actions\DeleteSourceFileFromAgentAction;
 use Domain\Sources\Files\Actions\UploadKnowledgeSourceFileAction;
 use Domain\Sources\Files\Models\SourceFile;
 use Illuminate\Http\JsonResponse;
@@ -30,14 +31,12 @@ class SourceFileController
         return ['data' => UploadedSourceFileData::fromModel($sourceFile)];
     }
 
-    public function destroy(Request $request, Agent $agent, int $source): JsonResponse
+    public function destroy(Request $request, Agent $agent, int $source, DeleteSourceFileFromAgentAction $deleteFile): JsonResponse
     {
         /** @var SourceFile $file */
         $file = $agent->files()->where('source_files.id', $source)->firstOrFail();
 
-        $file->agents()->detach($agent->id);
-        $file->chunks()->delete();
-        $file->delete();
+        $deleteFile->execute($agent, $file);
 
         return response()->json(null, 204);
     }

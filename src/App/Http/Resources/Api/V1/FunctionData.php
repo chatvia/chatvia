@@ -53,7 +53,7 @@ class FunctionData extends Data
         /**
          * Whether the function is currently enabled.
          */
-        public bool $enabled,
+        public bool $is_enabled,
         /**
          * When the function was last called.
          */
@@ -83,7 +83,7 @@ class FunctionData extends Data
             auth_type: FunctionAuthType::from($function->auth_type),
             has_auth_value: $function->auth_config !== null,
             timeout_ms: $function->timeout_ms,
-            enabled: (bool) $function->enabled,
+            is_enabled: (bool) $function->is_enabled,
             last_invoked_at: $function->last_invoked_at,
             invocation_count: (int) $function->invocation_count,
             created_at: $function->created_at,

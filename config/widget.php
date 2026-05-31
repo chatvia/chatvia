@@ -6,8 +6,13 @@ return [
     'chatvia_widget_id' => env('CHATVIA_WIDGET_ID'),
 
     'available_languages' => [
-        'auto' => 'Auto-detect',
+        'auto' => 'Auto',
         'en' => 'English',
         'ar' => 'Arabic (العربية)',
+        'da' => 'Danish (Dansk)',
+        'de' => 'German (Deutsch)',
+        'es' => 'Spanish (Español)',
+        'fr' => 'French (Français)',
+        'pt' => 'Portuguese (Português)',
     ],
 ];

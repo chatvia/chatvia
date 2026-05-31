@@ -22,7 +22,7 @@ class McpClientTest extends TestCase
         $server->auth_value = 'tok-abc';
         $server->headers = [];
         $server->timeout_ms = 5000;
-        $server->enabled = true;
+        $server->is_enabled = true;
 
         return $server;
     }

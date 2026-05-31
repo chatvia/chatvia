@@ -291,11 +291,6 @@ const _hasFailedFiles = computed(() => {
     return uploadingFiles.value.some((file) => file.error);
 });
 
-// Check if agent supports knowledge base functionality
-const _isKnowledgeAgent = computed(() => {
-    return props.agent.type === 'knowledge';
-});
-
 // Helper function to check if a file uses minutes quota (audio or video)
 const usesMinutesQuota = (file: any): boolean => {
     if (!file) return false;

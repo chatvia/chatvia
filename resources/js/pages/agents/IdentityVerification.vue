@@ -221,8 +221,8 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                     <CardHeader>
                         <CardTitle>Your signing secret</CardTitle>
                         <CardDescription>
-                            One secret per agent. Store it as an environment variable on your server. Anyone with it can sign in as any of your
-                            users on this agent, so treat it like a password.
+                            One secret per agent. Store it as an environment variable on your server. Anyone with it can sign in as any of your users
+                            on this agent, so treat it like a password.
                         </CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
@@ -257,8 +257,8 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                         >
                             <AlertCircle class="mt-0.5 size-4 flex-shrink-0" />
                             <span>
-                                Regenerating immediately invalidates every token signed with the current secret for this agent — across both
-                                chat links and the widget — so you'll need to redeploy your backend with the new value.
+                                Regenerating immediately invalidates every token signed with the current secret for this agent — across both chat
+                                links and the widget — so you'll need to redeploy your backend with the new value.
                             </span>
                         </div>
 
@@ -274,21 +274,17 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                 <Card v-if="isProtected">
                     <CardHeader>
                         <CardTitle>How it works</CardTitle>
-                        <CardDescription>
-                            You only need this when this agent is marked as protected. Public agents need no token.
-                        </CardDescription>
+                        <CardDescription> You only need this when this agent is marked as protected. Public agents need no token. </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ol class="text-muted-foreground list-decimal space-y-2 pl-5 text-sm">
                             <li>
-                                On your server, build a payload of <code>{ sub, aud, exp }</code> — the user's id, this agent's id, and an
-                                expiry.
+                                On your server, build a payload of <code>{ sub, aud, exp }</code> — the user's id, this agent's id, and an expiry.
                             </li>
                             <li>Sign it as a JWT (HS256) with this agent's secret to produce a token (see the examples below).</li>
                             <li>Pass the token to the widget as <code>data-auth</code>, or append <code>?token=</code> to a chat link.</li>
                             <li>
-                                Chatvia verifies the signature and signs that user in. Tokens last at most one hour — mint a fresh one per page
-                                load.
+                                Chatvia verifies the signature and signs that user in. Tokens last at most one hour — mint a fresh one per page load.
                             </li>
                         </ol>
                     </CardContent>
@@ -297,9 +293,7 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                 <Card v-if="isProtected">
                     <CardHeader>
                         <CardTitle>Sign a token</CardTitle>
-                        <CardDescription>
-                            A standard JWT (HS256) in either language — run it on your server, never in the browser.
-                        </CardDescription>
+                        <CardDescription> A standard JWT (HS256) in either language — run it on your server, never in the browser. </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Tabs default-value="javascript">
@@ -309,9 +303,7 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                             </TabsList>
 
                             <TabsContent value="javascript">
-                                <p class="text-muted-foreground mb-2 text-xs">
-                                    Using the <code>jsonwebtoken</code> package.
-                                </p>
+                                <p class="text-muted-foreground mb-2 text-xs">Using the <code>jsonwebtoken</code> package.</p>
                                 <div class="bg-muted relative rounded-lg p-4">
                                     <Button
                                         type="button"
@@ -357,8 +349,7 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                     <CardHeader>
                         <CardTitle>Add the token to your embed</CardTitle>
                         <CardDescription>
-                            Take the embed snippet from this agent's Setup tab and add a <code>data-auth</code> attribute with the token you
-                            signed.
+                            Take the embed snippet from this agent's Setup tab and add a <code>data-auth</code> attribute with the token you signed.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -374,9 +365,7 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                                 <Copy v-else class="size-4" />
                                 Copy
                             </Button>
-                            <pre
-                                class="hljs overflow-x-auto bg-transparent p-0 text-xs"
-                            ><code class="language-xml" v-html="embedHighlighted" /></pre>
+                            <pre class="hljs overflow-x-auto bg-transparent p-0 text-xs"><code class="language-xml" v-html="embedHighlighted" /></pre>
                         </div>
                     </CardContent>
                 </Card>
@@ -389,8 +378,8 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                 <AlertDialogHeader>
                     <AlertDialogTitle>Make agent public?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Anyone will be able to load this agent's widget or chat link without a signed token. You can switch it back to protected
-                        at any time.
+                        Anyone will be able to load this agent's widget or chat link without a signed token. You can switch it back to protected at
+                        any time.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -407,8 +396,8 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                     <AlertDialogTitle>Regenerate signing secret</AlertDialogTitle>
                     <AlertDialogDescription>
                         This generates a new secret for this agent and
-                        <span class="font-medium">invalidates every token signed with the current one</span> — across this agent's chat links
-                        and widget. Sign-in will break until you redeploy your backend with the new secret. This cannot be undone.
+                        <span class="font-medium">invalidates every token signed with the current one</span> — across this agent's chat links and
+                        widget. Sign-in will break until you redeploy your backend with the new secret. This cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

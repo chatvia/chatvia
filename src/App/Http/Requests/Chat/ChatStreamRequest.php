@@ -23,7 +23,6 @@ class ChatStreamRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'model' => ['required', 'string', 'exists:llms,external_name'],
             'message' => ['required', 'string'],
             'updated_message_info' => ['nullable', 'array'],
             'request_id' => ['nullable', 'string', 'uuid'],
@@ -38,8 +37,6 @@ class ChatStreamRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'model.required' => 'Please select a model',
-            'model.exists' => 'The selected model is not available',
             'message.required' => 'Please enter a message',
             'agent.required_if' => 'Agent is required when using playground mode',
         ];
@@ -53,7 +50,6 @@ class ChatStreamRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'model' => 'AI model',
             'message' => 'chat message',
             'updated_message_info' => 'message update information',
         ];

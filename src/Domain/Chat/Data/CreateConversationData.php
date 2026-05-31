@@ -9,7 +9,6 @@ class CreateConversationData extends Data
 {
     public function __construct(
         public Agent $agent,
-        public string $model,
         public string $message,
         public ?string $ipAddress = null,
         public ?string $userAgent = null,

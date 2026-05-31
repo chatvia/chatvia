@@ -4,6 +4,7 @@ namespace Domain\Agents\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphPivot;
@@ -35,10 +36,9 @@ use Illuminate\Support\Facades\DB;
  */
 #[Guarded(['id'])]
 #[Table(name: 'agent_sources')]
+#[WithoutTimestamps]
 class AgentSource extends MorphPivot
 {
-    public $timestamps = false;
-
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);

@@ -44,14 +44,18 @@ Route::post('demo', RequestDemoController::class)->name('demo.submit');
 
 Route::get('docs', DocsController::class)->name('docs');
 
-Route::get('/auth/google', GoogleAuthController::class)->name('auth.google');
-Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->name('auth.google.callback');
+// Social OAuth routes. Starts get a tighter cap (cheap redirect, only abused
+// for traffic generation); callbacks get a higher cap (legit users can land
+// here twice in quick succession during link-then-bounce flows, and we don't
+// want a flaky network retry to lock them out).
+Route::get('/auth/google', GoogleAuthController::class)->middleware('throttle:10,1')->name('auth.google');
+Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->middleware('throttle:30,1')->name('auth.google.callback');
 
-Route::get('/auth/microsoft', MicrosoftAuthController::class)->name('auth.microsoft');
-Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->name('auth.microsoft.callback');
+Route::get('/auth/microsoft', MicrosoftAuthController::class)->middleware('throttle:10,1')->name('auth.microsoft');
+Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->middleware('throttle:30,1')->name('auth.microsoft.callback');
 
-Route::get('/auth/slack', SlackAuthController::class)->name('auth.slack');
-Route::get('/auth/slack/callback', SlackCallbackController::class)->name('auth.slack.callback');
+Route::get('/auth/slack', SlackAuthController::class)->middleware('throttle:10,1')->name('auth.slack');
+Route::get('/auth/slack/callback', SlackCallbackController::class)->middleware('throttle:30,1')->name('auth.slack.callback');
 
 Route::get('/use-cases/{case}', UseCasesController::class)->name('use-cases');
 
@@ -72,7 +76,6 @@ Route::get(
     'connectors/oauth/callback',
     ConnectorOAuthCallbackController::class,
 )->middleware(['web', 'auth'])->name('connectors.oauth.callback');
-
 
 require __DIR__.'/dashboard.php';
 require __DIR__.'/settings.php';

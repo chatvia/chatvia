@@ -1,17 +1,16 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import type { AgentFunction } from '@/types/agent-function';
+import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertCircle, Code, FunctionSquare, LoaderCircle, Plus, Search } from 'lucide-vue-next';
+import { AlertCircle, Code, FunctionSquare, LoaderCircle, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
-import {Link} from "@inertiajs/vue3";
 
 interface Props {
     agent: Domain.Agents.Data.Resources.AgentResourceData;
@@ -138,7 +137,7 @@ onMounted(fetchFunctions);
                                             <div class="min-w-0">
                                                 <div class="flex items-center gap-2">
                                                     <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.name }}</code>
-                                                    <Badge v-if="!fn.enabled" variant="secondary">disabled</Badge>
+                                                    <Badge v-if="!fn.is_enabled" variant="secondary">disabled</Badge>
                                                     <Badge v-if="fn.last_error" variant="destructive" class="gap-1">
                                                         <AlertCircle class="h-3 w-3" />
                                                         last call failed
@@ -153,8 +152,8 @@ onMounted(fetchFunctions);
                                         <TableCell class="py-4 pr-5">
                                             <Switch
                                                 :model-value="fn.is_attached"
-                                                :disabled="!fn.enabled"
-                                                :title="!fn.enabled ? 'Enable this function in Settings first' : undefined"
+                                                :disabled="!fn.is_enabled"
+                                                :title="!fn.is_enabled ? 'Enable this function in Settings first' : undefined"
                                                 @update:model-value="toggle(fn)"
                                             />
                                         </TableCell>

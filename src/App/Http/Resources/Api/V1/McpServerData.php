@@ -55,7 +55,7 @@ class McpServerData extends Data
         /**
          * Whether the server is currently enabled.
          */
-        public bool $enabled,
+        public bool $is_enabled,
         /**
          * Number of tools discovered on the server.
          */
@@ -86,7 +86,7 @@ class McpServerData extends Data
             has_auth_value: $server->auth_value !== null,
             has_headers: $server->headers !== null && $server->headers !== [],
             timeout_ms: $server->timeout_ms,
-            enabled: (bool) $server->enabled,
+            is_enabled: (bool) $server->is_enabled,
             catalog_tools_count: $server->catalog_tools_count,
             last_invoked_at: $server->last_invoked_at,
             invocation_count: (int) $server->invocation_count,

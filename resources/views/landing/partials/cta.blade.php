@@ -10,20 +10,20 @@
 
                 <div class="relative">
                     <h2 class="text-3xl sm:text-4xl md:text-5xl font-display text-slate-900 mb-5">
-                        {!! $landing['cta']['headline'] !!}
+                        {!! $landing['cta']['headline'] ?? 'Stop losing customers to <span class="text-emerald-500">unanswered questions</span>.' !!}
                     </h2>
                     <p class="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
-                        {!! $landing['cta']['description'] !!}
+                        {!! $landing['cta']['description'] ?? 'Deploy an AI chatbot that knows your business inside out — in minutes, not weeks.' !!}
                     </p>
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <a class="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5"
                            href="#pricing">
-                            {{ $landing['cta']['button']['label'] }}
+                            {{ $landing['cta']['button']['label'] ?? 'Start your free trial' }}
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                             </svg>
                         </a>
-                        @if(isset($landing['has-widget']) && $landing['has-widget'] === true)
+                        @if(($landing['has-widget'] ?? true) === true)
                             <button onclick="window.chatvia.open()"
                                     class="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-slate-700 bg-white hover:bg-slate-50 rounded-xl border border-slate-200 transition-all duration-200 hover:shadow-md cursor-pointer">
                                 Talk to our AI

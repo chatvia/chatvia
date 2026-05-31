@@ -61,9 +61,7 @@ const closeSheet = (open: boolean) => {
 // Keep the row's `agents_count` in sync as the sheet's toggles fire so the
 // table reflects access changes immediately, no refetch needed.
 const onAccessChanged = (member: ChatterRow, attachedCount: number) => {
-    members.value = members.value.map((m) =>
-        m.external_id === member.external_id ? { ...m, agents_count: attachedCount } : m,
-    );
+    members.value = members.value.map((m) => (m.external_id === member.external_id ? { ...m, agents_count: attachedCount } : m));
     if (selectedMember.value?.external_id === member.external_id) {
         selectedMember.value = { ...selectedMember.value, agents_count: attachedCount };
     }
@@ -74,9 +72,7 @@ const searchQuery = ref('');
 const filteredMembers = computed(() => {
     const q = searchQuery.value.trim().toLowerCase();
     if (!q) return members.value;
-    return members.value.filter(
-        (m) => m.name.toLowerCase().includes(q) || (m.email ?? '').toLowerCase().includes(q),
-    );
+    return members.value.filter((m) => m.name.toLowerCase().includes(q) || (m.email ?? '').toLowerCase().includes(q));
 });
 
 // Reset password confirmation
@@ -280,8 +276,8 @@ const formatDate = (iso: string) => {
                         <AlertDialogTitle>Send a password reset link?</AlertDialogTitle>
                         <AlertDialogDescription>
                             We'll email a reset link to
-                            <span class="font-medium">{{ memberToReset?.email }}</span>. They can set a new password from the link — you won't
-                            see the new value.
+                            <span class="font-medium">{{ memberToReset?.email }}</span
+                            >. They can set a new password from the link — you won't see the new value.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -310,8 +306,8 @@ const formatDate = (iso: string) => {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Remove member</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <span class="font-medium">{{ memberToDelete?.name }}</span> will be permanently deleted along with their access to
-                            every agent in your workspace. This cannot be undone.
+                            <span class="font-medium">{{ memberToDelete?.name }}</span> will be permanently deleted along with their access to every
+                            agent in your workspace. This cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

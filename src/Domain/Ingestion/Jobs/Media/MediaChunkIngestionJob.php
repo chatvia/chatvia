@@ -56,7 +56,7 @@ class MediaChunkIngestionJob implements ShouldBeUnique, ShouldQueue
             'summary' => '',
             'chunked_using_model' => config('ai.models.chunker'),
             'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
-            'cost_in_cents' => 0,
+            'cost_in_micro_cents' => 0,
             'tokens' => TikToken::countTokens($this->page->content),
             'embedding' => embed($this->page->content, true),
             'embedding_bm25' => DB::raw('tokenize('.DB::connection()->getPdo()->quote($this->page->content).", 'llmlingua2')"),

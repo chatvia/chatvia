@@ -6,6 +6,7 @@ use App\Auth\Models\User;
 use Domain\Agents\Collections\AgentCollection;
 use Domain\Agents\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -60,19 +61,22 @@ class ChatTopic extends Model
         return $this->hasMany(ChatConversation::class, 'chat_topic_id');
     }
 
-    public function scopeSystem(Builder $query): Builder
+    #[Scope]
+    protected function system(Builder $query): void
     {
-        return $query->whereNull('user_id');
+        $query->whereNull('user_id');
     }
 
-    public function scopeUserDefined(Builder $query): Builder
+    #[Scope]
+    protected function userDefined(Builder $query): void
     {
-        return $query->whereNotNull('user_id');
+        $query->whereNotNull('user_id');
     }
 
-    public function scopeForUser(Builder $query, User $user): Builder
+    #[Scope]
+    protected function forUser(Builder $query, User $user): void
     {
-        return $query->where(function ($q) use ($user): void {
+        $query->where(function ($q) use ($user): void {
             $q->whereNull('user_id')
                 ->orWhere('user_id', $user->id);
         });

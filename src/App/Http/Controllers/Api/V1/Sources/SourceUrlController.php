@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers\Api\V1\Sources;
 
+use App\Auth\Models\User;
+use App\Http\Requests\Api\V1\Sources\CrawlSourceUrlRequest;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Web\Data\Crawler\CrawlerData;
-use Domain\Sources\Web\Events\WebsiteCrawlerEvent;
-use Domain\Sources\Web\Jobs\Crawler\WebsiteCrawlerJob;
+use Domain\Sources\Web\Actions\DeleteSourceWebsiteAction;
+use Domain\Sources\Web\Actions\StartAgentWebsiteCrawlAction;
 use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
-use Throwable;
 
 /**
  * Crawl a website and ingest its content. The crawler follows links inside
@@ -25,49 +24,19 @@ class SourceUrlController
     /**
      * Add URL source
      */
-    public function store(Request $request, Agent $agent): JsonResponse
+    public function store(CrawlSourceUrlRequest $request, Agent $agent, StartAgentWebsiteCrawlAction $startCrawl): JsonResponse
     {
-        $validated = $request->validate([
-            'url' => ['required', 'url'],
-            'slow_crawling' => ['sometimes', 'boolean'],
-            'include_paths' => ['sometimes', 'nullable', 'string'],
-            'exclude_paths' => ['sometimes', 'nullable', 'string'],
-        ]);
-
-        $validated['slow_crawling'] = $validated['slow_crawling'] ?? false;
-
-        if ($agent->websites()->where('url', $validated['url'])->exists()) {
-            throw ValidationException::withMessages([
-                'url' => 'This URL has already been added to this agent.',
-            ]);
-        }
-
-        $data = CrawlerData::from($validated);
+        // Crawl ownership stays with the agent's owner — the API token may belong
+        // to a workspace member but the source file/website ends up on the
+        // workspace account.
+        /** @var User $owner */
+        $owner = $agent->user;
 
         try {
-            $response = Http::withOptions(['allow_redirects' => false])->get($data->url)->throw();
-        } catch (Throwable $throwable) {
-            report($throwable);
-            throw ValidationException::withMessages([
-                'url' => 'Failed to fetch the URL. Check that it is reachable.',
-            ]);
+            $website = $startCrawl->execute($agent, $owner, $request->toData());
+        } catch (InviteRejectedException $e) {
+            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
         }
-
-        if ($response->redirect()) {
-            $data->url = $response->header('Location');
-        }
-
-        $website = SourceWebsite::create([
-            'url' => $data->url,
-            'user_id' => $agent->user_id,
-            'status' => 'crawling',
-            'options' => $data->exclude('url')->toArray(),
-        ]);
-
-        $agent->websites()->attach($website->id);
-
-        WebsiteCrawlerEvent::dispatch($website, $agent);
-        WebsiteCrawlerJob::dispatch($website, $data, $agent);
 
         return response()->json([
             'data' => [
@@ -82,21 +51,12 @@ class SourceUrlController
     /**
      * Delete URL source
      */
-    public function destroy(Request $request, Agent $agent, int $source): JsonResponse
+    public function destroy(Request $request, Agent $agent, int $source, DeleteSourceWebsiteAction $deleteWebsite): JsonResponse
     {
         /** @var SourceWebsite $website */
         $website = $agent->websites()->where('source_websites.id', $source)->firstOrFail();
 
-        if ($website->internal_chunking_batch_id) {
-            $batch = Bus::findBatch($website->internal_chunking_batch_id);
-
-            if ($batch && ! $batch->cancelled()) {
-                $batch->cancel();
-            }
-        }
-
-        $website->chunks()->delete();
-        $website->delete();
+        $deleteWebsite->execute($website);
 
         return response()->json(null, 204);
     }

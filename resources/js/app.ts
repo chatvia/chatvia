@@ -11,6 +11,7 @@ import Vue3ColorPicker from 'vue3-colorpicker';
 import 'vue3-colorpicker/style.css';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
+import { i18n, resolveLocale, setI18nLocale } from './i18n';
 import { createChatEventBus } from './utils/eventBus';
 
 const chatEventBus = createChatEventBus();
@@ -43,8 +44,14 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     setup({ el, App, props, plugin }) {
+        const initialLocale = (props.initialPage?.props as any)?.locale;
+        if (typeof initialLocale === 'string' && initialLocale.length > 0) {
+            setI18nLocale(resolveLocale(initialLocale));
+        }
+
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(i18n)
             .use(ZiggyVue)
             .use(Vue3ColorPicker)
             .use(vueTag)
@@ -62,6 +69,14 @@ createInertiaApp({
 router.on('navigate', (event: any) => {
     const page = event.detail.page;
     const { props } = page;
+
+    // Sync the active i18n locale (and document dir/lang) with whatever
+    // the server resolved for this Inertia page (chat surfaces send `locale`).
+    // `auto` falls back to the browser language; anything else is forced.
+    const incomingLocale = (props as any)?.locale;
+    if (typeof incomingLocale === 'string' && incomingLocale.length > 0) {
+        setI18nLocale(resolveLocale(incomingLocale));
+    }
 
     // Handle Laravel validation errors
     if (props.errors && Object.keys(props.errors).length > 0) {

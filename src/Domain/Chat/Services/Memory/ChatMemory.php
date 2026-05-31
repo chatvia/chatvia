@@ -9,6 +9,7 @@ use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\ChatOutputPayload;
 use Domain\Chat\Data\Memory\ConversationData;
 use Domain\Chat\Data\Memory\MessageData;
+use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Jobs\StoreChatMessageJob;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
@@ -71,7 +72,7 @@ class ChatMemory implements ChatMemoryInterface
      * Create a new conversation with the given title, originating from the
      * given surface.
      */
-    public function createConversation(string $title, \Domain\Chat\Enums\ConversationSource $source): string
+    public function createConversation(string $title, ConversationSource $source): string
     {
         $this->ensureInitialized();
 

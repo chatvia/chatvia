@@ -21,9 +21,7 @@ defineEmits<{
     <div class="space-y-4">
         <div>
             <h3 class="text-sm font-medium">Conversation Starters</h3>
-            <p class="text-muted-foreground mt-1 text-xs">
-                Suggest questions to help users start conversations. Press Enter to add each one.
-            </p>
+            <p class="text-muted-foreground mt-1 text-xs">Suggest questions to help users start conversations. Press Enter to add each one.</p>
         </div>
 
         <TagsInput

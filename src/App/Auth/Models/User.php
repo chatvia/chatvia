@@ -3,6 +3,7 @@
 namespace App\Auth\Models;
 
 use App\Billing\Data\Resources\BillingPackageCapabilitiesData;
+use App\Billing\Enums\CapabilityEnum;
 use App\Billing\Models\UserAddon;
 use App\Billing\Models\UserBilling;
 use App\Billing\Models\UserCredit;
@@ -21,7 +22,6 @@ use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Domain\Agents\Models\AgentMcpServer;
 use Domain\Agents\Models\AgentPrompt;
-use Domain\Agents\Models\AgentTemplate;
 use Domain\Agents\Models\Llm;
 use Domain\Agents\Models\ModelSetting;
 use Domain\Chat\Data\LlmModelData;
@@ -46,6 +46,9 @@ use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Laravel\Fortify\Contracts\PasskeyUser;
+use Laravel\Fortify\PasskeyAuthenticatable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Support\Concerns\HasExternalId;
@@ -150,11 +153,19 @@ use Support\Traits\HasSettings;
 #[Hidden([
     'password',
     'remember_token',
+    'two_factor_recovery_codes',
+    'two_factor_secret',
 ])]
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
+    /**
+     * Per-request memo bucket — Inertia's share() lambda + User Appends fan
+     * billing/team derivations out 4–6× per request. Read/write via remember().
+     */
+    private array $memo = [];
+
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, Notifiable;
+    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -197,18 +208,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Account-level reusable agent templates this customer owns (Settings →
-     * Templates). Each bundles appearance/widget/models/starters/prompt and can
-     * be attached to any number of their agents via `agents.agent_template_id`.
-     *
-     * @return HasMany<AgentTemplate, $this>
-     */
-    public function templates(): HasMany
-    {
-        return $this->hasMany(AgentTemplate::class);
-    }
-
-    /**
      * Account-level MCP servers this customer owns. Each can be attached to
      * any number of their agents via `agent_mcp_server`.
      *
@@ -229,13 +228,44 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * @template T
+     *
+     * @param  \Closure(): T  $resolver
+     * @return T
+     */
+    private function remember(string $key, \Closure $resolver): mixed
+    {
+        if (! array_key_exists($key, $this->memo)) {
+            $this->memo[$key] = $resolver();
+        }
+
+        return $this->memo[$key];
+    }
+
+    /**
      * Cashier customer for this user's account — the workspace owner's
      * `UserBilling` row, or null if the workspace has none yet. Use this
      * anywhere you'd otherwise reach for `$user->subscribed()` etc.
      */
     public function accountBilling(): ?UserBilling
     {
-        return $this->effectiveUser()->billing;
+        return $this->remember('billing', fn (): ?UserBilling => $this->effectiveUser()->billing);
+    }
+
+    /**
+     * Same as `accountBilling()` but asserts the row exists. Use from code
+     * that calls Cashier methods (createSetupIntent, redirectToBillingPortal,
+     * findPaymentMethod, updateStripeCustomer, ...) — those live on the
+     * Billable `UserBilling`, not on `User`. UserObserver guarantees every
+     * registered user has a billing row, so the null path is a real bug
+     * (workspace mis-wiring, observer skipped in tests) and should crash
+     * loudly rather than return a misleading null.
+     */
+    public function accountBillingOrFail(): UserBilling
+    {
+        return $this->accountBilling() ?? throw new \RuntimeException(
+            'No UserBilling row for user '.$this->id.'. UserObserver should have provisioned one on create.'
+        );
     }
 
     public function agents(): HasMany
@@ -247,16 +277,14 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function getCurrentPackage(): array
     {
-        $effectiveUser = $this->effectiveUser();
-        $stripePrice = $effectiveUser->billing?->subscription()?->stripe_price;
+        return $this->remember('currentPackage', function (): array {
+            $stripePrice = $this->accountBilling()?->subscription()?->stripe_price;
+            $billing = app(Billing::class);
 
-        $billing = app(Billing::class);
-
-        if (! $stripePrice) {
-            return $billing->getFreePackage();
-        }
-
-        return $billing->getPackageByPriceId($stripePrice, true);
+            return $stripePrice
+                ? $billing->getPackageByPriceId($stripePrice, true)
+                : $billing->getFreePackage();
+        });
     }
 
     public function isAdmin(): bool
@@ -281,9 +309,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasActiveSubscription(): bool
     {
-        $billing = $this->effectiveUser()->billing;
+        return $this->remember('hasActiveSubscription', function (): bool {
+            $billing = $this->accountBilling();
 
-        return (bool) ($billing?->subscribed() || $billing?->onTrial());
+            return (bool) ($billing?->subscribed() || $billing?->onTrial());
+        });
     }
 
     public function capabilities(): Attribute
@@ -293,11 +323,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return Attribute::get(fn (): BillingPackageCapabilitiesData => BillingPackageCapabilitiesData::forPlan($plan));
     }
 
-    public function hasCapability(string $capability): bool
+    public function hasCapability(CapabilityEnum $capability): bool
     {
-        $capabilities = $this->capabilities();
-
-        return property_exists($capabilities, $capability) && $capabilities->{$capability} === true;
+        // `capabilities()` returns the Eloquent Attribute container; calling
+        // it as a method on the instance bypasses the accessor and yields
+        // the wrapper, not the resolved DTO. Access via the magic property
+        // (`$this->capabilities`) so Eloquent runs the get-closure and we
+        // get a `BillingPackageCapabilitiesData` with the named capability.
+        return $this->capabilities->{$capability->value} === true;
     }
 
     public function cancelSubscription(): void
@@ -312,16 +345,15 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function formattedLlms()
     {
-        $llms = Llm::all();
-
-        return $llms->map(function (Llm $llm) {
-            return LlmModelData::fromLlmModel($llm);
-        });
+        return Llm::catalog()->map(fn (Llm $llm): LlmModelData => LlmModelData::fromLlmModel($llm));
     }
 
-    public function llms()
+    /**
+     * @return Collection<int, Llm>
+     */
+    public function llms(): Collection
     {
-        return Llm::all();
+        return Llm::catalog();
     }
 
     public function agentFiles()
@@ -360,7 +392,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $effectiveUser = $this->effectiveUser();
 
-        return $effectiveUser->hasOne(UserCredit::class)->latestOfMany('ends_at');
+        return $effectiveUser->hasOne(UserCredit::class)
+            ->where('ends_at', '>=', now())
+            ->latestOfMany('ends_at');
     }
 
     public function addons(): HasMany
@@ -512,6 +546,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->creditSystem()->consumableMessages();
     }
 
+    /**
+     * @return HasMany<Ticket, $this>
+     */
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class);
@@ -581,12 +618,12 @@ class User extends Authenticatable implements MustVerifyEmail
             return null;
         }
 
-        return Role::query()
+        return $this->remember("teamRole:{$team->id}", fn (): ?Role => Role::query()
             ->join('team_user', 'team_user.role_id', '=', 'roles.id')
             ->where('team_user.team_id', $team->id)
             ->where('team_user.user_id', $this->id)
             ->select('roles.*')
-            ->first();
+            ->first());
     }
 
     /**
@@ -625,9 +662,9 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the user's primary team (first owned team created at registration).
      */
-    public function primaryTeam()
+    public function primaryTeam(): ?Team
     {
-        return $this->ownedTeams()->oldest()->first();
+        return $this->remember('primaryTeam', fn (): ?Team => $this->ownedTeams()->oldest()->first());
     }
 
     /**
@@ -673,25 +710,26 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Ensure the user has a current team set.
-     * Sets to first available team if not set.
+     * Ensure the user has a current team set. Called from middleware,
+     * permission helpers, and the Inertia share lambda.
      */
     public function ensureCurrentTeam(): ?Team
     {
-        if ($this->current_team_id && $this->currentTeam) {
-            return $this->currentTeam;
-        }
+        return $this->remember('currentTeam', function (): ?Team {
+            if ($this->current_team_id && $this->currentTeam) {
+                return $this->currentTeam;
+            }
 
-        // Get the first team the user belongs to (owned first, then member)
-        $team = $this->ownedTeams()->first() ?? $this->memberTeams()->first();
+            $team = $this->ownedTeams()->first() ?? $this->memberTeams()->first();
 
-        if ($team) {
-            $this->update(['current_team_id' => $team->id]);
+            if ($team) {
+                $this->update(['current_team_id' => $team->id]);
 
-            return $team;
-        }
+                return $team;
+            }
 
-        return null;
+            return null;
+        });
     }
 
     /**
@@ -832,6 +870,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canAddTeamMember(): bool
     {
         return $this->teamMembersCount() < $this->quota->members_limit;
+    }
+
+    /**
+     * Number of chatters this workspace has provisioned (via the API).
+     */
+    public function chattersCount(): int
+    {
+        return $this->chatters()->count();
+    }
+
+    /**
+     * Whether this workspace can provision another chatter under
+     * `members_limit`. Chatters share the same per-plan ceiling as
+     * employees but are tracked in a separate bucket — adding a chatter
+     * doesn't reduce the team-invite quota and vice versa.
+     */
+    public function canAddChatter(): bool
+    {
+        return $this->chattersCount() < $this->quota->members_limit;
     }
 
     public function staff(): HasMany

@@ -3,6 +3,7 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
 import InputError from '@/components/InputError.vue';
+import LockedFeature from '@/components/LockedFeature.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -19,10 +20,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { AlertCircle, Check, Copy, KeyRound, Plus, Trash2 } from 'lucide-vue-next';
+import { AlertCircle, Check, Copy, KeyRound, Plus, Tag, Trash2 } from 'lucide-vue-next';
+import { computed } from 'vue';
+
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('api'));
 
 interface TokenRow {
     id: number;
@@ -118,7 +124,9 @@ const dismissDialog = () => {
 
                 <Separator />
 
-                <Card>
+                <LockedFeature v-if="!hasAccess" description="Upgrade your plan to issue API keys and integrate Chatvia with your applications." />
+
+                <Card v-else>
                     <CardHeader>
                         <CardTitle>Generate a new key</CardTitle>
                         <CardDescription>
@@ -129,7 +137,12 @@ const dismissDialog = () => {
                         <form @submit.prevent="submit" class="flex flex-col gap-3 sm:flex-row sm:items-end">
                             <div class="grid flex-1 gap-2">
                                 <Label for="name">Name</Label>
-                                <Input id="name" v-model="form.name" placeholder="production-backend" autocomplete="off" required />
+                                <div class="relative">
+                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <Tag class="size-4" />
+                                    </div>
+                                    <Input id="name" v-model="form.name" placeholder="production-backend" autocomplete="off" required class="pl-9" />
+                                </div>
                                 <InputError :message="form.errors.name" />
                             </div>
                             <Button type="submit" :disabled="form.processing">
@@ -140,7 +153,7 @@ const dismissDialog = () => {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card v-if="hasAccess">
                     <CardHeader>
                         <CardTitle>Existing keys</CardTitle>
                         <CardDescription> Revoke any key here. Revoked keys stop working immediately and cannot be restored. </CardDescription>

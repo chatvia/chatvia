@@ -2,10 +2,16 @@
 import MessageCard from '@/components/chat/MessageCard.vue';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
+import { computed } from 'vue';
 import { useChatLog } from './useChatLog';
 
 type Message = Domain.Agents.Data.Resources.ChatLog.ChatLogMessageData;
+
+const { hasCapability } = useCapabilityGuard();
+const hasToneAccess = computed(() => hasCapability('tone'));
+const hasSentimentAccess = computed(() => hasCapability('sentiment'));
 
 const emit = defineEmits<{
     (e: 'open-revise', message: Message): void;
@@ -98,18 +104,22 @@ function openReviseDialog(message: Message) {
                         <div class="text-muted-foreground flex flex-wrap items-center gap-2 px-1 text-xs">
                             <!-- Tone (for user messages) -->
                             <span
-                                v-if="m.role === 'user' && m.tone"
+                                v-if="hasToneAccess && m.role === 'user' && m.tone"
                                 :class="getToneBadgeColor(m.tone)"
                                 class="rounded px-1.5 py-0.5 text-[10px] font-medium"
                             >
                                 {{ getToneDisplayName(m.tone) }}
                             </span>
 
-                            <span v-if="m.role === 'user' && m.tone && m.sentiment" class="text-muted-foreground/30">•</span>
+                            <span
+                                v-if="hasToneAccess && hasSentimentAccess && m.role === 'user' && m.tone && m.sentiment"
+                                class="text-muted-foreground/30"
+                                >•</span
+                            >
 
                             <!-- Sentiment (for user messages) -->
                             <span
-                                v-if="m.role === 'user' && m.sentiment"
+                                v-if="hasSentimentAccess && m.role === 'user' && m.sentiment"
                                 class="capitalize"
                                 :class="{
                                     'text-green-600 dark:text-green-400': m.sentiment === 'positive',
@@ -120,7 +130,11 @@ function openReviseDialog(message: Message) {
                                 {{ m.sentiment }}
                             </span>
 
-                            <span v-if="m.role === 'user' && (m.tone || m.sentiment)" class="text-muted-foreground/30">•</span>
+                            <span
+                                v-if="m.role === 'user' && ((hasToneAccess && m.tone) || (hasSentimentAccess && m.sentiment))"
+                                class="text-muted-foreground/30"
+                                >•</span
+                            >
 
                             <!-- Confidence (for assistant) -->
                             <template v-if="m.role === 'assistant'">
@@ -151,23 +165,6 @@ function openReviseDialog(message: Message) {
                                     {{ formatFullDateTime(m.created_at) }}
                                 </span>
                             </span>
-
-                            <!-- Model (for assistant) -->
-                            <template v-if="m.role === 'assistant' && m.llm_name">
-                                <span class="text-muted-foreground/30">•</span>
-                                <div class="group relative cursor-help">
-                                    <img
-                                        :src="m.llm_icon ? `/images/llms/${m.llm_icon}` : '/images/llms/gpt.svg'"
-                                        :alt="m.llm_name"
-                                        class="h-3.5 w-3.5 rounded"
-                                    />
-                                    <span
-                                        class="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
-                                    >
-                                        {{ m.llm_name }}
-                                    </span>
-                                </div>
-                            </template>
 
                             <!-- Feedback (for assistant) -->
                             <template v-if="m.role === 'assistant' && m.feedback">

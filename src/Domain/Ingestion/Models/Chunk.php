@@ -26,14 +26,14 @@ use Support\Concerns\HasExternalId;
  * @property string $type
  * @property int $chunk_index
  * @property string $chunk
- * @property bool $enhanced
+ * @property bool $is_enhanced
  * @property string|null $chunked_using_model
  * @property string|null $embedding_model
  * @property string|null $summary
  * @property string|null $questions
  * @property Vector|null $questions_embedding
  * @property string|null $questions_embedding_bm25
- * @property numeric $cost_in_cents
+ * @property int $cost_in_micro_cents
  * @property int $tokens
  * @property Vector $embedding
  * @property string $embedding_bm25
@@ -49,7 +49,7 @@ use Support\Concerns\HasExternalId;
  * @property-read int|null $references_count
  *
  * @method static ChunkQueryBuilder<static>|Chunk configureSearchAccuracy(string $accuracyLevel, array $config)
- * @method static ChunkQueryBuilder<static>|Chunk hybridSearchForAgent(int $agentId, string $query, string $vectorString, int $limit = 4, bool $quantize = true)
+ * @method static ChunkQueryBuilder<static>|Chunk hybridSearchForAgent(int $agentId, string $query, string $vectorString, int $limit = 4)
  * @method static ChunkQueryBuilder<static>|Chunk newModelQuery()
  * @method static ChunkQueryBuilder<static>|Chunk newQuery()
  * @method static ChunkQueryBuilder<static>|Chunk query()
@@ -64,7 +64,7 @@ use Support\Concerns\HasExternalId;
  * @method static ChunkQueryBuilder<static>|Chunk whereEmbedding($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereEmbeddingBm25($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereEmbeddingModel($value)
- * @method static ChunkQueryBuilder<static>|Chunk whereEnhanced($value)
+ * @method static ChunkQueryBuilder<static>|Chunk whereIsEnhanced($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereExternalId($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereId($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereMetadata($value)
@@ -86,7 +86,7 @@ class Chunk extends Model
         return new ChunkQueryBuilder($query);
     }
 
-    public function casts(): array
+    protected function casts(): array
     {
         return [
             'embedding' => Vector::class,

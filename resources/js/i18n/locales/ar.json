@@ -1,0 +1,98 @@
+{
+    "common": {
+        "cancel": "إلغاء",
+        "delete": "حذف",
+        "close": "إغلاق",
+        "save": "حفظ",
+        "saving": "جارٍ الحفظ..."
+    },
+    "composer": {
+        "default_placeholder": "اكتب رسالة...",
+        "disabled": "المحادثة معطّلة",
+        "stop_recording": "إيقاف التسجيل",
+        "start_voice_input": "بدء الإدخال الصوتي"
+    },
+    "header": {
+        "toggle_sidebar": "إظهار/إخفاء الشريط الجانبي",
+        "toggle_expand": "تكبير/تصغير الشاشة",
+        "incognito_mode": "وضع التصفح الخاص",
+        "delete_conversation": "حذف المحادثة",
+        "delete_dialog_title": "حذف المحادثة؟",
+        "delete_dialog_description": "لا يمكن التراجع عن هذا الإجراء."
+    },
+    "sidebar": {
+        "open_sidebar": "فتح الشريط الجانبي",
+        "new_chat": "محادثة جديدة",
+        "your_chats": "محادثاتك",
+        "loading": "جارٍ التحميل...",
+        "no_conversations": "لا توجد محادثات بعد",
+        "rename_conversation": "إعادة تسمية",
+        "clear_all_chats": "حذف جميع المحادثات",
+        "delete_all_title": "حذف جميع المحادثات؟",
+        "delete_all_description": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف جميع محادثاتك نهائياً.",
+        "delete_all_confirm": "حذف الكل",
+        "profile": "الملف الشخصي",
+        "my_agents": "وكلائي",
+        "logout": "تسجيل الخروج",
+        "delete_conversation_title": "حذف المحادثة",
+        "delete_conversation_description": "هل أنت متأكد من رغبتك في حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.",
+        "profile_settings_title": "إعدادات الملف الشخصي",
+        "profile_settings_description": "قم بتحديث معلومات حسابك وكلمة المرور.",
+        "profile_name": "الاسم",
+        "name_input_placeholder": "أدخل اسمك",
+        "profile_email": "البريد الإلكتروني",
+        "email_input_placeholder": "أدخل بريدك الإلكتروني",
+        "current_password": "كلمة المرور الحالية",
+        "current_password_placeholder": "أدخل كلمة المرور الحالية",
+        "new_password": "كلمة المرور الجديدة",
+        "new_password_placeholder": "أدخل كلمة المرور الجديدة",
+        "confirm_password": "تأكيد كلمة المرور",
+        "confirm_password_placeholder": "أكّد كلمة المرور الجديدة",
+        "save_changes": "حفظ التغييرات",
+        "agents_dialog_title": "وكلائي",
+        "agents_dialog_description": "إدارة وكلاء الذكاء الاصطناعي وإعداداتهم.",
+        "loading_agents": "جارٍ تحميل الوكلاء...",
+        "no_agents": "لا توجد وكلاء.",
+        "switching_agent": "جارٍ التبديل...",
+        "switch_to_agent": "التبديل إلى {name}"
+    },
+    "chat": {
+        "message_limit_reached": "لقد وصلت إلى الحد الأقصى للرسائل",
+        "upgrade_prompt": "يرجى ترقية باقتك للاستمرار في المحادثة",
+        "regenerate_failed": "تعذر إعادة توليد الرد. يرجى المحاولة مرة أخرى.",
+        "loading_conversation": "جارٍ تحميل المحادثة"
+    },
+    "messages": {
+        "send": "إرسال",
+        "delete_user_message_title": "حذف هذه الرسالة؟",
+        "delete_user_message_description": "سيؤدي ذلك أيضاً إلى حذف رد الذكاء الاصطناعي.",
+        "delete_assistant_message_title": "حذف هذه الرسالة؟",
+        "delete_assistant_message_description": "سيؤدي ذلك أيضاً إلى حذف رسالتك الأصلية.",
+        "calling_external": "جارٍ استدعاء مصدر بيانات خارجي…",
+        "fetching_data": "جلب البيانات من {label}",
+        "calling": "استدعاء {label}",
+        "regenerate_tooltip": "إعادة توليد الرد"
+    },
+    "errors": {
+        "subscription_expired": "انتهى الاشتراك",
+        "renew_subscription": "تجديد الاشتراك",
+        "message_limit_reached": "تم الوصول إلى حد الرسائل",
+        "upgrade_plan": "ترقية الباقة",
+        "model_unavailable": "النموذج غير متاح",
+        "too_many_requests": "عدد الطلبات كبير جداً",
+        "connection_lost": "فُقد الاتصال",
+        "unexpected_response": "استجابة غير متوقعة",
+        "something_went_wrong": "حدث خطأ ما",
+        "try_again": "حاول مرة أخرى"
+    },
+    "sources": {
+        "title": "مصادر المعرفة",
+        "source_count": "{count} مصدر | {count} مصادر",
+        "description": "تم استخدام {count} مصدر لإنشاء هذا الرد | تم استخدام {count} مصادر لإنشاء هذا الرد",
+        "page_label": "صفحة {page}"
+    },
+    "home": {
+        "logo_alt": "الشعار",
+        "welcome_message": "كيف يمكنني مساعدتك اليوم؟"
+    }
+}

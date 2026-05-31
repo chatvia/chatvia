@@ -30,9 +30,11 @@ class TeamListItemData extends Data
             owner: TeamOwnerData::fromModel($team->owner),
             is_owner: $user->ownsTeam($team),
             is_primary: $user->isPrimaryTeam($team),
-            role: $user->teamRole($team)->code ?? 'owner',
-            members_count: $team->members()->count() + 1, // members + owner
-            agents_count: $team->agents()->count(),
+            role: $user->teamRole($team)?->code ?? 'owner',
+            // members_count comes from withCount('members') in the controller;
+            // +1 for the owner who isn't on the pivot.
+            members_count: ($team->members_count ?? $team->members()->count()) + 1,
+            agents_count: $team->agents_count ?? $team->agents()->count(),
             created_at: $team->created_at->toDateTimeString(),
         );
     }

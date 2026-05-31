@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { ExternalLink, Globe, MessageSquare, Monitor, Search, Smartphone, Tablet } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -17,6 +15,12 @@ type Device = 'desktop' | 'tablet' | 'mobile';
 
 const surface = ref<Surface>('hosted_chat');
 const device = ref<Device>('desktop');
+
+const surfaceTabs: { value: Surface; label: string; icon: typeof MessageSquare }[] = [
+    { value: 'hosted_chat', label: 'Hosted Chat', icon: MessageSquare },
+    { value: 'widget', label: 'Widget', icon: Globe },
+    { value: 'bar', label: 'Bar', icon: Search },
+];
 
 const hostedChatUrl = computed(() => {
     const base = props.agent.chat_url;
@@ -59,49 +63,45 @@ const openFullPreview = () => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Playground" :no-padding="true" :full-height="true">
+    <AgentLayout :agent="agent" title="Playground" hide-header :no-padding="true" :full-height="true">
         <div class="bg-background flex h-full flex-col">
-            <!-- Surface toggle + device toggle + open-in-new-tab -->
-            <div class="border-border flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-3 lg:px-6">
-                <Tabs v-model="surface">
-                    <TabsList>
-                        <TabsTrigger value="hosted_chat" class="gap-2">
-                            <MessageSquare class="h-4 w-4" />
-                            Hosted Chat
-                        </TabsTrigger>
-                        <TabsTrigger value="widget" class="gap-2">
-                            <Globe class="h-4 w-4" />
-                            Widget
-                        </TabsTrigger>
-                        <TabsTrigger value="bar" class="gap-2">
-                            <Search class="h-4 w-4" />
-                            Bar
-                        </TabsTrigger>
-                    </TabsList>
-                </Tabs>
+            <!-- Surface tabs (Setup-style underline nav) + device toggle + open-in-new-tab -->
+            <div class="bg-background border-border flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b pr-4 lg:pr-6">
+                <nav class="flex items-center gap-1 px-4">
+                    <button
+                        v-for="tab in surfaceTabs"
+                        :key="tab.value"
+                        type="button"
+                        @click="surface = tab.value"
+                        class="relative flex items-center gap-2 px-4 py-3 text-sm transition-colors"
+                        :class="[surface === tab.value ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground']"
+                    >
+                        <component :is="tab.icon" class="h-4 w-4" />
+                        <span>{{ tab.label }}</span>
+                        <span v-if="surface === tab.value" class="bg-foreground absolute right-0 -bottom-px left-0 h-0.5"></span>
+                    </button>
+                </nav>
 
-                <div class="flex items-center gap-2">
-                    <Tabs v-model="device">
-                        <TabsList>
-                            <TabsTrigger value="desktop" class="gap-2">
-                                <Monitor class="h-4 w-4" />
-                                <span class="hidden sm:inline">Desktop</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="tablet" class="gap-2">
-                                <Tablet class="h-4 w-4" />
-                                <span class="hidden sm:inline">Tablet</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="mobile" class="gap-2">
-                                <Smartphone class="h-4 w-4" />
-                                <span class="hidden sm:inline">Mobile</span>
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-
-                    <Button variant="outline" size="sm" class="gap-2" @click="openFullPreview">
+                <div class="flex items-center gap-1 py-2">
+                    <button
+                        v-for="d in ['desktop', 'tablet', 'mobile'] as const"
+                        :key="d"
+                        type="button"
+                        @click="device = d"
+                        class="text-muted-foreground hover:text-foreground rounded-md p-1.5 transition-colors"
+                        :class="{ 'text-foreground bg-background shadow-sm': device === d }"
+                        :title="d"
+                    >
+                        <component :is="d === 'desktop' ? Monitor : d === 'tablet' ? Tablet : Smartphone" class="h-4 w-4" />
+                    </button>
+                    <button
+                        type="button"
+                        class="text-muted-foreground hover:text-foreground rounded-md p-1.5 transition-colors"
+                        title="Open in new tab"
+                        @click="openFullPreview"
+                    >
                         <ExternalLink class="h-4 w-4" />
-                        <span class="hidden sm:inline">Open</span>
-                    </Button>
+                    </button>
                 </div>
             </div>
 
@@ -109,13 +109,7 @@ const openFullPreview = () => {
                  use a fixed-width device frame so breakpoints are visible. -->
             <div class="bg-muted flex flex-1 items-center justify-center overflow-hidden">
                 <div :class="frameClass" class="transition-all duration-300">
-                    <iframe
-                        :key="`${surface}-${device}`"
-                        :src="currentUrl"
-                        class="h-full w-full border-0"
-                        title="Surface preview"
-                        loading="lazy"
-                    />
+                    <iframe :key="`${surface}-${device}`" :src="currentUrl" class="h-full w-full border-0" title="Surface preview" loading="lazy" />
                 </div>
             </div>
         </div>

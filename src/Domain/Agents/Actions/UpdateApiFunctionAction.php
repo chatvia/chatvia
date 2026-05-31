@@ -17,7 +17,7 @@ class UpdateApiFunctionAction
     {
         $attributes = [];
 
-        foreach (['name', 'description', 'parameters_schema', 'webhook_url', 'webhook_method', 'webhook_headers', 'timeout_ms', 'enabled'] as $field) {
+        foreach (['name', 'description', 'parameters_schema', 'webhook_url', 'webhook_method', 'webhook_headers', 'timeout_ms', 'is_enabled'] as $field) {
             if (! $data->{$field} instanceof Optional) {
                 $attributes[$field] = $data->{$field};
             }

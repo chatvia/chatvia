@@ -30,10 +30,6 @@ class UpdateApiAgentAction
             $attributes['metadata'] = $data->metadata;
         }
 
-        if (! $data->analytics_enabled instanceof Optional) {
-            $attributes['analytics_enabled'] = $data->analytics_enabled;
-        }
-
         if (! $data->is_public instanceof Optional) {
             $attributes['is_public'] = $data->is_public;
         }

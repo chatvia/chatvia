@@ -1,25 +1,21 @@
 <script setup lang="ts">
-import ModelSelector from '@/components/chat/ModelSelector.vue';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useVoiceRecorder } from '@/composables/useVoiceRecorder';
-import type { AIModel } from '@/types/chat';
 import { ArrowUp, Loader2, Mic, Square } from 'lucide-vue-next';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     isThinking?: boolean;
     text?: string;
-    models?: AIModel[];
-    defaultModel?: AIModel | null;
-    isLoadingModels?: boolean;
     placeholder?: string;
     disabled?: boolean;
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 
-const selectedModel = ref<AIModel | null>(props.defaultModel || null);
 const userInput = ref(props.text || '');
 const messageInput = ref<HTMLTextAreaElement>();
 const isFocused = ref(false);
@@ -33,26 +29,6 @@ const {
     stopRecording,
     cancelRecording: _cancelRecording,
 } = useVoiceRecorder();
-
-// Only show model selector if we have multiple models (hide while loading)
-const showModelSelector = computed(() => {
-    // Hide while loading
-    if (props.isLoadingModels) return false;
-    // Show only if we have more than 1 model
-    return props.models && props.models.length > 1;
-});
-
-// Auto-select single model when only one is available
-watch(
-    () => props.models,
-    (models) => {
-        if (models && models.length === 1) {
-            selectedModel.value = models[0];
-            emit('modelSelected', models[0]);
-        }
-    },
-    { immediate: true },
-);
 
 watch(
     () => props.text,
@@ -69,21 +45,9 @@ watch(
     { immediate: true },
 );
 
-watch(
-    () => props.defaultModel,
-    (newDefaultModel) => {
-        if (newDefaultModel && newDefaultModel !== selectedModel.value) {
-            selectedModel.value = newDefaultModel;
-            emit('modelSelected', newDefaultModel);
-        }
-    },
-    { immediate: true },
-);
-
 const emit = defineEmits<{
-    messageAdded: [content: string, model: AIModel];
+    messageAdded: [content: string];
     stopStreaming: [];
-    modelSelected: [model: AIModel];
 }>();
 
 const handleEnterKey = (event: KeyboardEvent) => {
@@ -113,21 +77,10 @@ const stopStreaming = () => {
     emit('stopStreaming');
 };
 
-const handleModelChange = (model: AIModel) => {
-    emit('modelSelected', model);
-    selectedModel.value = model;
-
-    nextTick(() => {
-        if (messageInput.value && typeof messageInput.value.focus === 'function') {
-            messageInput.value.focus();
-        }
-    });
-};
-
 const sendMessage = () => {
-    if (!userInput.value.trim() || !selectedModel.value) return;
+    if (!userInput.value.trim()) return;
 
-    emit('messageAdded', userInput.value, selectedModel.value);
+    emit('messageAdded', userInput.value);
     userInput.value = '';
 
     if (messageInput.value && messageInput.value.style) {
@@ -151,7 +104,7 @@ onMounted(() => {
     });
 });
 
-const canSend = () => userInput.value.trim() !== '' && selectedModel.value && !props.disabled;
+const canSend = () => userInput.value.trim() !== '' && !props.disabled;
 
 // Voice recording handlers
 const toggleRecording = async () => {
@@ -196,24 +149,15 @@ const toggleRecording = async () => {
                         @input="adjustTextareaHeight"
                         @focus="handleFocus"
                         @blur="handleBlur"
-                        :placeholder="disabled ? 'Chat disabled' : placeholder || 'Message...'"
+                        :placeholder="disabled ? t('composer.disabled') : placeholder || t('composer.default_placeholder')"
                         class="text-foreground placeholder:text-muted-foreground/50 max-h-[160px] min-h-[28px] w-full resize-none !border-0 !bg-transparent px-4 py-4 text-sm !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
                         :disabled="isThinking || disabled"
                         rows="1"
                     />
                 </div>
 
-                <!-- Right side: Model selector, Mic and Send/Stop buttons -->
+                <!-- Right side: Mic and Send/Stop buttons -->
                 <div class="flex items-center gap-1.5 p-3">
-                    <!-- Model selector (hide only if exactly one model) -->
-                    <ModelSelector
-                        v-if="showModelSelector"
-                        @modelChanged="handleModelChange"
-                        :models="models"
-                        :defaultModel="defaultModel"
-                        :isLoadingModels="isLoadingModels"
-                    />
-
                     <!-- Voice recording button -->
                     <Button
                         v-if="isVoiceSupported && !isThinking && !disabled"
@@ -227,7 +171,7 @@ const toggleRecording = async () => {
                                 ? 'animate-pulse bg-red-500 text-white hover:bg-red-600'
                                 : 'hover:bg-muted text-muted-foreground hover:text-foreground',
                         ]"
-                        :title="isRecording ? 'Stop recording' : 'Start voice input'"
+                        :title="isRecording ? t('composer.stop_recording') : t('composer.start_voice_input')"
                     >
                         <Loader2 v-if="isTranscribing" class="h-5 w-5 animate-spin" />
                         <Mic v-else class="h-5 w-5" />

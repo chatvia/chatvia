@@ -30,5 +30,26 @@ class WidgetSettingsResourceData extends Data
         public array $starters,
         public ?string $window_size,
         public ?string $theme,
+        // Bar-mode keyboard launcher shortcut. One of:
+        //   cmd+k | cmd+j | cmd+/ | / | shift+/
+        // The widget parses this string in src/state/events.js and renders the
+        // matching hint label inside the floating bar.
+        public ?string $keyboard_trigger,
+        // Bar-mode on-page anchor. One of:
+        //   top | top-right | bottom | bottom-right
+        // The widget maps each value to a placement class in _createBar so the
+        // floating bar lands in the right corner of the viewport. `top` and
+        // `bottom` are horizontally centered; the `-right` variants anchor to
+        // the right edge.
+        public ?string $bar_placement,
+        // Placeholder shown inside the composer/input textarea. Distinct from
+        // `welcome_message` (which is the first assistant message shown when a
+        // thread is empty). The widget previously fell back to `welcome_message`
+        // here, which surfaced a full greeting inside the tiny input.
+        public ?string $composer_placeholder,
+        // Disclaimer line shown below the composer (e.g. "AI can make mistakes,
+        // check important info"). Optional — when null/empty the widget hides
+        // the strip entirely.
+        public ?string $chat_footer_text,
     ) {}
 }

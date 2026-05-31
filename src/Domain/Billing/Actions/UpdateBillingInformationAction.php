@@ -17,7 +17,8 @@ class UpdateBillingInformationAction
             'billing_address' => $address->toArray(),
         ]);
 
-        $user->updateStripeCustomer([
+        // Cashier's `Billable` trait lives on `UserBilling`, not `User`.
+        $user->accountBillingOrFail()->updateStripeCustomer([
             'name' => $data->name,
             'email' => $data->email,
             'address' => [

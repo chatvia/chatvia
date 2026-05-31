@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Agents;
 
+use Domain\Agents\Data\UpdateAgentSettingsData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
@@ -30,6 +31,18 @@ class UpdateAgentSettingsRequest extends FormRequest
         $this->ensureKnownGroup($group);
 
         return $rules;
+    }
+
+    public function toData(Agent $agent): UpdateAgentSettingsData
+    {
+        /** @var array<string, mixed> $payload */
+        $payload = $this->validated();
+
+        return new UpdateAgentSettingsData(
+            agent: $agent,
+            group: (string) $this->route('group'),
+            payload: $payload,
+        );
     }
 
     private function ensureKnownGroup(string $group): void

@@ -15,9 +15,6 @@ return new class extends PulseMigration
         return config('pulse.storage.database.connection');
     }
 
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         if (! $this->shouldRun()) {
@@ -43,9 +40,9 @@ return new class extends PulseMigration
                 };
                 $table->mediumText('value');
 
-                $table->index('timestamp'); // For trimming...
-                $table->index('type'); // For fast lookups and purging...
-                $table->unique(['type', 'key_hash']); // For data integrity and upserts...
+                $table->index('timestamp');
+                $table->index('type');
+                $table->unique(['type', 'key_hash']);
             });
         }
 
@@ -62,10 +59,10 @@ return new class extends PulseMigration
                 };
                 $table->bigInteger('value')->nullable();
 
-                $table->index('timestamp'); // For trimming...
-                $table->index('type'); // For purging...
-                $table->index('key_hash'); // For mapping...
-                $table->index(['timestamp', 'type', 'key_hash', 'value']); // For aggregate queries...
+                $table->index('timestamp');
+                $table->index('type');
+                $table->index('key_hash');
+                $table->index(['timestamp', 'type', 'key_hash', 'value']);
             });
         }
 
@@ -85,17 +82,14 @@ return new class extends PulseMigration
                 $table->decimal('value', 20, 2);
                 $table->unsignedInteger('count')->nullable();
 
-                $table->unique(['bucket', 'period', 'type', 'aggregate', 'key_hash']); // Force "on duplicate update"...
-                $table->index(['period', 'bucket']); // For trimming...
-                $table->index('type'); // For purging...
-                $table->index(['period', 'type', 'aggregate', 'bucket']); // For aggregate queries...
+                $table->unique(['bucket', 'period', 'type', 'aggregate', 'key_hash']);
+                $table->index(['period', 'bucket']);
+                $table->index('type');
+                $table->index(['period', 'type', 'aggregate', 'bucket']);
             });
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         if (app()->environment('testing') || app()->runningUnitTests()) {

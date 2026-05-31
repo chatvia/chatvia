@@ -4,14 +4,17 @@ namespace Domain\Chat\Jobs;
 
 use App\Country\Models\Country;
 use App\LLM\Contracts\LLMProviderInterface;
+use App\LLM\Operations\CostCalculator;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Llm;
+use Domain\Analytics\Events\MessageSentEvent;
 use Domain\Analytics\Jobs\AnalyzeConversationJob;
 use Domain\Analytics\Jobs\AnalyzeMessageJob;
 use Domain\Analytics\Services\IP2Country;
 use Domain\Analytics\Services\UserAgentParser;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\ChatOutputPayload;
+use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
@@ -81,14 +84,14 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             // Chat which is the standalone surface most callers exercise.
             [
                 'source' => $this->payload->source === 'widget'
-                    ? \Domain\Chat\Enums\ConversationSource::Widget
-                    : \Domain\Chat\Enums\ConversationSource::HostedChat,
+                    ? ConversationSource::Widget
+                    : ConversationSource::HostedChat,
             ],
         );
 
         $conversation->update([
             'last_activity_at' => now(),
-            'visible' => true,
+            'is_visible' => true,
         ]);
 
         $llmId = $this->payload->model
@@ -103,7 +106,10 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
 
         $promptTokens = $usageData['tokens_prompt'] ?? null;
         $completionTokens = $usageData['tokens_completion'] ?? null;
-        $cost = $usageData['total_cost'] ?? null;
+        $costInDollars = $usageData['total_cost'] ?? null;
+        $costInMicroCents = $costInDollars !== null
+            ? CostCalculator::dollarsToMicroCents((float) $costInDollars)
+            : null;
 
         // Tool artifacts (charts, etc.) live in `metadata.artifacts` so they
         // re-render on reload. `metadata.tool_calls` carries the list of
@@ -134,12 +140,12 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
             'generation_id' => $generationId,
             'prompt_tokens' => $promptTokens,
             'completion_tokens' => $completionTokens,
-            'cost' => $cost,
+            'cost_in_micro_cents' => $costInMicroCents,
             'confidence_score' => ! $isUserMessage ? $this->payload->confidence_score : null,
             'is_response_from_qa' => ! $isUserMessage ? $this->payload->is_response_from_qa : false,
             'agent_question_answer_id' => ! $isUserMessage ? $this->payload->agent_question_answer_id : null,
             'source' => $this->payload->source,
-            'llm_found_answer' => ! $isUserMessage ? ($this->payload->llm_found_answer ?? true) : true,
+            'has_llm_found_answer' => ! $isUserMessage ? ($this->payload->has_llm_found_answer ?? true) : true,
             'metadata' => $metadata,
         ];
 
@@ -147,6 +153,25 @@ class StoreChatMessageJob implements ShouldBeUnique, ShouldQueue
         $messageData['updated_at'] = $this->payload->sent_at;
 
         ChatMessage::create($messageData);
+
+        // Analytics: dispatch MessageSent. The Action detects whether this is
+        // the first message of the conversation (via the conv_metrics UPSERT
+        // RETURNING xmax) and bumps conversations_started under the right
+        // country/llm dimensions then — no separate ConversationStarted needed,
+        // and the "by country" panel sees the resolved country instead of null.
+        MessageSentEvent::dispatch(
+            $this->agent->id,
+            (string) $this->payload->external_conversation_id,
+            (string) $this->payload->external_message_id,
+            (string) $this->payload->external_session_id,
+            $isUserMessage ? 'user' : 'assistant',
+            $this->payload->model ?: null,
+            $session->country?->code,
+            ! $isUserMessage ? ($this->payload->response_time_ms ?? null) : null,
+            $promptTokens,
+            $completionTokens,
+            $this->payload->sent_at,
+        );
 
         AnalyzeMessageJob::dispatchIf($isUserMessage, $this->payload->external_message_id);
 

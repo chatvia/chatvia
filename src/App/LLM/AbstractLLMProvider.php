@@ -33,12 +33,6 @@ abstract class AbstractLLMProvider implements LLMProviderInterface
             ];
         }
 
-        if (static::class === Scaleway::class) {
-            $json['response_format'] = [
-                'type' => 'text',
-            ];
-        }
-
         return app(GuzzleClient::class)->post($this->getCompletionEndpoint(), [
             'headers' => $this->headers(),
             'json' => $json,

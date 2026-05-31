@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Code, KeyRound, LayoutTemplate, Lock, MessageSquareText, Palette, Plug, User, Users, type LucideIcon } from 'lucide-vue-next';
+import { Code, Fingerprint, KeyRound, Lock, MessageSquareText, Palette, Plug, Share2, Smartphone, User, Users, type LucideIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface NavItem {
@@ -27,7 +27,9 @@ const allSections: NavSection[] = [
         items: [
             { title: 'Profile', href: '/settings/profile', icon: User },
             { title: 'Password', href: '/settings/password', icon: Lock },
-            { title: 'API keys', href: '/settings/api-keys', icon: KeyRound, permission: 'account.api_keys' },
+            { title: 'Two-factor', href: '/settings/two-factor', icon: Smartphone },
+            { title: 'Passkeys', href: '/settings/passkeys', icon: Fingerprint },
+            { title: 'Social accounts', href: '/settings/social', icon: Share2 },
         ],
     },
     {
@@ -35,20 +37,16 @@ const allSections: NavSection[] = [
         items: [
             { title: 'Connectors', href: '/settings/connectors', icon: Plug, permission: 'account.connectors' },
             { title: 'Functions', href: '/settings/functions', icon: Code, permission: 'account.functions' },
+            { title: 'API keys', href: '/settings/api-keys', icon: KeyRound, permission: 'account.api_keys' },
         ],
     },
     {
         title: 'Library',
-        items: [
-            { title: 'Prompts', href: '/settings/prompts', icon: MessageSquareText, permission: 'account.prompts' },
-            { title: 'Templates', href: '/settings/templates', icon: LayoutTemplate, permission: 'account.templates' },
-        ],
+        items: [{ title: 'Prompts', href: '/settings/prompts', icon: MessageSquareText, permission: 'account.prompts' }],
     },
     {
         title: 'People',
-        items: [
-            { title: 'Members', href: '/settings/members', icon: Users, permission: 'account.members.manage' },
-        ],
+        items: [{ title: 'Members', href: '/settings/members', icon: Users, permission: 'account.members.manage' }],
     },
     {
         title: 'Preferences',
@@ -90,7 +88,7 @@ function isActive(href: string): boolean {
         <Heading title="Settings" description="Manage your profile and account settings" />
 
         <div class="flex flex-col items-start space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:space-x-12">
-            <aside class="w-full lg:sticky lg:top-32 lg:w-56 lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto">
+            <aside class="w-full lg:sticky lg:top-32 lg:max-h-[calc(100vh-9rem)] lg:w-56 lg:overflow-y-auto">
                 <nav class="flex flex-col gap-6">
                     <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">
                         <p class="text-muted-foreground px-3 text-xs font-medium tracking-wide uppercase">
@@ -109,7 +107,10 @@ function isActive(href: string): boolean {
                         >
                             <component
                                 :is="item.icon"
-                                :class="['h-4 w-4 shrink-0', isActive(item.href) ? 'text-accent-foreground' : 'text-muted-foreground group-hover:text-foreground']"
+                                :class="[
+                                    'h-4 w-4 shrink-0',
+                                    isActive(item.href) ? 'text-accent-foreground' : 'text-muted-foreground group-hover:text-foreground',
+                                ]"
                             />
                             {{ item.title }}
                         </Link>

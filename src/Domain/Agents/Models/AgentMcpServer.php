@@ -4,7 +4,9 @@ namespace Domain\Agents\Models;
 
 use App\Auth\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,7 +29,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $auth_value
  * @property array<array-key, mixed>|null $headers
  * @property int $timeout_ms
- * @property bool $enabled
+ * @property bool $is_enabled
  * @property Carbon|null $catalog_cached_at
  * @property int $catalog_tools_count
  * @property Carbon|null $last_invoked_at
@@ -52,7 +54,7 @@ use Support\Concerns\HasExternalId;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereCatalogToolsCount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereConnectorSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereEnabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereIsEnabled($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereExternalId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereHeaders($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereId($value)
@@ -85,7 +87,7 @@ class AgentMcpServer extends Model
             'headers' => 'encrypted:array',
             'auth_value' => 'encrypted',
             'oauth_refresh_token' => 'encrypted',
-            'enabled' => 'boolean',
+            'is_enabled' => 'boolean',
             'timeout_ms' => 'int',
             'catalog_tools_count' => 'int',
             'invocation_count' => 'int',
@@ -155,12 +157,12 @@ class AgentMcpServer extends Model
      * its `agent_mcp_server` pivot — used by the agent-side connector
      * controllers to resolve a row.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<self>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<self>
+     * @param  Builder<self>  $query
      */
-    public function scopeAttachedToAgent($query, Agent $agent)
+    #[Scope]
+    protected function attachedToAgent(Builder $query, Agent $agent): void
     {
-        return $query
+        $query
             ->where('user_id', $agent->user_id)
             ->whereExists(function ($q) use ($agent): void {
                 $q->from('agent_mcp_server')
@@ -173,12 +175,12 @@ class AgentMcpServer extends Model
      * Scope to all servers in the agent owner's account (regardless of whether
      * this specific agent has them attached).
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<self>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<self>
+     * @param  Builder<self>  $query
      */
-    public function scopeOwnedBySameAccountAs($query, Agent $agent)
+    #[Scope]
+    protected function ownedBySameAccountAs(Builder $query, Agent $agent): void
     {
-        return $query->where('user_id', $agent->user_id);
+        $query->where('user_id', $agent->user_id);
     }
 
     public static function makeSlug(string $input): string

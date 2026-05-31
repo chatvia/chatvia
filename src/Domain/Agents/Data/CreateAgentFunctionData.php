@@ -10,8 +10,8 @@ class CreateAgentFunctionData extends Data
     /**
      * @param  array<string, mixed>  $parameters_schema
      * @param  array<string, string>|null  $auth_config  Shape depends on auth_type:
-     *   bearer → ['token' => '...'], header → ['name' => '...', 'value' => '...'],
-     *   hmac → ['secret' => '...'], none → null.
+     *                                                   bearer → ['token' => '...'], header → ['name' => '...', 'value' => '...'],
+     *                                                   hmac → ['secret' => '...'], none → null.
      */
     public function __construct(
         public User $user,

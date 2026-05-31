@@ -15,8 +15,8 @@ class HostConfig
         return $hosts[$host];
     }
 
-    public static function landing(string $host)
+    public static function landing(string $host): array
     {
-        return static::get($host)['landing'];
+        return static::get($host)['landing'] ?? [];
     }
 }

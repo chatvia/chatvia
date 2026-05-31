@@ -31,7 +31,7 @@ export interface AgentFunction {
     auth_type: AuthType;
     timeout_ms: number;
     max_response_bytes: number;
-    enabled: boolean;
+    is_enabled: boolean;
     last_invoked_at: string | null;
     last_error: string | null;
     invocation_count: number;
@@ -49,7 +49,7 @@ export interface AgentFunctionDraft {
     auth_value: string | null;
     timeout_ms: number;
     max_response_bytes: number;
-    enabled: boolean;
+    is_enabled: boolean;
 }
 
 export const DEFAULT_PARAMETERS_SCHEMA: ParametersSchema = {
@@ -69,5 +69,5 @@ export const EMPTY_FUNCTION_DRAFT: AgentFunctionDraft = {
     auth_value: null,
     timeout_ms: 10000,
     max_response_bytes: 65536,
-    enabled: true,
+    is_enabled: true,
 };

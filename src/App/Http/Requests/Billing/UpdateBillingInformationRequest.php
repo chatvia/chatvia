@@ -20,14 +20,14 @@ class UpdateBillingInformationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'address.line1' => 'required|string|max:255',
-            'address.line2' => 'nullable|string|max:255',
-            'address.city' => 'required|string|max:255',
-            'address.state' => 'required|string|max:255',
-            'address.postal_code' => 'required|string|max:20',
-            'address.country' => 'required|string|max:2',
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'address.line1' => ['required', 'string', 'max:255'],
+            'address.line2' => ['nullable', 'string', 'max:255'],
+            'address.city' => ['required', 'string', 'max:255'],
+            'address.state' => ['required', 'string', 'max:255'],
+            'address.postal_code' => ['required', 'string', 'max:20'],
+            'address.country' => ['required', 'string', 'max:2'],
         ];
     }
 

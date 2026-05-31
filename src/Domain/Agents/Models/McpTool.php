@@ -17,7 +17,7 @@ use Pgvector\Laravel\Vector;
  * `name` is the raw MCP tool name (unprefixed). The `mcp__{slug}__` prefix
  * is reapplied at compile time so stored selections survive slug renames.
  *
- * `enabled` is scoped to the parent server — flipping it affects every
+ * `is_enabled` is scoped to the parent server — flipping it affects every
  * agent attached to that server.
  *
  * @property int $id
@@ -25,7 +25,7 @@ use Pgvector\Laravel\Vector;
  * @property string $name
  * @property string $description
  * @property array<array-key, mixed> $input_schema
- * @property bool $enabled
+ * @property bool $is_enabled
  * @property Vector|null $embedding
  * @property string|null $embedding_bm25
  * @property Carbon $fetched_at
@@ -44,7 +44,7 @@ class McpTool extends Model
     {
         return [
             'input_schema' => 'array',
-            'enabled' => 'boolean',
+            'is_enabled' => 'boolean',
             'embedding' => Vector::class,
             'fetched_at' => 'datetime',
         ];

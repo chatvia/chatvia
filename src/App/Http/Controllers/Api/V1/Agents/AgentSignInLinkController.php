@@ -36,6 +36,11 @@ class AgentSignInLinkController
         $account = $request->user();
         $owner = $account->belongsToWorkspace() ? $account->workspace : $account;
 
+        // `users()` is a BelongsToMany on User → related model is User by
+        // construction, but the relation's static type erases to Model. The
+        // `@var` brings the concrete type back so the `issue()` call below
+        // accepts it.
+        /** @var User $user */
         $user = $owner->external_id === $payload->user_id ? $owner :
             $owner->users()->where('external_id', $payload->user_id)->firstOrFail();
 

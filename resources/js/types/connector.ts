@@ -31,7 +31,7 @@ export interface AgentMcpServer {
     transport: 'streamable_http' | 'http_sse';
     auth_type: 'none' | 'bearer' | 'header';
     timeout_ms: number;
-    enabled: boolean;
+    is_enabled: boolean;
     catalog_tools_count: number;
     catalog_cached_at: string | null;
     last_invoked_at: string | null;
@@ -62,7 +62,7 @@ export interface McpTool {
     short_name: string;
     description: string;
     parameters: Record<string, unknown>;
-    enabled: boolean;
+    is_enabled: boolean;
 }
 
 export interface ConnectorToolsResponse {

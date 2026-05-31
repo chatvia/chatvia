@@ -18,7 +18,7 @@ class LlmModelData extends Data
         public int $context_window,
         public array $features,
         public string $location,
-        public bool $reasoning,
+        public bool $is_reasoning,
         public int $credits = 1,
         public bool $is_selected = true,
     ) {}
@@ -34,7 +34,7 @@ class LlmModelData extends Data
             context_window: $llm->context_window,
             features: $llm->features,
             location: $llm->location,
-            reasoning: $llm->reasoning,
+            is_reasoning: $llm->is_reasoning,
             credits: $llm->credits,
         );
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\ChatLog;
 
+use App\Http\Controllers\Agents\ChatLog;
 use Domain\Agents\Data\Resources\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ use Inertia\Response;
 /**
  * Renders the agent's chat-log page shell. Sub-resources (conversations,
  * messages, pulse, topics, countries) are served by dedicated controllers
- * under {@see \App\Http\Controllers\Agents\ChatLog}.
+ * under {@see ChatLog}.
  */
 class AgentChatLogController
 {

@@ -23,7 +23,7 @@ export interface FunctionRow {
     auth_type: 'none' | 'bearer' | 'header' | 'hmac';
     auth_header_name: string;
     has_auth_value: boolean;
-    enabled: boolean;
+    is_enabled: boolean;
     created_at: string | null;
     agents_count: number;
 }

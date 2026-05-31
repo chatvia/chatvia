@@ -1,0 +1,98 @@
+{
+    "common": {
+        "cancel": "Annullér",
+        "delete": "Slet",
+        "close": "Luk",
+        "save": "Gem",
+        "saving": "Gemmer..."
+    },
+    "composer": {
+        "default_placeholder": "Skriv en besked...",
+        "disabled": "Chat deaktiveret",
+        "stop_recording": "Stop optagelse",
+        "start_voice_input": "Start taleinput"
+    },
+    "header": {
+        "toggle_sidebar": "Vis/skjul sidepanel",
+        "toggle_expand": "Skift fuldskærm",
+        "incognito_mode": "Inkognito",
+        "delete_conversation": "Slet samtale",
+        "delete_dialog_title": "Slet samtale?",
+        "delete_dialog_description": "Denne handling kan ikke fortrydes."
+    },
+    "sidebar": {
+        "open_sidebar": "Åbn sidepanel",
+        "new_chat": "Ny chat",
+        "your_chats": "Dine chats",
+        "loading": "Indlæser...",
+        "no_conversations": "Ingen samtaler endnu",
+        "rename_conversation": "Omdøb",
+        "clear_all_chats": "Ryd alle chats",
+        "delete_all_title": "Slet alle samtaler?",
+        "delete_all_description": "Denne handling kan ikke fortrydes. Alle dine samtaler bliver slettet permanent.",
+        "delete_all_confirm": "Slet alle",
+        "profile": "Profil",
+        "my_agents": "Mine agenter",
+        "logout": "Log ud",
+        "delete_conversation_title": "Slet samtale",
+        "delete_conversation_description": "Er du sikker på, at du vil slette denne samtale? Denne handling kan ikke fortrydes.",
+        "profile_settings_title": "Profilindstillinger",
+        "profile_settings_description": "Opdatér dine kontooplysninger og adgangskode.",
+        "profile_name": "Navn",
+        "name_input_placeholder": "Indtast dit navn",
+        "profile_email": "E-mail",
+        "email_input_placeholder": "Indtast din e-mail",
+        "current_password": "Nuværende adgangskode",
+        "current_password_placeholder": "Indtast nuværende adgangskode",
+        "new_password": "Ny adgangskode",
+        "new_password_placeholder": "Indtast ny adgangskode",
+        "confirm_password": "Bekræft adgangskode",
+        "confirm_password_placeholder": "Bekræft ny adgangskode",
+        "save_changes": "Gem ændringer",
+        "agents_dialog_title": "Mine agenter",
+        "agents_dialog_description": "Administrér dine AI-agenter og deres konfigurationer.",
+        "loading_agents": "Indlæser agenter...",
+        "no_agents": "Ingen agenter fundet.",
+        "switching_agent": "Skifter...",
+        "switch_to_agent": "Skift til {name}"
+    },
+    "chat": {
+        "message_limit_reached": "Du har nået din beskedgrænse",
+        "upgrade_prompt": "Opgradér din plan for at fortsætte med at chatte",
+        "regenerate_failed": "Kunne ikke gendanne svaret. Prøv igen.",
+        "loading_conversation": "Indlæser samtale"
+    },
+    "messages": {
+        "send": "Send",
+        "delete_user_message_title": "Slet denne besked?",
+        "delete_user_message_description": "Dette sletter også AI-svaret.",
+        "delete_assistant_message_title": "Slet denne besked?",
+        "delete_assistant_message_description": "Dette sletter også din oprindelige besked.",
+        "calling_external": "Kalder ekstern datakilde…",
+        "fetching_data": "Henter data fra {label}",
+        "calling": "Kalder {label}",
+        "regenerate_tooltip": "Generér svar igen"
+    },
+    "errors": {
+        "subscription_expired": "Abonnement udløbet",
+        "renew_subscription": "Fornyabonnement",
+        "message_limit_reached": "Beskedgrænse nået",
+        "upgrade_plan": "Opgradér abonnement",
+        "model_unavailable": "Model utilgængelig",
+        "too_many_requests": "For mange anmodninger",
+        "connection_lost": "Forbindelse mistet",
+        "unexpected_response": "Uventet svar",
+        "something_went_wrong": "Noget gik galt",
+        "try_again": "Prøv igen"
+    },
+    "sources": {
+        "title": "Vidensskilder",
+        "source_count": "{count} kilde | {count} kilder",
+        "description": "{count} kilde brugt til at generere dette svar | {count} kilder brugt til at generere dette svar",
+        "page_label": "Side {page}"
+    },
+    "home": {
+        "logo_alt": "Logo",
+        "welcome_message": "Hvad kan jeg hjælpe med i dag?"
+    }
+}

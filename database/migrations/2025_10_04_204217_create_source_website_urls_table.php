@@ -22,6 +22,8 @@ return new class extends Migration
             $table->unsignedInteger('retrieval_count')->default(0);
             $table->timestamp('crawled_at')->nullable();
             $table->timestamps();
+
+            $table->index(['source_website_id', 'status']);
         });
     }
 

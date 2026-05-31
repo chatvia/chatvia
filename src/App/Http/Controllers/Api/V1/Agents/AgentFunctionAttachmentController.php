@@ -26,9 +26,10 @@ class AgentFunctionAttachmentController
     /** @return array{data: FunctionData} */
     public function store(AttachAgentFunctionRequest $request, Agent $agent): array
     {
-        $function = $this->resolveFunction($agent, $request->string('function_id')->toString());
+        $data = $request->toData($agent);
+        $function = $this->resolveFunction($data->agent, $data->function_id);
 
-        $agent->functions()->syncWithoutDetaching([$function->id]);
+        $data->agent->functions()->syncWithoutDetaching([$function->id]);
 
         return ['data' => FunctionData::fromModel($function->fresh())];
     }

@@ -17,7 +17,7 @@ function makeFunction(User $user, array $overrides = []): AgentFunction
         'webhook_method' => 'POST',
         'auth_type' => 'none',
         'auth_config' => null,
-        'enabled' => true,
+        'is_enabled' => true,
     ], $overrides));
 }
 
@@ -115,11 +115,11 @@ it('cannot update a function owned by another user', function (): void {
 });
 
 it('toggles the enabled flag', function (): void {
-    $fn = makeFunction($this->user, ['enabled' => true]);
+    $fn = makeFunction($this->user, ['is_enabled' => true]);
 
     $this->actingAs($this->user)
         ->post(route('settings.functions.toggle', ['external_id' => $fn->external_id]))
         ->assertRedirect();
 
-    expect($fn->fresh()->enabled)->toBeFalse();
+    expect($fn->fresh()->is_enabled)->toBeFalse();
 });

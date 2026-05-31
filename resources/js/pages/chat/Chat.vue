@@ -11,7 +11,10 @@ import { useScroll } from '@vueuse/core';
 import axios from 'axios';
 import { ChevronDown } from 'lucide-vue-next';
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+
+const { t } = useI18n();
 
 const chatEventBus = inject('chatEventBus');
 
@@ -86,7 +89,6 @@ const isAutoScrollEnabled = ref(true);
 const scrollTimeout = ref(null);
 const messagesContainer = ref(null);
 const { arrivedState } = useScroll(messagesContainer);
-const selectedModel = ref({});
 const streamingAssistantId = ref(null);
 const isChatExpanded = ref(false);
 const userHasScrolledUp = ref(false);
@@ -118,11 +120,6 @@ const USAGE_CHECK_INTERVAL = 60000; // 1 minute
 const canSendMessages = ref(true);
 const usageCheckInterval = ref(null);
 
-// Add reactive refs for models
-const models = ref([]);
-const defaultModel = ref(null);
-const isLoadingModels = ref(true);
-
 const { applyColorTheme } = useColorTheme();
 
 const showScrollToBottom = computed(() => {
@@ -143,10 +140,6 @@ watch(
     },
 );
 
-const updateModel = (model) => {
-    selectedModel.value = model;
-};
-
 // Helper function to check if a message is RTL
 const isMessageRTL = (message) => {
     const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi', 'dv'];
@@ -156,41 +149,6 @@ const isMessageRTL = (message) => {
 const getQueryParam = (param) => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
-};
-
-// Add function to fetch models
-const fetchModels = async () => {
-    try {
-        isLoadingModels.value = true;
-        const response = await axios.get(route('chat.models.index'));
-        models.value = response.data.models;
-
-        const urlModelId = getQueryParam('model');
-
-        // Validate model from URL - use first valid model if invalid
-        if (urlModelId) {
-            const urlModel = models.value.find((m) => m.id === urlModelId);
-            if (!urlModel) {
-                // Invalid model in URL, redirect with first available model
-                const firstModel = models.value[0] || response.data.default;
-                router.visit(
-                    route('chat.show', {
-                        conversationId: props.conversation_id,
-                        model: firstModel?.id,
-                    }),
-                    { replace: true },
-                );
-                return;
-            }
-            defaultModel.value = urlModel;
-        } else {
-            defaultModel.value = response.data.default;
-        }
-    } catch (error) {
-        console.error('Failed to fetch models:', error);
-    } finally {
-        isLoadingModels.value = false;
-    }
 };
 
 // Function to load sources asynchronously
@@ -253,7 +211,7 @@ const stopUsageChecking = () => {
     }
 };
 
-async function messageAdded(message, model) {
+async function messageAdded(message) {
     const userIndex = messages.value.length;
     messages.value.push({
         role: 'user',
@@ -265,7 +223,6 @@ async function messageAdded(message, model) {
     messages.value.push({
         role: 'assistant',
         content: '',
-        model: model.id,
         id: 0,
     });
 
@@ -280,7 +237,6 @@ async function messageAdded(message, model) {
         scrollToBottom();
         submitChat({
             message,
-            model,
             userIndex,
             assistantIndex,
             isNewConversation: getQueryParam('new') === '1',
@@ -336,19 +292,31 @@ function handleChatScroll() {
     const { scrollHeight, clientHeight } = messagesContainer.value;
     const scrollBottom = scrollHeight - currentScrollTop - clientHeight;
 
-    // Check if user is scrolling up (increased threshold to prevent false positives)
-    if (currentScrollTop < lastScrollTop.value && scrollBottom > 100) {
-        userHasScrolledUp.value = true;
-        isAutoScrollEnabled.value = false;
-    }
-
-    // Check if user scrolled to bottom (within 20px threshold for better detection)
+    // Resume auto-scroll when the user reaches the bottom again. Direction-based
+    // user-scrolled-up detection is unreliable here — programmatic scrollTo() and
+    // user wheel/touch events both produce the same scroll event, so we detect
+    // user intent at the input layer instead (see handleUserScrollIntent).
     if (scrollBottom < 20) {
         userHasScrolledUp.value = false;
         isAutoScrollEnabled.value = true;
     }
 
     lastScrollTop.value = currentScrollTop;
+}
+
+function handleUserScrollIntent(e) {
+    if (!messagesContainer.value) return;
+
+    if (e.type === 'keydown') {
+        const scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '];
+        if (!scrollKeys.includes(e.key)) return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value;
+    if (scrollHeight - scrollTop - clientHeight < 20) return;
+
+    userHasScrolledUp.value = true;
+    isAutoScrollEnabled.value = false;
 }
 
 onUnmounted(() => {
@@ -363,7 +331,10 @@ onUnmounted(() => {
     // Remove scroll listener
     if (messagesContainer.value) {
         messagesContainer.value.removeEventListener('scroll', handleChatScroll);
+        messagesContainer.value.removeEventListener('wheel', handleUserScrollIntent);
+        messagesContainer.value.removeEventListener('touchmove', handleUserScrollIntent);
     }
+    window.removeEventListener('keydown', handleUserScrollIntent);
 });
 
 function _checkScrollPosition() {
@@ -393,6 +364,9 @@ onMounted(async () => {
     // Add passive scroll listener for better performance
     if (messagesContainer.value) {
         messagesContainer.value.addEventListener('scroll', handleChatScroll, { passive: true });
+        messagesContainer.value.addEventListener('wheel', handleUserScrollIntent, { passive: true });
+        messagesContainer.value.addEventListener('touchmove', handleUserScrollIntent, { passive: true });
+        window.addEventListener('keydown', handleUserScrollIntent);
     }
 
     // Start usage checking
@@ -400,9 +374,6 @@ onMounted(async () => {
 
     // Apply color theme
     applyColorTheme(props.appearance);
-
-    // Wait for models to be loaded before loading messages
-    await fetchModels();
 
     axios
         .get(route('conversations.messages', { conversationId: props.conversation_id }))
@@ -426,21 +397,16 @@ onMounted(async () => {
 
             loadingMessages.value = false;
 
-            const modelId = getQueryParam('model') || defaultModel.value?.id;
-
             if (messages.value.length === 1) {
-                const model = models.value.find((m) => m.id === modelId) || defaultModel.value;
                 const userIndex = 0;
                 const assistantIndex = messages.value.length;
                 messages.value.push({
                     role: 'assistant',
                     content: '',
-                    model: model?.id,
                     id: 0,
                 });
                 submitChat({
                     message: messages.value[0].content,
-                    model,
                     userIndex,
                     assistantIndex,
                     isNewConversation: true,
@@ -455,25 +421,10 @@ onMounted(async () => {
             loadSourcesAsync();
         })
         .catch((_error) => {
-            router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }));
+            router.visit(route(props.newChatRoute));
         });
 
     nextTick(() => {
-        const modelId = getQueryParam('model');
-
-        if (!modelId) {
-            router.visit(
-                route('chat.show', {
-                    conversationId: props.conversation_id,
-                    model: defaultModel.value?.id,
-                }),
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                },
-            );
-        }
-
         checkScreenSize();
     });
 
@@ -515,7 +466,6 @@ function scrollWhileStreaming() {
  */
 function submitChat({
     message,
-    model,
     userIndex,
     assistantIndex,
     updatedMessageInfo = {},
@@ -626,7 +576,6 @@ function submitChat({
     startStream(
         route('chat.stream', { conversationId: props.conversation_id }),
         JSON.stringify({
-            model: model.id,
             message,
             updated_message_info: updatedMessageInfo,
             save_user_message_immediately: saveUserMessageImmediately,
@@ -680,7 +629,6 @@ const messageUpdated = (messageId, messageContent) => {
 
     submitChat({
         message: messageContent,
-        model: selectedModel.value,
         userIndex,
         assistantIndex,
         updatedMessageInfo: {
@@ -734,12 +682,7 @@ const feedbackProvided = (messageId, type) => {
 
 // Shared edit/regen flow: delete both messages on the server (which also
 // returns the original timestamp), then restream into the same slot.
-async function reissue({ userMessageId, assistantMessageId, model, overrideContent = null }) {
-    if (!model) {
-        console.error('No model selected');
-        return;
-    }
-
+async function reissue({ userMessageId, assistantMessageId, overrideContent = null }) {
     let response;
     try {
         response = await axios.post(route('chat.messages.regenerate'), {
@@ -749,10 +692,14 @@ async function reissue({ userMessageId, assistantMessageId, model, overrideConte
         });
     } catch (error) {
         console.error('Failed to reissue message:', error);
+        toast.error(t('chat.regenerate_failed'));
         return;
     }
 
-    if (!response.data?.success) return;
+    if (!response.data?.success) {
+        toast.error(t('chat.regenerate_failed'));
+        return;
+    }
 
     const createdAt = response.data.created_at;
     const newContent = overrideContent ?? response.data.user_message_content;
@@ -761,6 +708,7 @@ async function reissue({ userMessageId, assistantMessageId, model, overrideConte
     const assistantIndex = messages.value.findIndex((m) => m.id === assistantMessageId);
     if (userIndex === -1 || assistantIndex === -1) {
         console.error('Could not find messages to reissue');
+        toast.error(t('chat.regenerate_failed'));
         return;
     }
 
@@ -770,7 +718,7 @@ async function reissue({ userMessageId, assistantMessageId, model, overrideConte
     }
 
     messages.value[userIndex] = { role: 'user', content: newContent, id: 0 };
-    messages.value[assistantIndex] = { role: 'assistant', content: '', model: model.id, id: 0 };
+    messages.value[assistantIndex] = { role: 'assistant', content: '', id: 0 };
 
     userHasScrolledUp.value = true;
     isAutoScrollEnabled.value = false;
@@ -783,7 +731,6 @@ async function reissue({ userMessageId, assistantMessageId, model, overrideConte
 
         submitChat({
             message: newContent,
-            model,
             userIndex,
             assistantIndex,
             saveUserMessageImmediately: true,
@@ -794,24 +741,24 @@ async function reissue({ userMessageId, assistantMessageId, model, overrideConte
 }
 
 const handleMessageEdited = (userMessageId, assistantMessageId, newContent) => {
-    const model = selectedModel.value || defaultModel.value;
-    return reissue({ userMessageId, assistantMessageId, model, overrideContent: newContent });
+    return reissue({ userMessageId, assistantMessageId, overrideContent: newContent });
 };
 
-const handleRegenerate = (userMessageId, assistantMessageId, model) => {
-    return reissue({ userMessageId, assistantMessageId, model });
+const handleRegenerate = async (userMessageId, assistantMessageId, onDone) => {
+    try {
+        await reissue({ userMessageId, assistantMessageId });
+    } finally {
+        onDone?.();
+    }
 };
 
 const handleErrorRetry = (errorIndex) => {
     const prevUser = messages.value[errorIndex - 1];
     if (!prevUser || prevUser.role !== 'user') return;
-    const model = selectedModel.value || defaultModel.value;
-    if (!model) return;
     messages.value.splice(errorIndex, 1);
     return reissue({
         userMessageId: prevUser.id,
         assistantMessageId: null,
-        model,
         overrideContent: prevUser.content,
     });
 };
@@ -850,7 +797,7 @@ const handleScrollToBottomClick = () => {
                                 <div class="bg-muted-foreground/40 h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]"></div>
                                 <div class="bg-muted-foreground/40 h-2 w-2 animate-bounce rounded-full"></div>
                             </div>
-                            <p class="text-muted-foreground text-xs">Loading conversation</p>
+                            <p class="text-muted-foreground text-xs">{{ t('chat.loading_conversation') }}</p>
                         </div>
                     </div>
 
@@ -888,8 +835,6 @@ const handleScrollToBottomClick = () => {
                                     v-else
                                     :message="message"
                                     :userMessageId="index > 0 && messages[index - 1]?.role === 'user' ? messages[index - 1].id : undefined"
-                                    :models="models"
-                                    :defaultModel="defaultModel"
                                     :sources="message.id ? messageSources.get(message.id) || [] : []"
                                     :artifacts="message.id ? messageArtifacts.get(message.id) || [] : []"
                                     :conversationId="conversation_id"
@@ -912,16 +857,6 @@ const handleScrollToBottomClick = () => {
                     <div class="pb-6"></div>
                 </div>
 
-                <!-- Auto-scroll paused indicator -->
-                <Transition name="fade">
-                    <div
-                        v-if="isStreaming && userHasScrolledUp"
-                        class="bg-foreground/90 text-background absolute bottom-28 left-1/2 -translate-x-1/2 rounded-full px-3 py-1.5 text-[11px] font-medium shadow-lg"
-                    >
-                        Scroll paused
-                    </div>
-                </Transition>
-
                 <!-- Scroll to bottom button -->
                 <div class="pointer-events-none absolute right-0 bottom-32 left-0 z-10 flex justify-center">
                     <Transition name="scale-fade">
@@ -940,13 +875,9 @@ const handleScrollToBottomClick = () => {
                     <div class="mx-auto transition-all duration-300" :class="[isChatExpanded ? 'max-w-5xl' : 'max-w-3xl']">
                         <ChatComposer
                             :isThinking="isStreaming"
-                            :models="models"
-                            :defaultModel="defaultModel"
-                            :isLoadingModels="isLoadingModels"
                             :placeholder="appearance.composer_placeholder"
                             :disabled="!canSendMessages"
                             @messageAdded="messageAdded"
-                            @modelSelected="updateModel"
                             @stopStreaming="stopStreaming"
                         />
 

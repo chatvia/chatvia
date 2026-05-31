@@ -59,8 +59,8 @@ function refreshPrompts(): void {
                             Prompts
                         </h1>
                         <p class="text-muted-foreground mt-1 text-sm">
-                            Reusable system prompts. Write one here, then attach it to any agent from its Persona page — edit it once and every
-                            agent using it picks up the change.
+                            Reusable system prompts. Write one here, then attach it to any agent from its Persona page — edit it once and every agent
+                            using it picks up the change.
                         </p>
                     </div>
                     <Button @click="openCreate">

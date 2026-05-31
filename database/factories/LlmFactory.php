@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use Domain\Agents\Enums\LlmProviderEnum;
 use Domain\Agents\Models\Llm;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -52,7 +53,8 @@ class LlmFactory extends Factory
                 'vision' => $this->faker->boolean(70),
             ],
             'location' => $this->faker->randomElement(['us', 'eu', 'cn']),
-            'reasoning' => $this->faker->boolean(60),
+            'is_reasoning' => $this->faker->boolean(60),
+            'provider' => $this->faker->randomElement(LlmProviderEnum::cases()),
         ];
     }
 
@@ -62,7 +64,7 @@ class LlmFactory extends Factory
     public function withReasoning(): static
     {
         return $this->state(fn (array $attributes) => [
-            'reasoning' => true,
+            'is_reasoning' => true,
         ]);
     }
 

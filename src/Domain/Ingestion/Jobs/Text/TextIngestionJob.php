@@ -16,6 +16,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
 
 class TextIngestionJob implements ShouldQueue
 {
@@ -51,6 +52,8 @@ class TextIngestionJob implements ShouldQueue
             ->then(function (Batch $batch) use ($agentTextId, $agent): void {
                 SourceText::find($agentTextId)?->update(['status' => 'ingested']);
                 TextIngestionEvent::dispatch(SourceText::find($agentTextId), $agent);
+
+                DB::statement('ANALYZE chunks');
             })
             ->dispatch();
 

@@ -53,7 +53,7 @@ it('keeps the agent sticky via the session on a later param-less request', funct
 
     $first = Request::create('https://chatvia.test/chat', 'GET', ['agent' => $agent->external_id]);
     $first->setLaravelSession($session);
-    app(ResolveAgentFromSubdomain::class)->handle($first, fn () => new Response('next'));
+    app(ResolveAgentFromSubdomain::class)->handle($first, fn (): Response => new Response('next'));
 
     expect($session->get('chat_agent'))->toBe($agent->external_id);
 
@@ -108,7 +108,7 @@ it('redirects the apex root with ?agent= into /chat carrying the param', functio
 
     $request = Request::create('https://chatvia.test/', 'GET', ['agent' => $agent->external_id]);
 
-    $response = app(RedirectToAgent::class)->handle($request, fn () => new Response('next'));
+    $response = app(RedirectToAgent::class)->handle($request, fn (): Response => new Response('next'));
 
     expect($response->getStatusCode())->toBe(302)
         ->and($response->headers->get('Location'))->toContain('/chat')
@@ -139,5 +139,5 @@ it('routes an apex ?agent= request through the chat middleware group (full HTTP)
     // without depending on the downstream billing/capacity fixtures.
     $this->get('https://chatvia.test/chat?agent=does-not-exist')
         ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('agents/chat/AgentNotFound'));
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->component('agents/chat/AgentNotFound'));
 });

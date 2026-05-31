@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Auth\Listeners\RecordKnownDeviceListener;
 use App\Auth\Models\User;
 use App\Auth\Observers\UserObserver;
 use App\Billing\Models\UserBilling;
@@ -24,15 +25,13 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Domain\Agents\Models\AgentMcpServer;
-use Domain\Agents\Models\AgentPrompt;
-use Domain\Agents\Models\AgentTemplate;
 use Domain\Agents\Models\ModelSetting;
 use Domain\Agents\Observers\AgentFunctionObserver;
 use Domain\Agents\Observers\AgentMcpServerObserver;
 use Domain\Agents\Observers\AgentObserver;
-use Domain\Agents\Observers\AgentPromptObserver;
-use Domain\Agents\Observers\AgentTemplateObserver;
 use Domain\Agents\Observers\ModelSettingObserver;
+use Domain\Analytics\Listeners\RecordAnalyticsListener;
+use Domain\Auth\Services\PasswordAuthenticator;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
@@ -46,15 +45,19 @@ use Domain\Sources\Files\Models\SourceFile;
 use Domain\Sources\Files\Observers\SourceFileObserver;
 use Domain\Sources\Text\Models\SourceText;
 use Domain\Sources\Text\Observers\AgentTextObserver;
+use Domain\Sources\Web\Models\AgentWebsiteUrl;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Domain\Sources\Web\Observers\AgentWebsiteObserver;
 use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
 use Domain\Sources\Youtube\Observers\SourceYoutubeVideoObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\ParallelTesting;
@@ -114,6 +117,14 @@ class AppServiceProvider extends ServiceProvider
             return $app->make(MistralOCR::class);
         });
 
+        // PasswordAuthenticator wraps the `web` guard so domain Actions don't
+        // have to reach for the Auth facade. We bind it explicitly because
+        // StatefulGuard has multiple implementations and Laravel can't auto-
+        // resolve which one we want.
+        $this->app->bind(PasswordAuthenticator::class, function (): PasswordAuthenticator {
+            return new PasswordAuthenticator(Auth::guard('web'));
+        });
+
         Request::macro('subdomain', function () {
             $host = $this->getHost();
             $dots = substr_count($host, '.');
@@ -160,6 +171,24 @@ class AppServiceProvider extends ServiceProvider
         //        Cashier::keepIncompleteSubscriptionsActive();
 
         Stripe::setApiKey(config('cashier.secret'));
+
+        // Short morph keys instead of FQCNs. Saves ~50 bytes per row on chunks
+        // (billions of rows = real disk) and decouples persisted data from
+        // namespace renames.
+        Relation::enforceMorphMap([
+            'agent' => Agent::class,
+            'user' => User::class,
+            'source_file' => SourceFile::class,
+            'source_website' => SourceWebsite::class,
+            'source_text' => SourceText::class,
+            'source_youtube_video' => SourceYoutubeVideo::class,
+            'agent_website_url' => AgentWebsiteUrl::class,
+        ]);
+
+        // Catch lazy loading in dev/test — N+1s should fail loudly in CI
+        // rather than ship to production. Disabled in production so a missed
+        // `with(...)` still serves traffic.
+        Model::shouldBeStrict(! app()->isProduction());
 
         // The `Billable` trait lives on `UserBilling`, not `User`, so Cashier
         // resolves customers (e.g. `Cashier::findBillable($stripeId)`) to a
@@ -231,8 +260,6 @@ class AppServiceProvider extends ServiceProvider
         Agent::observe(AgentObserver::class);
         AgentFunction::observe(AgentFunctionObserver::class);
         AgentMcpServer::observe(AgentMcpServerObserver::class);
-        AgentPrompt::observe(AgentPromptObserver::class);
-        AgentTemplate::observe(AgentTemplateObserver::class);
         SourceFile::observe(SourceFileObserver::class);
         SourceText::observe(AgentTextObserver::class);
         SourceWebsite::observe(AgentWebsiteObserver::class);
@@ -276,6 +303,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(function (SocialiteWasCalled $event): void {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
         });
+
+        Event::listen(\Illuminate\Auth\Events\Login::class, RecordKnownDeviceListener::class);
+
+        Event::subscribe(RecordAnalyticsListener::class);
 
         // Bulk gate for every /widget/* endpoint. Per-IP because widget
         // traffic is unauthenticated for public agents and we want a single

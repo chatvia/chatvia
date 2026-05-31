@@ -38,7 +38,7 @@ class CreateApiFunctionAction
             'auth_type' => $authType,
             'auth_config' => $this->buildAuthConfig($authType, $data),
             'timeout_ms' => $data->timeout_ms instanceof Optional ? 10000 : (int) $data->timeout_ms,
-            'enabled' => $data->enabled instanceof Optional ? true : (bool) $data->enabled,
+            'is_enabled' => $data->is_enabled instanceof Optional ? true : (bool) $data->is_enabled,
         ]);
 
         return $function;

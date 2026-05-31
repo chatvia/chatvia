@@ -20,8 +20,7 @@ it('stamps the agent and owner identity headers on the webhook request', functio
         'external_id' => Str::random(14),
         'sub_domain' => Str::lower(Str::random(12)),
         'is_public' => false,
-        'analytics_enabled' => false,
-        'created_via' => 'external',
+        'source' => 'api',
     ]);
 
     $function = new AgentFunction;
@@ -32,7 +31,7 @@ it('stamps the agent and owner identity headers on the webhook request', functio
     $function->webhook_url = 'https://hooks.example.test/fn';
     $function->webhook_method = 'POST';
     $function->auth_type = 'none';
-    $function->enabled = true;
+    $function->is_enabled = true;
     $function->save();
 
     $agent->functions()->attach($function->id);
@@ -41,7 +40,7 @@ it('stamps the agent and owner identity headers on the webhook request', functio
 
     (new HttpToolDispatcher)->dispatch($agent, 'lookup_order', '{}');
 
-    Http::assertSent(fn ($request) => $request->url() === 'https://hooks.example.test/fn'
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://hooks.example.test/fn'
         && $request->header('X-Chatvia-Agent-Id') === [$agent->external_id]
         && $request->header('X-Chatvia-User-Id') === [$user->external_id]);
 });

@@ -174,7 +174,7 @@ class McpOAuthFlow
                 'auth_value' => $tokens['access_token'],
                 'headers' => null,
                 'timeout_ms' => 30000,
-                'enabled' => true,
+                'is_enabled' => true,
                 'last_error' => null,
                 'oauth_authorization_server' => $pending->authServerUrl,
                 'oauth_token_endpoint' => $pending->tokenEndpoint,

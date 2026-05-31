@@ -3,14 +3,18 @@
 namespace Database\Seeders;
 
 use App\Auth\Models\User;
-use App\Country\Models\Country;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Llm;
+use Domain\Analytics\Actions\RecordFeedbackGivenAction;
+use Domain\Analytics\Actions\RecordMessageSentAction;
+use Domain\Analytics\Events\FeedbackGivenEvent;
+use Domain\Analytics\Events\MessageSentEvent;
 use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
 use Illuminate\Database\Seeder;
+use Support\Demo\DemoCountries;
 
 class ChatSeeder extends Seeder
 {
@@ -110,11 +114,11 @@ class ChatSeeder extends Seeder
             'tone' => 'neutral',
             'messages' => [
                 ['role' => 'user', 'content' => 'I just signed up! Where do I start?', 'sentiment' => 'neutral', 'tone' => 'neutral'],
-                ['role' => 'assistant', 'content' => 'Welcome to ChatVia! 🎉 Congratulations on taking the first step toward AI-powered customer engagement.\n\nHere\'s your quick start roadmap:\n\n**Step 1: Create Your First Agent (5 mins)**\n→ Dashboard → Agents → "Create Agent"\n→ Choose a name and type (Widget or Knowledge Base)\n\n**Step 2: Upload Knowledge (10 mins)**\n→ Agent Settings → Knowledge Base\n→ Drag & drop your FAQs, docs, or website URLs\n\n**Step 3: Customize Appearance (5 mins)**\n→ Agent Settings → Widget Design\n→ Match your brand colors and style\n\n**Step 4: Test It Out (5 mins)**\n→ Use the preview to test responses\n→ Refine your knowledge base based on results\n\n**Step 5: Go Live! (2 mins)**\n→ Copy the embed code\n→ Paste into your website\n\nWhich step would you like help with first?', 'sentiment' => 'positive', 'tone' => 'neutral'],
+                ['role' => 'assistant', 'content' => 'Welcome to ChatVia! 🎉 Congratulations on taking the first step toward AI-powered customer engagement.\n\nHere\'s your quick start roadmap:\n\n**Step 1: Create Your First Agent (1 min)**\n→ Dashboard → Agents → "Create Agent"\n→ Just give it a name — every agent automatically gets three surfaces: a Hosted Chat page, an embeddable Widget, and a cmd-K Bar.\n\n**Step 2: Upload Knowledge (10 mins)**\n→ Agent → Sources\n→ Drag & drop your FAQs, docs, or website URLs\n\n**Step 3: Configure your surfaces (5 mins)**\n→ Agent → Setup → pick Hosted Chat / Widget / Bar\n→ Each surface has its own text, branding, model, and embed code — fully independent.\n\n**Step 4: Test It Out (5 mins)**\n→ Agent → Playground\n→ Flip between Hosted Chat, Widget, and Bar previews to see exactly what visitors will see.\n\n**Step 5: Go Live! (2 mins)**\n→ Copy the embed snippet from whichever surface you want to ship\n→ Paste into your website\n\nWhich step would you like help with first?', 'sentiment' => 'positive', 'tone' => 'neutral'],
                 ['role' => 'user', 'content' => 'Let\'s start with creating the agent. What should I name it?', 'sentiment' => 'neutral', 'tone' => 'neutral'],
                 ['role' => 'assistant', 'content' => 'Great choice starting there! Agent naming is more important than people think.\n\n**Naming Best Practices:**\n\n🎯 **For Customer-Facing Agents:**\n- Use friendly, human-like names: "Alex", "Sam", "Maya"\n- Or brand-aligned names: "TechBot", "[YourBrand] Assistant"\n- Keep it memorable and easy to type\n\n🔧 **For Internal Agents:**\n- Be descriptive: "IT Support Bot", "HR Policy Assistant"\n- Include department: "Sales Knowledge Base"\n\n**Examples from Our Customers:**\n- E-commerce: "Shopping Guide"\n- SaaS: "Product Expert"\n- Healthcare: "Patient Support"\n- Finance: "Policy Advisor"\n\n**My Suggestion:**\nIf you\'re unsure, start with something like "[YourCompany] Assistant" - it\'s professional and sets clear expectations.\n\nWhat type of business are you setting this up for?', 'feedback' => 'positive', 'sentiment' => 'positive', 'tone' => 'neutral'],
                 ['role' => 'user', 'content' => 'It\'s for a software company. We want to help users with technical questions about our product.', 'sentiment' => 'positive', 'tone' => 'neutral'],
-                ['role' => 'assistant', 'content' => 'Perfect! For a software company handling technical questions, here are tailored recommendations:\n\n**Suggested Agent Name:**\n- "[ProductName] Support"\n- "[ProductName] Expert"\n- "Tech Guide"\n\n**Recommended Agent Type:** Knowledge Base\n(Better for technical documentation and detailed answers)\n\n**System Prompt Suggestion:**\n```\nYou are a technical support specialist for [ProductName]. \nYou help users troubleshoot issues, understand features, \nand implement best practices. Always provide code examples \nwhen relevant. If you don\'t know something, admit it and \nsuggest contacting human support.\n```\n\n**Knowledge Base Content to Upload:**\n1. Product documentation\n2. API reference docs\n3. Common error messages & solutions\n4. Tutorial/how-to guides\n5. Release notes\n6. FAQ pages\n\n**Pro Tip:** Start with your top 50 support tickets. Train the bot on those first - you\'ll cover 80% of incoming questions!\n\nReady to create it? I can guide you through each setting!', 'sentiment' => 'positive', 'tone' => 'satisfied', 'feedback' => 'positive'],
+                ['role' => 'assistant', 'content' => 'Perfect! For a software company handling technical questions, here are tailored recommendations:\n\n**Suggested Agent Name:**\n- "[ProductName] Support"\n- "[ProductName] Expert"\n- "Tech Guide"\n\n**Suggested Surfaces:**\n- **Hosted Chat** — for the dedicated docs assistant page (multi-model so users can compare)\n- **Bar** — drop the cmd-K launcher into your docs site for in-context answers\n- **Widget** — optional floating bubble for product pages\n\n**System Prompt Suggestion:**\n```\nYou are a technical support specialist for [ProductName]. \nYou help users troubleshoot issues, understand features, \nand implement best practices. Always provide code examples \nwhen relevant. If you don\'t know something, admit it and \nsuggest contacting human support.\n```\n\n**Sources to upload:**\n1. Product documentation\n2. API reference docs\n3. Common error messages & solutions\n4. Tutorial/how-to guides\n5. Release notes\n6. FAQ pages\n\n**Pro Tip:** Start with your top 50 support tickets. Train the bot on those first — you\'ll cover 80% of incoming questions!\n\nReady to create it? I can guide you through each setting!', 'sentiment' => 'positive', 'tone' => 'satisfied', 'feedback' => 'positive'],
             ],
         ],
 
@@ -262,17 +266,26 @@ class ChatSeeder extends Seeder
             return;
         }
 
-        // Get LLM IDs for assistant messages
-        $llmIds = Llm::pluck('id')->toArray();
+        // Get LLM external_names for assistant messages — analytics uses these
+        // as the model dimension, so the chat-log rows and analytics rollups
+        // share the same model set.
+        $llms = Llm::query()->select('id', 'external_name')->get();
+        if ($llms->isEmpty()) {
+            $this->command->warn('No LLMs available — skipping chat seed.');
 
-        // Get countries for sessions
-        $countries = Country::pluck('id')->toArray();
+            return;
+        }
+        $llmIds = $llms->pluck('id')->all();
 
-        $this->command->info('Creating chat sessions and conversations...');
+        $this->command->info('Creating chat sessions, conversations + analytics events...');
+
+        $messageSent = app(RecordMessageSentAction::class);
+        $feedbackGiven = app(RecordFeedbackGivenAction::class);
 
         $sessionsCreated = 0;
         $conversationsCreated = 0;
         $messagesCreated = 0;
+        $analyticsFired = 0;
 
         // Create sessions with meaningful conversations for each agent
         foreach ($agents as $agent) {
@@ -283,51 +296,96 @@ class ChatSeeder extends Seeder
                 // Select a random conversation scenario
                 $scenario = $this->conversationScenarios[array_rand($this->conversationScenarios)];
 
-                // Create the session
+                // Pick a weighted country once for the whole session; the id
+                // goes on chat_sessions, the code is snapshotted into analytics.
+                $country = DemoCountries::pick();
+
                 $session = $this->createSession(
                     agent: $agent,
                     user: $user,
-                    countries: $countries,
-                    withUser: $i < 5 // First 5 sessions have user
+                    countryId: $country['id'],
+                    withUser: $i < 5, // First 5 sessions have user
                 );
                 $sessionsCreated++;
 
-                // Create the conversation with meaningful messages
                 $conversation = ChatConversation::create([
                     'chat_session_id' => $session->id,
                     'source' => ConversationSource::cases()[array_rand(ConversationSource::cases())],
                     'title' => $scenario['title'],
                     'sentiment' => $scenario['sentiment'],
                     'tone' => $scenario['tone'],
-                    'visible' => true,
+                    'is_visible' => true,
                     'created_at' => $session->created_at,
                     'last_activity_at' => $session->created_at,
                 ]);
                 $conversationsCreated++;
+
+                // No explicit ConversationStarted dispatch — the analytics
+                // Action detects "first message of conversation" via the
+                // conv_metrics UPSERT and bumps conversations_started then.
 
                 // Create messages from the scenario
                 $messageTime = $conversation->created_at->copy();
 
                 foreach ($scenario['messages'] as $messageData) {
                     $messageTime = $messageTime->copy()->addMinutes(rand(1, 3));
+                    $isAssistant = $messageData['role'] === 'assistant';
+
+                    $llmId = $isAssistant ? fake()->randomElement($llmIds) : null;
+                    $promptTokens = $isAssistant ? fake()->numberBetween(100, 800) : null;
+                    $completionTokens = $isAssistant ? fake()->numberBetween(50, 400) : null;
+                    $responseMs = $isAssistant ? fake()->numberBetween(500, 3000) : null;
 
                     $message = ChatMessage::create([
                         'chat_conversation_id' => $conversation->id,
                         'content' => str_replace('\\n', "\n", $messageData['content']),
                         'role' => $messageData['role'],
-                        'llm_id' => $messageData['role'] === 'assistant' ? fake()->randomElement($llmIds) : null,
-                        'confidence_score' => $messageData['role'] === 'assistant' ? fake()->randomFloat(4, 0.75, 0.99) : null,
-                        'response_time_ms' => $messageData['role'] === 'assistant' ? fake()->numberBetween(500, 3000) : null,
-                        'prompt_tokens' => $messageData['role'] === 'assistant' ? fake()->numberBetween(100, 800) : null,
-                        'completion_tokens' => $messageData['role'] === 'assistant' ? fake()->numberBetween(50, 400) : null,
-                        'cost' => $messageData['role'] === 'assistant' ? fake()->randomFloat(6, 0.001, 0.02) : null,
-                        'sentiment' => $messageData['sentiment'] ?? ($messageData['role'] === 'assistant' ? 'neutral' : fake()->randomElement(['positive', 'neutral', 'negative'])),
+                        'llm_id' => $llmId,
+                        'confidence_score' => $isAssistant ? fake()->randomFloat(4, 0.75, 0.99) : null,
+                        'response_time_ms' => $responseMs,
+                        'prompt_tokens' => $promptTokens,
+                        'completion_tokens' => $completionTokens,
+                        'cost_in_micro_cents' => $isAssistant ? fake()->numberBetween(100, 200_000) : null,
+                        'sentiment' => $messageData['sentiment'] ?? ($isAssistant ? 'neutral' : fake()->randomElement(['positive', 'neutral', 'negative'])),
                         'tone' => $messageData['tone'] ?? null,
-                        'is_response_from_qa' => $messageData['role'] === 'assistant' ? fake()->boolean(85) : null,
+                        'is_response_from_qa' => $isAssistant ? fake()->boolean(85) : null,
                         'feedback' => $messageData['feedback'] ?? null,
                         'created_at' => $messageTime,
                     ]);
                     $messagesCreated++;
+
+                    $modelExternalName = $llmId
+                        ? $llms->firstWhere('id', $llmId)?->external_name
+                        : null;
+
+                    $messageSent->execute(new MessageSentEvent(
+                        agentId: $agent->id,
+                        conversationExternalId: (string) $conversation->external_id,
+                        messageExternalId: (string) $message->external_id,
+                        sessionExternalId: (string) $session->external_id,
+                        role: $messageData['role'],
+                        llmExternalName: $modelExternalName,
+                        countryCode: $country['code'],
+                        responseTimeMs: $responseMs,
+                        promptTokens: $promptTokens,
+                        completionTokens: $completionTokens,
+                        occurredAt: $messageTime,
+                    ));
+                    $analyticsFired++;
+
+                    if (! empty($messageData['feedback'])) {
+                        $feedbackGiven->execute(new FeedbackGivenEvent(
+                            agentId: $agent->id,
+                            conversationExternalId: (string) $conversation->external_id,
+                            messageExternalId: (string) $message->external_id,
+                            priorFeedback: null,
+                            newFeedback: $messageData['feedback'],
+                            llmExternalName: $modelExternalName,
+                            countryCode: $country['code'],
+                            occurredAt: $messageTime->copy()->addSeconds(rand(5, 60)),
+                        ));
+                        $analyticsFired++;
+                    }
                 }
 
                 // Update last activity
@@ -339,17 +397,16 @@ class ChatSeeder extends Seeder
         $this->command->info("  - Sessions: {$sessionsCreated}");
         $this->command->info("  - Conversations: {$conversationsCreated}");
         $this->command->info("  - Messages: {$messagesCreated}");
+        $this->command->info("  - Analytics events fired: {$analyticsFired}");
     }
 
     /**
-     * Create a session.
-     *
-     * @param  array<int>  $countries
+     * Create a session for the given agent and pre-resolved country.
      */
     private function createSession(
         Agent $agent,
         User $user,
-        array $countries,
+        ?int $countryId,
         bool $withUser = false
     ): ChatSession {
         $cities = [
@@ -375,7 +432,7 @@ class ChatSeeder extends Seeder
             'agent_id' => $agent->id,
             'ip_address' => fake()->ipv4(),
             'user_agent' => fake()->userAgent(),
-            'country_id' => ! empty($countries) ? fake()->randomElement($countries) : null,
+            'country_id' => $countryId,
             'device_type' => fake()->randomElement(['desktop', 'desktop', 'desktop', 'mobile', 'tablet']),
             'browser' => fake()->randomElement(['Chrome', 'Chrome', 'Firefox', 'Safari', 'Edge']),
             'os' => fake()->randomElement(['Windows', 'macOS', 'macOS', 'iOS', 'Android', 'Linux']),

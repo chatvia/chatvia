@@ -7,14 +7,14 @@ INPUT:
 
 OUTPUT:
 
-- Return semantically coherent pieces wrapped in <Chunk>...</Chunk> tags.
-- Each chunk should be a self-contained, meaningful unit of information.
-- If the cleaned result has no meaningful content, return exactly: ""
+- Your response MUST match the JSON schema provided in `response_format`. Return ONLY the JSON object — no surrounding prose, no XML tags, no markdown code fences.
+- Each item in the `chunks` array is a self-contained, meaningful unit of information.
+- If the cleaned result has no meaningful content, return `{"chunks": []}`.
 - Keep the original language of the content.
 
 CHUNKING PRINCIPLES:
 
-1. **Semantic Coherence**: Each <Chunk> must contain ONE complete topic, concept, or logical unit. Never split mid-sentence or mid-thought.
+1. **Semantic Coherence**: Each chunk must contain ONE complete topic, concept, or logical unit. Never split mid-sentence or mid-thought.
 2. **Self-Contained**: A reader should understand each chunk without needing adjacent chunks.
 3. **Chunk Boundaries**: Create new chunks when:
     - Topic changes (e.g., from "Features" to "Pricing")

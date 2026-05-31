@@ -43,13 +43,17 @@ readonly class ConversationManager
 
         $conversationId = $conversation->external_id;
 
+        // Analytics fires from the first MessageSentEvent (in StoreChatMessageJob)
+        // — country is known by then. Firing here with null country would bucket
+        // every conversation under the "--" sentinel and miss the country panel.
+
         $conversations = $this->getConversationsFromSession();
 
         $newConversation = new ConversationData(
             id: $conversationId,
             title: $title,
             timestamp: now()->timestamp,
-            visible: false,
+            is_visible: false,
         );
 
         $conversations[] = $newConversation->toArray();
@@ -66,14 +70,14 @@ readonly class ConversationManager
         foreach ($conversations as &$conversation) {
             if ($conversation['id'] === $conversationId) {
                 $conversation['title'] = Str::of($title)->replace('"', '')->toString();
-                $conversation['visible'] = true;
+                $conversation['is_visible'] = true;
             }
         }
 
         $this->saveSessionData($conversations);
 
         // Also update database visibility
-        ChatConversation::where('external_id', $conversationId)->update(['visible' => true]);
+        ChatConversation::where('external_id', $conversationId)->update(['is_visible' => true]);
     }
 
     public function updateConversationTitleFromMessages(string $conversationId, array|string $messages = []): void
@@ -183,7 +187,7 @@ readonly class ConversationManager
         $conversations = collect($session['conversations'] ?? []);
 
         if ($onlyVisible) {
-            $conversations = $conversations->filter(fn ($conversation): bool => $conversation['visible'] === true);
+            $conversations = $conversations->filter(fn ($conversation): bool => $conversation['is_visible'] === true);
         }
 
         if ($orderByDate) {

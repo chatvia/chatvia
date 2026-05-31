@@ -212,9 +212,7 @@ const toggleAgentSelection = (agentId: string) => {
                                     <Bot class="text-muted-foreground size-4" />
                                     <h3 class="text-sm font-semibold tracking-tight">Agent Access</h3>
                                 </div>
-                                <p class="text-muted-foreground pl-6 text-sm">
-                                    Choose which agents this role can view and interact with.
-                                </p>
+                                <p class="text-muted-foreground pl-6 text-sm">Choose which agents this role can view and interact with.</p>
                                 <div class="space-y-4 pl-6">
                                     <div class="flex items-center gap-3">
                                         <Checkbox
@@ -269,10 +267,7 @@ const toggleAgentSelection = (agentId: string) => {
                                                             </div>
                                                             <span class="text-sm">{{ agent.name }}</span>
                                                         </div>
-                                                        <div
-                                                            v-if="agents.length === 0"
-                                                            class="text-muted-foreground px-2 py-4 text-center text-sm"
-                                                        >
+                                                        <div v-if="agents.length === 0" class="text-muted-foreground px-2 py-4 text-center text-sm">
                                                             No agents available
                                                         </div>
                                                     </div>
@@ -295,7 +290,7 @@ const toggleAgentSelection = (agentId: string) => {
                             <TooltipProvider>
                                 <div class="space-y-10">
                                     <section v-for="scope in scopes" :key="scope.key" v-show="scope.groups.length > 0" class="space-y-4">
-                                        <div class="border-l-2 border-primary/40 pl-4">
+                                        <div class="border-primary/40 border-l-2 pl-4">
                                             <h3 class="text-base font-semibold tracking-tight">{{ scope.label }}</h3>
                                             <p class="text-muted-foreground mt-1 text-sm">{{ scope.description }}</p>
                                         </div>

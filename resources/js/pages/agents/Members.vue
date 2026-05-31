@@ -62,9 +62,7 @@ const searchQuery = ref('');
 const filteredMembers = computed(() => {
     const q = searchQuery.value.trim().toLowerCase();
     if (!q) return members.value;
-    return members.value.filter(
-        (m) => m.name.toLowerCase().includes(q) || (m.email ?? '').toLowerCase().includes(q),
-    );
+    return members.value.filter((m) => m.name.toLowerCase().includes(q) || (m.email ?? '').toLowerCase().includes(q));
 });
 
 // Invite dialog
@@ -131,9 +129,7 @@ const confirmDetach = () => {
             onSuccess: () => {
                 // Keep the row visible but flip it to "no access" so it
                 // moves into the lower group and the Grant action shows up.
-                members.value = members.value.map((m) =>
-                    m.external_id === target.external_id ? { ...m, has_access: false } : m,
-                );
+                members.value = members.value.map((m) => (m.external_id === target.external_id ? { ...m, has_access: false } : m));
                 resort();
                 toast.success(`${target.name} no longer has access to this agent`);
                 detachOpen.value = false;
@@ -161,9 +157,7 @@ const grantAccess = (member: ChatterRow) => {
         {
             preserveScroll: true,
             onSuccess: () => {
-                members.value = members.value.map((m) =>
-                    m.external_id === member.external_id ? { ...m, has_access: true } : m,
-                );
+                members.value = members.value.map((m) => (m.external_id === member.external_id ? { ...m, has_access: true } : m));
                 resort();
                 toast.success(`${member.name} now has access to this agent`);
             },
@@ -202,8 +196,7 @@ const formatDate = (iso: string) => {
                         Members
                     </CardTitle>
                     <CardDescription>
-                        Everyone in your workspace. Members with access to this agent are listed first; grant any other member access in
-                        one click.
+                        Everyone in your workspace. Members with access to this agent are listed first; grant any other member access in one click.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -219,8 +212,8 @@ const formatDate = (iso: string) => {
                         <div class="space-y-1">
                             <p class="font-medium text-blue-900 dark:text-blue-100">This agent is public</p>
                             <p class="text-blue-800/80 dark:text-blue-200/80">
-                                Anyone with the link can chat with this agent, so member grants don't apply. To use members, make the agent
-                                protected from its Setup tab.
+                                Anyone with the link can chat with this agent, so member grants don't apply. To use members, make the agent protected
+                                from its Setup tab.
                             </p>
                         </div>
                     </div>
@@ -319,10 +312,7 @@ const formatDate = (iso: string) => {
                                                 :title="`Grant ${member.name} access to this agent`"
                                                 @click="grantAccess(member)"
                                             >
-                                                <LoaderCircle
-                                                    v-if="grantingId === member.external_id"
-                                                    class="mr-1 h-3.5 w-3.5 animate-spin"
-                                                />
+                                                <LoaderCircle v-if="grantingId === member.external_id" class="mr-1 h-3.5 w-3.5 animate-spin" />
                                                 <PlusCircle v-else class="mr-1 h-3.5 w-3.5" />
                                                 Grant
                                             </Button>
@@ -391,8 +381,11 @@ const formatDate = (iso: string) => {
 
                 <!-- After-send view: lets the owner copy the link manually -->
                 <div v-else class="space-y-4">
-                    <div class="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-100">
-                        Invitation emailed to <span class="font-medium">{{ lastInvitation.email }}</span>. You can also copy the link below.
+                    <div
+                        class="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-100"
+                    >
+                        Invitation emailed to <span class="font-medium">{{ lastInvitation.email }}</span
+                        >. You can also copy the link below.
                     </div>
 
                     <div class="space-y-2">

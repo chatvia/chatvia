@@ -30,10 +30,6 @@ class AgentData extends Data
          */
         public bool $is_public,
         /**
-         * Whether conversation analytics are recorded for this agent.
-         */
-        public bool $analytics_enabled,
-        /**
          * Arbitrary key/value data you attach to the agent — for example your
          * own external ids.
          *
@@ -44,7 +40,7 @@ class AgentData extends Data
          * Origin of the agent — `external` when created through the API,
          * `internal` otherwise.
          */
-        public CreatedVia $created_via,
+        public CreatedVia $source,
         /**
          * The custom system prompt that steers how the agent answers. Null when
          * the agent uses a reusable library prompt (`prompt_id`) instead.
@@ -90,9 +86,8 @@ class AgentData extends Data
             team: TeamRefData::fromModel($agent->team),
             name: $agent->name,
             is_public: (bool) $agent->is_public,
-            analytics_enabled: (bool) $agent->analytics_enabled,
             metadata: $agent->metadata ?? [],
-            created_via: CreatedVia::from($agent->created_via),
+            source: $agent->source,
             system_instructions: $agent->system_instructions,
             prompt_id: $agent->agentPrompt?->external_id,
             sub_domain: $agent->sub_domain,

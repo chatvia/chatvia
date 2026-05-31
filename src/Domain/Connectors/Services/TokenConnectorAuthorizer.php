@@ -50,7 +50,7 @@ class TokenConnectorAuthorizer
                 'auth_value' => $noAuth ? null : $token,
                 'headers' => null,
                 'timeout_ms' => 30000,
-                'enabled' => true,
+                'is_enabled' => true,
                 'last_error' => null,
             ];
 

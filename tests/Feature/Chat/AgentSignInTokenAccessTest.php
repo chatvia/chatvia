@@ -29,7 +29,7 @@ it('logs the end-user in on a valid token and strips it from the URL', function 
     $token = $this->service->issue($this->endUser, $this->agent)['token'];
     $request = signInChatRequest($this->agent, $token);
 
-    $response = $this->middleware->handle($request, fn () => new Response('next'));
+    $response = $this->middleware->handle($request, fn (): Response => new Response('next'));
 
     expect($response->getStatusCode())->toBe(302)
         ->and($response->headers->get('Location'))->not->toContain('token=')
@@ -39,7 +39,7 @@ it('logs the end-user in on a valid token and strips it from the URL', function 
 it('passes through anonymously when no token is present', function (): void {
     $request = signInChatRequest($this->agent, null);
 
-    $response = $this->middleware->handle($request, fn () => new Response('next'));
+    $response = $this->middleware->handle($request, fn (): Response => new Response('next'));
 
     expect($response->getContent())->toBe('next')
         ->and(Auth::guard('web')->check())->toBeFalse();
@@ -48,7 +48,7 @@ it('passes through anonymously when no token is present', function (): void {
 it('ignores an unknown or expired token (no login)', function (): void {
     $request = signInChatRequest($this->agent, 'bogus-token');
 
-    $this->middleware->handle($request, fn () => new Response('next'));
+    $this->middleware->handle($request, fn (): Response => new Response('next'));
 
     expect(Auth::guard('web')->check())->toBeFalse();
 });
@@ -59,7 +59,7 @@ it('ignores a token minted for a different agent (no login)', function (): void 
 
     $request = signInChatRequest($this->agent, $token);
 
-    $this->middleware->handle($request, fn () => new Response('next'));
+    $this->middleware->handle($request, fn (): Response => new Response('next'));
 
     expect(Auth::guard('web')->check())->toBeFalse();
 });
@@ -89,7 +89,6 @@ function makeSignInAgent(User $owner): Agent
         'external_id' => Str::random(14),
         'sub_domain' => Str::lower(Str::random(12)),
         'is_public' => false,
-        'analytics_enabled' => true,
     ]);
 }
 

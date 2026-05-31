@@ -18,11 +18,14 @@ class ListPendingHandoffsAction
             ->with(['session.user', 'lead', 'messages' => fn ($q) => $q->latest()->limit(1)])
             ->whereHas('session', fn ($q) => $q->where('agent_id', $agent->id))
             ->where('handoff_status', 'pending')
-            ->where('visible', true)
+            ->where('is_visible', true)
             ->orderByDesc('updated_at')
+            ->limit(50)
             ->get()
-            ->map(fn (ChatConversation $conversation) => new HandoffSummaryData(
-                conversation_id: $conversation->id,
+            ->map(fn (ChatConversation $conversation): HandoffSummaryData => new HandoffSummaryData(
+                // HandoffSummaryData exposes the public-facing identifier
+                // (uuid string), not the autoincrement PK.
+                conversation_id: $conversation->external_id,
                 user_name: $conversation->displayName() ?? 'Visitor',
                 user_email: $conversation->displayEmail(),
                 last_message: $conversation->messages->first()?->content,

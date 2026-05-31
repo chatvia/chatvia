@@ -2,11 +2,17 @@
 
 namespace Domain\Agents\Models;
 
+use Domain\Agents\Enums\LlmProviderEnum;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 /**
  * @property int $id
@@ -19,10 +25,10 @@ use Illuminate\Validation\Rule;
  * @property int $context_window
  * @property array<array-key, mixed> $features
  * @property string $location
- * @property bool $reasoning
+ * @property bool $is_reasoning
  * @property numeric|null $input_price_per_1m_tokens
  * @property numeric|null $output_price_per_1m_tokens
- * @property bool $is_default
+ * @property LlmProviderEnum $provider
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read string $location_label
@@ -43,10 +49,10 @@ use Illuminate\Validation\Rule;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereInputPricePer1mTokens($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereInternalName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereIsDefault($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereLocation($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereOutputPricePer1mTokens($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereReasoning($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereProvider($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereIsReasoning($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm withReasoning()
  *
@@ -59,17 +65,21 @@ class Llm extends Model
 {
     use HasFactory;
 
-    protected $casts = [
-        'features' => 'json',
-        'reasoning' => 'boolean',
-        'context_window' => 'integer',
-        'credits' => 'integer',
-        'input_price_per_1m_tokens' => 'decimal:4',
-        'output_price_per_1m_tokens' => 'decimal:4',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'features' => 'json',
+            'is_reasoning' => 'boolean',
+            'context_window' => 'integer',
+            'credits' => 'integer',
+            'input_price_per_1m_tokens' => 'decimal:4',
+            'output_price_per_1m_tokens' => 'decimal:4',
+            'provider' => LlmProviderEnum::class,
+        ];
+    }
 
     protected $attributes = [
-        'reasoning' => false,
+        'is_reasoning' => false,
         'credits' => 1,
     ];
 
@@ -84,7 +94,8 @@ class Llm extends Model
             'context_window' => ['required', 'integer', 'min:1'],
             'features' => ['nullable', 'array'],
             'location' => ['required', Rule::in(['us', 'eu', 'cn'])],
-            'reasoning' => ['boolean'],
+            'is_reasoning' => ['boolean'],
+            'provider' => ['required', new Enum(LlmProviderEnum::class)],
         ];
     }
 
@@ -99,7 +110,8 @@ class Llm extends Model
             'context_window' => ['required', 'integer', 'min:1'],
             'features' => ['nullable', 'array'],
             'location' => ['required', Rule::in(['us', 'eu', 'cn'])],
-            'reasoning' => ['boolean'],
+            'is_reasoning' => ['boolean'],
+            'provider' => ['required', new Enum(LlmProviderEnum::class)],
         ];
     }
 
@@ -113,13 +125,43 @@ class Llm extends Model
         };
     }
 
-    public function scopeByLocation($query, $location)
+    #[Scope]
+    protected function byLocation(Builder $query, string $location): void
     {
-        return $query->where('location', $location);
+        $query->where('location', $location);
     }
 
-    public function scopeWithReasoning($query)
+    #[Scope]
+    protected function withReasoning(Builder $query): void
     {
-        return $query->where('reasoning', true);
+        $query->where('is_reasoning', true);
+    }
+
+    /**
+     * Cache the entire LLM catalog. A tiny static lookup table that's read on
+     * almost every chat/widget request — refreshes only when an LLM is added,
+     * updated, or removed via the events below.
+     *
+     * Uses `self::query()` (not `static`) so the generic resolves to
+     * `Collection<int, Llm>` matching the declared return — `static::query()`
+     * would type as `Collection<int, static>`, and Eloquent\Collection's
+     * TModel is non-covariant so the two aren't interchangeable.
+     *
+     * @return Collection<int, Llm>
+     */
+    public static function catalog(): Collection
+    {
+        return Cache::rememberForever('llms.catalog', fn () => self::query()->get());
+    }
+
+    public static function flushCatalogCache(): void
+    {
+        Cache::forget('llms.catalog');
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => static::flushCatalogCache());
+        static::deleted(fn () => static::flushCatalogCache());
     }
 }

@@ -61,7 +61,7 @@ class AgentsController
         }
 
         try {
-            $agent = $createAgent->execute($user, $team, $request->validated());
+            $agent = $createAgent->execute($request->toData());
         } catch (Throwable $exception) {
             report($exception);
 
@@ -135,5 +135,4 @@ class AgentsController
 
         return redirect()->route('agents.index');
     }
-
 }

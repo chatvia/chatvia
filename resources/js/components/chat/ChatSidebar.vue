@@ -2,25 +2,9 @@
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import isMobile from 'is-mobile';
-import {
-    Bot,
-    Check,
-    Download,
-    Edit,
-    Eye,
-    EyeOff,
-    FileDown,
-    FileText,
-    Lock,
-    LogOut,
-    Mail,
-    MoreVertical,
-    PanelLeft,
-    Trash2,
-    User,
-    X,
-} from 'lucide-vue-next';
+import { Bot, Check, Edit, Eye, EyeOff, Lock, LogOut, Mail, MoreVertical, PanelLeft, Trash2, User, X } from 'lucide-vue-next';
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import {
     AlertDialog,
@@ -36,16 +20,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -78,18 +53,6 @@ const props = defineProps({
         type: String,
         default: '',
     },
-    models: {
-        type: Array,
-        default: () => [],
-    },
-    defaultModel: {
-        type: Object,
-        default: null,
-    },
-    isLoadingModels: {
-        type: Boolean,
-        default: true,
-    },
     appearance: {
         type: Object,
     },
@@ -103,9 +66,9 @@ const isMobileDevice = isMobile();
 const page = usePage();
 const conversations = ref<Conversation[]>([]);
 const chatEventBus = inject('chatEventBus') as any;
+const { t } = useI18n();
 const emit = defineEmits(['update:open']);
 const isSidebarOpen = ref(props.open);
-const defaultModel = ref(props.defaultModel);
 const editingId = ref<string | number | null>(null);
 const editingTitle = ref('');
 const deleteDialogOpen = ref(false);
@@ -132,15 +95,6 @@ const isLoadingAgents = ref(false);
 
 // Agent switching form
 const agentSwitchForm = useForm({});
-
-// Watch for prop changes
-watch(
-    () => props.defaultModel,
-    (newDefaultModel) => {
-        defaultModel.value = newDefaultModel;
-    },
-    { immediate: true },
-);
 
 const loadConversations = () => {
     isLoadingConversations.value = true;
@@ -217,7 +171,7 @@ const newConversation = () => {
         isSidebarOpen.value = false;
     }
 
-    router.visit(route(props.newChatRoute, { model: props.defaultModel?.id }), {
+    router.visit(route(props.newChatRoute), {
         preserveState: false,
         preserveScroll: false,
     });
@@ -228,7 +182,7 @@ const deleteAllConversations = async () => {
         await axios.delete(route('conversations.delete.all'));
 
         // After clearing all conversations, redirect to chat home
-        router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }), {
+        router.visit(route(props.newChatRoute), {
             preserveState: false,
             preserveScroll: false,
             replace: true,
@@ -290,18 +244,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
     }
 };
 
-const exportConversation = async (id: string | number, format: string) => {
-    try {
-        const url = route('conversations.export', {
-            conversationId: id,
-            type: format,
-        });
-        window.open(url, '_blank');
-    } catch (error) {
-        console.error('Failed to export', error);
-    }
-};
-
 const openDeleteDialog = (id: string | number) => {
     conversationToDelete.value = id;
     deleteDialogOpen.value = true;
@@ -324,11 +266,8 @@ const deleteConversation = async () => {
         // surfaces (regular chat, embed, …).
         const currentConversationId = route().params?.conversationId;
 
-        if (
-            currentConversationId !== undefined &&
-            String(currentConversationId) === String(deletedConversationId)
-        ) {
-            router.visit(route(props.newChatRoute, { model: defaultModel.value?.id }), {
+        if (currentConversationId !== undefined && String(currentConversationId) === String(deletedConversationId)) {
+            router.visit(route(props.newChatRoute), {
                 preserveState: false,
                 preserveScroll: false,
                 replace: true,
@@ -466,13 +405,13 @@ const switchToSelectedAgent = () => {
 <template>
     <Button
         v-if="!isSidebarOpen"
-        aria-label="Open sidebar"
-        class="bg-background/80 fixed top-4 left-4 z-50 shadow-sm backdrop-blur-sm"
+        :aria-label="t('sidebar.open_sidebar')"
+        class="bg-background/80 fixed start-4 top-4 z-50 shadow-sm backdrop-blur-sm"
         size="icon"
         variant="ghost"
         @click="toggleSidebar"
     >
-        <PanelLeft class="h-4 w-4" />
+        <PanelLeft class="h-4 w-4 rtl:scale-x-[-1]" />
     </Button>
 
     <!-- Sidebar overlay (mobile only) -->
@@ -489,8 +428,8 @@ const switchToSelectedAgent = () => {
     </Transition>
 
     <div
-        :class="[isMobileDevice ? 'sm:max-w-none' : 'relative', isSidebarOpen ? 'translate-x-0' : '-translate-x-full']"
-        class="bg-sidebar border-sidebar-border fixed top-0 left-0 z-40 h-screen w-64 border-r transition-transform duration-300 ease-out"
+        :class="[isMobileDevice ? 'sm:max-w-none' : 'relative', isSidebarOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full']"
+        class="bg-sidebar border-sidebar-border fixed start-0 top-0 z-40 h-screen w-64 border-e transition-transform duration-300 ease-out"
     >
         <div class="flex h-full flex-col px-3 py-3">
             <!-- Header -->
@@ -507,7 +446,7 @@ const switchToSelectedAgent = () => {
                 <!-- Close button for mobile only -->
                 <button
                     v-if="showMobileClose"
-                    aria-label="Close sidebar"
+                    :aria-label="t('common.close')"
                     class="hover:bg-accent rounded-lg p-2 transition-colors"
                     @click="toggleSidebar"
                 >
@@ -522,14 +461,14 @@ const switchToSelectedAgent = () => {
                     class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
                 >
                     <Edit class="h-5 w-5" />
-                    <span>New chat</span>
+                    <span>{{ t('sidebar.new_chat') }}</span>
                 </button>
             </nav>
 
             <!-- Chats Section -->
             <div class="flex min-h-0 flex-1 flex-col">
                 <div class="flex-shrink-0 px-3 py-2">
-                    <span class="text-muted-foreground text-xs font-medium">Your chats</span>
+                    <span class="text-muted-foreground text-xs font-medium">{{ t('sidebar.your_chats') }}</span>
                 </div>
 
                 <ScrollArea class="h-full flex-1">
@@ -540,7 +479,7 @@ const switchToSelectedAgent = () => {
 
                     <!-- No conversations message -->
                     <div v-else-if="conversations.length === 0" class="px-3 py-8 text-center">
-                        <p class="text-muted-foreground/60 text-sm">No conversations yet</p>
+                        <p class="text-muted-foreground/60 text-sm">{{ t('sidebar.no_conversations') }}</p>
                     </div>
 
                     <!-- Conversations list -->
@@ -557,7 +496,7 @@ const switchToSelectedAgent = () => {
                                                         ? 'text-foreground bg-gray-200 dark:bg-gray-700'
                                                         : 'text-foreground/80 hover:bg-gray-100 dark:hover:bg-gray-800',
                                                 ]"
-                                                :href="route('chat.show', { conversationId: chat.id, model: defaultModel?.id })"
+                                                :href="route('chat.show', { conversationId: chat.id })"
                                             >
                                                 <span class="flex-1 truncate">{{ chat.title }}</span>
                                             </Link>
@@ -581,35 +520,15 @@ const switchToSelectedAgent = () => {
                                         <DropdownMenuContent align="end" class="w-40">
                                             <DropdownMenuItem class="cursor-pointer" @click="editConversation(chat.id)">
                                                 <Edit class="mr-2 h-4 w-4" />
-                                                <span>Rename</span>
+                                                <span>{{ t('sidebar.rename_conversation') }}</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuSub>
-                                                <DropdownMenuSubTrigger class="cursor-pointer">
-                                                    <Download class="mr-2 h-4 w-4" />
-                                                    <span>Export</span>
-                                                </DropdownMenuSubTrigger>
-                                                <DropdownMenuSubContent>
-                                                    <DropdownMenuItem class="cursor-pointer" @click="exportConversation(chat.id, 'pdf')">
-                                                        <FileDown class="mr-2 h-4 w-4" />
-                                                        <span>PDF</span>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem class="cursor-pointer" @click="exportConversation(chat.id, 'md')">
-                                                        <FileText class="mr-2 h-4 w-4" />
-                                                        <span>Markdown</span>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem class="cursor-pointer" @click="exportConversation(chat.id, 'txt')">
-                                                        <Download class="mr-2 h-4 w-4" />
-                                                        <span>Text</span>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuSub>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem
                                                 class="text-destructive focus:text-destructive cursor-pointer"
                                                 @click="openDeleteDialog(chat.id)"
                                             >
                                                 <Trash2 class="mr-2 h-4 w-4" />
-                                                <span>Delete</span>
+                                                <span>{{ t('common.delete') }}</span>
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -655,23 +574,21 @@ const switchToSelectedAgent = () => {
                             class="text-muted-foreground hover:text-destructive hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
                         >
                             <Trash2 class="h-5 w-5" />
-                            <span>Clear all chats</span>
+                            <span>{{ t('sidebar.clear_all_chats') }}</span>
                         </button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Delete all conversations?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action cannot be undone. All your conversations will be permanently deleted.
-                            </AlertDialogDescription>
+                            <AlertDialogTitle>{{ t('sidebar.delete_all_title') }}</AlertDialogTitle>
+                            <AlertDialogDescription>{{ t('sidebar.delete_all_description') }}</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{{ t('common.cancel') }}</AlertDialogCancel>
                             <AlertDialogAction
                                 class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 @click="deleteAllConversations"
                             >
-                                Delete All
+                                {{ t('sidebar.delete_all_confirm') }}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
@@ -693,16 +610,16 @@ const switchToSelectedAgent = () => {
                     <DropdownMenuContent align="start" side="top" class="w-56">
                         <DropdownMenuItem class="cursor-pointer" @click="openProfileDialog">
                             <User class="mr-2 h-4 w-4" />
-                            <span>Profile</span>
+                            <span>{{ t('sidebar.profile') }}</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem class="cursor-pointer" @click="openAgentsDialog">
                             <Bot class="mr-2 h-4 w-4" />
-                            <span>My Agents</span>
+                            <span>{{ t('sidebar.my_agents') }}</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
                             <LogOut class="mr-2 h-4 w-4" />
-                            <span>Log out</span>
+                            <span>{{ t('sidebar.logout') }}</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -714,13 +631,13 @@ const switchToSelectedAgent = () => {
     <AlertDialog v-model:open="deleteDialogOpen">
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
-                <AlertDialogDescription> Are you sure you want to delete this conversation? This action cannot be undone. </AlertDialogDescription>
+                <AlertDialogTitle>{{ t('sidebar.delete_conversation_title') }}</AlertDialogTitle>
+                <AlertDialogDescription>{{ t('sidebar.delete_conversation_description') }}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-                <AlertDialogCancel @click="cancelDelete">Cancel</AlertDialogCancel>
+                <AlertDialogCancel @click="cancelDelete">{{ t('common.cancel') }}</AlertDialogCancel>
                 <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="deleteConversation">
-                    Delete
+                    {{ t('common.delete') }}
                 </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
@@ -730,22 +647,22 @@ const switchToSelectedAgent = () => {
     <Dialog v-model:open="profileDialogOpen">
         <DialogContent class="sm:max-w-[600px]">
             <DialogHeader>
-                <DialogTitle>Profile Settings</DialogTitle>
-                <DialogDescription> Update your account information and password. </DialogDescription>
+                <DialogTitle>{{ t('sidebar.profile_settings_title') }}</DialogTitle>
+                <DialogDescription>{{ t('sidebar.profile_settings_description') }}</DialogDescription>
             </DialogHeader>
             <div class="grid gap-6 py-4">
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="name" class="text-right">Name</Label>
+                    <Label for="name" class="text-right">{{ t('sidebar.profile_name') }}</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
                             <User class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-                            <Input id="name" v-model="profileForm.name" class="pl-10" placeholder="Enter your name" />
+                            <Input id="name" v-model="profileForm.name" class="pl-10" :placeholder="t('sidebar.name_input_placeholder')" />
                         </div>
                         <InputError :message="profileForm.errors.name" class="text-xs" />
                     </div>
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="email" class="text-right">Email</Label>
+                    <Label for="email" class="text-right">{{ t('sidebar.profile_email') }}</Label>
                     <div class="relative col-span-3">
                         <Mail class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                         <Input
@@ -753,7 +670,7 @@ const switchToSelectedAgent = () => {
                             v-model="profileForm.email"
                             type="email"
                             class="bg-muted cursor-not-allowed pl-10"
-                            placeholder="Enter your email"
+                            :placeholder="t('sidebar.email_input_placeholder')"
                             readonly
                             disabled
                         />
@@ -761,7 +678,7 @@ const switchToSelectedAgent = () => {
                 </div>
                 <Separator />
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="current-password" class="text-right">Current Password</Label>
+                    <Label for="current-password" class="text-right">{{ t('sidebar.current_password') }}</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
                             <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
@@ -770,7 +687,7 @@ const switchToSelectedAgent = () => {
                                 v-model="profileForm.current_password"
                                 :type="showCurrentPassword ? 'text' : 'password'"
                                 class="pr-10 pl-10"
-                                placeholder="Enter current password"
+                                :placeholder="t('sidebar.current_password_placeholder')"
                             />
                             <button
                                 type="button"
@@ -785,7 +702,7 @@ const switchToSelectedAgent = () => {
                     </div>
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="new-password" class="text-right">New Password</Label>
+                    <Label for="new-password" class="text-right">{{ t('sidebar.new_password') }}</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
                             <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
@@ -794,7 +711,7 @@ const switchToSelectedAgent = () => {
                                 v-model="profileForm.password"
                                 :type="showNewPassword ? 'text' : 'password'"
                                 class="pr-10 pl-10"
-                                placeholder="Enter new password"
+                                :placeholder="t('sidebar.new_password_placeholder')"
                             />
                             <button
                                 type="button"
@@ -809,7 +726,7 @@ const switchToSelectedAgent = () => {
                     </div>
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="confirm-password" class="text-right">Confirm Password</Label>
+                    <Label for="confirm-password" class="text-right">{{ t('sidebar.confirm_password') }}</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
                             <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
@@ -818,7 +735,7 @@ const switchToSelectedAgent = () => {
                                 v-model="profileForm.password_confirmation"
                                 :type="showConfirmPassword ? 'text' : 'password'"
                                 class="pr-10 pl-10"
-                                placeholder="Confirm new password"
+                                :placeholder="t('sidebar.confirm_password_placeholder')"
                             />
                             <button
                                 type="button"
@@ -834,9 +751,9 @@ const switchToSelectedAgent = () => {
                 </div>
             </div>
             <DialogFooter>
-                <Button variant="outline" @click="closeProfileDialog">Cancel</Button>
+                <Button variant="outline" @click="closeProfileDialog">{{ t('common.cancel') }}</Button>
                 <Button @click="saveProfile" :disabled="profileForm.processing">
-                    {{ profileForm.processing ? 'Saving...' : 'Save Changes' }}
+                    {{ profileForm.processing ? t('common.saving') : t('sidebar.save_changes') }}
                 </Button>
             </DialogFooter>
         </DialogContent>
@@ -846,8 +763,8 @@ const switchToSelectedAgent = () => {
     <Dialog v-model:open="agentsDialogOpen">
         <DialogContent class="sm:max-w-[600px]">
             <DialogHeader>
-                <DialogTitle>My Agents</DialogTitle>
-                <DialogDescription> Manage your AI agents and their configurations. </DialogDescription>
+                <DialogTitle>{{ t('sidebar.agents_dialog_title') }}</DialogTitle>
+                <DialogDescription>{{ t('sidebar.agents_dialog_description') }}</DialogDescription>
             </DialogHeader>
             <ScrollArea class="max-h-[400px] py-4">
                 <div class="space-y-4">
@@ -865,11 +782,11 @@ const switchToSelectedAgent = () => {
                                 fill="currentColor"
                             ></path>
                         </svg>
-                        <p class="text-muted-foreground text-sm">Loading agents...</p>
+                        <p class="text-muted-foreground text-sm">{{ t('sidebar.loading_agents') }}</p>
                     </div>
                     <div v-else-if="agents.length === 0" class="py-8 text-center">
                         <Bot class="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-                        <p class="text-muted-foreground">No agents found.</p>
+                        <p class="text-muted-foreground">{{ t('sidebar.no_agents') }}</p>
                     </div>
                     <div v-else class="space-y-3">
                         <div
@@ -919,9 +836,11 @@ const switchToSelectedAgent = () => {
                         ></path>
                     </svg>
                     <Bot v-else class="mr-2 h-4 w-4" />
-                    {{ agentSwitchForm.processing ? 'Switching...' : `Switch to ${selectedAgent?.name || 'Selected Agent'}` }}
+                    {{
+                        agentSwitchForm.processing ? t('sidebar.switching_agent') : t('sidebar.switch_to_agent', { name: selectedAgent?.name || '' })
+                    }}
                 </Button>
-                <Button variant="outline" @click="closeAgentsDialog" class="w-full sm:w-auto">Close</Button>
+                <Button variant="outline" @click="closeAgentsDialog" class="w-full sm:w-auto">{{ t('common.close') }}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

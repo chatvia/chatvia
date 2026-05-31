@@ -4,6 +4,7 @@ namespace Domain\Auth\Actions;
 
 use App\Auth\Models\User;
 use Domain\Agents\Models\Agent;
+use Domain\Auth\Exceptions\ChatterQuotaExceededException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -23,6 +24,10 @@ use Support\Enums\UserType;
  */
 class CreateChatterAction
 {
+    /**
+     * @throws ChatterQuotaExceededException when the workspace has hit
+     *                                       its `members_limit` of chatters.
+     */
     public function execute(
         User $owner,
         Agent $agent,
@@ -30,6 +35,10 @@ class CreateChatterAction
         ?string $email = null,
         ?string $password = null,
     ): User {
+        if (! $owner->canAddChatter()) {
+            throw ChatterQuotaExceededException::limitReached($owner->quota->members_limit);
+        }
+
         return DB::transaction(function () use ($owner, $agent, $name, $email, $password): User {
             $user = User::create([
                 'name' => $name,

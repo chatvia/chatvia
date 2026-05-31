@@ -11,10 +11,9 @@ return new class extends Migration
     {
         Schema::create('agent_starters', function (Blueprint $table) {
             $table->id();
-            // One row per agent; `text` holds the ordered JSON array of starter
-            // strings — same shape as a template's `starters` column.
+
             $table->foreignIdFor(Agent::class)->unique()->constrained()->cascadeOnDelete();
-            $table->json('text');
+            $table->jsonb('text');
             $table->timestamps();
         });
     }

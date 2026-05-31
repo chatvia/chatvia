@@ -21,7 +21,7 @@ class IngestDocumentChunkAction
             'agent_id' => $data->agent_id,
             'type' => $data->chunk->type,
             'original' => $data->chunk->original,
-            'enhanced' => $data->chunk->enhanced,
+            'is_enhanced' => $data->chunk->enhanced,
             'checksum' => $data->id,
             'embedding' => embed($data->chunk->enhanced),
             'embedding_model' => $this->embeddings->getModelName(),

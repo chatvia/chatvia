@@ -11,20 +11,13 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { AIModel, Message } from '@/types/chat';
+import type { Message } from '@/types/chat';
 import type { ToolArtifact } from '@/types/stream';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Check, Copy, Download, FileText, MessageSquare, Plug, RefreshCw, ThumbsDown, ThumbsUp, Trash2, Webhook } from 'lucide-vue-next';
+import { Check, Copy, Plug, RefreshCw, ThumbsDown, ThumbsUp, Trash2, Webhook } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AssistantMessageBody from './AssistantMessageBody.vue';
 import SourcesDialog from './SourcesDialog.vue';
 import WaitingIndicator from './WaitingIndicator.vue';
@@ -47,8 +40,6 @@ const props = defineProps<{
     isCallingExternal?: boolean;
     activeCalls?: ActiveCall[];
     hideFeedback?: boolean;
-    models?: AIModel[];
-    defaultModel?: AIModel | null;
     sources?: any[];
     /**
      * Structured tool-call artifacts attached to this assistant turn —
@@ -65,13 +56,10 @@ const props = defineProps<{
 const emit = defineEmits<{
     messageDeleted: [id: string | number];
     feedbackProvided: [id: string | number, type: 'thumbs-up' | 'thumbs-down'];
-    regenerate: [userMessageId: string | number, assistantMessageId: string | number, model: AIModel];
+    regenerate: [userMessageId: string | number, assistantMessageId: string | number, onDone: () => void];
 }>();
 
-// Computed for checking if we have multiple models
-const hasMultipleModels = computed(() => {
-    return props.models && props.models.length > 1;
-});
+const { t } = useI18n();
 
 // The most-recently-started call drives the visible label. `activeCalls`
 // arrives sorted oldest-first from Chat.vue, so the last entry is the
@@ -86,40 +74,22 @@ const currentCall = computed<ActiveCall | null>(() => {
 });
 const currentCallLabel = computed(() => {
     const call = currentCall.value;
-    if (!call) return 'Calling external data source…';
-    return call.kind === 'mcp' ? `Fetching data from ${call.label}` : `Calling ${call.label}`;
+    if (!call) return t('messages.calling_external');
+    return call.kind === 'mcp' ? t('messages.fetching_data', { label: call.label }) : t('messages.calling', { label: call.label });
 });
 
 const isRegenerating = ref(false);
 
-// Regenerate with a specific model
-async function regenerateWithModel(model: AIModel) {
+function regenerate() {
     if (props.message.id === undefined || props.userMessageId === undefined || !props.conversationId) return;
 
     isRegenerating.value = true;
-    emit('regenerate', props.userMessageId, props.message.id, model);
-}
-
-// Regenerate with default/current model
-function regenerate() {
-    const model = props.models?.[0] || props.defaultModel;
-    if (model) {
-        regenerateWithModel(model);
-    }
+    emit('regenerate', props.userMessageId, props.message.id, () => {
+        isRegenerating.value = false;
+    });
 }
 
 const _page = usePage();
-const modelUsed = computed(() => {
-    const models = props.models;
-    const defaultModel = props.defaultModel;
-
-    // Handle case where models might not be loaded yet
-    if (!models || !Array.isArray(models)) {
-        return defaultModel || null;
-    }
-
-    return models.find((m) => m.id === props.message.model) || defaultModel;
-});
 
 const isCopied = ref(false);
 const feedback = ref<'thumbs-up' | 'thumbs-down' | null>(null);
@@ -175,19 +145,6 @@ async function deleteMessage() {
         } catch (error) {
             console.error('Failed to delete message:', error);
         }
-    }
-}
-
-async function exportAs(format: 'pdf' | 'markdown' | 'text') {
-    try {
-        const url = route('conversations.export', {
-            conversationId: props.conversationId,
-            messageId: props.message.id,
-            type: format,
-        });
-        window.open(url, '_blank');
-    } catch (error) {
-        console.error('Failed to export PDF:', error);
     }
 }
 
@@ -295,67 +252,27 @@ watch(
                         </AlertDialogTrigger>
                         <AlertDialogContent class="rounded-2xl">
                             <AlertDialogHeader>
-                                <AlertDialogTitle>Delete this message?</AlertDialogTitle>
-                                <AlertDialogDescription> This will also delete your original message. </AlertDialogDescription>
+                                <AlertDialogTitle>{{ t('messages.delete_assistant_message_title') }}</AlertDialogTitle>
+                                <AlertDialogDescription>{{ t('messages.delete_assistant_message_description') }}</AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel class="rounded-lg">Cancel</AlertDialogCancel>
-                                <AlertDialogAction @click="deleteMessage" class="rounded-lg bg-red-600 hover:bg-red-700"> Delete </AlertDialogAction>
+                                <AlertDialogCancel class="rounded-lg">{{ t('common.cancel') }}</AlertDialogCancel>
+                                <AlertDialogAction @click="deleteMessage" class="rounded-lg bg-red-600 hover:bg-red-700">{{
+                                    t('common.delete')
+                                }}</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost" class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7">
-                                <Download class="h-3.5 w-3.5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" class="min-w-[140px]">
-                            <DropdownMenuItem @click="exportAs('pdf')" class="text-sm">
-                                <FileText class="mr-2 h-3.5 w-3.5 text-red-500" />
-                                PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem @click="exportAs('markdown')" class="text-sm">
-                                <MessageSquare class="mr-2 h-3.5 w-3.5 text-blue-500" />
-                                Markdown
-                            </DropdownMenuItem>
-                            <DropdownMenuItem @click="exportAs('text')" class="text-sm">
-                                <FileText class="mr-2 h-3.5 w-3.5 text-gray-500" />
-                                Text
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
                     <!-- Regenerate button -->
-                    <DropdownMenu v-if="hasMultipleModels && userMessageId !== undefined">
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                size="icon"
-                                variant="ghost"
-                                class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
-                                :disabled="isRegenerating"
-                            >
-                                <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRegenerating }" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" class="min-w-[180px]">
-                            <DropdownMenuLabel class="text-muted-foreground text-xs">Regenerate with</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem v-for="model in models" :key="model.id" @click="regenerateWithModel(model)" class="text-sm">
-                                <img v-if="model.icon" :src="`/images/llms/${model.icon}`" :alt="model.name" class="mr-2 h-4 w-4" />
-                                {{ model.name }}
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                     <Button
-                        v-else-if="userMessageId !== undefined"
+                        v-if="userMessageId !== undefined"
                         size="icon"
                         variant="ghost"
                         class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
                         :disabled="isRegenerating"
                         @click="regenerate"
-                        title="Regenerate response"
+                        :title="t('messages.regenerate_tooltip')"
                     >
                         <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRegenerating }" />
                     </Button>
@@ -363,11 +280,6 @@ watch(
 
                 <div class="flex items-center gap-2">
                     <SourcesDialog v-if="sources && sources.length > 0" :sources="sources" />
-
-                    <div v-if="modelUsed" class="text-muted-foreground flex items-center gap-1.5">
-                        <img :src="`/images/llms/${modelUsed.icon}`" :alt="modelUsed.name" class="h-3 w-3 opacity-60" />
-                        <span class="text-[11px]">{{ modelUsed.name }}</span>
-                    </div>
                 </div>
             </div>
         </div>

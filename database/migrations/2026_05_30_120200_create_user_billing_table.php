@@ -19,8 +19,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Partial unique: Cashier::findBillable($stripeId) needs the lookup,
-        // but the NULL rows for unprovisioned accounts shouldn't occupy the index.
         DB::statement('CREATE UNIQUE INDEX user_billing_stripe_id_unique ON user_billing (stripe_id) WHERE stripe_id IS NOT NULL');
     }
 

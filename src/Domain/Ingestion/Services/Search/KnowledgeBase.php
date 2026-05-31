@@ -44,20 +44,17 @@ class KnowledgeBase
         );
         $vectorString = '['.implode(',', $embedding).']';
 
-        // Configure search parameters from config
         $accuracyLevel = config('vector.search.mode', 'default');
-        $quantize = config('vector.quantization.rabitq.enabled', true);
-
         $maxChunks = config('vector.search.max_chunks', 3);
         $candidateLimit = config('vector.search.rerank', false) ? 12 : ($maxChunks * 2);
 
         // SET LOCAL needs a transaction so vchordrq settings don't leak
         // across requests on pooled connections (pgbouncer / Octane).
-        $results = DB::transaction(function () use ($agent, $query, $vectorString, $candidateLimit, $quantize, $accuracyLevel): array {
+        $results = DB::transaction(function () use ($agent, $query, $vectorString, $candidateLimit, $accuracyLevel): array {
             $chunkBuilder = Chunk::query();
             $chunkBuilder->configureSearchAccuracy($accuracyLevel, $this->vectorChordConfig);
 
-            return $chunkBuilder->hybridSearchForAgent($agent, $query, $vectorString, $candidateLimit, $quantize);
+            return $chunkBuilder->hybridSearchForAgent($agent, $query, $vectorString, $candidateLimit);
         });
 
         if ($results) {
@@ -67,7 +64,7 @@ class KnowledgeBase
             // Only rerank if we have multiple results, reranking is enabled in
             // config, and the configured embeddings provider supports it.
             $provider = app(EmbeddingsProviderInterface::class);
-            if (count($results) > 1 && config('vector.search.rerank', true) && $provider->supportsReranking()) {
+            if (count($results) > 1 && config('vector.search.rerank', false) && $provider->supportsReranking()) {
                 $results = $this->rerank($query, $results, $provider);
             } else {
                 // When reranking is disabled or unsupported, use DB confidence
@@ -83,10 +80,6 @@ class KnowledgeBase
 
     private function filterByDbConfidence(array $results): array
     {
-        // Database already orders by score and returns best matches
-        // BM25 scores are negative (higher = better), vector distances are positive (lower = better)
-        // Both are already sorted correctly by the DB query
-        // Simply take the top N results without additional filtering
         $maxChunks = config('vector.search.max_chunks', 3);
 
         return collect($results)
@@ -126,16 +119,16 @@ class KnowledgeBase
 
     private function processResults(array $results): array
     {
+        $total = count($results);
+
         return collect($results)
-            ->map(function ($result) {
+            ->values()
+            ->map(function ($result, int $rank) use ($total) {
                 $result->chunk = $this->removeXmlTags($result->chunk);
 
-                // Calculate confidence score from the distance/score
-                // Lower distance = higher confidence
-                // Normalize to 0-1 range (0.5 to 0.99)
-                if (isset($result->score)) {
-                    $result->confidence_score = $this->calculateConfidenceScore($result->score);
-                }
+                // RRF returns a small positive score (~0.01–0.07); convert to a
+                // rank-based confidence: top result → near 0.99, last → near 0.5.
+                $result->confidence_score = $this->calculateConfidenceScore($rank, $total);
 
                 return $result;
             })
@@ -143,21 +136,13 @@ class KnowledgeBase
             ->toArray();
     }
 
-    /**
-     * Calculate confidence score from search distance/score
-     * Converts distance metric to a confidence percentage (0.5 to 0.99)
-     */
-    private function calculateConfidenceScore(float $score): float
+    private function calculateConfidenceScore(int $rank, int $total): float
     {
-        // For vector distance: lower is better (typically 0-2 range)
-        // For BM25: higher is better (can be negative or positive)
+        if ($total <= 1) {
+            return 0.99;
+        }
 
-        // Normalize to 0-1 range with sigmoid-like function
-        // This ensures scores are between 0.5 (low confidence) and 0.99 (high confidence)
-        $normalized = 1 / (1 + exp($score - 1));
-
-        // Scale to 0.5-0.99 range
-        $confidence = 0.5 + ($normalized * 0.49);
+        $confidence = 0.99 - (($rank / max($total - 1, 1)) * 0.49);
 
         return round($confidence, 4);
     }

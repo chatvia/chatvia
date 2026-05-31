@@ -7,6 +7,7 @@ use Domain\Agents\Models\Llm;
 use Domain\Chat\Services\Data\StreamRequestData;
 use Domain\Chat\Services\Data\StreamRequestMessageData;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 class StreamRequestDataFactory
 {
@@ -15,14 +16,15 @@ class StreamRequestDataFactory
      */
     public function forChat(Request $request, Agent $agent, string $externalSessionId, string $conversationId): StreamRequestData
     {
-        // Resolve the agent's library prompt up front so buildSystemPrompt()
-        // doesn't trigger a lazy query mid-stream.
-        $agent->loadMissing('agentPrompt');
+        // Resolve the agent's library prompt + single LLM up front so
+        // buildSystemPrompt() and downstream consumers don't trigger lazy
+        // queries mid-stream.
+        $agent->loadMissing(['agentPrompt', 'llm']);
 
         return new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(
-                model: Llm::whereExternalName($request->input('model'))->first(),
+                model: $this->resolveModel($agent),
                 message: $request->input('message'),
                 createdAt: $request->input('created_at'),
             ),
@@ -49,19 +51,12 @@ class StreamRequestDataFactory
         string $threadId,
         bool $isPlayground,
     ): StreamRequestData {
-        $agent->loadMissing('agentPrompt');
+        $agent->loadMissing(['agentPrompt', 'llm']);
 
         return new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(
-                // The widget's model is the one selected in its Model
-                // settings, persisted as the agent's active attached llm
-                // (AgentModelsController + ToggleAgentLlmAction). Honor the
-                // is_active pivot flag instead of grabbing an arbitrary row.
-                // A templated widget instead uses the template's model list.
-                model: $agent->agent_template_id
-                    ? $agent->resolvedLlms()->first()
-                    : $agent->activeLlms()->first(),
+                model: $this->resolveModel($agent),
                 message: $request->input('content'),
             ),
             externalSessionId: $sessionId,
@@ -77,6 +72,26 @@ class StreamRequestDataFactory
             locale: $request->input('locale') ?: $request->header('accept-language'),
             requestId: $request->input('request_id') ?? $request->header('X-REQUEST-ID'),
         );
+    }
+
+    /**
+     * Every agent has a single LLM configured at the agent level (`llm_id`).
+     * Downstream code (StreamRequestMessageData, ChatService, LlmSource) treats
+     * `model` as non-nullable, so fail fast with a clear error if an operator
+     * hasn't picked one yet rather than letting a typed null surface deep in
+     * the streaming pipeline.
+     */
+    private function resolveModel(Agent $agent): Llm
+    {
+        $llm = $agent->llm;
+
+        if (! $llm) {
+            throw new RuntimeException(
+                "Agent {$agent->external_id} has no LLM configured. Pick a model in Setup → Model."
+            );
+        }
+
+        return $llm;
     }
 
     private function referrer(Request $request): ?string

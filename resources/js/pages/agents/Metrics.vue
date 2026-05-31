@@ -297,8 +297,8 @@ onMounted(() => {
                 </CardContent>
             </Card>
 
-            <!-- Model Usage - Only for knowledge_base agents -->
-            <Card v-if="agent.type === 'knowledge_base'">
+            <!-- Model Usage -->
+            <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Cpu class="h-5 w-5" />

@@ -6,7 +6,6 @@ import { computed, ref, watch } from 'vue';
 
 type Message = Domain.Agents.Data.Resources.ChatLog.ChatLogMessageData;
 type Topic = Domain.Agents.Data.Resources.ChatLog.ChatLogTopicData;
-type AIModel = Domain.Chat.Data.LlmModelData;
 
 // Singleton state - shared across components
 const agent = ref<any>(null);
@@ -33,7 +32,6 @@ let agentWatcherRegistered = false;
 // Filter data
 const topics = ref<Topic[]>([]);
 const countries = ref<{ id: number; code: string; name: string }[]>([]);
-const models = ref<AIModel[]>([]);
 
 // Filter selections
 const selectedTopic = ref<string>('all');
@@ -79,7 +77,6 @@ export function useChatLog() {
         // Reset filters (they're agent-scoped)
         topics.value = [];
         countries.value = [];
-        models.value = [];
         selectedTopic.value = 'all';
         selectedSentiment.value = 'all';
         selectedTone.value = 'all';
@@ -149,12 +146,6 @@ export function useChatLog() {
                 (m.role && m.role.toLowerCase().includes(q)) ||
                 (m.llm_name && m.llm_name.toLowerCase().includes(q)),
         );
-    });
-
-    const modelsMap = computed(() => {
-        const map = new Map<string, AIModel>();
-        models.value.forEach((model) => map.set(model.id, model));
-        return map;
     });
 
     const hasActiveFilters = computed(() => {
@@ -299,13 +290,11 @@ export function useChatLog() {
 
     async function fetchInitialData() {
         try {
-            const [modelsResponse, topicsResponse, countriesResponse] = await Promise.all([
-                axios.get(route('agents.models.index', { agent: agent.value.external_id })),
+            const [topicsResponse, countriesResponse] = await Promise.all([
                 axios.get(route('agents.logs.topics', { agent: agent.value.external_id })),
                 axios.get(route('agents.logs.countries', { agent: agent.value.external_id })),
             ]);
 
-            models.value = modelsResponse.data.models || [];
             topics.value = topicsResponse.data.topics || [];
             countries.value = countriesResponse.data.countries || [];
 
@@ -514,8 +503,6 @@ export function useChatLog() {
         isLoadingMessages,
         topics,
         countries,
-        models,
-        modelsMap,
         selectedTopic,
         selectedSentiment,
         selectedTone,

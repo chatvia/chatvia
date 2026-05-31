@@ -44,7 +44,7 @@ class LeadResourceData extends Data
             ip_address: $lead->ip_address,
             user_agent: $lead->user_agent,
             created_at: $lead->created_at->toISOString(),
-            conversation_id: (string) $lead->chat_conversation_id,
+            conversation_id: $lead->conversation?->external_id,
         );
     }
 }

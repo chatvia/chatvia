@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Chat\Auth\ChatLoginController;
 use App\Http\Controllers\Chat\Auth\ChatLogoutController;
+use App\Http\Controllers\Chat\Auth\ChatMagicLinkController;
 use App\Http\Controllers\Chat\Auth\ChatProfileUpdateController;
 use App\Http\Controllers\Chat\Auth\ChatShowLoginController;
 use App\Http\Controllers\Chat\Auth\ChatterAgentsController;
@@ -23,7 +24,6 @@ use App\Http\Controllers\Chat\Home\ChatStartersController;
 use App\Http\Controllers\Chat\Messages\ChatMessageDeleteController;
 use App\Http\Controllers\Chat\Messages\ChatMessageFeedbackController;
 use App\Http\Controllers\Chat\Messages\ChatMessageRegenerateController;
-use App\Http\Controllers\Chat\Models\ChatModelsListController;
 use App\Http\Controllers\Chat\Stream\ChatStreamController;
 use App\Http\Controllers\Chat\Transcription\ChatTranscriptionController;
 use App\Http\Controllers\Chat\Usage\ChatMessagesUsage;
@@ -33,6 +33,10 @@ Route::get('/chat/appearance', ChatAppearanceController::class)->name('chat.appe
 Route::middleware('guest')->group(function (): void {
     Route::get('chat/login', ChatShowLoginController::class)->name('chat.login.show');
     Route::post('chat/login', ChatLoginController::class)->name('chat.login');
+
+    Route::post('chat/magic-link', ChatMagicLinkController::class)
+        ->middleware('throttle:6,1')
+        ->name('chat.magic-link.send');
 });
 
 Route::prefix('/chat')
@@ -43,7 +47,6 @@ Route::prefix('/chat')
         Route::get('embed', ChatEmbedHomeController::class)->name('chat.embed.home');
         Route::get('embed/c/{conversationId}', ChatEmbedController::class)->name('chat.embed.show');
 
-        Route::get('/models', ChatModelsListController::class)->name('chat.models.index');
         Route::get('/agents', ChatterAgentsController::class)->name('chat.agents.index');
 
         Route::post('/agents/switch/{agent}', ChatterSwitchAgentController::class)->name('chat.agents.switch');

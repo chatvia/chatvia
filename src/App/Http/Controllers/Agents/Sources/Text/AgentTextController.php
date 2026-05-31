@@ -10,7 +10,6 @@ use Domain\Sources\Text\Actions\DeleteAgentSourceTextAction;
 use Domain\Sources\Text\Actions\UpdateAgentSourceTextAction;
 use Domain\Sources\Text\Models\SourceText;
 use Domain\Teams\Exceptions\InviteRejectedException;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -106,7 +105,7 @@ class AgentTextController
         $texts = $agent
             ->texts()
             ->select('source_texts.id', 'source_texts.excerpt', 'length', 'status', 'source_texts.created_at', 'source_texts.updated_at', 'expected_chunks')
-            ->withCount('agents')
+            ->withCount(['agents', 'chunks'])
             ->latest('source_texts.created_at')
             ->get();
 

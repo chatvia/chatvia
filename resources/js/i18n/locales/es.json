@@ -1,0 +1,98 @@
+{
+    "common": {
+        "cancel": "Cancelar",
+        "delete": "Eliminar",
+        "close": "Cerrar",
+        "save": "Guardar",
+        "saving": "Guardando..."
+    },
+    "composer": {
+        "default_placeholder": "Mensaje...",
+        "disabled": "Chat deshabilitado",
+        "stop_recording": "Detener grabación",
+        "start_voice_input": "Iniciar entrada de voz"
+    },
+    "header": {
+        "toggle_sidebar": "Alternar barra lateral",
+        "toggle_expand": "Alternar pantalla completa",
+        "incognito_mode": "Incógnito",
+        "delete_conversation": "Eliminar conversación",
+        "delete_dialog_title": "¿Eliminar conversación?",
+        "delete_dialog_description": "Esta acción no se puede deshacer."
+    },
+    "sidebar": {
+        "open_sidebar": "Abrir barra lateral",
+        "new_chat": "Nuevo chat",
+        "your_chats": "Tus chats",
+        "loading": "Cargando...",
+        "no_conversations": "Aún no hay conversaciones",
+        "rename_conversation": "Renombrar",
+        "clear_all_chats": "Borrar todos los chats",
+        "delete_all_title": "¿Eliminar todas las conversaciones?",
+        "delete_all_description": "Esta acción no se puede deshacer. Todas tus conversaciones se eliminarán de forma permanente.",
+        "delete_all_confirm": "Eliminar todo",
+        "profile": "Perfil",
+        "my_agents": "Mis agentes",
+        "logout": "Cerrar sesión",
+        "delete_conversation_title": "Eliminar conversación",
+        "delete_conversation_description": "¿Seguro que quieres eliminar esta conversación? Esta acción no se puede deshacer.",
+        "profile_settings_title": "Ajustes del perfil",
+        "profile_settings_description": "Actualiza la información de tu cuenta y la contraseña.",
+        "profile_name": "Nombre",
+        "name_input_placeholder": "Introduce tu nombre",
+        "profile_email": "Correo electrónico",
+        "email_input_placeholder": "Introduce tu correo",
+        "current_password": "Contraseña actual",
+        "current_password_placeholder": "Introduce la contraseña actual",
+        "new_password": "Nueva contraseña",
+        "new_password_placeholder": "Introduce la nueva contraseña",
+        "confirm_password": "Confirmar contraseña",
+        "confirm_password_placeholder": "Confirma la nueva contraseña",
+        "save_changes": "Guardar cambios",
+        "agents_dialog_title": "Mis agentes",
+        "agents_dialog_description": "Administra tus agentes de IA y sus configuraciones.",
+        "loading_agents": "Cargando agentes...",
+        "no_agents": "No se encontraron agentes.",
+        "switching_agent": "Cambiando...",
+        "switch_to_agent": "Cambiar a {name}"
+    },
+    "chat": {
+        "message_limit_reached": "Has alcanzado el límite de mensajes",
+        "upgrade_prompt": "Mejora tu plan para seguir chateando",
+        "regenerate_failed": "No se pudo regenerar la respuesta. Inténtalo de nuevo.",
+        "loading_conversation": "Cargando conversación"
+    },
+    "messages": {
+        "send": "Enviar",
+        "delete_user_message_title": "¿Eliminar este mensaje?",
+        "delete_user_message_description": "Esto también eliminará la respuesta de la IA.",
+        "delete_assistant_message_title": "¿Eliminar este mensaje?",
+        "delete_assistant_message_description": "Esto también eliminará tu mensaje original.",
+        "calling_external": "Llamando a fuente de datos externa…",
+        "fetching_data": "Obteniendo datos de {label}",
+        "calling": "Llamando a {label}",
+        "regenerate_tooltip": "Regenerar respuesta"
+    },
+    "errors": {
+        "subscription_expired": "Suscripción expirada",
+        "renew_subscription": "Renovar suscripción",
+        "message_limit_reached": "Límite de mensajes alcanzado",
+        "upgrade_plan": "Mejorar plan",
+        "model_unavailable": "Modelo no disponible",
+        "too_many_requests": "Demasiadas solicitudes",
+        "connection_lost": "Conexión perdida",
+        "unexpected_response": "Respuesta inesperada",
+        "something_went_wrong": "Algo salió mal",
+        "try_again": "Reintentar"
+    },
+    "sources": {
+        "title": "Fuentes de conocimiento",
+        "source_count": "{count} fuente | {count} fuentes",
+        "description": "{count} fuente usada para generar esta respuesta | {count} fuentes usadas para generar esta respuesta",
+        "page_label": "Página {page}"
+    },
+    "home": {
+        "logo_alt": "Logotipo",
+        "welcome_message": "¿En qué puedo ayudarte hoy?"
+    }
+}

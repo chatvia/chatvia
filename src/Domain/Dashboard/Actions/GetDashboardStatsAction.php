@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Domain\Agents\Models\Lead;
 use Domain\Sources\Files\Models\SourceFile;
 use Domain\Sources\Web\Models\SourceWebsite;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -19,16 +20,19 @@ class GetDashboardStatsAction
      */
     public function execute(User $user, ?Team $team): array
     {
+        // One round-trip for the agents id list — reused for every per-actor
+        // count below and for the messages trend.
         $agentIds = $team ? $team->agents()->pluck('id') : collect();
 
-        $totalConversations = DB::table('chat_conversations')
-            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->whereIn('chat_sessions.agent_id', $agentIds)
-            ->where('chat_conversations.visible', true)
-            ->count();
+        $totalConversations = $this->rollup()
+            ->whereIn('agent_id', $agentIds)
+            ->sum('conversations_started');
 
         $totalLeads = Lead::whereIn('agent_id', $agentIds)->count();
 
+        // "Active sessions" intentionally still reads chat_sessions: this is a
+        // recency indicator ("who pinged us in the last 24h"), not a preserved
+        // counter — survives-deletion semantics aren't what we want here.
         $activeSessions = DB::table('chat_sessions')
             ->whereIn('agent_id', $agentIds)
             ->where('created_at', '>=', now()->subDay())
@@ -36,38 +40,98 @@ class GetDashboardStatsAction
 
         return [
             'agents' => [
-                'total' => $team ? $team->agents()->count() : 0,
-                'widget_count' => $team ? $team->agents()->where('type', 'widget')->count() : 0,
-                'knowledge_base_count' => $team ? $team->agents()->where('type', 'knowledge_base')->count() : 0,
+                'total' => $agentIds->count(),
             ],
-            'messages' => [
-                'total' => $user->creditSystem()->getTotalSentMessages(),
-                'available' => $user->consumableMessages(),
-                'trend' => $this->getMessagesTrend($team),
-            ],
-            'conversations' => $totalConversations,
+            'messages' => $this->getMessagesPanel($user, $agentIds, $team),
+            'conversations' => (int) $totalConversations,
             'leads' => $totalLeads,
             'active_sessions' => $activeSessions,
             'knowledge_sources' => $this->getKnowledgeSourcesBreakdown($agentIds),
             'team' => [
                 'members' => $team ? $team->members()->count() : 0,
             ],
-            'weekly_usage' => $this->getDailyMessagesVolume($team, 7, 'D'),
-            'monthly_usage' => $this->getDailyMessagesVolume($team, 30, 'j'),
-            'usage' => $this->getUsageStats($user),
+            'weekly_usage' => $this->getDailyMessagesVolume($agentIds, 7, 'D'),
+            'monthly_usage' => $this->getDailyMessagesVolume($agentIds, 30, 'j'),
+            'usage' => $this->getUsageStats($user, $agentIds),
         ];
+    }
+
+    /**
+     * Build the headline "Messages This Cycle" panel.
+     *
+     * `used` is sourced from the analytics rollup so it survives chat deletions
+     * — but the cycle bounds and base quota still come from the user's active
+     * UserCredit row (billing source of truth). Addons are a SEPARATE pool that
+     * survives base-quota overrun: matches the long-standing
+     * UserCreditSystem::calculateAvailableMessages semantics where addons stay
+     * intact even when base usage > base quota.
+     *
+     * @param  Collection<int, int>  $agentIds
+     * @return array<string, mixed>
+     */
+    private function getMessagesPanel(User $user, Collection $agentIds, ?Team $team): array
+    {
+        $credit = $user->credit;
+
+        $used = $credit
+            ? (int) $this->cycleUsage($agentIds, $credit->started_at)
+            : 0;
+
+        $baseLimit = $credit ? (int) $credit->messages : 0;
+        $addons = $this->activeAddonsTotal($user);
+
+        // remaining base, clamped — then addons added on top.
+        $available = max(0, $baseLimit - $used) + $addons;
+        $limit = $baseLimit + $addons;
+
+        return [
+            'total' => $used,
+            'available' => $available,
+            'limit' => $limit,
+            'cycle' => $credit
+                ? [
+                    'started_at' => $credit->started_at,
+                    'ends_at' => $credit->ends_at,
+                ]
+                : null,
+            'trend' => $this->getMessagesTrend($agentIds, $team !== null),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, int>  $agentIds
+     */
+    private function cycleUsage(Collection $agentIds, Carbon $cycleStart): int
+    {
+        return (int) $this->rollup()
+            ->whereIn('agent_id', $agentIds)
+            ->where('bucket_hour', '>=', $cycleStart)
+            ->sum('assistant_messages');
+    }
+
+    private function activeAddonsTotal(User $user): int
+    {
+        return (int) $user->addons()
+            ->where('type', 'extra_message_credits')
+            ->where('ends_at', '>=', now())
+            ->sum('amount');
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function getUsageStats(User $user): array
+    private function getUsageStats(User $user, Collection $agentIds): array
     {
         /** @var UserQuota $quota */
         $quota = $user->quota;
+        $credit = $user->credit;
 
-        $totalSentMessages = $user->creditSystem()->getTotalSentMessages();
-        $consumableMessages = $user->consumableMessages();
+        $cycleMessages = $credit ? $this->cycleUsage($agentIds, $credit->started_at) : 0;
+        $baseLimit = $credit ? (int) $credit->messages : 0;
+        $addons = $this->activeAddonsTotal($user);
+        $quotaMessages = $baseLimit + $addons;
+        $remaining = max(0, $baseLimit - $cycleMessages) + $addons;
+
         $pagesConsumed = $user->pagesConsumed();
         $minutesConsumed = $user->minutesConsumed();
         $linksConsumed = $user->linksConsumed();
@@ -75,9 +139,9 @@ class GetDashboardStatsAction
         return [
             'plan' => $user->plan ?? 'Free',
             'messages' => [
-                'used' => $totalSentMessages,
-                'limit' => $totalSentMessages + $consumableMessages,
-                'remaining' => $consumableMessages,
+                'used' => $cycleMessages,
+                'limit' => $quotaMessages,
+                'remaining' => $remaining,
             ],
             'pages' => [
                 'used' => $pagesConsumed,
@@ -141,18 +205,17 @@ class GetDashboardStatsAction
     }
 
     /**
+     * @param  Collection<int, int>  $agentIds
      * @return array<string, int|float>
      */
-    private function getMessagesTrend(?Team $team): array
+    private function getMessagesTrend(Collection $agentIds, bool $hasTeam): array
     {
-        if (! $team) {
+        if (! $hasTeam) {
             return ['this_month' => 0, 'last_month' => 0, 'percent_change' => 0];
         }
 
-        $agentIds = $team->agents()->pluck('id');
-
-        $thisMonth = $this->countAssistantMessages($agentIds, now()->startOfMonth(), null);
-        $lastMonth = $this->countAssistantMessages($agentIds, now()->subMonth()->startOfMonth(), now()->startOfMonth());
+        $thisMonth = $this->assistantMessagesInRange($agentIds, now()->startOfMonth(), null);
+        $lastMonth = $this->assistantMessagesInRange($agentIds, now()->subMonth()->startOfMonth(), now()->startOfMonth());
 
         $percentChange = $lastMonth > 0
             ? round((($thisMonth - $lastMonth) / $lastMonth) * 100)
@@ -168,31 +231,28 @@ class GetDashboardStatsAction
     /**
      * @param  Collection<int, int>  $agentIds
      */
-    private function countAssistantMessages($agentIds, Carbon $from, ?Carbon $to): int
+    private function assistantMessagesInRange(Collection $agentIds, Carbon $from, ?Carbon $to): int
     {
-        $query = DB::table('chat_messages')
-            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->whereIn('chat_sessions.agent_id', $agentIds)
-            ->where('chat_conversations.visible', true)
-            ->where('chat_messages.role', 'assistant')
-            ->where('chat_messages.created_at', '>=', $from);
+        $query = $this->rollup()
+            ->whereIn('agent_id', $agentIds)
+            ->where('bucket_hour', '>=', $from);
 
         if ($to) {
-            $query->where('chat_messages.created_at', '<', $to);
+            $query->where('bucket_hour', '<', $to);
         }
 
-        return $query->count();
+        return (int) $query->sum('assistant_messages');
     }
 
     /**
+     * @param  Collection<int, int>  $agentIds
      * @return array<int, array{label: string, value: int}>
      */
-    private function getDailyMessagesVolume(?Team $team, int $days, string $labelFormat): array
+    private function getDailyMessagesVolume(Collection $agentIds, int $days, string $labelFormat): array
     {
         $data = [];
 
-        if (! $team) {
+        if ($agentIds->isEmpty()) {
             for ($i = $days - 1; $i >= 0; $i--) {
                 $data[] = ['label' => now()->subDays($i)->format($labelFormat), 'value' => 0];
             }
@@ -203,16 +263,10 @@ class GetDashboardStatsAction
         $startDate = now()->subDays($days - 1)->startOfDay();
         $endDate = now()->endOfDay();
 
-        $dailyMessages = DB::table('chat_messages')
-            ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('agents', 'chat_sessions.agent_id', '=', 'agents.id')
-            ->where('agents.team_id', $team->id)
-            ->where('chat_conversations.visible', true)
-            ->where('chat_messages.role', 'assistant')
-            ->whereRaw('date(chat_messages.created_at) >= ?', [$startDate->format('Y-m-d')])
-            ->whereRaw('date(chat_messages.created_at) <= ?', [$endDate->format('Y-m-d')])
-            ->selectRaw('DATE(chat_messages.created_at) as date, COUNT(*) as count')
+        $dailyMessages = $this->rollup()
+            ->whereIn('agent_id', $agentIds)
+            ->whereRaw('bucket_hour::date BETWEEN ? AND ?', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->selectRaw('bucket_hour::date as date, SUM(assistant_messages) as count')
             ->groupBy('date')
             ->orderBy('date')
             ->pluck('count', 'date')
@@ -224,10 +278,21 @@ class GetDashboardStatsAction
 
             $data[] = [
                 'label' => $date->format($labelFormat),
-                'value' => $dailyMessages[$dateKey] ?? 0,
+                'value' => (int) ($dailyMessages[$dateKey] ?? 0),
             ];
         }
 
         return $data;
+    }
+
+    /**
+     * Single entry point for the analytics rollup query builder. Pinned to
+     * the configured analytics connection so the whole dashboard reads from
+     * the isolated DB when one's set up.
+     */
+    private function rollup(): Builder
+    {
+        return DB::connection(config('analytics.connection'))
+            ->table('analytics_agent_hourly_rollups');
     }
 }

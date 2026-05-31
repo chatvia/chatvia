@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Agents;
 
+use Domain\Agents\Data\InviteAgentMemberData;
+use Domain\Agents\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 
 class InviteAgentMemberRequest extends FormRequest
@@ -22,5 +24,13 @@ class InviteAgentMemberRequest extends FormRequest
     public function email(): string
     {
         return strtolower(trim((string) $this->validated('email')));
+    }
+
+    public function toData(Agent $agent): InviteAgentMemberData
+    {
+        return new InviteAgentMemberData(
+            agent: $agent,
+            email: $this->email(),
+        );
     }
 }

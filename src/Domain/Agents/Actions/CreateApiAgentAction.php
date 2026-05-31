@@ -41,9 +41,8 @@ class CreateApiAgentAction
                 'system_instructions' => $agentPromptId === null ? $data->system_instructions : null,
                 'agent_prompt_id' => $agentPromptId,
                 'is_public' => false,
-                'analytics_enabled' => true,
                 'metadata' => $data->metadata,
-                'created_via' => 'external',
+                'source' => 'api',
             ]);
 
             $agent->topics()->attach(ChatTopic::pluck('id'));

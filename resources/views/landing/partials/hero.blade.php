@@ -65,7 +65,7 @@
                 <div class="mb-6 px-4 sm:px-0">
                     <a href="#pricing"
                         class="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5">
-                        {{ $landing['hero']['button']['label'] ?? 'Get started for FREE' }}
+                        {{ $landing['hero']['button']['label'] ?? 'Start 7-Day Free Trial' }}
                         <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -83,7 +83,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                         </svg>
-                        <span class="font-medium">GDPR Complaint</span>
+                        <span class="font-medium">GDPR Compliant</span>
                     </div>
                     <!-- Hosted in EU -->
                     <div
@@ -110,23 +110,23 @@
                             if (this.activeDemo !== demoKey) {
                                 return;
                             }
-                
+
                             const duration = videoEl?.duration ?? 0;
                             if (!duration || Number.isNaN(duration)) {
                                 this.progress = 0;
                                 return;
                             }
-                
+
                             const current = videoEl?.currentTime ?? 0;
                             this.progress = Math.max(0, Math.min(100, (current / duration) * 100));
                         };
-                
+
                         const updatePlayState = () => {
                             if (this.activeDemo === demoKey) {
                                 this.isPaused = videoEl?.paused ?? true;
                             }
                         };
-                
+
                         videoEl?.addEventListener('loadedmetadata', update);
                         videoEl?.addEventListener('timeupdate', update);
                         videoEl?.addEventListener('play', () => {
@@ -142,12 +142,12 @@
                     updateProgress() {
                         const videoEl = this.activeDemo === 'widget' ? this.$refs.widgetVideo : this.$refs.chatgptVideo;
                         const duration = videoEl?.duration ?? 0;
-                
+
                         if (!duration || Number.isNaN(duration)) {
                             this.progress = 0;
                             return;
                         }
-                
+
                         this.progress = Math.max(0, Math.min(100, ((videoEl?.currentTime ?? 0) / duration) * 100));
                     },
                     init() {

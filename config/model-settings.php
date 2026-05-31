@@ -65,49 +65,9 @@ return [
     */
     'defaults' => [
         Agent::class => [
-            // Hosted Chat surface — standalone full-page chat served at the
-            // agent's subdomain. Carries its own text / branding / model(s) +
-            // embed-iframe behaviour; independent from Widget and Bar.
-            'hosted_chat' => [
-                'avatar' => null,
-                'logo' => null,
-                'color_theme' => 'black',
-                'color_shade' => 700,
-                'welcome_message' => 'What can I help with? ',
-                'chat_window_title' => 'Chat',
-                'chat_footer_text' => 'Consider checking important information',
-                'composer_placeholder' => 'Ask anything...',
-                // Multi-model picker — admin sets the allow-list + default, the
-                // public chat lets the user pick from this list at conversation
-                // start.
-                'models' => [],
-                'default_model' => null,
-                // Embed-iframe behaviour (used by /chat/embed).
-                'remove_sidebar' => false,
-                'hide_sidebar_on_page_load' => false,
-                'enable_theme_switcher' => true,
-                'default_theme' => 'auto',
-                'enable_chat_expand' => true,
-            ],
-            // Bar surface — embeddable cmd-K style search bar that opens a
-            // focused chat overlay. Single model, surface-specific trigger
-            // + placement; independent from Hosted Chat and Widget.
-            'bar' => [
-                'avatar' => null,
-                'logo' => null,
-                'color_theme' => 'black',
-                'color_shade' => 700,
-                'welcome_message' => 'What can I help with? ',
-                'chat_window_title' => 'Chat',
-                'chat_footer_text' => '',
-                'composer_placeholder' => 'Ask anything...',
-                'model' => null,
-                'trigger' => 'cmd+k',
-                'placement' => 'top',
-            ],
-            // Kept for back-compat with the existing Embed page (Setup → Hosted
-            // Chat reuses the same Vue component). Once Setup is rewritten to
-            // read from `hosted_chat` directly, this can be removed.
+            // Shared content settings — apply across every surface (Hosted Chat,
+            // Widget, Bar). Setup writes here once and all three surfaces read
+            // from it.
             'appearance' => [
                 'avatar' => null,
                 'logo' => null,
@@ -118,19 +78,14 @@ return [
                 'chat_footer_text' => 'Consider checking important information',
                 'composer_placeholder' => 'Ask anything...',
             ],
-            // Widget surface — embeddable floating-bubble + chat panel. Single
-            // model, surface-specific position / size / theme; independent
-            // from Hosted Chat and Bar.
+            // Bar surface — surface-specific behaviour only (text/branding now
+            // come from `appearance`). Single model lives on `agents.llm_id`.
+            'bar' => [
+                'trigger' => 'cmd+k',
+                'placement' => 'top',
+            ],
+            // Widget surface — surface-specific behaviour only.
             'widget' => [
-                'avatar' => null,
-                'logo' => null,
-                'color_theme' => 'black',
-                'color_shade' => 700,
-                'welcome_message' => 'What can I help with? ',
-                'chat_window_title' => 'Chat',
-                'chat_footer_text' => '',
-                'composer_placeholder' => 'Ask anything...',
-                'model' => null,
                 'sites' => [],
                 'position' => 'bottom-right',
                 'window_size' => 'large',
@@ -148,6 +103,16 @@ return [
                 'enable_theme_switcher' => true,
                 'default_theme' => 'auto',
                 'enable_chat_expand' => true,
+                'language' => 'auto',
+            ],
+            // LLM hyperparameters — shared by every surface, since each agent
+            // now has a single LLM (`agents.llm_id`).
+            'llm_settings' => [
+                'temperature' => 1.0,
+                'top_k' => 0,
+                'top_p' => 1.0,
+                'presence_penalty' => 0.0,
+                'frequency_penalty' => 0.0,
             ],
             'leads' => [
                 'fields' => [
@@ -214,7 +179,7 @@ return [
             'enable_theme_switcher' => ['nullable', 'boolean'],
             'default_theme' => ['nullable', 'in:auto,dark,light'],
             'enable_chat_expand' => ['nullable', 'boolean'],
-            'model' => ['nullable', 'string'],
+            'language' => ['nullable', 'string'],
         ],
         'business' => [
             'email' => ['nullable', 'email', 'max:255'],
@@ -224,17 +189,15 @@ return [
             'opening_hours' => ['nullable', 'string', 'max:1000'],
         ],
         'bar' => [
-            'avatar' => ['nullable', 'image'],
-            'logo' => ['nullable', 'image'],
-            'welcome_message' => ['nullable', 'string', 'max:500'],
-            'chat_window_title' => ['nullable', 'string', 'max:120'],
-            'chat_footer_text' => ['nullable', 'string', 'max:500'],
-            'composer_placeholder' => ['nullable', 'string', 'max:200'],
-            'color_theme' => ['nullable', 'string'],
-            'color_shade' => ['nullable', 'integer', 'min:50', 'max:950'],
-            'model' => ['nullable', 'string', 'exists:llms,external_name'],
             'trigger' => ['nullable', 'in:cmd+k,cmd+j,cmd+/,/,shift+/'],
             'placement' => ['nullable', 'in:top,top-right,bottom,bottom-right'],
+        ],
+        'llm_settings' => [
+            'temperature' => ['nullable', 'numeric', 'min:0', 'max:2'],
+            'top_k' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'top_p' => ['nullable', 'numeric', 'min:0', 'max:1'],
+            'presence_penalty' => ['nullable', 'numeric', 'min:-2', 'max:2'],
+            'frequency_penalty' => ['nullable', 'numeric', 'min:-2', 'max:2'],
         ],
     ],
 ];

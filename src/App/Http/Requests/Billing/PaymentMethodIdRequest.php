@@ -17,7 +17,7 @@ class PaymentMethodIdRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_method_id' => 'required|string',
+            'payment_method_id' => ['required', 'string'],
         ];
     }
 }

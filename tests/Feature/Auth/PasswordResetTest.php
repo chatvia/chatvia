@@ -93,7 +93,7 @@ describe('Password Reset', function (): void {
 
         $token = Password::createToken($user);
 
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => $token,
             'email' => 'test@example.com',
             'password' => 'new-password',
@@ -111,7 +111,7 @@ describe('Password Reset', function (): void {
     it('rejects password reset with invalid token', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
 
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => 'invalid-token',
             'email' => 'test@example.com',
             'password' => 'new-password',
@@ -132,7 +132,7 @@ describe('Password Reset', function (): void {
         // Travel forward in time past token expiration
         $this->travel(2)->hours();
 
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => $token,
             'email' => 'test@example.com',
             'password' => 'new-password',
@@ -143,7 +143,7 @@ describe('Password Reset', function (): void {
     });
 
     it('requires token', function (): void {
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => '',
             'email' => 'test@example.com',
             'password' => 'new-password',
@@ -154,7 +154,7 @@ describe('Password Reset', function (): void {
     });
 
     it('requires email', function (): void {
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => 'some-token',
             'email' => '',
             'password' => 'new-password',
@@ -168,7 +168,7 @@ describe('Password Reset', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
         $token = Password::createToken($user);
 
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => $token,
             'email' => 'test@example.com',
             'password' => '',
@@ -182,7 +182,7 @@ describe('Password Reset', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
         $token = Password::createToken($user);
 
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => $token,
             'email' => 'test@example.com',
             'password' => 'new-password',
@@ -196,7 +196,7 @@ describe('Password Reset', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
         $token = Password::createToken($user);
 
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => $token,
             'email' => 'test@example.com',
             'password' => '123',
@@ -214,7 +214,7 @@ describe('Password Reset', function (): void {
 
         $token = Password::createToken($user);
 
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => $token,
             'email' => 'test@example.com',
             'password' => 'new-password',
@@ -231,7 +231,7 @@ describe('Password Reset', function (): void {
         $oldToken = Password::createToken($user);
 
         // Reset password with the token
-        $this->post(route('password.store'), [
+        $this->post(route('password.update'), [
             'token' => $oldToken,
             'email' => 'test@example.com',
             'password' => 'new-password',
@@ -239,7 +239,7 @@ describe('Password Reset', function (): void {
         ]);
 
         // Try to use the same token again
-        $response = $this->post(route('password.store'), [
+        $response = $this->post(route('password.update'), [
             'token' => $oldToken,
             'email' => 'test@example.com',
             'password' => 'another-password',

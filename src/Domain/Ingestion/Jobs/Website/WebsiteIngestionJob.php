@@ -99,11 +99,10 @@ class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
 
                 SummaryIngestionJob::dispatchIf(config('ai.chunker.enhance') === true, $website);
 
-                // Dispatch progress event (updates progress bar to 100%)
                 WebsiteIngestionProgressEvent::dispatch($website, $agent->external_id);
-
-                // Dispatch status event (moves website to "Trained" section)
                 WebsiteCrawlerEvent::dispatch($website, $agent);
+
+                DB::statement('ANALYZE chunks');
             })
             ->dispatch();
 

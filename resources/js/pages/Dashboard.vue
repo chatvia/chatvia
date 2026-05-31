@@ -20,8 +20,6 @@ interface ActivityData {
 interface DashboardData {
     agents: {
         total: number;
-        widget_count: number;
-        knowledge_base_count: number;
     };
     messages: {
         total: number;
@@ -59,8 +57,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 const dashboardData = ref<DashboardData>({
     agents: {
         total: 0,
-        widget_count: 0,
-        knowledge_base_count: 0,
     },
     messages: {
         total: 0,
@@ -181,9 +177,6 @@ const formatNumber = (num: number): string => {
                             <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ dashboardData.agents.total }}</div>
-                                <p class="text-muted-foreground text-xs">
-                                    {{ dashboardData.agents.widget_count }} widgets · {{ dashboardData.agents.knowledge_base_count }} knowledge bases
-                                </p>
                             </div>
                         </CardContent>
                     </Card>

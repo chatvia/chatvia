@@ -61,6 +61,21 @@ readonly class ChatService
                 ->setExternalSessionId($data->externalSessionId)
                 ->setConversationId($data->conversationId)
                 ->addMessageViaPayload($payload);
+        } else {
+            // The user message was already persisted (typically by
+            // CreateConversationAction for new conversations). Reuse its
+            // existing id instead of the throwaway UUID we just generated,
+            // otherwise the SSE `start` event tells the frontend a UUID that
+            // doesn't exist anywhere — breaking regenerate/edit later when
+            // the client sends that stale id back to the server.
+            $cachedMessages = $this->memory->getMessagesForConversation();
+            $existingUserMessage = collect($cachedMessages)
+                ->last(fn (array $message): bool => $message['role'] === 'user' && $message['content'] === $data->message->message);
+
+            if ($existingUserMessage) {
+                $userMessageId = $existingUserMessage['id'];
+                $payload->external_message_id = $userMessageId;
+            }
         }
 
         return new ChatContext(
@@ -199,14 +214,6 @@ readonly class ChatService
 
     private function saveAssistantMessage(ChatContext $context): void
     {
-        $message = $context->streamedMessage;
-
-        // Check if the response contains the answer_not_found tag
-        $answerFound = ! str_contains($message, '<NoAnswer/>');
-
-        // Remove the answer_not_found tags from the final message
-        $message = str_replace(['<NoAnswer/>'], '', $message);
-
         $this
             ->memory
             ->setAgent($context->requestData->agent)
@@ -217,7 +224,7 @@ readonly class ChatService
                     external_session_id: $context->requestData->externalSessionId,
                     external_conversation_id: $context->requestData->conversationId,
                     external_message_id: $context->assistantMessageId,
-                    message: $message,
+                    message: $context->streamedMessage,
                     model: $context->requestData->message->model->external_name,
                     sent_at: now(),
                     generation_id: $context->generationId,
@@ -227,11 +234,34 @@ readonly class ChatService
                     is_response_from_qa: $context->hasQAMatch(),
                     agent_question_answer_id: $context->qaMatch?->id,
                     source: $context->requestData->source,
-                    llm_found_answer: $answerFound,
+                    has_llm_found_answer: $this->didFindAnswer($context),
                     artifacts: $context->artifacts,
                     tool_calls: $context->toolCallNames,
                 )
             );
+    }
+
+    /**
+     * Decide whether this turn produced an answer, using deterministic
+     * retrieval signals — never the LLM's self-report.
+     *
+     * Q&A hits are answers by definition. Otherwise we look at the chunk
+     * search: empty sources or low average confidence (< 0.65, matching the
+     * "low" bucket in ChatConversationQueryBuilder) means we have no
+     * grounding to claim the LLM answered the user's question.
+     */
+    private function didFindAnswer(ChatContext $context): bool
+    {
+        if ($context->hasQAMatch()) {
+            return true;
+        }
+
+        if ($context->sources->isEmpty()) {
+            return false;
+        }
+
+        return $context->confidenceScore !== null
+            && $context->confidenceScore >= 0.65;
     }
 
     /**

@@ -25,6 +25,6 @@ class ApiFunctionPayloadData extends Data
         public string|null|Optional $auth_header_name,
         public string|null|Optional $auth_value,
         public int|Optional $timeout_ms,
-        public bool|Optional $enabled,
+        public bool|Optional $is_enabled,
     ) {}
 }

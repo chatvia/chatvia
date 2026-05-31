@@ -35,7 +35,7 @@ class SendVisitorHandoffMessageAction
             external_session_id: $session->external_id,
             external_conversation_id: $conversation->external_id,
             external_message_id: $messageId,
-            model: $data->model ?? $agent->resolvedLlms()->first()?->external_name ?? 'unknown',
+            model: $data->model ?? $agent->llm?->external_name ?? 'unknown',
             message: $data->content,
             sent_at: now(),
             ip_address: $data->ipAddress,

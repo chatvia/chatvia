@@ -18,6 +18,6 @@ class ConnectorToolData extends Data
         public string $short_name,
         public ?string $description,
         public mixed $parameters,
-        public bool $enabled,
+        public bool $is_enabled,
     ) {}
 }

@@ -1,0 +1,98 @@
+{
+    "common": {
+        "cancel": "Annuler",
+        "delete": "Supprimer",
+        "close": "Fermer",
+        "save": "Enregistrer",
+        "saving": "Enregistrement..."
+    },
+    "composer": {
+        "default_placeholder": "Message...",
+        "disabled": "Chat désactivé",
+        "stop_recording": "Arrêter l'enregistrement",
+        "start_voice_input": "Démarrer la saisie vocale"
+    },
+    "header": {
+        "toggle_sidebar": "Afficher/masquer la barre latérale",
+        "toggle_expand": "Basculer en plein écran",
+        "incognito_mode": "Navigation privée",
+        "delete_conversation": "Supprimer la conversation",
+        "delete_dialog_title": "Supprimer la conversation ?",
+        "delete_dialog_description": "Cette action est irréversible."
+    },
+    "sidebar": {
+        "open_sidebar": "Ouvrir la barre latérale",
+        "new_chat": "Nouveau chat",
+        "your_chats": "Vos chats",
+        "loading": "Chargement...",
+        "no_conversations": "Aucune conversation pour le moment",
+        "rename_conversation": "Renommer",
+        "clear_all_chats": "Effacer tous les chats",
+        "delete_all_title": "Supprimer toutes les conversations ?",
+        "delete_all_description": "Cette action est irréversible. Toutes vos conversations seront supprimées définitivement.",
+        "delete_all_confirm": "Tout supprimer",
+        "profile": "Profil",
+        "my_agents": "Mes agents",
+        "logout": "Se déconnecter",
+        "delete_conversation_title": "Supprimer la conversation",
+        "delete_conversation_description": "Voulez-vous vraiment supprimer cette conversation ? Cette action est irréversible.",
+        "profile_settings_title": "Paramètres du profil",
+        "profile_settings_description": "Mettez à jour les informations de votre compte et votre mot de passe.",
+        "profile_name": "Nom",
+        "name_input_placeholder": "Saisissez votre nom",
+        "profile_email": "E-mail",
+        "email_input_placeholder": "Saisissez votre e-mail",
+        "current_password": "Mot de passe actuel",
+        "current_password_placeholder": "Saisissez le mot de passe actuel",
+        "new_password": "Nouveau mot de passe",
+        "new_password_placeholder": "Saisissez le nouveau mot de passe",
+        "confirm_password": "Confirmer le mot de passe",
+        "confirm_password_placeholder": "Confirmez le nouveau mot de passe",
+        "save_changes": "Enregistrer les modifications",
+        "agents_dialog_title": "Mes agents",
+        "agents_dialog_description": "Gérez vos agents IA et leurs configurations.",
+        "loading_agents": "Chargement des agents...",
+        "no_agents": "Aucun agent trouvé.",
+        "switching_agent": "Changement en cours...",
+        "switch_to_agent": "Passer à {name}"
+    },
+    "chat": {
+        "message_limit_reached": "Vous avez atteint votre limite de messages",
+        "upgrade_prompt": "Veuillez mettre à niveau votre forfait pour continuer à discuter",
+        "regenerate_failed": "Impossible de régénérer la réponse. Veuillez réessayer.",
+        "loading_conversation": "Chargement de la conversation"
+    },
+    "messages": {
+        "send": "Envoyer",
+        "delete_user_message_title": "Supprimer ce message ?",
+        "delete_user_message_description": "Cela supprimera également la réponse de l'IA.",
+        "delete_assistant_message_title": "Supprimer ce message ?",
+        "delete_assistant_message_description": "Cela supprimera également votre message d'origine.",
+        "calling_external": "Appel d'une source de données externe…",
+        "fetching_data": "Récupération des données depuis {label}",
+        "calling": "Appel de {label}",
+        "regenerate_tooltip": "Régénérer la réponse"
+    },
+    "errors": {
+        "subscription_expired": "Abonnement expiré",
+        "renew_subscription": "Renouveler l'abonnement",
+        "message_limit_reached": "Limite de messages atteinte",
+        "upgrade_plan": "Mettre à niveau le forfait",
+        "model_unavailable": "Modèle indisponible",
+        "too_many_requests": "Trop de requêtes",
+        "connection_lost": "Connexion perdue",
+        "unexpected_response": "Réponse inattendue",
+        "something_went_wrong": "Une erreur s'est produite",
+        "try_again": "Réessayer"
+    },
+    "sources": {
+        "title": "Sources de connaissances",
+        "source_count": "{count} source | {count} sources",
+        "description": "{count} source utilisée pour générer cette réponse | {count} sources utilisées pour générer cette réponse",
+        "page_label": "Page {page}"
+    },
+    "home": {
+        "logo_alt": "Logo",
+        "welcome_message": "Comment puis-je vous aider aujourd'hui ?"
+    }
+}

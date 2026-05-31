@@ -24,8 +24,7 @@ class AgentWebsitesController
         $websites = $agent
             ->websites()
             ->select(['source_websites.id', 'url', 'status', 'source_websites.created_at', 'options', 'expected_chunks'])
-            ->withCount('urls')
-            ->withCount('agents')
+            ->withCount(['urls', 'agents', 'chunks'])
             ->get();
 
         return collect($websites)->map(function ($website) {

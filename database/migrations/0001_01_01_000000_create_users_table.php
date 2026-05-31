@@ -15,6 +15,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->enum('type', ['admin', 'workspace', 'employee', 'chatter'])->default('workspace')->index();
             $table->enum('source', ['dashboard', 'api'])->default('dashboard')->index();
             $table->rememberToken();
@@ -22,8 +25,11 @@ return new class extends Migration
             $table->foreignId('workspace_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('current_team_id')
                 ->nullable()
+                ->index()
                 ->constrained('teams')
                 ->nullOnDelete();
+
+            $table->index(['workspace_id', 'type']);
 
             $table->ipAddress('registered_ip')->nullable();
             $table->char('registered_country_code', 5)->nullable();

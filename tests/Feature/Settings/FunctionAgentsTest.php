@@ -18,7 +18,7 @@ beforeEach(function (): void {
         'webhook_method' => 'POST',
         'auth_type' => 'none',
         'auth_config' => null,
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 });
 
@@ -32,8 +32,7 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'is_public' => false,
-        'analytics_enabled' => true,
-        'created_via' => 'external',
+        'source' => 'api',
     ]);
 }
 
@@ -104,7 +103,7 @@ it('cannot manage agents for a function owned by someone else', function (): voi
         'webhook_method' => 'POST',
         'auth_type' => 'none',
         'auth_config' => null,
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 
     $this->actingAs($this->user)

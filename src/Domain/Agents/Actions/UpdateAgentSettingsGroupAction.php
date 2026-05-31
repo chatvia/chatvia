@@ -2,6 +2,7 @@
 
 namespace Domain\Agents\Actions;
 
+use Domain\Agents\Data\UpdateAgentSettingsData;
 use Domain\Agents\Models\Agent;
 
 /**
@@ -12,20 +13,17 @@ use Domain\Agents\Models\Agent;
  */
 class UpdateAgentSettingsGroupAction
 {
-    /**
-     * @param  array<string, mixed>  $payload
-     */
-    public function execute(Agent $agent, string $group, array $payload): void
+    public function execute(UpdateAgentSettingsData $data): void
     {
-        $allowedKeys = array_keys(config('model-settings.defaults.'.Agent::class.'.'.$group, []));
+        $allowedKeys = array_keys(config('model-settings.defaults.'.Agent::class.'.'.$data->group, []));
 
         $writable = array_filter(
-            array_intersect_key($payload, array_flip($allowedKeys)),
+            array_intersect_key($data->payload, array_flip($allowedKeys)),
             fn ($value): bool => $value !== '' && $value !== null,
         );
 
         foreach ($writable as $key => $value) {
-            $agent->setSetting(key: $key, value: $value, group: $group);
+            $data->agent->setSetting(key: $key, value: $value, group: $data->group);
         }
     }
 }

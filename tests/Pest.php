@@ -11,6 +11,11 @@
 |
 */
 
+use App\Auth\Models\User;
+use App\Teams\Services\TeamService;
+use Domain\Agents\Models\Agent;
+use Domain\Agents\Models\Llm;
+use Illuminate\Support\Str;
 use Tests\RefreshTestDatabases;
 use Tests\TestCase;
 
@@ -57,22 +62,21 @@ function something(): void
  *
  * @param  array<string, mixed>  $overrides
  */
-function createTemplateAgent(\App\Auth\Models\User $user, array $overrides = []): \Domain\Agents\Models\Agent
+function createTemplateAgent(User $user, array $overrides = []): Agent
 {
     if (! $user->primaryTeam()) {
-        app(\App\Teams\Services\TeamService::class)->createDefaultTeam($user);
+        app(TeamService::class)->createDefaultTeam($user);
     }
 
-    return \Domain\Agents\Models\Agent::create(array_merge([
+    return Agent::create(array_merge([
         'user_id' => $user->id,
         'team_id' => $user->primaryTeam()->id,
         'name' => 'Bot',
         'type' => 'knowledge_base',
-        'external_id' => \Illuminate\Support\Str::random(20),
-        'sub_domain' => \Illuminate\Support\Str::random(14),
+        'external_id' => Str::random(20),
+        'sub_domain' => Str::random(14),
         'is_public' => false,
-        'analytics_enabled' => true,
-        'created_via' => 'internal',
+        'source' => 'dashboard',
     ], $overrides));
 }
 
@@ -87,7 +91,7 @@ function createTemplateAgent(\App\Auth\Models\User $user, array $overrides = [])
 function createTemplateLlms(array $externalNames = ['gpt-4o', 'claude-sonnet']): array
 {
     foreach ($externalNames as $name) {
-        \Domain\Agents\Models\Llm::factory()->create([
+        Llm::factory()->create([
             'internal_name' => $name,
             'external_name' => $name,
         ]);
@@ -141,4 +145,3 @@ function templateDataArgs(array $overrides = []): array
         'isPublic' => false,
     ], $overrides);
 }
-

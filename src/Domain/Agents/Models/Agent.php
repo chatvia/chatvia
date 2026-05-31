@@ -8,7 +8,6 @@ use App\Teams\Models\Team;
 use Domain\Agents\Collections\AgentCollection;
 use Domain\Agents\QueryBuilders\AgentQueryBuilder;
 use Domain\Agents\Services\FileAnalyzer;
-use Domain\Chat\Data\LlmModelData;
 use Domain\Chat\Models\ChatSession;
 use Domain\Chat\Models\ChatTopic;
 use Domain\Sources\Files\Enums\AgentFileStatusEnum;
@@ -32,10 +31,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Support\Enums\CreatedVia;
 use Support\Traits\HasSettings;
 
 /**
@@ -48,20 +48,16 @@ use Support\Traits\HasSettings;
  * @property string|null $domain
  * @property string|null $system_instructions
  * @property int|null $agent_prompt_id
- * @property int|null $agent_template_id
  * @property bool $is_public
- * @property bool $analytics_enabled
  * @property array<array-key, mixed>|null $metadata
- * @property string $created_via
+ * @property CreatedVia $source
  * @property string|null $auth_secret
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read AgentPrompt|null $agentPrompt
- * @property-read AgentTemplate|null $agentTemplate
  * @property-read Collection<int, AgentFunction> $functions
  * @property-read Collection<int, AgentMcpServer> $mcpServers
- * @property-read Collection<int, Llm> $activeLlms
- * @property-read int|null $active_llms_count
+ * @property-read Llm|null $llm
  * @property-read AgentSource|null $pivot
  * @property-read Collection<int, SourceFile> $audioFiles
  * @property-read int|null $audio_files_count
@@ -74,8 +70,6 @@ use Support\Traits\HasSettings;
  * @property-read Collection<int, AgentFunction> $functions
  * @property-read Collection<int, Lead> $leads
  * @property-read int|null $leads_count
- * @property-read Collection<int, Llm> $llms
- * @property-read int|null $llms_count
  * @property-read Collection<int, AgentMcpServer> $mcpServers
  * @property-read Collection<int, ModelSetting> $modelSettings
  * @property-read int|null $model_settings_count
@@ -121,6 +115,9 @@ use Support\Traits\HasSettings;
  * @method static AgentCollection<int, static> get($columns = ['*'])
  * @method static AgentQueryBuilder<static>|Agent messagesByData(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate)
  * @method static AgentQueryBuilder<static>|Agent mostAccessedFiles()
+ * @method static AgentQueryBuilder<static>|Agent mostAccessedSources()
+ * @method static AgentQueryBuilder<static>|Agent mostUsedFunctions()
+ * @method static AgentQueryBuilder<static>|Agent mostUsedMcpTools()
  * @method static AgentQueryBuilder<static>|Agent mostUsedModels()
  * @method static AgentQueryBuilder<static>|Agent newModelQuery()
  * @method static AgentQueryBuilder<static>|Agent newQuery()
@@ -173,8 +170,9 @@ class Agent extends Model
     {
         return [
             'auth_secret' => 'encrypted',
-            'analytics_enabled' => 'boolean',
             'metadata' => 'array',
+            'llm_id' => 'integer',
+            'source' => CreatedVia::class,
         ];
     }
 
@@ -201,18 +199,6 @@ class Agent extends Model
     }
 
     /**
-     * Per-request memo for resolvedTemplate() so the read-through methods
-     * (settings/llmSettings/resolvedLlms/resolvedStarters/system prompt)
-     * resolve the cached template at most once per agent instance.
-     */
-    protected ?AgentTemplate $cachedTemplate = null;
-
-    protected bool $cachedTemplateLoaded = false;
-
-    /** Per-request memo for resolvedLlms(). */
-    protected ?Collection $cachedResolvedLlms = null;
-
-    /**
      * Get the route key name for Laravel route model binding.
      */
     public function getRouteKeyName(): string
@@ -221,66 +207,13 @@ class Agent extends Model
     }
 
     /**
-     * The reusable account-level template attached to this agent, if any. The
-     * raw relation, used by setup-UI/CRUD/detach paths. Runtime read-through
-     * goes through resolvedTemplate() (cache-backed) instead.
-     *
-     * @return BelongsTo<AgentTemplate, $this>
+     * Effective settings for a group — pulled from the agent's own
+     * `model_settings` rows (HasSettings trait), with the config defaults
+     * underneath.
      */
-    public function agentTemplate(): BelongsTo
+    public function settings(string $group): SupportCollection
     {
-        return $this->belongsTo(AgentTemplate::class);
-    }
-
-    /**
-     * Cache-backed, per-request-memoized template accessor used by every
-     * read-through method. Returns null when no template is attached. The
-     * cached payload eager-loads `agentPrompt` so resolveSystemInstructions()
-     * costs no extra query. Invalidated by AgentTemplateObserver / the
-     * AgentPrompt cache hook.
-     */
-    public function resolvedTemplate(): ?AgentTemplate
-    {
-        if (! $this->cachedTemplateLoaded) {
-            $this->cachedTemplateLoaded = true;
-            $this->cachedTemplate = $this->agent_template_id
-                ? Cache::remember(
-                    AgentTemplate::cacheKey($this->agent_template_id),
-                    now()->addDay(),
-                    fn () => AgentTemplate::with('agentPrompt')->find($this->agent_template_id),
-                )
-                : null;
-        }
-
-        return $this->cachedTemplate;
-    }
-
-    /**
-     * Effective settings for a group. When a template is attached, the
-     * per-surface groups (`hosted_chat`, `widget`, `bar`) are read from it
-     * (live read-through); shared groups (`leads`, `business`, etc.) stay
-     * per-agent.
-     */
-    public function settings(string $group): \Illuminate\Support\Collection
-    {
-        if ($this->agent_template_id && in_array($group, ['hosted_chat', 'widget', 'bar'], true)) {
-            return $this->resolvedTemplate()->settingsFor($group);
-        }
-
         return $this->baseSettings($group);
-    }
-
-    /**
-     * Whether the agent loads without a signed token. When a template is
-     * attached the flag is read through from it (like every other shared
-     * setting), so the template governs access for all agents using it;
-     * otherwise it falls back to the agent's own column. Centralising it here
-     * means every gate (widget/chat middleware, embed/playground controllers,
-     * API resources) inherits the behaviour from a single read.
-     */
-    protected function isPublic(): Attribute
-    {
-        return Attribute::get(fn (mixed $value): bool => $this->resolvedTemplate()?->is_public ?? (bool) $value);
     }
 
     /**
@@ -330,8 +263,7 @@ class Agent extends Model
      */
     public function resolveSystemInstructions(): string
     {
-        return $this->resolvedTemplate()?->agentPrompt?->prompt
-            ?? $this->agentPrompt?->prompt
+        return $this->agentPrompt?->prompt
             ?? $this->system_instructions
             ?? prompt('knowledge/system');
     }
@@ -461,57 +393,26 @@ class Agent extends Model
     }
 
     /**
-     * The agent's effective starters as a plain string list. With per-surface
-     * storage, the template's starters are now per-surface; this agent-level
-     * lookup returns the Hosted Chat surface's starters by default. Surface-
-     * aware callers (Widget/Bar controllers) should use
-     * `AgentTemplate::startersFor($surface)` directly.
+     * The agent's effective starters as a plain string list — read from the
+     * agent's own ordered starter set.
      *
      * @return array<int, string>
      */
     public function resolvedStarters(): array
     {
-        if ($this->agent_template_id) {
-            return $this->resolvedTemplate()->startersFor('hosted_chat');
-        }
-
         return $this->starterSet?->text ?? [];
     }
 
     /**
-     * @return BelongsToMany<Llm, $this>
-     */
-    public function llms(): BelongsToMany
-    {
-        return $this->belongsToMany(Llm::class);
-    }
-
-    /**
-     * The agent's effective LLMs. With per-surface model storage each surface
-     * picks its own model(s); this agent-level lookup returns the Hosted Chat
-     * allow-list when a template is attached (the surface that supports
-     * multi-model). Memoised per-request so accessing it from multiple places
-     * (settings, formatter, router) only hits the DB once.
+     * The single LLM that answers every chat for this agent. Nullable so a
+     * just-created agent without one yet won't break; AgentObserver seeds it
+     * to the user's default on create.
      *
-     * Per-surface lookups (Widget/Bar single model) should call
-     * `AgentTemplate::modelsFor($surface)` directly.
-     *
-     * @return Collection<int, Llm>
+     * @return BelongsTo<Llm, $this>
      */
-    public function resolvedLlms(): Collection
+    public function llm(): BelongsTo
     {
-        return $this->cachedResolvedLlms ??= (
-            $this->agent_template_id
-                ? Llm::whereIn('external_name', $this->resolvedTemplate()->modelsFor('hosted_chat'))->get()
-                : $this->llms()->get()
-        );
-    }
-
-    public function llmsFormatted()
-    {
-        return $this->resolvedLlms()->map(function (Llm $llm) {
-            return LlmModelData::fromLlmModel($llm);
-        });
+        return $this->belongsTo(Llm::class);
     }
 
     /**
@@ -523,39 +424,15 @@ class Agent extends Model
     }
 
     /**
-     * @return BelongsToMany<Llm, $this>
-     */
-    public function activeLlms(): BelongsToMany
-    {
-        return $this->llms()->wherePivot('is_active', true);
-    }
-
-    public function llmSettings(): array
-    {
-        if ($this->agent_template_id) {
-            return $this->resolvedTemplate()->llmSettingsFor('hosted_chat') ?? $this->defaultLlmSettings();
-        }
-
-        $settings = AgentLlm::where('agent_id', $this->id)
-            ->select(['temperature', 'top_k', 'top_p', 'frequency_penalty', 'presence_penalty'])
-            ->first()
-            ?->toArray();
-
-        return $settings ?? $this->defaultLlmSettings();
-    }
-
-    /**
+     * Resolved LLM hyperparameters (temperature/top_k/top_p/penalties). Read
+     * from the `llm_settings` settings group, falling back to the config
+     * defaults via HasSettings.
+     *
      * @return array<string, float|int>
      */
-    private function defaultLlmSettings(): array
+    public function llmSettings(): array
     {
-        return [
-            'temperature' => 1.0,
-            'top_k' => 0,
-            'top_p' => 1.0,
-            'presence_penalty' => 0.0,
-            'frequency_penalty' => 0.0,
-        ];
+        return $this->settings('llm_settings')->all();
     }
 
     public function messageRetentionInDays(): int
@@ -610,9 +487,13 @@ class Agent extends Model
      * keys. Postgres JSON path needs the `->` operator at query time, not as
      * an Eloquent column alias — using selectRaw keeps it portable.
      *
-     * @return Collection<int, string>
+     * Returns `Support\Collection` (not Eloquent's) because pluck/flatMap
+     * lift the value out of the Model collection — the Eloquent
+     * `Collection<TKey, TModel of Model>` generic forbids `<int, string>`.
+     *
+     * @return SupportCollection<int, string>
      */
-    public function images(): Collection
+    public function images(): SupportCollection
     {
         return $this->files()
             ->selectRaw("source_files.metadata->'images' AS images")

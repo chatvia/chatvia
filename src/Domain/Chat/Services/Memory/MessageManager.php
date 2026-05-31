@@ -2,11 +2,12 @@
 
 namespace Domain\Chat\Services\Memory;
 
-use Domain\Agents\Models\Agent;
+use Domain\Analytics\Events\FeedbackGivenEvent;
 use Domain\Chat\Data\ChatInputPayload;
 use Domain\Chat\Data\ChatOutputPayload;
 use Domain\Chat\Data\Memory\MessageData;
 use Domain\Chat\Models\ChatMessage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -66,8 +67,8 @@ class MessageManager
                 $append['read_at'] = null;
             }
         } else {
-            // For output messages, set llm_found_answer flag
-            $append['llm_found_answer'] = $payload->llm_found_answer;
+            // For output messages, set has_llm_found_answer flag
+            $append['has_llm_found_answer'] = $payload->has_llm_found_answer;
 
             // Persist tool-result artifacts (e.g. ECharts specs) and the
             // list of tool names this turn invoked onto the cached
@@ -110,9 +111,21 @@ class MessageManager
                     // Handle feedback persistence to database.
                     // $value is 'positive', 'negative', or null (cleared).
                     if ($key === 'feedback') {
+                        $prior = $message['feedback'] ?? null;
+
                         ChatMessage::where('external_id', $message['id'])->update([
                             'feedback' => $value,
                         ]);
+
+                        if ($prior !== $value) {
+                            $this->dispatchFeedbackAnalytics(
+                                $conversationId,
+                                $message['id'],
+                                $prior,
+                                $value,
+                                $message['model'] ?? null,
+                            );
+                        }
                     }
 
                     // Handle read_at persistence to database
@@ -122,10 +135,10 @@ class MessageManager
                         ]);
                     }
 
-                    // Handle llm_found_answer persistence to database
-                    if ($key === 'llm_found_answer') {
+                    // Handle has_llm_found_answer persistence to database
+                    if ($key === 'has_llm_found_answer') {
                         ChatMessage::where('id', $message['id'])->update([
-                            'llm_found_answer' => $value,
+                            'has_llm_found_answer' => $value,
                         ]);
                     }
                 }
@@ -242,7 +255,7 @@ class MessageManager
         //            if ($message['role'] === 'user') {
         //                $previousUserMessage = $index;
         //            } elseif ($message['role'] === 'assistant') {
-        //                if (($message['llm_found_answer'] ?? true) === false) {
+        //                if (($message['has_llm_found_answer'] ?? true) === false) {
         //                    // Exclude this assistant message
         //                    $messagesToExclude[] = $index;
         //                    // Also exclude the previous user message if it exists
@@ -291,6 +304,41 @@ class MessageManager
         $this->updateMessage($conversationId, $messageId, ['feedback' => $feedback]);
     }
 
+    /**
+     * Resolve the analytics dimensions for the message and fire FeedbackGivenEvent.
+     * Single small join — feedback is rare, so the extra query is cheap.
+     */
+    private function dispatchFeedbackAnalytics(
+        string $conversationExternalId,
+        string $messageExternalId,
+        ?string $prior,
+        ?string $new,
+        ?string $llmExternalName,
+    ): void {
+        $context = DB::table('chat_messages as m')
+            ->join('chat_conversations as c', 'c.id', '=', 'm.chat_conversation_id')
+            ->join('chat_sessions as s', 's.id', '=', 'c.chat_session_id')
+            ->leftJoin('countries as co', 'co.id', '=', 's.country_id')
+            ->where('m.external_id', $messageExternalId)
+            ->select('s.agent_id', 'co.code as country_code')
+            ->first();
+
+        if (! $context) {
+            return;
+        }
+
+        FeedbackGivenEvent::dispatch(
+            (int) $context->agent_id,
+            $conversationExternalId,
+            $messageExternalId,
+            $prior,
+            $new,
+            $llmExternalName,
+            $context->country_code,
+            now()->toDateTimeImmutable(),
+        );
+    }
+
     private function saveMessage(string $conversationId, array $message): void
     {
         $cacheKey = $this->cache->generateConversationKey($conversationId);
@@ -320,7 +368,7 @@ class MessageManager
         // Find and update the conversation
         foreach ($conversations as &$conversation) {
             if ($conversation['id'] === $conversationId) {
-                $conversation['visible'] = true;
+                $conversation['is_visible'] = true;
                 break;
             }
         }

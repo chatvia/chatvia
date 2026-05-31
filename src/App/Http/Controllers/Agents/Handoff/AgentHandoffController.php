@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Handoff;
 
+use App\Http\Controllers\Agents\Handoff;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Actions\ListPendingHandoffsAction;
 use Domain\Chat\Data\Handoff\PendingHandoffsResourceData;
@@ -13,7 +14,7 @@ use Spatie\LaravelData\DataCollection;
 /**
  * Pending-handoff feed for an agent (sidebar badge + list view). Mutations
  * each live in their own invokable controller under
- * {@see \App\Http\Controllers\Agents\Handoff}.
+ * {@see Handoff}.
  */
 class AgentHandoffController
 {

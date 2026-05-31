@@ -12,7 +12,7 @@ class ToggleAgentFunctionAction
         /** @var AgentFunction $function */
         $function = $user->functions()->where('external_id', $externalId)->firstOrFail();
 
-        $function->update(['enabled' => ! $function->enabled]);
+        $function->update(['is_enabled' => ! $function->is_enabled]);
 
         return $function;
     }

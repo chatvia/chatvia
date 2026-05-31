@@ -32,19 +32,15 @@ class CustomAddController extends Controller
     ): JsonResponse {
         abort_unless(has_team_permission('account.connectors'), 404);
 
-        /** @var User $user */
-        $user = $request->user();
-        $strategy = $request->string('auth_strategy')->toString();
-        $name = $request->string('name')->toString();
-        $url = $request->string('url')->toString();
+        $data = $request->toData();
 
-        if ($strategy === 'oauth') {
+        if ($data->auth_strategy === 'oauth') {
             try {
                 $redirectUrl = $this->oauthFlow->beginCustom(
-                    user: $user,
-                    name: $name,
-                    slug: $this->uniqueCustomSlugForUser($user, $name),
-                    mcpUrl: $url,
+                    user: $data->user,
+                    name: $data->name,
+                    slug: $this->uniqueCustomSlugForUser($data->user, $data->name),
+                    mcpUrl: $data->url,
                 );
             } catch (McpOAuthException $e) {
                 return response()->json(['message' => $e->getMessage()], 422);
@@ -55,11 +51,11 @@ class CustomAddController extends Controller
 
         try {
             $result = $provision->execute(new ProvisionCustomMcpServerData(
-                user: $user,
-                name: $name,
-                url: $url,
-                strategy: $strategy,
-                token: $request->input('token'),
+                user: $data->user,
+                name: $data->name,
+                url: $data->url,
+                strategy: $data->auth_strategy,
+                token: $data->token,
             ));
         } catch (Throwable $e) {
             $message = $e instanceof McpException

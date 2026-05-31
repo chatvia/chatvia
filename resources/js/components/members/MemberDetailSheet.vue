@@ -107,13 +107,7 @@ const copyId = async () => {
                         <dt class="text-muted-foreground col-span-1">Member ID</dt>
                         <dd class="col-span-2 flex min-w-0 items-center gap-1.5">
                             <code class="min-w-0 flex-1 truncate font-mono text-xs" :title="member.external_id">{{ member.external_id }}</code>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                class="h-6 shrink-0 px-1.5"
-                                title="Copy member ID"
-                                @click="copyId"
-                            >
+                            <Button variant="ghost" size="sm" class="h-6 shrink-0 px-1.5" title="Copy member ID" @click="copyId">
                                 <Check v-if="idCopied" class="size-3.5 text-green-600" />
                                 <Copy v-else class="size-3.5" />
                             </Button>
@@ -141,17 +135,16 @@ const copyId = async () => {
                         Loading agents
                     </div>
 
-                    <div v-else-if="agents.all.value.length === 0" class="text-muted-foreground rounded-md border border-dashed py-6 text-center text-sm">
+                    <div
+                        v-else-if="agents.all.value.length === 0"
+                        class="text-muted-foreground rounded-md border border-dashed py-6 text-center text-sm"
+                    >
                         <Users class="text-muted-foreground/50 mx-auto mb-2 h-6 w-6" />
                         You have no agents in this workspace yet.
                     </div>
 
                     <ul v-else class="divide-border divide-y rounded-md border">
-                        <li
-                            v-for="agent in agents.all.value"
-                            :key="agent.id"
-                            class="flex items-center justify-between gap-3 px-3 py-3"
-                        >
+                        <li v-for="agent in agents.all.value" :key="agent.id" class="flex items-center justify-between gap-3 px-3 py-3">
                             <span class="truncate text-sm font-medium">{{ agent.name }}</span>
                             <Switch
                                 :model-value="agent.attached"

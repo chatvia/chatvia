@@ -5,10 +5,14 @@ namespace Domain\Auth\Actions;
 use App\Auth\Models\User;
 use Domain\Agents\Models\Agent;
 use Domain\Auth\Data\LoginData;
-use Illuminate\Support\Facades\Auth;
+use Domain\Auth\Services\PasswordAuthenticator;
 
 class LoginUserToAgentAction
 {
+    public function __construct(
+        private readonly PasswordAuthenticator $authenticator,
+    ) {}
+
     /**
      * Returns the authenticated user, or null if the credentials don't match
      * or the user has no access to the given agent. Caller decides how to
@@ -18,7 +22,7 @@ class LoginUserToAgentAction
     {
         $user = User::where('email', $data->email)->first();
 
-        if (! $user || ! Auth::guard('web')->validate(['email' => $data->email, 'password' => $data->password])) {
+        if (! $user || ! $this->authenticator->validateCredentials($data->email, $data->password)) {
             return null;
         }
 
@@ -26,7 +30,7 @@ class LoginUserToAgentAction
             return null;
         }
 
-        Auth::guard('web')->login($user, $data->remember);
+        $this->authenticator->login($user, $data->remember);
 
         $user->update(['last_login_at' => now()]);
 

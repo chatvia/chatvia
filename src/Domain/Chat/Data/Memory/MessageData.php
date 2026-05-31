@@ -22,10 +22,10 @@ class MessageData extends Data
         public int $timestamp,
         public ?int $read_at = null,
         public ?string $model = null,
-        public ?bool $feedback = null,
+        public ?string $feedback = null,
         public ?string $language = null,
         public ?string $message_for_llm = null,
-        public ?bool $llm_found_answer = null,
+        public ?bool $has_llm_found_answer = null,
         public ?array $metadata = null,
     ) {}
 }

@@ -116,7 +116,7 @@ function refreshFunctions(): void {
                                 </TableCell>
                                 <TableCell class="py-4 text-sm">{{ fn.agents_count }}</TableCell>
                                 <TableCell class="py-4 pr-5 text-right" @click.stop>
-                                    <Switch :model-value="fn.enabled" @update:model-value="toggleEnabled(fn)" />
+                                    <Switch :model-value="fn.is_enabled" @update:model-value="toggleEnabled(fn)" />
                                 </TableCell>
                             </TableRow>
                         </TableBody>

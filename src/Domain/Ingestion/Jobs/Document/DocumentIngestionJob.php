@@ -17,6 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -118,6 +119,10 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
             ->then(function (Batch $batch) use ($agentFileId): void {
                 $file = SourceFile::find($agentFileId);
                 $file?->update(['status' => 'ingested']);
+
+                // Refresh planner stats so vchordrq prefilter sees the new
+                // reltuples — autovacuum's default schedule waits far too long.
+                DB::statement('ANALYZE chunks');
             })
             ->dispatch();
 

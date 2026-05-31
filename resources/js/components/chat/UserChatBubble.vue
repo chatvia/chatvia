@@ -17,6 +17,9 @@ import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Check, Copy, Edit3, Trash2 } from 'lucide-vue-next';
 import { nextTick, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     message: Message;
@@ -123,12 +126,14 @@ async function deleteMessage() {
                         @keydown="handleEditKeyDown"
                     />
                     <div class="mt-4 flex justify-end gap-2">
-                        <Button variant="outline" @click="cancelEditing" class="h-9 rounded-full px-5 text-sm font-medium"> Cancel </Button>
+                        <Button variant="outline" @click="cancelEditing" class="h-9 rounded-full px-5 text-sm font-medium">{{
+                            t('common.cancel')
+                        }}</Button>
                         <Button
                             @click="saveEditedMessage"
                             class="bg-foreground text-background hover:bg-foreground/90 h-9 rounded-full px-5 text-sm font-medium"
                         >
-                            Send
+                            {{ t('messages.send') }}
                         </Button>
                     </div>
                 </div>
@@ -165,12 +170,14 @@ async function deleteMessage() {
                     </AlertDialogTrigger>
                     <AlertDialogContent class="rounded-2xl">
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Delete this message?</AlertDialogTitle>
-                            <AlertDialogDescription> This will also delete the AI response. </AlertDialogDescription>
+                            <AlertDialogTitle>{{ t('messages.delete_user_message_title') }}</AlertDialogTitle>
+                            <AlertDialogDescription>{{ t('messages.delete_user_message_description') }}</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel class="rounded-lg">Cancel</AlertDialogCancel>
-                            <AlertDialogAction @click="deleteMessage" class="rounded-lg bg-red-600 hover:bg-red-700"> Delete </AlertDialogAction>
+                            <AlertDialogCancel class="rounded-lg">{{ t('common.cancel') }}</AlertDialogCancel>
+                            <AlertDialogAction @click="deleteMessage" class="rounded-lg bg-red-600 hover:bg-red-700">{{
+                                t('common.delete')
+                            }}</AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>

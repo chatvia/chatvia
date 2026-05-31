@@ -8,7 +8,8 @@ class DeletePaymentMethodAction
 {
     public function execute(User $user, string $paymentMethodId): bool
     {
-        $paymentMethod = $user->findPaymentMethod($paymentMethodId);
+        // Cashier's `Billable` trait lives on `UserBilling`, not `User`.
+        $paymentMethod = $user->accountBillingOrFail()->findPaymentMethod($paymentMethodId);
 
         if (! $paymentMethod) {
             return false;

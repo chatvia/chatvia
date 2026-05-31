@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
-            $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('chat_conversation_id')->index()->constrained('chat_conversations')->cascadeOnDelete();
+            $table->foreignId('assigned_to')->nullable()->index()->constrained('users')->nullOnDelete();
 
             $table->enum('status', ['new', 'contacted', 'qualified', 'converted', 'lost'])->default('new');
 

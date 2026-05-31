@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Widget\Sessions;
 
 use App\Widget\WidgetVerification;
 use Domain\Widget\Actions\InitializeWidgetSessionAction;
+use Domain\Widget\Data\WidgetSessionInitData;
 use Domain\Widget\Data\WidgetSessionInitResultData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,16 @@ class SessionInitController
             return response()->json(['error' => 'Could not verify the agent'], 403);
         }
 
-        return $initialize->execute(current_agent_from_widget(), $request);
+        $data = new WidgetSessionInitData(
+            existingSessionId: $request->header('X-SESSION-ID'),
+            existingThreadId: $request->header('X-THREAD-ID'),
+            ipAddress: $request->ip(),
+            userAgent: $request->userAgent(),
+            acceptLanguage: $request->header('Accept-Language'),
+            referrerUrl: $request->header('Referer'),
+            pageUrl: $request->input('page_url'),
+        );
+
+        return $initialize->execute(current_agent_from_widget(), $data);
     }
 }

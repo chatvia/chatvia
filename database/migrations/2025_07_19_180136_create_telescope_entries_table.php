@@ -64,9 +64,6 @@ return new class extends Migration
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         if (app()->environment('testing') || app()->runningUnitTests()) {

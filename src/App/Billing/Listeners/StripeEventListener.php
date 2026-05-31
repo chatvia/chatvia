@@ -7,6 +7,7 @@ use App\Billing\Models\UserBilling;
 use App\Billing\Notifications\TrialWelcomeNotification;
 use App\Teams\Services\TeamService;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -17,6 +18,17 @@ class StripeEventListener
 {
     public function handle(WebhookReceived $event): void
     {
+        $eventId = $event->payload['id'] ?? null;
+
+        // Idempotency: Stripe retries webhooks on transient failures, so the
+        // same evt_* can arrive multiple times. Cache::add is atomic; a false
+        // return means we've already processed this event and should skip.
+        if ($eventId && ! Cache::add("stripe:event:{$eventId}", true, now()->addDays(7))) {
+            Log::info('Stripe webhook replay skipped', ['event_id' => $eventId]);
+
+            return;
+        }
+
         $data = $event->payload['data']['object'];
 
         $type = $event->payload['type'];

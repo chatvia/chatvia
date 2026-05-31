@@ -17,7 +17,7 @@ class AgentFunctionRowData extends Data
         public string $id,
         public string $name,
         public ?string $description,
-        public bool $enabled,
+        public bool $is_enabled,
         public bool $is_attached,
     ) {}
 
@@ -29,7 +29,7 @@ class AgentFunctionRowData extends Data
             id: (string) ($base['id'] ?? $function->external_id),
             name: (string) ($base['name'] ?? $function->name),
             description: $base['description'] ?? $function->description,
-            enabled: (bool) ($base['enabled'] ?? $function->enabled),
+            is_enabled: (bool) ($base['is_enabled'] ?? $function->is_enabled),
             is_attached: $isAttached,
         );
     }

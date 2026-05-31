@@ -23,11 +23,24 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
+        $user = $request->user('web');
+
+        if ($user) {
+            // One round-trip for the whole billing graph so the share() fields
+            // and the User Appends accessors all hit the same in-memory data.
+            $user->loadMissing(['workspace.billing.subscriptions', 'billing.subscriptions']);
+        }
+
+        $billing = $user?->accountBilling();
+        $subscription = $billing?->subscription();
+        $onTrial = (bool) $billing?->onTrial();
+        $trialEndsAt = $onTrial ? $subscription?->trial_ends_at?->format('F j, Y') : null;
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user('web'),
+                'user' => $user,
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
@@ -43,10 +56,10 @@ class HandleInertiaRequests extends Middleware
                 'invitation' => $request->session()->get('invitation'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'subscribed' => $request->user()?->hasActiveSubscription(),
-            'onTrial' => $request->user()?->accountBilling()?->onTrial(),
-            'trialEndsAt' => $request->user()?->accountBilling()?->onTrial() ? $request->user()->accountBilling()?->subscription()?->trial_ends_at?->format('F j, Y') : null,
-            'subscriptionStartsAt' => $request->user()?->accountBilling()?->onTrial() ? $request->user()->accountBilling()?->subscription()?->trial_ends_at?->format('F j, Y') : null,
+            'subscribed' => (bool) $user?->hasActiveSubscription(),
+            'onTrial' => $onTrial,
+            'trialEndsAt' => $trialEndsAt,
+            'subscriptionStartsAt' => $trialEndsAt,
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
 
@@ -58,7 +71,7 @@ class HandleInertiaRequests extends Middleware
                 //                'actions' => Feature::active(Actions::class),
             ],
             'permissions' => $this->getTeamPermissions($request),
-            'currentTeam' => $request->user('web') ? $this->getCurrentTeam($request) : null,
+            'currentTeam' => $user ? $this->getCurrentTeam($request) : null,
         ];
     }
 

@@ -39,7 +39,7 @@ const fetchLeads = async () => {
     isLoadingLeads.value = true;
     try {
         const response = await axios.get(route('agents.leads.index', { agent: props.agent.external_id }));
-        leads.value = response.data;
+        leads.value = response.data.data ?? [];
     } catch (error) {
         console.error('Failed to fetch leads:', error);
         toast.error('Failed to load leads');
@@ -308,17 +308,15 @@ const cancelDelete = () => {
                         <!-- Leads connector not attached -->
                         <div
                             v-if="!leadsConnectorAttached"
-                            class="flex flex-col gap-3 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900/50 dark:bg-amber-950/30 sm:flex-row sm:items-center sm:justify-between"
+                            class="flex flex-col gap-3 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/50 dark:bg-amber-950/30"
                         >
                             <div class="flex items-start gap-3">
                                 <Plug class="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
                                 <div>
-                                    <p class="font-medium text-amber-900 dark:text-amber-200">
-                                        Leads connector isn't attached to this agent
-                                    </p>
+                                    <p class="font-medium text-amber-900 dark:text-amber-200">Leads connector isn't attached to this agent</p>
                                     <p class="mt-1 text-amber-800/80 dark:text-amber-200/80">
-                                        The agent can't capture leads from chat until you attach the Leads connector. The field settings below
-                                        still apply once it's enabled.
+                                        The agent can't capture leads from chat until you attach the Leads connector. The field settings below still
+                                        apply once it's enabled.
                                     </p>
                                 </div>
                             </div>

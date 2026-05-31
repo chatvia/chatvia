@@ -80,8 +80,27 @@ marked
     .use(markedCodePreview())
     .use(markedAlert());
 
+/**
+ * When the response carries a rendered artifact (e.g. an ECharts chart),
+ * the model often emits a markdown image placeholder like
+ * `![Bar chart comparing 1000 USD to 6401 DKK]` — it knows a visual is
+ * being shown but has no URL to point at, so the `![alt]` lands without a
+ * trailing `(url)` and marked renders it as raw text. Strip those
+ * orphan placeholders so users don't see leftover bracketed captions
+ * above the actual chart.
+ *
+ * Only runs when there's at least one artifact — without that signal we
+ * can't be sure the `![...]` is a placeholder vs. the user's own copy.
+ */
+const ORPHAN_IMAGE_PLACEHOLDER = /!\[[^\]]*\](?!\()/g;
+
+function stripOrphanImagePlaceholders(content: string): string {
+    return content.replace(ORPHAN_IMAGE_PLACEHOLDER, '').replace(/\n{3,}/g, '\n\n');
+}
+
 function formatMessage(content: string): string {
-    const result = marked.parse(content);
+    const cleaned = renderableArtifacts.value.length > 0 ? stripOrphanImagePlaceholders(content) : content;
+    const result = marked.parse(cleaned);
     return typeof result === 'string' ? result : '';
 }
 
@@ -120,6 +139,16 @@ watch(
     () => props.isStreaming,
     (streaming) => {
         if (!streaming) flushRender();
+    },
+);
+
+// Artifacts can arrive AFTER some text has already streamed in (the tool
+// result lands a few tokens late). Re-flush when an artifact appears so
+// any orphan `![...]` placeholders the model wrote earlier disappear.
+watch(
+    () => renderableArtifacts.value.length,
+    (count, prev) => {
+        if (count !== prev) flushRender();
     },
 );
 

@@ -9,8 +9,6 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 class BillingPackageCapabilitiesData extends Data
 {
     public function __construct(
-        public bool $advanced_pdf = false,
-        public bool $ocr = false,
         public bool $sentiment = false,
         public bool $tone = false,
         public bool $topics = false,
@@ -33,8 +31,6 @@ class BillingPackageCapabilitiesData extends Data
     public static function standard(): self
     {
         return new self(
-            advanced_pdf: true,
-            ocr: true,
             sentiment: true,
         );
     }
@@ -42,8 +38,6 @@ class BillingPackageCapabilitiesData extends Data
     public static function pro(): self
     {
         return new self(
-            advanced_pdf: true,
-            ocr: true,
             sentiment: true,
             tone: true,
             topics: true,
@@ -72,8 +66,6 @@ class BillingPackageCapabilitiesData extends Data
     public static function fromArray(array $capabilities): self
     {
         return new self(
-            advanced_pdf: $capabilities['advanced_pdf'] ?? false,
-            ocr: $capabilities['ocr'] ?? false,
             sentiment: $capabilities['sentiment'] ?? false,
             tone: $capabilities['tone'] ?? false,
             topics: $capabilities['topics'] ?? false,

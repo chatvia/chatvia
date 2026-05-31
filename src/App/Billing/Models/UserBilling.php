@@ -4,6 +4,8 @@ namespace App\Billing\Models;
 
 use App\Auth\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -22,14 +24,13 @@ use Laravel\Cashier\Subscription;
  * @property string|null $pm_last_four
  * @property Carbon|null $trial_ends_at
  * @property-read User $user
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Subscription> $subscriptions
+ * @property-read Collection<int, Subscription> $subscriptions
  */
 #[Guarded(['id'])]
+#[Table(name: 'user_billing')]
 class UserBilling extends Model
 {
     use Billable;
-
-    protected $table = 'user_billing';
 
     protected function casts(): array
     {

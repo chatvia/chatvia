@@ -10,7 +10,7 @@ class ConversationData extends Data
         public string $id,
         public string $title,
         public int $timestamp,
-        public bool $visible,
+        public bool $is_visible,
         public array $messages = [],
     ) {}
 }

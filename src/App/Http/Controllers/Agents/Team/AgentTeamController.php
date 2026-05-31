@@ -19,12 +19,16 @@ class AgentTeamController
             code: 404,
         );
 
+        // effectiveUser()->quota fans out to (workspace, quota) for employees/
+        // chatters — preload both legs in one go.
+        $user->loadMissing(['workspace.quota', 'quota']);
+
         /** @var UserQuota $quota */
         $quota = $user->quota;
 
         return Inertia::render('agents/Team', [
             'agent' => AgentResourceData::fromModel($agent),
-            'team_collaboration' => $user->hasCapability('team_collaboration'),
+            'team_collaboration' => $quota->members_limit > 0,
             'members_limit' => $quota->members_limit,
         ]);
     }

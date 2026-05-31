@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Identity;
 
+use App\Auth\Services\AgentSignInTokenService;
 use App\Http\Controllers\Controller;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
@@ -13,7 +14,7 @@ use Inertia\Response;
  * owner uses to mint sign-in tokens for this agent (the chat `?token=` link and
  * the widget `data-auth` attribute). Shown in full on every visit because the
  * customer needs it on their backend to mint tokens; verified by
- * {@see \App\Auth\Services\AgentSignInTokenService}.
+ * {@see AgentSignInTokenService}.
  */
 class AgentIdentityController extends Controller
 {

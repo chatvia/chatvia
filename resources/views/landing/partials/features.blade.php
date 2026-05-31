@@ -1,6 +1,79 @@
+@php
+    $features = $landing['features'] ?? [
+        'short' => [],
+        'slide' => [
+            'title' => '',
+            'subheadline' => '',
+            'tabs' => [
+                [
+                    'img' => 'images/chatvia/chat-widget.png',
+                    'tab_name' => 'Chat Widget',
+                    'title' => 'Embeddable Chat Widget',
+                    'description' => 'Add a beautiful, customizable chat widget to your website in seconds. Engage visitors instantly with AI-powered conversations that feel natural and helpful.',
+                ],
+                [
+                    'img' => 'images/chatvia/gpt.png',
+                    'tab_name' => 'ChatGPT-Style',
+                    'title' => 'ChatGPT-Style Interface',
+                    'description' => 'Provide your users with a familiar ChatGPT-like experience, powered by your own business data. Perfect for documentation, internal tools, and customer support.',
+                ],
+                [
+                    'img' => 'images/chatvia/training.png',
+                    'tab_name' => 'Training',
+                    'title' => 'Train on Any Data Source',
+                    'description' => 'Upload documents, crawl your website, or connect your data sources. Your AI chatbot learns from your content and stays synchronized with your latest information.',
+                ],
+                [
+                    'img' => 'images/chatvia/control-panel.png',
+                    'tab_name' => 'Control Panel',
+                    'title' => 'Comprehensive Control Panel',
+                    'description' => 'Manage all your AI agents from one powerful dashboard. Configure settings, monitor performance, and control multiple chatbots with ease.',
+                ],
+                [
+                    'img' => 'images/chatvia/stats.png',
+                    'tab_name' => 'Analytics',
+                    'title' => 'Advanced Analytics & Insights',
+                    'description' => 'Track conversations, measure engagement, and understand user behavior with detailed analytics. Make data-driven decisions to improve your chatbot performance.',
+                ],
+                [
+                    'img' => 'images/chatvia/chat-log.png',
+                    'tab_name' => 'Chat Logs',
+                    'title' => 'Complete Conversation History',
+                    'description' => 'Review every conversation in detail. Identify common questions, discover knowledge gaps, and continuously refine your chatbot responses for better accuracy.',
+                ],
+                [
+                    'img' => 'images/chatvia/pulse.png',
+                    'tab_name' => 'Pulse',
+                    'title' => 'Tone & Sentiment Analysis',
+                    'description' => 'Monitor visitor emotions and sentiment in real-time throughout conversations. Detect frustration, satisfaction, and engagement levels to optimize responses and enhance customer experience.',
+                ],
+                [
+                    'img' => 'images/chatvia/leads.png',
+                    'tab_name' => 'Leads',
+                    'title' => 'Intelligent Lead Capture',
+                    'description' => 'Turn conversations into qualified leads automatically. Capture contact information naturally during chat and integrate seamlessly with your CRM.',
+                ],
+            ],
+        ],
+        'slide2' => [
+            'title' => 'Discover our unique properties',
+            'subheadline' => '',
+            'slides' => [],
+        ],
+        'steps' => [
+            'title' => 'No coding platform, deploy instantly',
+            'steps' => [
+                ['title' => 'Create', 'description' => 'Just click on the Create Agent button to get started and choose between a widget and a custom GPT'],
+                ['title' => 'Train', 'description' => 'Upload documents, add website content, or connect your data sources to train your AI chatbot with your business data'],
+                ['title' => 'Deploy', 'description' => 'Embed the chatbot widget on your website or share a direct link to start answering customer questions instantly 24/7'],
+            ],
+        ],
+    ];
+@endphp
+
 <!-- Features Section Wrapper -->
 <div id="features">
-    @if (isset($landing['features']) && count($landing['features']['short']) !== 0)
+    @if (isset($features) && count($features['short']) !== 0)
         <section class="bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6">
                 <div class="py-16 md:py-24">
@@ -22,7 +95,7 @@
                             </div>
                         </div>
 
-                        @foreach ($landing['features']['short'] as $feature)
+                        @foreach ($features['short'] as $feature)
                             <div class="relative" data-aos="fade-up" data-aos-anchor="[data-aos-id-blocks]">
                                 <div class="mb-5">
                                     <img src="{{ asset('images/icons/' . $feature['icon']) }}.svg"
@@ -44,7 +117,7 @@
     @endif
 
 
-    @if (isset($landing['features']['slide']['tabs']) && count($landing['features']['slide']['tabs']) !== 0)
+    @if (isset($features['slide']['tabs']) && count($features['slide']['tabs']) !== 0)
         <section class="relative">
             <div class="absolute inset-0 bg-gradient-to-b from-slate-50 to-white pointer-events-none mb-96 md:mb-[40rem]"
                 aria-hidden="true"></div>
@@ -52,17 +125,17 @@
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6">
                 <div class="pt-8 pb-16 md:pt-12 md:pb-24">
 
-                    @if (!empty($landing['features']['slide']['title']) || !empty($landing['features']['slide']['subheadline']))
+                    @if (!empty($features['slide']['title']) || !empty($features['slide']['subheadline']))
                         <!-- Section header -->
                         <div class="max-w-4xl mx-auto text-center pb-16" data-aos="fade-up">
-                            @if (!empty($landing['features']['slide']['title']))
+                            @if (!empty($features['slide']['title']))
                                 <h2 class="text-3xl sm:text-4xl md:text-5xl font-display text-slate-900 mb-4">
-                                    {{ $landing['features']['slide']['title'] }}
+                                    {{ $features['slide']['title'] }}
                                 </h2>
                             @endif
-                            @if (!empty($landing['features']['slide']['subheadline']))
+                            @if (!empty($features['slide']['subheadline']))
                                 <p class="text-lg md:text-xl text-slate-500">
-                                    {{ $landing['features']['slide']['subheadline'] }}
+                                    {{ $features['slide']['subheadline'] }}
                                 </p>
                             @endif
                         </div>
@@ -78,7 +151,7 @@
                         progressStart: null,
                         progressDuration: 4000,
                         progressRaf: null,
-                        totalTabs: {{ count($landing['features']['slide']['tabs']) }},
+                        totalTabs: {{ count($features['slide']['tabs']) }},
                         imagesPreloaded: false,
                         init() {
                             this.preloadImages().then(() => {
@@ -91,7 +164,7 @@
                         },
                         preloadImages() {
                             const imageSources = [
-                                @foreach($landing['features']['slide']['tabs'] as $index => $tab)
+                                @foreach($features['slide']['tabs'] as $index => $tab)
                                 '{{ asset($tab['img']) }}'
                                 @if(!$loop->last),
                                 @endif
@@ -266,7 +339,7 @@
                                                     class="flex items-center gap-3 min-w-max justify-start sm:justify-center">
                                                     <div
                                                         class="inline-flex bg-slate-100 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
-                                                        @foreach ($landing['features']['slide']['tabs'] as $index => $tab)
+                                                        @foreach ($features['slide']['tabs'] as $index => $tab)
                                                             <button
                                                                 class="px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-medium rounded-full transition-all duration-300 focus:outline-none whitespace-nowrap cursor-pointer"
                                                                 data-tab="{{ $index + 1 }}"
@@ -307,7 +380,7 @@
                             </div>
 
                             <!-- Tab content - titles, descriptions and images combined -->
-                            @foreach ($landing['features']['slide']['tabs'] as $index => $tab)
+                            @foreach ($features['slide']['tabs'] as $index => $tab)
                                 <div x-show="tab === '{{ $index + 1 }}'"
                                     x-transition:enter="transition ease-out duration-300"
                                     x-transition:enter-start="opacity-0 transform translate-y-4"
@@ -413,7 +486,7 @@
 
     @include('landing.partials.tone-detection')
 
-    @if (isset($landing['features']['slide2']['slides']) && count($landing['features']['slide2']['slides']) !== 0)
+    @if (isset($features['slide2']['slides']) && count($features['slide2']['slides']) !== 0)
         <section class="bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6">
                 <div class="py-16 md:py-24">
@@ -421,7 +494,7 @@
                     <!-- Section header -->
                     <div class="max-w-3xl mx-auto text-center pb-12 md:pb-16">
                         <h2 class="text-3xl sm:text-4xl md:text-5xl font-display text-slate-900">
-                            {{ $landing['features']['slide2']['title'] }}</h2>
+                            {{ $features['slide2']['title'] }}</h2>
                     </div>
 
                     <!-- Section content -->
@@ -431,7 +504,7 @@
                         <!-- Tabs items (images) -->
                         <div class="md:rtl md:w-5/12 lg:w-1/2 order-1 md:order-none" data-aos="fade-down">
                             <div class="relative flex flex-col">
-                                @foreach ($landing['features']['slide2']['slides'] as $index => $slide)
+                                @foreach ($features['slide2']['slides'] as $index => $slide)
                                     <div class="w-full" x-show="tab === '{{ $index + 1 }}'"
                                         x-transition:enter="transition ease-in-out duration-700 transform order-first"
                                         x-transition:enter-start="opacity-0 -translate-y-16"
@@ -453,7 +526,7 @@
 
                             <!-- Tabs buttons -->
                             <div class="mb-8 md:mb-0 space-y-3">
-                                @foreach ($landing['features']['slide2']['slides'] as $index => $slide)
+                                @foreach ($features['slide2']['slides'] as $index => $slide)
                                     <button
                                         :class="tab !== '{{ $index + 1 }}' ?
                                             'border-slate-200 opacity-60 hover:opacity-80' :
@@ -489,14 +562,14 @@
         </section>
     @endif
 
-    @if (isset($landing['features']['steps']['steps']) && count($landing['features']['steps']['steps']) !== 0)
+    @if (isset($features['steps']['steps']) && count($features['steps']['steps']) !== 0)
         <section class="relative py-16 md:py-24 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900">
             <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
                 <!-- Section header -->
                 <div class="text-center mb-12 md:mb-16" data-aos="fade-up">
                     <h2 class="text-3xl sm:text-4xl md:text-5xl font-display text-white mb-4">
-                        {{ $landing['features']['steps']['title'] }}
+                        {{ $features['steps']['title'] }}
                     </h2>
                 </div>
 
@@ -510,11 +583,11 @@
                             <span class="text-2xl font-bold text-white">1</span>
                         </div>
                         <h3 class="text-xl font-semibold text-white mb-3">
-                            {{ $landing['features']['steps']['steps'][0]['title'] }}
+                            {{ $features['steps']['steps'][0]['title'] }}
                         </h3>
-                        @if (isset($landing['features']['steps']['steps'][0]['description']))
+                        @if (isset($features['steps']['steps'][0]['description']))
                             <p class="text-slate-400">
-                                {{ $landing['features']['steps']['steps'][0]['description'] }}
+                                {{ $features['steps']['steps'][0]['description'] }}
                             </p>
                         @endif
                     </div>
@@ -526,11 +599,11 @@
                             <span class="text-2xl font-bold text-white">2</span>
                         </div>
                         <h3 class="text-xl font-semibold text-white mb-3">
-                            {{ $landing['features']['steps']['steps'][1]['title'] }}
+                            {{ $features['steps']['steps'][1]['title'] }}
                         </h3>
-                        @if (isset($landing['features']['steps']['steps'][1]['description']))
+                        @if (isset($features['steps']['steps'][1]['description']))
                             <p class="text-slate-400">
-                                {{ $landing['features']['steps']['steps'][1]['description'] }}
+                                {{ $features['steps']['steps'][1]['description'] }}
                             </p>
                         @endif
                     </div>
@@ -542,11 +615,11 @@
                             <span class="text-2xl font-bold text-white">3</span>
                         </div>
                         <h3 class="text-xl font-semibold text-white mb-3">
-                            {{ $landing['features']['steps']['steps'][2]['title'] }}
+                            {{ $features['steps']['steps'][2]['title'] }}
                         </h3>
-                        @if (isset($landing['features']['steps']['steps'][2]['description']))
+                        @if (isset($features['steps']['steps'][2]['description']))
                             <p class="text-slate-400">
-                                {{ $landing['features']['steps']['steps'][2]['description'] }}
+                                {{ $features['steps']['steps'][2]['description'] }}
                             </p>
                         @endif
                     </div>

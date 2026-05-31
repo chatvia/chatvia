@@ -25,6 +25,7 @@ class FunctionsController extends Controller
         abort_unless(has_team_permission('account.functions'), 404);
 
         $functions = $request->user()->functions()
+            ->withCount('agents')
             ->latest()
             ->get()
             ->map(fn (AgentFunction $f): array => [
@@ -38,9 +39,9 @@ class FunctionsController extends Controller
                 // Header name isn't a secret, so prefill it; the value never leaves the server.
                 'auth_header_name' => $f->auth_type === 'header' ? ($f->auth_config['name'] ?? '') : '',
                 'has_auth_value' => $f->auth_config !== null,
-                'enabled' => $f->enabled,
+                'is_enabled' => $f->is_enabled,
                 'created_at' => $f->created_at?->toFormattedDateString(),
-                'agents_count' => $f->agents()->count(),
+                'agents_count' => $f->agents_count,
             ])
             ->all();
 

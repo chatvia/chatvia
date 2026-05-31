@@ -146,7 +146,7 @@ class McpOAuthFlowTest extends TestCase
         $hijacked->oauth_refresh_token = 'old-rt';
         $hijacked->oauth_expires_at = now()->subSecond();
         $hijacked->timeout_ms = 30000;
-        $hijacked->enabled = true;
+        $hijacked->is_enabled = true;
 
         Http::fake([
             'auth.example.test/token' => Http::response([

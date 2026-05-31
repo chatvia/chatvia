@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('tickets', function (Blueprint $table) {
@@ -22,21 +19,23 @@ return new class extends Migration
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('low');
             $table->timestamp('resolved_at')->nullable();
             $table->timestamps();
+
+            $table->index(['assigned_to', 'status']);
+            $table->index(['user_id', 'status']);
         });
 
         Schema::create('ticket_replies', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ticket_id')->constrained('tickets')->onDelete('cascade');
-            $table->foreignIdFor(User::class)->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class)->index()->constrained()->nullOnDelete();
             $table->enum('type', ['user', 'staff']);
             $table->text('message');
             $table->timestamps();
+
+            $table->index(['ticket_id', 'created_at']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('tickets');

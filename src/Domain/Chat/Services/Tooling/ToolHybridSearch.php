@@ -52,14 +52,14 @@ class ToolHybridSearch
         $sql = <<<SQL
 WITH mcp_vector AS (
     SELECT 'mcp' AS kind, t.id,
-           ROW_NUMBER() OVER (ORDER BY t.embedding <=> ?::vector({$dims}) ASC) AS rank
+           ROW_NUMBER() OVER (ORDER BY t.embedding <-> ?::vector({$dims})) AS rank
     FROM mcp_tools t
     INNER JOIN mcp_servers s ON s.id = t.mcp_server_id
     INNER JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
     WHERE s.enabled = true
       AND t.enabled = true
       AND t.embedding IS NOT NULL
-    ORDER BY t.embedding <=> ?::vector({$dims}) ASC
+    ORDER BY t.embedding <-> ?::vector({$dims})
     LIMIT ?
 ),
 mcp_bm25 AS (
@@ -81,12 +81,12 @@ mcp_bm25 AS (
 ),
 fn_vector AS (
     SELECT 'fn' AS kind, f.id,
-           ROW_NUMBER() OVER (ORDER BY f.embedding <=> ?::vector({$dims}) ASC) AS rank
+           ROW_NUMBER() OVER (ORDER BY f.embedding <-> ?::vector({$dims})) AS rank
     FROM functions f
     INNER JOIN agent_function af ON af.function_id = f.id AND af.agent_id = ?
     WHERE f.enabled = true
       AND f.embedding IS NOT NULL
-    ORDER BY f.embedding <=> ?::vector({$dims}) ASC
+    ORDER BY f.embedding <-> ?::vector({$dims})
     LIMIT ?
 ),
 fn_bm25 AS (
@@ -137,6 +137,12 @@ LIMIT ?
 SQL;
 
         $startedAt = microtime(true);
+
+        // No per-query vchordrq GUCs. prefilter is a database-wide default
+        // (ALTER DATABASE ... SET vchordrq.prefilter = on, in the vchordrq
+        // install migration); probes stays at its empty default because the flat
+        // mcp_tools/functions indexes (no `lists`) require 0 probes. So this runs
+        // as a plain query with no wrapping transaction.
         $rows = DB::select($sql, [
             $vectorString, $agent->id, $vectorString, $candidateLimit,  // mcp_vector
             $userMessage, $agent->id, $candidateLimit,                  // mcp_bm25

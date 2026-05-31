@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('posts', function (Blueprint $table) {
@@ -21,9 +18,9 @@ return new class extends Migration
             $table->string('image_path')->nullable();
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamp('published_at')->nullable();
-            $table->json('meta')->nullable();
-            $table->boolean('featured')->default(false);
-            $table->boolean('popular')->default(false);
+            $table->jsonb('meta')->nullable();
+            $table->boolean('is_featured')->default(false);
+            $table->boolean('is_popular')->default(false);
             $table->unsignedInteger('views')->default(0);
             $table->timestamps();
 
@@ -31,9 +28,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('posts');

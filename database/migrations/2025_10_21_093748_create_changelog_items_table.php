@@ -7,26 +7,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('changelog_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('changelog_id')->constrained()->cascadeOnDelete();
-            $table->string('type'); // new_features, improvements, bug_fixes, breaking_changes, core_features
+            $table->string('type');
             $table->text('description');
             $table->timestamps();
         });
 
-        // Insert initial changelog data
         $this->seedChangelogData();
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('changelog_items');
@@ -36,7 +29,6 @@ return new class extends Migration
     {
         $now = now();
 
-        // Version 08-09-2025
         $changelog1 = DB::table('changelogs')->insertGetId([
             'version' => '08-09-2025',
             'release_date' => '2025-09-08 00:00:00',
@@ -53,7 +45,6 @@ return new class extends Migration
             ['changelog_id' => $changelog1, 'type' => 'improvements', 'description' => 'Improved chat interface with better message handling', 'created_at' => $now, 'updated_at' => $now],
         ]);
 
-        // Version 31-08-2025
         $changelog2 = DB::table('changelogs')->insertGetId([
             'version' => '31-08-2025',
             'release_date' => '2025-08-31 00:00:00',
@@ -66,7 +57,6 @@ return new class extends Migration
             ['changelog_id' => $changelog2, 'type' => 'new_features', 'description' => 'User interface refinements with additional customization options', 'created_at' => $now, 'updated_at' => $now],
         ]);
 
-        // Version 22-08-2025
         $changelog3 = DB::table('changelogs')->insertGetId([
             'version' => '22-08-2025',
             'release_date' => '2025-08-22 00:00:00',
@@ -83,7 +73,6 @@ return new class extends Migration
             ['changelog_id' => $changelog3, 'type' => 'new_features', 'description' => 'Performance improvements', 'created_at' => $now, 'updated_at' => $now],
         ]);
 
-        // Version 14-08-2025
         $changelog4 = DB::table('changelogs')->insertGetId([
             'version' => '14-08-2025',
             'release_date' => '2025-08-14 00:00:00',
@@ -96,7 +85,6 @@ return new class extends Migration
             ['changelog_id' => $changelog4, 'type' => 'new_features', 'description' => 'Added Arabic font', 'created_at' => $now, 'updated_at' => $now],
         ]);
 
-        // Version 13-08-2025
         $changelog5 = DB::table('changelogs')->insertGetId([
             'version' => '13-08-2025',
             'release_date' => '2025-08-13 00:00:00',
@@ -111,7 +99,6 @@ return new class extends Migration
             ['changelog_id' => $changelog5, 'type' => 'bug_fixes', 'description' => 'Fixed a bug with PDF parsing and extraction', 'created_at' => $now, 'updated_at' => $now],
         ]);
 
-        // Version 11-08-2025
         $changelog6 = DB::table('changelogs')->insertGetId([
             'version' => '11-08-2025',
             'release_date' => '2025-08-11 00:00:00',

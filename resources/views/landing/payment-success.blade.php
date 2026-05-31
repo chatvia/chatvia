@@ -26,28 +26,10 @@
             <p class="mb-8 text-slate-600">Please wait while we securely process your payment. This may take a few moments.
             </p>
 
-            <!-- Processing Message -->
-            <div class="mb-6 rounded-xl bg-blue-50 p-6 border border-blue-200">
-                <div class="flex items-center justify-center gap-3 text-blue-700">
-                    <svg class="h-5 w-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="font-medium">We're securely processing your payment...</span>
-                </div>
-            </div>
-
             <!-- Login Button -->
-            <a href="{{ route('login') }}"
+            <a href="{{ route('home') }}"
                 class="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
-                    </path>
-                </svg>
-                Continue to Login
+                Go to Home Page
             </a>
 
             <!-- Additional Info -->

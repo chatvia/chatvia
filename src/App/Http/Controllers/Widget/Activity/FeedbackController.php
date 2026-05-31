@@ -24,6 +24,6 @@ class FeedbackController
             ->setConversationId($request->header('X-THREAD-ID'))
             ->feedback($request->header('X-MESSAGE-ID'), $request->boolean('feedback') ? 'positive' : 'negative');
 
-        return new WidgetAckData();
+        return new WidgetAckData;
     }
 }

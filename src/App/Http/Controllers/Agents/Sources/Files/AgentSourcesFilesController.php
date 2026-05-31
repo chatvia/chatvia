@@ -29,12 +29,11 @@ class AgentSourcesFilesController
         $fileType = $request->input('file_type');
 
         if ($fileType) {
-            // Filter by specific file type
             $files = match ($fileType) {
-                'pdf' => $agent->pdfFiles()->withCount('agents')->get(),
-                'word' => $agent->wordFiles()->withCount('agents')->get(),
-                'audio' => $agent->audioFiles()->withCount('agents')->get(),
-                'video' => $agent->videoFiles()->withCount('agents')->get(),
+                'pdf' => $agent->pdfFiles()->withCount(['agents', 'chunks'])->get(),
+                'word' => $agent->wordFiles()->withCount(['agents', 'chunks'])->get(),
+                'audio' => $agent->audioFiles()->withCount(['agents', 'chunks'])->get(),
+                'video' => $agent->videoFiles()->withCount(['agents', 'chunks'])->get(),
                 default => throw new Exception('Invalid file type'),
             };
         } else {
@@ -44,7 +43,7 @@ class AgentSourcesFilesController
                     config('mimes.pdf'),
                     config('mimes.word')
                 ))
-                ->withCount('agents')
+                ->withCount(['agents', 'chunks'])
                 ->get();
         }
 

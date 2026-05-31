@@ -5,6 +5,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileText } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Source {
     content: string;
@@ -52,16 +55,16 @@ const formatSourceSubtitle = (source: Source) => {
         <DialogTrigger asChild>
             <Button variant="outline" size="sm" class="h-7 px-2 text-xs" :disabled="sourcesCount === 0">
                 <FileText class="mr-1 h-3 w-3" />
-                {{ sourcesCount }} Source{{ sourcesCount !== 1 ? 's' : '' }}
+                {{ t('sources.source_count', { count: sourcesCount }, { plural: sourcesCount }) }}
             </Button>
         </DialogTrigger>
         <DialogContent class="max-h-[80vh] max-w-4xl">
             <DialogHeader>
                 <DialogTitle class="flex items-center gap-2">
                     <FileText class="h-5 w-5" />
-                    Knowledge Sources
+                    {{ t('sources.title') }}
                 </DialogTitle>
-                <DialogDescription> {{ sourcesCount }} source{{ sourcesCount !== 1 ? 's' : '' }} used to generate this response </DialogDescription>
+                <DialogDescription>{{ t('sources.description', { count: sourcesCount }, { plural: sourcesCount }) }}</DialogDescription>
             </DialogHeader>
 
             <ScrollArea class="max-h-[60vh] pr-4">
@@ -89,7 +92,9 @@ const formatSourceSubtitle = (source: Source) => {
                             <Badge v-if="source.metadata.file_name" variant="outline" class="text-xs">
                                 {{ source.metadata.file_name }}
                             </Badge>
-                            <Badge v-if="source.metadata.page" variant="outline" class="text-xs"> Page {{ source.metadata.page }} </Badge>
+                            <Badge v-if="source.metadata.page" variant="outline" class="text-xs">{{
+                                t('sources.page_label', { page: source.metadata.page })
+                            }}</Badge>
                         </div>
                     </div>
                 </div>

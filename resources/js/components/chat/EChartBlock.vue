@@ -15,7 +15,6 @@
  *     runtime is pure JSON-to-canvas, no eval, so this is safe to render
  *     directly.
  */
-import { usePage } from '@inertiajs/vue3';
 import {
     BarChart,
     FunnelChart,
@@ -45,7 +44,7 @@ import {
 } from 'echarts/components';
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
-import { computed, provide } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, ref } from 'vue';
 import VChart, { THEME_KEY } from 'vue-echarts';
 
 use([
@@ -88,16 +87,30 @@ const props = defineProps<{
     height?: number;
 }>();
 
-// Match the chart theme to the app's dark/light mode so colors look native.
-// Inertia stores the theme on the shared `appearance` prop.
-const page = usePage<{ appearance?: { theme?: 'dark' | 'light' | 'system' } }>();
-const theme = computed<'dark' | 'light'>(() => {
-    const t = page.props.appearance?.theme;
-    if (t === 'dark') return 'dark';
-    if (t === 'light') return 'light';
-    // 'system' or undefined → fall through to the OS preference.
-    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+// Match the chart theme to the *actual* applied site theme. useAppearance
+// toggles a `dark` class on <html> as the single source of truth — reading
+// Inertia's shared prop is unreliable here because some chat surfaces
+// (embedded widget, hosted chat) don't go through Inertia. Observe the
+// class so the chart re-themes when the user toggles light/dark live.
+// In light mode we pass `undefined` so ECharts uses its default styling,
+// letting the `bg-card` container's color show through the canvas.
+const isDark = ref(false);
+let observer: MutationObserver | null = null;
+
+onMounted(() => {
+    isDark.value = document.documentElement.classList.contains('dark');
+    observer = new MutationObserver(() => {
+        isDark.value = document.documentElement.classList.contains('dark');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 });
+
+onBeforeUnmount(() => {
+    observer?.disconnect();
+    observer = null;
+});
+
+const theme = computed<'dark' | undefined>(() => (isDark.value ? 'dark' : undefined));
 
 provide(THEME_KEY, theme);
 

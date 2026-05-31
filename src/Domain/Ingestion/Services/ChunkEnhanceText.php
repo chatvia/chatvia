@@ -12,7 +12,7 @@ class ChunkEnhanceText
 {
     public function enhanceText(Chunk $chunk, PageData $page, ?PageData $previousPage = null, ?PageData $nextPage = null): void
     {
-        if ($chunk->enhanced) {
+        if ($chunk->is_enhanced) {
             return;
         }
 
@@ -50,9 +50,9 @@ class ChunkEnhanceText
             'questions' => $questionsText !== '' ? $questionsText : null,
             'questions_embedding' => $questionsText !== '' ? embed($questionsText, true) : null,
             'questions_embedding_bm25' => $questionsText !== '' ? Bm25Tokenizer::expression($questionsText) : null,
-            'cost_in_cents' => $costInCents,
+            'cost_in_micro_cents' => CostCalculator::centsToMicroCents($costInCents),
             'summary' => $summary,
-            'enhanced' => true,
+            'is_enhanced' => true,
         ]);
     }
 }

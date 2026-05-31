@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Agents;
 
 use App\Hosting\Rules\SubdomainRule;
+use Domain\Agents\Data\UpdateAgentData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,5 +22,15 @@ class UpdateAgentRequest extends FormRequest
             'system_instructions' => ['required', 'string'],
             'is_public' => ['required', 'boolean'],
         ];
+    }
+
+    public function toData(): UpdateAgentData
+    {
+        return new UpdateAgentData(
+            name: $this->string('name')->toString(),
+            sub_domain: $this->string('sub_domain')->toString(),
+            system_instructions: $this->string('system_instructions')->toString(),
+            is_public: $this->boolean('is_public'),
+        );
     }
 }

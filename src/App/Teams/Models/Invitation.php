@@ -3,6 +3,7 @@
 namespace App\Teams\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -32,10 +33,9 @@ use Illuminate\Support\Carbon;
 #[Guarded([
     'id',
 ])]
+#[Table(name: 'team_invitations')]
 class Invitation extends Model
 {
-    protected $table = 'team_invitations';
-
     /**
      * Get the team this invitation is for.
      */

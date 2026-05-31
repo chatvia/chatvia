@@ -8,7 +8,7 @@ use Domain\Connectors\Data\ToggledConnectorToolData;
 use RuntimeException;
 
 /**
- * Flip the `enabled` flag on a single tool inside a connector. Throws when the
+ * Flip the `is_enabled` flag on a single tool inside a connector. Throws when the
  * tool doesn't belong to the given server so the caller can surface a 404.
  */
 class ToggleMcpToolAction
@@ -22,11 +22,11 @@ class ToggleMcpToolAction
             throw new RuntimeException('Tool not found.');
         }
 
-        $tool->forceFill(['enabled' => ! $tool->enabled])->save();
+        $tool->forceFill(['is_enabled' => ! $tool->is_enabled])->save();
 
         return new ToggledConnectorToolData(
             id: $tool->id,
-            enabled: (bool) $tool->enabled,
+            is_enabled: (bool) $tool->is_enabled,
         );
     }
 }

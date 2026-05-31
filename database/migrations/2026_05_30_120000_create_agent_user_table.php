@@ -9,12 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('agent_user', function (Blueprint $table) {
-            $table->id();
             $table->foreignId('agent_id')->constrained('agents')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
 
-            $table->unique(['agent_id', 'user_id']);
-            // Reverse direction: "what agents can this chatter access?"
+            $table->primary(['agent_id', 'user_id']);
+
             $table->index('user_id');
         });
     }

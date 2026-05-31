@@ -15,6 +15,7 @@ use App\Http\Controllers\Agents\Analytics\AgentToneController;
 use App\Http\Controllers\Agents\Analytics\AgentToneDataController;
 use App\Http\Controllers\Agents\Analytics\AgentTopicsController;
 use App\Http\Controllers\Agents\Analytics\AgentTopicsDataController;
+use App\Http\Controllers\Agents\Bar\BarPreviewController;
 use App\Http\Controllers\Agents\BusinessProfile\AgentBusinessProfileController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agents\ChatLog\AgentChatLogReviseAnswerController;
@@ -23,29 +24,25 @@ use App\Http\Controllers\Agents\ChatLog\ConversationPulseController as ChatLogCo
 use App\Http\Controllers\Agents\ChatLog\ConversationsController as ChatLogConversationsController;
 use App\Http\Controllers\Agents\ChatLog\CountriesController as ChatLogCountriesController;
 use App\Http\Controllers\Agents\ChatLog\TopicsController as ChatLogTopicsController;
-use App\Http\Controllers\Agents\Embed\EmbedController;
 use App\Http\Controllers\Agents\Handoff\AgentHandoffController;
-use App\Http\Controllers\Agents\Identity\AgentIdentityController;
-use App\Http\Controllers\Agents\Identity\RegenerateAgentAuthSecretController;
 use App\Http\Controllers\Agents\Handoff\HandoffTypingController;
 use App\Http\Controllers\Agents\Handoff\MarkHandoffReadController;
 use App\Http\Controllers\Agents\Handoff\ReturnHandoffController;
 use App\Http\Controllers\Agents\Handoff\SendHandoffMessageController;
 use App\Http\Controllers\Agents\Handoff\TakeoverHandoffController;
+use App\Http\Controllers\Agents\Identity\AgentIdentityController;
+use App\Http\Controllers\Agents\Identity\RegenerateAgentAuthSecretController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsExportController;
 use App\Http\Controllers\Agents\Leads\AgentLeadsSettingsController;
 use App\Http\Controllers\Agents\Members\AgentMembersController;
-use App\Http\Controllers\Agents\Models\AgentModelsController;
-use App\Http\Controllers\Agents\Models\AgentModelsSettingsController;
-use App\Http\Controllers\Agents\Models\ToggleAgentModelController;
 use App\Http\Controllers\Agents\Persona\AgentShowPersonaController;
-use App\Http\Controllers\Agents\Bar\BarPreviewController;
 use App\Http\Controllers\Agents\Playground\AgentPlaygroundController;
-use App\Http\Controllers\Agents\Setup\BarSetupController;
 use App\Http\Controllers\Agents\RenameAgentController;
 use App\Http\Controllers\Agents\Security\AgentSecurityUpdateController;
 use App\Http\Controllers\Agents\Settings\AgentSettingsController;
+use App\Http\Controllers\Agents\Setup\SetupController;
+use App\Http\Controllers\Agents\Setup\UpdateAgentLlmController;
 use App\Http\Controllers\Agents\Sources\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorAttachController;
 use App\Http\Controllers\Agents\Sources\Connectors\AgentConnectorDisconnectController;
@@ -90,9 +87,7 @@ use App\Http\Controllers\Agents\Sources\Youtube\RetrainAgentYoutubeController;
 use App\Http\Controllers\Agents\Starters\AgentStartersController;
 use App\Http\Controllers\Agents\SubDomain\AgentsGenerateRandomSubDomainController;
 use App\Http\Controllers\Agents\Team\AgentTeamController;
-use App\Http\Controllers\Agents\Templates\AgentTemplateController;
 use App\Http\Controllers\Agents\Topics\AgentTopicsController as TopicsResourceController;
-use App\Http\Controllers\Agents\Widget\WidgetController;
 use App\Http\Controllers\Agents\Widget\WidgetPreviewController;
 use App\Http\Controllers\Agents\Workflow\AgentWorkflowController;
 use App\Http\Controllers\Countries\CountriesListController;
@@ -112,19 +107,23 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('analytics/metrics', AgentMetricsController::class)->name('analytics.metrics');
         Route::get('analytics/metrics/data', AgentMetricsDataController::class)->name('metrics.data');
         Route::get('analytics/sentiment', AgentSentimentController::class)->name('analytics.sentiment');
-        Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->name('sentiment.data');
+        Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->middleware('capability:sentiment')->name('sentiment.data');
         Route::get('analytics/tone', AgentToneController::class)->name('analytics.tone');
-        Route::get('analytics/tone/data', AgentToneDataController::class)->name('tone.data');
+        Route::get('analytics/tone/data', AgentToneDataController::class)->middleware('capability:tone')->name('tone.data');
         Route::get('analytics/topics', AgentTopicsController::class)->name('analytics.topics');
-        Route::get('analytics/topics/data', AgentTopicsDataController::class)->name('topics.data');
+        Route::get('analytics/topics/data', AgentTopicsDataController::class)->middleware('capability:topics')->name('topics.data');
         Route::get('analytics/sources', AgentSourcesController::class)->name('analytics.sources');
         Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
 
-        // Topics Management
+        // Topics Management — the index page is allowed through so the Vue
+        // LockedFeature card can render on Starter/Standard; the mutations
+        // are hard-gated.
         Route::get('topics', [TopicsResourceController::class, 'index'])->name('topics.index');
-        Route::post('topics', [TopicsResourceController::class, 'store'])->name('topics.store');
-        Route::patch('topics/{topic}', [TopicsResourceController::class, 'update'])->name('topics.update');
-        Route::delete('topics/{topic}', [TopicsResourceController::class, 'destroy'])->name('topics.destroy');
+        Route::middleware('capability:topics')->group(function (): void {
+            Route::post('topics', [TopicsResourceController::class, 'store'])->name('topics.store');
+            Route::patch('topics/{topic}', [TopicsResourceController::class, 'update'])->name('topics.update');
+            Route::delete('topics/{topic}', [TopicsResourceController::class, 'destroy'])->name('topics.destroy');
+        });
 
         // Update Agent (Persona/Instructions)
         Route::patch('/update', [AgentsController::class, 'update'])->name('update');
@@ -211,11 +210,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Starters API endpoint (used by Widget and Embed components)
         Route::put('starters', [AgentStartersController::class, 'update'])->name('starters.update');
 
-        // Attach/detach an account-level template. Attach flips the agent to
-        // read-through; detach copies the template config onto the agent.
-        Route::post('template', [AgentTemplateController::class, 'store'])->name('template.store');
-        Route::delete('template', [AgentTemplateController::class, 'destroy'])->name('template.destroy');
-
         Route::get('leads', [AgentLeadsController::class, 'index'])->name('leads.index');
         Route::delete('leads', [AgentLeadsController::class, 'destroy'])->name('leads.destroy');
         Route::patch('leads/settings', AgentLeadsSettingsController::class)->name('leads.settings');
@@ -233,29 +227,32 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('logs', [AgentChatLogController::class, 'index'])->name('logs');
         Route::get('logs/conversations', [ChatLogConversationsController::class, 'index'])->name('logs.conversations');
         Route::get('logs/messages/{conversation}', ChatLogConversationMessagesController::class)->name('logs.messages');
-        Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->name('logs.pulse');
+        Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware('capability:pulse')->name('logs.pulse');
         Route::get('logs/topics', ChatLogTopicsController::class)->name('logs.topics');
         Route::get('logs/countries', ChatLogCountriesController::class)->name('logs.countries');
         Route::delete('logs/conversations/{conversation}', [ChatLogConversationsController::class, 'destroy'])->name('logs.delete-conversation');
         Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->name('logs.revise-answer');
 
-        // Handoff (Admin Takeover) Routes
-        Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->name('handoff.pending');
-        Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->name('handoff.takeover');
-        Route::post('handoff/{conversation}/return', ReturnHandoffController::class)->name('handoff.return');
-        Route::post('handoff/{conversation}/message', SendHandoffMessageController::class)->name('handoff.message');
-        Route::post('handoff/{conversation}/typing', HandoffTypingController::class)->name('handoff.typing');
-        Route::post('handoff/{conversation}/mark-read', MarkHandoffReadController::class)->name('handoff.mark-read');
+        // Handoff (Admin Takeover) Routes — Pro-only capability.
+        Route::middleware('capability:handoff')->group(function (): void {
+            Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->name('handoff.pending');
+            Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->name('handoff.takeover');
+            Route::post('handoff/{conversation}/return', ReturnHandoffController::class)->name('handoff.return');
+            Route::post('handoff/{conversation}/message', SendHandoffMessageController::class)->name('handoff.message');
+            Route::post('handoff/{conversation}/typing', HandoffTypingController::class)->name('handoff.typing');
+            Route::post('handoff/{conversation}/mark-read', MarkHandoffReadController::class)->name('handoff.mark-read');
+        });
 
-        // Setup — three independent surface configuration pages. Each surface
-        // owns its complete settings (text / starters / colors / branding / model
-        // / embed) — no shared storage between Widget and Bar. The bare
-        // `agents.setup` name redirects to Hosted Chat (the default landing).
-        Route::get('setup', fn (\Domain\Agents\Models\Agent $agent) => to_route('agents.setup.hosted_chat', ['agent' => $agent]))
-            ->name('setup');
-        Route::get('setup/hosted-chat', EmbedController::class)->name('setup.hosted_chat');
-        Route::get('setup/widget', WidgetController::class)->name('setup.widget');
-        Route::get('setup/bar', BarSetupController::class)->name('setup.bar');
+        // Setup — one unified configuration page for every agent. All content
+        // settings (text / persona / starters / model / branding) are shared
+        // across the three surfaces; the top tab on the page is a preview
+        // switcher, not a separate config. Surface-specific Behavior + Embed
+        // fields swap on the active preview tab and write to their own
+        // settings groups (widget / bar / embed).
+        Route::get('setup', SetupController::class)->name('setup');
+
+        // Single-model picker — sets the agent's `llm_id` and hyperparameters.
+        Route::patch('llm', UpdateAgentLlmController::class)->name('llm.update');
 
         //        Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
         Route::patch('security', AgentSecurityUpdateController::class)->name('security.update');
@@ -269,11 +266,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Settings
         Route::post('settings/{group}', [AgentSettingsController::class, 'update'])->name('settings.update');
         Route::delete('settings/{group}', [AgentSettingsController::class, 'destroy'])->name('settings.delete');
-
-        // Models API
-        Route::get('/models', [AgentModelsController::class, 'index'])->name('models.index');
-        Route::patch('/models/toggle', ToggleAgentModelController::class)->name('models.toggle');
-        Route::patch('/models/settings', AgentModelsSettingsController::class)->name('models.settings.update');
 
         // Members
         Route::get('team', AgentTeamController::class)->name('team');

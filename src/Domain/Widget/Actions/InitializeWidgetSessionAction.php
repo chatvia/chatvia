@@ -8,8 +8,8 @@ use Domain\Analytics\Services\UserAgentParser;
 use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatSession;
 use Domain\Chat\Services\Memory\ChatMemory;
+use Domain\Widget\Data\WidgetSessionInitData;
 use Domain\Widget\Data\WidgetSessionInitResultData;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
@@ -25,44 +25,40 @@ class InitializeWidgetSessionAction
         private readonly ChatMemory $memory,
     ) {}
 
-    public function execute(Agent $agent, Request $request): WidgetSessionInitResultData
+    public function execute(Agent $agent, WidgetSessionInitData $data): WidgetSessionInitResultData
     {
-        $sessionId = $request->header('X-SESSION-ID');
-        $threadId = $request->header('X-THREAD-ID');
-
         $isNewSession = false;
         $isNewThread = false;
 
         $session = null;
-        if ($sessionId) {
+        if ($data->existingSessionId) {
             // Agent-scoped: a session id from another agent is ignored, and a
             // fresh one is minted for this agent below.
-            $session = $this->widgetVerification->verifySessionExternalId($sessionId, $agent);
-            $session?->update(['last_activity' => now()]);
+            $session = $this->widgetVerification->verifySessionExternalId($data->existingSessionId, $agent);
+            $session?->update(['last_activity_at' => now()]);
         }
 
         if (! $session) {
-            $userAgent = $this->userAgentParser->parse($request->userAgent());
-            $acceptLanguage = $request->header('Accept-Language');
+            $userAgent = $this->userAgentParser->parse($data->userAgent);
             $session = ChatSession::create([
                 'agent_id' => $agent->id,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
+                'ip_address' => $data->ipAddress,
+                'user_agent' => $data->userAgent,
                 'device_type' => $userAgent['device_type'],
                 'browser' => $userAgent['browser'],
                 'os' => $userAgent['os'],
-                'locale' => $acceptLanguage ? Str::substr($acceptLanguage, 0, 2) : 'en',
-                'referrer_url' => $request->header('Referer'),
-                'page_url' => $request->input('page_url') ?? $request->header('Referer'),
+                'locale' => $data->acceptLanguage ? Str::substr($data->acceptLanguage, 0, 2) : 'en',
+                'referrer_url' => $data->referrerUrl,
+                'page_url' => $data->pageUrl ?? $data->referrerUrl,
             ]);
             $isNewSession = true;
         }
 
         $thread = null;
-        if ($threadId) {
+        if ($data->existingThreadId) {
             // Same agent-scoping rule: a thread from another agent never
             // resurfaces here, even if the visitor (or attacker) sends it.
-            $thread = $this->widgetVerification->verifyThreadId($threadId, $agent);
+            $thread = $this->widgetVerification->verifyThreadId($data->existingThreadId, $agent);
             $thread?->update(['last_activity_at' => now()]);
         }
 

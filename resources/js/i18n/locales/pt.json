@@ -1,0 +1,98 @@
+{
+    "common": {
+        "cancel": "Cancelar",
+        "delete": "Excluir",
+        "close": "Fechar",
+        "save": "Salvar",
+        "saving": "Salvando..."
+    },
+    "composer": {
+        "default_placeholder": "Mensagem...",
+        "disabled": "Chat desativado",
+        "stop_recording": "Parar gravação",
+        "start_voice_input": "Iniciar entrada por voz"
+    },
+    "header": {
+        "toggle_sidebar": "Alternar barra lateral",
+        "toggle_expand": "Alternar tela cheia",
+        "incognito_mode": "Anônimo",
+        "delete_conversation": "Excluir conversa",
+        "delete_dialog_title": "Excluir conversa?",
+        "delete_dialog_description": "Esta ação não pode ser desfeita."
+    },
+    "sidebar": {
+        "open_sidebar": "Abrir barra lateral",
+        "new_chat": "Novo chat",
+        "your_chats": "Seus chats",
+        "loading": "Carregando...",
+        "no_conversations": "Nenhuma conversa ainda",
+        "rename_conversation": "Renomear",
+        "clear_all_chats": "Limpar todos os chats",
+        "delete_all_title": "Excluir todas as conversas?",
+        "delete_all_description": "Esta ação não pode ser desfeita. Todas as suas conversas serão excluídas permanentemente.",
+        "delete_all_confirm": "Excluir tudo",
+        "profile": "Perfil",
+        "my_agents": "Meus agentes",
+        "logout": "Sair",
+        "delete_conversation_title": "Excluir conversa",
+        "delete_conversation_description": "Tem certeza de que deseja excluir esta conversa? Esta ação não pode ser desfeita.",
+        "profile_settings_title": "Configurações do perfil",
+        "profile_settings_description": "Atualize as informações da sua conta e a senha.",
+        "profile_name": "Nome",
+        "name_input_placeholder": "Digite seu nome",
+        "profile_email": "E-mail",
+        "email_input_placeholder": "Digite seu e-mail",
+        "current_password": "Senha atual",
+        "current_password_placeholder": "Digite a senha atual",
+        "new_password": "Nova senha",
+        "new_password_placeholder": "Digite a nova senha",
+        "confirm_password": "Confirmar senha",
+        "confirm_password_placeholder": "Confirme a nova senha",
+        "save_changes": "Salvar alterações",
+        "agents_dialog_title": "Meus agentes",
+        "agents_dialog_description": "Gerencie seus agentes de IA e suas configurações.",
+        "loading_agents": "Carregando agentes...",
+        "no_agents": "Nenhum agente encontrado.",
+        "switching_agent": "Alternando...",
+        "switch_to_agent": "Alternar para {name}"
+    },
+    "chat": {
+        "message_limit_reached": "Você atingiu o limite de mensagens",
+        "upgrade_prompt": "Atualize seu plano para continuar conversando",
+        "regenerate_failed": "Não foi possível regenerar a resposta. Tente novamente.",
+        "loading_conversation": "Carregando conversa"
+    },
+    "messages": {
+        "send": "Enviar",
+        "delete_user_message_title": "Excluir esta mensagem?",
+        "delete_user_message_description": "Isso também excluirá a resposta da IA.",
+        "delete_assistant_message_title": "Excluir esta mensagem?",
+        "delete_assistant_message_description": "Isso também excluirá sua mensagem original.",
+        "calling_external": "Chamando fonte de dados externa…",
+        "fetching_data": "Obtendo dados de {label}",
+        "calling": "Chamando {label}",
+        "regenerate_tooltip": "Regenerar resposta"
+    },
+    "errors": {
+        "subscription_expired": "Assinatura expirada",
+        "renew_subscription": "Renovar assinatura",
+        "message_limit_reached": "Limite de mensagens atingido",
+        "upgrade_plan": "Atualizar plano",
+        "model_unavailable": "Modelo indisponível",
+        "too_many_requests": "Muitas solicitações",
+        "connection_lost": "Conexão perdida",
+        "unexpected_response": "Resposta inesperada",
+        "something_went_wrong": "Algo deu errado",
+        "try_again": "Tentar novamente"
+    },
+    "sources": {
+        "title": "Fontes de conhecimento",
+        "source_count": "{count} fonte | {count} fontes",
+        "description": "{count} fonte usada para gerar esta resposta | {count} fontes usadas para gerar esta resposta",
+        "page_label": "Página {page}"
+    },
+    "home": {
+        "logo_alt": "Logotipo",
+        "welcome_message": "Como posso ajudar você hoje?"
+    }
+}

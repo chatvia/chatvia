@@ -37,6 +37,7 @@ class AgentMembersController extends Controller
         abort_unless(has_permission_to_agent($agent, 'agent.members.manage'), 404);
 
         if ($request->wantsJson()) {
+            $agent->loadMissing('user');
             $workspace = $agent->user;
 
             // All chatters owned by the workspace, alphabetised. We don't
@@ -48,11 +49,11 @@ class AgentMembersController extends Controller
             $grantedSet = array_flip($grantedIds);
 
             $rows = $chatters
-                ->map(fn ($chatter) => AgentChatterRowData::fromModelAndGrant(
+                ->map(fn ($chatter): AgentChatterRowData => AgentChatterRowData::fromModelAndGrant(
                     $chatter,
                     isset($grantedSet[$chatter->id]),
                 ))
-                ->sortBy(fn ($row) => [$row->has_access ? 0 : 1, strtolower($row->name)])
+                ->sortBy(fn ($row): array => [$row->has_access ? 0 : 1, strtolower($row->name)])
                 ->values();
 
             return ['data' => AgentChatterRowData::collect($rows, DataCollection::class)];
@@ -78,7 +79,7 @@ class AgentMembersController extends Controller
         }
 
         try {
-            $invitation = $invite->execute($agent, $request->email());
+            $invitation = $invite->execute($request->toData($agent));
         } catch (ChatterInvitationRejectedException $e) {
             return back()->withErrors([$e->field => $e->getMessage()])->withInput();
         }

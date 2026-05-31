@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Settings\Connectors;
 
+use App\Auth\Models\User;
+use Domain\Connectors\Data\AddCustomConnectorData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AddCustomConnectorRequest extends FormRequest
@@ -22,5 +24,19 @@ class AddCustomConnectorRequest extends FormRequest
             'auth_strategy' => ['required', 'in:oauth,token,none'],
             'token' => ['sometimes', 'nullable', 'string', 'max:8192'],
         ];
+    }
+
+    public function toData(): AddCustomConnectorData
+    {
+        /** @var User $user */
+        $user = $this->user();
+
+        return new AddCustomConnectorData(
+            user: $user,
+            name: $this->string('name')->toString(),
+            url: $this->string('url')->toString(),
+            auth_strategy: $this->string('auth_strategy')->toString(),
+            token: $this->input('token'),
+        );
     }
 }

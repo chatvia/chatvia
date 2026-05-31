@@ -28,7 +28,7 @@ class StoreApiFunctionRequest extends FormRequest
             'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],
             'auth_value' => ['nullable', 'required_if:auth_type,bearer,header,hmac', 'string', 'max:8192'],
             'timeout_ms' => ['sometimes', 'integer', 'min:1000', 'max:30000'],
-            'enabled' => ['sometimes', 'boolean'],
+            'is_enabled' => ['sometimes', 'boolean'],
         ];
     }
 

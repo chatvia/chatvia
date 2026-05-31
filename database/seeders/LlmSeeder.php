@@ -34,7 +34,7 @@ class LlmSeeder extends Seeder
         foreach ($llms as $llm) {
             // Add default values for features and reasoning
             $llm['features'] = [];
-            $llm['reasoning'] = false;
+            $llm['is_reasoning'] = false;
 
             Llm::updateOrCreate(
                 ['internal_name' => $llm['internal_name']],

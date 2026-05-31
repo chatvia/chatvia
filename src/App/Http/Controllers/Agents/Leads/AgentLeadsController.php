@@ -20,17 +20,20 @@ class AgentLeadsController
         abort_if(! has_permission_to_agent($agent, 'agent.leads.view'), 403);
 
         if ($request->wantsJson()) {
+            $perPage = (int) min((int) $request->integer('per_page', 50), 200);
+
             $leads = $agent->leads()
+                ->with('conversation:id,external_id')
                 ->orderByDesc('created_at')
-                ->get()
-                ->map(fn ($lead): LeadResourceData => LeadResourceData::fromModel($lead));
+                ->paginate($perPage)
+                ->through(fn ($lead): LeadResourceData => LeadResourceData::fromModel($lead));
 
             return response()->json($leads);
         }
 
         $leadsConnectorAttached = $agent->mcpServers()
             ->where('slug', 'leads')
-            ->where('enabled', true)
+            ->where('is_enabled', true)
             ->exists();
 
         return Inertia::render('agents/Leads', [
@@ -43,7 +46,7 @@ class AgentLeadsController
         ]);
     }
 
-    public function destroy(Request $request, Agent $agent, BulkDeleteAgentLeadsAction $bulkDelete): RedirectResponse
+    public function destroy(Request $request, Agent $agent, BulkDeleteAgentLeadsAction $bulkDelete): RedirectResponse|JsonResponse
     {
         abort_if($request->user()->cannot('delete', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.leads.view'), 403);
@@ -54,6 +57,10 @@ class AgentLeadsController
         ]);
 
         $bulkDelete->execute($agent, $request->input('lead_ids'));
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
 
         return back()->with('success', 'Selected leads have been deleted successfully.');
     }

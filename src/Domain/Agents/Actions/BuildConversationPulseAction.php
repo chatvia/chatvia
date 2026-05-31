@@ -25,13 +25,13 @@ class BuildConversationPulseAction
 {
     public function execute(Agent $agent, ChatConversation $conversation): ChatLogPulseResourceData
     {
-        $userMessages = $conversation->messages()
-            ->where('role', 'user')
+        $allMessages = $conversation->messages()
             ->orderBy('created_at')
-            ->get(['id', 'content', 'tone', 'sentiment', 'created_at']);
+            ->get(['id', 'role', 'content', 'tone', 'sentiment', 'created_at']);
+
+        $userMessages = $allMessages->where('role', 'user')->values();
 
         $points = $userMessages
-            ->values()
             ->map(fn (ChatMessage $message, int $index): ChatLogPulseMessageData => $this->point($message, $index));
 
         return new ChatLogPulseResourceData(
@@ -41,7 +41,7 @@ class BuildConversationPulseAction
                 id: $conversation->external_id,
                 sentiment: $conversation->sentiment,
                 tone: $conversation->tone,
-                total_messages: $conversation->messages()->count(),
+                total_messages: $allMessages->count(),
                 user_messages: $userMessages->count(),
             ),
         );

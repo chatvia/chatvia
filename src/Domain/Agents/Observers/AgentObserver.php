@@ -4,7 +4,6 @@ namespace Domain\Agents\Observers;
 
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentSource;
-use Domain\Agents\Models\Llm;
 use Domain\Agents\Services\Agent as AgentHelper;
 use Domain\Chat\Models\ChatSession;
 use Domain\Sources\Files\Models\SourceFile;
@@ -19,12 +18,20 @@ class AgentObserver
     {
         AgentHelper::cacheAgentName($agent->sub_domain);
 
-        // Every agent exposes Hosted Chat / Widget / Bar surfaces; each surface
-        // picks its own model(s) in setup. Attach every LLM the owner has access
-        // to so per-surface model pickers have the full catalogue to choose from.
-        $llmIds = $agent->user->llms()->pluck('id')->toArray();
+        // Each agent answers with a single LLM. Seed it to the platform's
+        // configured default (config('agent.default_model'), matched by
+        // `llms.internal_name`); fall back to the first available row if the
+        // configured name isn't in the catalog. Operators can swap it in
+        // Setup later.
+        if ($agent->llm_id === null) {
+            $llms = $agent->user->llms();
+            $defaultName = (string) config('agent.default_model');
+            $llmId = $llms->firstWhere('internal_name', $defaultName)?->id ?? $llms->first()?->id;
 
-        $agent->llms()->attach($llmIds);
+            if ($llmId !== null) {
+                $agent->forceFill(['llm_id' => $llmId])->save();
+            }
+        }
     }
 
     public function updated(Agent $agent): void

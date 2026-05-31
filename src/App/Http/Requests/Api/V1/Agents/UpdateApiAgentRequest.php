@@ -22,7 +22,6 @@ class UpdateApiAgentRequest extends FormRequest
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
             'prompt_id' => ['sometimes', 'nullable', 'string', 'prohibits:system_instructions'],
             'metadata' => ['sometimes', 'nullable', 'array'],
-            'analytics_enabled' => ['sometimes', 'boolean'],
             'is_public' => ['sometimes', 'boolean'],
         ];
     }

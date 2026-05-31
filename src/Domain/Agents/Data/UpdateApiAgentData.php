@@ -16,7 +16,6 @@ class UpdateApiAgentData extends Data
         public string|null|Optional $system_instructions,
         public string|null|Optional $prompt_id,
         public array|null|Optional $metadata,
-        public bool|Optional $analytics_enabled,
         public bool|Optional $is_public,
     ) {}
 }

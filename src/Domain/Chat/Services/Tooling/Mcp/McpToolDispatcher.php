@@ -7,6 +7,7 @@ use Domain\Agents\Models\AgentMcpServer;
 use Domain\Chat\Services\Tooling\ToolCallerIdentity;
 use Domain\Chat\Services\Tooling\ToolDispatcherInterface;
 use Domain\Chat\Services\Tooling\ToolDispatchResult;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -35,7 +36,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         $server = AgentMcpServer::query()
             ->where('user_id', $agent->user_id)
             ->where('slug', $slug)
-            ->where('enabled', true)
+            ->where('is_enabled', true)
             ->whereExists(function ($q) use ($agent): void {
                 $q->from('agent_mcp_server')
                     ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
@@ -60,11 +61,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
 
             $dispatchResult = $this->extractResult($result);
 
-            $server->forceFill([
-                'last_invoked_at' => now(),
-                'last_error' => null,
-                'invocation_count' => $server->invocation_count + 1,
-            ])->save();
+            $this->record($server, $agent, $toolName, error: null);
 
             Log::info('MCP tool dispatched', [
                 'server' => $server->slug,
@@ -75,11 +72,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
 
             return $dispatchResult;
         } catch (Throwable $e) {
-            $server->forceFill([
-                'last_invoked_at' => now(),
-                'last_error' => $e->getMessage(),
-                'invocation_count' => $server->invocation_count + 1,
-            ])->save();
+            $this->record($server, $agent, $toolName, error: $e->getMessage());
 
             Log::warning('MCP tool dispatch failed', [
                 'server' => $server->slug,
@@ -200,6 +193,44 @@ class McpToolDispatcher implements ToolDispatcherInterface
     private function error(string $message): ToolDispatchResult
     {
         return ToolDispatchResult::text('Tool error: '.$message);
+    }
+
+    private function record(AgentMcpServer $server, Agent $agent, string $toolName, ?string $error): void
+    {
+        $now = now();
+
+        $server->forceFill([
+            'last_invoked_at' => $now,
+            'last_error' => $error,
+            'invocation_count' => $server->invocation_count + 1,
+        ])->save();
+
+        // Per-agent counter on the server pivot — kept as a summary signal
+        // (how often did this agent touch this server in any way) alongside
+        // the per-tool breakdown below.
+        DB::table('agent_mcp_server')
+            ->where('agent_id', $agent->id)
+            ->where('mcp_server_id', $server->id)
+            ->update([
+                'invocation_count' => DB::raw('invocation_count + 1'),
+                'last_invoked_at' => $now,
+            ]);
+
+        // Per-(agent, tool) counter — drives the tool-level breakdown in
+        // the Sources analytics page. INSERT...SELECT silently no-ops when
+        // the LLM called a tool that isn't in our catalog (e.g. catalog
+        // hasn't synced since the server added a new tool), so a stale
+        // catalog can never break the dispatch path.
+        DB::statement(
+            'INSERT INTO agent_mcp_tool (agent_id, mcp_tool_id, invocation_count, last_invoked_at)
+             SELECT ?, mcp_tools.id, 1, ?
+             FROM mcp_tools
+             WHERE mcp_tools.mcp_server_id = ? AND mcp_tools.name = ?
+             ON CONFLICT (agent_id, mcp_tool_id) DO UPDATE
+               SET invocation_count = agent_mcp_tool.invocation_count + 1,
+                   last_invoked_at = EXCLUDED.last_invoked_at',
+            [$agent->id, $now, $server->id, $toolName]
+        );
     }
 
     /**

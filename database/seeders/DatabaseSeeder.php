@@ -6,11 +6,25 @@ use App\Auth\Models\User;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
 use Illuminate\Database\Seeder;
+use Laravel\Pulse\Facades\Pulse;
+use Laravel\Telescope\Telescope;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Pulse and Telescope capture per-query backtraces and the demo
+        // seeders fire tens of thousands of small writes — without disabling
+        // them, the seed run OOMs around 130MB. Safe to leave on for normal
+        // requests; this is seed-only.
+        if (class_exists(Pulse::class)) {
+            Pulse::stopRecording();
+        }
+        if (class_exists(Telescope::class)) {
+            Telescope::stopRecording();
+        }
+        ini_set('memory_limit', '1G');
+
         // Create the main demo user
         $user = User::firstOrCreate(
             ['email' => 'ahmad@mayahi.net'],
@@ -77,13 +91,13 @@ class DatabaseSeeder extends Seeder
             Agent::factory()->create([
                 'user_id' => $user->id,
                 'team_id' => $team->id,
-                'name' => 'Support Widget',
+                'name' => 'Customer Support',
                 'sub_domain' => 'support',
                 'system_instructions' => prompt('knowledge/system'),
                 'is_public' => 1,
                 'external_id' => '407f7fdfa1cf18',
             ]);
-            $this->command->info('Created Support Widget agent');
+            $this->command->info('Created Customer Support agent');
         }
 
         if (! Agent::where('external_id', 'demo_sales_agent')->exists()) {
@@ -99,10 +113,17 @@ class DatabaseSeeder extends Seeder
             $this->command->info('Created Sales Assistant agent');
         }
 
-        // Seed LLMs first (needed for chat messages)
+        // Seed LLMs first (needed for chat messages + analytics model dimension)
         $this->call(LlmSeeder::class);
 
-        // Seed chat data (sessions, conversations, messages)
+        // Analytics first: lays down 30 days of "historical" rollup data with
+        // no chat_* backing — represents conversations the user has since
+        // deleted. ChatSeeder then layers ~25-45 recent chats on top and fires
+        // matching analytics events, so the analytics page shows the union.
+        $this->call(AnalyticsDemoSeeder::class);
+
+        // Seed chat data (sessions, conversations, messages) — also fires
+        // analytics events for every row it creates.
         $this->call(ChatSeeder::class);
 
         // Seed topics

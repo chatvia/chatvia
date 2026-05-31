@@ -7,24 +7,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('agent_sources', function (Blueprint $table) {
-            $table->id();
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
-            $table->morphs('sourceable');
+            $table->numericMorphs('sourceable');
             $table->unsignedInteger('retrieval_count')->default(0);
-            $table->timestamp('last_retrieved_at')->nullable()->index();
-            $table->unique(['agent_id', 'sourceable_id', 'sourceable_type'], 'agent_sources_unique');
+            $table->timestamp('last_retrieved_at')->nullable();
+
+            $table->primary(['agent_id', 'sourceable_id', 'sourceable_type'], 'agent_sources_pkey');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('agent_sources');

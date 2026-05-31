@@ -114,35 +114,52 @@ class Chunker
                     'content' => $userPrompt,
                 ],
             ],
+            'response_format' => [
+                'type' => 'json_schema',
+                'json_schema' => [
+                    'name' => 'web_chunks',
+                    'strict' => true,
+                    'schema' => $this->webChunksSchema(),
+                ],
+            ],
         ])->throw();
 
-        return $this->parseHtmlChunks($res->json('choices.0.message.content'));
+        $decoded = json_decode(
+            $res->json('choices.0.message.content') ?? '',
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        // Drop empty or sub-threshold chunks. 128 tokens matches the
+        // minimum used by the legacy XML-tag parser — chunks smaller than
+        // that don't carry enough context for useful retrieval.
+        return collect($decoded['chunks'] ?? [])
+            ->map(fn (string $chunk): string => trim($chunk))
+            ->filter(fn (string $chunk): bool => $chunk !== '' && TikToken::countTokens($chunk) >= 128)
+            ->values()
+            ->all();
     }
 
-    public function parseHtmlChunks(string $llmResponse): array
+    /**
+     * Strict JSON schema for the HTML chunker — replaces the legacy
+     * <Chunk>...</Chunk> tag protocol so missing closing tags, markdown
+     * fences, or nested tags can't silently drop chunks.
+     */
+    private function webChunksSchema(): array
     {
-        // Handle empty response
-        if (empty(trim($llmResponse)) || trim($llmResponse) === '""') {
-            return [];
-        }
-
-        $chunks = [];
-
-        // Match all <Chunk>...</Chunk> blocks (case-insensitive, handles multiline)
-        $pattern = '/<Chunk>(.*?)<\/Chunk>/si';
-
-        if (preg_match_all($pattern, $llmResponse, $matches)) {
-            foreach ($matches[1] as $content) {
-                $trimmed = trim($content);
-
-                // Only add non-empty chunks
-                if (! empty($trimmed) && TikToken::countTokens($trimmed) >= 128) {
-                    $chunks[] = $trimmed;
-                }
-            }
-        }
-
-        return $chunks;
+        return [
+            'type' => 'object',
+            'properties' => [
+                'chunks' => [
+                    'type' => 'array',
+                    'items' => ['type' => 'string'],
+                    'description' => 'Semantically coherent, self-contained chunks extracted from the input. Empty array when the input has no meaningful content.',
+                ],
+            ],
+            'required' => ['chunks'],
+            'additionalProperties' => false,
+        ];
     }
 
     public function calculateCost($input, $output): float

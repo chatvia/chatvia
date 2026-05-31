@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\Api\V1\Sources;
 
+use App\Auth\Models\User;
+use App\Http\Requests\Api\V1\Sources\StoreSourceTextRequest;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
-use Domain\Ingestion\Services\Tidy\TextCleaner;
+use Domain\Sources\Text\Actions\CreateAgentSourceTextAction;
+use Domain\Sources\Text\Actions\DeleteAgentSourceTextAction;
 use Domain\Sources\Text\Models\SourceText;
+use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Ingest a raw block of text as a knowledge source. After upload the text is
@@ -26,29 +29,18 @@ class SourceTextController
      * Minimum length 500 characters. Stored in object storage; the path is
      * never returned, only an opaque id.
      */
-    public function store(Request $request, Agent $agent): JsonResponse
+    public function store(StoreSourceTextRequest $request, Agent $agent, CreateAgentSourceTextAction $createText): JsonResponse
     {
-        $request->validate([
-            'content' => ['required', 'string', 'min:500'],
-        ]);
+        // Ingestion ownership stays with the agent's owner — the API token may
+        // belong to a workspace member but the source ends up on the account.
+        /** @var User $owner */
+        $owner = $agent->user;
 
-        $content = Str::of(TextCleaner::clean($request->input('content')))->trim()->toString();
-        $numberOfPages = (int) ceil(str_word_count($content) / 450);
-
-        $filepath = 'users/'.$agent->user_id.'/agents/'.$agent->id.'/train/text/'.Str::uuid()->toString().'.txt';
-        Storage::put($filepath, $content);
-
-        /** @var SourceText $text */
-        $text = SourceText::create([
-            'user_id' => $agent->user_id,
-            'filepath' => $filepath,
-            'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
-            'length' => $numberOfPages,
-            'checksum' => md5($content),
-        ]);
-
-        $agent->texts()->attach($text->id);
-        $text->startTraining($agent);
+        try {
+            $text = $createText->execute($agent, $owner, (string) $request->input('content'));
+        } catch (InviteRejectedException $e) {
+            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
+        }
 
         return response()->json([
             'data' => [
@@ -64,14 +56,12 @@ class SourceTextController
     /**
      * Delete text source
      */
-    public function destroy(Request $request, Agent $agent, int $source): JsonResponse
+    public function destroy(Request $request, Agent $agent, int $source, DeleteAgentSourceTextAction $deleteText): JsonResponse
     {
         /** @var SourceText $text */
         $text = $agent->texts()->where('source_texts.id', $source)->firstOrFail();
 
-        $text->agents()->detach($agent->id);
-        $text->chunks()->delete();
-        $text->delete();
+        $deleteText->execute($agent, $text);
 
         return response()->json(null, 204);
     }

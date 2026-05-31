@@ -2,7 +2,7 @@
     {
         "internal_name": "gpt-oss-120b",
         "external_name": "gpt-oss",
-        "descriptive_name": "GPT OSS 120B",
+        "descriptive_name": "GPT OSS",
         "description": "Open-source GPT model from OpenAI. Powerful and versatile for a wide range of tasks.",
         "context_window": 128000,
         "icon": "gpt.svg",
@@ -10,73 +10,20 @@
         "credits": 1,
         "input_price_per_1m_tokens": 0.15,
         "output_price_per_1m_tokens": 0.60,
-        "is_default": false
+        "provider": "scaleway"
     },
     {
-        "internal_name": "llama-3.3-70b-instruct",
-        "external_name": "llama-3.3-70b",
-        "descriptive_name": "Llama 3.3 70B",
-        "description": "Meta's advanced instruction-tuned model. Excellent for complex reasoning and long-form content.",
-        "context_window": 100000,
-        "icon": "llama.svg",
-        "location": "eu",
-        "credits": 3,
-        "input_price_per_1m_tokens": 0.90,
-        "output_price_per_1m_tokens": 0.90,
-        "is_default": false
-    },
-    {
-        "internal_name": "mistral-nemo-instruct-2407",
-        "external_name": "mistral-nemo",
-        "descriptive_name": "Mistral Nemo",
-        "description": "Mistral's efficient instruction model. Great balance of speed and capability.",
-        "context_window": 128000,
-        "icon": "mistral.svg",
-        "location": "eu",
-        "credits": 1,
-        "input_price_per_1m_tokens": 0.15,
-        "output_price_per_1m_tokens": 0.35,
-        "is_default": false
-    },
-    {
-        "internal_name": "qwen3-235b-a22b-instruct-2507",
-        "external_name": "qwen3-235b",
-        "descriptive_name": "Qwen3 235B",
+        "internal_name": "qwen3.6-35b-a3b",
+        "external_name": "qwen3",
+        "descriptive_name": "Qwen3",
         "description": "Qwen's flagship model. Exceptional performance across all tasks with massive context.",
         "context_window": 250000,
         "icon": "qwen.svg",
         "location": "eu",
-        "credits": 3,
+        "credits": 1,
         "input_price_per_1m_tokens": 0.75,
         "output_price_per_1m_tokens": 2.25,
-        "is_default": false,
-        "reasoning": true
-    },
-    {
-        "internal_name": "deepseek-r1-distill-llama-70b",
-        "external_name": "deepseek",
-        "descriptive_name": "DeepSeek R1 70B",
-        "description": "DeepSeek's reasoning model. Excellent for analytical thinking and problem-solving.",
-        "context_window": 32000,
-        "icon": "deepseek.svg",
-        "location": "eu",
-        "credits": 3,
-        "input_price_per_1m_tokens": 0.90,
-        "output_price_per_1m_tokens": 0.90,
-        "is_default": false,
-        "reasoning": true
-    },
-    {
-        "internal_name": "gemma-3-27b-it",
-        "external_name": "gemma-3",
-        "descriptive_name": "Gemma 3 27B",
-        "description": "Google's latest Gemma model. Powerful instruction-tuned model with excellent performance.",
-        "context_window": 128000,
-        "icon": "gemma.svg",
-        "location": "eu",
-        "credits": 1,
-        "input_price_per_1m_tokens": 0.25,
-        "output_price_per_1m_tokens": 0.50,
-        "is_default": true
+        "reasoning": true,
+        "provider": "scaleway"
     }
 ]

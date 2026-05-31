@@ -69,5 +69,4 @@ class AgentYoutubeController
 
         return response()->json(['message' => 'YouTube video deleted successfully.']);
     }
-
 }

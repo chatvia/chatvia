@@ -23,8 +23,8 @@ use Illuminate\Support\Facades\Storage;
  * @property string $status
  * @property Carbon|null $published_at
  * @property array<array-key, mixed>|null $meta
- * @property bool $featured
- * @property bool $popular
+ * @property bool $is_featured
+ * @property bool $is_popular
  * @property int $views
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -37,13 +37,13 @@ use Illuminate\Support\Facades\Storage;
  * @method static Builder<static>|Post query()
  * @method static Builder<static>|Post whereCreatedAt($value)
  * @method static Builder<static>|Post whereExcerpt($value)
- * @method static Builder<static>|Post whereFeatured($value)
+ * @method static Builder<static>|Post whereIsFeatured($value)
  * @method static Builder<static>|Post whereHtml($value)
  * @method static Builder<static>|Post whereId($value)
  * @method static Builder<static>|Post whereImagePath($value)
  * @method static Builder<static>|Post whereMarkdown($value)
  * @method static Builder<static>|Post whereMeta($value)
- * @method static Builder<static>|Post wherePopular($value)
+ * @method static Builder<static>|Post whereIsPopular($value)
  * @method static Builder<static>|Post wherePublishedAt($value)
  * @method static Builder<static>|Post whereSlug($value)
  * @method static Builder<static>|Post whereStatus($value)
@@ -77,6 +77,6 @@ class Post extends Model
     {
         $query
             ->select('id', 'title', 'image_path', 'slug', 'excerpt', 'published_at')
-            ->where('featured', true)->first();
+            ->where('is_featured', true)->first();
     }
 }

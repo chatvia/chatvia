@@ -2,6 +2,7 @@
 
 namespace Domain\Agents\Data\Resources\Stats;
 
+use App\Country\Models\Country;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Llm;
 use Illuminate\Support\Carbon;
@@ -120,7 +121,11 @@ class StatsResourceData extends Data
 
     private static function getMessagesInRange(Agent $agent, Carbon $startDate, Carbon $endDate): array
     {
-        $messages = $agent->messagesByData($startDate, $endDate)->get();
+        // messagesByData returns rows of {date, count}; key by date string so
+        // the day-by-day lookup below resolves instead of silently returning 0.
+        $messages = $agent->messagesByData($startDate, $endDate)
+            ->get()
+            ->pluck('count', 'date');
 
         $data = [];
         $currentDate = $startDate->copy();
@@ -132,7 +137,7 @@ class StatsResourceData extends Data
             $data[] = [
                 'day' => $dayName,
                 'date' => $dateKey,
-                'value' => $messages[$dateKey] ?? 0,
+                'value' => (int) ($messages[$dateKey] ?? 0),
             ];
 
             $currentDate->addDay();
@@ -149,12 +154,15 @@ class StatsResourceData extends Data
             ->whereIn('external_name', $mostUsedModels->pluck('model_external_name')->toArray())
             ->get();
 
+        // Null-safe: a model may have been renamed or removed from `llms` since
+        // its rollups were written. Fall back to the raw external name rather
+        // than crashing the analytics page on a stale dimension.
         return $mostUsedModels->map(function ($item) use ($llms) {
             $model = $llms->firstWhere('external_name', $item->model_external_name);
 
             return [
-                'name' => $model->descriptive_name,
-                'icon' => $model->icon,
+                'name' => $model?->descriptive_name ?? $item->model_external_name,
+                'icon' => $model?->icon,
                 'count' => $item->usage_count,
                 'percentage' => $item->percentage,
                 'feedback' => [
@@ -185,7 +193,7 @@ class StatsResourceData extends Data
             ->get()
             ->map(fn ($file): array => [
                 'name' => $file->filename,
-                'type' => $file->document_classification,
+                'type' => $file->document_classification ?? 'unknown',
                 'accessed' => $file->retrieval_count,
             ])
             ->toArray();
@@ -193,16 +201,27 @@ class StatsResourceData extends Data
 
     public static function getCountryStats(Agent $agent): array
     {
-        return $agent
-            ->conversationsByCountry()
-            ->get()
-            ->map(fn ($item): array => [
-                'country_code' => strtoupper($item->country_code),
-                'country_name' => $item->country_name,
-                'count' => $item->conversation_count,
-                'percentage' => $item->percentage,
-            ])
-            ->toArray();
+        $rows = $agent->conversationsByCountry()->get();
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        // Look up country names on the main DB; the analytics rollup only
+        // carries the ISO code, since countries lives on a different connection.
+        // countries.code is stored lowercase, so look up in the original case
+        // and uppercase only at the boundary for the frontend.
+        $codes = $rows->pluck('country_code')->map(fn ($code): string => (string) $code)->all();
+        $names = Country::query()
+            ->whereIn('code', $codes)
+            ->pluck('name', 'code');
+
+        return $rows->map(fn ($item): array => [
+            'country_code' => strtoupper((string) $item->country_code),
+            'country_name' => $names[(string) $item->country_code] ?? strtoupper((string) $item->country_code),
+            'count' => (int) $item->conversation_count,
+            'percentage' => (float) $item->percentage,
+        ])->toArray();
     }
 
     public static function getConversationsTrend(Agent $agent, ?Carbon $startDate = null, ?Carbon $endDate = null): array

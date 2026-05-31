@@ -32,7 +32,7 @@ describe('POST /api/v1/agents', function (): void {
             ->assertOk()
             ->assertJsonPath('data.name', 'Support Bot')
             ->assertJsonPath('data.type', 'knowledge_base')
-            ->assertJsonPath('data.created_via', 'external')
+            ->assertJsonPath('data.source', 'api')
             ->assertJsonStructure(['data' => ['id', 'url', 'permanent_url']]);
 
         // No per-agent token is minted anymore — the account key is the only key.
@@ -113,11 +113,11 @@ describe('PATCH /api/v1/agents/{agent}', function (): void {
         $this->withHeaders(authHeaders($this->token))
             ->patchJson("/api/v1/agents/{$agent->external_id}", [
                 'metadata' => ['external_user_id' => 'cus_42'],
-                'analytics_enabled' => false,
+                'is_public' => true,
             ])
             ->assertOk()
             ->assertJsonPath('data.metadata.external_user_id', 'cus_42')
-            ->assertJsonPath('data.analytics_enabled', false);
+            ->assertJsonPath('data.is_public', true);
     });
 
     it('forbids reaching an agent owned by another account', function (): void {
@@ -405,7 +405,6 @@ function createAgentInTeam(User $user, int $teamId, string $name = 'Test Agent')
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'is_public' => false,
-        'analytics_enabled' => true,
-        'created_via' => 'external',
+        'source' => 'api',
     ]);
 }

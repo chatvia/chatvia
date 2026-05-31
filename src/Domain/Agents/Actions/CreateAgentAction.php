@@ -2,8 +2,7 @@
 
 namespace Domain\Agents\Actions;
 
-use App\Auth\Models\User;
-use App\Teams\Models\Team;
+use Domain\Agents\Data\CreateAgentData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Services\Agent as AgentService;
 use Domain\Chat\Models\ChatTopic;
@@ -12,20 +11,17 @@ use Illuminate\Support\Str;
 
 class CreateAgentAction
 {
-    /**
-     * @param  array{name: string}  $attributes
-     */
-    public function execute(User $user, Team $team, array $attributes): Agent
+    public function execute(CreateAgentData $data): Agent
     {
-        return DB::transaction(function () use ($user, $team, $attributes): Agent {
+        return DB::transaction(function () use ($data): Agent {
             $externalId = AgentService::generateRandomExternalId();
-            $agentOwnerId = $user->belongsToWorkspace() ? $user->workspace_id : $user->id;
+            $agentOwnerId = $data->user->belongsToWorkspace() ? $data->user->workspace_id : $data->user->id;
 
             /** @var Agent $agent */
             $agent = Agent::create([
                 'user_id' => $agentOwnerId,
-                'team_id' => $team->id,
-                'name' => $attributes['name'],
+                'team_id' => $data->team->id,
+                'name' => $data->name,
                 'sub_domain' => $externalId,
                 'is_public' => false,
                 'external_id' => $externalId,

@@ -142,7 +142,7 @@ class UserCreditSystem
         $cached = Cache::get(template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->userId]));
 
         if ($cached !== null) {
-            return $cached;
+            return max(0, (int) $cached);
         }
 
         return $this->refreshAvailableMessages();
@@ -209,29 +209,37 @@ class UserCreditSystem
 
     /**
      * Calculate available messages from database.
+     *
+     * Returns the remaining quota for the user's active billing period
+     * (plan limit minus consumed usage), plus the sum of active addons.
+     * Clamped at 0 when usage has overrun the limit.
      */
     private function calculateAvailableMessages(): int
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = User::find($this->userId);
 
         if (! $user) {
             return 0;
         }
 
-        $messages = $user
-            ->credits()
+        /** @var UserCredit|null $credit */
+        $credit = $user->credits()
             ->where('ends_at', '>=', now())
-            ->first()
-            ->value('messages');
+            ->with('usage')
+            ->first();
 
-        $addons = $user
-            ->addons()
-            ->select('amount')
+        if (! $credit) {
+            return 0;
+        }
+
+        $remaining = max(0, $credit->messages - ($credit->usage?->messages ?? 0));
+
+        $addons = (int) $user->addons()
             ->where('type', 'extra_message_credits')
             ->where('ends_at', '>=', now())
-            ->value('amount');
+            ->sum('amount');
 
-        return $addons + $messages;
+        return $remaining + $addons;
     }
 }

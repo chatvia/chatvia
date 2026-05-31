@@ -28,9 +28,7 @@ defineEmits<{
         <template v-if="showIsPublic">
             <div>
                 <h3 class="text-sm font-medium">Access Control</h3>
-                <p class="text-muted-foreground mt-1 text-xs">
-                    A protected agent only loads for visitors you authenticate with a signed token.
-                </p>
+                <p class="text-muted-foreground mt-1 text-xs">A protected agent only loads for visitors you authenticate with a signed token.</p>
             </div>
 
             <div class="flex items-center justify-between rounded-lg border p-4">

@@ -10,3 +10,12 @@ parameters:
     level: 5
 
     treatPhpDocTypesAsCertain: false
+
+    # Larastan treats every `belongsTo` / `hasOne` return as non-null, even
+    # when the FK column is nullable — so `$model->relation?->field ?? fallback`
+    # patterns we keep for genuine runtime safety look "redundant" to phpstan.
+    # Suppressing the rule globally is the cheapest correct call; dropping
+    # `?->` per phpstan's hint would introduce real null-deref crashes when
+    # the FK actually is null.
+    ignoreErrors:
+        - identifier: nullsafe.neverNull

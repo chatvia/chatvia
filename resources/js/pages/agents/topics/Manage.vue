@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import LockedFeature from '@/components/LockedFeature.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -6,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
@@ -22,6 +24,10 @@ const props = defineProps<Props>();
 // Permission checks
 const { hasPermission } = useTeamPermissions();
 const canManageTopics = computed(() => hasPermission('agent.topics.manage'));
+
+// Plan capability
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('topics'));
 
 const loading = ref(true);
 const topics = ref<any[]>([]);
@@ -181,7 +187,9 @@ onMounted(() => {
             <Plus class="h-5 w-5" />
         </template>
 
-        <div class="space-y-6">
+        <LockedFeature v-if="!hasAccess" description="Upgrade your plan to manage conversation topics for this agent." />
+
+        <div v-else class="space-y-6">
             <!-- Search and Add -->
             <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div class="relative w-full sm:w-96">

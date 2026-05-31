@@ -45,7 +45,7 @@ class BarPreviewController
             $authToken = Cache::store('redis')->remember(
                 $cacheKey,
                 $cacheTtl,
-                fn () => $signInTokens->issue(
+                fn (): string => $signInTokens->issue(
                     $user,
                     $agent,
                     ttlSeconds: $ttlSeconds,

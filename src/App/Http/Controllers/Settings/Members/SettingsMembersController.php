@@ -138,14 +138,10 @@ class SettingsMembersController extends Controller
     private function buildAgentsPayload(Request $request, User $member): array
     {
         // Only protected agents can have members — public agents are open
-        // to anyone so per-chatter grants are meaningless. The effective
-        // visibility is the template's `is_public` when an `agent_template`
-        // is attached (the accessor's behaviour), otherwise the agent's own
-        // column — COALESCE collapses both into a single SQL filter.
+        // to anyone so per-chatter grants are meaningless.
         $workspaceAgents = $this->workspaceOwner($request)
             ->agents()
-            ->leftJoin('agent_templates', 'agents.agent_template_id', '=', 'agent_templates.id')
-            ->whereRaw('COALESCE(agent_templates.is_public, agents.is_public) = false')
+            ->where('is_public', false)
             ->orderBy('agents.name')
             ->get(['agents.id', 'agents.external_id', 'agents.name']);
 
@@ -154,6 +150,9 @@ class SettingsMembersController extends Controller
         $attached = [];
         $available = [];
 
+        // The relation returns Collection<int, Model>; the rows are Agent
+        // instances by construction, but the static type erases that.
+        /** @var Agent $agent */
         foreach ($workspaceAgents as $agent) {
             $row = ['id' => $agent->external_id, 'name' => $agent->name];
             if (isset($attachedIds[$agent->id])) {

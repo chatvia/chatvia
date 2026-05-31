@@ -25,7 +25,7 @@ class ListConnectorToolsAction
             short_name: $tool->name,
             description: $tool->description,
             parameters: $tool->input_schema,
-            enabled: (bool) $tool->enabled,
+            is_enabled: (bool) $tool->is_enabled,
         ));
 
         return new ConnectorToolsResourceData(

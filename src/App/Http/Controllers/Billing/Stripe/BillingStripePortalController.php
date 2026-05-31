@@ -8,6 +8,7 @@ class BillingStripePortalController
 {
     public function __invoke(Request $request)
     {
-        return $request->user()->redirectToBillingPortal(route('dashboard'));
+        // Cashier's `Billable` trait lives on `UserBilling`, not `User`.
+        return $request->user()->accountBillingOrFail()->redirectToBillingPortal(route('dashboard'));
     }
 }

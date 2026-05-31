@@ -21,6 +21,7 @@ class ChatEmbedController
             'enableThemeSwitcher' => $embedSettings->get('enable_theme_switcher'),
             'defaultTheme' => $embedSettings->get('default_theme'),
             'enableChatExpand' => $embedSettings->get('enable_chat_expand'),
+            'locale' => $embedSettings->get('language') ?: 'auto',
             'chatRoute' => 'chat.embed.show',
             'newChatRoute' => 'chat.embed.home',
         ]);

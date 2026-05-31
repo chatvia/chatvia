@@ -5,8 +5,8 @@ namespace Domain\Agents\Actions;
 use App\Agents\Notifications\ChatterInvitationNotification;
 use App\Auth\Models\User;
 use Domain\Agents\Data\ChatterInvitationData;
+use Domain\Agents\Data\InviteAgentMemberData;
 use Domain\Agents\Exceptions\ChatterInvitationRejectedException;
-use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\ChatterInvitation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -40,9 +40,10 @@ class InviteAgentMemberAction
 {
     private const TTL_DAYS = 7;
 
-    public function execute(Agent $agent, string $email): ChatterInvitationData
+    public function execute(InviteAgentMemberData $data): ChatterInvitationData
     {
-        $email = strtolower(trim($email));
+        $agent = $data->agent;
+        $email = strtolower(trim($data->email));
 
         /** @var ChatterInvitation $invitation */
         $invitation = DB::transaction(function () use ($agent, $email): ChatterInvitation {

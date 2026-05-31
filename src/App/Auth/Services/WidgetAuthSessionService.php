@@ -38,8 +38,8 @@ class WidgetAuthSessionService
 
     /**
      * @param  array<string, mixed>  $meta  optional context attached to the
-     *                                       session — e.g. `['is_playground' => true]`
-     *                                       set by the dashboard Live Preview path.
+     *                                      session — e.g. `['is_playground' => true]`
+     *                                      set by the dashboard Live Preview path.
      * @return array{token: string, expires_at: Carbon}
      */
     public function issue(User $user, Agent $agent, Request $request, array $meta = []): array
@@ -62,7 +62,7 @@ class WidgetAuthSessionService
      * null when unknown, expired, minted for a different agent, or coming from
      * a different IP/User-Agent than the issuing request.
      *
-     * No `created_via` filter: the exchange mints these via
+     * No `source` filter: the exchange mints these via
      * {@see AgentSignInTokenService::verify()}, whose valid subject is the agent
      * owner OR a managed user entitled to the agent — not external users alone.
      * Access was checked at mint time; the token is then bound to (user, agent,

@@ -38,6 +38,6 @@ class TypingController
 
         $broadcastTyping->execute($request->toData($conversation));
 
-        return new WidgetAckData();
+        return new WidgetAckData;
     }
 }

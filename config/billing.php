@@ -42,7 +42,6 @@ return [
                     'pages' => '1000 pages (PDF, Word, Text)',
                     'links' => '1,000 website links',
                     'minutes' => '300 minutes audio/video',
-                    'pdf' => 'Basic PDF processing',
                     'teams' => '1 team',
                     'members' => '3 team members',
                 ],
@@ -55,7 +54,6 @@ return [
                     'pages' => '1000 pages (PDF, Word, Text)',
                     'links' => '1,000 website links',
                     'minutes' => '300 minutes audio/video',
-                    'pdf' => 'Basic PDF processing',
                     'teams' => '1 team',
                     'members' => '3 team members',
                 ],
@@ -103,8 +101,6 @@ return [
                     'pages' => '3,000 pages (PDF, Word, Text)',
                     'links' => '3,000 website links',
                     'minutes' => '1,200 minutes audio/video',
-                    'pdf' => 'Advanced PDF with image understanding',
-                    'ocr' => 'OCR for scanned documents',
                     'sentiment' => 'Sentiment analysis',
                     'teams' => '3 team',
                     'members' => '10 team members',
@@ -118,8 +114,6 @@ return [
                     'pages' => '3,000 pages (PDF, Word, Text)',
                     'links' => '3,000 website links',
                     'minutes' => '1,200 minutes audio/video',
-                    'pdf' => 'Advanced PDF with image understanding',
-                    'ocr' => 'OCR for scanned documents',
                     'sentiment' => 'Sentiment analysis',
                     'teams' => '3 team',
                     'members' => '10 team members',
@@ -168,8 +162,6 @@ return [
                     'pages' => '10,000 pages (PDF, Word, Text)',
                     'links' => '10,000 website links',
                     'minutes' => '10,000 minutes audio/video',
-                    'pdf' => 'Advanced PDF with image understanding',
-                    'ocr' => 'OCR for scanned documents',
                     'sentiment' => 'Sentiment analysis',
                     'tone' => 'Tone analysis',
                     'topics' => 'Topic analysis',
@@ -189,8 +181,6 @@ return [
                     'pages' => '10,000 pages (PDF, Word, Text)',
                     'links' => '10,000 website links',
                     'minutes' => '10,000 minutes audio/video',
-                    'pdf' => 'Advanced PDF with image understanding',
-                    'ocr' => 'OCR for scanned documents',
                     'sentiment' => 'Sentiment analysis',
                     'tone' => 'Tone analysis',
                     'topics' => 'Topic analysis',
@@ -238,16 +228,6 @@ return [
     |
     */
     'comparison_features' => [
-        'advanced_pdf' => [
-            'name' => 'Advanced PDF Processing',
-            'description' => 'Extract and understand complex PDFs with tables, images, and layouts',
-            'capability_key' => 'advanced_pdf',
-        ],
-        'ocr' => [
-            'name' => 'OCR Support',
-            'description' => 'Extract text from images and scanned documents',
-            'capability_key' => 'ocr',
-        ],
         'api' => [
             'name' => 'API Access',
             'description' => 'Integrate with your applications using our REST API',

@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Validates credentials for the agent-scoped chat member login at /chat/login.
+ *
+ * The dashboard login (/login) is owned by Laravel Fortify and does not use
+ * this FormRequest — see Fortify::authenticateUsing() in FortifyServiceProvider.
+ */
 class LoginRequest extends FormRequest
 {
     public function authorize(): bool

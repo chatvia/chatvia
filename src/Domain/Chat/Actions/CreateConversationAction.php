@@ -33,7 +33,7 @@ class CreateConversationAction
             'external_session_id' => $sessionId,
             'external_conversation_id' => $conversationId,
             'external_message_id' => Str::uuid()->toString(),
-            'model' => $data->model,
+            'model' => $data->agent->llm?->external_name ?? 'unknown',
             'message' => $data->message,
             'sent_at' => now(),
             'message_for_llm' => $query,

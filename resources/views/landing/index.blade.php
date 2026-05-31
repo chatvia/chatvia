@@ -1,20 +1,25 @@
 @extends('landing.layouts.app')
 
-@section('title', landing('title') . ' - GDPR Compliant AI Chatbot Platform | EU Hosted')
+@section('title', 'Chatvia.ai - GDPR Compliant AI Chatbot Platform | EU Hosted')
 
 @section('description', 'Build intelligent AI chatbots with ChatVia. 100% EU-hosted infrastructure. GDPR compliant with open-source models like Llama, DeepSeek, Qwen. Your data never leaves EU.')
 
-@section('og_title', landing('title') . ' - GDPR Compliant AI Chatbot Platform')
+@section('og_title', 'Chatvia.ai - GDPR Compliant AI Chatbot Platform')
 
 @section('og_description', 'Transform your customer support with EU-hosted AI chatbots. 100% EU infrastructure. GDPR compliant with open-source AI (Llama, DeepSeek, Qwen, Gemma). Instant 24/7 support.')
 
+@php
+    $preloadImages = $landing['features']['slide']['tabs'] ?? [
+        ['img' => 'images/chatvia/chat-widget.png'],
+        ['img' => 'images/chatvia/gpt.png'],
+        ['img' => 'images/chatvia/training.png'],
+    ];
+@endphp
 @push('preload')
     {{-- Preload first 3 feature images for better performance --}}
-    @if(isset($landing['features']['slide']['tabs']))
-        @foreach(array_slice($landing['features']['slide']['tabs'], 0, 3) as $tab)
-            <link rel="preload" as="image" href="{{ asset($tab['img']) }}">
-        @endforeach
-    @endif
+    @foreach(array_slice($preloadImages, 0, 3) as $tab)
+        <link rel="preload" as="image" href="{{ asset($tab['img']) }}">
+    @endforeach
 @endpush
 
 @section('content')
@@ -27,16 +32,16 @@
 
             @include('landing.partials.hero')
 
-            @include('landing.partials.trust-badges')
+{{--            @include('landing.partials.trust-badges')--}}
 
-            @include('landing.partials.core-features')
+{{--            @include('landing.partials.core-features')--}}
 
             @include('landing.partials.features-bar')
 
             @include('landing.partials.features')
 
             <!-- Why Chatbot Section -->
-            @if(isset($landing['show-why-chatbot']) && $landing['show-why-chatbot'] === true)
+            @if(($landing['show-why-chatbot'] ?? true) === true)
                 <section class="bg-white">
                     <div class="max-w-6xl mx-auto px-4 sm:px-6">
                         <div class="py-16 md:py-24">

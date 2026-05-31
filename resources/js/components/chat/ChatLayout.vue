@@ -7,16 +7,6 @@ import axios from 'axios';
 import isMobile from 'is-mobile';
 import { onMounted, ref, watch } from 'vue';
 
-type AIModel = Domain.Chat.Data.LlmModelData;
-
-interface ModelSettings {
-    temperature: number;
-    top_k: number;
-    top_p: number;
-    presence_penalty: number;
-    frequency_penalty: number;
-}
-
 const props = defineProps({
     appearance: {
         type: Object,
@@ -48,39 +38,12 @@ const props = defineProps({
     },
 });
 
-interface ModelsResponse {
-    models: AIModel[];
-    settings: ModelSettings;
-    default_settings: ModelSettings;
-}
-
 const isMobileDevice = isMobile();
 
 const isSidebarOpen = ref(false);
 
 const _page = usePage();
 const isIncognitoMode = ref(false);
-
-const selectedModel = ref<AIModel | null>(null);
-const availableModels = ref<AIModel[]>([]);
-const isLoadingModels = ref(true);
-
-// Fetch models from API
-const fetchModels = async () => {
-    try {
-        isLoadingModels.value = true;
-        const response = await axios.get<ModelsResponse>(route('chat.models.index'));
-        availableModels.value = response.data.models;
-    } catch (error) {
-        console.error('Failed to fetch models:', error);
-    } finally {
-        isLoadingModels.value = false;
-    }
-};
-
-const findModelById = (modelId: string): AIModel | undefined => {
-    return availableModels.value.find((m) => m.id === modelId);
-};
 
 // Save sidebar state to localStorage when it changes
 watch(isSidebarOpen, (newValue) => {
@@ -100,30 +63,7 @@ function checkScreenSize() {
     }
 }
 
-const getQueryParam = (param: string): string | null => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
-};
-
-onMounted(async () => {
-    // Fetch models first
-    await fetchModels();
-
-    const modelId = getQueryParam('model');
-
-    if (modelId) {
-        const foundModel = findModelById(modelId);
-        if (foundModel) {
-            selectedModel.value = foundModel;
-        } else if (availableModels.value.length > 0) {
-            selectedModel.value = availableModels.value[0];
-        }
-    } else if (availableModels.value.length > 0) {
-        selectedModel.value = availableModels.value[0];
-        // Redirect to include model in URL
-        router.visit(route(route().current()!, { model: selectedModel.value.id }));
-    }
-
+onMounted(() => {
     // Initialize sidebar state from localStorage or hideSidebarOnPageLoad prop
     if (!isMobileDevice && !props.removeSidebar) {
         if (props.hideSidebarOnPageLoad) {
@@ -147,13 +87,11 @@ onMounted(async () => {
 
 const deleteConversation = (conversationId: string) => {
     axios.delete(route('conversations.delete', { conversationId })).then(() => {
-        if (availableModels.value.length > 0) {
-            router.visit(route(props.newChatRoute, { model: availableModels.value[0].id }), {
-                preserveState: false,
-                preserveScroll: false,
-                replace: true,
-            });
-        }
+        router.visit(route(props.newChatRoute), {
+            preserveState: false,
+            preserveScroll: false,
+            replace: true,
+        });
     });
 };
 
@@ -188,28 +126,19 @@ const handleToggleIncognito = (value: boolean) => {
         <!-- Sidebar -->
         <div
             v-if="!removeSidebar"
-            class="fixed top-0 left-0 z-40 h-screen w-64 transition-transform duration-300 ease-in-out"
-            :class="{ '-translate-x-full': !isSidebarOpen }"
+            class="fixed start-0 top-0 z-40 h-screen w-64 transition-transform duration-300 ease-in-out"
+            :class="{ '-translate-x-full rtl:translate-x-full': !isSidebarOpen }"
             v-on-click-outside="closeSidebarOnMobile"
         >
-            <Sidebar
-                :appearance="appearance"
-                v-model:open="isSidebarOpen"
-                :models="availableModels"
-                :defaultModel="selectedModel || undefined"
-                :isLoadingModels="isLoadingModels"
-                :newChatRoute="newChatRoute"
-                class="bg-sidebar h-full w-full"
-            />
+            <Sidebar :appearance="appearance" v-model:open="isSidebarOpen" :newChatRoute="newChatRoute" class="bg-sidebar h-full w-full" />
         </div>
 
         <div
             class="flex h-screen flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out"
-            :class="{ 'md:ml-64': !removeSidebar && isSidebarOpen }"
+            :class="{ 'md:ms-64': !removeSidebar && isSidebarOpen }"
         >
             <Header
                 :token-count="0"
-                :selected-model="selectedModel || { id: '', name: 'Loading...', context: 0, description: '' }"
                 class="w-full flex-shrink-0"
                 @deleteConversation="deleteConversation"
                 @toggleIncognito="handleToggleIncognito"

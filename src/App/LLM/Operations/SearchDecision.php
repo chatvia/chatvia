@@ -35,8 +35,10 @@ class SearchDecision
             ],
         ])->json('choices.0.message.content');
 
-        $response = strtolower(trim($response ?? ''));
-
-        return str_contains($response, 'search');
+        // The prompt mandates a one-word reply ("stay" or "search") and
+        // max_tokens=10 enforces it. Exact-match the trimmed reply so
+        // sentences like "research", "I'll search for X", or
+        // "stay — no need to search" don't false-positive into a KB hit.
+        return strtolower(trim($response ?? '')) === 'search';
     }
 }

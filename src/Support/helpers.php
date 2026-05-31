@@ -127,9 +127,21 @@ if (! function_exists('prompt')) {
 }
 
 if (! function_exists('current_agent')) {
+    /**
+     * Memoised per-request. Chat/widget controllers call this 2–3× per page;
+     * each call previously re-issued the sub_domain/external_id lookup.
+     */
     function current_agent(): ?AgentModel
     {
-        return Agent::resolveAgentFromSubdomain(request()->agentSlug());
+        static $cache = [];
+
+        $slug = request()->agentSlug();
+
+        if ($slug === null) {
+            return null;
+        }
+
+        return $cache[$slug] ??= Agent::resolveAgentFromSubdomain($slug);
     }
 }
 
@@ -308,12 +320,12 @@ if (! function_exists('current_agent_from_widget')) {
 }
 
 if (! function_exists('landing')) {
-    function landing(?string $key = null): string|array
+    function landing(?string $key = null): string|array|null
     {
         $landing = HostConfig::landing(request()->host());
 
         if ($key) {
-            return $landing[$key];
+            return $landing[$key] ?? null;
         }
 
         return $landing;

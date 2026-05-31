@@ -1,3 +1,11 @@
+@php
+    $navigation = landing('navigation') ?? [
+        ['label' => 'Home', 'link' => '/'],
+        ['label' => 'Features', 'link' => '/#features'],
+        ['label' => 'Why Chatvia?', 'link' => '/#why-chatvia'],
+        ['label' => 'Pricing', 'link' => '/pricing'],
+    ];
+@endphp
 <!-- Site header -->
 <header
     class="fixed top-0 left-0 right-0 w-full z-40 bg-white/95 backdrop-blur-sm border-b border-slate-100 transition-all duration-300">
@@ -19,7 +27,7 @@
 
                 <!-- Desktop menu links -->
                 <ul class="flex grow justify-center flex-wrap items-center gap-1">
-                    @foreach (landing()['navigation'] as $navItem)
+                    @foreach ($navigation as $navItem)
                         <li>
                             <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
                                 href="{{ $navItem['link'] }}">{{ $navItem['label'] }}</a>
@@ -92,7 +100,7 @@
                         x-transition:leave="transition ease-out duration-200" x-transition:leave-start="opacity-100"
                         x-transition:leave-end="opacity-0" x-cloak>
                         <ul class="px-5 py-4 space-y-1">
-                            @foreach (landing()['navigation'] as $navItem)
+                            @foreach ($navigation as $navItem)
                                 <li>
                                     <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
                                         href="{{ $navItem['link'] }}" @click="expanded = false">{{ $navItem['label'] }}</a>

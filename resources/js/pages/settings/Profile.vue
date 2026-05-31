@@ -89,35 +89,39 @@ const submit = () => {
                     <CardContent>
                         <form @submit.prevent="submit" class="space-y-6">
                             <div class="grid gap-2">
-                                <Label for="name" class="flex items-center gap-2">
-                                    <UserIcon class="text-muted-foreground size-4" />
-                                    Name
-                                </Label>
-                                <Input
-                                    id="name"
-                                    v-model="form.name"
-                                    required
-                                    autocomplete="name"
-                                    placeholder="Full name"
-                                    class="focus-visible:ring-primary/50 transition-all duration-200"
-                                />
+                                <Label for="name">Name</Label>
+                                <div class="relative">
+                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <UserIcon class="size-4" />
+                                    </div>
+                                    <Input
+                                        id="name"
+                                        v-model="form.name"
+                                        required
+                                        autocomplete="name"
+                                        placeholder="Full name"
+                                        class="focus-visible:ring-primary/50 pl-9 transition-all duration-200"
+                                    />
+                                </div>
                                 <InputError :message="form.errors.name" />
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="email" class="flex items-center gap-2">
-                                    <Mail class="text-muted-foreground size-4" />
-                                    Email address
-                                </Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    v-model="form.email"
-                                    required
-                                    autocomplete="username"
-                                    placeholder="Email address"
-                                    class="focus-visible:ring-primary/50 transition-all duration-200"
-                                />
+                                <Label for="email">Email address</Label>
+                                <div class="relative">
+                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <Mail class="size-4" />
+                                    </div>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        v-model="form.email"
+                                        required
+                                        autocomplete="username"
+                                        placeholder="Email address"
+                                        class="focus-visible:ring-primary/50 pl-9 transition-all duration-200"
+                                    />
+                                </div>
                                 <InputError :message="form.errors.email" />
                             </div>
 

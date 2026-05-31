@@ -62,7 +62,9 @@ trait Chunkable
 
         $totalChunks = $this->expected_chunks ?? 0;
 
-        $importedChunks = $this->chunks()->count();
+        // Prefer `withCount('chunks')` from the caller (avoids N COUNT
+        // queries on list pages); fall back to a per-row count if absent.
+        $importedChunks = $this->chunks_count ?? $this->chunks()->count();
 
         return (int) round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
     }
@@ -83,8 +85,10 @@ trait Chunkable
      */
     public function images(): array
     {
+        // @> containment hits the GIN index on chunks.metadata; the previous
+        // `jsonb_typeof(metadata->'images')` shape was unindexable.
         return $this->chunks()
-            ->whereRaw("jsonb_typeof(metadata->'images') = 'object'")
+            ->where('metadata', '@>', '{"images": {}}')
             ->selectRaw("metadata->'images' AS images")
             ->pluck('images')
             ->flatMap(fn ($json) => collect(is_string($json) ? json_decode($json, true) : (array) $json)->keys())

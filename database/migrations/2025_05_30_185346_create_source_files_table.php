@@ -3,6 +3,7 @@
 use App\Auth\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,14 +12,14 @@ return new class extends Migration
     {
         Schema::create('source_files', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->unique()->nullable();
+            $table->uuid('external_id')->nullable();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
             $table->string('filename');
             $table->enum('filetype', ['pdf', 'word', 'image', 'video', 'audio', 'spreadsheet', 'presentation', 'text', 'markdown']);
             $table->string('filepath')->unique();
-            $table->decimal('size_in_kb');
+            $table->unsignedBigInteger('size_in_kb');
             $table->string('mime_type');
             $table->string('checksum');
             $table->string('parser')->nullable();
@@ -37,9 +38,11 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'checksum']);
-            // List queries scan by owner + status.
+
             $table->index(['user_id', 'status']);
         });
+
+        DB::statement('CREATE UNIQUE INDEX source_files_external_id_unique ON source_files (external_id) WHERE external_id IS NOT NULL');
     }
 
     public function down(): void

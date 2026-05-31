@@ -31,7 +31,7 @@ class AgentSettingsController
      */
     public function update(UpdateAgentSettingsRequest $request, Agent $agent, string $group, UpdateAgentSettingsGroupAction $update): JsonResponse
     {
-        $update->execute($agent, $group, $request->validated());
+        $update->execute($request->toData($agent));
 
         return response()->json(['data' => $agent->settings($group)]);
     }

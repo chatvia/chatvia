@@ -29,7 +29,7 @@ class ProvisionCustomMcpServerAction
                 'auth_value' => $data->strategy === 'token' ? ($data->token ?? '') : null,
                 'headers' => null,
                 'timeout_ms' => 30000,
-                'enabled' => true,
+                'is_enabled' => true,
             ]);
 
             $tools = $this->catalog->refresh($server);

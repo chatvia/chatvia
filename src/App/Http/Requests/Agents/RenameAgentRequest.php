@@ -3,8 +3,8 @@
 namespace App\Http\Requests\Agents;
 
 use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
 use Domain\Agents\Data\RenameAgentData;
+use Domain\Agents\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

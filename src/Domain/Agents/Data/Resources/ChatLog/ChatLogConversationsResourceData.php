@@ -15,7 +15,9 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 class ChatLogConversationsResourceData extends Data
 {
     /**
-     * @param  Collection<int, string>  $lead_conversation_ids
+     * @param  Collection<int, int>  $lead_conversation_ids  conversation
+     *                                                       IDs (PK on chat_conversations) — kept as int to match the source
+     *                                                       query in `getLeadConversationIds()`.
      */
     public function __construct(
         public LengthAwarePaginator $conversations,

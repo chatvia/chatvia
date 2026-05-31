@@ -26,9 +26,10 @@ class AgentMcpAttachmentController
     /** @return array{data: McpServerData} */
     public function store(AttachAgentMcpRequest $request, Agent $agent): array
     {
-        $server = $this->resolveServer($agent, $request->string('mcp_id')->toString());
+        $data = $request->toData($agent);
+        $server = $this->resolveServer($data->agent, $data->mcp_id);
 
-        $agent->mcpServers()->syncWithoutDetaching([$server->id]);
+        $data->agent->mcpServers()->syncWithoutDetaching([$server->id]);
 
         return ['data' => McpServerData::fromModel($server->fresh())];
     }

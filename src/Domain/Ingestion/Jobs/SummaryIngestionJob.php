@@ -68,7 +68,7 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
         // Calculate LLM cost for summarization and analysis
         $costInCents = app(CostCalculator::class)->calculateCostInCents(
             inputText: '',
-            outputText: prompt('file/describe').strip_tags($summary),
+            outputText: prompt('summarization/system').strip_tags($summary),
             pricePerInputMilToken: 2.0,
             pricePerOutputMilToken: 8.0,
         );
@@ -96,7 +96,7 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
             'questions_embedding_bm25' => $questionsText !== '' ? Bm25Tokenizer::expression($questionsText) : null,
             'chunked_using_model' => config('ai.models.chunker'),
             'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
-            'cost_in_cents' => $costInCents,
+            'cost_in_micro_cents' => CostCalculator::centsToMicroCents($costInCents),
             'tokens' => TikToken::countTokens($summary),
             'embedding' => embed(strip_tags($summary), true),
             'embedding_bm25' => Bm25Tokenizer::expression(strip_tags($summary)),

@@ -31,11 +31,11 @@ use Support\Traits\SupportsExternalId;
  * @property string|null $tone
  * @property string|null $feedback
  * @property bool|null $is_response_from_qa
- * @property bool|null $llm_found_answer
+ * @property bool|null $has_llm_found_answer
  * @property int|null $response_time_ms
  * @property int|null $prompt_tokens
  * @property int|null $completion_tokens
- * @property numeric|null $cost
+ * @property int|null $cost_in_micro_cents
  * @property bool|null $is_usage_counted
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -56,7 +56,7 @@ use Support\Traits\SupportsExternalId;
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereCompletionTokens($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereConfidenceScore($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereContent($value)
- * @method static ChatMessageQueryBuilder<static>|ChatMessage whereCost($value)
+ * @method static ChatMessageQueryBuilder<static>|ChatMessage whereCostInMicroCents($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereCreatedAt($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereExpiresAt($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereExternalId($value)
@@ -65,7 +65,7 @@ use Support\Traits\SupportsExternalId;
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereId($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereIsResponseFromQa($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereIsUsageCounted($value)
- * @method static ChatMessageQueryBuilder<static>|ChatMessage whereLlmFoundAnswer($value)
+ * @method static ChatMessageQueryBuilder<static>|ChatMessage whereHasLlmFoundAnswer($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereLlmId($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereMessageCredits($value)
  * @method static ChatMessageQueryBuilder<static>|ChatMessage whereMetadata($value)
@@ -96,11 +96,11 @@ use Support\Traits\SupportsExternalId;
     'tone',
     'feedback',
     'is_response_from_qa',
-    'llm_found_answer',
+    'has_llm_found_answer',
     'response_time_ms',
     'prompt_tokens',
     'completion_tokens',
-    'cost',
+    'cost_in_micro_cents',
     'is_usage_counted',
     'expires_at',
     'read_at',
@@ -123,7 +123,7 @@ class ChatMessage extends Model
             'confidence_score' => 'float',
             'metadata' => 'array',
             'read_at' => 'datetime',
-            'llm_found_answer' => 'boolean',
+            'has_llm_found_answer' => 'boolean',
         ];
     }
 

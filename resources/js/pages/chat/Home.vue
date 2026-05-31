@@ -6,6 +6,9 @@ import { useColorTheme } from '@/composables/useColorTheme';
 import { Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     appearance: {
@@ -51,54 +54,14 @@ const props = defineProps({
     },
 });
 
-const selectedModel = ref();
 const selectedStarter = ref('');
 
 const starters = ref([]);
-
-// Models
-const models = ref([]);
-const defaultModel = ref(null);
-const isLoadingModels = ref(true);
 
 // Usage checking
 const USAGE_CHECK_INTERVAL = 60000; // 1 minute
 const canSendMessages = ref(true);
 const usageCheckInterval = ref(null);
-
-const getQueryParam = (param) => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
-};
-
-// Fetch models
-const fetchModels = async () => {
-    try {
-        isLoadingModels.value = true;
-        const response = await axios.get(route('chat.models.index'));
-        models.value = response.data.models;
-
-        const urlModelId = getQueryParam('model');
-
-        // Validate model from URL - use first valid model if invalid
-        if (urlModelId) {
-            const urlModel = models.value.find((m) => m.id === urlModelId);
-            if (!urlModel) {
-                // Invalid model in URL, redirect with first available model
-                const firstModel = models.value[0] || response.data.default;
-                router.visit(route(props.newChatRoute, { model: firstModel?.id }), { replace: true });
-                return;
-            }
-            defaultModel.value = urlModel;
-        } else {
-            defaultModel.value = response.data.default;
-        }
-    } catch (error) {
-        console.error('Failed to fetch models:', error);
-    } finally {
-        isLoadingModels.value = false;
-    }
-};
 
 const { applyColorTheme } = useColorTheme();
 
@@ -131,15 +94,12 @@ const stopUsageChecking = () => {
     }
 };
 
-onMounted(async () => {
+onMounted(() => {
     // Start usage checking
     startUsageChecking();
 
     // Apply color theme
     applyColorTheme(props.appearance);
-
-    // Fetch models
-    await fetchModels();
 
     // Fetch starters
     axios.get(route('chat.starters')).then((response) => {
@@ -152,14 +112,9 @@ onUnmounted(() => {
     stopUsageChecking();
 });
 
-function updateSelectedModel(newModel) {
-    selectedModel.value = newModel;
-    localStorage.setItem('selectedModel', newModel.id);
-}
-
-async function createNewConversation(message, model) {
-    await axios.post(route('conversations.create'), { message: message, model: model.id }).then((response) => {
-        router.visit(route(props.chatRoute, { conversationId: response.data.id, model: model.id, new: '1' }));
+async function createNewConversation(message) {
+    await axios.post(route('conversations.create'), { message }).then((response) => {
+        router.visit(route(props.chatRoute, { conversationId: response.data.id, new: '1' }));
     });
 }
 
@@ -185,14 +140,19 @@ function handleStarterClick(starter) {
                     <!-- Logo -->
                     <div class="mb-4 flex justify-center">
                         <div class="h-14 w-14 overflow-hidden">
-                            <img v-if="props.appearance.logo" :src="props.appearance.logo" alt="Logo" class="h-full w-full object-contain" />
+                            <img
+                                v-if="props.appearance.logo"
+                                :src="props.appearance.logo"
+                                :alt="t('home.logo_alt')"
+                                class="h-full w-full object-contain"
+                            />
                             <AppLogoIcon v-else class="h-full w-full" />
                         </div>
                     </div>
 
                     <!-- Welcome message -->
                     <h1 class="text-foreground mb-10 text-center text-2xl font-semibold sm:text-3xl">
-                        {{ props.appearance?.welcome_message || 'How can I help you today?' }}
+                        {{ props.appearance?.welcome_message || t('home.welcome_message') }}
                     </h1>
 
                     <!-- Conversation Starters -->
@@ -217,10 +177,6 @@ function handleStarterClick(starter) {
                             v-if="canSendMessages"
                             :text="selectedStarter"
                             :placeholder="appearance.composer_placeholder"
-                            :models="models"
-                            :defaultModel="defaultModel"
-                            :isLoadingModels="isLoadingModels"
-                            @modelSelected="updateSelectedModel"
                             @messageAdded="createNewConversation"
                         />
 
@@ -230,8 +186,8 @@ function handleStarterClick(starter) {
                             class="mx-auto flex max-w-md items-center justify-center rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-900/20"
                         >
                             <div class="text-center">
-                                <p class="text-sm font-medium text-orange-800 dark:text-orange-200">You've reached your message limit</p>
-                                <p class="mt-1 text-xs text-orange-600 dark:text-orange-300">Please upgrade your plan to continue chatting</p>
+                                <p class="text-sm font-medium text-orange-800 dark:text-orange-200">{{ t('chat.message_limit_reached') }}</p>
+                                <p class="mt-1 text-xs text-orange-600 dark:text-orange-300">{{ t('chat.upgrade_prompt') }}</p>
                             </div>
                         </div>
 

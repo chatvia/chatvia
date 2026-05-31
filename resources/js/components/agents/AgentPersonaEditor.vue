@@ -51,30 +51,17 @@ Instead of saying only "I don't know", choose one of these polite, helpful optio
 - "I don't see that covered in my information, but I'd love to help you further. Could you provide a bit more detail about what you're looking for?"`,
 };
 
-// Select-value helpers. The dropdown holds preset keys
-// ('base' | 'general' | 'support' | 'sales'), 'custom', or a saved library
-// prompt encoded as `prompt:<external_id>`.
+// Select-value helpers. The dropdown holds 'base' (the editable default
+// instructions) or a saved library prompt encoded as `prompt:<external_id>`.
+// There's no separate "custom" option — picking Base Instructions and
+// editing the textarea is the custom path.
 const isLibrary = (option: string): boolean => option.startsWith('prompt:');
 const promptIdOf = (option: string): string | null => (isLibrary(option) ? option.slice('prompt:'.length) : null);
-
-// Detect which preset matches current instructions
-const detectPreset = (text: string): string => {
-    for (const [key, value] of Object.entries(presets)) {
-        if (value.trim() === text.trim()) {
-            return key;
-        }
-    }
-    return 'custom';
-};
 
 // State
 const savedPrompts = ref<SavedPrompt[]>([]);
 
-const initialOption = props.initialPromptId
-    ? `prompt:${props.initialPromptId}`
-    : props.initialInstructions
-      ? detectPreset(props.initialInstructions)
-      : 'base';
+const initialOption = props.initialPromptId ? `prompt:${props.initialPromptId}` : 'base';
 
 const selectedPreset = ref<string>(initialOption);
 const instructions = ref<string>(props.initialInstructions || presets.base);
@@ -100,15 +87,18 @@ const hasChanges = computed(() => {
     return instructions.value !== originalInstructions.value;
 });
 
-// Sync the textarea content when the selection changes.
+// Sync the textarea content when the selection changes. Switching to a
+// library prompt replaces the textarea with that prompt's text (read-only);
+// switching back to Base Instructions restores the saved-for-this-agent text
+// (or the default preset if the agent has never had custom instructions).
 watch(selectedPreset, (option) => {
     if (isLibrary(option)) {
         const p = findPrompt(promptIdOf(option));
         if (p) {
             instructions.value = p.prompt;
         }
-    } else if (option !== 'custom') {
-        instructions.value = presets[option as keyof typeof presets] || presets.base;
+    } else {
+        instructions.value = props.initialInstructions || presets.base;
     }
 });
 
@@ -118,7 +108,7 @@ onMounted(async () => {
         const { data } = await axios.get(route('settings.prompts.list'));
         savedPrompts.value = data.data ?? [];
     } catch (error) {
-        // Non-fatal: the editor still works with presets / custom text.
+        // Non-fatal: the editor still works with the base instructions.
         console.error('Failed to load saved prompts:', error);
     }
 
@@ -128,9 +118,9 @@ onMounted(async () => {
             instructions.value = p.prompt;
             originalInstructions.value = p.prompt;
         } else {
-            // The attached prompt no longer exists — fall back to custom text.
-            selectedPreset.value = props.initialInstructions ? detectPreset(props.initialInstructions) : 'custom';
-            originalPreset.value = selectedPreset.value;
+            // The attached prompt no longer exists — fall back to Base Instructions.
+            selectedPreset.value = 'base';
+            originalPreset.value = 'base';
         }
     }
 });
@@ -146,9 +136,7 @@ const saveInstructions = async () => {
     isSaving.value = true;
 
     try {
-        const payload = usingLibraryPrompt.value
-            ? { prompt_id: promptIdOf(selectedPreset.value) }
-            : { system_instructions: instructions.value };
+        const payload = usingLibraryPrompt.value ? { prompt_id: promptIdOf(selectedPreset.value) } : { system_instructions: instructions.value };
 
         await axios.patch(route('agents.update', { agent: props.agentId }), payload);
 
@@ -161,14 +149,6 @@ const saveInstructions = async () => {
         toast.error('Failed to save instructions');
     } finally {
         isSaving.value = false;
-    }
-};
-
-// Handle textarea changes - switch to custom if edited
-const onInstructionsInput = () => {
-    const detectedPreset = detectPreset(instructions.value);
-    if (detectedPreset !== selectedPreset.value) {
-        selectedPreset.value = detectedPreset;
     }
 };
 </script>
@@ -192,12 +172,8 @@ const onInstructionsInput = () => {
                         <SelectItem v-for="p in savedPrompts" :key="p.id" :value="`prompt:${p.id}`">{{ p.name }}</SelectItem>
                     </SelectGroup>
                     <SelectGroup>
-                        <SelectLabel class="text-muted-foreground text-xs font-normal">Base Instructions</SelectLabel>
+                        <SelectLabel class="text-muted-foreground text-xs font-normal">Default</SelectLabel>
                         <SelectItem value="base">Base Instructions</SelectItem>
-                    </SelectGroup>
-                    <SelectGroup>
-                        <SelectLabel class="text-muted-foreground text-xs font-normal">Custom prompt</SelectLabel>
-                        <SelectItem value="custom">Custom prompt</SelectItem>
                     </SelectGroup>
                 </SelectContent>
             </Select>
@@ -207,16 +183,15 @@ const onInstructionsInput = () => {
         </div>
 
         <p v-if="usingLibraryPrompt" class="text-muted-foreground text-xs">
-            Using the saved prompt <span class="font-medium">{{ selectedPromptName }}</span> (read-only). Manage it in Settings → Prompts, or
-            choose “Custom prompt” to write instructions just for this agent.
+            Using the saved prompt <span class="font-medium">{{ selectedPromptName }}</span> (read-only). Manage it in Settings → Prompts, or switch
+            to <span class="font-medium">Base Instructions</span> to edit a copy for just this agent.
         </p>
 
-        <!-- Instructions Textarea -->
+        <!-- Instructions Textarea — editable when Base Instructions is active. -->
         <Textarea
             v-model="instructions"
-            @input="onInstructionsInput"
             :readonly="usingLibraryPrompt || locked"
-            placeholder="Enter your custom instructions..."
+            placeholder="Enter your instructions..."
             class="min-h-[200px] font-mono text-sm"
             :class="usingLibraryPrompt || locked ? 'bg-muted/40 cursor-not-allowed' : ''"
             rows="10"

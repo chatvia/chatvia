@@ -38,9 +38,7 @@ const selectValue = computed({
                 <SelectItem v-for="p in prompts" :key="p.id" :value="p.id">{{ p.name }}</SelectItem>
             </SelectContent>
         </Select>
-        <p class="text-muted-foreground text-xs">
-            Pick a reusable prompt from your library. Manage prompts under Settings → Prompts.
-        </p>
+        <p class="text-muted-foreground text-xs">Pick a reusable prompt from your library. Manage prompts under Settings → Prompts.</p>
         <p v-if="errors?.prompt_id" class="text-destructive text-sm">{{ errors.prompt_id }}</p>
     </div>
 </template>

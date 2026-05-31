@@ -2,15 +2,15 @@
 
 namespace Domain\Billing\Actions;
 
-use App\Auth\Models\User;
+use Domain\Billing\Data\BuyExtraMessageCreditsData;
 use Laravel\Cashier\Checkout;
 
 class BuyExtraMessageCreditsAction
 {
-    public function execute(User $user, int $quantity): Checkout
+    public function execute(BuyExtraMessageCreditsData $data): Checkout
     {
         $items = [
-            config('billing.addons.extra_message_credits.stripe_price_id') => $quantity,
+            config('billing.addons.extra_message_credits.stripe_price_id') => $data->quantity,
         ];
 
         $session = [
@@ -19,11 +19,11 @@ class BuyExtraMessageCreditsAction
             'metadata' => [
                 'id' => 'extra_message_credits',
                 'type' => 'addon',
-                'quantity' => $quantity,
-                'messages' => 1000 * $quantity,
+                'quantity' => $data->quantity,
+                'messages' => 1000 * $data->quantity,
             ],
         ];
 
-        return $user->accountBilling()->checkout($items, $session);
+        return $data->user->accountBilling()->checkout($items, $session);
     }
 }

@@ -31,7 +31,7 @@ const form = useForm({
 });
 
 const updatePassword = () => {
-    form.put(route('password.update'), {
+    form.put(route('settings.password.update'), {
         preserveScroll: true,
         onSuccess: () => form.reset(),
         onError: (errors: any) => {
@@ -95,52 +95,58 @@ const updatePassword = () => {
                     <CardContent>
                         <form @submit.prevent="updatePassword" class="space-y-6">
                             <div class="grid gap-2">
-                                <Label for="current_password" class="flex items-center gap-2">
-                                    <KeyRound class="text-muted-foreground size-4" />
-                                    Current password
-                                </Label>
-                                <Input
-                                    id="current_password"
-                                    ref="currentPasswordInput"
-                                    v-model="form.current_password"
-                                    type="password"
-                                    class="focus-visible:ring-primary/50 transition-all duration-200"
-                                    autocomplete="current-password"
-                                    placeholder="Enter your current password"
-                                />
+                                <Label for="current_password">Current password</Label>
+                                <div class="relative">
+                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <KeyRound class="size-4" />
+                                    </div>
+                                    <Input
+                                        id="current_password"
+                                        ref="currentPasswordInput"
+                                        v-model="form.current_password"
+                                        type="password"
+                                        class="focus-visible:ring-primary/50 pl-9 transition-all duration-200"
+                                        autocomplete="current-password"
+                                        placeholder="Enter your current password"
+                                    />
+                                </div>
                                 <InputError :message="form.errors.current_password" />
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="password" class="flex items-center gap-2">
-                                    <Lock class="text-muted-foreground size-4" />
-                                    New password
-                                </Label>
-                                <Input
-                                    id="password"
-                                    ref="passwordInput"
-                                    v-model="form.password"
-                                    type="password"
-                                    class="focus-visible:ring-primary/50 transition-all duration-200"
-                                    autocomplete="new-password"
-                                    placeholder="Enter your new password"
-                                />
+                                <Label for="password">New password</Label>
+                                <div class="relative">
+                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <Lock class="size-4" />
+                                    </div>
+                                    <Input
+                                        id="password"
+                                        ref="passwordInput"
+                                        v-model="form.password"
+                                        type="password"
+                                        class="focus-visible:ring-primary/50 pl-9 transition-all duration-200"
+                                        autocomplete="new-password"
+                                        placeholder="Enter your new password"
+                                    />
+                                </div>
                                 <InputError :message="form.errors.password" />
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="password_confirmation" class="flex items-center gap-2">
-                                    <Lock class="text-muted-foreground size-4" />
-                                    Confirm password
-                                </Label>
-                                <Input
-                                    id="password_confirmation"
-                                    v-model="form.password_confirmation"
-                                    type="password"
-                                    class="focus-visible:ring-primary/50 transition-all duration-200"
-                                    autocomplete="new-password"
-                                    placeholder="Confirm your new password"
-                                />
+                                <Label for="password_confirmation">Confirm password</Label>
+                                <div class="relative">
+                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <Lock class="size-4" />
+                                    </div>
+                                    <Input
+                                        id="password_confirmation"
+                                        v-model="form.password_confirmation"
+                                        type="password"
+                                        class="focus-visible:ring-primary/50 pl-9 transition-all duration-200"
+                                        autocomplete="new-password"
+                                        placeholder="Confirm your new password"
+                                    />
+                                </div>
                                 <InputError :message="form.errors.password_confirmation" />
                             </div>
 

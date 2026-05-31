@@ -18,10 +18,8 @@ return new class extends Migration
             $table->timestamp('started_at');
             $table->timestamp('ends_at');
 
-            // Prevent two overlapping grants per user with identical start.
             $table->unique(['user_id', 'started_at']);
-            // BitmapAnd handles "active credit for user X" via the unique above
-            // plus an ends_at range scan — no need for a 3-col composite.
+
             $table->index(['user_id', 'ends_at']);
         });
 
@@ -37,7 +35,7 @@ return new class extends Migration
         Schema::create('user_addons', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->string('type'); // 'extra_message_credits', 'extra_agents'
+            $table->string('type');
             $table->unsignedInteger('amount')->default(0);
             $table->string('stripe_id')->nullable();
             $table->timestamp('started_at')->nullable();

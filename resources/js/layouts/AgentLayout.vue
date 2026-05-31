@@ -32,7 +32,6 @@ import { toast } from 'vue-sonner';
 import axios from 'axios';
 import {
     BarChart3,
-    Bot,
     BotIcon,
     Building2,
     ChevronDown,
@@ -42,14 +41,12 @@ import {
     Eye,
     FileText,
     FunctionSquare,
-    Globe,
     Heart,
     LoaderCircle,
     Lock,
     MessageSquare,
     Pencil,
     Plug,
-    Search,
     ShieldCheck,
     SmilePlus,
     Sparkles,
@@ -115,19 +112,9 @@ const toggleSidebar = () => {
 
 // Remove breadcrumbs as we're creating a knowledge_base layout
 
-// Every agent exposes three independent surfaces — Hosted Chat (standalone
-// chat page at the agent's subdomain), Widget (embeddable floating bubble),
-// and Bar (embeddable search bar). Setup splits them into separate
-// configuration sub-pages (each surface is independent); Playground stays
-// a single page with an in-page surface toggle. Persona is shared across
-// every surface, so it lives at the top level — outside Setup — rather
-// than as a sub-tab on each surface page.
-const setupSubItems = [
-    { id: 'setup-hosted-chat', label: 'Hosted Chat', icon: MessageSquare, route: 'agents.setup.hosted_chat' },
-    { id: 'setup-widget', label: 'Widget', icon: Globe, route: 'agents.setup.widget' },
-    { id: 'setup-bar', label: 'Bar', icon: Search, route: 'agents.setup.bar' },
-];
-
+// Two top-level entries per agent — Playground (read-only preview) and Setup
+// (one unified configuration page with a Hosted Chat / Widget / Bar preview-tab
+// switcher). Persona lives as a Setup section.
 const uiNavigationItems = computed(() => {
     const baseItems: any[] = [];
 
@@ -143,16 +130,8 @@ const uiNavigationItems = computed(() => {
             id: 'setup',
             label: 'Setup',
             icon: Code,
-            route: 'agents.setup.hosted_chat',
-            tooltip: 'Configure each surface independently',
-            subItems: setupSubItems,
-        });
-        baseItems.push({
-            id: 'persona',
-            label: 'Persona',
-            icon: Bot,
-            route: 'agents.persona',
-            tooltip: 'Identity and instructions — shared across every surface',
+            route: 'agents.setup',
+            tooltip: 'Configure your agent — applies across every surface',
         });
     }
 
@@ -387,11 +366,16 @@ const isActiveRoute = (routeName: string) => {
     return Boolean(route().current(routeName));
 };
 
-const analyticsSubmenuOpen = ref(isActiveRoute('agents.analytics.*'));
-const setupSubmenuOpen = ref(isActiveRoute('agents.setup.*'));
+// Ziggy's `*` wildcard only matches characters AFTER the literal prefix, so
+// `'agents.analytics.*'` matches `agents.analytics.metrics` but NOT
+// `agents.analytics` itself. OR with the bare name so the Chats route
+// (`agents.analytics`) keeps the parent menu expanded.
+const analyticsSubmenuOpen = ref(isActiveRoute('agents.analytics') || isActiveRoute('agents.analytics.*'));
 // Functions and Connectors are now top-level items, so don't auto-open Sources on those routes.
 const sourcesSubmenuOpen = ref(
-    isActiveRoute('agents.sources.*') && !isActiveRoute('agents.sources.functions.*') && !isActiveRoute('agents.sources.connectors.*'),
+    (isActiveRoute('agents.sources') || isActiveRoute('agents.sources.*')) &&
+        !isActiveRoute('agents.sources.functions.*') &&
+        !isActiveRoute('agents.sources.connectors.*'),
 );
 
 // Source stats
@@ -474,81 +458,22 @@ onMounted(() => {
 
                 <!-- Sidebar Content -->
                 <SidebarContent class="!gap-6 overflow-y-auto">
-                    <!-- Navigation Section — Playground (single page with
-                         in-page surface toggle) + Setup (three independent
-                         surface sub-pages). -->
+                    <!-- Navigation Section — Playground, Setup (single page
+                         with a top tab bar for the three surfaces), Persona. -->
                     <SidebarGroup class="py-0 pt-2">
                         <SidebarMenu class="space-y-1">
                             <SidebarMenuItem v-for="item in uiNavigationItems" :key="item.id">
-                                <!-- Simple top-level item (no sub-menu) — e.g. Playground -->
-                                <template v-if="!item.subItems">
-                                    <SidebarMenuButton
-                                        as-child
-                                        :is-active="isActiveRoute(item.route)"
-                                        :tooltip="item.tooltip"
-                                        class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                    >
-                                        <Link :href="route(item.route, { agent: agent.external_id })">
-                                            <component :is="item.icon" />
-                                            <span>{{ item.label }}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </template>
-
-                                <!-- Parent with sub-menu (Setup) -->
-                                <template v-else>
-                                    <!-- Collapsed state - show dropdown on click -->
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger as-child>
-                                            <div class="hidden group-data-[collapsible=icon]:block">
-                                                <SidebarMenuButton :tooltip="item.tooltip" class="cursor-pointer">
-                                                    <component :is="item.icon" />
-                                                    <span>{{ item.label }}</span>
-                                                </SidebarMenuButton>
-                                            </div>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent side="right" align="start" :side-offset="5" :align-offset="0" class="w-56">
-                                            <DropdownMenuItem v-for="subItem in item.subItems" :key="subItem.id" as-child>
-                                                <Link :href="route(subItem.route, { agent: agent.external_id })" class="flex items-center gap-2">
-                                                    <component :is="subItem.icon" class="h-4 w-4" />
-                                                    <span>{{ subItem.label }}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-
-                                    <!-- Expanded state - show parent + chevron toggle.
-                                         The parent isn't marked active when a child is open —
-                                         only the selected sub-item gets the filled highlight. -->
-                                    <div class="block group-data-[collapsible=icon]:hidden">
-                                        <SidebarMenuButton
-                                            @click="setupSubmenuOpen = !setupSubmenuOpen"
-                                            :tooltip="item.tooltip"
-                                            class="cursor-pointer"
-                                        >
-                                            <component :is="item.icon" />
-                                            <span>{{ item.label }}</span>
-                                            <ChevronDown
-                                                class="ml-auto h-4 w-4 transition-transform duration-200"
-                                                :class="{ 'rotate-180': setupSubmenuOpen }"
-                                            />
-                                        </SidebarMenuButton>
-                                    </div>
-                                    <SidebarMenuSub v-if="setupSubmenuOpen" class="mt-1 space-y-0.5 group-data-[collapsible=icon]:hidden">
-                                        <SidebarMenuSubItem v-for="subItem in item.subItems" :key="subItem.id">
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isActiveRoute(subItem.route)"
-                                                class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
-                                            >
-                                                <Link :href="route(subItem.route, { agent: agent.external_id })">
-                                                    <component :is="subItem.icon" class="h-4 w-4" />
-                                                    <span>{{ subItem.label }}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                    </SidebarMenuSub>
-                                </template>
+                                <SidebarMenuButton
+                                    as-child
+                                    :is-active="isActiveRoute(item.activePattern || item.route)"
+                                    :tooltip="item.tooltip"
+                                    class="data-[active=true]:bg-neutral-900 data-[active=true]:font-semibold data-[active=true]:text-white dark:data-[active=true]:bg-neutral-100 dark:data-[active=true]:text-neutral-900 [&[data-active=true]_svg]:text-white dark:[&[data-active=true]_svg]:text-neutral-900"
+                                >
+                                    <Link :href="route(item.route, { agent: agent.external_id })">
+                                        <component :is="item.icon" />
+                                        <span>{{ item.label }}</span>
+                                    </Link>
+                                </SidebarMenuButton>
                             </SidebarMenuItem>
                         </SidebarMenu>
                     </SidebarGroup>
@@ -926,10 +851,7 @@ onMounted(() => {
 
                 <DialogFooter>
                     <Button variant="outline" @click="showRenameDialog = false"> Cancel </Button>
-                    <Button
-                        @click="renameAgent"
-                        :disabled="renameForm.processing || !renameForm.name.trim() || !renameForm.sub_domain.trim()"
-                    >
+                    <Button @click="renameAgent" :disabled="renameForm.processing || !renameForm.name.trim() || !renameForm.sub_domain.trim()">
                         <LoaderCircle v-if="renameForm.processing" class="mr-2 h-4 w-4 animate-spin" />
                         Save
                     </Button>

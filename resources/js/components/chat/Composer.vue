@@ -1,23 +1,17 @@
 <script setup lang="ts">
-import ModelSelector from '@/components/chat/ModelSelector.vue';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import type { AIModel } from '@/types/chat';
 import { Send, Square } from 'lucide-vue-next';
 import { nextTick, ref, watch } from 'vue';
 
 interface Props {
     isThinking?: boolean;
     text?: string;
-    models?: AIModel[];
-    defaultModel?: AIModel | null;
-    isLoadingModels?: boolean;
     placeholder?: string;
 }
 
 const props = defineProps<Props>();
 
-const selectedModel = ref<AIModel | null>(props.defaultModel || null);
 const userInput = ref(props.text || '');
 const messageInput = ref<HTMLTextAreaElement>();
 const isComposing = ref(false);
@@ -39,22 +33,9 @@ watch(
     { immediate: true },
 );
 
-// Watch for changes in the defaultModel prop and update selectedModel
-watch(
-    () => props.defaultModel,
-    (newDefaultModel) => {
-        if (newDefaultModel && newDefaultModel !== selectedModel.value) {
-            selectedModel.value = newDefaultModel;
-            emit('modelSelected', newDefaultModel);
-        }
-    },
-    { immediate: true },
-);
-
 const emit = defineEmits<{
-    messageAdded: [content: string, model: AIModel];
+    messageAdded: [content: string];
     stopStreaming: [];
-    modelSelected: [model: AIModel];
 }>();
 
 const handleEnterKey = (event: KeyboardEvent) => {
@@ -85,22 +66,10 @@ const stopStreaming = () => {
     emit('stopStreaming');
 };
 
-const handleModelChange = (model: AIModel) => {
-    emit('modelSelected', model);
-    selectedModel.value = model;
-
-    // Use nextTick to ensure the DOM is updated before focusing
-    nextTick(() => {
-        if (messageInput.value && typeof messageInput.value.focus === 'function') {
-            messageInput.value.focus();
-        }
-    });
-};
-
 const sendMessage = () => {
-    if (!userInput.value.trim() || !selectedModel.value) return;
+    if (!userInput.value.trim()) return;
 
-    emit('messageAdded', userInput.value, selectedModel.value);
+    emit('messageAdded', userInput.value);
     userInput.value = '';
 
     // Reset textarea height
@@ -140,16 +109,7 @@ const handleBlur = () => {
                 />
             </div>
 
-            <div class="border-border/50 flex items-center justify-between border-t px-3 py-2 sm:px-4">
-                <div class="flex items-center gap-2">
-                    <ModelSelector
-                        @modelChanged="handleModelChange"
-                        :models="models"
-                        :defaultModel="defaultModel"
-                        :isLoadingModels="isLoadingModels"
-                    />
-                </div>
-
+            <div class="border-border/50 flex items-center justify-end border-t px-3 py-2 sm:px-4">
                 <div class="flex items-center gap-2">
                     <Button v-if="isThinking" @click="stopStreaming" size="icon" variant="ghost" class="hover:bg-destructive/10 h-9 w-9 rounded-full">
                         <Square class="h-4 w-4" />
@@ -158,13 +118,13 @@ const handleBlur = () => {
                     <Button
                         v-else
                         @click="sendMessage"
-                        :disabled="userInput.trim() === '' || !selectedModel"
+                        :disabled="userInput.trim() === ''"
                         size="icon"
                         variant="ghost"
                         class="h-9 w-9 rounded-full transition-all"
                         :class="{
-                            'opacity-50': userInput.trim() === '' || !selectedModel,
-                            'scale-110 shadow-lg': userInput.trim() !== '' && selectedModel,
+                            'opacity-50': userInput.trim() === '',
+                            'scale-110 shadow-lg': userInput.trim() !== '',
                         }"
                     >
                         <Send class="h-4 w-4" />

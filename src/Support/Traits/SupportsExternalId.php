@@ -15,7 +15,7 @@ trait SupportsExternalId
     {
         static::creating(function ($model): void {
             if (! $model->external_id) {
-                $model->external_id = Str::uuid()->toString();
+                $model->external_id = Str::uuid7()->toString();
             }
         });
     }

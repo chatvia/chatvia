@@ -156,6 +156,12 @@ class AgentSignInTokenService
         // role grants either all agents or an explicit list
         // (User::canAccessAgent → TeamService). Account membership alone is
         // NOT sufficient.
+        //
+        // `users()` is a BelongsToMany on User → the related model is User
+        // by construction, but the relation's static type erases to
+        // `Model|null`. The `@var` brings the concrete type back so the
+        // `canAccessAgent()` call and array return both typecheck.
+        /** @var User|null $user */
         $user = $owner->users()->where('external_id', $payload->sub)->first();
 
         if (! $user?->canAccessAgent($agent)) {

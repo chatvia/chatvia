@@ -3,11 +3,12 @@
 namespace Support\Enums;
 
 /**
- * How a record was created: `external` for records created through the public
- * API, `internal` for everything else.
+ * Where a record was created from: `Api` for records minted through the public
+ * REST API, `Dashboard` for anything that came in through the control panel
+ * (signup, console, admin commands, seeders).
  */
 enum CreatedVia: string
 {
-    case Internal = 'internal';
-    case External = 'external';
+    case Dashboard = 'dashboard';
+    case Api = 'api';
 }

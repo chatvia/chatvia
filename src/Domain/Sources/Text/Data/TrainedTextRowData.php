@@ -18,7 +18,7 @@ class TrainedTextRowData extends Data
         public int $id,
         public string $excerpt,
         public int $word_count,
-        /** @var array<int, array{id: int, name: string}> */
+        /** @var array<int, array<string, mixed>> */
         public array $agents,
     ) {}
 

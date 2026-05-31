@@ -1,13 +1,9 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-use App\Providers\DatabaseServiceProvider;
-use App\Providers\HorizonServiceProvider;
-use App\Providers\TelescopeServiceProvider;
-
 return [
-    AppServiceProvider::class,
-    DatabaseServiceProvider::class,
-    HorizonServiceProvider::class,
-    TelescopeServiceProvider::class,
+    App\Providers\AppServiceProvider::class,
+    App\Providers\DatabaseServiceProvider::class,
+    App\Providers\FortifyServiceProvider::class,
+    App\Providers\HorizonServiceProvider::class,
+    App\Providers\TelescopeServiceProvider::class,
 ];

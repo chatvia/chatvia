@@ -7,7 +7,21 @@ export default defineConfigWithVueTs(
     vue.configs['flat/essential'],
     vueTsConfigs.recommended,
     {
-        ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr', 'tailwind.config.js', 'resources/js/components/ui/*'],
+        ignores: [
+            'vendor',
+            'node_modules',
+            'public',
+            'bootstrap/ssr',
+            'tailwind.config.js',
+            'resources/js/components/ui/*',
+            // VitePress' on-disk dep cache and built output — both contain
+            // pre-bundled vendor JS (Vue runtime, vueuse, mark.js, etc.)
+            // that lints with thousands of irrelevant errors. Source docs
+            // under `docs/` are still linted; only the generated trees are
+            // ignored.
+            'docs/.vitepress/cache',
+            'docs/.vitepress/dist',
+        ],
     },
     {
         rules: {

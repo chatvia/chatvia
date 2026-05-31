@@ -30,6 +30,7 @@ class ListAgentConnectorsAction
     {
         $servers = AgentMcpServer::query()
             ->ownedBySameAccountAs($agent)
+            ->withCount('agents')
             ->orderBy('created_at')
             ->get();
 

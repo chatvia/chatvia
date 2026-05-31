@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api\V1\Agents;
 
+use Domain\Agents\Data\AttachAgentFunctionData;
+use Domain\Agents\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AttachAgentFunctionRequest extends FormRequest
@@ -19,5 +21,13 @@ class AttachAgentFunctionRequest extends FormRequest
         return [
             'function_id' => ['required', 'string'],
         ];
+    }
+
+    public function toData(Agent $agent): AttachAgentFunctionData
+    {
+        return new AttachAgentFunctionData(
+            agent: $agent,
+            function_id: $this->string('function_id')->toString(),
+        );
     }
 }

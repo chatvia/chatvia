@@ -5,6 +5,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { updateTheme } from '@/composables/useAppearance';
 import { Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen, Trash2 } from 'lucide-vue-next';
 import { computed, inject, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const chatEventBus = inject('chatEventBus');
 
@@ -14,10 +17,6 @@ const props = defineProps({
     tokenCount: {
         type: Number,
         default: 0,
-    },
-    selectedModel: {
-        type: Object,
-        default: () => ({}),
     },
     isSidebarOpen: {
         type: Boolean,
@@ -42,7 +41,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['update:selectedModel', 'deleteConversation', 'toggleIncognito', 'toggleSidebar']);
+const emit = defineEmits(['deleteConversation', 'toggleIncognito', 'toggleSidebar']);
 
 const isIncognitoMode = ref(false);
 const showDeleteDialog = ref(false);
@@ -101,7 +100,7 @@ function toggleChatExpand() {
                     @click="toggleSidebar"
                     size="icon"
                     class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-9 w-9 rounded-lg transition-colors"
-                    title="Toggle sidebar"
+                    :title="t('header.toggle_sidebar')"
                 >
                     <PanelLeftClose v-if="isSidebarOpen" class="h-[18px] w-[18px]" />
                     <PanelLeftOpen v-else class="h-[18px] w-[18px]" />
@@ -114,7 +113,7 @@ function toggleChatExpand() {
                     @click="toggleChatExpand"
                     size="icon"
                     class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-9 w-9 rounded-lg transition-colors"
-                    title="Toggle fullscreen"
+                    :title="t('header.toggle_expand')"
                 >
                     <Maximize2 v-if="!isChatExpanded" class="h-[18px] w-[18px]" />
                     <Minimize2 v-else class="h-[18px] w-[18px]" />
@@ -126,7 +125,7 @@ function toggleChatExpand() {
                 <Transition name="slide-fade">
                     <div v-if="isIncognitoMode" class="mr-2 flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-1">
                         <div class="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-500"></div>
-                        <span class="text-[11px] font-medium text-purple-600 dark:text-purple-400">Incognito</span>
+                        <span class="text-[11px] font-medium text-purple-600 dark:text-purple-400">{{ t('header.incognito_mode') }}</span>
                     </div>
                 </Transition>
 
@@ -138,19 +137,21 @@ function toggleChatExpand() {
                             variant="ghost"
                             size="icon"
                             class="text-muted-foreground h-9 w-9 rounded-lg transition-colors hover:bg-red-500/10 hover:text-red-600"
-                            title="Delete conversation"
+                            :title="t('header.delete_conversation')"
                         >
                             <Trash2 class="h-[18px] w-[18px]" />
                         </Button>
                     </DialogTrigger>
                     <DialogContent class="rounded-2xl sm:max-w-[400px]">
                         <DialogHeader>
-                            <DialogTitle class="text-lg font-semibold">Delete Conversation?</DialogTitle>
-                            <DialogDescription class="text-muted-foreground mt-1 text-sm"> This action cannot be undone. </DialogDescription>
+                            <DialogTitle class="text-lg font-semibold">{{ t('header.delete_dialog_title') }}</DialogTitle>
+                            <DialogDescription class="text-muted-foreground mt-1 text-sm">{{
+                                t('header.delete_dialog_description')
+                            }}</DialogDescription>
                         </DialogHeader>
                         <DialogFooter class="mt-4 gap-2 sm:gap-2">
-                            <Button variant="ghost" @click="showDeleteDialog = false" class="rounded-lg"> Cancel </Button>
-                            <Button variant="destructive" @click="handleConfirm" class="rounded-lg"> Delete </Button>
+                            <Button variant="ghost" @click="showDeleteDialog = false" class="rounded-lg">{{ t('common.cancel') }}</Button>
+                            <Button variant="destructive" @click="handleConfirm" class="rounded-lg">{{ t('common.delete') }}</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

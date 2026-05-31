@@ -6,6 +6,8 @@ use App\Auth\Models\User;
 use Domain\Agents\Collections\AgentCollection;
 use Domain\Agents\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -78,8 +80,9 @@ class Role extends SpatieRole
     /**
      * Scope roles to a specific team.
      */
-    public function scopeForTeam($query, Team $team)
+    #[Scope]
+    protected function forTeam(Builder $query, Team $team): void
     {
-        return $query->where('team_id', $team->id);
+        $query->where('team_id', $team->id);
     }
 }

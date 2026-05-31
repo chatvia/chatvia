@@ -229,6 +229,7 @@ class LeadSeeder extends Seeder
             ->whereHas('session', function ($query) use ($agentIds) {
                 $query->whereIn('agent_id', $agentIds);
             })
+            ->with('session.agent')
             ->inRandomOrder()
             ->limit(count($this->demoLeads))
             ->get();

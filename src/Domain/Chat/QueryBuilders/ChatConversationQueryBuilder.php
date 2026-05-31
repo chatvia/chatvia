@@ -104,6 +104,6 @@ class ChatConversationQueryBuilder extends Builder
 
     public function onlyVisible(): self
     {
-        return $this->where('visible', true);
+        return $this->where('is_visible', true);
     }
 }

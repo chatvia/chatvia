@@ -28,7 +28,7 @@ use Support\Traits\SupportsExternalId;
  * @property int|null $language_id
  * @property int|null $chat_topic_id
  * @property ConversationSource $source
- * @property bool $visible
+ * @property bool $is_visible
  * @property string|null $title
  * @property string|null $sentiment
  * @property string|null $tone
@@ -82,7 +82,7 @@ use Support\Traits\SupportsExternalId;
  * @method static ChatConversationQueryBuilder<static>|ChatConversation whereTitle($value)
  * @method static ChatConversationQueryBuilder<static>|ChatConversation whereTone($value)
  * @method static ChatConversationQueryBuilder<static>|ChatConversation whereUpdatedAt($value)
- * @method static ChatConversationQueryBuilder<static>|ChatConversation whereVisible($value)
+ * @method static ChatConversationQueryBuilder<static>|ChatConversation whereIsVisible($value)
  * @method static ChatConversationQueryBuilder<static>|ChatConversation withSessionAndTopic()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ChatConversation withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ChatConversation withoutTrashed()
@@ -95,7 +95,7 @@ use Support\Traits\SupportsExternalId;
     'language_id',
     'chat_topic_id',
     'source',
-    'visible',
+    'is_visible',
     'title',
     'sentiment',
     'tone',

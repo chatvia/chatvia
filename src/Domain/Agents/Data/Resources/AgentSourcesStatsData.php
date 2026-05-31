@@ -3,6 +3,8 @@
 namespace Domain\Agents\Data\Resources;
 
 use Domain\Agents\Models\Agent;
+use Domain\Sources\Files\Models\SourceFile;
+use Illuminate\Support\Facades\DB;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -19,18 +21,52 @@ class AgentSourcesStatsData extends Data
         public int $youtube,
     ) {}
 
+    /**
+     * One aggregation query per source table (files + websites + texts).
+     * Replaces eight sequential COUNT()s over the same polymorphic JOIN that
+     * fired on every Sources page load (and during ingestion polling).
+     */
     public static function fromAgent(Agent $agent): self
     {
-        $pdfCount = $agent->files()->ingested()->pdf()->count();
-        $wordCount = $agent->files()->ingested()->word()->count();
+        $mimes = [
+            'pdf' => config('mimes.pdf'),
+            'word' => config('mimes.word'),
+            'markdown' => config('mimes.markdown'),
+            'audio' => config('mimes.audio'),
+            'video' => config('mimes.video'),
+        ];
+
+        $files = DB::table('agent_sources')
+            ->join('source_files', 'source_files.id', '=', 'agent_sources.sourceable_id')
+            ->where('agent_sources.agent_id', $agent->id)
+            ->where('agent_sources.sourceable_type', (new SourceFile)->getMorphClass())
+            ->where('source_files.status', 'ingested')
+            ->selectRaw(
+                'COUNT(*) FILTER (WHERE mime_type = ANY(?)) AS pdf,
+                 COUNT(*) FILTER (WHERE mime_type = ANY(?)) AS word,
+                 COUNT(*) FILTER (WHERE mime_type = ANY(?)) AS markdown,
+                 COUNT(*) FILTER (WHERE mime_type = ANY(?)) AS audio,
+                 COUNT(*) FILTER (WHERE mime_type = ANY(?)) AS video',
+                [
+                    '{'.implode(',', $mimes['pdf']).'}',
+                    '{'.implode(',', $mimes['word']).'}',
+                    '{'.implode(',', $mimes['markdown']).'}',
+                    '{'.implode(',', $mimes['audio']).'}',
+                    '{'.implode(',', $mimes['video']).'}',
+                ]
+            )
+            ->first();
+
+        $websites = $agent->websites()->where('source_websites.status', 'ingested')->count();
+        $texts = $agent->texts()->where('source_texts.status', 'ingested')->count();
 
         return new self(
-            websites: $agent->websites()->where('source_websites.status', 'ingested')->count(),
-            texts: $agent->texts()->where('source_texts.status', 'ingested')->count(),
-            files: $pdfCount + $wordCount,
-            markdown: $agent->files()->ingested()->markdown()->count(),
-            audio: $agent->files()->ingested()->audio()->count(),
-            video: $agent->files()->ingested()->video()->count(),
+            websites: $websites,
+            texts: $texts,
+            files: (int) ($files->pdf ?? 0) + (int) ($files->word ?? 0),
+            markdown: (int) ($files->markdown ?? 0),
+            audio: (int) ($files->audio ?? 0),
+            video: (int) ($files->video ?? 0),
             youtube: 0, // YouTube videos feature disabled for now
         );
     }

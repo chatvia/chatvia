@@ -10,11 +10,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('chunk_references', function (Blueprint $table) {
-            $table->id();
             $table->foreignIdFor(Chunk::class)->constrained()->cascadeOnDelete();
-            $table->morphs('referenceable');
+            $table->numericMorphs('referenceable');
 
-            $table->unique(['chunk_id', 'referenceable_type', 'referenceable_id'], 'chunk_references_unique');
+            $table->primary(['chunk_id', 'referenceable_type', 'referenceable_id'], 'chunk_references_pkey');
         });
     }
 

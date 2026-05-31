@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import { Clock, Sparkles } from 'lucide-vue-next';
 import { computed } from 'vue';
 
@@ -8,9 +8,6 @@ const page = usePage();
 const onTrial = computed(() => page.props.onTrial);
 const trialEndsAt = computed(() => page.props.trialEndsAt);
 const subscriptionStartsAt = computed(() => page.props.subscriptionStartsAt);
-
-// Default banner text for non-trial users
-const defaultBannerText = 'NOW Chatvia supports MCP connectors and functions';
 </script>
 
 <template>
@@ -27,15 +24,6 @@ const defaultBannerText = 'NOW Chatvia supports MCP connectors and functions';
                 </div>
                 <span class="text-sm opacity-90">•</span>
                 <span class="text-sm"> Subscription starts {{ subscriptionStartsAt }} </span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Default Banner (for non-trial users) -->
-    <div v-else class="fixed top-0 right-0 left-0 z-40 bg-linear-to-r from-blue-600 to-purple-600 text-white">
-        <div class="mx-auto flex h-12 items-center justify-center px-4 md:max-w-7xl">
-            <div class="flex items-center space-x-2">
-                <span class="text-sm font-medium">{{ defaultBannerText }}</span>
             </div>
         </div>
     </div>

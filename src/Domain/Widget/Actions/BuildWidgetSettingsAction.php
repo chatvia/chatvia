@@ -15,8 +15,14 @@ class BuildWidgetSettingsAction
 {
     public function execute(Agent $agent): WidgetSettingsResourceData
     {
+        // Single round-trip for all settings groups + starters; previously
+        // ran separate SELECTs on every widget boot.
+        $agent->loadMissing('starterSet');
+        $agent->loadSettingsGroups(['widget', 'appearance', 'bar']);
+
         $widget = $agent->settings('widget');
         $appearance = $agent->settings('appearance');
+        $bar = $agent->settings('bar');
 
         return new WidgetSettingsResourceData(
             protected: $agent->is_public === false,
@@ -39,6 +45,10 @@ class BuildWidgetSettingsAction
             starters: $agent->resolvedStarters(),
             window_size: $widget['window_size'] ?? null,
             theme: $widget['theme'] ?? null,
+            keyboard_trigger: $bar['trigger'] ?? null,
+            bar_placement: $bar['placement'] ?? null,
+            composer_placeholder: $appearance['composer_placeholder'] ?? null,
+            chat_footer_text: $appearance['chat_footer_text'] ?? null,
         );
     }
 }

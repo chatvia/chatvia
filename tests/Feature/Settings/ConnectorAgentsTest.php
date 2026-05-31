@@ -12,7 +12,7 @@ beforeEach(function (): void {
         'slug' => 'weather',
         'url' => 'https://mcp.example.com/weather',
         'auth_type' => 'none',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 });
 

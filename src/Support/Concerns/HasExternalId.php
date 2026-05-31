@@ -15,7 +15,7 @@ trait HasExternalId
     {
         static::creating(function ($model): void {
             if (! $model->external_id) {
-                $model->external_id = (string) Str::uuid();
+                $model->external_id = (string) Str::uuid7();
             }
         });
     }

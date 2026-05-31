@@ -2,11 +2,11 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
-import { useAgentAttachments } from '@/composables/useAgentAttachments';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Switch from '@/components/ui/switch/Switch.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAgentAttachments } from '@/composables/useAgentAttachments';
 import type { AgentMcpServer, Connector, McpTool } from '@/types/connector';
 import axios from 'axios';
 import { Check, CheckCircle2, ChevronRight, Copy, LoaderCircle, Plug, RefreshCw, Search, Unplug } from 'lucide-vue-next';
@@ -117,14 +117,14 @@ const destructiveDescription = computed(() => {
 });
 
 // `currentEnabled` reads the right flag for the current scope so the same
-// "Enabled" toggle controls server.enabled (settings + agent-specific) or
+// "Enabled" toggle controls server.is_enabled (settings + agent-specific) or
 // the pivot's attachment_enabled (attached generic).
 const currentEnabled = computed<boolean>(() => {
     if (!server.value) return false;
     if (isAgentMode.value && server.value.scope === 'generic') {
         return server.value.attachment_enabled === true;
     }
-    return server.value.enabled === true;
+    return server.value.is_enabled === true;
 });
 
 watch(
@@ -232,13 +232,13 @@ async function refreshTools(): Promise<void> {
 
 async function toggleToolEnabled(tool: McpTool): Promise<void> {
     if (isAgentMode.value || !server.value || tool.id === undefined) return;
-    const previous = tool.enabled;
-    tool.enabled = !previous;
+    const previous = tool.is_enabled;
+    tool.is_enabled = !previous;
     try {
         const response = await axios.post(route('settings.connectors.tools.toggle', { slug: server.value.slug, tool: tool.id }));
-        tool.enabled = response.data.enabled;
+        tool.is_enabled = response.data.is_enabled;
     } catch (e: unknown) {
-        tool.enabled = previous;
+        tool.is_enabled = previous;
         const err = e as { response?: { data?: { message?: string } } };
         toast.error(err.response?.data?.message ?? 'Failed to update tool');
     }
@@ -429,21 +429,21 @@ const connectButtonLabel = computed(() => {
                             <div v-for="tool in filteredTools" :key="tool.name" class="py-4 first:pt-0 last:pb-0">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0 flex-1">
-                                        <p class="font-medium" :class="{ 'text-muted-foreground line-through': !tool.enabled }">
+                                        <p class="font-medium" :class="{ 'text-muted-foreground line-through': !tool.is_enabled }">
                                             {{ tool.short_name }}
                                         </p>
                                         <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">{{ tool.description }}</p>
                                     </div>
-                                    <!-- Per-tool enable toggle. Flips `mcp_tools.enabled`,
+                                    <!-- Per-tool enable toggle. Flips `mcp_tools.is_enabled`,
                                          which is scoped to the server — every agent attached
                                          to it sees the change immediately. Hidden when the
                                          server has only one tool, since toggling it is
                                          indistinguishable from disabling the whole connector. -->
                                     <Switch
                                         v-if="!isAgentMode && tool.id !== undefined && server && tools.length > 1"
-                                        :model-value="tool.enabled"
+                                        :model-value="tool.is_enabled"
                                         :title="
-                                            tool.enabled ? 'Tool active — disable for all agents using this connector' : 'Tool disabled — re-enable'
+                                            tool.is_enabled ? 'Tool active — disable for all agents using this connector' : 'Tool disabled — re-enable'
                                         "
                                         @update:model-value="toggleToolEnabled(tool)"
                                     />

@@ -38,8 +38,8 @@ return [
 
     'charts' => [
         'slug' => 'charts',
-        'name' => 'Charts',
-        'description' => 'Render interactive Apache ECharts charts inline in the chat — bar, line, pie, scatter, radar, gauge, heatmap, and more.',
+        'name' => 'Interactive charts',
+        'description' => 'Render interactive charts inline in the chat — bar, line, pie, scatter, radar, gauge, heatmap, and more.',
         'category' => 'Utilities',
         'icon' => 'charts',
         'brand_color' => '8B5CF6',

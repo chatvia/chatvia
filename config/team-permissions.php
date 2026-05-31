@@ -175,10 +175,6 @@ return [
             'label' => 'Prompts',
             'description' => 'Manage the shared prompts library',
         ],
-        'account.templates' => [
-            'label' => 'Templates',
-            'description' => 'Manage agent templates used when spinning up new agents',
-        ],
         'account.members.manage' => [
             'label' => 'Members',
             'description' => 'View, reset password, and remove chat members across the workspace',
@@ -331,10 +327,9 @@ return [
         'library' => [
             'scope' => 'account',
             'label' => 'Library',
-            'description' => 'Reusable building blocks — prompts and agent templates shared across the account.',
+            'description' => 'Reusable prompts shared across the account.',
             'permissions' => [
                 'account.prompts',
-                'account.templates',
             ],
         ],
         'people' => [

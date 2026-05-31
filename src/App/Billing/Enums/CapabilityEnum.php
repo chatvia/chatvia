@@ -6,8 +6,6 @@ use App\Billing\Data\Resources\BillingPackageCapabilitiesData;
 
 enum CapabilityEnum: string
 {
-    case ADVANCED_PDF = 'advanced_pdf';
-    case OCR = 'ocr';
     case SENTIMENT = 'sentiment';
     case TONE = 'tone';
     case TOPICS = 'topics';
@@ -37,8 +35,6 @@ enum CapabilityEnum: string
     public function label(): string
     {
         return match ($this) {
-            self::ADVANCED_PDF => 'Advanced PDF Processing',
-            self::OCR => 'OCR Support',
             self::SENTIMENT => 'Sentiment Analysis',
             self::TONE => 'Tone Analysis',
             self::TOPICS => 'Topic Analysis',

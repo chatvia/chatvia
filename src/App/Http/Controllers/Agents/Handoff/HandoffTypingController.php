@@ -30,7 +30,7 @@ class HandoffTypingController
 
             $broadcastTyping->execute($request->toData($conversation));
 
-            return new HandoffTypingResultData();
+            return new HandoffTypingResultData;
         } catch (HandoffOperationException $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], $e->status);
         }

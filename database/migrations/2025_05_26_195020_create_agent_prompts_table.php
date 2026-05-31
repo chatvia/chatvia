@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('agent_prompts', function (Blueprint $table) {
             $table->id();
             $table->uuid('external_id')->unique();
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->text('prompt');
             $table->timestamps();

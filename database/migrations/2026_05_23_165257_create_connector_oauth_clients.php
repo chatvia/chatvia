@@ -12,12 +12,12 @@ return new class extends Migration
             $table->id();
             $table->string('auth_server_url')->unique();
             $table->string('client_id');
-            $table->text('client_secret')->nullable();            // encrypted
-            $table->text('registration_access_token')->nullable(); // encrypted
+            $table->text('client_secret')->nullable();
+            $table->text('registration_access_token')->nullable();
             $table->text('registration_client_uri')->nullable();
             $table->text('token_endpoint');
             $table->text('authorization_endpoint');
-            $table->json('metadata')->nullable();
+            $table->jsonb('metadata')->nullable();
             $table->timestamps();
         });
     }

@@ -3,6 +3,7 @@
 namespace App\Billing\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -33,6 +34,8 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class UserUsage extends Model
 {
+    use HasFactory;
+
     public function credit(): BelongsTo
     {
         return $this->belongsTo(UserCredit::class);

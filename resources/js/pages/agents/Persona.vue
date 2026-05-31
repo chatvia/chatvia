@@ -73,9 +73,7 @@ const generateNewSubdomain = () => {
 const hasUnsavedChanges = computed(() => {
     const promptChanged =
         mode.value !== initialMode ||
-        (mode.value === 'saved'
-            ? form.prompt_id !== (props.agent.prompt_id ?? null)
-            : form.system_instructions !== props.agent.system_instructions);
+        (mode.value === 'saved' ? form.prompt_id !== (props.agent.prompt_id ?? null) : form.system_instructions !== props.agent.system_instructions);
 
     return form.name !== props.agent.name || form.sub_domain !== props.agent.sub_domain || promptChanged;
 });
@@ -121,7 +119,7 @@ const hasFormErrors = computed(() => {
                                     </p>
                                 </div>
 
-                                <div class="grid gap-2" v-if="props.agent.type !== 'widget'">
+                                <div class="grid gap-2">
                                     <Label for="domain" required>Domain</Label>
                                     <div class="flex items-center">
                                         <Input
@@ -180,10 +178,7 @@ const hasFormErrors = computed(() => {
                                     </TabsList>
 
                                     <TabsContent value="saved" class="mt-4 space-y-3">
-                                        <div
-                                            v-if="prompts.length === 0"
-                                            class="text-muted-foreground rounded-lg border py-8 text-center text-sm"
-                                        >
+                                        <div v-if="prompts.length === 0" class="text-muted-foreground rounded-lg border py-8 text-center text-sm">
                                             You have no saved prompts yet.
                                             <Link href="/settings/prompts" class="text-foreground underline underline-offset-2">Create one</Link>
                                             in Settings → Prompts.

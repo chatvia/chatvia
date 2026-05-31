@@ -32,7 +32,7 @@ use Support\Concerns\HasExternalId;
  * @property array<string, string>|null $auth_config
  * @property int $timeout_ms
  * @property int $max_response_bytes
- * @property bool $enabled
+ * @property bool $is_enabled
  * @property Vector|null $embedding
  * @property string|null $embedding_bm25
  * @property Carbon|null $last_invoked_at
@@ -50,7 +50,7 @@ use Support\Concerns\HasExternalId;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereAuthValue($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereEnabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereIsEnabled($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereExternalId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction whereInvocationCount($value)
@@ -81,7 +81,7 @@ class AgentFunction extends Model
             'webhook_headers' => 'encrypted:array',
             'webhook_secret' => 'encrypted',
             'auth_config' => 'encrypted:array',
-            'enabled' => 'boolean',
+            'is_enabled' => 'boolean',
             'timeout_ms' => 'int',
             'max_response_bytes' => 'int',
             'invocation_count' => 'int',

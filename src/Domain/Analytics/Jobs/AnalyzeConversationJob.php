@@ -2,6 +2,7 @@
 
 namespace Domain\Analytics\Jobs;
 
+use App\Billing\Enums\CapabilityEnum;
 use App\TextAnalysis\LanguageDetection;
 use App\TextAnalysis\ToneAnalysis;
 use Domain\Analytics\Services\TopicAnalysis;
@@ -80,6 +81,10 @@ class AnalyzeConversationJob implements ShouldQueue
             return;
         }
 
+        if (! $this->ownerHasCapability(CapabilityEnum::TOPICS)) {
+            return;
+        }
+
         $topic = $topicAnalysis->analyze($messages, $this->conversation->agent);
 
         if ($topic) {
@@ -97,9 +102,23 @@ class AnalyzeConversationJob implements ShouldQueue
             return;
         }
 
+        // Sentiment + tone share a single LLM call — skip when the owner
+        // can't see either result, so a Starter conversation doesn't burn
+        // inference on data the customer will never view.
+        if (! $this->ownerHasCapability(CapabilityEnum::SENTIMENT)
+            && ! $this->ownerHasCapability(CapabilityEnum::TONE)
+        ) {
+            return;
+        }
+
         $analysis = $toneAnalysis->analyze($userMessages);
 
         $updates['tone'] = $analysis['tone']->value;
         $updates['sentiment'] = $analysis['sentiment']->value;
+    }
+
+    private function ownerHasCapability(CapabilityEnum $capability): bool
+    {
+        return $this->conversation->agent?->user?->hasCapability($capability) ?? false;
     }
 }

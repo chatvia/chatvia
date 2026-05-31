@@ -4,6 +4,7 @@ namespace Domain\Chat\Services\Tooling;
 
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -15,7 +16,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         $function = AgentFunction::query()
             ->where('user_id', $agent->user_id)
             ->where('name', $name)
-            ->where('enabled', true)
+            ->where('is_enabled', true)
             ->whereExists(function ($q) use ($agent): void {
                 $q->from('agent_function')
                     ->whereColumn('agent_function.function_id', 'functions.id')
@@ -46,7 +47,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
 
             if ($response->failed()) {
                 $error = sprintf('webhook returned %d', $response->status());
-                $this->record($function, error: $error);
+                $this->record($function, $agent, error: $error);
 
                 return $this->error($error);
             }
@@ -54,7 +55,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             $body = (string) $response->body();
             $truncated = mb_substr($body, 0, $function->max_response_bytes);
 
-            $this->record($function);
+            $this->record($function, $agent);
             Log::info('Tool dispatched', [
                 'agent' => $agent->id,
                 'function' => $name,
@@ -64,7 +65,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             return ToolDispatchResult::text($truncated);
         } catch (Throwable $e) {
             $message = $e->getMessage();
-            $this->record($function, error: $message);
+            $this->record($function, $agent, error: $message);
             Log::warning('Tool dispatch failed', [
                 'agent' => $agent->id,
                 'function' => $name,
@@ -127,13 +128,27 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         return array_merge($headers, ToolCallerIdentity::headers($agent, $conversationExternalId));
     }
 
-    private function record(AgentFunction $function, ?string $error = null): void
+    private function record(AgentFunction $function, Agent $agent, ?string $error = null): void
     {
+        $now = now();
+
         $function->forceFill([
-            'last_invoked_at' => now(),
+            'last_invoked_at' => $now,
             'last_error' => $error,
             'invocation_count' => $function->invocation_count + 1,
         ])->save();
+
+        // Per-agent counter on the pivot — drives the Sources analytics page.
+        // The global `functions.invocation_count` above sums across every
+        // agent in the account; this one tells us how often *this* agent
+        // reached for it.
+        DB::table('agent_function')
+            ->where('agent_id', $agent->id)
+            ->where('function_id', $function->id)
+            ->update([
+                'invocation_count' => DB::raw('invocation_count + 1'),
+                'last_invoked_at' => $now,
+            ]);
     }
 
     private function error(string $message): ToolDispatchResult

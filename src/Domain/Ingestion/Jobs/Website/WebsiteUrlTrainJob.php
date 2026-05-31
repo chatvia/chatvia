@@ -91,7 +91,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
                     'summary' => null,
                     'chunked_using_model' => config('ai.models.chunker'),
                     'embedding_model' => app(EmbeddingsProviderInterface::class)->getModelName(),
-                    'cost_in_cents' => 0,
+                    'cost_in_micro_cents' => 0,
                     'tokens' => TikToken::countTokens($chunk),
                     'embedding' => embed($chunk, true),
                     'embedding_bm25' => Bm25Tokenizer::expression($chunk),

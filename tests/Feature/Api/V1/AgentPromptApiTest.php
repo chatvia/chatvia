@@ -70,8 +70,7 @@ it('swaps an agent between a library prompt and a custom prompt on update', func
         'sub_domain' => Str::random(14),
         'system_instructions' => 'Original custom',
         'is_public' => false,
-        'analytics_enabled' => true,
-        'created_via' => 'external',
+        'source' => 'api',
     ]);
 
     // Attach a library prompt → clears system_instructions.

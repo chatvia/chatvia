@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useColorTheme } from '@/composables/useColorTheme';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle, Lock, Mail } from 'lucide-vue-next';
-import { onMounted } from 'vue';
+import { LoaderCircle, Lock, Mail, Sparkles } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
 
 const props = defineProps<{
     status?: string;
@@ -25,17 +26,29 @@ const props = defineProps<{
     };
 }>();
 
-const form = useForm({
+const mode = ref<'password' | 'magic-link'>('password');
+
+const passwordForm = useForm({
     email: '',
     password: '',
     remember: false,
 });
 
+const magicLinkForm = useForm({
+    email: '',
+});
+
 const { applyColorTheme } = useColorTheme();
 
-const submit = () => {
-    form.post(route('chat.login'), {
-        onFinish: () => form.reset('password'),
+const submitPassword = () => {
+    passwordForm.post(route('chat.login'), {
+        onFinish: () => passwordForm.reset('password'),
+    });
+};
+
+const submitMagicLink = () => {
+    magicLinkForm.post(route('chat.magic-link.send'), {
+        preserveScroll: true,
     });
 };
 
@@ -60,63 +73,108 @@ onMounted(() => {
                 </p>
             </div>
 
-            <!-- Login Form -->
-            <form @submit.prevent="submit" class="space-y-6">
-                <!-- Email Field -->
-                <div class="space-y-2">
-                    <Label for="email" class="text-base font-medium">Email address</Label>
-                    <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <Mail class="h-5 w-5" />
+            <Tabs v-model="mode" class="w-full">
+                <TabsList class="grid h-11 w-full grid-cols-2">
+                    <TabsTrigger value="password" class="flex items-center gap-2 text-sm font-medium">
+                        <Lock class="h-4 w-4" />
+                        Password
+                    </TabsTrigger>
+                    <TabsTrigger value="magic-link" class="flex items-center gap-2 text-sm font-medium">
+                        <Sparkles class="h-4 w-4" />
+                        Magic link
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="password" class="mt-6">
+                    <form @submit.prevent="submitPassword" class="space-y-6">
+                        <div class="space-y-2">
+                            <Label for="email" class="text-base font-medium">Email address</Label>
+                            <div class="relative">
+                                <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <Mail class="h-5 w-5" />
+                                </div>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    required
+                                    autofocus
+                                    :tabindex="1"
+                                    autocomplete="email"
+                                    v-model="passwordForm.email"
+                                    placeholder="member@company.com"
+                                    class="h-12 pl-10 text-base"
+                                />
+                            </div>
+                            <InputError :message="passwordForm.errors.email" />
                         </div>
-                        <Input
-                            id="email"
-                            type="email"
-                            required
-                            autofocus
-                            :tabindex="1"
-                            autocomplete="email"
-                            v-model="form.email"
-                            placeholder="member@company.com"
-                            class="h-12 pl-10 text-base"
-                        />
-                    </div>
-                    <InputError :message="form.errors.email" />
-                </div>
 
-                <!-- Password Field -->
-                <div class="space-y-2">
-                    <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <Lock class="h-5 w-5" />
+                        <div class="space-y-2">
+                            <Label for="password" class="text-base font-medium">Password</Label>
+                            <div class="relative">
+                                <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <Lock class="h-5 w-5" />
+                                </div>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    required
+                                    :tabindex="2"
+                                    autocomplete="current-password"
+                                    v-model="passwordForm.password"
+                                    placeholder="Enter your password"
+                                    class="h-12 pl-10 text-base"
+                                />
+                            </div>
+                            <InputError :message="passwordForm.errors.password" />
                         </div>
-                        <Input
-                            id="password"
-                            type="password"
-                            required
-                            :tabindex="2"
-                            autocomplete="current-password"
-                            v-model="form.password"
-                            placeholder="Enter your password"
-                            class="h-12 pl-10 text-base"
-                        />
-                    </div>
-                    <InputError :message="form.errors.password" />
-                </div>
 
-                <!-- Remember Me -->
-                <div class="flex items-center space-x-2">
-                    <Checkbox id="remember" v-model="form.remember" :tabindex="3" />
-                    <Label for="remember" class="cursor-pointer text-sm font-medium"> Keep me signed in </Label>
-                </div>
+                        <div class="flex items-center space-x-2">
+                            <Checkbox id="remember" v-model="passwordForm.remember" :tabindex="3" />
+                            <Label for="remember" class="cursor-pointer text-sm font-medium"> Keep me signed in </Label>
+                        </div>
 
-                <!-- Login Button -->
-                <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="4" :disabled="form.processing">
-                    <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
-                    <span v-if="!form.processing">Start Chatting</span>
-                    <span v-else>Signing in...</span>
-                </Button>
-            </form>
+                        <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="4" :disabled="passwordForm.processing">
+                            <LoaderCircle v-if="passwordForm.processing" class="mr-2 h-5 w-5 animate-spin" />
+                            <span v-if="!passwordForm.processing">Start Chatting</span>
+                            <span v-else>Signing in...</span>
+                        </Button>
+                    </form>
+                </TabsContent>
+
+                <TabsContent value="magic-link" class="mt-6">
+                    <form @submit.prevent="submitMagicLink" class="space-y-6">
+                        <p class="text-muted-foreground text-sm">
+                            Enter your email and we'll send you a single-use link to sign in — no password required.
+                        </p>
+
+                        <div class="space-y-2">
+                            <Label for="magic-email" class="text-base font-medium">Email address</Label>
+                            <div class="relative">
+                                <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <Mail class="h-5 w-5" />
+                                </div>
+                                <Input
+                                    id="magic-email"
+                                    type="email"
+                                    required
+                                    :tabindex="1"
+                                    autocomplete="email"
+                                    v-model="magicLinkForm.email"
+                                    placeholder="member@company.com"
+                                    class="h-12 pl-10 text-base"
+                                />
+                            </div>
+                            <InputError :message="magicLinkForm.errors.email" />
+                        </div>
+
+                        <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="2" :disabled="magicLinkForm.processing">
+                            <LoaderCircle v-if="magicLinkForm.processing" class="mr-2 h-5 w-5 animate-spin" />
+                            <span v-if="!magicLinkForm.processing">Send me a sign-in link</span>
+                            <span v-else>Sending link...</span>
+                        </Button>
+                    </form>
+                </TabsContent>
+            </Tabs>
 
             <!-- Divider -->
             <div class="relative">

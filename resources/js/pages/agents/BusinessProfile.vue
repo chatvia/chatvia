@@ -65,12 +65,7 @@ const hasFormErrors = computed(() => Object.keys(form.errors).length > 0);
 // delete button shows. We deliberately look at props, not the form state, so
 // editing a field doesn't make the button appear or disappear mid-edit.
 const hasSavedProfile = computed(
-    () =>
-        !!props.profile.email ||
-        !!props.profile.phone ||
-        !!props.profile.website ||
-        !!props.profile.address ||
-        !!props.profile.opening_hours,
+    () => !!props.profile.email || !!props.profile.phone || !!props.profile.website || !!props.profile.address || !!props.profile.opening_hours,
 );
 
 const deleteOpen = ref(false);
@@ -227,8 +222,8 @@ Closed Sundays and public holidays"
                 <AlertDialogHeader>
                     <AlertDialogTitle>Delete business profile?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This clears the email, phone, website, address, and opening hours for this agent. The agent will no longer use these
-                        values when answering — it will say the information isn't available. This cannot be undone.
+                        This clears the email, phone, website, address, and opening hours for this agent. The agent will no longer use these values
+                        when answering — it will say the information isn't available. This cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

@@ -10,6 +10,7 @@ use App\Http\Middleware\EnsureCanAccessApiAgent;
 use App\Http\Middleware\EnsureCanAccessDashboard;
 use App\Http\Middleware\EnsureChatIsAccessible;
 use App\Http\Middleware\EnsureUserCanAccessAgent;
+use App\Http\Middleware\EnsureUserHasCapability;
 use App\Http\Middleware\EnsureUserHasSubscription;
 use App\Http\Middleware\ForceWww;
 use App\Http\Middleware\HandleAppearance;
@@ -42,6 +43,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('telescope:prune --hours=24')->dailyAt('00:00');
         $schedule->command('app:cache-message-usage')->everyFiveMinutes();
+        $schedule->command('app:update-free-users-quotas')->dailyAt('01:00');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
@@ -73,6 +75,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'user.subscribed' => EnsureUserHasSubscription::class,
             'api.agent' => EnsureCanAccessApiAgent::class,
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
+            'capability' => EnsureUserHasCapability::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

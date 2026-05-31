@@ -84,7 +84,7 @@ it('rejects an invalid type', function (): void {
 });
 
 it('keeps the type locked on update', function (): void {
-    $template = \Domain\Agents\Models\AgentTemplate::factory()->widget()->create(['user_id' => $this->user->id]);
+    $template = AgentTemplate::factory()->widget()->create(['user_id' => $this->user->id]);
 
     $this->actingAs($this->user)
         ->put(

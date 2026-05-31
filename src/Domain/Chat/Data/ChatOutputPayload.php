@@ -33,7 +33,7 @@ class ChatOutputPayload extends Data
         public bool $is_response_from_qa = false,
         public ?int $agent_question_answer_id = null,
         public ?string $source = null,
-        public bool $llm_found_answer = true,
+        public bool $has_llm_found_answer = true,
         public array $artifacts = [],
         public array $tool_calls = [],
     ) {}

@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\Functions\UpdateApiFunctionRequest;
 use App\Http\Resources\Api\V1\FunctionData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Actions\CreateApiFunctionAction;
+use Domain\Agents\Actions\DeleteApiFunctionAction;
 use Domain\Agents\Actions\UpdateApiFunctionAction;
 use Domain\Agents\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
@@ -55,11 +56,11 @@ class FunctionController
         return ['data' => FunctionData::fromModel($updateFunction->execute($function, $request->toData()))];
     }
 
-    public function destroy(Request $request, AgentFunction $function): JsonResponse
+    public function destroy(Request $request, AgentFunction $function, DeleteApiFunctionAction $deleteFunction): JsonResponse
     {
         $this->assertOwnership($request, $function);
 
-        $function->delete();
+        $deleteFunction->execute($function);
 
         return response()->json(null, 204);
     }

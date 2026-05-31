@@ -58,7 +58,7 @@ class CaptureLeadTool extends Tool
 
         $conversation = ChatConversation::query()
             ->where('external_id', $conversationExternalId)
-            ->where('agent_id', $agent->id)
+            ->forAgent($agent->id)
             ->first();
 
         if (! $conversation) {
@@ -95,13 +95,9 @@ class CaptureLeadTool extends Tool
             return Response::error("Cannot capture this lead yet — the following required fields are missing: {$list}. Ask the visitor for these and try again.");
         }
 
-        if (! empty($validated['email']) && $agent->leads()->where('email', $validated['email'])->exists()) {
-            return Response::make(Response::text('A lead with this email is already on file — no new lead was created.'))
-                ->withStructuredContent([
-                    'created' => false,
-                    'reason' => 'duplicate_email',
-                ]);
-        }
+        $existing = ! empty($validated['email'])
+            ? $agent->leads()->where('email', $validated['email'])->first()
+            : null;
 
         $payload = [];
         foreach (self::FIELDS as $key) {
@@ -109,12 +105,30 @@ class CaptureLeadTool extends Tool
         }
 
         try {
-            $lead = $agent->leads()->create([
-                ...$payload,
-                'chat_conversation_id' => $conversation->id,
-                'ip_address' => $http->ip(),
-                'user_agent' => $http->userAgent(),
-            ]);
+            if ($existing) {
+                // Upsert: merge only the fields the visitor provided this time so
+                // we never blank out previously-captured data with nulls.
+                $updates = array_filter(
+                    $payload,
+                    static fn ($value): bool => $value !== null && $value !== '',
+                );
+
+                $existing->fill([
+                    ...$updates,
+                    'chat_conversation_id' => $conversation->id,
+                    'ip_address' => $http->ip(),
+                    'user_agent' => $http->userAgent(),
+                ])->save();
+
+                $lead = $existing;
+            } else {
+                $lead = $agent->leads()->create([
+                    ...$payload,
+                    'chat_conversation_id' => $conversation->id,
+                    'ip_address' => $http->ip(),
+                    'user_agent' => $http->userAgent(),
+                ]);
+            }
         } catch (Throwable $e) {
             Log::warning('CaptureLeadTool failed to persist lead', [
                 'agent_id' => $agent->id,
@@ -130,7 +144,7 @@ class CaptureLeadTool extends Tool
 
         return Response::make(Response::text($successMessage))
             ->withStructuredContent([
-                'created' => true,
+                'created' => $existing === null,
                 'lead_id' => $lead->id,
             ]);
     }

@@ -3,6 +3,7 @@
 namespace Domain\Ingestion\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -26,10 +27,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
+#[WithoutTimestamps]
 class ChunkReference extends Model
 {
-    public $timestamps = false;
-
     public function chunk(): BelongsTo
     {
         return $this->belongsTo(Chunk::class);

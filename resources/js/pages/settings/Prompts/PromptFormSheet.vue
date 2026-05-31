@@ -100,8 +100,8 @@ async function copyId(): Promise<void> {
             <SheetHeader class="border-b p-6">
                 <SheetTitle>{{ isEdit ? 'Edit prompt' : 'Add a prompt' }}</SheetTitle>
                 <SheetDescription>
-                    Write a reusable system prompt once, then attach it to any agent from its Persona page. Editing it here updates every agent
-                    that uses it.
+                    Write a reusable system prompt once, then attach it to any agent from its Persona page. Editing it here updates every agent that
+                    uses it.
                 </SheetDescription>
             </SheetHeader>
 
@@ -145,13 +145,7 @@ async function copyId(): Promise<void> {
                 </div>
 
                 <div class="flex items-center justify-end gap-2 border-t pt-5">
-                    <Button
-                        v-if="isEdit"
-                        type="button"
-                        variant="ghost"
-                        class="text-destructive hover:text-destructive mr-auto"
-                        @click="askDelete"
-                    >
+                    <Button v-if="isEdit" type="button" variant="ghost" class="text-destructive hover:text-destructive mr-auto" @click="askDelete">
                         <Trash2 class="mr-2 size-4" />
                         Delete
                     </Button>

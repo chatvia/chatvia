@@ -52,9 +52,11 @@ class AgentMetricsDataController
         $modelUsage = $modelUsageData->map(function ($item) use ($llms) {
             $model = $llms->firstWhere('external_name', $item->model_external_name);
 
+            // Null-safe: an llm row may have been renamed or removed since the
+            // rollup was written. Fall back to the raw external name.
             return new ModelUsageData(
-                name: $model->descriptive_name,
-                icon: $model->icon,
+                name: $model?->descriptive_name ?? $item->model_external_name,
+                icon: $model?->icon,
                 count: $item->usage_count,
                 percentage: $item->percentage,
                 feedback: new ModelFeedbackData(

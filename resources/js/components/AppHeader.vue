@@ -33,6 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const auth = computed(() => page.props.auth as Auth);
+const onTrial = computed(() => Boolean(page.props.onTrial));
 
 const isCurrentRoute = computed(() => (url: string) => {
     const currentUrl = page.url;
@@ -112,7 +113,7 @@ const rightNavItems: NavItem[] = [];
     <Banner />
 
     <!-- Fixed header -->
-    <div class="bg-background fixed top-12 right-0 left-0 z-50">
+    <div class="bg-background fixed right-0 left-0 z-50" :class="onTrial ? 'top-12' : 'top-0'">
         <div class="border-sidebar-border/80 border-b">
             <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                 <!-- Mobile Menu -->
@@ -255,7 +256,7 @@ const rightNavItems: NavItem[] = [];
             </div>
         </div>
     </div>
-    <div :class="[props.breadcrumbs.length > 1 ? 'h-28' : 'h-16', 'mt-12']"></div>
+    <div :class="[props.breadcrumbs.length > 1 ? 'h-28' : 'h-16', onTrial ? 'mt-12' : 'mt-0']"></div>
 </template>
 
 <style scoped>

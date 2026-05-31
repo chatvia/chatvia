@@ -3,7 +3,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { Calendar, Circle, Download, Filter, Globe, LoaderCircle, MessageSquare, RefreshCcw, Search, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { useChatLog } from './useChatLog';
+
+const { hasCapability } = useCapabilityGuard();
+const hasTopicsAccess = computed(() => hasCapability('topics'));
 
 type ConversationSource = 'hosted_chat' | 'widget' | 'bar';
 
@@ -12,7 +18,6 @@ const sourceMeta: Record<ConversationSource, { label: string; icon: typeof Globe
     widget: { label: 'Widget', icon: Globe },
     bar: { label: 'Bar', icon: Search },
 };
-import { useChatLog } from './useChatLog';
 
 const {
     agent: _agent,
@@ -293,10 +298,7 @@ import { ref } from 'vue';
                         >
                             <Tooltip v-if="c.source && sourceMeta[c.source as ConversationSource]">
                                 <TooltipTrigger as-child>
-                                    <component
-                                        :is="sourceMeta[c.source as ConversationSource].icon"
-                                        class="h-3 w-3 flex-shrink-0"
-                                    />
+                                    <component :is="sourceMeta[c.source as ConversationSource].icon" class="h-3 w-3 flex-shrink-0" />
                                 </TooltipTrigger>
                                 <TooltipContent side="top">
                                     {{ sourceMeta[c.source as ConversationSource].label }}
@@ -309,8 +311,8 @@ import { ref } from 'vue';
                                 class="h-3 w-3 rounded-sm object-cover"
                                 :title="c.country.toUpperCase()"
                             />
-                            <span v-if="c.topic" class="max-w-[100px] truncate">{{ c.topic }}</span>
-                            <span v-if="c.topic" class="opacity-50">•</span>
+                            <span v-if="hasTopicsAccess && c.topic" class="max-w-[100px] truncate">{{ c.topic }}</span>
+                            <span v-if="hasTopicsAccess && c.topic" class="opacity-50">•</span>
                             <span>{{ formatTimeAgo(c.last_at) }}</span>
                         </div>
                     </button>

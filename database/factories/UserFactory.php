@@ -6,8 +6,8 @@ use App\Auth\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Support\Enums\UserSource;
-use Support\Enums\UserType;
+use Support\Enums\User\UserSource;
+use Support\Enums\User\UserType;
 
 /**
  * @extends Factory<User>

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Billing\Payments;
 
 use App\Auth\Models\User;
 use App\Http\Requests\Billing\PaymentMethodIdRequest;
-use Domain\Billing\Actions\SetDefaultPaymentMethodAction;
+use Domain\Billing\Actions\Account\SetDefaultPaymentMethodAction;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 

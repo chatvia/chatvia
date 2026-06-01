@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Services\Streaming\Sources;
 
-use Domain\Chat\Services\Streaming\StreamEvent;
+use Domain\Chat\Services\Streaming\Sse\StreamEvent;
 use Generator;
 
 class ReplaySource

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Widget\Handoff;
 
 use App\Widget\WidgetVerification;
-use Domain\Chat\Actions\FindWidgetConversationAction;
-use Domain\Widget\Data\WidgetHandoffStatusData;
+use Domain\Chat\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Widget\Data\Handoff\WidgetHandoffStatusData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

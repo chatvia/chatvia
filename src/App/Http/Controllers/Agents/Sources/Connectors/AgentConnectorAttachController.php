@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Agents\Sources\Connectors;
 
-use Domain\Agents\Data\Resources\AgentMcpServerData;
+use Domain\Agents\Data\Resources\Mcp\AgentMcpServerData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
-use Domain\Connectors\Actions\AttachGenericConnectorToAgentAction;
+use Domain\Connectors\Actions\Agent\AttachGenericConnectorToAgentAction;
 use Domain\Connectors\Data\AgentConnectorAttachResultData;
 use Illuminate\Http\Request;
 

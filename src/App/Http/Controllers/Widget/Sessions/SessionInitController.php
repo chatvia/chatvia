@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Widget\Sessions;
 
 use App\Widget\WidgetVerification;
 use Domain\Widget\Actions\InitializeWidgetSessionAction;
-use Domain\Widget\Data\WidgetSessionInitData;
-use Domain\Widget\Data\WidgetSessionInitResultData;
+use Domain\Widget\Data\Session\WidgetSessionInitData;
+use Domain\Widget\Data\Session\WidgetSessionInitResultData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

@@ -1,8 +1,8 @@
 <?php
 
 use App\Auth\Models\User;
-use App\Http\Middleware\RedirectToAgent;
-use App\Http\Middleware\ResolveAgentFromSubdomain;
+use App\Http\Middleware\Chat\RedirectToAgent;
+use App\Http\Middleware\Chat\ResolveAgentFromSubdomain;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;

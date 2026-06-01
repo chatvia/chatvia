@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Settings\Account;
 
 use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Settings\CreateApiKeyRequest;
-use Domain\Auth\Actions\CreateApiKeyAction;
-use Domain\Auth\Actions\DeleteApiKeyAction;
+use App\Http\Requests\Settings\Account\CreateApiKeyRequest;
+use App\Auth\Actions\ApiKeys\CreateApiKeyAction;
+use App\Auth\Actions\ApiKeys\DeleteApiKeyAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

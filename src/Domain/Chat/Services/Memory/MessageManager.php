@@ -2,9 +2,9 @@
 
 namespace Domain\Chat\Services\Memory;
 
-use Domain\Analytics\Events\FeedbackGivenEvent;
-use Domain\Chat\Data\ChatInputPayload;
-use Domain\Chat\Data\ChatOutputPayload;
+use Domain\Analytics\Events\FeedbackGiven;
+use Domain\Chat\Data\Messages\ChatInputPayload;
+use Domain\Chat\Data\Messages\ChatOutputPayload;
 use Domain\Chat\Data\Memory\MessageData;
 use Domain\Chat\Models\ChatMessage;
 use Illuminate\Support\Facades\DB;
@@ -305,7 +305,7 @@ class MessageManager
     }
 
     /**
-     * Resolve the analytics dimensions for the message and fire FeedbackGivenEvent.
+     * Resolve the analytics dimensions for the message and fire FeedbackGiven event.
      * Single small join — feedback is rare, so the extra query is cheap.
      */
     private function dispatchFeedbackAnalytics(
@@ -327,7 +327,7 @@ class MessageManager
             return;
         }
 
-        FeedbackGivenEvent::dispatch(
+        FeedbackGiven::dispatch(
             (int) $context->agent_id,
             $conversationExternalId,
             $messageExternalId,

@@ -4,8 +4,8 @@ namespace Domain\Chat\Contracts;
 
 use App\Auth\Models\User;
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Data\ChatInputPayload;
-use Domain\Chat\Data\ChatOutputPayload;
+use Domain\Chat\Data\Messages\ChatInputPayload;
+use Domain\Chat\Data\Messages\ChatOutputPayload;
 use Domain\Chat\Data\Memory\ConversationData;
 use Domain\Chat\Data\Memory\MessageData;
 use Domain\Chat\Enums\ConversationSource;

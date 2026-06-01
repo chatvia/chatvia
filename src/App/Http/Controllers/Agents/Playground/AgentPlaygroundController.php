@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Playground;
 
 use App\Auth\Services\ChatterAuthTokenService;
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

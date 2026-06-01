@@ -2,7 +2,7 @@
 
 namespace Domain\Ingestion\Services\Sources;
 
-use App\LLM\Operations\Chunker;
+use App\LLM\Operations\Documents\Chunker;
 use Domain\Ingestion\Services\Tidy\HTMLCleaner;
 use Domain\Sources\Web\Models\AgentWebsiteUrl;
 use Domain\Sources\Web\Models\SourceWebsite;

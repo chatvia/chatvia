@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Services;
 
-use Domain\Chat\Data\ChatInputPayload;
+use Domain\Chat\Data\Messages\ChatInputPayload;
 use Domain\Chat\Services\Data\StreamRequestData;
 use Illuminate\Support\Collection;
 

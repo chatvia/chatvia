@@ -5,8 +5,8 @@ use App\Auth\Services\AgentSignInTokenService;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
-use Domain\Auth\Actions\CreateChatterAction;
-use Domain\Teams\Actions\CreateTeamAction;
+use App\Auth\Actions\Chatters\CreateChatterAction;
+use Domain\Teams\Actions\Team\CreateTeamAction;
 use Domain\Teams\Data\CreateTeamData;
 use Illuminate\Support\Str;
 

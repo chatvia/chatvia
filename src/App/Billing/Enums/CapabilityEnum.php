@@ -2,7 +2,7 @@
 
 namespace App\Billing\Enums;
 
-use App\Billing\Data\Resources\BillingPackageCapabilitiesData;
+use App\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 
 enum CapabilityEnum: string
 {

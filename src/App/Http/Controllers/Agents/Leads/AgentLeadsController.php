@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agents\Leads;
 
-use Domain\Agents\Actions\BulkDeleteAgentLeadsAction;
-use Domain\Agents\Data\Resources\AgentResourceData;
-use Domain\Agents\Data\Resources\LeadResourceData;
+use Domain\Agents\Actions\Leads\BulkDeleteAgentLeadsAction;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
+use Domain\Agents\Data\Resources\Leads\LeadResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;

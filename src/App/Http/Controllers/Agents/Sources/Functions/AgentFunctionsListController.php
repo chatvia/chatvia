@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\Sources\Functions;
 
-use Domain\Agents\Actions\ListAgentFunctionsAction;
-use Domain\Agents\Data\Resources\AgentFunctionsListResourceData;
+use Domain\Agents\Actions\Functions\ListAgentFunctionsAction;
+use Domain\Agents\Data\Resources\Functions\AgentFunctionsListResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 

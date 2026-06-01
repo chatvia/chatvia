@@ -3,7 +3,7 @@
 namespace Domain\Ingestion\Services\Search;
 
 use App\Embeddings\Contracts\EmbeddingsProviderInterface;
-use App\LLM\Operations\SearchDecision;
+use App\LLM\Operations\Query\SearchDecision;
 use Domain\Agents\Models\Agent;
 use Domain\Ingestion\Jobs\UpdateRetrievalStatsJob;
 use Domain\Ingestion\Models\Chunk;

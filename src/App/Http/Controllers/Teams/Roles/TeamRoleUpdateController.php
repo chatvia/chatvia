@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Teams\Roles;
 
 use App\Http\Requests\Teams\Roles\SaveTeamRoleRequest;
 use App\Teams\Models\Team;
-use Domain\Teams\Actions\UpdateTeamRoleAction;
+use Domain\Teams\Actions\Roles\UpdateTeamRoleAction;
 use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Http\RedirectResponse;
 

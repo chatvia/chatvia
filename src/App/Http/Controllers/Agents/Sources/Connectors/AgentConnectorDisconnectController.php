@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Agents\Sources\Connectors;
 
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
-use Domain\Connectors\Actions\DetachGenericConnectorFromAgentAction;
+use Domain\Connectors\Actions\Agent\DetachGenericConnectorFromAgentAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

@@ -3,7 +3,7 @@
 namespace Domain\Agents\Observers;
 
 use Domain\Agents\Models\AgentMcpServer;
-use Domain\Chat\Services\Tooling\ToolRegistry;
+use Domain\Chat\Services\Tooling\Registry\ToolRegistry;
 use Illuminate\Support\Facades\DB;
 
 /**

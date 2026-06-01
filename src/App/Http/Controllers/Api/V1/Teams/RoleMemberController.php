@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api\V1\Teams;
 
 use App\Auth\Models\User;
-use App\Http\Resources\Api\V1\UserData;
+use App\Http\Resources\Api\V1\Auth\UserData;
 use App\Teams\Models\Role;
 use App\Teams\Models\Team;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Teams\Actions\AssignUserToRoleAction;
+use Domain\Teams\Actions\Members\AssignUserToRoleAction;
 use Illuminate\Http\Request;
 
 /**

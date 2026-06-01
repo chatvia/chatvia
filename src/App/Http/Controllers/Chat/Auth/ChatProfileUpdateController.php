@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Chat\Auth;
 
 use App\Http\Requests\Chat\UpdateChatterProfileRequest;
-use Domain\Auth\Actions\UpdateChatterProfileAction;
+use App\Auth\Actions\Chatters\UpdateChatterProfileAction;
 
 class ChatProfileUpdateController
 {

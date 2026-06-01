@@ -4,8 +4,8 @@ namespace Domain\Analytics\Listeners;
 
 use Domain\Analytics\Actions\RecordFeedbackGivenAction;
 use Domain\Analytics\Actions\RecordMessageSentAction;
-use Domain\Analytics\Events\FeedbackGivenEvent;
-use Domain\Analytics\Events\MessageSentEvent;
+use Domain\Analytics\Events\FeedbackGiven;
+use Domain\Analytics\Events\MessageSent;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Events\Dispatcher;
 use Throwable;
@@ -25,12 +25,12 @@ class RecordAnalyticsListener implements ShouldQueue
     public function subscribe(Dispatcher $events): array
     {
         return [
-            MessageSentEvent::class => 'onMessageSent',
-            FeedbackGivenEvent::class => 'onFeedbackGiven',
+            MessageSent::class => 'onMessageSent',
+            FeedbackGiven::class => 'onFeedbackGiven',
         ];
     }
 
-    public function onMessageSent(MessageSentEvent $event): void
+    public function onMessageSent(MessageSent $event): void
     {
         if (! config('analytics.enabled')) {
             return;
@@ -39,7 +39,7 @@ class RecordAnalyticsListener implements ShouldQueue
         $this->recordMessageSent->execute($event);
     }
 
-    public function onFeedbackGiven(FeedbackGivenEvent $event): void
+    public function onFeedbackGiven(FeedbackGiven $event): void
     {
         if (! config('analytics.enabled')) {
             return;

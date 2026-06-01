@@ -2,8 +2,8 @@
 
 namespace Domain\Ingestion\Services;
 
-use App\LLM\Operations\Chunker;
-use App\LLM\Operations\CostCalculator;
+use App\LLM\Operations\Documents\Chunker;
+use App\LLM\Operations\Pricing\CostCalculator;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Models\Chunk;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;

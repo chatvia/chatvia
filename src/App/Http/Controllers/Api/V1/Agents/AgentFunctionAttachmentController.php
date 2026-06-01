@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Agents;
 
 use App\Http\Requests\Api\V1\Agents\AttachAgentFunctionRequest;
-use App\Http\Resources\Api\V1\FunctionData;
+use App\Http\Resources\Api\V1\Tools\FunctionData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;

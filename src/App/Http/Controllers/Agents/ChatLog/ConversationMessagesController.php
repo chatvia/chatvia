@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\ChatLog;
 
-use Domain\Agents\Actions\ListConversationMessagesAction;
-use Domain\Agents\Data\Resources\ChatLog\ChatLogMessagesResourceData;
+use Domain\Agents\Actions\ChatLog\ListConversationMessagesAction;
+use Domain\Agents\Data\Resources\ChatLog\Messages\ChatLogMessagesResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Http\Request;

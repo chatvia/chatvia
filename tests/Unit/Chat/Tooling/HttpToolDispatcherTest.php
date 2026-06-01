@@ -4,7 +4,7 @@ use App\Auth\Models\User;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
-use Domain\Chat\Services\Tooling\HttpToolDispatcher;
+use Domain\Chat\Services\Tooling\Dispatcher\HttpToolDispatcher;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 

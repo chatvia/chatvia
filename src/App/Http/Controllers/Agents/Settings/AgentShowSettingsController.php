@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Settings;
 
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

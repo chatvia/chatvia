@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\Setup;
 
-use App\Http\Requests\Agents\UpdateAgentLlmRequest;
-use Domain\Agents\Actions\UpdateAgentLlmAction;
+use App\Http\Requests\Agents\Crud\UpdateAgentLlmRequest;
+use Domain\Agents\Actions\Settings\UpdateAgentLlmAction;
 use Domain\Agents\Models\Agent;
 
 class UpdateAgentLlmController

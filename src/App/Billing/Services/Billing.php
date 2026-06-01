@@ -2,7 +2,7 @@
 
 namespace App\Billing\Services;
 
-use App\Billing\Data\Resources\BillingPackageCapabilitiesData;
+use App\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Illuminate\Support\Collection;
 
 class Billing

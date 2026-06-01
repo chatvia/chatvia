@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api\V1\Teams;
 
 use App\Auth\Models\User;
-use App\Http\Resources\Api\V1\RoleData;
+use App\Http\Resources\Api\V1\Teams\RoleData;
 use App\Teams\Models\Role;
 use App\Teams\Models\Team;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Teams\Actions\CreateTeamRoleAction;
-use Domain\Teams\Actions\UpdateTeamRoleAction;
+use Domain\Teams\Actions\Roles\CreateTeamRoleAction;
+use Domain\Teams\Actions\Roles\UpdateTeamRoleAction;
 use Domain\Teams\Data\RolePayloadData;
 use Domain\Teams\Data\SaveTeamRoleData;
 use Domain\Teams\Exceptions\InviteRejectedException;

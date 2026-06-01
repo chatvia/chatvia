@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Teams\Crud;
 
 use App\Auth\Models\User;
 use App\Teams\Models\Team;
-use Domain\Teams\Actions\LeaveTeamAction;
+use Domain\Teams\Actions\Team\LeaveTeamAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

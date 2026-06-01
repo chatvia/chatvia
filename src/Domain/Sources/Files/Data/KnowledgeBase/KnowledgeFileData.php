@@ -3,7 +3,7 @@
 namespace Domain\Sources\Files\Data\KnowledgeBase;
 
 use DateTime;
-use Domain\Agents\Data\AgentData;
+use Domain\Agents\Data\Account\AgentData;
 use Spatie\LaravelData\Data;
 
 final class KnowledgeFileData extends Data

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Teams\Members;
 
 use App\Http\Requests\Teams\InviteTeamMemberRequest;
 use App\Teams\Models\Team;
-use Domain\Teams\Actions\InviteTeamMemberAction;
+use Domain\Teams\Actions\Members\InviteTeamMemberAction;
 use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Http\RedirectResponse;
 

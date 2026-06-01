@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
-use Domain\Auth\Data\SendMagicLinkData;
+use App\Auth\Data\Sessions\SendMagicLinkData;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 

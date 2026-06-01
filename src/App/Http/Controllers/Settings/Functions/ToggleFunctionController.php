@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Settings\Functions;
 
 use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Agents\Actions\ToggleAgentFunctionAction;
+use Domain\Agents\Actions\Functions\ToggleAgentFunctionAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Actions\Fortify\ResetUserPassword;
+use App\Auth\Actions\Fortify\ResetUserPassword;
 use App\Auth\Login\EnsureTurnstileIsValid;
 use App\Auth\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;

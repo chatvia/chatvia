@@ -4,7 +4,7 @@ namespace App\Billing\Listeners;
 
 use App\Auth\Models\User;
 use App\Billing\Models\UserBilling;
-use App\Billing\Notifications\TrialWelcomeNotification;
+use Domain\Billing\Notifications\TrialWelcomeNotification;
 use App\Teams\Services\TeamService;
 use Exception;
 use Illuminate\Support\Facades\Cache;

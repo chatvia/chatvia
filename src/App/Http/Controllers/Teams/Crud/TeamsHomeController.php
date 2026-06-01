@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Teams\Crud;
 
-use App\Teams\Data\Resources\TeamListItemData;
+use App\Teams\Data\Resources\Team\TeamListItemData;
 use App\Teams\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

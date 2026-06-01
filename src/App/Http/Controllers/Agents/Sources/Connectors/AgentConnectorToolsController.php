@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Agents\Sources\Connectors;
 
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
-use Domain\Connectors\Actions\ListConnectorToolsAction;
+use Domain\Connectors\Actions\Mcp\ListConnectorToolsAction;
 use Domain\Connectors\Data\ConnectorToolsResourceData;
 use Illuminate\Http\Request;
 

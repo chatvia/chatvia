@@ -4,18 +4,18 @@ namespace App\Http\Controllers\Settings\Members;
 
 use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Agents\Actions\DetachChatterFromAgentAction;
-use Domain\Agents\Actions\GrantChatterAccessToAgentAction;
+use Domain\Agents\Actions\Members\DetachChatterFromAgentAction;
+use Domain\Agents\Actions\Members\GrantChatterAccessToAgentAction;
 use Domain\Agents\Models\Agent;
-use Domain\Auth\Actions\DeleteChatterAction;
-use Domain\Auth\Actions\ResetChatterPasswordAction;
-use Domain\Auth\Data\WorkspaceChatterRowData;
+use App\Auth\Actions\Chatters\DeleteChatterAction;
+use App\Auth\Actions\Chatters\ResetChatterPasswordAction;
+use App\Auth\Data\Chatters\WorkspaceChatterRowData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\LaravelData\DataCollection;
-use Support\Enums\UserType;
+use Support\Enums\User\UserType;
 
 /**
  * Workspace-level Members management (Settings → Members). Lists every

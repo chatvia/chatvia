@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api\V1\Teams;
 
 use App\Auth\Models\User;
-use App\Http\Resources\Api\V1\TeamData;
+use App\Http\Resources\Api\V1\Teams\TeamData;
 use App\Teams\Models\Team;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Teams\Actions\CreateTeamAction;
-use Domain\Teams\Actions\UpdateTeamAction;
+use Domain\Teams\Actions\Team\CreateTeamAction;
+use Domain\Teams\Actions\Team\UpdateTeamAction;
 use Domain\Teams\Data\CreateTeamData;
 use Domain\Teams\Data\TeamPayloadData;
 use Domain\Teams\Data\UpdateTeamData;

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Teams\Crud;
 
-use App\Teams\Data\Resources\ManagedUserData;
-use App\Teams\Data\Resources\TeamData;
-use App\Teams\Data\Resources\TeamInvitationData;
-use App\Teams\Data\Resources\TeamMemberData;
+use App\Teams\Data\Resources\Members\ManagedUserData;
+use App\Teams\Data\Resources\Members\TeamInvitationData;
+use App\Teams\Data\Resources\Members\TeamMemberData;
+use App\Teams\Data\Resources\Team\TeamData;
 use App\Teams\Models\Team;
 use App\Teams\Services\TeamService;
 use Illuminate\Http\Request;

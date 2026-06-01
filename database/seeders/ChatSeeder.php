@@ -7,14 +7,14 @@ use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Llm;
 use Domain\Analytics\Actions\RecordFeedbackGivenAction;
 use Domain\Analytics\Actions\RecordMessageSentAction;
-use Domain\Analytics\Events\FeedbackGivenEvent;
-use Domain\Analytics\Events\MessageSentEvent;
+use Domain\Analytics\Events\FeedbackGiven;
+use Domain\Analytics\Events\MessageSent;
 use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
 use Illuminate\Database\Seeder;
-use Support\Demo\DemoCountries;
+use Database\Seeders\Demo\DemoCountries;
 
 class ChatSeeder extends Seeder
 {
@@ -358,7 +358,7 @@ class ChatSeeder extends Seeder
                         ? $llms->firstWhere('id', $llmId)?->external_name
                         : null;
 
-                    $messageSent->execute(new MessageSentEvent(
+                    $messageSent->execute(new MessageSent(
                         agentId: $agent->id,
                         conversationExternalId: (string) $conversation->external_id,
                         messageExternalId: (string) $message->external_id,
@@ -374,7 +374,7 @@ class ChatSeeder extends Seeder
                     $analyticsFired++;
 
                     if (! empty($messageData['feedback'])) {
-                        $feedbackGiven->execute(new FeedbackGivenEvent(
+                        $feedbackGiven->execute(new FeedbackGiven(
                             agentId: $agent->id,
                             conversationExternalId: (string) $conversation->external_id,
                             messageExternalId: (string) $message->external_id,

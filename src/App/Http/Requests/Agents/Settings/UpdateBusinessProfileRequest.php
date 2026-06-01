@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Agents\Settings;
 
-use Domain\Agents\Data\BusinessProfileData;
+use Domain\Agents\Data\Settings\BusinessProfileData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBusinessProfileRequest extends FormRequest

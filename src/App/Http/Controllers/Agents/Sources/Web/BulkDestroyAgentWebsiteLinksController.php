@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources\Web;
 
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Web\Actions\BulkDeleteWebsiteUrlsAction;
+use Domain\Sources\Web\Actions\Url\BulkDeleteWebsiteUrlsAction;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

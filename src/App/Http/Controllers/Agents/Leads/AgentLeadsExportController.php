@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Leads;
 
-use Domain\Agents\Actions\ExportAgentLeadsToCsvAction;
+use Domain\Agents\Actions\Leads\ExportAgentLeadsToCsvAction;
 use Domain\Agents\Models\Agent;
 use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Http\Request;

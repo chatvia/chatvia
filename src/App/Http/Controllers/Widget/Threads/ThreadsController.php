@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Widget\Threads;
 
 use App\Widget\WidgetVerification;
 use Domain\Widget\Actions\ListWidgetThreadsAction;
-use Domain\Widget\Data\WidgetThreadsResultData;
+use Domain\Widget\Data\Thread\WidgetThreadsResultData;
 use Illuminate\Http\Request;
 
 class ThreadsController

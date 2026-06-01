@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Billing\Subscriptions;
 
 use App\Auth\Models\User;
-use Domain\Billing\Actions\CancelSubscriptionAction;
+use Domain\Billing\Actions\Subscriptions\CancelSubscriptionAction;
 use Illuminate\Http\Request;
 
 class BillingSubscriptionCancelController

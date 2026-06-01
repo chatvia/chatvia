@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Widget\Activity;
 
 use App\Widget\WidgetVerification;
-use Domain\Chat\Actions\FindWidgetConversationAction;
-use Domain\Chat\Actions\RecordConversationActivityAction;
-use Domain\Widget\Data\WidgetAckData;
+use Domain\Chat\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Chat\Actions\Conversations\RecordConversationActivityAction;
+use Domain\Widget\Data\Auth\WidgetAckData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

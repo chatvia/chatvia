@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Widget\Threads;
 
 use App\Widget\WidgetVerification;
 use Domain\Chat\Services\Memory\ChatMemory;
-use Domain\Widget\Data\WidgetAckData;
+use Domain\Widget\Data\Auth\WidgetAckData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

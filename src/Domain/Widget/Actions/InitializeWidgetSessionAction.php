@@ -8,8 +8,8 @@ use Domain\Analytics\Services\UserAgentParser;
 use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatSession;
 use Domain\Chat\Services\Memory\ChatMemory;
-use Domain\Widget\Data\WidgetSessionInitData;
-use Domain\Widget\Data\WidgetSessionInitResultData;
+use Domain\Widget\Data\Session\WidgetSessionInitData;
+use Domain\Widget\Data\Session\WidgetSessionInitResultData;
 use Illuminate\Support\Str;
 
 /**

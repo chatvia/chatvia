@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Teams\Members;
 
 use App\Teams\Models\Team;
-use Domain\Teams\Actions\CancelTeamInvitationAction;
+use Domain\Teams\Actions\Invitations\CancelTeamInvitationAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

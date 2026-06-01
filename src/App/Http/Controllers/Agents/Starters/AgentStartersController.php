@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Starters;
 
-use Domain\Agents\Actions\SetAgentStartersAction;
+use Domain\Agents\Actions\Settings\SetAgentStartersAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 

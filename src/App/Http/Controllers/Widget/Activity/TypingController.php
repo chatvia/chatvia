@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Widget\Activity;
 
 use App\Http\Requests\Widget\WidgetTypingRequest;
 use App\Widget\WidgetVerification;
-use Domain\Chat\Actions\BroadcastChatTypingAction;
-use Domain\Chat\Actions\FindWidgetConversationAction;
-use Domain\Widget\Data\WidgetAckData;
+use Domain\Chat\Actions\Messages\BroadcastChatTypingAction;
+use Domain\Chat\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Widget\Data\Auth\WidgetAckData;
 use Illuminate\Http\JsonResponse;
 
 class TypingController

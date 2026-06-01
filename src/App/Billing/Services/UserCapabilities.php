@@ -3,7 +3,7 @@
 namespace App\Billing\Services;
 
 use App\Auth\Models\User;
-use App\Billing\Data\Resources\BillingPackageCapabilitiesData;
+use App\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use App\Billing\Enums\CapabilityEnum;
 
 class UserCapabilities

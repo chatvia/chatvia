@@ -32,6 +32,8 @@
 
             @include('landing.partials.hero')
 
+            @include('landing.partials.mcp-functions')
+
 {{--            @include('landing.partials.trust-badges')--}}
 
 {{--            @include('landing.partials.core-features')--}}
@@ -136,6 +138,4 @@
         @include('landing.partials.footer')
 
     </div>
-
-    @include('landing.partials.video-modal')
 @endsection

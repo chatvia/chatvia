@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Persona;
 
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentPrompt;
 use Illuminate\Http\Request;

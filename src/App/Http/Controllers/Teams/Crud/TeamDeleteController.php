@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Teams\Crud;
 
 use App\Teams\Models\Team;
-use Domain\Teams\Actions\DeleteTeamAction;
+use Domain\Teams\Actions\Team\DeleteTeamAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

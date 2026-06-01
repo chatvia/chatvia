@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1\Chat;
 
-use App\Http\Resources\Api\V1\ChatConversationDetailData;
+use App\Http\Resources\Api\V1\Conversations\ChatConversationDetailData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Actions\AdminDeleteConversationAction;
-use Domain\Chat\Actions\ListAgentConversationsAction;
+use Domain\Chat\Actions\Conversations\AdminDeleteConversationAction;
+use Domain\Chat\Actions\Conversations\ListAgentConversationsAction;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;

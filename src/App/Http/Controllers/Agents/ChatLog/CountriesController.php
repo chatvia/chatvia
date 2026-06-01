@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\ChatLog;
 
-use Domain\Agents\Actions\ListAgentVisitorCountriesAction;
-use Domain\Agents\Data\Resources\ChatLog\ChatLogCountriesResourceData;
+use Domain\Agents\Actions\ChatLog\ListAgentVisitorCountriesAction;
+use Domain\Agents\Data\Resources\ChatLog\Countries\ChatLogCountriesResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 

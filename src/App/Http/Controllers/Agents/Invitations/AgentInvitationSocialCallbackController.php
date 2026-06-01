@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Agents\Invitations;
 
 use App\Auth\Services\ChatterAuthTokenService;
 use App\Http\Controllers\Controller;
-use Domain\Agents\Actions\AcceptAgentInvitationAction;
+use Domain\Agents\Actions\Members\AcceptAgentInvitationAction;
 use Domain\Agents\Exceptions\ChatterInvitationRejectedException;
 use Domain\Agents\Models\ChatterInvitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
-use Support\Enums\SocialProvider;
+use Support\Enums\User\SocialProvider;
 use Throwable;
 
 /**

@@ -9,7 +9,7 @@ use Domain\Ingestion\Contracts\ChunkableContract;
 use Domain\Ingestion\Jobs\Website\WebsiteIngestionJob;
 use Domain\Ingestion\Models\Chunk;
 use Domain\Sources\Web\Data\Crawler\CrawlerData;
-use Domain\Sources\Web\Events\WebsiteCrawlerEvent;
+use Domain\Sources\Web\Events\WebsiteCrawlStarted;
 use Domain\Sources\Web\Jobs\Crawler\WebsiteCrawlerJob;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
@@ -128,11 +128,11 @@ class SourceWebsite extends Model implements ChunkableContract
         // Dispatch crawler job and event for each agent
         if ($agentId) {
             $agent = Agent::findOrFail($agentId);
-            WebsiteCrawlerEvent::dispatch($this, $agent);
+            WebsiteCrawlStarted::dispatch($this, $agent);
             WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent);
         } else {
             $this->agents->each(function (Agent $agent) use ($crawlerData): void {
-                WebsiteCrawlerEvent::dispatch($this, $agent);
+                WebsiteCrawlStarted::dispatch($this, $agent);
                 WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent);
             });
         }

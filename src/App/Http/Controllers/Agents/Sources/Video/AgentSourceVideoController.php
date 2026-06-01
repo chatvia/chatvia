@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Sources\Video;
 
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

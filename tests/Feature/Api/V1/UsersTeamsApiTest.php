@@ -3,13 +3,13 @@
 use App\Auth\Models\User;
 use App\Teams\Models\Team;
 use App\Teams\Services\TeamService;
-use Domain\Teams\Actions\CreateTeamAction;
+use Domain\Teams\Actions\Team\CreateTeamAction;
 use Domain\Teams\Data\CreateTeamData;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->user);
-    $this->agent = createTemplateAgent($this->user);
+    $this->agent = createAgent($this->user);
     $this->token = $this->user->createToken('account')->plainTextToken;
 });
 
@@ -58,7 +58,7 @@ describe('POST /api/v1/users', function (): void {
 
     it('rejects an agent owned by a different account', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $otherAgent = createTemplateAgent($other);
+        $otherAgent = createAgent($other);
 
         $this->withHeaders(apiHeaders($this->token))
             ->postJson('/api/v1/users', [

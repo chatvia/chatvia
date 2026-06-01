@@ -83,12 +83,12 @@ const { hasPermission } = useTeamPermissions();
 const canDeleteSources = computed(() => hasPermission('agent.sources.delete'));
 
 // WebSocket event listener for crawling status updates
-useEcho(`agents.${props.agent.external_id}.crawler`, '.WebsiteCrawlerEvent', (e) => {
+useEcho(`agents.${props.agent.external_id}.crawler`, '.WebsiteCrawlStarted', (e) => {
     handleCrawlingUpdate(e);
 });
 
 // WebSocket event listener for URL ingestion status updates
-useEcho(`agents.${props.agent.external_id}.web.ingestion.url`, '.UrlIngestionEvent', (e) => {
+useEcho(`agents.${props.agent.external_id}.web.ingestion.url`, '.UrlIngestionStarted', (e) => {
     handleUrlIngestionUpdate(e);
 });
 

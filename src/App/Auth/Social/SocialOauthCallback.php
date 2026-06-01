@@ -3,14 +3,14 @@
 namespace App\Auth\Social;
 
 use App\Auth\Login\TwoFactorAwareLogin;
-use Domain\Auth\Actions\LinkSocialAccountAction;
-use Domain\Auth\Actions\SocialLoginAction;
-use Domain\Auth\Exceptions\SocialAccountAlreadyLinkedException;
+use App\Auth\Actions\Social\LinkSocialAccountAction;
+use App\Auth\Actions\Social\SocialLoginAction;
+use App\Auth\Exceptions\SocialAccountAlreadyLinkedException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
-use Support\Enums\SocialProvider;
+use Support\Enums\User\SocialProvider;
 
 /**
  * Shared post-OAuth landing logic for /auth/{provider}/callback. Branches on
@@ -56,7 +56,15 @@ class SocialOauthCallback
 
     private function handleLogin(SocialProvider $provider): RedirectResponse
     {
-        $user = $this->login->execute($provider->value);
+        /** @var AbstractProvider $driver */
+        $driver = Socialite::driver($provider->value);
+        $socialUser = $driver->stateless()->user();
+
+        $user = $this->login->execute(
+            $provider,
+            (string) $socialUser->getId(),
+            $socialUser->getEmail(),
+        );
 
         if (! $user) {
             return to_route('login')->with('error', 'No account found!');

@@ -4,7 +4,7 @@ namespace App\Auth\Observers;
 
 use App\Auth\Models\User;
 use App\Billing\Models\UserBilling;
-use Support\Enums\UserType;
+use Support\Enums\User\UserType;
 
 class UserObserver
 {

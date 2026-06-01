@@ -3,7 +3,7 @@
 namespace Domain\Chat\Services\Memory;
 
 use App\Auth\Models\User;
-use App\LLM\Operations\TitleGenerator;
+use App\LLM\Operations\Query\TitleGenerator;
 use Domain\Chat\Data\Memory\ConversationData;
 use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatConversation;
@@ -43,7 +43,7 @@ readonly class ConversationManager
 
         $conversationId = $conversation->external_id;
 
-        // Analytics fires from the first MessageSentEvent (in StoreChatMessageJob)
+        // Analytics fires from the first MessageSent event (in StoreChatMessageJob)
         // — country is known by then. Firing here with null country would bucket
         // every conversation under the "--" sentinel and miss the country panel.
 

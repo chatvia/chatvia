@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1\Agents;
 
 use App\Http\Requests\Api\V1\Agents\UpdateAgentSettingsRequest;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Agents\Actions\UpdateAgentSettingsGroupAction;
+use Domain\Agents\Actions\Settings\UpdateAgentSettingsGroupAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

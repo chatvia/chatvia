@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-12.x-red.svg" alt="Laravel Version"></a>
+  <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-13.x-red.svg" alt="Laravel Version"></a>
   <a href="https://www.php.net"><img src="https://img.shields.io/badge/PHP-8.4+-blue.svg" alt="PHP Version"></a>
   <a href="https://vuejs.org"><img src="https://img.shields.io/badge/Vue.js-3.x-green.svg" alt="Vue.js Version"></a>
   <a href="https://inertiajs.com"><img src="https://img.shields.io/badge/Inertia.js-2.x-purple.svg" alt="Inertia.js Version"></a>

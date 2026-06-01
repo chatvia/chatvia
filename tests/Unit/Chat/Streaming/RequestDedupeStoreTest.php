@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Chat\Streaming;
 
-use Domain\Chat\Services\Streaming\RequestDedupeStore;
+use Domain\Chat\Services\Streaming\Requests\RequestDedupeStore;
 use Tests\TestCase;
 
 class RequestDedupeStoreTest extends TestCase

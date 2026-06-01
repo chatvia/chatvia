@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Widget\Handoff;
 
 use App\Widget\WidgetVerification;
-use Domain\Chat\Actions\EndHandoffChatAction;
-use Domain\Chat\Actions\FindWidgetConversationAction;
-use Domain\Widget\Data\WidgetEndChatResultData;
+use Domain\Chat\Actions\Handoff\EndHandoffChatAction;
+use Domain\Chat\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Widget\Data\Session\WidgetEndChatResultData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

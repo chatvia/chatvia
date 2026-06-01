@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Widget\Stream;
 
 use App\Widget\WidgetVerification;
 use Domain\Chat\Services\ChatStreamService;
-use Domain\Chat\Services\Streaming\StreamRequestDataFactory;
+use Domain\Chat\Services\Streaming\Requests\StreamRequestDataFactory;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

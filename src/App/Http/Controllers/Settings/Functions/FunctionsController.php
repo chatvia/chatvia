@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Settings\Functions;
 
 use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Settings\CreateAgentFunctionRequest;
-use App\Http\Requests\Settings\UpdateAgentFunctionRequest;
-use Domain\Agents\Actions\CreateAgentFunctionAction;
-use Domain\Agents\Actions\DeleteAgentFunctionAction;
-use Domain\Agents\Actions\UpdateAgentFunctionAction;
+use App\Http\Requests\Settings\Functions\CreateAgentFunctionRequest;
+use App\Http\Requests\Settings\Functions\UpdateAgentFunctionRequest;
+use Domain\Agents\Actions\Functions\CreateAgentFunctionAction;
+use Domain\Agents\Actions\Functions\DeleteAgentFunctionAction;
+use Domain\Agents\Actions\Functions\UpdateAgentFunctionAction;
 use Domain\Agents\Models\AgentFunction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\V1\Mcps;
 
 use App\Auth\Models\User;
-use App\Http\Resources\Api\V1\McpServerData;
+use App\Http\Resources\Api\V1\Tools\McpServerData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\AgentMcpServer;
-use Domain\Connectors\Actions\DeleteMcpServerAction;
+use Domain\Connectors\Actions\Mcp\DeleteMcpServerAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

@@ -3,16 +3,16 @@
 namespace App\Teams\Services;
 
 use App\Auth\Models\User;
-use App\Teams\Data\Resources\PermissionGroupData;
-use App\Teams\Data\Resources\PermissionMetaData;
-use App\Teams\Data\Resources\PermissionScopeData;
-use App\Teams\Data\Resources\RoleConfigData;
-use App\Teams\Data\Resources\TeamAgentData;
-use App\Teams\Data\Resources\TeamRoleData;
+use App\Teams\Data\Resources\Permissions\PermissionGroupData;
+use App\Teams\Data\Resources\Permissions\PermissionMetaData;
+use App\Teams\Data\Resources\Permissions\PermissionScopeData;
+use App\Teams\Data\Resources\Roles\RoleConfigData;
+use App\Teams\Data\Resources\Roles\TeamRoleData;
+use App\Teams\Data\Resources\Team\TeamAgentData;
 use App\Teams\Models\Permission;
 use App\Teams\Models\Role;
 use App\Teams\Models\Team;
-use App\Teams\Notifications\TeamInvitationNotification;
+use Domain\Teams\Notifications\TeamInvitationNotification;
 use Domain\Agents\Models\Agent;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

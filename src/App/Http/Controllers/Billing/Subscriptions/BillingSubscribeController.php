@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Billing\Subscriptions;
 
 use App\Http\Requests\Billing\SubscribeRequest;
-use Domain\Billing\Actions\SubscribeUserAction;
+use Domain\Billing\Actions\Subscriptions\SubscribeUserAction;
 use Illuminate\Http\RedirectResponse;
 use Laravel\Cashier\Checkout;
 

@@ -3,14 +3,14 @@
 use App\Auth\Models\User;
 use App\Teams\Models\Team;
 use App\Teams\Services\TeamService;
-use Domain\Auth\Actions\CreateChatterAction;
-use Support\Enums\UserSource;
-use Support\Enums\UserType;
+use App\Auth\Actions\Chatters\CreateChatterAction;
+use Support\Enums\User\UserSource;
+use Support\Enums\User\UserType;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
-    $this->agent = createTemplateAgent($this->owner);
+    $this->agent = createAgent($this->owner);
 });
 
 it('flags API-created users as chatters', function (): void {
@@ -52,7 +52,7 @@ it('attaches the agent grant on creation so canAccessAgent passes', function ():
 });
 
 it('refuses canAccessAgent for an agent the chatter was not granted', function (): void {
-    $other = createTemplateAgent($this->owner);
+    $other = createAgent($this->owner);
 
     $user = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
 

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Handoff;
 
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Actions\MarkHandoffConversationReadAction;
+use Domain\Chat\Actions\Handoff\MarkHandoffConversationReadAction;
 use Domain\Chat\Data\Handoff\HandoffMarkReadResultData;
 use Domain\Chat\Models\ChatConversation;
 

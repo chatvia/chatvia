@@ -2,7 +2,7 @@
 
 use App\Auth\Models\User;
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Services\Tooling\ToolCallerIdentity;
+use Domain\Chat\Services\Tooling\Registry\ToolCallerIdentity;
 
 it('maps the agent and owner external ids to identity headers', function (): void {
     $user = new User;

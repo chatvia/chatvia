@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources\Text;
 
 use App\Auth\Models\User;
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Sources\Text\Actions\CreateAgentSourceTextAction;
 use Domain\Sources\Text\Actions\DeleteAgentSourceTextAction;

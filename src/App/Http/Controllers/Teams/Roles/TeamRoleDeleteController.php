@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Teams\Roles;
 
 use App\Teams\Models\Team;
-use Domain\Teams\Actions\DeleteTeamRoleAction;
+use Domain\Teams\Actions\Roles\DeleteTeamRoleAction;
 use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

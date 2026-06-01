@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth\Sessions;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\SendMagicLinkRequest;
-use Domain\Auth\Actions\SendMagicLinkAction;
+use App\Auth\Actions\Sessions\SendMagicLinkAction;
 use Illuminate\Http\RedirectResponse;
 
 class MagicLinkController extends Controller

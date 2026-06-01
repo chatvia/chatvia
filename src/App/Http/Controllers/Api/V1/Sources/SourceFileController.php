@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Sources;
 
 use App\Http\Requests\Api\V1\Sources\UploadSourceFileRequest;
-use App\Http\Resources\Api\V1\UploadedSourceFileData;
+use App\Http\Resources\Api\V1\Agents\UploadedSourceFileData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
 use Domain\Sources\Files\Actions\DeleteSourceFileFromAgentAction;

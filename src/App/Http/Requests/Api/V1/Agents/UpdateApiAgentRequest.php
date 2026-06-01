@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Agents;
 
-use Domain\Agents\Data\UpdateApiAgentData;
+use Domain\Agents\Data\Account\UpdateApiAgentData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateApiAgentRequest extends FormRequest

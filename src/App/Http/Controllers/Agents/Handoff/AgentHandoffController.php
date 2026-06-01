@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Agents\Handoff;
 
 use App\Http\Controllers\Agents\Handoff;
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Actions\ListPendingHandoffsAction;
+use Domain\Chat\Actions\Handoff\ListPendingHandoffsAction;
 use Domain\Chat\Data\Handoff\PendingHandoffsResourceData;
-use Domain\Chat\Data\HandoffSummaryData;
+use Domain\Chat\Data\Handoff\HandoffSummaryData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 use Spatie\LaravelData\DataCollection;

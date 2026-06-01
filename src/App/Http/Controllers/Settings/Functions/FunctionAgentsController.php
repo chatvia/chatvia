@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Settings\Functions;
 
 use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Agents\Actions\AttachFunctionToAgentAction;
-use Domain\Agents\Actions\DetachFunctionFromAgentAction;
-use Domain\Agents\Actions\ListFunctionAgentAssignmentAction;
-use Domain\Agents\Data\Resources\AgentMembershipAssignmentData;
+use Domain\Agents\Actions\Functions\AttachFunctionToAgentAction;
+use Domain\Agents\Actions\Functions\DetachFunctionFromAgentAction;
+use Domain\Agents\Actions\Functions\ListFunctionAgentAssignmentAction;
+use Domain\Agents\Data\Resources\Members\AgentMembershipAssignmentData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Illuminate\Http\Request;

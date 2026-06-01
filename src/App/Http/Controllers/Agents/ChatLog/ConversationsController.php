@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agents\ChatLog;
 
-use Domain\Agents\Data\Resources\ChatLog\ChatLogConversationsResourceData;
+use Domain\Agents\Data\Resources\ChatLog\Conversations\ChatLogConversationsResourceData;
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Actions\AdminDeleteConversationAction;
+use Domain\Chat\Actions\Conversations\AdminDeleteConversationAction;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

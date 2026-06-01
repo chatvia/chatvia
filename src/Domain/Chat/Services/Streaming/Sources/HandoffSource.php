@@ -3,7 +3,7 @@
 namespace Domain\Chat\Services\Streaming\Sources;
 
 use Domain\Chat\Models\ChatConversation;
-use Domain\Chat\Services\Streaming\StreamEvent;
+use Domain\Chat\Services\Streaming\Sse\StreamEvent;
 use Generator;
 use Illuminate\Support\Str;
 

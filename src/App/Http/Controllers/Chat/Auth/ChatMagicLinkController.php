@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Chat\Auth;
 
 use App\Http\Requests\Auth\SendMagicLinkRequest;
-use Domain\Auth\Actions\SendMagicLinkAction;
+use App\Auth\Actions\Sessions\SendMagicLinkAction;
 use Illuminate\Http\RedirectResponse;
 
 class ChatMagicLinkController

@@ -2,12 +2,12 @@
 
 namespace Domain\Analytics\Actions;
 
-use Domain\Analytics\Events\FeedbackGivenEvent;
+use Domain\Analytics\Events\FeedbackGiven;
 use Illuminate\Support\Facades\DB;
 
 class RecordFeedbackGivenAction
 {
-    public function execute(FeedbackGivenEvent $event): void
+    public function execute(FeedbackGiven $event): void
     {
         // Rollup semantics: only count NEW positive/negative reactions. Clearing
         // feedback (any → null) records the event but does NOT decrement the

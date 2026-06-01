@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Widget\Handoff;
 
 use App\Http\Requests\Widget\WidgetHandoffRequest;
 use App\Widget\WidgetVerification;
-use Domain\Chat\Actions\FindWidgetConversationAction;
-use Domain\Chat\Actions\RequestHandoffAction;
-use Domain\Widget\Data\WidgetHandoffRequestResultData;
+use Domain\Chat\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Chat\Actions\Handoff\RequestHandoffAction;
+use Domain\Widget\Data\Handoff\WidgetHandoffRequestResultData;
 use Illuminate\Http\JsonResponse;
 
 readonly class HandoffRequestController

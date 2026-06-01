@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api\V1\Agents;
 
 use App\Auth\Models\User;
 use App\Auth\Services\AgentSignInTokenService;
-use App\Http\Resources\Api\V1\SignInLinkData;
+use App\Http\Resources\Api\V1\Auth\SignInLinkData;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Agents\Data\SignInLinkPayloadData;
+use Domain\Agents\Data\Api\SignInLinkPayloadData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 

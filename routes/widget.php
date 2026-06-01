@@ -17,7 +17,7 @@ use App\Http\Controllers\Widget\Threads\ThreadMessagesController;
 use App\Http\Controllers\Widget\Threads\ThreadsController;
 use App\Http\Controllers\Widget\Threads\ThreadsDeleteController;
 use App\Http\Controllers\Widget\Threads\ThreadsStoreController;
-use App\Http\Middleware\EnsureWidgetIsAccessible;
+use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void {

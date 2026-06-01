@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources\Connectors;
 
 use Domain\Agents\Models\Agent;
-use Domain\Connectors\Actions\ListAgentConnectorsAction;
+use Domain\Connectors\Actions\Agent\ListAgentConnectorsAction;
 use Domain\Connectors\Data\AgentConnectorsResourceData;
 use Illuminate\Http\Request;
 

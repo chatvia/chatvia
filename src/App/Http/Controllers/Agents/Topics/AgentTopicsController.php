@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Agents\Topics;
 
-use Domain\Agents\Actions\AttachExistingTopicToAgentAction;
-use Domain\Agents\Actions\CreateAgentTopicAction;
-use Domain\Agents\Actions\DetachTopicFromAgentAction;
-use Domain\Agents\Actions\UpdateChatTopicAction;
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Actions\Topics\AttachExistingTopicToAgentAction;
+use Domain\Agents\Actions\Topics\CreateAgentTopicAction;
+use Domain\Agents\Actions\Topics\DetachTopicFromAgentAction;
+use Domain\Agents\Actions\Topics\UpdateChatTopicAction;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Models\ChatTopic;
 use Domain\Teams\Exceptions\InviteRejectedException;

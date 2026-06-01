@@ -18,7 +18,7 @@ use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionCancelControll
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionChangeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionResumeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionScheduleCancelController;
-use App\Http\Middleware\DenyIfEmployee;
+use App\Http\Middleware\Auth\DenyIfEmployee;
 use Illuminate\Support\Facades\Route;
 
 Route::get('subscribe', BillingSubscribeController::class)

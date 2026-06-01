@@ -7,7 +7,7 @@ use Domain\Agents\Models\ChatterInvitation;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
-use Support\Enums\SocialProvider;
+use Support\Enums\User\SocialProvider;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**

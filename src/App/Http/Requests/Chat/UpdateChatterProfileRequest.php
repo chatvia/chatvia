@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Chat;
 
 use App\Auth\Models\User;
-use Domain\Auth\Data\UpdateChatterProfileData;
+use App\Auth\Data\Chatters\UpdateChatterProfileData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateChatterProfileRequest extends FormRequest

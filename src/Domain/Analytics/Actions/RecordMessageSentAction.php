@@ -2,12 +2,12 @@
 
 namespace Domain\Analytics\Actions;
 
-use Domain\Analytics\Events\MessageSentEvent;
+use Domain\Analytics\Events\MessageSent;
 use Illuminate\Support\Facades\DB;
 
 class RecordMessageSentAction
 {
-    public function execute(MessageSentEvent $event): void
+    public function execute(MessageSent $event): void
     {
         $connection = config('analytics.connection');
         $countrySentinel = config('analytics.unknown_country_code');

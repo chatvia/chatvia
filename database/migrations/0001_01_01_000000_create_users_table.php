@@ -36,6 +36,11 @@ return new class extends Migration
 
             $table->string('domain')->nullable();
 
+            // Mirrors the address Stripe stores on the customer record. Kept
+            // locally so the billing settings page can render it without a
+            // round-trip to Stripe; written by UpdateBillingInformationAction.
+            $table->jsonb('billing_address')->nullable();
+
             $table->string('deactivation_reason')->nullable();
 
             $table->timestamp('deactivated_at')->nullable();

@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Services\Chat\Tooling;
 
-use Domain\Chat\Services\Tooling\FunctionSchemaValidator;
+use Domain\Chat\Services\Tooling\Registry\FunctionSchemaValidator;
 use PHPUnit\Framework\TestCase;
 
 class FunctionSchemaValidatorTest extends TestCase

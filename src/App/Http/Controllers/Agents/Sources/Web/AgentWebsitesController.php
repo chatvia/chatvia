@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Agents\Sources\Web;
 
 use App\Auth\Models\User;
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Web\Actions\DeleteSourceWebsiteAction;
-use Domain\Sources\Web\Actions\StartAgentWebsiteCrawlAction;
+use Domain\Sources\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
+use Domain\Sources\Web\Actions\Source\DeleteSourceWebsiteAction;
 use Domain\Sources\Web\Data\Crawler\CrawlerData;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Domain\Teams\Exceptions\InviteRejectedException;

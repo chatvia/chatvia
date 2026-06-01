@@ -6,15 +6,15 @@ use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\Llm;
 use Domain\Analytics\Actions\RecordFeedbackGivenAction;
 use Domain\Analytics\Actions\RecordMessageSentAction;
-use Domain\Analytics\Events\FeedbackGivenEvent;
-use Domain\Analytics\Events\MessageSentEvent;
+use Domain\Analytics\Events\FeedbackGiven;
+use Domain\Analytics\Events\MessageSent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Telescope\Telescope;
-use Support\Demo\DemoCountries;
+use Database\Seeders\Demo\DemoCountries;
 
 /**
  * Seeds 30 days of "historical" analytics events that have NO backing rows in
@@ -163,7 +163,7 @@ class AnalyticsDemoSeeder extends Seeder
                     $completionTokens = $isUser ? null : random_int(60, 800);
                     $responseMs = $isUser ? null : random_int(900, 5400);
 
-                    $messageSent->execute(new MessageSentEvent(
+                    $messageSent->execute(new MessageSent(
                         agentId: $agent->id,
                         conversationExternalId: $convId,
                         messageExternalId: $msgId,
@@ -181,7 +181,7 @@ class AnalyticsDemoSeeder extends Seeder
                     // ~25% of assistant turns get a reaction; positive skews 70/30.
                     if (! $isUser && random_int(1, 100) <= 25) {
                         $feedback = random_int(1, 100) <= 70 ? 'positive' : 'negative';
-                        $feedbackGiven->execute(new FeedbackGivenEvent(
+                        $feedbackGiven->execute(new FeedbackGiven(
                             agentId: $agent->id,
                             conversationExternalId: $convId,
                             messageExternalId: $msgId,

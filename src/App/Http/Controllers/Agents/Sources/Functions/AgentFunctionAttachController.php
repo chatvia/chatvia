@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agents\Sources\Functions;
 
-use Domain\Agents\Actions\AttachFunctionToAgentAction;
-use Domain\Agents\Data\Resources\AgentFunctionAttachResultData;
-use Domain\Agents\Data\Resources\AgentFunctionData;
+use Domain\Agents\Actions\Functions\AttachFunctionToAgentAction;
+use Domain\Agents\Data\Resources\Functions\AgentFunctionAttachResultData;
+use Domain\Agents\Data\Resources\Functions\AgentFunctionData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Illuminate\Http\Request;

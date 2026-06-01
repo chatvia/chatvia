@@ -31,21 +31,12 @@ class WebsiteUrlEnhanceJob implements ShouldBeUnique, ShouldQueue
     public function __construct(
         public Agent $agent,
         public AgentWebsiteUrl $websiteUrl,
-        private readonly Chunk $chunk,
+        public Chunk $chunk,
     ) {}
 
     public function handle(ChunkEnhanceText $enhanceText): void
     {
-        $page = new PageData(
-            pageNumber: $this->chunk->chunk_index,
-            content: $this->chunk->chunk,
-            checksum: $this->chunk->checksum,
-        );
-
-        $enhanceText->enhanceText(
-            $this->chunk,
-            $page,
-        );
+        $enhanceText->enhanceText($this->chunk, PageData::fromChunkModel($this->chunk));
     }
 
     public function failed(Throwable $e): void

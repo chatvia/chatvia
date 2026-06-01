@@ -2,10 +2,10 @@
 
 use App\Auth\Models\User;
 use App\Auth\Services\AgentSignInTokenService;
-use App\Http\Middleware\AuthenticateChatViaSignInToken;
+use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
 use App\Teams\Services\TeamService;
 use Domain\Agents\Models\Agent;
-use Domain\Auth\Actions\CreateChatterAction;
+use App\Auth\Actions\Chatters\CreateChatterAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;

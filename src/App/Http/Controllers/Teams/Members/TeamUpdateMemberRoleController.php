@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Teams\Members;
 use App\Auth\Models\User;
 use App\Http\Requests\Teams\UpdateMemberRoleRequest;
 use App\Teams\Models\Team;
-use Domain\Teams\Actions\UpdateTeamMemberRoleAction;
+use Domain\Teams\Actions\Members\UpdateTeamMemberRoleAction;
 use Illuminate\Http\RedirectResponse;
 
 class TeamUpdateMemberRoleController

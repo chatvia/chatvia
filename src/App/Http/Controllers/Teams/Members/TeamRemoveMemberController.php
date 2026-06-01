@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Teams\Members;
 
 use App\Auth\Models\User;
 use App\Teams\Models\Team;
-use Domain\Teams\Actions\RemoveTeamMemberAction;
+use Domain\Teams\Actions\Members\RemoveTeamMemberAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

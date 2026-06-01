@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Agents;
 
 use App\Auth\Models\User;
-use App\Http\Requests\Agents\CreateAgentRequest;
+use App\Http\Requests\Agents\Crud\CreateAgentRequest;
 use App\Teams\Models\Team;
 use App\Teams\Services\TeamService;
-use Domain\Agents\Actions\CreateAgentAction;
-use Domain\Agents\Actions\DeleteAgentAction;
-use Domain\Agents\Actions\UpdateAgentAction;
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Actions\Account\CreateAgentAction;
+use Domain\Agents\Actions\Account\DeleteAgentAction;
+use Domain\Agents\Actions\Account\UpdateAgentAction;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;

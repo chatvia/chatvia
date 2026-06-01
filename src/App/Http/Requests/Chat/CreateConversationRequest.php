@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Chat;
 
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Data\CreateConversationData;
+use Domain\Chat\Data\Conversations\CreateConversationData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateConversationRequest extends FormRequest

@@ -3,8 +3,8 @@
 namespace Domain\Widget\Actions;
 
 use Domain\Agents\Models\Agent;
-use Domain\Widget\Data\WidgetSettingsBrandingData;
-use Domain\Widget\Data\WidgetSettingsResourceData;
+use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
+use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
 
 /**
  * Assemble the settings payload the embedded widget loads at boot —

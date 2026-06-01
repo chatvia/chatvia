@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Chat\Tooling;
 
-use Domain\Chat\Services\Tooling\ToolRouter;
+use Domain\Chat\Services\Tooling\Routing\ToolRouter;
 use PHPUnit\Framework\TestCase;
 
 class ToolRouterTest extends TestCase

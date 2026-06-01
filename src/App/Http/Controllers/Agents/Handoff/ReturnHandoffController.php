@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Handoff;
 
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Actions\ReturnConversationToAiAction;
+use Domain\Chat\Actions\Handoff\ReturnConversationToAiAction;
 use Domain\Chat\Data\Handoff\HandoffReturnResultData;
 use Domain\Chat\Exceptions\HandoffOperationException;
 use Domain\Chat\Models\ChatConversation;

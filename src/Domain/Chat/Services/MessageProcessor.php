@@ -3,7 +3,7 @@
 namespace Domain\Chat\Services;
 
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Data\ChatInputPayload;
+use Domain\Chat\Data\Messages\ChatInputPayload;
 use Domain\Chat\Services\Data\StreamRequestData;
 use Domain\Ingestion\Services\Search\KnowledgeBase;
 use Domain\Sources\QA\Models\AgentQuestionAnswer;

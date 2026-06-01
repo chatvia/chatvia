@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Setup;
 
 use App\Auth\Services\ChatterAuthTokenService;
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentPrompt;
 use Domain\Chat\Data\LlmModelData;

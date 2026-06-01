@@ -5,7 +5,7 @@ namespace App\Auth\Models;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Support\Enums\SocialProvider;
+use Support\Enums\User\SocialProvider;
 
 /**
  * Links a `User` to an external OAuth identity. One row per (user, provider).

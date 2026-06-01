@@ -2,7 +2,7 @@
 
 namespace App\Auth\Models;
 
-use App\Billing\Data\Resources\BillingPackageCapabilitiesData;
+use App\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use App\Billing\Enums\CapabilityEnum;
 use App\Billing\Models\UserAddon;
 use App\Billing\Models\UserBilling;
@@ -52,9 +52,9 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Support\Concerns\HasExternalId;
-use Support\Enums\SocialProvider;
-use Support\Enums\UserSource;
-use Support\Enums\UserType;
+use Support\Enums\User\SocialProvider;
+use Support\Enums\User\UserSource;
+use Support\Enums\User\UserType;
 use Support\Traits\HasSettings;
 
 /**
@@ -72,6 +72,7 @@ use Support\Traits\HasSettings;
  * @property string|null $registered_ip
  * @property string|null $registered_country_code
  * @property string|null $domain
+ * @property array<string, mixed>|null $billing_address
  * @property string|null $deactivation_reason
  * @property string|null $deactivated_at
  * @property Carbon|null $last_login_at
@@ -180,6 +181,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'last_login_at' => 'datetime',
             'type' => UserType::class,
             'source' => UserSource::class,
+            'billing_address' => 'array',
         ];
     }
 

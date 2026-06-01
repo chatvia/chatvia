@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Chat\Transcription;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chat\TranscribeAudioRequest;
-use Domain\Chat\Actions\TranscribeAudioAction;
+use Domain\Chat\Actions\Messages\TranscribeAudioAction;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;

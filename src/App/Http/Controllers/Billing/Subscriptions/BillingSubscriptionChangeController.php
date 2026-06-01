@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Billing\Subscriptions;
 
 use App\Http\Requests\Billing\ChangePlanRequest;
-use Domain\Billing\Actions\SchedulePlanChangeAction;
+use Domain\Billing\Actions\Subscriptions\SchedulePlanChangeAction;
 use Illuminate\Http\RedirectResponse;
 
 class BillingSubscriptionChangeController

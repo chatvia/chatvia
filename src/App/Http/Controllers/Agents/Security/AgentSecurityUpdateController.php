@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Security;
 
-use Domain\Agents\Actions\UpdateAgentSecurityAction;
+use Domain\Agents\Actions\Settings\UpdateAgentSecurityAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Teams\Roles;
 
-use App\Teams\Data\Resources\TeamData;
+use App\Teams\Data\Resources\Team\TeamData;
 use App\Teams\Models\Team;
 use App\Teams\Services\TeamService;
 use Illuminate\Http\Request;

@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use Random\RandomException;
 use RuntimeException;
 
 final class HMAC
@@ -12,6 +13,9 @@ final class HMAC
 
     private string $key;
 
+    /**
+     * @throws RandomException
+     */
     public function encrypt(string|array $value): string
     {
         $ivLength = openssl_cipher_iv_length(self::CIPHER);

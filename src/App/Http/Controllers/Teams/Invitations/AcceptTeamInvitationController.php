@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Teams\Invitations;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teams\AcceptInvitationRequest;
 use App\Teams\Models\Invitation;
-use Domain\Teams\Actions\AcceptTeamInvitationAction;
+use Domain\Teams\Actions\Invitations\AcceptTeamInvitationAction;
 use Domain\Teams\Data\AcceptInvitationData;
 use Domain\Teams\Exceptions\InviteRejectedException;
 use Illuminate\Http\RedirectResponse;

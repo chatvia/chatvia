@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agents\Handoff;
 
-use App\Http\Requests\Agents\AgentHandoffTypingRequest;
+use App\Http\Requests\Agents\Handoff\AgentHandoffTypingRequest;
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Actions\BroadcastChatTypingAction;
+use Domain\Chat\Actions\Messages\BroadcastChatTypingAction;
 use Domain\Chat\Data\Handoff\HandoffTypingResultData;
 use Domain\Chat\Exceptions\HandoffOperationException;
 use Domain\Chat\Models\ChatConversation;

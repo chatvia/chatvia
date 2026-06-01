@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Billing\Subscriptions;
 
 use App\Auth\Models\User;
-use Domain\Billing\Actions\ResumeSubscriptionAction;
+use Domain\Billing\Actions\Subscriptions\ResumeSubscriptionAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

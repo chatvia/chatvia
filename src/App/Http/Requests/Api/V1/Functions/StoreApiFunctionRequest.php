@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Functions;
 
-use Domain\Agents\Data\ApiFunctionPayloadData;
+use Domain\Agents\Data\Functions\ApiFunctionPayloadData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreApiFunctionRequest extends FormRequest

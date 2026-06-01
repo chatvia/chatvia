@@ -3,10 +3,10 @@
 namespace Domain\Sources\Web\Jobs\Crawler;
 
 use Domain\Agents\Models\Agent;
+use Domain\Sources\Web\Actions\Crawl\CrawlWebsiteAction;
 use Domain\Sources\Web\Data\Crawler\CrawlerData;
-use Domain\Sources\Web\Events\WebsiteCrawlerEvent;
+use Domain\Sources\Web\Events\WebsiteCrawlStarted;
 use Domain\Sources\Web\Models\SourceWebsite;
-use Domain\Sources\Web\Services\Crawler\Crawler;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,29 +26,9 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
         $this->onQueue('ingestion.website');
     }
 
-    public function handle(Crawler $crawler): void
+    public function handle(CrawlWebsiteAction $action): void
     {
-        $startTime = microtime(true);
-
-        $urls = $crawler->crawl($this->data);
-
-        $endTime = microtime(true);
-
-        $tookInSeconds = ceil($endTime - $startTime);
-
-        $this->website->update([
-            'status' => 'crawled',
-            'took_in_seconds' => $tookInSeconds,
-            'job_id' => $this->job->getJobId(),
-        ]);
-
-        $this->website->urls()->createMany(
-            array_map(static fn ($url): array => ['url' => $url], $urls)
-        );
-
-        $this->website->refresh();
-
-        WebsiteCrawlerEvent::dispatch($this->website, $this->agent);
+        $action->execute($this->website, $this->data, $this->agent, $this->job->getJobId());
     }
 
     public function uniqueId(): string
@@ -64,6 +44,6 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
         report($exception);
 
-        WebsiteCrawlerEvent::dispatch($this->website, $this->agent);
+        WebsiteCrawlStarted::dispatch($this->website, $this->agent);
     }
 }

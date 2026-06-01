@@ -4,9 +4,9 @@ namespace Domain\Chat\Services\Tooling\Mcp;
 
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentMcpServer;
-use Domain\Chat\Services\Tooling\ToolCallerIdentity;
-use Domain\Chat\Services\Tooling\ToolDispatcherInterface;
-use Domain\Chat\Services\Tooling\ToolDispatchResult;
+use Domain\Chat\Services\Tooling\Registry\ToolCallerIdentity;
+use Domain\Chat\Services\Tooling\Dispatcher\ToolDispatcherInterface;
+use Domain\Chat\Services\Tooling\Dispatcher\ToolDispatchResult;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;

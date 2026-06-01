@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api\V1\Users;
 
 use App\Auth\Models\User;
-use App\Http\Resources\Api\V1\UserData;
+use App\Http\Resources\Api\V1\Auth\UserData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agents\Models\Agent;
-use Domain\Auth\Actions\CreateChatterAction;
-use Domain\Auth\Data\CreateUserPayloadData;
+use App\Auth\Actions\Chatters\CreateChatterAction;
+use App\Auth\Data\Account\CreateUserPayloadData;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 

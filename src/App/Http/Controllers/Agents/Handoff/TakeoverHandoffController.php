@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Handoff;
 
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Actions\TakeoverConversationAction;
+use Domain\Chat\Actions\Handoff\TakeoverConversationAction;
 use Domain\Chat\Data\Handoff\HandoffTakeoverResultData;
 use Domain\Chat\Exceptions\HandoffOperationException;
 use Domain\Chat\Models\ChatConversation;

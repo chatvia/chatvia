@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Sources\Qa;
 
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Sources\QA\Actions\CreateAgentQaAction;
 use Domain\Sources\QA\Actions\DeleteAgentQaAction;

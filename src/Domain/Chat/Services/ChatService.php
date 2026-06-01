@@ -3,10 +3,10 @@
 namespace Domain\Chat\Services;
 
 use App\Billing\Jobs\UpdateUserCreditsJob;
-use App\LLM\Operations\QueryRewriter;
+use App\LLM\Operations\Query\QueryRewriter;
 use Carbon\Carbon;
-use Domain\Chat\Data\ChatInputPayload;
-use Domain\Chat\Data\ChatOutputPayload;
+use Domain\Chat\Data\Messages\ChatInputPayload;
+use Domain\Chat\Data\Messages\ChatOutputPayload;
 use Domain\Chat\Jobs\GenerateConversationTitleJob;
 use Domain\Chat\Services\Data\StreamRequestData;
 use Domain\Chat\Services\Memory\ChatMemory;

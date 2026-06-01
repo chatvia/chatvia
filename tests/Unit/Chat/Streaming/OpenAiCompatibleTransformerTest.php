@@ -3,8 +3,8 @@
 namespace Tests\Unit\Chat\Streaming;
 
 use Domain\Chat\Services\ChatContext;
-use Domain\Chat\Services\Streaming\OpenAiCompatibleTransformer;
-use Domain\Chat\Services\Streaming\StreamEvent;
+use Domain\Chat\Services\Streaming\Transformers\OpenAiCompatibleTransformer;
+use Domain\Chat\Services\Streaming\Sse\StreamEvent;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Utils;
 use Tests\TestCase;

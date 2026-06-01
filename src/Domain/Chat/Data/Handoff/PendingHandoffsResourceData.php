@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Data\Handoff;
 
-use Domain\Chat\Data\HandoffSummaryData;
+use Domain\Chat\Data\Handoff\HandoffSummaryData;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Sources\Functions;
 
-use Domain\Agents\Actions\DetachFunctionFromAgentAction;
+use Domain\Agents\Actions\Functions\DetachFunctionFromAgentAction;
 use Domain\Agents\Models\Agent;
 use Domain\Agents\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;

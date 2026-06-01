@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\ChatLog;
 
-use Domain\Agents\Data\Resources\ChatLog\ChatLogTopicsResourceData;
+use Domain\Agents\Data\Resources\ChatLog\Topics\ChatLogTopicsResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 

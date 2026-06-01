@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agents\Handoff;
 
-use App\Http\Requests\Agents\AgentHandoffMessageRequest;
+use App\Http\Requests\Agents\Handoff\AgentHandoffMessageRequest;
 use Domain\Agents\Models\Agent;
-use Domain\Chat\Actions\SendHandoffAdminMessageAction;
+use Domain\Chat\Actions\Handoff\SendHandoffAdminMessageAction;
 use Domain\Chat\Data\Handoff\HandoffMessageResultData;
 use Domain\Chat\Data\Handoff\HandoffMessageResultPayloadData;
 use Domain\Chat\Exceptions\HandoffOperationException;

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents;
 
-use App\Http\Requests\Agents\RenameAgentRequest;
-use Domain\Agents\Actions\RenameAgentAction;
+use App\Http\Requests\Agents\Crud\RenameAgentRequest;
+use Domain\Agents\Actions\Account\RenameAgentAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\RedirectResponse;
 

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth\Registration;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterUserRequest;
-use Domain\Auth\Actions\RegisterUserAction;
+use App\Auth\Actions\Account\RegisterUserAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

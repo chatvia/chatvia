@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Billing\Home;
 
 use App\Http\Requests\Billing\UpdateBillingInformationRequest;
-use Domain\Billing\Actions\UpdateBillingInformationAction;
+use Domain\Billing\Actions\Account\UpdateBillingInformationAction;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 

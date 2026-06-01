@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources\Web;
 
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Web\Actions\DeleteAgentWebsiteUrlAction;
+use Domain\Sources\Web\Actions\Url\DeleteAgentWebsiteUrlAction;
 use Domain\Sources\Web\Models\AgentWebsiteUrl;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Illuminate\Contracts\Pagination\Paginator;

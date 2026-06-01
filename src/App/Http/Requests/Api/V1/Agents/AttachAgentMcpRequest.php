@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Agents;
 
-use Domain\Agents\Data\AttachAgentMcpData;
+use Domain\Agents\Data\Mcp\AttachAgentMcpData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 

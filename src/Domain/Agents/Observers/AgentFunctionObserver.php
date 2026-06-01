@@ -4,7 +4,7 @@ namespace Domain\Agents\Observers;
 
 use Domain\Agents\Models\AgentFunction;
 use Domain\Chat\Jobs\EmbedFunctionJob;
-use Domain\Chat\Services\Tooling\ToolRegistry;
+use Domain\Chat\Services\Tooling\Registry\ToolRegistry;
 use Illuminate\Support\Facades\DB;
 
 /**

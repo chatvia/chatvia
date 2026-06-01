@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Settings\Account;
 
 use App\Auth\Models\UserSocial;
 use App\Http\Controllers\Controller;
-use Domain\Auth\Actions\UnlinkSocialAccountAction;
+use App\Auth\Actions\Social\UnlinkSocialAccountAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Support\Enums\SocialProvider;
+use Support\Enums\User\SocialProvider;
 
 class SocialController extends Controller
 {

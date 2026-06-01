@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Teams\Crud;
 
 use App\Auth\Models\User;
 use App\Http\Requests\Teams\CreateTeamRequest;
-use Domain\Teams\Actions\CreateTeamAction;
+use Domain\Teams\Actions\Team\CreateTeamAction;
 use Illuminate\Http\RedirectResponse;
 
 class TeamsStoreController

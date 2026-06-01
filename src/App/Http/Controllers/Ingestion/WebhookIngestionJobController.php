@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Ingestion;
 
 use App\Http\Requests\Ingestion\UpdateIngestionJobStatusRequest;
-use Domain\Ingestion\Actions\UpdateIngestionJobStatusAction;
+use Domain\Ingestion\Actions\Stats\UpdateIngestionJobStatusAction;
 
 class WebhookIngestionJobController
 {

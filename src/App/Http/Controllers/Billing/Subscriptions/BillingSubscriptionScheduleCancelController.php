@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Billing\Subscriptions;
 
 use App\Auth\Models\User;
-use Domain\Billing\Actions\CancelScheduledPlanChangeAction;
+use Domain\Billing\Actions\Subscriptions\CancelScheduledPlanChangeAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Settings\Account;
 
 use App\Auth\Models\User;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Settings\DeleteAccountRequest;
-use App\Http\Requests\Settings\ProfileUpdateRequest;
-use Domain\Auth\Actions\DeleteUserAccountAction;
-use Domain\Auth\Actions\UpdateProfileAction;
+use App\Http\Requests\Settings\Account\DeleteAccountRequest;
+use App\Http\Requests\Settings\Account\ProfileUpdateRequest;
+use App\Auth\Actions\Account\DeleteUserAccountAction;
+use App\Auth\Actions\Account\UpdateProfileAction;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

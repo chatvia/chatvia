@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Agents\BusinessProfile;
 
 use App\Http\Requests\Agents\Settings\UpdateBusinessProfileRequest;
-use Domain\Agents\Actions\DeleteAgentBusinessProfileAction;
-use Domain\Agents\Actions\UpdateAgentBusinessProfileAction;
-use Domain\Agents\Data\Resources\AgentResourceData;
+use Domain\Agents\Actions\Settings\DeleteAgentBusinessProfileAction;
+use Domain\Agents\Actions\Settings\UpdateAgentBusinessProfileAction;
+use Domain\Agents\Data\Resources\Account\AgentResourceData;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

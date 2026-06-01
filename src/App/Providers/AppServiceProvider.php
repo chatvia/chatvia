@@ -30,16 +30,20 @@ use Domain\Agents\Observers\AgentFunctionObserver;
 use Domain\Agents\Observers\AgentMcpServerObserver;
 use Domain\Agents\Observers\AgentObserver;
 use Domain\Agents\Observers\ModelSettingObserver;
+use Domain\Agents\Events\AgentMemberInvited;
+use Domain\Agents\Listeners\SendChatterInvitationEmail;
 use Domain\Analytics\Listeners\RecordAnalyticsListener;
-use Domain\Auth\Services\PasswordAuthenticator;
+use App\Auth\Events\MagicLinkRequested;
+use App\Auth\Listeners\SendMagicLinkEmail;
+use App\Auth\Services\PasswordAuthenticator;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
 use Domain\Chat\Observers\ChatConversationObserver;
 use Domain\Chat\Observers\ChatMessageObserver;
 use Domain\Chat\Observers\ChatSessionObserver;
-use Domain\Chat\Services\Tooling\RoutingToolDispatcher;
-use Domain\Chat\Services\Tooling\ToolDispatcherInterface;
+use Domain\Chat\Services\Tooling\Dispatcher\RoutingToolDispatcher;
+use Domain\Chat\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Ingestion\Services\Clients\MistralOCR;
 use Domain\Sources\Files\Models\SourceFile;
 use Domain\Sources\Files\Observers\SourceFileObserver;
@@ -305,6 +309,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(\Illuminate\Auth\Events\Login::class, RecordKnownDeviceListener::class);
+        Event::listen(AgentMemberInvited::class, SendChatterInvitationEmail::class);
+        Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
 
         Event::subscribe(RecordAnalyticsListener::class);
 

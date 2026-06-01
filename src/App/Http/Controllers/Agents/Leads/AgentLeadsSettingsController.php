@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agents\Leads;
 
-use Domain\Agents\Actions\UpdateAgentLeadsSettingsAction;
+use Domain\Agents\Actions\Settings\UpdateAgentLeadsSettingsAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\ChatLog;
 
-use Domain\Agents\Actions\BuildConversationPulseAction;
-use Domain\Agents\Data\Resources\ChatLog\ChatLogPulseResourceData;
+use Domain\Agents\Actions\ChatLog\BuildConversationPulseAction;
+use Domain\Agents\Data\Resources\ChatLog\Pulse\ChatLogPulseResourceData;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Http\Request;

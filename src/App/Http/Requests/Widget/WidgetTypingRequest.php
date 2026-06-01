@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Widget;
 
-use Domain\Chat\Data\BroadcastChatTypingData;
+use Domain\Chat\Data\Messages\BroadcastChatTypingData;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Foundation\Http\FormRequest;
 

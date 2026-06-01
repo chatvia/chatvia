@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Agents\Invitations;
 
 use App\Auth\Services\ChatterAuthTokenService;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Agents\AcceptAgentInvitationRequest;
-use Domain\Agents\Actions\AcceptAgentInvitationAction;
+use App\Http\Requests\Agents\Members\AcceptAgentInvitationRequest;
+use Domain\Agents\Actions\Members\AcceptAgentInvitationAction;
 use Domain\Agents\Exceptions\ChatterInvitationRejectedException;
 use Domain\Agents\Models\ChatterInvitation;
 use Inertia\Inertia;

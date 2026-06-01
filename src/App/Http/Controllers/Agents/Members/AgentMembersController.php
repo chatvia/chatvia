@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Agents\Members;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Agents\InviteAgentMemberRequest;
-use Domain\Agents\Actions\DetachChatterFromAgentAction;
-use Domain\Agents\Actions\GrantChatterAccessToAgentAction;
-use Domain\Agents\Actions\InviteAgentMemberAction;
-use Domain\Agents\Data\Resources\AgentChatterRowData;
+use App\Http\Requests\Agents\Members\InviteAgentMemberRequest;
+use Domain\Agents\Actions\Members\DetachChatterFromAgentAction;
+use Domain\Agents\Actions\Members\GrantChatterAccessToAgentAction;
+use Domain\Agents\Actions\Members\InviteAgentMemberAction;
+use Domain\Agents\Data\Resources\Members\AgentChatterRowData;
 use Domain\Agents\Exceptions\ChatterInvitationRejectedException;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\RedirectResponse;

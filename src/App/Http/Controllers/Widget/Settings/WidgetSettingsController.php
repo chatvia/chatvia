@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Widget\Settings;
 
 use App\Widget\WidgetVerification;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
-use Domain\Widget\Data\WidgetSettingsResourceData;
+use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

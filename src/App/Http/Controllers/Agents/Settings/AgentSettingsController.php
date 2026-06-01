@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agents\Settings;
 
-use Domain\Agents\Actions\DeleteAgentSettingAction;
-use Domain\Agents\Actions\UpdateAgentSettingsAction;
+use Domain\Agents\Actions\Settings\DeleteAgentSettingAction;
+use Domain\Agents\Actions\Settings\UpdateAgentSettingsAction;
 use Domain\Agents\Models\Agent;
 use Illuminate\Http\Request;
 

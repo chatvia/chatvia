@@ -5,7 +5,7 @@ namespace Domain\Widget\Actions;
 use Domain\Agents\Models\Agent;
 use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Services\Memory\ChatMemory;
-use Domain\Widget\Data\WidgetThreadsResultData;
+use Domain\Widget\Data\Thread\WidgetThreadsResultData;
 
 /**
  * Return the visitor's threads for an agent, auto-provisioning a default

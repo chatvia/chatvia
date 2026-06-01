@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Capabilities;
 
-use App\Billing\Data\Resources\BillingPackageCapabilitiesData;
+use App\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

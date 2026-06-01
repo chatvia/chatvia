@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Chat\Stream;
 use App\Http\Requests\Chat\ChatStreamRequest;
 use Domain\Chat\Services\ChatStreamService;
 use Domain\Chat\Services\Memory\ChatSession;
-use Domain\Chat\Services\Streaming\StreamRequestDataFactory;
+use Domain\Chat\Services\Streaming\Requests\StreamRequestDataFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 readonly class ChatStreamController

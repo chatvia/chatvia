@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Chat\Messages;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chat\RegenerateChatMessageRequest;
-use Domain\Chat\Actions\RegenerateChatMessageAction;
+use Domain\Chat\Actions\Messages\RegenerateChatMessageAction;
 use Illuminate\Http\JsonResponse;
 
 class ChatMessageRegenerateController extends Controller

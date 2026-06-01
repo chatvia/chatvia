@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agents\Sources\Web;
 
 use Domain\Agents\Models\Agent;
-use Domain\Sources\Web\Actions\RetrainSourceWebsiteAction;
+use Domain\Sources\Web\Actions\Source\RetrainSourceWebsiteAction;
 use Domain\Sources\Web\Models\SourceWebsite;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

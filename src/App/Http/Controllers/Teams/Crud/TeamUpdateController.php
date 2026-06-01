@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Teams\Crud;
 
 use App\Http\Requests\Teams\UpdateTeamRequest;
 use App\Teams\Models\Team;
-use Domain\Teams\Actions\UpdateTeamAction;
+use Domain\Teams\Actions\Team\UpdateTeamAction;
 use Illuminate\Http\RedirectResponse;
 
 class TeamUpdateController

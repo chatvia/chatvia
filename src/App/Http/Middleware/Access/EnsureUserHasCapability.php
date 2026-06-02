@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware\Access;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Enums\CapabilityEnum;
 use Closure;
 use Illuminate\Http\Request;

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Auth\Models\User;
-use App\Auth\Data\Account\RegisterUserData;
+use App\Workspace\Models\User;
+use App\Workspace\Data\Account\RegisterUserData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
 

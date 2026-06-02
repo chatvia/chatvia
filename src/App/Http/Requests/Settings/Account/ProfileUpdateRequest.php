@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Settings\Account;
 
-use App\Auth\Data\Account\UpdateProfileData;
-use App\Auth\Models\User;
+use App\Workspace\Data\Account\UpdateProfileData;
+use App\Workspace\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

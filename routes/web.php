@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Agents\Chunks\AgentChunkImageViewController;
+use App\Http\Controllers\Agent\Chunks\AgentChunkImageViewController;
 use App\Http\Controllers\Auth\Social\GoogleAuthController;
 use App\Http\Controllers\Auth\Social\GoogleCallbackAuthController;
 use App\Http\Controllers\Auth\Social\MicrosoftAuthController;
@@ -9,7 +9,7 @@ use App\Http\Controllers\Auth\Social\Slack\SlackAuthController;
 use App\Http\Controllers\Auth\Social\Slack\SlackCallbackController;
 use App\Http\Controllers\Billing\Trials\TrialCheckoutController;
 use App\Http\Controllers\Billing\Trials\TrialSuccessController;
-use App\Http\Controllers\Connectors\ConnectorOAuthCallbackController;
+use App\Http\Controllers\Connector\ConnectorOAuthCallbackController;
 use App\Http\Controllers\KnowledgeFiles\SourceFileViewController;
 use App\Http\Controllers\Landing\Blog\BlogController;
 use App\Http\Controllers\Landing\Blog\ChangelogController;
@@ -20,10 +20,10 @@ use App\Http\Controllers\Landing\Legal\ConsentController;
 use App\Http\Controllers\Landing\Legal\PrivacyController;
 use App\Http\Controllers\Landing\Legal\RefundController;
 use App\Http\Controllers\Landing\Legal\TermsController;
-use App\Http\Controllers\Landing\Marketing\DocsController;
+use App\Http\Controllers\Landing\Marketing\DocController;
 use App\Http\Controllers\Landing\Marketing\PricingController;
 use App\Http\Controllers\Landing\Marketing\RequestDemoController;
-use App\Http\Controllers\Landing\Marketing\UseCasesController;
+use App\Http\Controllers\Landing\Marketing\UseCaseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -42,7 +42,7 @@ Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
 Route::get('demo', RequestDemoController::class)->name('demo');
 Route::post('demo', RequestDemoController::class)->name('demo.submit');
 
-Route::get('docs', DocsController::class)->name('docs');
+Route::get('docs', DocController::class)->name('docs');
 
 // Social OAuth routes. Starts get a tighter cap (cheap redirect, only abused
 // for traffic generation); callbacks get a higher cap (legit users can land
@@ -57,7 +57,7 @@ Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->
 Route::get('/auth/slack', SlackAuthController::class)->middleware('throttle:10,1')->name('auth.slack');
 Route::get('/auth/slack/callback', SlackCallbackController::class)->middleware('throttle:30,1')->name('auth.slack.callback');
 
-Route::get('/use-cases/{case}', UseCasesController::class)->name('use-cases');
+Route::get('/use-cases/{case}', UseCaseController::class)->name('use-cases');
 
 Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-tools.chat-with-pdf');
 

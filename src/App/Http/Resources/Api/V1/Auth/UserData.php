@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Auth;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Carbon\CarbonInterface;
 use Spatie\LaravelData\Data;
 

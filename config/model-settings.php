@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 
 return [
     /*

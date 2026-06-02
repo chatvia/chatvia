@@ -3,7 +3,7 @@
 namespace App\Hosting;
 
 use App\LLM\Contracts\LLMProviderInterface;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Illuminate\Support\Str;
 
 class Subdomain

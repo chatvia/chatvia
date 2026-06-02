@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Actions\Messages;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Data\Messages\RegenerateMessageResult;
 use Domain\Chat\Services\Memory\ChatMemory;
 use Domain\Chat\Services\Memory\ChatSession;

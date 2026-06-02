@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Actions\Conversations;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Services\Memory\ChatMemory;
 

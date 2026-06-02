@@ -2,7 +2,6 @@
 import LoginLink from '@/../../vendor/spatie/laravel-login-link/resources/js/login-link.vue';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons.vue';
 import InputError from '@/components/InputError.vue';
-import TurnstileWidget from '@/components/TurnstileWidget.vue';
 import TextLink from '@/components/TextLink.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
@@ -13,12 +12,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Fingerprint, LoaderCircle, Lock, Mail, Sparkles } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
-const props = defineProps<{
+defineProps<{
     status?: string;
     canResetPassword: boolean;
-    turnstileSiteKey?: string | null;
 }>();
 
 const mode = ref<'password' | 'magic-link'>('password');
@@ -27,10 +25,7 @@ const passwordForm = useForm({
     email: '',
     password: '',
     remember: false,
-    'cf-turnstile-response': '',
 });
-
-const turnstileRef = ref<InstanceType<typeof TurnstileWidget> | null>(null);
 
 const magicLinkForm = useForm({
     email: '',
@@ -38,12 +33,7 @@ const magicLinkForm = useForm({
 
 const submitPassword = () => {
     passwordForm.post(route('login'), {
-        onFinish: () => {
-            passwordForm.reset('password');
-            // Each Turnstile token is single-use; reset for the next attempt.
-            passwordForm['cf-turnstile-response'] = '';
-            turnstileRef.value?.reset();
-        },
+        onFinish: () => passwordForm.reset('password'),
     });
 };
 
@@ -56,19 +46,50 @@ const submitMagicLink = () => {
 const passkeyError = ref<string | null>(null);
 const passkeyPending = ref(false);
 
+let passkeysModule: Promise<typeof import('@laravel/passkeys')> | null = null;
+const loadPasskeys = () => (passkeysModule ??= import('@laravel/passkeys'));
+
+const redirectAfterSignIn = (redirect?: string) => {
+    // Hard-navigate so the new authenticated session is picked up on load.
+    window.location.href = redirect ?? route('dashboard');
+};
+
+const tryAutofill = async () => {
+    const { Passkeys, UserCancelledError } = await loadPasskeys();
+    if (!(await Passkeys.isAutofillSupported())) return;
+    try {
+        const result = await Passkeys.autofill();
+        if (result) redirectAfterSignIn(result.redirect);
+    } catch (e: unknown) {
+        if (e instanceof UserCancelledError) return;
+        passkeyError.value = e instanceof Error ? e.message : 'Could not sign in with a passkey.';
+    }
+};
+
 const signInWithPasskey = async () => {
     passkeyError.value = null;
     passkeyPending.value = true;
+    const { Passkeys, UserCancelledError } = await loadPasskeys();
     try {
-        const { Passkeys } = await import('@laravel/passkeys');
+        Passkeys.cancel();
         const result = await Passkeys.verify();
-        // Hard-navigate so the new authenticated session is picked up on load.
-        window.location.href = result.redirect ?? route('dashboard');
+        redirectAfterSignIn(result.redirect);
     } catch (e: unknown) {
-        passkeyError.value = e instanceof Error ? e.message : 'Could not sign in with a passkey.';
         passkeyPending.value = false;
+        if (!(e instanceof UserCancelledError)) {
+            passkeyError.value = e instanceof Error ? e.message : 'Could not sign in with a passkey.';
+        }
+        // Re-arm autofill so the field-anchored dropdown still works after a cancelled modal verify.
+        tryAutofill();
     }
 };
+
+const cancelPasskeys = () => {
+    passkeysModule?.then(({ Passkeys }) => Passkeys.cancel());
+};
+
+onMounted(tryAutofill);
+onBeforeUnmount(cancelPasskeys);
 </script>
 
 <template>
@@ -92,33 +113,8 @@ const signInWithPasskey = async () => {
                 </p>
             </div>
 
-            <!-- Passkey sign-in -->
-            <div class="space-y-2">
-                <Button
-                    type="button"
-                    variant="outline"
-                    class="h-12 w-full text-base font-semibold"
-                    :disabled="passkeyPending"
-                    @click="signInWithPasskey"
-                >
-                    <LoaderCircle v-if="passkeyPending" class="mr-2 h-5 w-5 animate-spin" />
-                    <Fingerprint v-else class="mr-2 h-5 w-5" />
-                    Sign in with a passkey
-                </Button>
-                <p v-if="passkeyError" class="text-destructive text-center text-sm">{{ passkeyError }}</p>
-            </div>
-
-            <div class="relative">
-                <div class="absolute inset-0 flex items-center">
-                    <span class="w-full border-t"></span>
-                </div>
-                <div class="relative flex justify-center text-sm uppercase">
-                    <span class="bg-background text-muted-foreground px-4 font-medium">Or</span>
-                </div>
-            </div>
-
             <Tabs v-model="mode" class="w-full">
-                <TabsList class="grid h-11 w-full grid-cols-2">
+                <TabsList class="grid h-11 w-full grid-cols-3">
                     <TabsTrigger value="password" class="flex items-center gap-2 text-sm font-medium">
                         <Lock class="h-4 w-4" />
                         Password
@@ -127,7 +123,19 @@ const signInWithPasskey = async () => {
                         <Sparkles class="h-4 w-4" />
                         Magic link
                     </TabsTrigger>
+                    <button
+                        type="button"
+                        :disabled="passkeyPending"
+                        @click="signInWithPasskey"
+                        class="text-foreground dark:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring hover:bg-background/50 inline-flex h-[calc(100%-1px)] flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+                    >
+                        <LoaderCircle v-if="passkeyPending" class="animate-spin" />
+                        <Fingerprint v-else />
+                        Passkey
+                    </button>
                 </TabsList>
+
+                <p v-if="passkeyError" class="text-destructive pt-2 text-center text-sm">{{ passkeyError }}</p>
 
                 <TabsContent value="password" class="mt-6">
                     <form @submit.prevent="submitPassword" class="space-y-6">
@@ -143,7 +151,7 @@ const signInWithPasskey = async () => {
                                     required
                                     autofocus
                                     :tabindex="1"
-                                    autocomplete="email"
+                                    autocomplete="email webauthn"
                                     v-model="passwordForm.email"
                                     placeholder="email@example.com"
                                     class="h-12 pl-10 text-base"
@@ -187,15 +195,6 @@ const signInWithPasskey = async () => {
                             <Label for="remember" class="cursor-pointer text-sm font-medium"> Remember me for 30 days </Label>
                         </div>
 
-                        <div v-if="props.turnstileSiteKey" class="flex justify-center">
-                            <TurnstileWidget
-                                ref="turnstileRef"
-                                :site-key="props.turnstileSiteKey"
-                                v-model="passwordForm['cf-turnstile-response']"
-                            />
-                        </div>
-                        <InputError :message="passwordForm.errors['cf-turnstile-response']" />
-
                         <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="4" :disabled="passwordForm.processing">
                             <LoaderCircle v-if="passwordForm.processing" class="mr-2 h-5 w-5 animate-spin" />
                             <span v-if="!passwordForm.processing">Sign in to your account</span>
@@ -221,7 +220,7 @@ const signInWithPasskey = async () => {
                                     type="email"
                                     required
                                     :tabindex="1"
-                                    autocomplete="email"
+                                    autocomplete="email webauthn"
                                     v-model="magicLinkForm.email"
                                     placeholder="email@example.com"
                                     class="h-12 pl-10 text-base"

@@ -2,7 +2,7 @@
 
 namespace App\Mcp\Tools;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Http\Request as HttpRequest;

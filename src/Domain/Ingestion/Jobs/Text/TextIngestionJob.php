@@ -2,9 +2,9 @@
 
 namespace Domain\Ingestion\Jobs\Text;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Actions\Sources\IngestTextAction;
-use Domain\Sources\Text\Models\SourceText;
+use Domain\Source\Text\Models\SourceText;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

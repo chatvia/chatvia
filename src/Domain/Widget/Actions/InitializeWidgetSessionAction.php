@@ -3,7 +3,7 @@
 namespace Domain\Widget\Actions;
 
 use App\Widget\WidgetVerification;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Analytics\Services\UserAgentParser;
 use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Models\ChatSession;

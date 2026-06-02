@@ -2,7 +2,7 @@
 
 namespace App\Billing\Data\Resources\Subscription;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Data\Resources\Package\BillingCurrentPackageData;
 use Exception;
 use Spatie\LaravelData\Data;
@@ -19,6 +19,7 @@ class BillingResourceData extends Data
         public bool $subscribed,
         public bool $subscription_canceled,
         public ?BillingPendingChangeData $pending_plan_change,
+        public BillingAddonsData $addons,
     ) {}
 
     public static function fromUser(User $user): self
@@ -30,6 +31,13 @@ class BillingResourceData extends Data
         $pendingPlanChange = null;
 
         if ($subscription && $subscription->stripe_id) {
+            // Cashier's `Subscription::asStripeSubscription` reaches for
+            // `$this->owner` to get the Stripe client. That relation is the
+            // inverse of the one we just used to fetch the subscription — we
+            // already have the UserBilling row in `$billing`. Set it
+            // explicitly so the call doesn't trip strict-lazy-loading.
+            $subscription->setRelation('owner', $billing);
+
             try {
                 $stripeSubscription = $subscription->asStripeSubscription();
                 $subscriptionData = BillingSubscriptionData::fromSubscription($subscription, $stripeSubscription);
@@ -50,6 +58,7 @@ class BillingResourceData extends Data
             subscribed: (bool) $billing?->subscribed(),
             subscription_canceled: (bool) $subscription?->canceled(),
             pending_plan_change: $pendingPlanChange,
+            addons: BillingAddonsData::fromUser($user),
         );
     }
 }

@@ -2,13 +2,13 @@
 
 namespace Domain\Dashboard\Actions;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Models\UserQuota;
-use App\Teams\Models\Team;
+use App\Team\Models\Team;
 use Carbon\Carbon;
-use Domain\Agents\Models\Lead;
-use Domain\Sources\Files\Models\SourceFile;
-use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Lead\Models\Lead;
+use Domain\Source\File\Models\SourceFile;
+use Domain\Source\Web\Models\SourceWebsite;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

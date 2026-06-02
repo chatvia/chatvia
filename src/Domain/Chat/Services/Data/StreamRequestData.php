@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Services\Data;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Spatie\LaravelData\Data;
 
 class StreamRequestData extends Data

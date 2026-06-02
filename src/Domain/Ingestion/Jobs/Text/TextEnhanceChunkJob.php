@@ -2,12 +2,12 @@
 
 namespace Domain\Ingestion\Jobs\Text;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Models\Chunk;
 use Domain\Ingestion\Services\ChunkEnhanceText;
-use Domain\Sources\Files\Models\SourceFile;
-use Domain\Sources\Text\Models\SourceText;
+use Domain\Source\File\Models\SourceFile;
+use Domain\Source\Text\Models\SourceText;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;

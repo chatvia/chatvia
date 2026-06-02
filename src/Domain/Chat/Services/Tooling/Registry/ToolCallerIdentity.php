@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Services\Tooling\Registry;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 
 /**
  * The identity headers stamped on every outbound tool call (function

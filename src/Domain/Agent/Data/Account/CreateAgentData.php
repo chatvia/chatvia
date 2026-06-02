@@ -1,0 +1,21 @@
+<?php
+
+namespace Domain\Agent\Data\Account;
+
+use App\Workspace\Models\User;
+use App\Team\Models\Team;
+use Spatie\LaravelData\Data;
+
+/**
+ * Inputs for `CreateAgentAction::execute()`. Owner (`user`) and `team` arrive
+ * from the controller — both rely on `current_team()` + auth context — so the
+ * action gets a single typed bundle instead of three positional arguments.
+ */
+class CreateAgentData extends Data
+{
+    public function __construct(
+        public User $user,
+        public Team $team,
+        public string $name,
+    ) {}
+}

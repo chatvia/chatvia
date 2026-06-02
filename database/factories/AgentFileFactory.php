@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
-use Domain\Sources\Files\Models\SourceFile;
+use App\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
+use Domain\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

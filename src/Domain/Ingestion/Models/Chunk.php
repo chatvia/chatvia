@@ -4,7 +4,7 @@ namespace Domain\Ingestion\Models;
 
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\QueryBuilders\ChunkQueryBuilder;
-use Domain\Sources\Web\Models\AgentWebsiteUrl;
+use Domain\Source\Web\Models\AgentWebsiteUrl;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;

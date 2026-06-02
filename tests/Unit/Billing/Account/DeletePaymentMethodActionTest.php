@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Domain\Billing\Actions\Account\DeletePaymentMethodAction;
 
 it('returns false when no matching payment method can be resolved', function (): void {

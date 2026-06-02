@@ -2,11 +2,11 @@
 
 namespace Domain\Chat\Services;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Data\Messages\ChatInputPayload;
 use Domain\Chat\Services\Data\StreamRequestData;
 use Domain\Ingestion\Services\Search\KnowledgeBase;
-use Domain\Sources\QA\Models\AgentQuestionAnswer;
+use Domain\Source\QA\Models\AgentQuestionAnswer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;

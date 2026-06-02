@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Http\Controllers\Team\Roles;
+
+use App\Http\Requests\Team\Roles\SaveTeamRoleRequest;
+use App\Team\Models\Team;
+use Domain\Team\Actions\Roles\CreateTeamRoleAction;
+use Domain\Team\Exceptions\InviteRejectedException;
+use Illuminate\Http\RedirectResponse;
+
+class TeamRoleStoreController
+{
+    public function __invoke(
+        SaveTeamRoleRequest $request,
+        Team $team,
+        CreateTeamRoleAction $createRole,
+    ): RedirectResponse {
+        try {
+            $createRole->execute($request->toData($team));
+        } catch (InviteRejectedException $e) {
+            return back()->withErrors([$e->field => $e->getMessage()]);
+        }
+
+        return redirect()->route('teams.show', $team)->with('success', 'Role created successfully.');
+    }
+}

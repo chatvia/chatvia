@@ -1,9 +1,9 @@
 <?php
 
-use App\Auth\Models\User;
-use App\Teams\Services\TeamService;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentFunction;
+use App\Workspace\Models\User;
+use App\Team\Services\TeamService;
+use Domain\Agent\Models\Agent;
+use Domain\Function\Models\AgentFunction;
 use Domain\Chat\Services\Tooling\Dispatcher\HttpToolDispatcher;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;

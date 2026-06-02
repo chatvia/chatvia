@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\Llm;
+use App\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
+use Domain\Llm\Models\Llm;
 use Domain\Analytics\Actions\RecordFeedbackGivenAction;
 use Domain\Analytics\Actions\RecordMessageSentAction;
 use Domain\Analytics\Events\FeedbackGiven;

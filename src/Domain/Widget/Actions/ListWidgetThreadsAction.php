@@ -2,7 +2,7 @@
 
 namespace Domain\Widget\Actions;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\Services\Memory\ChatMemory;
 use Domain\Widget\Data\Thread\WidgetThreadsResultData;

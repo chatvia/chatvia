@@ -2,7 +2,7 @@
 
 namespace App\Billing\Services;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Models\UserCredit;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -236,7 +236,7 @@ class UserCreditSystem
         $remaining = max(0, $credit->messages - ($credit->usage?->messages ?? 0));
 
         $addons = (int) $user->addons()
-            ->where('type', 'extra_message_credits')
+            ->whereIn('type', ['extra_message_credits', 'auto_recharge_credits'])
             ->where('ends_at', '>=', now())
             ->sum('amount');
 

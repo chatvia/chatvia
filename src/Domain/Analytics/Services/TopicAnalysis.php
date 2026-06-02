@@ -3,8 +3,8 @@
 namespace Domain\Analytics\Services;
 
 use App\LLM\Contracts\LLMProviderInterface;
-use Domain\Agents\Models\Agent;
-use Domain\Chat\Models\ChatTopic;
+use Domain\Agent\Models\Agent;
+use Domain\Topic\Models\ChatTopic;
 
 class TopicAnalysis
 {

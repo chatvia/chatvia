@@ -4,7 +4,7 @@
         <div class="py-12 md:py-16">
 
             @php
-                $llms = \Domain\Agents\Models\Llm::select('descriptive_name', 'description', 'icon')->get();
+                $llms = \Domain\Llm\Models\Llm::select('descriptive_name', 'description', 'icon')->get();
             @endphp
 
             <!-- Trust badges grid -->

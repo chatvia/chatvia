@@ -3,9 +3,6 @@ import ConfirmationDialog from '@/components/chat/ConfirmationDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
@@ -30,6 +27,7 @@ import {
     Zap,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import AddonsSection from './components/AddonsSection.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -53,20 +51,6 @@ const isLoadingBilling = ref(true);
 // Usage data
 const usageData = ref<App.Auth.Data.Resources.My.Usage.UsageResourceData | null>(null);
 const isLoadingUsage = ref(true);
-
-// ChatMessage credits dialog state
-const isCreditsDialogOpen = ref(false);
-const creditsQuantity = ref(1);
-const basePrice = 10; // $10 USD per 1000 messages
-const isPurchasing = ref(false);
-
-const totalPrice = computed(() => {
-    return (creditsQuantity.value * basePrice).toFixed(2);
-});
-
-const isValidQuantity = computed(() => {
-    return creditsQuantity.value >= 1;
-});
 
 const fetchBillingData = async () => {
     try {
@@ -124,32 +108,6 @@ onMounted(() => {
     fetchBillingData();
     fetchUsageData();
 });
-
-const purchaseCredits = () => {
-    isPurchasing.value = true;
-    // Small delay to show loading state before navigation
-    setTimeout(() => {
-        window.location.href = route('billing.addons.extra-message-credits', { quantity: creditsQuantity.value });
-    }, 100);
-};
-
-const handleKeyPress = (event: KeyboardEvent) => {
-    // Allow: backspace, delete, tab, escape, enter
-    if (
-        [8, 9, 27, 13, 46].indexOf(event.keyCode) !== -1 ||
-        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-        (event.keyCode === 65 && event.ctrlKey === true) ||
-        (event.keyCode === 67 && event.ctrlKey === true) ||
-        (event.keyCode === 86 && event.ctrlKey === true) ||
-        (event.keyCode === 88 && event.ctrlKey === true)
-    ) {
-        return;
-    }
-    // Ensure that it is a number and stop the keypress if not
-    if ((event.shiftKey || event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105)) {
-        event.preventDefault();
-    }
-};
 
 const formatDate = (timestamp: number | string | null | undefined) => {
     if (!timestamp || timestamp === 0) return 'N/A';
@@ -214,17 +172,31 @@ const currentFeatures = computed(() => {
     return isYearly.value ? billingData.value.current_package.features.yearly : billingData.value.current_package.features.monthly;
 });
 
+const refreshAll = () => {
+    fetchBillingData();
+    fetchUsageData();
+};
+
 const cancelSubscription = (immediately = false) => {
     cancelForm.immediately = immediately;
-    cancelForm.post(route('billing.cancel'));
+    cancelForm.post(route('billing.cancel'), {
+        preserveScroll: true,
+        onSuccess: refreshAll,
+    });
 };
 
 const resumeSubscription = () => {
-    resumeForm.post(route('billing.resume'));
+    resumeForm.post(route('billing.resume'), {
+        preserveScroll: true,
+        onSuccess: refreshAll,
+    });
 };
 
 const cancelScheduledPlanChange = () => {
-    cancelScheduleForm.post(route('billing.schedule.cancel'));
+    cancelScheduleForm.post(route('billing.schedule.cancel'), {
+        preserveScroll: true,
+        onSuccess: refreshAll,
+    });
 };
 </script>
 
@@ -348,8 +320,8 @@ const cancelScheduledPlanChange = () => {
                     </div>
 
                     <div class="grid gap-8 md:grid-cols-3">
-                        <!-- Current Plan -->
-                        <div class="md:col-span-2">
+                        <!-- Current Plan + Add-ons (left column) -->
+                        <div class="space-y-6 md:col-span-2">
                             <Card>
                                 <CardHeader>
                                     <CardTitle class="flex items-center gap-3">
@@ -509,6 +481,8 @@ const cancelScheduledPlanChange = () => {
                                     </div>
                                 </CardContent>
                             </Card>
+
+                            <AddonsSection :addons="billingData.addons" :subscribed="billingData.subscribed" @refresh="refreshAll" />
                         </div>
 
                         <!-- Usage & Limits -->
@@ -564,78 +538,6 @@ const cancelScheduledPlanChange = () => {
                                             </template>
                                         </ConfirmationDialog>
                                     </template>
-                                </CardContent>
-                            </Card>
-
-                            <!-- Addons -->
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle class="text-lg">Addons</CardTitle>
-                                </CardHeader>
-                                <CardContent class="space-y-4">
-                                    <Dialog v-model:open="isCreditsDialogOpen">
-                                        <DialogTrigger as-child>
-                                            <Button variant="outline" class="w-full justify-start gap-2">
-                                                <Zap class="h-4 w-4" />
-                                                Buy Extra Messages
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent class="sm:max-w-md">
-                                            <DialogHeader>
-                                                <DialogTitle class="flex items-center gap-2">
-                                                    <Zap class="text-primary h-5 w-5" />
-                                                    Purchase Message Credits
-                                                </DialogTitle>
-                                                <DialogDescription>
-                                                    Purchase additional message credits for your account. Each bundle includes 1000 messages that must
-                                                    be consumed within one month of purchase.
-                                                </DialogDescription>
-                                            </DialogHeader>
-                                            <div class="space-y-4 py-4">
-                                                <div class="space-y-2">
-                                                    <Label for="quantity">Quantity (1000 messages per bundle)</Label>
-                                                    <Input
-                                                        id="quantity"
-                                                        v-model.number="creditsQuantity"
-                                                        type="number"
-                                                        min="1"
-                                                        max="100"
-                                                        class="w-full"
-                                                        @keydown="handleKeyPress"
-                                                    />
-                                                </div>
-                                                <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
-                                                    <div class="flex items-center justify-between">
-                                                        <span class="font-medium">Total Messages:</span>
-                                                        <span class="font-bold">{{ (creditsQuantity * 1000).toLocaleString() }}</span>
-                                                    </div>
-                                                    <div class="mt-2 flex items-center justify-between">
-                                                        <span class="font-medium">Total Price:</span>
-                                                        <span class="text-primary font-bold">${{ totalPrice }}</span>
-                                                    </div>
-                                                    <div class="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700">
-                                                        <p class="text-muted-foreground text-xs">⚠️ Credits expire 30 days after purchase</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <DialogFooter class="gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    @click="
-                                                        isCreditsDialogOpen = false;
-                                                        isPurchasing = false;
-                                                    "
-                                                >
-                                                    Cancel
-                                                </Button>
-                                                <Button @click="purchaseCredits" :disabled="isPurchasing || !isValidQuantity" class="gap-2">
-                                                    <Loader2 v-if="isPurchasing" class="h-4 w-4 animate-spin" />
-                                                    <CreditCard v-else class="h-4 w-4" />
-                                                    {{ isPurchasing ? 'Processing...' : `Purchase for $${totalPrice}` }}
-                                                </Button>
-                                            </DialogFooter>
-                                        </DialogContent>
-                                    </Dialog>
                                 </CardContent>
                             </Card>
 
@@ -791,6 +693,7 @@ const cancelScheduledPlanChange = () => {
                             </Card>
                         </div>
                     </div>
+
                 </template>
             </div>
         </div>

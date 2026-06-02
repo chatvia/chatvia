@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources\Api\V1\Tools;
 
+use Domain\Function\Enums\FunctionWebhookMethod;
 use Spatie\LaravelData\Data;
-use Support\Enums\Functions\FunctionWebhookMethod;
 
 /**
  * Where and how a function's webhook is called. Header values are never

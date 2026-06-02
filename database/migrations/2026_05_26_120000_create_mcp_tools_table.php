@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;

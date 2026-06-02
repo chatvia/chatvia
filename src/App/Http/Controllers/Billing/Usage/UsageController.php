@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Usage;
 
-use App\Auth\Data\Resources\My\Usage\UsageResourceData;
+use App\Workspace\Data\Resources\My\Usage\UsageResourceData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

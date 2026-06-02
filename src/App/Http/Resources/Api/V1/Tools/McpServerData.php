@@ -3,10 +3,10 @@
 namespace App\Http\Resources\Api\V1\Tools;
 
 use Carbon\CarbonInterface;
-use Domain\Agents\Models\AgentMcpServer;
+use Domain\Mcp\Models\AgentMcpServer;
 use Spatie\LaravelData\Data;
-use Support\Enums\Mcp\McpAuthType;
-use Support\Enums\Mcp\McpTransport;
+use Domain\Mcp\Enums\McpAuthType;
+use Domain\Mcp\Enums\McpTransport;
 
 /**
  * A custom MCP server connected to your account. Pass `id` as `mcp_id` to

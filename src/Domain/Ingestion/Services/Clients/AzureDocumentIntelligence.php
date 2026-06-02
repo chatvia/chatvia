@@ -2,7 +2,7 @@
 
 namespace Domain\Ingestion\Services\Clients;
 
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Source\File\Models\SourceFile;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 

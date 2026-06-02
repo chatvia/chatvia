@@ -67,24 +67,10 @@ const updatePassword = () => {
                         </div>
                         <h1 class="text-2xl font-bold tracking-tight">Password Security</h1>
                     </div>
-                    <p class="text-muted-foreground">Manage your account's password to ensure your account remains secure.</p>
+                    <p class="text-muted-foreground">Manage your account's password.</p>
                 </div>
 
                 <Separator />
-
-                <!-- Password Tips Alert -->
-                <Alert variant="default" class="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
-                    <AlertTriangle class="size-4 text-blue-600 dark:text-blue-400" />
-                    <AlertTitle class="text-blue-800 dark:text-blue-300">Password best practices</AlertTitle>
-                    <AlertDescription class="text-blue-700 dark:text-blue-300">
-                        <ul class="mt-2 ml-4 list-disc space-y-1 text-sm">
-                            <li>Use at least 8 characters</li>
-                            <li>Include uppercase and lowercase letters</li>
-                            <li>Add numbers and special characters</li>
-                            <li>Avoid using personal information</li>
-                        </ul>
-                    </AlertDescription>
-                </Alert>
 
                 <!-- Password Update Form -->
                 <Card>

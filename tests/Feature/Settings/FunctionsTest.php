@@ -1,7 +1,7 @@
 <?php
 
-use App\Auth\Models\User;
-use Domain\Agents\Models\AgentFunction;
+use App\Workspace\Models\User;
+use Domain\Function\Models\AgentFunction;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();

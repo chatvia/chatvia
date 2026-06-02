@@ -2,7 +2,9 @@
 
 namespace Domain\Chat\Services\Tooling\Routing;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
+use Domain\Chat\Services\Tooling\Registry\ToolEntry;
+use Domain\Chat\Services\Tooling\Registry\ToolRegistry;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 

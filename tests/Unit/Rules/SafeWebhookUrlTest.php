@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Rules;
 
-use Domain\Agents\Rules\SafeWebhookUrl;
+use Domain\Agent\Rules\SafeWebhookUrl;
 use PHPUnit\Framework\TestCase;
 
 class SafeWebhookUrlTest extends TestCase

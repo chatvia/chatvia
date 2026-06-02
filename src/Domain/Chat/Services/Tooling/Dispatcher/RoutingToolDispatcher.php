@@ -2,8 +2,9 @@
 
 namespace Domain\Chat\Services\Tooling\Dispatcher;
 
-use Domain\Agents\Models\Agent;
-use Domain\Chat\Services\Tooling\Mcp\McpToolDispatcher;
+use Domain\Agent\Models\Agent;
+use Domain\Chat\Services\Tooling\Routing\ToolRouter;
+use Domain\Mcp\Services\McpToolDispatcher;
 
 /**
  * The single `ToolDispatcherInterface` binding the rest of the app talks to.

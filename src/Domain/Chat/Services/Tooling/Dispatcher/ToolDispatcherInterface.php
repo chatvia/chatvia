@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Services\Tooling\Dispatcher;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 
 interface ToolDispatcherInterface
 {

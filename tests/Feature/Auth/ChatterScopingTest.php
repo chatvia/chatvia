@@ -1,9 +1,9 @@
 <?php
 
-use App\Auth\Models\User;
-use App\Teams\Models\Team;
-use App\Teams\Services\TeamService;
-use App\Auth\Actions\Chatters\CreateChatterAction;
+use App\Workspace\Models\User;
+use App\Team\Models\Team;
+use App\Team\Services\TeamService;
+use App\Chatter\Actions\CreateChatterAction;
 use Support\Enums\User\UserSource;
 use Support\Enums\User\UserType;
 
@@ -22,13 +22,22 @@ it('flags API-created users as chatters', function (): void {
         ->and($user->workspace_id)->toBe($this->owner->id);
 });
 
-it('does not count chatters toward the team member quota', function (): void {
+it('keeps chatters separate from team members in the informational counts', function (): void {
     $before = $this->owner->teamMembersCount();
 
     app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
     app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'John');
 
     expect($this->owner->fresh()->teamMembersCount())->toBe($before);
+});
+
+it('counts chatters toward the shared workspace_users quota', function (): void {
+    $before = $this->owner->workspaceUsersCount();
+
+    app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+    app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'John');
+
+    expect($this->owner->fresh()->workspaceUsersCount())->toBe($before + 2);
 });
 
 it('does not create a team when a chatter is created', function (): void {

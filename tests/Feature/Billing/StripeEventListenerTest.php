@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Listeners\StripeEventListener;
 use App\Billing\Models\UserCredit;
 use Laravel\Cashier\Events\WebhookReceived;

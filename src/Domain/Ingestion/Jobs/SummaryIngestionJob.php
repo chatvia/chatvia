@@ -3,9 +3,9 @@
 namespace Domain\Ingestion\Jobs;
 
 use Domain\Ingestion\Actions\Sources\CreateSourceSummaryAction;
-use Domain\Sources\Files\Models\SourceFile;
-use Domain\Sources\Text\Models\SourceText;
-use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Source\File\Models\SourceFile;
+use Domain\Source\Text\Models\SourceText;
+use Domain\Source\Web\Models\SourceWebsite;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;

@@ -2,7 +2,7 @@
 
 namespace App\Billing\Services;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use App\Billing\Enums\CapabilityEnum;
 

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Chat\Auth;
 
 use App\Http\Requests\Auth\LoginRequest;
-use App\Auth\Actions\Sessions\LoginUserToAgentAction;
+use App\Workspace\Actions\Sessions\LoginUserToAgentAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;

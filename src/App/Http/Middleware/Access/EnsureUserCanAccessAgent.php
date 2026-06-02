@@ -3,7 +3,7 @@
 namespace App\Http\Middleware\Access;
 
 use Closure;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;

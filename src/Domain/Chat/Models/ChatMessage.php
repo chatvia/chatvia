@@ -2,10 +2,10 @@
 
 namespace Domain\Chat\Models;
 
-use Domain\Agents\Models\Lead;
-use Domain\Agents\Models\Llm;
+use Domain\Llm\Models\Llm;
+use Domain\Lead\Models\Lead;
 use Domain\Chat\QueryBuilders\ChatMessageQueryBuilder;
-use Domain\Sources\QA\Models\AgentQuestionAnswer;
+use Domain\Source\QA\Models\AgentQuestionAnswer;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

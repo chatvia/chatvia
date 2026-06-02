@@ -2,7 +2,7 @@
 
 namespace App\Documents;
 
-use Domain\Sources\Files\Data\FileAnalysisData;
+use Domain\Source\File\Data\FileAnalysisData;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Auth\Models\UserSocial;
+use App\Workspace\Models\UserSocial;
 use App\Http\Controllers\Controller;
-use App\Auth\Actions\Social\UnlinkSocialAccountAction;
+use App\Workspace\Actions\Social\UnlinkSocialAccountAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

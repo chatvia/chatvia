@@ -1,13 +1,13 @@
 <?php
 
-use App\Auth\Models\User;
-use App\Auth\Services\AgentSignInTokenService;
-use App\Teams\Services\TeamService;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentMcpServer;
-use App\Auth\Actions\Chatters\CreateChatterAction;
-use Domain\Teams\Actions\Team\CreateTeamAction;
-use Domain\Teams\Data\CreateTeamData;
+use App\Workspace\Models\User;
+use App\Workspace\Services\AgentSignInTokenService;
+use App\Team\Services\TeamService;
+use Domain\Agent\Models\Agent;
+use Domain\Mcp\Models\AgentMcpServer;
+use App\Chatter\Actions\CreateChatterAction;
+use Domain\Team\Actions\Team\CreateTeamAction;
+use Domain\Team\Data\CreateTeamData;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {

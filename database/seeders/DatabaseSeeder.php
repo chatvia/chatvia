@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Auth\Models\User;
-use App\Teams\Services\TeamService;
-use Domain\Agents\Models\Agent;
+use App\Workspace\Models\User;
+use App\Team\Services\TeamService;
+use Domain\Agent\Models\Agent;
 use Illuminate\Database\Seeder;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Telescope\Telescope;
@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
                 'links_limit' => 1000,
                 'minutes_limit' => 100000,
                 'custom_domains_limit' => 10,
-                'members_limit' => 50,
+                'workspace_users_limit' => 50,
                 'teams_limit' => 10,
             ]
         );

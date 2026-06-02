@@ -2,7 +2,7 @@
 
 namespace Domain\Billing\Actions\Account;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 
 class DeletePaymentMethodAction
 {

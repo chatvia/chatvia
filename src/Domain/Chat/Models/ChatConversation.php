@@ -2,12 +2,13 @@
 
 namespace Domain\Chat\Models;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Language\Models\Language;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\Lead;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Enums\ConversationSource;
 use Domain\Chat\QueryBuilders\ChatConversationQueryBuilder;
+use Domain\Lead\Models\Lead;
+use Domain\Topic\Models\ChatTopic;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

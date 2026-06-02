@@ -2,7 +2,7 @@
 
 namespace Domain\Billing\Actions\Subscriptions;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Stripe\SubscriptionSchedule;
 
 class CancelSubscriptionAction

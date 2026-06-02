@@ -1,7 +1,7 @@
 <?php
 
-use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
+use App\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

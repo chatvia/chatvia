@@ -4,12 +4,12 @@ namespace Domain\Ingestion\Actions\Sources;
 
 use App\LLM\Operations\Media\Transcription;
 use App\Media\AudioCompressor;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Jobs\Media\MediaChunkIngestionJob;
 use Domain\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Ingestion\Services\TokenSplitter;
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;

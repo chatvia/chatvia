@@ -313,7 +313,7 @@ onMounted(() => {
                     <Button variant="outline" @click="isEditDialogOpen = false" :disabled="isSubmitting"> Cancel </Button>
                     <Button @click="handleEdit" :disabled="isSubmitting">
                         <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                        Save Changes
+                        Save
                     </Button>
                 </DialogFooter>
             </DialogContent>

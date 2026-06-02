@@ -18,12 +18,8 @@ import {
     Bot,
     Building,
     Check,
-    CreditCard,
     Crown,
-    EyeOff,
     Gift,
-    Globe,
-    MessageCircle,
     Package,
     Sparkles,
     Star,
@@ -55,16 +51,6 @@ interface Package {
     is_popular: boolean;
 }
 
-interface Addon {
-    id: string;
-    name: string;
-    description: string;
-    price_cents: number;
-    price_formatted: string;
-    billing_unit: string;
-    icon: string;
-}
-
 interface ComparisonFeature {
     key: string;
     name: string;
@@ -80,7 +66,6 @@ interface LLM {
 
 const props = defineProps<{
     packages: Package[];
-    addons?: Addon[];
     currentPackage: string;
     comparisonFeatures: ComparisonFeature[];
     llms?: LLM[];
@@ -338,23 +323,6 @@ const getPackageIconBackground = (packageId: string) => {
     return backgroundMap[iconKey] || 'bg-gray-100 dark:bg-gray-900/20';
 };
 
-const getAddonIcon = (iconName: string) => {
-    switch (iconName) {
-        case 'credit-card':
-            return CreditCard;
-        case 'message-circle':
-            return MessageCircle;
-        case 'bot':
-            return Bot;
-        case 'globe':
-            return Globe;
-        case 'eye-off':
-            return EyeOff;
-        default:
-            return Package;
-    }
-};
-
 const getFeatureHeader = (packageId: string, packages: Package[]) => {
     // Convert to array to ensure we have array methods
     const packagesArray = Array.isArray(packages) ? packages : (Object.values(packages) as Package[]);
@@ -598,41 +566,6 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
-                </div>
-
-                <!-- Add-ons Section -->
-                <div v-if="addons && addons.length > 0" class="space-y-6">
-                    <div class="text-center">
-                        <h2 class="mb-2 text-2xl font-bold tracking-tight">Add-ons</h2>
-                        <p class="text-muted-foreground">Enhance your plan with additional features and capabilities</p>
-                    </div>
-
-                    <div class="mx-auto grid max-w-4xl gap-4 md:grid-cols-2 lg:grid-cols-1">
-                        <div
-                            v-for="addon in addons"
-                            :key="addon.id"
-                            class="bg-background flex items-center justify-between rounded-lg border p-6 transition-shadow hover:shadow-md"
-                        >
-                            <div class="flex flex-1 items-start gap-4">
-                                <div class="bg-muted flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full">
-                                    <component :is="getAddonIcon(addon.icon)" class="text-muted-foreground h-6 w-6" />
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="mb-1 text-lg font-semibold">{{ addon.name }}</h3>
-                                    <p class="text-muted-foreground mb-2 text-sm">{{ addon.description }}</p>
-                                    <p class="text-muted-foreground text-xs">{{ addon.billing_unit }}</p>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-shrink-0 items-center gap-4">
-                                <div class="text-right">
-                                    <div class="text-2xl font-bold">{{ addon.price_formatted }}</div>
-                                    <div class="text-muted-foreground text-xs">Total {{ addon.billing_unit }}</div>
-                                </div>
-                                <Button variant="outline" class="whitespace-nowrap"> Get Add-on </Button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 

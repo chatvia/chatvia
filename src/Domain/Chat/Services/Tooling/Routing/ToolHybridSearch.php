@@ -2,7 +2,8 @@
 
 namespace Domain\Chat\Services\Tooling\Routing;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
+use Domain\Chat\Services\Tooling\Registry\ToolEntry;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -21,9 +22,9 @@ use Illuminate\Support\Facades\Log;
  * the absolute pool sizes differ wildly.
  *
  * Pool scoping happens inside each channel's CTE:
- *   - MCP rows require `mcp_servers.enabled` + `mcp_tools.enabled` +
+ *   - MCP rows require `mcp_servers.is_enabled` + `mcp_tools.is_enabled` +
  *     an `agent_mcp_server` pivot row for this agent.
- *   - Function rows require `functions.enabled` + an `agent_function`
+ *   - Function rows require `functions.is_enabled` + an `agent_function`
  *     pivot row for this agent.
  */
 class ToolHybridSearch
@@ -56,8 +57,8 @@ WITH mcp_vector AS (
     FROM mcp_tools t
     INNER JOIN mcp_servers s ON s.id = t.mcp_server_id
     INNER JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
-    WHERE s.enabled = true
-      AND t.enabled = true
+    WHERE s.is_enabled = true
+      AND t.is_enabled = true
       AND t.embedding IS NOT NULL
     ORDER BY t.embedding <-> ?::vector({$dims})
     LIMIT ?
@@ -73,8 +74,8 @@ mcp_bm25 AS (
     FROM mcp_tools t
     INNER JOIN mcp_servers s ON s.id = t.mcp_server_id
     INNER JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
-    WHERE s.enabled = true
-      AND t.enabled = true
+    WHERE s.is_enabled = true
+      AND t.is_enabled = true
       AND t.embedding_bm25 IS NOT NULL
     ORDER BY rank
     LIMIT ?
@@ -84,7 +85,7 @@ fn_vector AS (
            ROW_NUMBER() OVER (ORDER BY f.embedding <-> ?::vector({$dims})) AS rank
     FROM functions f
     INNER JOIN agent_function af ON af.function_id = f.id AND af.agent_id = ?
-    WHERE f.enabled = true
+    WHERE f.is_enabled = true
       AND f.embedding IS NOT NULL
     ORDER BY f.embedding <-> ?::vector({$dims})
     LIMIT ?
@@ -99,7 +100,7 @@ fn_bm25 AS (
            ) AS rank
     FROM functions f
     INNER JOIN agent_function af ON af.function_id = f.id AND af.agent_id = ?
-    WHERE f.enabled = true
+    WHERE f.is_enabled = true
       AND f.embedding_bm25 IS NOT NULL
     ORDER BY rank
     LIMIT ?

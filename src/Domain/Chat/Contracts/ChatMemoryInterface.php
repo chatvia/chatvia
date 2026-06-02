@@ -2,8 +2,8 @@
 
 namespace Domain\Chat\Contracts;
 
-use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
+use App\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Data\Messages\ChatInputPayload;
 use Domain\Chat\Data\Messages\ChatOutputPayload;
 use Domain\Chat\Data\Memory\ConversationData;

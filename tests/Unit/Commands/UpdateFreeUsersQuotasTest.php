@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Models\UserCredit;
 use App\Console\Commands\UpdateFreeUsersQuotas;
 use Illuminate\Support\Facades\Event;

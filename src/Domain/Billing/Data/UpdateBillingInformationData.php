@@ -2,7 +2,7 @@
 
 namespace Domain\Billing\Data;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Spatie\LaravelData\Data;
 
 class UpdateBillingInformationData extends Data

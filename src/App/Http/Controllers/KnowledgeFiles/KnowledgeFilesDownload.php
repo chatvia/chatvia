@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\KnowledgeFiles;
 
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Source\File\Models\SourceFile;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

@@ -2,10 +2,10 @@
 
 namespace Domain\Ingestion\Actions\Documents;
 
-use App\Embeddings\Contracts\EmbeddingsProviderInterface;
+use App\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Ingestion\Data\DocumentData;
 use Domain\Ingestion\Models\Chunk;
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Source\File\Models\SourceFile;
 
 class IngestDocumentChunkAction
 {

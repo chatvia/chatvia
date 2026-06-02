@@ -361,7 +361,7 @@ const toggleAgentSelection = (agentId: string) => {
                         </Link>
                         <Button type="submit" :disabled="form.processing || !isAgentSelectionValid">
                             <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-                            Save Changes
+                            Save
                         </Button>
                     </div>
                 </form>

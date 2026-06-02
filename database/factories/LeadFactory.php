@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\Lead;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
+use Domain\Lead\Models\Lead;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

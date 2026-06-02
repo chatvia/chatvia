@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Widget\Auth;
 
-use App\Auth\Services\AgentSignInTokenService;
-use App\Auth\Services\WidgetAuthSessionService;
+use App\Workspace\Services\AgentSignInTokenService;
+use App\Workspace\Services\WidgetAuthSessionService;
 use App\Widget\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

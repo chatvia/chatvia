@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Services;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Services\UserCreditSystem;
 use Domain\Chat\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Chat\Data\Handoff\SendVisitorHandoffMessageData;
@@ -16,7 +16,7 @@ use Domain\Chat\Services\Streaming\Sources\LlmSource;
 use Domain\Chat\Services\Streaming\Sources\QASource;
 use Domain\Chat\Services\Streaming\Sources\ReplaySource;
 use Domain\Chat\Services\Streaming\Sse\SseStreamer;
-use Domain\Sources\QA\Models\AgentQuestionAnswer;
+use Domain\Source\QA\Models\AgentQuestionAnswer;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

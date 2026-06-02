@@ -146,7 +146,7 @@ const submit = () => {
                             <div class="flex items-center gap-4 pt-2">
                                 <Button type="submit" :disabled="form.processing" class="transition-all duration-200">
                                     <Save class="mr-2 size-4" />
-                                    Save changes
+                                    Save
                                 </Button>
 
                                 <Transition

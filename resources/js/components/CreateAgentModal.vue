@@ -109,7 +109,6 @@ onMounted(() => {
                     <Bot class="h-5 w-5" />
                     Create Agent
                 </DialogTitle>
-                <DialogDescription> Every agent exposes a Hosted Chat, Widget, and Bar — configure each surface after creating. </DialogDescription>
             </DialogHeader>
 
             <div v-if="usageData && currentAgentQuota">

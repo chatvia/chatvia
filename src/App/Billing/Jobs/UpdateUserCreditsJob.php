@@ -2,9 +2,10 @@
 
 namespace App\Billing\Jobs;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Services\UserCreditSystem;
-use Domain\Agents\Models\Llm;
+use Domain\Billing\Events\MessageCreditsLow;
+use Domain\Llm\Models\Llm;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
@@ -69,5 +70,37 @@ class UpdateUserCreditsJob implements ShouldQueue
 
         // Refresh the can-send-messages flag after consumption
         $creditSystem->refreshCanSendMessages();
+
+        $this->maybeTriggerAutoRecharge($creditSystem);
+    }
+
+    /**
+     * After consumption, dispatch `MessageCreditsLow` if the user's
+     * available balance has crossed their configured auto-recharge
+     * threshold. The TriggerAutoRecharge listener guards against
+     * back-to-back fires; this job only needs the if-eligible check.
+     */
+    private function maybeTriggerAutoRecharge(UserCreditSystem $creditSystem): void
+    {
+        /** @var User|null $user */
+        $user = User::find($this->userId);
+
+        if (! $user) {
+            return;
+        }
+
+        $billing = $user->accountBilling();
+
+        if (! $billing || ! $billing->auto_recharge_enabled) {
+            return;
+        }
+
+        $available = $creditSystem->getAvailableMessages();
+
+        if ($available > $billing->auto_recharge_threshold) {
+            return;
+        }
+
+        MessageCreditsLow::dispatch($this->userId, $available);
     }
 }

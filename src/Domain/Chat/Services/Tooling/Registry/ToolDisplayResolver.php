@@ -2,8 +2,9 @@
 
 namespace Domain\Chat\Services\Tooling\Registry;
 
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentMcpServer;
+use Domain\Agent\Models\Agent;
+use Domain\Chat\Services\Tooling\Routing\ToolRouter;
+use Domain\Mcp\Models\AgentMcpServer;
 use Illuminate\Support\Facades\Config;
 
 /**

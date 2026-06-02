@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Conversations;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Enums\CapabilityEnum;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Support\Facades\Auth;

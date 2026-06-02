@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use Domain\Agents\Enums\LlmProviderEnum;
-use Domain\Agents\Models\Llm;
+use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

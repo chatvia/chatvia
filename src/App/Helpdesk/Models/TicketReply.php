@@ -2,7 +2,7 @@
 
 namespace App\Helpdesk\Models;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

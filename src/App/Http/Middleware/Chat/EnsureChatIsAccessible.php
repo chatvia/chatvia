@@ -3,7 +3,7 @@
 namespace App\Http\Middleware\Chat;
 
 use Closure;
-use Domain\Agents\Services\Agent;
+use Domain\Agent\Services\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

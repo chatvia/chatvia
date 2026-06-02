@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Models\UserCredit;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

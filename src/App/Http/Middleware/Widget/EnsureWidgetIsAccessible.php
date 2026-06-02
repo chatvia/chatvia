@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware\Widget;
 
-use App\Auth\Services\WidgetAuthSessionService;
+use App\Workspace\Services\WidgetAuthSessionService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

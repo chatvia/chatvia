@@ -349,7 +349,7 @@ async function copyId(): Promise<void> {
                             <Button type="submit" :disabled="form.processing">
                                 <LoaderCircle v-if="form.processing" class="mr-2 size-4 animate-spin" />
                                 <Save v-else class="mr-2 size-4" />
-                                {{ isEdit ? 'Save changes' : 'Add function' }}
+                                {{ isEdit ? 'Save' : 'Add function' }}
                             </Button>
                         </div>
                     </form>

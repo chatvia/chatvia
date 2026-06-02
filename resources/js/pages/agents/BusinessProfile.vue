@@ -94,7 +94,7 @@ const confirmDelete = () => {
                 success-message="Business profile saved"
                 :show-error-message="hasFormErrors"
                 error-message="Please fix errors below"
-                save-label="Save Changes"
+                save-label="Save"
                 :save-icon="Save"
                 form-id="business-profile-form"
             />

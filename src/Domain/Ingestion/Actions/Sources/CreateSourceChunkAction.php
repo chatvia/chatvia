@@ -2,8 +2,8 @@
 
 namespace Domain\Ingestion\Actions\Sources;
 
-use App\Embeddings\Contracts\EmbeddingsProviderInterface;
-use Domain\Agents\Models\Agent;
+use App\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Models\Chunk;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;

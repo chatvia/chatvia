@@ -3,10 +3,10 @@
 namespace App\Http\Resources\Api\V1\Tools;
 
 use Carbon\CarbonInterface;
-use Domain\Agents\Models\AgentFunction;
+use Domain\Function\Enums\FunctionAuthType;
+use Domain\Function\Enums\FunctionWebhookMethod;
+use Domain\Function\Models\AgentFunction;
 use Spatie\LaravelData\Data;
-use Support\Enums\Functions\FunctionAuthType;
-use Support\Enums\Functions\FunctionWebhookMethod;
 
 /**
  * An account-level function the LLM can call. Pass `id` as `function_id` to

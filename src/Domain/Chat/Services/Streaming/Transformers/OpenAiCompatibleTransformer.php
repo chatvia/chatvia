@@ -4,6 +4,7 @@ namespace Domain\Chat\Services\Streaming\Transformers;
 
 use Domain\Chat\Services\ChatContext;
 use Domain\Chat\Services\Streaming\Exceptions\UpstreamStreamClosed;
+use Domain\Chat\Services\Streaming\Sse\StreamEvent;
 use Generator;
 use Illuminate\Support\Facades\Log;
 use JsonException;

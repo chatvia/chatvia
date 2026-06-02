@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
-use App\Auth\Models\User;
-use App\Auth\Services\ChatterAuthTokenService;
-use Domain\Agents\Models\Agent;
+use App\Workspace\Models\User;
+use App\Chatter\Services\ChatterAuthTokenService;
+use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;

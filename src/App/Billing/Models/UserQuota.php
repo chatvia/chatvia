@@ -2,7 +2,7 @@
 
 namespace App\Billing\Models;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Model;
@@ -16,8 +16,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $links_limit
  * @property int $minutes_limit
  * @property int $custom_domains_limit
- * @property int $members_limit
+ * @property int $workspace_users_limit
  * @property int $teams_limit
+ * @property int $extra_agents_limit
+ * @property int $extra_custom_domains_limit
  * @property-read User $user
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota newModelQuery()
@@ -27,7 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota whereCustomDomainsLimit($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota whereLinksLimit($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota whereMembersLimit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota whereWorkspaceUsersLimit($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota whereMinutesLimit($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota wherePagesLimit($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota whereTeamsLimit($value)
@@ -39,6 +41,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[WithoutTimestamps]
 class UserQuota extends Model
 {
+    /**
+     * Effective agents limit — plan quota plus any active extra-agents
+     * subscription quantity. Use for capacity checks instead of the raw
+     * `agents_limit`.
+     */
+    public function totalAgentsLimit(): int
+    {
+        return (int) $this->agents_limit + (int) $this->extra_agents_limit;
+    }
+
+    /**
+     * Effective custom-domains limit — plan quota plus any active
+     * custom-domain subscription quantity.
+     */
+    public function totalCustomDomainsLimit(): int
+    {
+        return (int) $this->custom_domains_limit + (int) $this->extra_custom_domains_limit;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

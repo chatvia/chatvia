@@ -16,6 +16,12 @@ return new class extends Migration
             $table->string('pm_type')->nullable();
             $table->string('pm_last_four', 4)->nullable();
             $table->timestamp('trial_ends_at')->nullable();
+
+            $table->boolean('auto_recharge_enabled')->default(false);
+            $table->unsignedInteger('auto_recharge_threshold')->default(1000);
+            $table->unsignedInteger('auto_recharge_amount')->default(1000);
+            $table->timestamp('auto_recharge_last_triggered_at')->nullable();
+
             $table->timestamps();
         });
 

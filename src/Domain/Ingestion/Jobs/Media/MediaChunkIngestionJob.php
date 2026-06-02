@@ -2,12 +2,12 @@
 
 namespace Domain\Ingestion\Jobs\Media;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Actions\Sources\CreateSourceChunkAction;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Jobs\Text\TextEnhanceChunkJob;
-use Domain\Sources\Files\Events\FileIngestionProgressed;
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Source\File\Events\FileIngestionProgressed;
+use Domain\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;

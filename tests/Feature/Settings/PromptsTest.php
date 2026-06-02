@@ -1,9 +1,9 @@
 <?php
 
-use App\Auth\Models\User;
-use App\Teams\Services\TeamService;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentPrompt;
+use App\Workspace\Models\User;
+use App\Team\Services\TeamService;
+use Domain\Agent\Models\Agent;
+use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {

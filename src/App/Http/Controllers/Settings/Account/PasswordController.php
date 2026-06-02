@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Settings\Account;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\UpdatePasswordRequest;
-use App\Auth\Actions\Account\UpdatePasswordAction;
+use App\Workspace\Actions\Account\UpdatePasswordAction;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;

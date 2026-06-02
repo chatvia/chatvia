@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,8 +17,11 @@ return new class extends Migration
             $table->unsignedInteger('links_limit')->default(0);
             $table->unsignedInteger('minutes_limit')->default(0);
             $table->unsignedInteger('custom_domains_limit')->default(0);
-            $table->unsignedInteger('members_limit')->default(0);
+            $table->unsignedInteger('workspace_users_limit')->default(0);
             $table->unsignedInteger('teams_limit')->default(0);
+
+            $table->unsignedInteger('extra_agents_limit')->default(0);
+            $table->unsignedInteger('extra_custom_domains_limit')->default(0);
         });
     }
 

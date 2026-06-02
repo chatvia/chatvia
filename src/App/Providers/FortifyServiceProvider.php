@@ -2,9 +2,8 @@
 
 namespace App\Providers;
 
-use App\Auth\Actions\Fortify\ResetUserPassword;
-use App\Auth\Login\EnsureTurnstileIsValid;
-use App\Auth\Models\User;
+use App\Workspace\Actions\Fortify\ResetUserPassword;
+use App\Workspace\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -37,15 +36,9 @@ class FortifyServiceProvider extends ServiceProvider
         $this->registerRateLimiters();
     }
 
-    /**
-     * Inject EnsureTurnstileIsValid at the front of Fortify's login pipeline
-     * so the captcha is checked before credentials touch the DB and before
-     * the 2FA-aware step decides whether to short-circuit.
-     */
     private function registerAuthPipeline(): void
     {
         Fortify::authenticateThrough(fn () => array_filter([
-            EnsureTurnstileIsValid::class,
             config('fortify.limiters.login') ? null : EnsureLoginIsNotThrottled::class,
             config('fortify.lowercase_usernames') ? CanonicalizeUsername::class : null,
             Features::enabled(Features::twoFactorAuthentication()) ? RedirectIfTwoFactorAuthenticatable::class : null,
@@ -80,7 +73,6 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
             'canResetPassword' => true,
             'status' => $request->session()->get('status'),
-            'turnstileSiteKey' => config('services.turnstile.key'),
         ]));
 
         Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/ForgotPassword', [

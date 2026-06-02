@@ -2,7 +2,7 @@
 
 namespace Domain\Helpdesk\Data;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Spatie\LaravelData\Data;
 
 class CreateTicketData extends Data

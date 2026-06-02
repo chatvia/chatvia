@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\Lead;
+use App\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
+use Domain\Lead\Models\Lead;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\UniqueConstraintViolationException;
 

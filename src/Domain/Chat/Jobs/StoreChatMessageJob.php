@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Jobs;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Actions\Messages\StoreChatMessageAction;
 use Domain\Chat\Data\Messages\ChatInputPayload;
 use Domain\Chat\Data\Messages\ChatOutputPayload;

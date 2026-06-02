@@ -2,16 +2,16 @@
 
 namespace Domain\Ingestion\Actions\Sources;
 
-use App\Embeddings\Contracts\EmbeddingsProviderInterface;
+use App\Embedding\Contracts\EmbeddingsProviderInterface;
 use App\LLM\Operations\Documents\ContentAnalyzer;
 use App\LLM\Operations\Documents\Summarizer;
 use App\LLM\Operations\Pricing\CostCalculator;
 use Domain\Ingestion\Models\Chunk;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Ingestion\Services\TikToken;
-use Domain\Sources\Files\Models\SourceFile;
-use Domain\Sources\Text\Models\SourceText;
-use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Source\File\Models\SourceFile;
+use Domain\Source\Text\Models\SourceText;
+use Domain\Source\Web\Models\SourceWebsite;
 use Illuminate\Support\Facades\Storage;
 
 class CreateSourceSummaryAction

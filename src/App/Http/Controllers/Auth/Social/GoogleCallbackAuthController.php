@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth\Social;
 
-use App\Auth\Social\SocialOauthCallback;
+use App\Workspace\Social\SocialOauthCallback;
 use Illuminate\Http\RedirectResponse;
 use Support\Enums\User\SocialProvider;
 

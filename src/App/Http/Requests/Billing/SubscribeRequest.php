@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Billing;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Domain\Billing\Data\SubscribeData;
 use Illuminate\Foundation\Http\FormRequest;
 

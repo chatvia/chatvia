@@ -3,7 +3,7 @@
 namespace Domain\Chat\Actions\Conversations;
 
 use App\Widget\WidgetVerification;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Analytics\Services\UserAgentParser;
 
 class CreateOrReuseWidgetSessionAction

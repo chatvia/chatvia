@@ -2,9 +2,9 @@
 
 namespace Domain\Ingestion\Services\Search;
 
-use App\Embeddings\Contracts\EmbeddingsProviderInterface;
+use App\Embedding\Contracts\EmbeddingsProviderInterface;
 use App\LLM\Operations\Query\SearchDecision;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Jobs\UpdateRetrievalStatsJob;
 use Domain\Ingestion\Models\Chunk;
 use Exception;

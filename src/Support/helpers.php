@@ -1,12 +1,12 @@
 <?php
 
 use App\Documents\LibreOffice;
-use App\Embeddings\Contracts\EmbeddingsProviderInterface;
+use App\Embedding\Contracts\EmbeddingsProviderInterface;
 use App\Hosting\HostConfig;
-use App\Teams\Models\Team;
-use App\Teams\Services\TeamService;
-use Domain\Agents\Models\Agent as AgentModel;
-use Domain\Agents\Services\Agent;
+use App\Team\Models\Team;
+use App\Team\Services\TeamService;
+use Domain\Agent\Models\Agent as AgentModel;
+use Domain\Agent\Services\Agent;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 

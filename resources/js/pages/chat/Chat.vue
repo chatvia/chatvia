@@ -755,11 +755,22 @@ const handleRegenerate = async (userMessageId, assistantMessageId, onDone) => {
 const handleErrorRetry = (errorIndex) => {
     const prevUser = messages.value[errorIndex - 1];
     if (!prevUser || prevUser.role !== 'user') return;
-    messages.value.splice(errorIndex, 1);
-    return reissue({
-        userMessageId: prevUser.id,
-        assistantMessageId: null,
-        overrideContent: prevUser.content,
+
+    // The error bubble was never a real assistant message — the stream
+    // failed before `start` fired, so there's nothing server-side to
+    // regenerate against. Replace the bubble with a fresh assistant stub
+    // and re-issue the stream into the same slot.
+    const userIndex = errorIndex - 1;
+    const assistantIndex = errorIndex;
+    messages.value[assistantIndex] = { role: 'assistant', content: '', id: 0 };
+
+    userHasScrolledUp.value = false;
+    isAutoScrollEnabled.value = true;
+
+    submitChat({
+        message: prevUser.content,
+        userIndex,
+        assistantIndex,
     });
 };
 

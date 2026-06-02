@@ -1,16 +1,19 @@
 <?php
 
+use App\Http\Controllers\Billing\Addons\UpdateAutoRechargeController;
+use App\Http\Controllers\Billing\Checkout\CheckoutCustomDomainController;
+use App\Http\Controllers\Billing\Checkout\CheckoutExtraAgentsController;
 use App\Http\Controllers\Billing\Checkout\CheckoutExtraMessagesController;
 use App\Http\Controllers\Billing\Home\BillingController;
 use App\Http\Controllers\Billing\Home\BillingDataController;
 use App\Http\Controllers\Billing\Home\BillingUpdateInformationController;
-use App\Http\Controllers\Billing\Invoices\InvoicesController;
+use App\Http\Controllers\Billing\Invoices\InvoiceController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodAddController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDefaultController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDeleteController;
-use App\Http\Controllers\Billing\Payments\BillingPaymentMethodsController;
+use App\Http\Controllers\Billing\Payments\BillingPaymentMethodController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentSuccessController;
-use App\Http\Controllers\Billing\Plans\PlansController;
+use App\Http\Controllers\Billing\Plans\PlanController;
 use App\Http\Controllers\Billing\Stripe\BillingStripePortalController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscribeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscribeFailureController;
@@ -18,6 +21,8 @@ use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionCancelControll
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionChangeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionResumeController;
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionScheduleCancelController;
+use App\Http\Controllers\Billing\Subscriptions\CancelCustomDomainController;
+use App\Http\Controllers\Billing\Subscriptions\CancelExtraAgentsController;
 use App\Http\Middleware\Auth\DenyIfEmployee;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +38,21 @@ Route::middleware(['auth', 'verified', DenyIfEmployee::class, 'can.access.dashbo
     Route::get('addons/extra-message-credits', CheckoutExtraMessagesController::class)
         ->name('addons.extra-message-credits');
 
+    Route::get('addons/extra-agents', CheckoutExtraAgentsController::class)
+        ->name('addons.extra-agents');
+
+    Route::get('addons/custom-domains', CheckoutCustomDomainController::class)
+        ->name('addons.custom-domains');
+
+    Route::post('addons/auto-recharge', UpdateAutoRechargeController::class)
+        ->name('addons.auto-recharge.update');
+
+    Route::post('addons/extra-agents/cancel', CancelExtraAgentsController::class)
+        ->name('addons.extra-agents.cancel');
+
+    Route::post('addons/custom-domains/cancel', CancelCustomDomainController::class)
+        ->name('addons.custom-domains.cancel');
+
     // Main billing dashboard
     Route::get('/', BillingController::class)->name('index');
 
@@ -43,7 +63,7 @@ Route::middleware(['auth', 'verified', DenyIfEmployee::class, 'can.access.dashbo
     Route::get('/data', BillingDataController::class)->name('data');
 
     // Package selection
-    Route::get('/plans', PlansController::class)->name('packages');
+    Route::get('/plans', PlanController::class)->name('packages');
 
     // Subscription management
     Route::post('/subscriptions/change', BillingSubscriptionChangeController::class)->name('subscription.change');
@@ -53,10 +73,10 @@ Route::middleware(['auth', 'verified', DenyIfEmployee::class, 'can.access.dashbo
 
     Route::get('/portal', BillingStripePortalController::class)->name('portal');
 
-    Route::get('/invoices', InvoicesController::class)->name('invoices');
+    Route::get('/invoices', InvoiceController::class)->name('invoices');
 
     // Payment method management
-    Route::get('/payments', BillingPaymentMethodsController::class)->name('payment-methods');
+    Route::get('/payments', BillingPaymentMethodController::class)->name('payment-methods');
     Route::get('/payments/create', BillingPaymentMethodAddController::class)->name('payment-methods.create');
 
     // Payment method management

@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Actions\Embeddings;
 
-use Domain\Agents\Models\AgentFunction;
+use Domain\Function\Models\AgentFunction;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;

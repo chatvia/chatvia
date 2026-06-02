@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Source\Web\Models\SourceWebsite;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

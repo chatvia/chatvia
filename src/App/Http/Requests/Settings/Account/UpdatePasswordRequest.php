@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Settings\Account;
 
-use App\Auth\Data\Account\UpdatePasswordData;
-use App\Auth\Models\User;
+use App\Workspace\Data\Account\UpdatePasswordData;
+use App\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 

@@ -1,10 +1,10 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Http\Middleware\Chat\RedirectToAgent;
 use App\Http\Middleware\Chat\ResolveAgentFromSubdomain;
-use App\Teams\Services\TeamService;
-use Domain\Agents\Models\Agent;
+use App\Team\Services\TeamService;
+use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Response as InertiaResponse;

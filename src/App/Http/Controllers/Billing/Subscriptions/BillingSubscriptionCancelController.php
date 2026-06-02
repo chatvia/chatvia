@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Subscriptions;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Domain\Billing\Actions\Subscriptions\CancelSubscriptionAction;
 use Illuminate\Http\Request;
 

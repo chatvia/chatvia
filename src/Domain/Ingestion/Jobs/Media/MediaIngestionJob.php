@@ -2,9 +2,9 @@
 
 namespace Domain\Ingestion\Jobs\Media;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Actions\Sources\IngestMediaAction;
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;

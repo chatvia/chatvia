@@ -2,10 +2,10 @@
 
 namespace Domain\Ingestion\Services;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Jobs\Document\DocumentIngestionJob;
 use Domain\Ingestion\Jobs\Media\MediaIngestionJob;
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Source\File\Models\SourceFile;
 use Illuminate\Support\Facades\Bus;
 use InvalidArgumentException;
 

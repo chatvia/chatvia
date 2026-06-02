@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Payments;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Http\Requests\Billing\PaymentMethodIdRequest;
 use Domain\Billing\Actions\Account\DeletePaymentMethodAction;
 use Exception;

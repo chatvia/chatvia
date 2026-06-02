@@ -2,11 +2,11 @@
 
 namespace Domain\Ingestion\Jobs\Text;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Actions\Sources\CreateSourceChunkAction;
 use Domain\Ingestion\Data\OCR\PageData;
-use Domain\Sources\Text\Events\TextIngestionProgressed;
-use Domain\Sources\Text\Models\SourceText;
+use Domain\Source\Text\Events\TextIngestionProgressed;
+use Domain\Source\Text\Models\SourceText;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;

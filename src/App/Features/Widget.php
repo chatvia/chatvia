@@ -2,7 +2,7 @@
 
 namespace App\Features;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 
 class Widget
 {

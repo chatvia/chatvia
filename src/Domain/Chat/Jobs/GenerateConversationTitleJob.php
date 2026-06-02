@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Jobs;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Services\Memory\ChatMemory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;

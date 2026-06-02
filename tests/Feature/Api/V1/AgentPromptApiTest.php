@@ -1,8 +1,8 @@
 <?php
 
-use App\Auth\Models\User;
-use App\Teams\Services\TeamService;
-use Domain\Agents\Models\Agent;
+use App\Workspace\Models\User;
+use App\Team\Services\TeamService;
+use Domain\Agent\Models\Agent;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {

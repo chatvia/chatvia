@@ -2,7 +2,7 @@
 
 namespace Domain\Widget\Actions;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
 use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
 

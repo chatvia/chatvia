@@ -14,7 +14,7 @@ class BillingQuotaFixedData extends Data
         public int $minutes_limit = 0,
         public int $links_limit = 0,
         public int $custom_domains_limit = 0,
-        public int $members_limit = 0,
+        public int $workspace_users_limit = 0,
     ) {}
 
     public static function fromArray(array $fixed): self
@@ -25,7 +25,7 @@ class BillingQuotaFixedData extends Data
             minutes_limit: $fixed['minutes_limit'] ?? 0,
             links_limit: $fixed['links_limit'] ?? 0,
             custom_domains_limit: $fixed['custom_domains_limit'] ?? 0,
-            members_limit: $fixed['members_limit'] ?? 0,
+            workspace_users_limit: $fixed['workspace_users_limit'] ?? 0,
         );
     }
 }

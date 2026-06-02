@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Actions\Handoff;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Data\Handoff\HandoffSummaryData;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Support\Collection;

@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Domain\Billing\Actions\Subscriptions\CancelSubscriptionAction;
 
 it('runs the cancel path without error when the user has no subscription', function (): void {

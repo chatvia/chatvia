@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware\Auth;
 
-use App\Auth\Services\AgentSignInTokenService;
+use App\Workspace\Services\AgentSignInTokenService;
 use Closure;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Services\Agent as AgentService;
+use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\Agent as AgentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;

@@ -13,8 +13,8 @@ use App\Http\Controllers\Widget\Handoff\HandoffStatusController;
 use App\Http\Controllers\Widget\Sessions\SessionInitController;
 use App\Http\Controllers\Widget\Settings\WidgetSettingsController;
 use App\Http\Controllers\Widget\Stream\StreamController;
-use App\Http\Controllers\Widget\Threads\ThreadMessagesController;
-use App\Http\Controllers\Widget\Threads\ThreadsController;
+use App\Http\Controllers\Widget\Threads\ThreadMessageController;
+use App\Http\Controllers\Widget\Threads\ThreadController;
 use App\Http\Controllers\Widget\Threads\ThreadsDeleteController;
 use App\Http\Controllers\Widget\Threads\ThreadsStoreController;
 use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
@@ -42,12 +42,12 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
     Route::middleware(EnsureWidgetIsAccessible::class)->group(function (): void {
         Route::post('/sessions/init', SessionInitController::class)->name('widget.sessions.init');
 
-        Route::get('/threads', ThreadsController::class)->name('widget.threads');
+        Route::get('/threads', ThreadController::class)->name('widget.threads');
         Route::post('/threads', ThreadsStoreController::class)->name('widget.threads.store');
         Route::delete('/threads', ThreadsDeleteController::class)->name('widget.threads.delete');
 
-        Route::post('/threads/messages', ThreadMessagesController::class)->name('widget.threads.messages.store');
-        Route::get('/threads/messages', ThreadMessagesController::class)->name('widget.threads.messages');
+        Route::post('/threads/messages', ThreadMessageController::class)->name('widget.threads.messages.store');
+        Route::get('/threads/messages', ThreadMessageController::class)->name('widget.threads.messages');
 
         // Stream is the LLM-cost endpoint — separate, tighter, session-
         // keyed limiter on top of the bulk widget gate.

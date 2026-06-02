@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Actions\Handoff;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Domain\Chat\Events\ChatHandedOff;
 use Domain\Chat\Models\ChatConversation;
 

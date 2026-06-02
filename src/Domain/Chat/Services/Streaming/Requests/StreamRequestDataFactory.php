@@ -2,8 +2,8 @@
 
 namespace Domain\Chat\Services\Streaming\Requests;
 
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\Llm;
+use Domain\Agent\Models\Agent;
+use Domain\Llm\Models\Llm;
 use Domain\Chat\Services\Data\StreamRequestData;
 use Domain\Chat\Services\Data\StreamRequestMessageData;
 use Illuminate\Http\Request;

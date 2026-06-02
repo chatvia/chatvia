@@ -2,7 +2,7 @@
 
 namespace App\Billing\Models;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

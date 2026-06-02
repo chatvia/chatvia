@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware\Access;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Closure;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

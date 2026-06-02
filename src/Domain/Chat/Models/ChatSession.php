@@ -2,9 +2,9 @@
 
 namespace Domain\Chat\Models;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Country\Models\Country;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

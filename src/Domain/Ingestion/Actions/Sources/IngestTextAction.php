@@ -2,13 +2,13 @@
 
 namespace Domain\Ingestion\Actions\Sources;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Ingestion\Jobs\Text\TextChunkIngestionJob;
 use Domain\Ingestion\Services\TokenSplitter;
-use Domain\Sources\Text\Events\TextIngestionStarted;
-use Domain\Sources\Text\Models\SourceText;
+use Domain\Source\Text\Events\TextIngestionStarted;
+use Domain\Source\Text\Models\SourceText;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;

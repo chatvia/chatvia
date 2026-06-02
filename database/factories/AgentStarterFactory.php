@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentStarter;
+use Domain\Agent\Models\Agent;
+use Domain\Agent\Models\AgentStarter;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

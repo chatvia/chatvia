@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Domain\Billing\Actions\Subscriptions\SchedulePlanChangeAction;
 use Domain\Billing\Data\SchedulePlanChangeData;
 

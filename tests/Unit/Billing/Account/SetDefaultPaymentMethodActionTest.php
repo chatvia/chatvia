@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Domain\Billing\Actions\Account\SetDefaultPaymentMethodAction;
 
 it('is a silent no-op when the user has no billing row at all', function (): void {

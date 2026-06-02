@@ -1,7 +1,7 @@
 <?php
 
-use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
+use App\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Services\Tooling\Registry\ToolCallerIdentity;
 
 it('maps the agent and owner external ids to identity headers', function (): void {

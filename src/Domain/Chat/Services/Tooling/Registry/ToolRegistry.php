@@ -2,9 +2,9 @@
 
 namespace Domain\Chat\Services\Tooling\Registry;
 
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentFunction;
-use Domain\Agents\Models\McpTool;
+use Domain\Agent\Models\Agent;
+use Domain\Mcp\Models\McpTool;
+use Domain\Function\Models\AgentFunction;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -94,8 +94,8 @@ class ToolRegistry
                 $join->on('agent_mcp_server.mcp_server_id', '=', 'mcp_servers.id')
                     ->where('agent_mcp_server.agent_id', $agentId);
             })
-            ->where('mcp_servers.enabled', true)
-            ->where('mcp_tools.enabled', true)
+            ->where('mcp_servers.is_enabled', true)
+            ->where('mcp_tools.is_enabled', true)
             ->orderBy('mcp_servers.slug')
             ->orderBy('mcp_tools.name')
             ->get();
@@ -116,7 +116,7 @@ class ToolRegistry
 
     /**
      * Webhook functions: each function row IS one tool, so the same
-     * `functions.enabled` flag covers both server-level and tool-level
+     * `functions.is_enabled` flag covers both server-level and tool-level
      * enable. No second-tier opt-out table needed.
      *
      * @return array<int, ToolEntry>
@@ -128,7 +128,7 @@ class ToolRegistry
                 $join->on('agent_function.function_id', '=', 'functions.id')
                     ->where('agent_function.agent_id', $agentId);
             })
-            ->where('functions.enabled', true)
+            ->where('functions.is_enabled', true)
             ->orderBy('functions.name')
             ->get();
 

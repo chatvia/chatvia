@@ -93,7 +93,7 @@ const hasFormErrors = computed(() => {
                 success-message="Persona saved successfully"
                 :show-error-message="hasFormErrors"
                 error-message="Please fix errors below"
-                save-label="Save Changes"
+                save-label="Save"
                 :save-icon="Save"
                 form-id="persona-form"
             />

@@ -2,11 +2,11 @@
 
 namespace Domain\Ingestion\Jobs\Document;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Actions\Documents\EnhanceDocumentChunkAction;
 use Domain\Ingestion\Data\OCR\PageData;
 use Domain\Ingestion\Models\Chunk;
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Source\File\Models\SourceFile;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

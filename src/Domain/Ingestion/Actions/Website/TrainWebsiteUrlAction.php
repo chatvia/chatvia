@@ -2,18 +2,18 @@
 
 namespace Domain\Ingestion\Actions\Website;
 
-use App\Embeddings\Contracts\EmbeddingsProviderInterface;
+use App\Embedding\Contracts\EmbeddingsProviderInterface;
 use App\LLM\Operations\Documents\Chunker;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Jobs\Website\WebsiteUrlEnhanceJob;
 use Domain\Ingestion\Models\Chunk;
 use Domain\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Ingestion\Services\Tidy\HTMLCleaner;
 use Domain\Ingestion\Services\TikToken;
-use Domain\Sources\Web\Events\UrlIngestionStarted;
-use Domain\Sources\Web\Events\WebsiteIngestionProgressed;
-use Domain\Sources\Web\Models\AgentWebsiteUrl;
-use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Source\Web\Events\UrlIngestionStarted;
+use Domain\Source\Web\Events\WebsiteIngestionProgressed;
+use Domain\Source\Web\Models\AgentWebsiteUrl;
+use Domain\Source\Web\Models\SourceWebsite;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;

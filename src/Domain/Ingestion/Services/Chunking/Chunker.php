@@ -2,7 +2,7 @@
 
 namespace Domain\Ingestion\Services\Chunking;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Contracts\ChunkableContract;
 use Domain\Ingestion\Data\ChunkIngestionData;
 use Domain\Ingestion\Data\OCR\PageData;

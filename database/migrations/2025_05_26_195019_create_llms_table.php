@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Agents\Models\Llm;
+use Domain\Llm\Models\Llm;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;

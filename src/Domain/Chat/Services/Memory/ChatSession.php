@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Services\Memory;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Illuminate\Cache\Repository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;

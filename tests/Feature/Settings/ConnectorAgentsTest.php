@@ -1,7 +1,7 @@
 <?php
 
-use App\Auth\Models\User;
-use App\Teams\Services\TeamService;
+use App\Workspace\Models\User;
+use App\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();

@@ -4,8 +4,8 @@ namespace Domain\Ingestion\Services\Sources;
 
 use App\LLM\Operations\Documents\Chunker;
 use Domain\Ingestion\Services\Tidy\HTMLCleaner;
-use Domain\Sources\Web\Models\AgentWebsiteUrl;
-use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Source\Web\Models\AgentWebsiteUrl;
+use Domain\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;

@@ -53,7 +53,7 @@ import {
     Type,
     Zap,
 } from 'lucide-vue-next';
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 hljs.registerLanguage('javascript', javascript);
@@ -92,6 +92,13 @@ interface Props {
 
     embedScriptUrl: string;
     availableLanguages: Record<string, string>;
+
+    domain: {
+        value: string | null;
+        cname_target: string;
+        quota: { total: number; used: number; available: number };
+        has_quota: boolean;
+    };
 }
 
 const props = defineProps<Props>();
@@ -126,16 +133,36 @@ const surfaceTabs: { value: Surface; label: string; icon: typeof MessageSquare }
 ];
 
 // ── Left sidebar
-const activeTab = ref<'info' | 'persona' | 'starters' | 'model' | 'branding' | 'behavior' | 'embed'>('info');
-const menuItems = [
-    { value: 'info', label: 'Info', icon: Type },
-    { value: 'persona', label: 'Persona', icon: Bot },
-    { value: 'starters', label: 'Starters', icon: MessageSquare },
-    { value: 'model', label: 'Model', icon: Sparkles },
-    { value: 'branding', label: 'Branding', icon: ImageIcon },
-    { value: 'behavior', label: 'Behavior', icon: Settings },
-    { value: 'embed', label: 'Embed', icon: Code },
-] as const;
+type MenuValue = 'info' | 'persona' | 'starters' | 'model' | 'branding' | 'behavior' | 'embed' | 'domain';
+const activeTab = ref<MenuValue>('info');
+
+const menuItems = computed(() => {
+    const items: { value: MenuValue; label: string; icon: typeof MessageSquare }[] = [
+        { value: 'info', label: 'Info', icon: Type },
+        { value: 'persona', label: 'Persona', icon: Bot },
+        { value: 'starters', label: 'Starters', icon: MessageSquare },
+        { value: 'model', label: 'Model', icon: Sparkles },
+        { value: 'branding', label: 'Branding', icon: ImageIcon },
+        { value: 'behavior', label: 'Behavior', icon: Settings },
+        { value: 'embed', label: 'Embed', icon: Code },
+    ];
+
+    // Domain is a Hosted-Chat-only concern: the custom hostname points at
+    // the agent's hosted chat URL, so it doesn't apply to Widget/Bar.
+    if (previewSurface.value === 'hosted_chat') {
+        items.push({ value: 'domain', label: 'Domain', icon: Globe });
+    }
+
+    return items;
+});
+
+// If the user switches surfaces while the Domain tab is active, fall back
+// to Info so the page doesn't render a hidden tab.
+watch(previewSurface, (next) => {
+    if (next !== 'hosted_chat' && activeTab.value === 'domain') {
+        activeTab.value = 'info';
+    }
+});
 
 // ── Info (text fields) → appearance group
 const textForm = useForm({
@@ -213,6 +240,35 @@ const saveModel = () => {
         onError: () => toast.error('Could not save model'),
         onFinish: () => (isSavingModel.value = false),
     });
+};
+
+// ── Domain (Hosted Chat only) — custom hostname pointed at the agent via CNAME.
+const domainForm = useForm({
+    domain: props.domain.value ?? '',
+});
+const isSavingDomain = ref(false);
+const isCnameCopied = ref(false);
+const saveDomain = () => {
+    isSavingDomain.value = true;
+    domainForm.patch(route('agents.domain.update', { agent: props.agent.external_id }), {
+        preserveScroll: true,
+        onSuccess: () => toast.success(domainForm.domain ? 'Custom domain saved' : 'Custom domain removed'),
+        onError: () => toast.error(domainForm.errors.domain ?? 'Could not save domain'),
+        onFinish: () => (isSavingDomain.value = false),
+    });
+};
+const clearDomain = () => {
+    domainForm.domain = '';
+    saveDomain();
+};
+const copyCnameTarget = async () => {
+    try {
+        await navigator.clipboard.writeText(props.domain.cname_target);
+        isCnameCopied.value = true;
+        setTimeout(() => (isCnameCopied.value = false), 2000);
+    } catch {
+        toast.error('Could not copy to clipboard');
+    }
 };
 
 // ── Branding (colors + avatar + logo) → appearance group
@@ -652,7 +708,7 @@ const copyApiCode = async (code: string) => {
                                         <div v-if="!locked" class="border-t pt-4">
                                             <Button type="submit" :disabled="!canEdit || isSavingText" size="sm">
                                                 <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingText ? 'Saving...' : 'Save Changes' }}
+                                                {{ isSavingText ? 'Saving...' : 'Save' }}
                                             </Button>
                                         </div>
                                     </form>
@@ -675,7 +731,7 @@ const copyApiCode = async (code: string) => {
                                     <div v-if="!locked">
                                         <Button type="button" size="sm" :disabled="!canEdit || isSavingStarters" @click="saveStarters">
                                             <Save class="mr-2 h-4 w-4" />
-                                            {{ isSavingStarters ? 'Saving...' : 'Save starters' }}
+                                            {{ isSavingStarters ? 'Saving...' : 'Save' }}
                                         </Button>
                                     </div>
 
@@ -702,7 +758,7 @@ const copyApiCode = async (code: string) => {
                                         <div v-if="!locked">
                                             <Button type="button" size="sm" :disabled="!canEdit || isSavingBubbles" @click="saveBubbles">
                                                 <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingBubbles ? 'Saving...' : 'Save bubbles' }}
+                                                {{ isSavingBubbles ? 'Saving...' : 'Save' }}
                                             </Button>
                                         </div>
                                     </div>
@@ -722,7 +778,7 @@ const copyApiCode = async (code: string) => {
                                     <div v-if="!locked" class="border-t pt-4">
                                         <Button type="button" size="sm" :disabled="!canEdit || isSavingModel" @click="saveModel">
                                             <Save class="mr-2 h-4 w-4" />
-                                            {{ isSavingModel ? 'Saving...' : 'Save model' }}
+                                            {{ isSavingModel ? 'Saving...' : 'Save' }}
                                         </Button>
                                     </div>
                                 </div>
@@ -846,7 +902,7 @@ const copyApiCode = async (code: string) => {
                                                 @click="saveHostedBehavior"
                                             >
                                                 <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingHostedBehavior ? 'Saving...' : 'Save behaviour' }}
+                                                {{ isSavingHostedBehavior ? 'Saving...' : 'Save' }}
                                             </Button>
                                         </div>
                                     </template>
@@ -988,7 +1044,7 @@ const copyApiCode = async (code: string) => {
                                                 @click="saveWidgetBehavior"
                                             >
                                                 <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingWidgetBehavior ? 'Saving...' : 'Save behaviour' }}
+                                                {{ isSavingWidgetBehavior ? 'Saving...' : 'Save' }}
                                             </Button>
                                         </div>
                                     </template>
@@ -1040,7 +1096,7 @@ const copyApiCode = async (code: string) => {
                                         <div v-if="!locked" class="border-t pt-4">
                                             <Button type="button" size="sm" :disabled="!canEdit || isSavingBarBehavior" @click="saveBarBehavior">
                                                 <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingBarBehavior ? 'Saving...' : 'Save behaviour' }}
+                                                {{ isSavingBarBehavior ? 'Saving...' : 'Save' }}
                                             </Button>
                                         </div>
                                     </template>
@@ -1195,6 +1251,122 @@ const copyApiCode = async (code: string) => {
                                             JavaScript API Documentation
                                         </Button>
                                     </template>
+                                </div>
+
+                                <!-- Domain — Hosted Chat only. Gated by Custom Domain subscription / Pro plan quota. -->
+                                <div v-if="activeTab === 'domain'" class="space-y-6 p-6">
+                                    <div>
+                                        <h3 class="text-sm font-medium">Custom Domain</h3>
+                                        <p class="text-muted-foreground mt-1 text-xs">
+                                            Serve this agent's Hosted Chat from your own domain instead of
+                                            <code class="bg-muted rounded px-1 py-0.5 text-xs">{{ domain.cname_target }}</code>.
+                                        </p>
+                                    </div>
+
+                                    <!-- Subscription gate -->
+                                    <Alert v-if="!domain.has_quota" class="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+                                        <Globe class="h-4 w-4" />
+                                        <AlertTitle>Custom domains aren't included in your current plan</AlertTitle>
+                                        <AlertDescription>
+                                            Upgrade to Pro or subscribe to the Custom Domain add-on from
+                                            <Link :href="route('billing.index')" class="text-primary font-medium hover:underline">Billing</Link>
+                                            to add your own hostname.
+                                        </AlertDescription>
+                                    </Alert>
+
+                                    <!-- Quota counter -->
+                                    <div
+                                        v-else
+                                        class="bg-muted/40 flex items-center justify-between rounded-lg border p-3 text-sm"
+                                    >
+                                        <span class="text-muted-foreground">
+                                            Using <span class="text-foreground font-semibold">{{ domain.quota.used + (domain.value ? 1 : 0) }}</span>
+                                            of <span class="text-foreground font-semibold">{{ domain.quota.total }}</span> custom domain<span
+                                                v-if="domain.quota.total !== 1"
+                                                >s</span
+                                            >
+                                        </span>
+                                        <Link
+                                            v-if="domain.quota.available === 0 && !domain.value"
+                                            :href="route('billing.index')"
+                                            class="text-primary text-xs font-medium hover:underline"
+                                        >
+                                            Add more
+                                        </Link>
+                                    </div>
+
+                                    <!-- CNAME instructions -->
+                                    <div v-if="domain.has_quota" class="space-y-3">
+                                        <Label class="text-xs">Step 1 — Add a CNAME record at your DNS provider</Label>
+                                        <div class="bg-muted overflow-x-auto rounded-lg border p-4 font-mono text-xs">
+                                            <div class="grid grid-cols-[80px_1fr] gap-x-4 gap-y-1">
+                                                <span class="text-muted-foreground">Type</span><span class="font-semibold">CNAME</span>
+                                                <span class="text-muted-foreground">Name</span><span>your-subdomain</span>
+                                                <span class="text-muted-foreground">Value</span>
+                                                <span class="flex items-center gap-2">
+                                                    <code class="font-semibold">{{ domain.cname_target }}</code>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        class="h-6 gap-1 px-2"
+                                                        @click="copyCnameTarget"
+                                                    >
+                                                        <component :is="isCnameCopied ? Check : Copy" class="h-3 w-3" />
+                                                        {{ isCnameCopied ? 'Copied' : 'Copy' }}
+                                                    </Button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted-foreground text-xs">
+                                            DNS changes can take up to 24 hours to propagate. Once it resolves, your visitors will see this agent's
+                                            Hosted Chat on your domain.
+                                        </p>
+                                    </div>
+
+                                    <!-- Domain input -->
+                                    <div v-if="domain.has_quota" class="space-y-2">
+                                        <Label for="custom-domain" class="text-xs">Step 2 — Enter the domain you pointed at us</Label>
+                                        <div class="flex items-start gap-2">
+                                            <div class="flex-1">
+                                                <Input
+                                                    id="custom-domain"
+                                                    v-model="domainForm.domain"
+                                                    type="text"
+                                                    placeholder="chat.example.com"
+                                                    autocomplete="off"
+                                                    :disabled="locked || (domain.quota.available === 0 && !domain.value)"
+                                                />
+                                                <p v-if="domainForm.errors.domain" class="text-destructive mt-1 text-xs">
+                                                    {{ domainForm.errors.domain }}
+                                                </p>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                :disabled="!canEdit || isSavingDomain || domainForm.domain === (domain.value ?? '')"
+                                                @click="saveDomain"
+                                            >
+                                                <Save class="mr-2 h-4 w-4" />
+                                                {{ isSavingDomain ? 'Saving...' : 'Save' }}
+                                            </Button>
+                                            <Button
+                                                v-if="domain.value"
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                class="text-destructive"
+                                                :disabled="locked || isSavingDomain"
+                                                @click="clearDomain"
+                                            >
+                                                Remove
+                                            </Button>
+                                        </div>
+                                        <p class="text-muted-foreground text-xs">
+                                            Enter the full hostname without scheme — e.g.
+                                            <code class="bg-muted rounded px-1 py-0.5 text-xs">chat.example.com</code>.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Country\Models\Country;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Models\ChatSession;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

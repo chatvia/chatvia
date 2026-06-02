@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
-use Domain\Agents\Services\Agent;
+use Domain\Agent\Services\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;

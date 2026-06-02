@@ -2,7 +2,7 @@
 
 namespace App\Widget;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatSession;
 use Illuminate\Http\Request;

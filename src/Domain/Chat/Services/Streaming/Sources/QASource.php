@@ -6,7 +6,7 @@ use Domain\Chat\Services\ChatContext;
 use Domain\Chat\Services\ChatService;
 use Domain\Chat\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Chat\Services\Streaming\Sse\StreamEvent;
-use Domain\Sources\QA\Models\AgentQuestionAnswer;
+use Domain\Source\QA\Models\AgentQuestionAnswer;
 use Generator;
 use Throwable;
 

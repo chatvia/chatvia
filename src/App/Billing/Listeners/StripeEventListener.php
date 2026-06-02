@@ -2,10 +2,10 @@
 
 namespace App\Billing\Listeners;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Models\UserBilling;
 use Domain\Billing\Notifications\TrialWelcomeNotification;
-use App\Teams\Services\TeamService;
+use App\Team\Services\TeamService;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -57,6 +57,18 @@ class StripeEventListener
             $this->handleAddOns($data);
         }
 
+        // Handle addon-subscription checkouts (extra agents / custom domains)
+        if ($type === 'checkout.session.completed' && isset($data['metadata']['type']) && $data['metadata']['type'] === 'addon_subscription') {
+            $this->handleAddonSubscriptionCreated($data);
+        }
+
+        // Cashier already syncs the local `subscriptions` row on
+        // customer.subscription.deleted; here we just reset the user_quotas
+        // fields we own.
+        if ($type === 'customer.subscription.deleted') {
+            $this->handleAddonSubscriptionDeleted($data);
+        }
+
         // Log customer.subscription.updated events specifically
         if ($type === 'customer.subscription.updated') {
             Log::info('Subscription status updated via webhook', [
@@ -64,6 +76,8 @@ class StripeEventListener
                 'status' => $data['status'] ?? null,
                 'customer' => $data['customer'] ?? null,
             ]);
+
+            $this->handleAddonSubscriptionUpdated($data);
         }
     }
 
@@ -261,7 +275,7 @@ class StripeEventListener
             'pages_limit' => $fixedLimit['pages_limit'],
             'minutes_limit' => $fixedLimit['minutes_limit'],
             'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
-            'members_limit' => $fixedLimit['members_limit'],
+            'workspace_users_limit' => $fixedLimit['workspace_users_limit'],
             'links_limit' => $fixedLimit['links_limit'],
             'teams_limit' => $fixedLimit['teams_limit'],
         ]);
@@ -286,6 +300,10 @@ class StripeEventListener
 
         $id = $metadata['id'] ?? null;
 
+        // Auto-recharge addons are created synchronously by
+        // AutoRechargeCreditsAction (since it charges off-session and does
+        // not go through Checkout). Only handle the on-session Checkout flow
+        // here.
         if ($id === 'extra_message_credits') {
             $user->addons()->create([
                 'type' => $id,
@@ -299,5 +317,104 @@ class StripeEventListener
             $user->refresh();
             $user->creditSystem()->refreshCanSendMessages();
         }
+    }
+
+    /**
+     * checkout.session.completed for the `addon_subscription` family —
+     * extra agents and custom domains. Mirrors the subscription quantity
+     * onto `user_quotas` so the rest of the app can keep reading from one
+     * place.
+     */
+    private function handleAddonSubscriptionCreated(array $data): void
+    {
+        $metadata = $data['metadata'] ?? [];
+        $addon = $metadata['addon'] ?? null;
+        $quantity = (int) ($metadata['quantity'] ?? 1);
+
+        $user = UserBilling::query()->where('stripe_id', $data['customer'])->first()?->user;
+
+        if (! $user) {
+            return;
+        }
+
+        $column = match ($addon) {
+            'extra_agents' => 'extra_agents_limit',
+            'custom_domains' => 'extra_custom_domains_limit',
+            default => null,
+        };
+
+        if (! $column) {
+            return;
+        }
+
+        $user->quota()->updateOrCreate([], [$column => $quantity]);
+    }
+
+    /**
+     * customer.subscription.updated — keep quotas in sync when a user
+     * changes the quantity of an addon subscription from the Stripe portal
+     * or via the API.
+     */
+    private function handleAddonSubscriptionUpdated(array $data): void
+    {
+        $metadata = $data['metadata'] ?? [];
+
+        if (($metadata['type'] ?? null) !== 'addon_subscription') {
+            return;
+        }
+
+        $user = UserBilling::query()->where('stripe_id', $data['customer'])->first()?->user;
+
+        if (! $user) {
+            return;
+        }
+
+        $addon = $metadata['addon'] ?? null;
+        $quantity = (int) ($data['quantity'] ?? $metadata['quantity'] ?? 0);
+
+        $column = match ($addon) {
+            'extra_agents' => 'extra_agents_limit',
+            'custom_domains' => 'extra_custom_domains_limit',
+            default => null,
+        };
+
+        if (! $column) {
+            return;
+        }
+
+        $user->quota()->updateOrCreate([], [$column => $quantity]);
+    }
+
+    /**
+     * customer.subscription.deleted — reset the relevant quota column when
+     * an addon subscription is cancelled (immediately or at period end).
+     */
+    private function handleAddonSubscriptionDeleted(array $data): void
+    {
+        $metadata = $data['metadata'] ?? [];
+
+        if (($metadata['type'] ?? null) !== 'addon_subscription') {
+            return;
+        }
+
+        $user = UserBilling::query()->where('stripe_id', $data['customer'])->first()?->user;
+
+        if (! $user) {
+            return;
+        }
+
+        $addon = $metadata['addon'] ?? null;
+
+        $column = match ($addon) {
+            'extra_agents' => 'extra_agents_limit',
+            'custom_domains' => 'extra_custom_domains_limit',
+            default => null,
+        };
+
+        if (! $column) {
+            return;
+        }
+
+        $user->quota()->updateOrCreate([], [$column => 0]);
     }
 }

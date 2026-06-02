@@ -1,7 +1,7 @@
 <?php
 
-use App\Auth\Models\User;
-use Domain\Agents\Models\Agent;
+use App\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Gate;

@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 describe('Two-Factor Login', function (): void {

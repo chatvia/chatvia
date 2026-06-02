@@ -2,10 +2,10 @@
 
 namespace Domain\Ingestion\Jobs\Website;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Actions\Website\TrainWebsiteUrlAction;
-use Domain\Sources\Web\Events\UrlIngestionStarted;
-use Domain\Sources\Web\Models\AgentWebsiteUrl;
+use Domain\Source\Web\Events\UrlIngestionStarted;
+use Domain\Source\Web\Models\AgentWebsiteUrl;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;

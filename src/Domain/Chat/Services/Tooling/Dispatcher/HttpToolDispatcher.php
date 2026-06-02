@@ -2,8 +2,9 @@
 
 namespace Domain\Chat\Services\Tooling\Dispatcher;
 
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentFunction;
+use Domain\Agent\Models\Agent;
+use Domain\Chat\Services\Tooling\Registry\ToolCallerIdentity;
+use Domain\Function\Models\AgentFunction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;

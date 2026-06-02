@@ -15,7 +15,8 @@ import { toast } from 'vue-sonner';
 interface Props {
     agent: Domain.Agents.Data.Resources.AgentResourceData;
     team_collaboration?: boolean;
-    members_limit?: number;
+    workspace_users_limit?: number;
+    workspace_users_count?: number;
 }
 
 const props = defineProps<Props>();
@@ -40,21 +41,24 @@ const invitationForm = useForm({
 // Team members data
 const teamMembers = ref<any[]>([]);
 
-// Computed properties for team collaboration constraints
+// Workspace users = team members + chatters; they share one quota bucket.
+const workspaceUsersCount = computed(() => props.workspace_users_count ?? 0);
+const workspaceUsersLimit = computed(() => props.workspace_users_limit ?? 0);
+
 const canInviteMembers = computed(() => {
     return (
         props.team_collaboration &&
-        (props.members_limit === 0 || props.members_limit === undefined || teamMembers.value.length < (props.members_limit || 0))
+        (workspaceUsersLimit.value === 0 || workspaceUsersCount.value < workspaceUsersLimit.value)
     );
 });
 
 const hasReachedMemberLimit = computed(() => {
-    return (props.members_limit || 0) > 0 && teamMembers.value.length >= (props.members_limit || 0);
+    return workspaceUsersLimit.value > 0 && workspaceUsersCount.value >= workspaceUsersLimit.value;
 });
 
 const remainingMembers = computed(() => {
-    if (!props.members_limit || props.members_limit === 0) return 'Unlimited';
-    return Math.max(0, props.members_limit - teamMembers.value.length);
+    if (workspaceUsersLimit.value === 0) return 'Unlimited';
+    return Math.max(0, workspaceUsersLimit.value - workspaceUsersCount.value);
 });
 
 // Helper function to check if member has access to current agent
@@ -133,7 +137,7 @@ const openInviteDialog = () => {
         if (!props.team_collaboration) {
             toast.error('Team collaboration is not available on your current plan');
         } else if (hasReachedMemberLimit.value) {
-            toast.error(`You've reached your member limit of ${props.members_limit || 0} members`);
+            toast.error(`You've reached your workspace user limit of ${workspaceUsersLimit.value} (team members + chatters combined)`);
         }
         return;
     }
@@ -278,8 +282,9 @@ const cancelDelete = () => {
                         </CardTitle>
                         <CardDescription>
                             Manage team members and their agent access
-                            <span v-if="(members_limit || 0) > 0" class="text-muted-foreground mt-2 block">
-                                {{ teamMembers.length }} of {{ members_limit || 0 }} members used ({{ remainingMembers }} remaining)
+                            <span v-if="workspaceUsersLimit > 0" class="text-muted-foreground mt-2 block">
+                                {{ workspaceUsersCount }} of {{ workspaceUsersLimit }} workspace users (team members + chatters combined,
+                                {{ remainingMembers }} remaining)
                             </span>
                         </CardDescription>
                     </CardHeader>
@@ -317,11 +322,11 @@ const cancelDelete = () => {
                                         <Users class="h-5 w-5 text-orange-600 dark:text-orange-400" />
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-medium text-orange-800 dark:text-orange-200">Member Limit Reached</h3>
+                                        <h3 class="text-sm font-medium text-orange-800 dark:text-orange-200">Workspace User Limit Reached</h3>
                                         <p class="mt-1 text-sm text-orange-700 dark:text-orange-300">
-                                            You've reached your member limit of {{ members_limit || 0 }} members.
+                                            You've reached your workspace user limit of {{ workspaceUsersLimit }} (team members + chatters combined).
                                             <a href="/billing/plans" class="font-medium underline hover:no-underline"> Upgrade your plan </a>
-                                            to add more team members.
+                                            to add more.
                                         </p>
                                     </div>
                                 </div>
@@ -357,7 +362,7 @@ const cancelDelete = () => {
                                         !team_collaboration
                                             ? 'Team collaboration is not available on your current plan'
                                             : hasReachedMemberLimit
-                                              ? `You've reached your member limit of ${members_limit || 0} members`
+                                              ? `You've reached your workspace user limit of ${workspaceUsersLimit} (team members + chatters combined)`
                                               : ''
                                     "
                                 >
@@ -483,8 +488,8 @@ const cancelDelete = () => {
                     <DialogTitle>Invite a Member</DialogTitle>
                     <DialogDescription>
                         Send an invitation to collaborate on this agent.
-                        <span v-if="members_limit && members_limit > 0" class="text-muted-foreground mt-1 block text-sm">
-                            {{ teamMembers.length }} of {{ members_limit }} members used ({{ remainingMembers }} remaining)
+                        <span v-if="workspaceUsersLimit > 0" class="text-muted-foreground mt-1 block text-sm">
+                            {{ workspaceUsersCount }} of {{ workspaceUsersLimit }} workspace users used ({{ remainingMembers }} remaining)
                         </span>
                     </DialogDescription>
                 </DialogHeader>

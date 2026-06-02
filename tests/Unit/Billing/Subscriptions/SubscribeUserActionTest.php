@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Domain\Billing\Actions\Subscriptions\SubscribeUserAction;
 use Domain\Billing\Data\SubscribeData;
 

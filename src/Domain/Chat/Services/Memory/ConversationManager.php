@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Services\Memory;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\LLM\Operations\Query\TitleGenerator;
 use Domain\Chat\Data\Memory\ConversationData;
 use Domain\Chat\Enums\ConversationSource;

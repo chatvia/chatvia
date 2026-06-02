@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Data\Conversations;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Spatie\LaravelData\Data;
 
 class CreateConversationData extends Data

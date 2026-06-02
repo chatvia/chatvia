@@ -2,13 +2,13 @@
 
 namespace Domain\Ingestion\Actions\Website;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
-use Domain\Sources\Web\Events\WebsiteCrawlStarted;
-use Domain\Sources\Web\Events\WebsiteIngestionProgressed;
-use Domain\Sources\Web\Models\AgentWebsiteUrl;
-use Domain\Sources\Web\Models\SourceWebsite;
+use Domain\Source\Web\Events\WebsiteCrawlStarted;
+use Domain\Source\Web\Events\WebsiteIngestionProgressed;
+use Domain\Source\Web\Models\AgentWebsiteUrl;
+use Domain\Source\Web\Models\SourceWebsite;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;

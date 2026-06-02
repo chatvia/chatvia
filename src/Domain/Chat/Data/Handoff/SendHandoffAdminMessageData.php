@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Data\Handoff;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use Domain\Chat\Models\ChatConversation;
 use Spatie\LaravelData\Data;
 

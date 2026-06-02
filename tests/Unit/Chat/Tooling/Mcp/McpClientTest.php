@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Chat\Tooling\Mcp;
 
-use Domain\Agents\Models\AgentMcpServer;
-use Domain\Chat\Services\Tooling\Mcp\McpClient;
-use Domain\Chat\Services\Tooling\Mcp\McpException;
+use Domain\Mcp\Models\AgentMcpServer;
+use Domain\Mcp\Services\McpClient;
+use Domain\Mcp\Services\McpException;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 

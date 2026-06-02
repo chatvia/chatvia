@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Tickets;
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Helpdesk\Models\Ticket;
 use Domain\Helpdesk\Data\ReplyToTicketData;
 use Illuminate\Foundation\Http\FormRequest;

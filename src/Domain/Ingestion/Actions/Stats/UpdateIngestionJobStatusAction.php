@@ -2,7 +2,7 @@
 
 namespace Domain\Ingestion\Actions\Stats;
 
-use Domain\Sources\Files\Models\SourceFile;
+use Domain\Source\File\Models\SourceFile;
 
 class UpdateIngestionJobStatusAction
 {

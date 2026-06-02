@@ -1,20 +1,20 @@
 <?php
 
-use App\Http\Controllers\Api\V1\Agents\AgentController;
-use App\Http\Controllers\Api\V1\Agents\AgentFunctionAttachmentController;
-use App\Http\Controllers\Api\V1\Agents\AgentMcpAttachmentController;
-use App\Http\Controllers\Api\V1\Agents\AgentSettingsController;
-use App\Http\Controllers\Api\V1\Agents\AgentSignInLinkController;
+use App\Http\Controllers\Api\V1\Agent\AgentController;
+use App\Http\Controllers\Api\V1\Agent\AgentFunctionAttachmentController;
+use App\Http\Controllers\Api\V1\Agent\AgentMcpAttachmentController;
+use App\Http\Controllers\Api\V1\Agent\AgentSettingsController;
+use App\Http\Controllers\Api\V1\Agent\AgentSignInLinkController;
 use App\Http\Controllers\Api\V1\Chat\ChatConversationController;
-use App\Http\Controllers\Api\V1\Functions\FunctionController;
-use App\Http\Controllers\Api\V1\Mcps\McpServerController;
-use App\Http\Controllers\Api\V1\Sources\SourceFileController;
-use App\Http\Controllers\Api\V1\Sources\SourceListController;
-use App\Http\Controllers\Api\V1\Sources\SourceTextController;
-use App\Http\Controllers\Api\V1\Sources\SourceUrlController;
-use App\Http\Controllers\Api\V1\Teams\RoleController;
-use App\Http\Controllers\Api\V1\Teams\RoleMemberController;
-use App\Http\Controllers\Api\V1\Teams\TeamController;
+use App\Http\Controllers\Api\V1\Function\FunctionController;
+use App\Http\Controllers\Api\V1\Mcp\McpServerController;
+use App\Http\Controllers\Api\V1\Source\SourceFileController;
+use App\Http\Controllers\Api\V1\Source\SourceListController;
+use App\Http\Controllers\Api\V1\Source\SourceTextController;
+use App\Http\Controllers\Api\V1\Source\SourceUrlController;
+use App\Http\Controllers\Api\V1\Team\RoleController;
+use App\Http\Controllers\Api\V1\Team\RoleMemberController;
+use App\Http\Controllers\Api\V1\Team\TeamController;
 use App\Http\Controllers\Api\V1\Users\ExternalUserController;
 use App\Http\Controllers\Webhooks\WebhookChunkController;
 use Illuminate\Support\Facades\Route;

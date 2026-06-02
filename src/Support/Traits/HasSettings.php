@@ -2,7 +2,7 @@
 
 namespace Support\Traits;
 
-use Domain\Agents\Models\ModelSetting;
+use Domain\Agent\Models\ModelSetting;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;

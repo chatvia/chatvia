@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\Agents\Invitations\AcceptAgentInvitationController;
-use App\Http\Controllers\Agents\Invitations\AgentInvitationController;
-use App\Http\Controllers\Agents\Invitations\AgentInvitationSocialCallbackController;
-use App\Http\Controllers\Agents\Invitations\AgentInvitationSocialStartController;
+use App\Http\Controllers\Agent\Invitations\AcceptAgentInvitationController;
+use App\Http\Controllers\Agent\Invitations\AgentInvitationController;
+use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialCallbackController;
+use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialStartController;
 use App\Http\Controllers\Auth\Sessions\MagicLinkController;
-use App\Http\Controllers\Teams\Invitations\AcceptTeamInvitationController;
-use App\Http\Controllers\Teams\Invitations\TeamInvitationController;
+use App\Http\Controllers\Team\Invitations\AcceptTeamInvitationController;
+use App\Http\Controllers\Team\Invitations\TeamInvitationController;
 use Illuminate\Support\Facades\Route;
 
 // Team invitation routes (accessible via signed URL)
@@ -18,7 +18,7 @@ Route::post('invitation/{invitation}/accept', AcceptTeamInvitationController::cl
     ->name('teams.invitation.accept');
 
 // Agent member invitations. The `{token}` segment is a high-entropy random
-// string stored on `chatter_invitations` and looked up at the controller — it
+// string stored on `agent_member_invitations` and looked up at the controller — it
 // replaces Laravel's signed-URL approach. The row is deleted on accept, so
 // the link is single-use. Expiry is checked in the controller.
 Route::get('chat-invitation/{token}', AgentInvitationController::class)

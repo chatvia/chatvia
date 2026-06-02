@@ -2,15 +2,15 @@
 
 namespace App\Providers;
 
-use App\Auth\Listeners\RecordKnownDeviceListener;
-use App\Auth\Models\User;
-use App\Auth\Observers\UserObserver;
+use App\Workspace\Listeners\RecordKnownDeviceListener;
+use App\Workspace\Models\User;
+use App\Workspace\Observers\UserObserver;
 use App\Billing\Models\UserBilling;
 use App\Documents\Contracts\DocumentOCRInterface;
-use App\Embeddings\Cohere;
-use App\Embeddings\Contracts\EmbeddingsProviderInterface;
-use App\Embeddings\Jina;
-use App\Embeddings\Qwen3;
+use App\Embedding\Cohere;
+use App\Embedding\Contracts\EmbeddingsProviderInterface;
+use App\Embedding\Jina;
+use App\Embedding\Qwen3;
 use App\LLM\Contracts\LLMProviderInterface;
 use App\LLM\Groq;
 use App\LLM\Mistral;
@@ -18,24 +18,27 @@ use App\LLM\OpenRouter;
 use App\LLM\Scaleway;
 use App\Marketing\Models\Post;
 use App\Marketing\Observers\PostObserver;
-use App\Teams\Services\TeamService;
+use App\Team\Services\TeamService;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
-use Domain\Agents\Models\Agent;
-use Domain\Agents\Models\AgentFunction;
-use Domain\Agents\Models\AgentMcpServer;
-use Domain\Agents\Models\ModelSetting;
-use Domain\Agents\Observers\AgentFunctionObserver;
-use Domain\Agents\Observers\AgentMcpServerObserver;
-use Domain\Agents\Observers\AgentObserver;
-use Domain\Agents\Observers\ModelSettingObserver;
-use Domain\Agents\Events\AgentMemberInvited;
-use Domain\Agents\Listeners\SendChatterInvitationEmail;
+use Domain\Agent\Models\Agent;
+use Domain\Mcp\Models\AgentMcpServer;
+use Domain\Agent\Models\ModelSetting;
+use Domain\Mcp\Observers\AgentMcpServerObserver;
+use Domain\Agent\Observers\AgentObserver;
+use Domain\Agent\Observers\ModelSettingObserver;
+use Domain\Function\Models\AgentFunction;
+use Domain\Function\Observers\AgentFunctionObserver;
+use Domain\Agent\Services\Agent as AgentService;
+use Domain\Billing\Events\MessageCreditsLow;
+use Domain\Billing\Listeners\TriggerAutoRecharge;
+use Domain\Member\Events\AgentMemberInvited;
+use Domain\Member\Listeners\SendAgentMemberInvitationEmail;
 use Domain\Analytics\Listeners\RecordAnalyticsListener;
-use App\Auth\Events\MagicLinkRequested;
-use App\Auth\Listeners\SendMagicLinkEmail;
-use App\Auth\Services\PasswordAuthenticator;
+use App\Workspace\Events\MagicLinkRequested;
+use App\Workspace\Listeners\SendMagicLinkEmail;
+use App\Workspace\Services\PasswordAuthenticator;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatSession;
@@ -45,15 +48,15 @@ use Domain\Chat\Observers\ChatSessionObserver;
 use Domain\Chat\Services\Tooling\Dispatcher\RoutingToolDispatcher;
 use Domain\Chat\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Ingestion\Services\Clients\MistralOCR;
-use Domain\Sources\Files\Models\SourceFile;
-use Domain\Sources\Files\Observers\SourceFileObserver;
-use Domain\Sources\Text\Models\SourceText;
-use Domain\Sources\Text\Observers\AgentTextObserver;
-use Domain\Sources\Web\Models\AgentWebsiteUrl;
-use Domain\Sources\Web\Models\SourceWebsite;
-use Domain\Sources\Web\Observers\AgentWebsiteObserver;
-use Domain\Sources\Youtube\Models\SourceYoutubeVideo;
-use Domain\Sources\Youtube\Observers\SourceYoutubeVideoObserver;
+use Domain\Source\File\Models\SourceFile;
+use Domain\Source\File\Observers\SourceFileObserver;
+use Domain\Source\Text\Models\SourceText;
+use Domain\Source\Text\Observers\AgentTextObserver;
+use Domain\Source\Web\Models\AgentWebsiteUrl;
+use Domain\Source\Web\Models\SourceWebsite;
+use Domain\Source\Web\Observers\AgentWebsiteObserver;
+use Domain\Source\Youtube\Models\SourceYoutubeVideo;
+use Domain\Source\Youtube\Observers\SourceYoutubeVideoObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -112,7 +115,7 @@ class AppServiceProvider extends ServiceProvider
             return match ($provider) {
                 'jina' => $app->make(Jina::class),
                 'qwen' => $app->make(Qwen3::class),
-                'mistral' => $app->make(\App\Embeddings\Mistral::class),
+                'mistral' => $app->make(\App\Embedding\Mistral::class),
                 default => $app->make(Cohere::class),
             };
         });
@@ -153,6 +156,26 @@ class AppServiceProvider extends ServiceProvider
 
             if (is_string($agent) && $agent !== '') {
                 return $agent;
+            }
+
+            // Custom domain: if the request host isn't ours, try the
+            // `agents.domain` mapping. AgentService validates the owner
+            // still has Custom Domain quota — cancelled subscriptions or
+            // downgraded plans stop serving once the host cache expires.
+            $host = $this->getHost();
+            $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+
+            $isOurHost = $host === $appHost
+                || ($appHost && str_ends_with($host, '.'.$appHost))
+                || str_ends_with($host, '.localhost')
+                || $host === 'localhost';
+
+            if (! $isOurHost) {
+                $resolved = AgentService::resolveByHost($host);
+
+                if ($resolved !== null) {
+                    return $resolved;
+                }
             }
 
             $sub = $this->subdomain();
@@ -207,9 +230,9 @@ class AppServiceProvider extends ServiceProvider
         // Policies travel with their models — replace `\Models\` with
         // `\Policies\` in the FQCN to find the corresponding policy.
         // Examples:
-        //   Domain\Agents\Models\Agent              → Domain\Agents\Policies\AgentPolicy
-        //   Domain\Sources\Files\Models\SourceFile  → Domain\Sources\Files\Policies\SourceFilePolicy
-        //   App\Teams\Models\Team                   → App\Teams\Policies\TeamPolicy
+        //   Domain\Agent\Models\Agent              → Domain\Agent\Policies\AgentPolicy
+        //   Domain\Source\File\Models\SourceFile  → Domain\Source\File\Policies\SourceFilePolicy
+        //   App\Team\Models\Team                   → App\Team\Policies\TeamPolicy
         Gate::guessPolicyNamesUsing(function (string $modelClass): ?string {
             if (! str_contains($modelClass, '\\Models\\')) {
                 return null;
@@ -233,23 +256,30 @@ class AppServiceProvider extends ServiceProvider
         Factory::guessModelNamesUsing(function ($factory) {
             $base = preg_replace('/Factory$/', '', class_basename($factory));
             $candidates = [
-                "App\\Auth\\Models\\$base",
+                "App\\Workspace\\Models\\$base",
                 "App\\Billing\\Models\\$base",
-                "App\\Teams\\Models\\$base",
+                "App\\Team\\Models\\$base",
                 "App\\Marketing\\Models\\$base",
                 "App\\Helpdesk\\Models\\$base",
                 "App\\Changelog\\Models\\$base",
                 "App\\Country\\Models\\$base",
                 "App\\Language\\Models\\$base",
-                "Domain\\Agents\\Models\\$base",
+                "Domain\\Agent\\Models\\$base",
                 "Domain\\Chat\\Models\\$base",
-                "Domain\\Connectors\\Models\\$base",
+                "Domain\\Connector\\Models\\$base",
+                "Domain\\Function\\Models\\$base",
                 "Domain\\Ingestion\\Models\\$base",
-                "Domain\\Sources\\Files\\Models\\$base",
-                "Domain\\Sources\\Text\\Models\\$base",
-                "Domain\\Sources\\Web\\Models\\$base",
-                "Domain\\Sources\\QA\\Models\\$base",
-                "Domain\\Sources\\Youtube\\Models\\$base",
+                "Domain\\Lead\\Models\\$base",
+                "Domain\\Llm\\Models\\$base",
+                "Domain\\Mcp\\Models\\$base",
+                "Domain\\Member\\Models\\$base",
+                "Domain\\Prompt\\Models\\$base",
+                "Domain\\Topic\\Models\\$base",
+                "Domain\\Source\\File\\Models\\$base",
+                "Domain\\Source\\Text\\Models\\$base",
+                "Domain\\Source\\Web\\Models\\$base",
+                "Domain\\Source\\QA\\Models\\$base",
+                "Domain\\Source\\Youtube\\Models\\$base",
             ];
             foreach ($candidates as $fqcn) {
                 if (class_exists($fqcn)) {
@@ -309,8 +339,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(\Illuminate\Auth\Events\Login::class, RecordKnownDeviceListener::class);
-        Event::listen(AgentMemberInvited::class, SendChatterInvitationEmail::class);
+        Event::listen(AgentMemberInvited::class, SendAgentMemberInvitationEmail::class);
         Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
+        Event::listen(MessageCreditsLow::class, TriggerAutoRecharge::class);
 
         Event::subscribe(RecordAnalyticsListener::class);
 

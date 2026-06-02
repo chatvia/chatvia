@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use Domain\Agents\Models\Llm;
+use Domain\Llm\Models\Llm;
 use Domain\Chat\Models\ChatConversation;
 use Domain\Chat\Models\ChatMessage;
 use Illuminate\Database\Eloquent\Factories\Factory;

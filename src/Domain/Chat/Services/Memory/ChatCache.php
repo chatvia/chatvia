@@ -2,7 +2,7 @@
 
 namespace Domain\Chat\Services\Memory;
 
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Illuminate\Cache\TaggedCache;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;

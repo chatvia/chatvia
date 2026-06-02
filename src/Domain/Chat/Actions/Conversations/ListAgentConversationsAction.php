@@ -3,7 +3,7 @@
 namespace Domain\Chat\Actions\Conversations;
 
 use App\Http\Resources\Api\V1\Conversations\ChatConversationSummaryData;
-use Domain\Agents\Models\Agent;
+use Domain\Agent\Models\Agent;
 use Domain\Chat\Models\ChatConversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 

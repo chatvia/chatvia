@@ -1,14 +1,14 @@
 <?php
 
-use App\Auth\Models\User;
-use App\Teams\Models\Role;
-use App\Teams\Services\TeamService;
-use Domain\Agents\Models\Agent;
-use App\Auth\Actions\Chatters\CreateChatterAction;
-use Domain\Teams\Actions\Team\CreateTeamAction;
-use Domain\Teams\Actions\Roles\CreateTeamRoleAction;
-use Domain\Teams\Data\CreateTeamData;
-use Domain\Teams\Data\SaveTeamRoleData;
+use App\Workspace\Models\User;
+use App\Team\Models\Role;
+use App\Team\Services\TeamService;
+use Domain\Agent\Models\Agent;
+use App\Chatter\Actions\CreateChatterAction;
+use Domain\Team\Actions\Team\CreateTeamAction;
+use Domain\Team\Actions\Roles\CreateTeamRoleAction;
+use Domain\Team\Data\CreateTeamData;
+use Domain\Team\Data\SaveTeamRoleData;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {

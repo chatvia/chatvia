@@ -1,6 +1,6 @@
 <?php
 
-use App\Auth\Models\User;
+use App\Workspace\Models\User;
 use App\Billing\Models\UserBilling;
 use Domain\Billing\Actions\Account\UpdateBillingInformationAction;
 use Domain\Billing\Data\BillingAddressData;

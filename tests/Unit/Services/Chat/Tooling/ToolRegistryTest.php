@@ -3,8 +3,8 @@
 namespace Tests\Unit\Services\Chat\Tooling;
 
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Services\Tooling\Registry\ToolEntry;
-use Domain\Chat\Services\Tooling\Registry\ToolRegistry;
+use Domain\Conversation\Services\Tooling\Registry\ToolEntry;
+use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 

@@ -1,8 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {
@@ -65,7 +65,6 @@ it('swaps an agent between a library prompt and a custom prompt on update', func
         'user_id' => $this->user->id,
         'team_id' => $this->user->primaryTeam()->id,
         'name' => 'Bot',
-        'type' => 'knowledge_base',
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'system_instructions' => 'Original custom',

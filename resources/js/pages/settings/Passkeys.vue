@@ -91,16 +91,12 @@ const confirmDelete = async () => {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Delete this passkey?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        <span class="font-medium">{{ passkeyToDelete?.name }}</span> will no longer be able to sign in.
-                        This can't be undone.
+                        <span class="font-medium">{{ passkeyToDelete?.name }}</span> will no longer be able to sign in. This can't be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                        class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        @click="confirmDelete"
-                    >
+                    <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmDelete">
                         Delete
                     </AlertDialogAction>
                 </AlertDialogFooter>
@@ -127,12 +123,7 @@ const confirmDelete = async () => {
                 <form @submit.prevent="registerPasskey" class="space-y-3">
                     <div class="space-y-2">
                         <Label for="passkey-name">Name this passkey</Label>
-                        <Input
-                            id="passkey-name"
-                            v-model="passkeyName"
-                            placeholder="MacBook Pro, iPhone, YubiKey…"
-                            class="max-w-md"
-                        />
+                        <Input id="passkey-name" v-model="passkeyName" placeholder="MacBook Pro, iPhone, YubiKey…" class="max-w-md" />
                         <p v-if="passkeyError" class="text-destructive text-sm">{{ passkeyError }}</p>
                     </div>
                     <Button type="submit" :disabled="registeringPasskey">
@@ -146,11 +137,7 @@ const confirmDelete = async () => {
 
                 <!-- List -->
                 <div v-if="props.passkeys.length" class="space-y-3">
-                    <div
-                        v-for="passkey in props.passkeys"
-                        :key="passkey.id"
-                        class="flex items-center justify-between gap-4 rounded-lg border p-4"
-                    >
+                    <div v-for="passkey in props.passkeys" :key="passkey.id" class="flex items-center justify-between gap-4 rounded-lg border p-4">
                         <div class="flex items-center gap-3">
                             <Fingerprint class="text-muted-foreground size-5" />
                             <div>

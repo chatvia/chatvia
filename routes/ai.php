@@ -1,9 +1,10 @@
 <?php
 
-use App\Mcp\Servers\ChartsServer;
-use App\Mcp\Servers\CurrencyConverterServer;
-use App\Mcp\Servers\LeadsServer;
-use App\Mcp\Servers\WeatherServer;
+use Domain\Integration\Mcp\Services\Servers\ChartsServer;
+use Domain\Integration\Mcp\Services\Servers\CurrencyConverterServer;
+use Domain\Integration\Mcp\Services\Servers\LeadsServer;
+use Domain\Integration\Mcp\Services\Servers\WeatherServer;
+use Domain\Integration\Mcp\Services\Servers\WebSearchServer;
 use Laravel\Mcp\Facades\Mcp;
 
 /**
@@ -17,3 +18,4 @@ Mcp::web('/mcp/weather', WeatherServer::class);
 Mcp::web('/mcp/currency', CurrencyConverterServer::class);
 Mcp::web('/mcp/charts', ChartsServer::class);
 Mcp::web('/mcp/leads', LeadsServer::class);
+Mcp::web('/mcp/web-search', WebSearchServer::class);

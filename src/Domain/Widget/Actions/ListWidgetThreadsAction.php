@@ -3,8 +3,8 @@
 namespace Domain\Widget\Actions;
 
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Enums\ConversationSource;
-use Domain\Chat\Services\Memory\ChatMemory;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Data\Thread\WidgetThreadsResultData;
 
 /**

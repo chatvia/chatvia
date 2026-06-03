@@ -13,8 +13,9 @@ use App\Http\Controllers\Widget\Handoff\HandoffStatusController;
 use App\Http\Controllers\Widget\Sessions\SessionInitController;
 use App\Http\Controllers\Widget\Settings\WidgetSettingsController;
 use App\Http\Controllers\Widget\Stream\StreamController;
-use App\Http\Controllers\Widget\Threads\ThreadMessageController;
+use App\Http\Controllers\Widget\Threads\ThreadAttachmentController;
 use App\Http\Controllers\Widget\Threads\ThreadController;
+use App\Http\Controllers\Widget\Threads\ThreadMessageController;
 use App\Http\Controllers\Widget\Threads\ThreadsDeleteController;
 use App\Http\Controllers\Widget\Threads\ThreadsStoreController;
 use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
@@ -48,6 +49,12 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
 
         Route::post('/threads/messages', ThreadMessageController::class)->name('widget.threads.messages.store');
         Route::get('/threads/messages', ThreadMessageController::class)->name('widget.threads.messages');
+
+        // Visitor uploads (PDFs for now). Returns a public URL the LLM-side
+        // tools (PDF Reader, etc.) can fetch.
+        Route::post('/threads/attachments', ThreadAttachmentController::class)
+            ->middleware('throttle:widget-stream')
+            ->name('widget.threads.attachments.store');
 
         // Stream is the LLM-cost endpoint — separate, tighter, session-
         // keyed limiter on top of the bulk widget gate.

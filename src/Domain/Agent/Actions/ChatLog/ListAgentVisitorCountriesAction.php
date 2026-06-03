@@ -2,12 +2,12 @@
 
 namespace Domain\Agent\Actions\ChatLog;
 
-use App\Country\Models\Country;
 use Domain\Agent\Data\Resources\ChatLog\Countries\ChatLogCountriesResourceData;
 use Domain\Agent\Data\Resources\ChatLog\Countries\ChatLogCountryData;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatSession;
+use Domain\Conversation\Models\Session;
 use Spatie\LaravelData\DataCollection;
+use Support\Localization\Country\Models\Country;
 
 /**
  * Collect the distinct visitor countries that have appeared in the agent's
@@ -17,7 +17,7 @@ class ListAgentVisitorCountriesAction
 {
     public function execute(Agent $agent): ChatLogCountriesResourceData
     {
-        $countryIds = ChatSession::query()
+        $countryIds = Session::query()
             ->where('agent_id', $agent->id)
             ->whereNotNull('country_id')
             ->distinct()

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Settings\Connector;
 
-use App\Workspace\Models\User;
-use Domain\Connector\Data\Custom\AddCustomConnectorData;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Data\Custom\AddCustomConnectorData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AddCustomConnectorRequest extends FormRequest

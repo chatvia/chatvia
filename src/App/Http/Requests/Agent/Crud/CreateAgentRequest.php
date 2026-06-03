@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Agent\Crud;
 
-use App\Workspace\Models\User;
-use App\Team\Models\Team;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\CreateAgentData;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 

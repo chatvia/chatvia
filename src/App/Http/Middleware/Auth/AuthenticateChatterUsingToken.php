@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware\Auth;
 
-use App\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

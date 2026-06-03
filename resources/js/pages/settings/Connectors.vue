@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -45,9 +46,11 @@ function matches(row: ConnectorRow): boolean {
     return name.includes(q) || description.includes(q);
 }
 
-const filteredFeatured = computed(() => featured.value.filter(matches));
+const filteredFeatured = computed(() => featured.value.filter((r) => r.connector?.provider !== 'chatvia').filter(matches));
+const filteredChatvia = computed(() => featured.value.filter((r) => r.connector?.provider === 'chatvia').filter(matches));
 const filteredCustom = computed(() => custom.value.filter(matches));
 const totalCount = computed(() => featured.value.length + custom.value.length);
+const activeTab = ref<'featured' | 'chatvia'>('featured');
 
 async function fetchAll(): Promise<void> {
     loading.value = true;
@@ -225,60 +228,140 @@ onMounted(() => {
                         </div>
                     </section>
 
-                    <section v-if="filteredFeatured.length > 0">
-                        <h2 class="mb-3 text-base font-semibold">Featured connectors</h2>
-                        <div class="rounded-lg border">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead class="h-11 pl-5">Connector name</TableHead>
-                                        <TableHead class="h-11 w-32">Tools</TableHead>
-                                        <TableHead class="h-11 w-32">Agents</TableHead>
-                                        <TableHead class="h-11 w-40 pr-5 text-right">Enabled</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow
-                                        v-for="row in filteredFeatured"
-                                        :key="row.connector!.slug"
-                                        :class="isRowActionable(row) ? 'hover:bg-muted/40 cursor-pointer' : 'cursor-default'"
-                                        @click="openRow(row)"
-                                    >
-                                        <TableCell class="py-4 pl-5">
-                                            <div class="flex items-center gap-4">
-                                                <div
-                                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
-                                                    :style="{ backgroundColor: '#' + row.connector!.brandColor + '15' }"
+                    <Tabs v-model="activeTab">
+                        <TabsList class="grid w-full max-w-md grid-cols-2">
+                            <TabsTrigger value="featured">
+                                Featured connectors
+                                <span class="text-muted-foreground ml-1 text-xs">({{ filteredFeatured.length }})</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="chatvia">
+                                Chatvia connectors
+                                <span class="text-muted-foreground ml-1 text-xs">({{ filteredChatvia.length }})</span>
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="featured" class="mt-4">
+                            <div v-if="filteredFeatured.length === 0" class="text-muted-foreground py-12 text-center text-sm">
+                                No featured connectors match.
+                            </div>
+                            <div v-else class="rounded-lg border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead class="h-11 pl-5">Connector name</TableHead>
+                                            <TableHead class="h-11 w-32">Tools</TableHead>
+                                            <TableHead class="h-11 w-32">Agents</TableHead>
+                                            <TableHead class="h-11 w-40 pr-5 text-right">Enabled</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <TableRow
+                                            v-for="row in filteredFeatured"
+                                            :key="row.connector!.slug"
+                                            :class="isRowActionable(row) ? 'hover:bg-muted/40 cursor-pointer' : 'cursor-default'"
+                                            @click="openRow(row)"
+                                        >
+                                            <TableCell class="py-4 pl-5">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
+                                                        :style="{ backgroundColor: '#' + row.connector!.brandColor + '15' }"
+                                                    >
+                                                        <img :src="logoUrl(row.connector)!" :alt="row.connector!.name" class="h-5 w-5" />
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <p class="leading-tight font-medium">{{ row.connector!.name }}</p>
+                                                        <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
+                                                            {{ row.connector!.description }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell class="py-4 text-sm">{{ row.server?.catalog_tools_count ?? '—' }}</TableCell>
+                                            <TableCell class="py-4 text-sm">{{ row.server?.agents_count ?? '—' }}</TableCell>
+                                            <TableCell class="py-4 pr-5 text-right" @click.stop>
+                                                <Switch
+                                                    v-if="row.server"
+                                                    :model-value="row.server.is_enabled"
+                                                    @update:model-value="quickToggle(row)"
+                                                />
+                                                <Button
+                                                    v-else-if="!row.connector!.comingSoon"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    @click="startConnect(row.connector!)"
                                                 >
-                                                    <img :src="logoUrl(row.connector)!" :alt="row.connector!.name" class="h-5 w-5" />
+                                                    Connect
+                                                </Button>
+                                                <Badge v-else variant="outline">Soon</Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="chatvia" class="mt-4">
+                            <div v-if="filteredChatvia.length === 0" class="text-muted-foreground py-12 text-center text-sm">
+                                No Chatvia connectors match.
+                            </div>
+                            <div v-else class="rounded-lg border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead class="h-11 pl-5">Connector name</TableHead>
+                                            <TableHead class="h-11 w-32">Tools</TableHead>
+                                            <TableHead class="h-11 w-32">Agents</TableHead>
+                                            <TableHead class="h-11 w-40 pr-5 text-right">Enabled</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <TableRow
+                                            v-for="row in filteredChatvia"
+                                            :key="row.connector!.slug"
+                                            :class="isRowActionable(row) ? 'hover:bg-muted/40 cursor-pointer' : 'cursor-default'"
+                                            @click="openRow(row)"
+                                        >
+                                            <TableCell class="py-4 pl-5">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
+                                                        :style="{ backgroundColor: '#' + row.connector!.brandColor + '15' }"
+                                                    >
+                                                        <img :src="logoUrl(row.connector)!" :alt="row.connector!.name" class="h-5 w-5" />
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <p class="leading-tight font-medium">{{ row.connector!.name }}</p>
+                                                        <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
+                                                            {{ row.connector!.description }}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div class="min-w-0">
-                                                    <p class="leading-tight font-medium">{{ row.connector!.name }}</p>
-                                                    <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
-                                                        {{ row.connector!.description }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell class="py-4 text-sm">{{ row.server?.catalog_tools_count ?? '—' }}</TableCell>
-                                        <TableCell class="py-4 text-sm">{{ row.server?.agents_count ?? '—' }}</TableCell>
-                                        <TableCell class="py-4 pr-5 text-right" @click.stop>
-                                            <Switch v-if="row.server" :model-value="row.server.is_enabled" @update:model-value="quickToggle(row)" />
-                                            <Button
-                                                v-else-if="!row.connector!.comingSoon"
-                                                size="sm"
-                                                variant="outline"
-                                                @click="startConnect(row.connector!)"
-                                            >
-                                                Connect
-                                            </Button>
-                                            <Badge v-else variant="outline">Soon</Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </section>
+                                            </TableCell>
+                                            <TableCell class="py-4 text-sm">{{ row.server?.catalog_tools_count ?? '—' }}</TableCell>
+                                            <TableCell class="py-4 text-sm">{{ row.server?.agents_count ?? '—' }}</TableCell>
+                                            <TableCell class="py-4 pr-5 text-right" @click.stop>
+                                                <Switch
+                                                    v-if="row.server"
+                                                    :model-value="row.server.is_enabled"
+                                                    @update:model-value="quickToggle(row)"
+                                                />
+                                                <Button
+                                                    v-else-if="!row.connector!.comingSoon"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    @click="startConnect(row.connector!)"
+                                                >
+                                                    Connect
+                                                </Button>
+                                                <Badge v-else variant="outline">Soon</Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </div>
 

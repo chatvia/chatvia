@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Agent\Handoff;
 
-use App\Workspace\Models\User;
-use Domain\Chat\Data\Messages\BroadcastChatTypingData;
-use Domain\Chat\Models\ChatConversation;
+use App\Identity\Workspace\Models\User;
+use Domain\Conversation\Data\Messages\BroadcastChatTypingData;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AgentHandoffTypingRequest extends FormRequest
@@ -24,7 +24,7 @@ class AgentHandoffTypingRequest extends FormRequest
         ];
     }
 
-    public function toData(ChatConversation $conversation): BroadcastChatTypingData
+    public function toData(Conversation $conversation): BroadcastChatTypingData
     {
         /** @var User $user */
         $user = $this->user();

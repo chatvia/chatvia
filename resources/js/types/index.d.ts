@@ -11,12 +11,6 @@ export interface BreadcrumbItem {
     href: string;
 }
 
-export interface Features {
-    widget: boolean;
-    workflow: boolean;
-    actions: boolean;
-}
-
 export interface NavItem {
     title: string;
     href: string;
@@ -37,7 +31,6 @@ export interface SharedData extends PageProps {
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
     tenant: string;
-    features: Features;
     subscribed: boolean;
     onTrial: boolean;
     trialEndsAt?: string | null;
@@ -80,7 +73,7 @@ export interface User {
     updated_at: string;
     is_paid: boolean;
     type: 'admin' | 'company' | 'staff';
-    capabilities?: App.Billing.Data.Resources.BillingPackageCapabilitiesData;
+    capabilities?: App.Billing.Data.Resources.Package.BillingPackageCapabilitiesData;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

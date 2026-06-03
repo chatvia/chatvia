@@ -2,16 +2,16 @@
 
 namespace Tests\Unit\Connector\OAuth;
 
-use App\Workspace\Models\User;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Mcp\Services\McpCatalog;
-use Domain\Connector\Data\Catalog\ConnectorData;
-use Domain\Connector\Models\ConnectorOAuthClient;
-use Domain\Connector\Services\OAuth\McpOAuthDiscoverer;
-use Domain\Connector\Services\OAuth\McpOAuthException;
-use Domain\Connector\Services\OAuth\McpOAuthFlow;
-use Domain\Connector\Services\OAuth\McpOAuthRegistrar;
-use Domain\Connector\Services\OAuth\OAuthServerMetadata;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Data\Catalog\ConnectorData;
+use Domain\Integration\Connector\Models\ConnectorOAuthClient;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
+use Domain\Integration\Connector\Services\OAuth\OAuthServerMetadata;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Mcp\Services\McpCatalog;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\MockObject\MockObject;

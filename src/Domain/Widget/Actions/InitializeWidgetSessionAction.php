@@ -2,14 +2,14 @@
 
 namespace Domain\Widget\Actions;
 
-use App\Widget\WidgetVerification;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Services\UserAgentParser;
-use Domain\Chat\Enums\ConversationSource;
-use Domain\Chat\Models\ChatSession;
-use Domain\Chat\Services\Memory\ChatMemory;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Data\Session\WidgetSessionInitData;
 use Domain\Widget\Data\Session\WidgetSessionInitResultData;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Support\Str;
 
 /**
@@ -40,7 +40,7 @@ class InitializeWidgetSessionAction
 
         if (! $session) {
             $userAgent = $this->userAgentParser->parse($data->userAgent);
-            $session = ChatSession::create([
+            $session = Session::create([
                 'agent_id' => $agent->id,
                 'ip_address' => $data->ipAddress,
                 'user_agent' => $data->userAgent,

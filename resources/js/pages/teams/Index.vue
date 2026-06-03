@@ -24,7 +24,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Loader2, LogOut, MoreHorizontal, Plus, Search, Settings, Trash2, Users } from 'lucide-vue-next';
 
-type Team = App.Teams.Data.Resources.TeamListItemData;
+type Team = App.Team.Data.Resources.Team.TeamListItemData;
 
 interface Props {
     teams: Team[];

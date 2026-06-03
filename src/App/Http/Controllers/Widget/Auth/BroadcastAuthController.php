@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Widget\Auth;
 
-use App\Widget\WidgetVerification;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Models\Conversation;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Pusher\Pusher;
@@ -44,7 +44,7 @@ readonly class BroadcastAuthController
         // cross-agent presence-channel takeover.
         $agent = current_agent_from_widget();
 
-        $conversation = ChatConversation::query()
+        $conversation = Conversation::query()
             ->where('external_id', $conversationId)
             ->whereHas('session', function ($q) use ($sessionId, $agent): void {
                 $q->where('external_id', $sessionId);

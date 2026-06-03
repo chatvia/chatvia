@@ -2,14 +2,14 @@
 
 namespace App\Hosting;
 
-use App\LLM\Contracts\LLMProviderInterface;
 use Domain\Agent\Models\Agent;
+use Domain\Llm\Contracts\LlmProviderInterface;
 use Illuminate\Support\Str;
 
 class Subdomain
 {
     public function __construct(
-        private LLMProviderInterface $llmProvider
+        private LlmProviderInterface $llmProvider
     ) {}
 
     public function generateRandomSubDomain(): string

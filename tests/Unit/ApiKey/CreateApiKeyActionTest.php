@@ -1,9 +1,9 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\ApiKey\Actions\CreateApiKeyAction;
-use App\ApiKey\Data\CreateApiKeyData;
-use App\ApiKey\Data\CreatedApiKeyData;
+use App\Identity\ApiKey\Actions\CreateApiKeyAction;
+use App\Identity\ApiKey\Data\CreateApiKeyData;
+use App\Identity\ApiKey\Data\CreatedApiKeyData;
+use App\Identity\Workspace\Models\User;
 
 it('creates a Sanctum token and returns the plaintext payload', function (): void {
     $user = User::factory()->create();

@@ -24,7 +24,7 @@ import { Toaster } from '@/components/ui/sonner';
 import UpgradeButton from '@/components/UpgradeButton.vue';
 import UserMenu from '@/components/UserMenu.vue';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
-import type { Features, SharedData } from '@/types';
+import type { SharedData } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
@@ -33,7 +33,6 @@ import axios from 'axios';
 import {
     BarChart3,
     BotIcon,
-    Building2,
     ChevronDown,
     ChevronRight,
     Code,
@@ -85,9 +84,6 @@ const props = defineProps({
 
 const page = usePage<SharedData>();
 const _currentRoute = computed(() => page.component);
-
-// Get features from page props
-const _features = page.props.features as Features;
 
 // Use team permissions composable
 const { hasPermission, hasAnyPermission, isOwner } = useTeamPermissions();
@@ -206,7 +202,7 @@ const managementGroups = computed(() => {
     if (hasPermission('agent.chat.view')) {
         insights.push({ id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' });
     }
-    if (hasPermission('agent.leads.view')) {
+    if (hasPermission('agent.leads.view') && props.agent.leads_mcp_enabled) {
         insights.push({ id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads.index', tooltip: 'Manage leads captured by your agent' });
     }
     if (insights.length) groups.push({ id: 'insights', label: 'Insights', items: insights });
@@ -264,17 +260,8 @@ const managementGroups = computed(() => {
     }
     if (access.length) groups.push({ id: 'access', label: 'Access', items: access });
 
-    // Settings — agent metadata (business contact, rename)
+    // Settings — agent metadata (rename)
     const settings: any[] = [];
-    if (hasPermission('agent.business_profile.manage')) {
-        settings.push({
-            id: 'business-profile',
-            label: 'Business',
-            icon: Building2,
-            route: 'agents.business-profile',
-            tooltip: 'Real contact details the agent quotes when asked',
-        });
-    }
     if (isOwner.value) {
         settings.push({ id: 'rename', label: 'Rename', icon: Pencil, action: 'rename', tooltip: 'Rename this agent' });
     }

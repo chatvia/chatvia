@@ -5,8 +5,8 @@ namespace Domain\Agent\Actions\ChatLog;
 use Domain\Agent\Data\Resources\ChatLog\Handoff\ChatLogHandoffStatusData;
 use Domain\Agent\Data\Resources\ChatLog\Messages\ChatLogMessagesResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Chat\Models\ChatMessage;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
 use Domain\Lead\Models\Lead;
 
 /**
@@ -15,9 +15,9 @@ use Domain\Lead\Models\Lead;
  */
 class ListConversationMessagesAction
 {
-    public function execute(Agent $agent, ChatConversation $conversation, int $page = 1): ChatLogMessagesResourceData
+    public function execute(Agent $agent, Conversation $conversation, int $page = 1): ChatLogMessagesResourceData
     {
-        $messages = ChatMessage::forAgentConversation($agent->id, $conversation->id)
+        $messages = Message::forAgentConversation($agent->id, $conversation->id)
             ->with('llm')
             ->orderBy('created_at')
             ->orderByRaw("CASE WHEN role = 'user' THEN 0 ELSE 1 END")

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Agent\Lead;
 
 use Domain\Agent\Models\Agent;
 use Domain\Lead\Actions\ExportAgentLeadsToCsvAction;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;

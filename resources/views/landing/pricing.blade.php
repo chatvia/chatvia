@@ -46,8 +46,9 @@
                         'answer' => 'The number of chatbots you can create depends on your plan. Please refer to the pricing section for details on chatbot limits for each plan.',
                     ],
                     [
+                        'key' => 'models',
                         'question' => 'What AI models does ChatVIA use?',
-                        'answer' => 'ChatVIA supports multiple open-source AI models including GPT OSS, Llama, DeepSeek, Qwen, Mistral, Gemma, and Holo2. You can choose the best model for your needs and switch between them anytime.',
+                        'answer' => 'You can choose the best model for each agent and switch anytime.',
                     ],
                     [
                         'question' => 'Is my data secure and private?',
@@ -119,7 +120,11 @@
                                                 x-transition:leave-start="opacity-100 translate-y-0"
                                                 x-transition:leave-end="opacity-0 -translate-y-2" class="px-6 pb-4">
                                                 <div class="text-slate-600 leading-relaxed">
-                                                    {!! nl2br(e($faq['answer'])) !!}
+                                                    @if (($faq['key'] ?? '') === 'models' && ! empty($models ?? []))
+                                                        @include('landing.partials.faq-models')
+                                                    @else
+                                                        {!! nl2br(e($faq['answer'])) !!}
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>

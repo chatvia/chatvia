@@ -22,7 +22,8 @@ export interface ParametersSchema {
 
 export interface AgentFunction {
     external_id: string;
-    name: string;
+    internal_name: string;
+    display_name: string | null;
     description: string;
     parameters_schema: ParametersSchema;
     webhook_url: string;
@@ -39,7 +40,8 @@ export interface AgentFunction {
 }
 
 export interface AgentFunctionDraft {
-    name: string;
+    internal_name: string;
+    display_name: string | null;
     description: string;
     parameters_schema: ParametersSchema;
     webhook_url: string;
@@ -59,7 +61,8 @@ export const DEFAULT_PARAMETERS_SCHEMA: ParametersSchema = {
 };
 
 export const EMPTY_FUNCTION_DRAFT: AgentFunctionDraft = {
-    name: '',
+    internal_name: '',
+    display_name: null,
     description: '',
     parameters_schema: DEFAULT_PARAMETERS_SCHEMA,
     webhook_url: '',

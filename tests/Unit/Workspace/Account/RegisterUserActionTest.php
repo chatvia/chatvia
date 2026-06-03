@@ -1,14 +1,14 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Actions\Account\RegisterUserAction;
-use App\Workspace\Data\Account\RegisterUserData;
+use App\Identity\Workspace\Actions\Account\RegisterUserAction;
+use App\Identity\Workspace\Data\Account\RegisterUserData;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 
 it('creates a user and dispatches the Registered event', function (): void {
-    Event::fake();
+    Event::fake([Registered::class]);
 
     $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
         name: 'Ada Lovelace',
@@ -29,7 +29,7 @@ it('creates a user and dispatches the Registered event', function (): void {
 });
 
 it('ensures a primary team is set up for the new user', function (): void {
-    Event::fake();
+    Event::fake([Registered::class]);
 
     $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
         name: 'Grace Hopper',
@@ -44,7 +44,7 @@ it('ensures a primary team is set up for the new user', function (): void {
 });
 
 it('hashes the password before storing it', function (): void {
-    Event::fake();
+    Event::fake([Registered::class]);
 
     $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
         name: 'Linus',

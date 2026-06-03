@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Agent\Connector;
 
 use Domain\Agent\Models\Agent;
-use Domain\Connector\Data\Custom\AgentCustomConnectorData;
+use Domain\Integration\Connector\Data\Custom\AgentCustomConnectorData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

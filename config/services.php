@@ -150,6 +150,10 @@ return [
     'mistral' => [
         'api_key' => env('MISTRAL_API_KEY'),
         'base_url' => env('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1'),
+        // Model used by MistralPdfSource for PDF Q&A turns. Native PDF
+        // ingestion ships on mistral-small/medium/large; small is the
+        // cheapest tier that handles the `document_url` content chunk.
+        'qa_model' => env('MISTRAL_QA_MODEL', 'mistral-small-latest'),
     ],
 
     'chunker' => [

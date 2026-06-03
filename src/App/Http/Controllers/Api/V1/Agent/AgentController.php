@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Api\V1\Agent;
 
-use App\Workspace\Models\User;
 use App\Http\Requests\Api\V1\Agent\StoreApiAgentRequest;
 use App\Http\Requests\Api\V1\Agent\UpdateApiAgentRequest;
 use App\Http\Resources\Api\V1\Agent\AgentData;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Actions\Account\CreateApiAgentAction;
 use Domain\Agent\Actions\Account\DeleteAgentAction;

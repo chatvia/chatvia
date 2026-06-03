@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\Source\Function;
 
 use Domain\Agent\Models\Agent;
-use Domain\Function\Models\AgentFunction;
+use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Chat\Conversations;
 
 use App\Http\Requests\Chat\CreateConversationRequest;
-use Domain\Chat\Actions\Conversations\CreateConversationAction;
+use Domain\Conversation\Actions\Conversations\CreateConversationAction;
 
 final class ConversationCreateController
 {

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\Source\File\Manage;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Http\Request;
 
 class AgentFileSummaryController

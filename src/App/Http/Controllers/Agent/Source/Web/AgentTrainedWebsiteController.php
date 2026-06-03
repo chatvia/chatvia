@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Agent\Source\Web;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\Web\Actions\Source\AttachWebsiteToAgentAction;
-use Domain\Source\Web\Actions\Source\DetachWebsiteFromAgentAction;
-use Domain\Source\Web\Models\SourceWebsite;
+use Domain\Knowledge\Source\Web\Actions\Source\AttachWebsiteToAgentAction;
+use Domain\Knowledge\Source\Web\Actions\Source\DetachWebsiteFromAgentAction;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

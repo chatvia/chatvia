@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Agent\Source\Web;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
-use Domain\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
-use Domain\Source\Web\Data\Crawler\CrawlerData;
-use Domain\Source\Web\Models\SourceWebsite;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Knowledge\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
+use Domain\Knowledge\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
+use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;

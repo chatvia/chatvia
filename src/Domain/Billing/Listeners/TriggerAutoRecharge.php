@@ -2,9 +2,9 @@
 
 namespace Domain\Billing\Listeners;
 
-use App\Billing\Jobs\ProcessAutoRechargeJob;
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Billing\Events\MessageCreditsLow;
+use Domain\Billing\Jobs\ProcessAutoRechargeJob;
 
 /**
  * Bridges the credits-low event to the off-session recharge job. Skips

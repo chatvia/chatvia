@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1\Users;
 
-use App\Workspace\Models\User;
 use App\Http\Resources\Api\V1\Auth\UserData;
+use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Workspace\Data\Account\CreateUserPayloadData;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
-use App\Chatter\Actions\CreateChatterAction;
-use App\Workspace\Data\Account\CreateUserPayloadData;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 

@@ -1,9 +1,9 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Models\UserSocial;
-use App\Workspace\Actions\Social\LinkSocialAccountAction;
-use App\Workspace\Exceptions\SocialAccountAlreadyLinkedException;
+use App\Identity\Workspace\Actions\Social\LinkSocialAccountAction;
+use App\Identity\Workspace\Exceptions\SocialAccountAlreadyLinkedException;
+use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\UserSocial;
 use Support\Enums\User\SocialProvider;
 
 it('creates a UserSocial row for a fresh link', function (): void {

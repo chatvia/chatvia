@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Agent\Topic;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Topic\Actions\AttachExistingTopicToAgentAction;
-use Domain\Topic\Actions\CreateAgentTopicAction;
-use Domain\Topic\Actions\DetachTopicFromAgentAction;
-use Domain\Topic\Actions\UpdateChatTopicAction;
-use Domain\Topic\Models\ChatTopic;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Conversation\Topic\Actions\AttachExistingTopicToAgentAction;
+use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
+use Domain\Conversation\Topic\Actions\DetachTopicFromAgentAction;
+use Domain\Conversation\Topic\Actions\UpdateTopicAction;
+use Domain\Conversation\Topic\Models\Topic;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,7 +26,7 @@ class AgentTopicController
             $search = $request->input('search');
 
             if ($request->boolean('all')) {
-                $query = ChatTopic::query()
+                $query = Topic::query()
                     ->forUser($request->user())
                     ->orderBy('topic');
 
@@ -65,7 +65,7 @@ class AgentTopicController
                 'topic_id' => ['required', 'integer', 'exists:chat_topics,id'],
             ]);
 
-            $topic = ChatTopic::findOrFail($validated['topic_id']);
+            $topic = Topic::findOrFail($validated['topic_id']);
 
             try {
                 $attach->execute($agent, $topic);
@@ -93,8 +93,8 @@ class AgentTopicController
     public function update(
         Request $request,
         Agent $agent,
-        ChatTopic $topic,
-        UpdateChatTopicAction $updateTopic,
+        Topic $topic,
+        UpdateTopicAction $updateTopic,
     ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
@@ -124,7 +124,7 @@ class AgentTopicController
     public function destroy(
         Request $request,
         Agent $agent,
-        ChatTopic $topic,
+        Topic $topic,
         DetachTopicFromAgentAction $detach,
     ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 404);

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Agent\ChatLog;
 use Domain\Agent\Actions\ChatLog\BuildConversationPulseAction;
 use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\Request;
 
 /**
@@ -17,7 +17,7 @@ class ConversationPulseController
     public function __invoke(
         Request $request,
         Agent $agent,
-        ChatConversation $conversation,
+        Conversation $conversation,
         BuildConversationPulseAction $build,
     ): ChatLogPulseResourceData {
         abort_if($request->user()->cannot('view', $agent), 404);

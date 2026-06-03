@@ -2,7 +2,7 @@
 
 namespace Domain\Prompt\Actions;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Prompt\Data\Resources\AgentPromptRowData;
 use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Support\Collection;

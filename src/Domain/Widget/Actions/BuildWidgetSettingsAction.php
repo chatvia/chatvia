@@ -3,6 +3,7 @@
 namespace Domain\Widget\Actions;
 
 use Domain\Agent\Models\Agent;
+use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
 use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
 
@@ -17,7 +18,7 @@ class BuildWidgetSettingsAction
     {
         // Single round-trip for all settings groups + starters; previously
         // ran separate SELECTs on every widget boot.
-        $agent->loadMissing('starterSet');
+        $agent->loadMissing(['starterSet', 'team.owner']);
         $agent->loadSettingsGroups(['widget', 'appearance', 'bar']);
 
         $widget = $agent->settings('widget');
@@ -49,6 +50,7 @@ class BuildWidgetSettingsAction
             bar_placement: $bar['placement'] ?? null,
             composer_placeholder: $appearance['composer_placeholder'] ?? null,
             chat_footer_text: $appearance['chat_footer_text'] ?? null,
+            handoff_enabled: ($widget['handoff_enabled'] ?? true) && ($agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false),
         );
     }
 }

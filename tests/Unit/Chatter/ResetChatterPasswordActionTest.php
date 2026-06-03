@@ -1,7 +1,7 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Chatter\Actions\ResetChatterPasswordAction;
+use App\Identity\Chatter\Actions\ResetChatterPasswordAction;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
 

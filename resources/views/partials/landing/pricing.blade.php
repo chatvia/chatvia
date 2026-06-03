@@ -94,12 +94,20 @@
                                         <div class="text-sm {{ $textColor }} font-medium mb-4">Includes:</div>
                                         <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-3 grow">
                                             @foreach(array_slice($features, 0, 6) as $feature)
+                                                @php
+                                                    $featureLabel = is_array($feature) ? ($feature['label'] ?? '') : $feature;
+                                                    $featureHref = is_array($feature) ? ($feature['href'] ?? null) : null;
+                                                @endphp
                                                 <li class="flex items-center">
                                                     <svg class="w-3 h-3 fill-emerald-500 mr-3 shrink-0" viewBox="0 0 12 12"
                                                          xmlns="http://www.w3.org/2000/svg">
                                                         <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z"/>
                                                     </svg>
-                                                    <span class="{{ $textColor }}">{{ $feature }}</span>
+                                                    @if ($featureHref)
+                                                        <a href="{{ $featureHref }}" target="_blank" rel="noopener noreferrer" class="{{ $textColor }} underline decoration-dotted underline-offset-2">{{ $featureLabel }}</a>
+                                                    @else
+                                                        <span class="{{ $textColor }}">{{ $featureLabel }}</span>
+                                                    @endif
                                                 </li>
                                             @endforeach
                                         </ul>

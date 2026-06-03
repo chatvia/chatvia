@@ -3,8 +3,8 @@
 namespace Domain\Agent\Data\Resources\ChatLog\Conversations;
 
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Chat\Models\ChatMessage;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
 use Domain\Lead\Models\Lead;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -38,7 +38,7 @@ class ChatLogConversationsResourceData extends Data
         ?string $sourceFilter = null,
         ?bool $onlineOnly = null,
     ): self {
-        $conversationsPaginator = ChatConversation::query()
+        $conversationsPaginator = Conversation::query()
             ->forAgent($agent->id)
             ->onlyVisible()
             ->withSessionAndTopic()
@@ -59,7 +59,7 @@ class ChatLogConversationsResourceData extends Data
         $excerpts = self::getFirstMessageExcerpts($conversationIds);
 
         $conversationsPaginator->through(
-            fn (ChatConversation $conversation): ChatLogConversationData => ChatLogConversationData::fromConversation(
+            fn (Conversation $conversation): ChatLogConversationData => ChatLogConversationData::fromConversation(
                 $conversation,
                 $excerpts->get($conversation->id)
             )
@@ -78,7 +78,7 @@ class ChatLogConversationsResourceData extends Data
      */
     private static function getFirstMessageExcerpts(Collection $conversationIds): Collection
     {
-        return ChatMessage::query()->firstExcerptsForConversations($conversationIds);
+        return Message::query()->firstExcerptsForConversations($conversationIds);
     }
 
     /**

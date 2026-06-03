@@ -41,6 +41,9 @@ return [
                     'minutes' => '300 minutes audio/video',
                     'teams' => '1 team',
                     'members' => '3 members (team members + chatters)',
+                    'mcp' => 'MCP',
+                    'function_calling' => 'Function Calling',
+                    'retention' => '90 days of chat history',
                 ],
                 'yearly' => [
                     'messages' => '50,000 messages/credits per year',
@@ -50,6 +53,9 @@ return [
                     'minutes' => '300 minutes audio/video',
                     'teams' => '1 team',
                     'members' => '3 members (team members + chatters)',
+                    'mcp' => 'MCP',
+                    'function_calling' => 'Function Calling',
+                    'retention' => '90 days of chat history',
                 ],
             ],
             'stripe_monthly_price_id' => env('STRIPE_STARTER_MONTHLY_PRICE_ID'),
@@ -95,6 +101,9 @@ return [
                     'sentiment' => 'Sentiment analysis',
                     'teams' => '3 team',
                     'members' => '10 members (team members + chatters)',
+                    'mcp' => 'MCP',
+                    'function_calling' => 'Function Calling',
+                    'retention' => '180 days of chat history',
                 ],
                 'yearly' => [
                     'messages' => '140,000 messages/credits per year',
@@ -105,6 +114,9 @@ return [
                     'sentiment' => 'Sentiment analysis',
                     'teams' => '3 team',
                     'members' => '10 members (team members + chatters)',
+                    'mcp' => 'MCP',
+                    'function_calling' => 'Function Calling',
+                    'retention' => '180 days of chat history',
                 ],
             ],
             'stripe_monthly_price_id' => env('STRIPE_STANDARD_MONTHLY_PRICE_ID'),
@@ -152,11 +164,13 @@ return [
                     'topics' => 'Topic analysis',
                     'pulse' => 'Conversation Pulse',
                     'handoff' => 'Handoff',
+                    'mcp' => 'MCP',
+                    'function_calling' => 'Function Calling',
                     'api' => 'API access',
-                    'chatters' => 'Programmatic chatter provisioning via API',
                     'integrations' => 'Custom integrations',
                     'teams' => '10 team',
                     'members' => '100 members (team members + chatters)',
+                    'retention' => '366 days of chat history',
                 ],
                 'yearly' => [
                     'messages' => '500,000 messages/credits per year',
@@ -169,11 +183,13 @@ return [
                     'topics' => 'Topic analysis',
                     'pulse' => 'Conversation Pulse',
                     'handoff' => 'Handoff',
+                    'mcp' => 'MCP',
+                    'function_calling' => 'Function Calling',
                     'api' => 'API access',
-                    'chatters' => 'Programmatic chatter provisioning via API',
                     'integrations' => 'Custom integrations',
                     'teams' => '10 team',
                     'members' => '100 members (team members + chatters)',
+                    'retention' => '366 days of chat history',
                 ],
             ],
             'stripe_monthly_price_id' => env('STRIPE_PRO_MONTHLY_PRICE_ID'),
@@ -199,48 +215,6 @@ return [
                     'teams_limit' => 10,
                 ],
             ],
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Comparison Features Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Defines features displayed in the pricing comparison table. Each feature
-    | maps to a capability key from BillingPackageCapabilitiesData DTO.
-    |
-    */
-    'comparison_features' => [
-        'api' => [
-            'name' => 'API Access',
-            'description' => 'Integrate with your applications using our REST API',
-            'capability_key' => 'api',
-        ],
-        'sentiment' => [
-            'name' => 'Sentiment Analysis',
-            'description' => 'Analyze sentiment in chat conversations',
-            'capability_key' => 'sentiment',
-        ],
-        'tone' => [
-            'name' => 'Tone Analysis',
-            'description' => 'Analyze tone in chat conversations',
-            'capability_key' => 'tone',
-        ],
-        'topics' => [
-            'name' => 'Topic Analysis',
-            'description' => 'Analyze topics in chat conversations',
-            'capability_key' => 'topics',
-        ],
-        'handoff' => [
-            'name' => 'Handoff Support',
-            'description' => 'Hand off conversations to human agents',
-            'capability_key' => 'handoff',
-        ],
-        'pulse' => [
-            'name' => 'Conversation Pulse',
-            'description' => 'Real-time conversation health metrics and sentiment tracking',
-            'capability_key' => 'pulse',
         ],
     ],
 

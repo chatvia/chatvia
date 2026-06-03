@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Settings\Connector\Catalog;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Mcp\Data\Resources\AgentMcpServerData;
-use Domain\Mcp\Services\McpException;
-use Domain\Connector\Services\ConnectorCatalog;
-use Domain\Connector\Services\TokenConnectorAuthorizer;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Integration\Connector\Services\TokenConnectorAuthorizer;
+use Domain\Integration\Mcp\Data\Resources\AgentMcpServerData;
+use Domain\Integration\Mcp\Services\McpException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

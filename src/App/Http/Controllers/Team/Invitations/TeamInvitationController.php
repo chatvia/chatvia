@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Team\Invitations;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use App\Team\Models\Invitation;
-use App\Team\Models\Team;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Models\Invitation;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

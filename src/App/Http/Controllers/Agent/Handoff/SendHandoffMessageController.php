@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Agent\Handoff;
 
 use App\Http\Requests\Agent\Handoff\AgentHandoffMessageRequest;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Actions\Handoff\SendHandoffAdminMessageAction;
-use Domain\Chat\Data\Handoff\HandoffMessageResultData;
-use Domain\Chat\Data\Handoff\HandoffMessageResultPayloadData;
-use Domain\Chat\Exceptions\HandoffOperationException;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Actions\Handoff\SendHandoffAdminMessageAction;
+use Domain\Conversation\Data\Handoff\HandoffMessageResultData;
+use Domain\Conversation\Data\Handoff\HandoffMessageResultPayloadData;
+use Domain\Conversation\Exceptions\HandoffOperationException;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 
@@ -17,7 +17,7 @@ class SendHandoffMessageController
     public function __invoke(
         AgentHandoffMessageRequest $request,
         Agent $agent,
-        ChatConversation $conversation,
+        Conversation $conversation,
         SendHandoffAdminMessageAction $sendMessage,
     ): JsonResponse|HandoffMessageResultData {
         try {
@@ -44,7 +44,7 @@ class SendHandoffMessageController
         }
     }
 
-    private function guard(Agent $agent, ChatConversation $conversation): void
+    private function guard(Agent $agent, Conversation $conversation): void
     {
         if (Gate::denies('access-agent', $agent) || $conversation->session->agent_id !== $agent->id) {
             throw HandoffOperationException::unauthorized();

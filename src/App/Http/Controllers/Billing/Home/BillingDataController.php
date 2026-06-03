@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Home;
 
-use App\Billing\Data\Resources\Subscription\BillingResourceData;
+use Domain\Billing\Data\Resources\Subscription\BillingResourceData;
 use Illuminate\Http\Request;
 
 class BillingDataController

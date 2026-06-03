@@ -63,20 +63,44 @@ export interface ToolArtifact {
 }
 
 export interface StreamToolData {
-    phase: 'start' | 'delta' | 'end';
+    phase: 'start' | 'delta' | 'end' | 'awaiting_approval';
     tool_call_id: string;
     name?: string;
     args_delta?: string;
+    // The tool's argument JSON (sent on 'start' and 'awaiting_approval') —
+    // shown in the approval card so the user can judge what will run.
+    args?: string;
     result?: unknown;
-    // Display metadata, sent on phase: 'start'. Drives the branded
-    // loading indicator (icon + service name) in the chat bubble.
+    // Display metadata, sent on phase: 'start' / 'awaiting_approval'. Drives
+    // the branded loading indicator (icon + service name) in the chat bubble.
     kind?: 'mcp' | 'function';
     label?: string;
     icon_url?: string | null;
     brand_color?: string | null;
+    // Sent on phase: 'awaiting_approval' — the checkpoint the client posts its
+    // decision against, plus a human-readable reason for the prompt.
+    approval_id?: string;
+    reason?: string | null;
     // Sent on phase: 'end' when the tool returned structured side-channel
     // payloads (e.g. an ECharts option). Absent for plain text tools.
     artifacts?: ToolArtifact[];
+}
+
+/**
+ * A tool call paused awaiting the user's approval. Built by Chat.vue from a
+ * `tool` envelope with phase `awaiting_approval`; rendered as a ToolApprovalCard.
+ */
+export interface ToolApprovalCall {
+    tool_call_id: string;
+    approval_id: string;
+    name: string;
+    label: string;
+    kind: 'mcp' | 'function';
+    icon_url: string | null;
+    brand_color: string | null;
+    /** The tool's argument JSON, shown (parsed) so the user can judge what runs. */
+    args: string;
+    reason: string | null;
 }
 
 interface BaseEnvelope {

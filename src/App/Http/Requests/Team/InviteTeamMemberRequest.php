@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Team;
 
-use App\Workspace\Models\User;
-use App\Team\Models\Team;
-use Domain\Team\Data\InviteTeamMemberData;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Data\InviteTeamMemberData;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

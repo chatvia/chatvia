@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Function;
 
-use Domain\Function\Data\ApiFunctionPayloadData;
+use Domain\Integration\Function\Data\ApiFunctionPayloadData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreApiFunctionRequest extends FormRequest
@@ -18,7 +18,8 @@ class StoreApiFunctionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:64', 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/'],
+            'internal_name' => ['required', 'string', 'max:64', 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/'],
+            'display_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],
             'parameters_schema' => ['required', 'array'],
             'webhook_url' => ['required', 'url', 'max:2048'],

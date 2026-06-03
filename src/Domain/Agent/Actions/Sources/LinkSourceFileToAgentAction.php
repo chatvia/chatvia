@@ -3,7 +3,7 @@
 namespace Domain\Agent\Actions\Sources;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Models\SourceFile;
 
 class LinkSourceFileToAgentAction
 {

@@ -6,6 +6,16 @@
         "save": "Save",
         "saving": "Saving..."
     },
+    "approval": {
+        "badge": "Needs approval",
+        "prompt": "Do you want to proceed?",
+        "mcp_tool": "MCP tool",
+        "function": "Function",
+        "view_details": "View details",
+        "hide_details": "Hide details",
+        "approve": "Approve",
+        "deny": "Deny"
+    },
     "composer": {
         "default_placeholder": "Message...",
         "disabled": "Chat disabled",
@@ -70,7 +80,7 @@
         "delete_assistant_message_description": "This will also delete your original message.",
         "calling_external": "Calling external data source…",
         "fetching_data": "Fetching data from {label}",
-        "calling": "Calling {label}",
+        "calling": "Calling {label}…",
         "regenerate_tooltip": "Regenerate response"
     },
     "errors": {

@@ -52,6 +52,10 @@ const props = defineProps({
         type: String,
         default: 'chat.home',
     },
+    agent_id: {
+        type: Number,
+        default: null,
+    },
 });
 
 const selectedStarter = ref('');
@@ -112,8 +116,8 @@ onUnmounted(() => {
     stopUsageChecking();
 });
 
-async function createNewConversation(message) {
-    await axios.post(route('conversations.create'), { message }).then((response) => {
+async function createNewConversation(message, attachments = []) {
+    await axios.post(route('conversations.create'), { message, attachments }).then((response) => {
         router.visit(route(props.chatRoute, { conversationId: response.data.id, new: '1' }));
     });
 }
@@ -177,6 +181,8 @@ function handleStarterClick(starter) {
                             v-if="canSendMessages"
                             :text="selectedStarter"
                             :placeholder="appearance.composer_placeholder"
+                            :upload-endpoint="props.agent_id ? route('chat.messages.attachments.store') : undefined"
+                            :upload-headers="props.agent_id ? { 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': 'pending' } : undefined"
                             @messageAdded="createNewConversation"
                         />
 

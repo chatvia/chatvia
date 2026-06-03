@@ -49,15 +49,15 @@ import {
 } from 'lucide-vue-next';
 
 // Use generated TypeScript types from DTOs
-type TeamData = App.Teams.Data.Resources.TeamData;
-type TeamMemberData = App.Teams.Data.Resources.TeamMemberData;
-type TeamRoleData = App.Teams.Data.Resources.TeamRoleData;
-type TeamAgentData = App.Teams.Data.Resources.TeamAgentData;
-type TeamInvitationData = App.Teams.Data.Resources.TeamInvitationData;
-type ManagedUserData = App.Teams.Data.Resources.ManagedUserData;
-type PermissionMetaData = App.Teams.Data.Resources.PermissionMetaData;
-type PermissionGroupData = App.Teams.Data.Resources.PermissionGroupData;
-type RoleConfigData = App.Teams.Data.Resources.RoleConfigData;
+type TeamData = App.Team.Data.Resources.Team.TeamData;
+type TeamMemberData = App.Team.Data.Resources.Members.TeamMemberData;
+type TeamRoleData = App.Team.Data.Resources.Roles.TeamRoleData;
+type TeamAgentData = App.Team.Data.Resources.Team.TeamAgentData;
+type TeamInvitationData = App.Team.Data.Resources.Members.TeamInvitationData;
+type ManagedUserData = App.Team.Data.Resources.Members.ManagedUserData;
+type PermissionMetaData = App.Team.Data.Resources.Permissions.PermissionMetaData;
+type PermissionGroupData = App.Team.Data.Resources.Permissions.PermissionGroupData;
+type RoleConfigData = App.Team.Data.Resources.Roles.RoleConfigData;
 
 interface Props {
     team: TeamData;

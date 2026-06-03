@@ -10,7 +10,9 @@ use App\Http\Controllers\Settings\Connector\Catalog\ConnectController;
 use App\Http\Controllers\Settings\Connector\Catalog\ConnectorController;
 use App\Http\Controllers\Settings\Connector\Manage\ConnectorAgentController;
 use App\Http\Controllers\Settings\Connector\Manage\ConnectorToolController;
+use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorApprovalController;
 use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorController;
+use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorToolApprovalController;
 use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorToolController;
 use App\Http\Controllers\Settings\Connector\Provisioning\CustomAddController;
 use App\Http\Controllers\Settings\Connector\Provisioning\OAuthStartController;
@@ -82,6 +84,12 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::post('settings/connectors/{slug}/tools/{tool}/toggle', ToggleConnectorToolController::class)
         ->whereNumber('tool')
         ->name('settings.connectors.tools.toggle');
+
+    // Human-in-the-loop approval switches: connector master + per-tool override.
+    Route::post('settings/connectors/{slug}/approval', ToggleConnectorApprovalController::class)->name('settings.connectors.approval');
+    Route::post('settings/connectors/{slug}/tools/{tool}/approval', ToggleConnectorToolApprovalController::class)
+        ->whereNumber('tool')
+        ->name('settings.connectors.tools.approval');
 
     // Manage which agents use a connector (from the Connectors sheet).
     Route::get('settings/connectors/{slug}/agents', [ConnectorAgentController::class, 'index'])->name('settings.connectors.agents.index');

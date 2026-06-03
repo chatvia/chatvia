@@ -1,17 +1,17 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Country\Models\Country;
-use App\Language\Models\Language;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Llm\Models\Llm;
 use Domain\Analytics\Enums\ToneEnum;
-use Domain\Source\QA\Models\AgentQuestionAnswer;
-use Domain\Topic\Models\ChatTopic;
+use Domain\Conversation\Topic\Models\Topic;
+use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Llm\Models\Llm;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Support\Localization\Country\Models\Country;
+use Support\Localization\Language\Models\Language;
 
 return new class extends Migration
 {
@@ -62,7 +62,7 @@ return new class extends Migration
 
             $table->foreignId('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
             $table->foreignIdFor(Language::class)->nullable()->index()->constrained()->nullOnDelete();
-            $table->foreignIdFor(ChatTopic::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(Topic::class, 'chat_topic_id')->nullable()->constrained('chat_topics')->nullOnDelete();
 
             $table->enum('source', ['hosted_chat', 'widget', 'bar']);
             $table->boolean('is_visible')->default(false);
@@ -76,6 +76,12 @@ return new class extends Migration
 
             $table->timestamp('handoff_at')->nullable();
             $table->timestamp('last_activity_at')->nullable();
+
+            // Conversation-level retention horizon. Stamped on create from the
+            // owning team's plan (see BillingPackageCapabilitiesData::retentionDays);
+            // the daily prune command soft-deletes anything past it, cascading
+            // through Conversation::booted to messages, attachments, S3.
+            $table->timestamp('expires_at')->nullable();
 
             $table->string('deleted_by', 10)->nullable();
             $table->softDeletes();
@@ -124,10 +130,33 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->timestamp('expires_at')->nullable();
             $table->timestamp('read_at')->nullable();
 
             $table->index(['chat_conversation_id', 'created_at']);
+        });
+
+        Schema::create('chat_attachments', function (Blueprint $table) {
+            $table->id();
+            $table->uuid('external_id')->unique();
+
+            // Nullable so the upload endpoint can persist a row before the
+            // conversation exists (Home.vue path: upload → conversation
+            // create → claim). The hosted-chat / widget paths set this
+            // straight away. Cascades to file delete via the model observer.
+            $table->foreignId('chat_conversation_id')->nullable()->constrained('chat_conversations')->cascadeOnDelete();
+            // Optional link to the user message that introduced this file —
+            // populated by ChatService once the user turn is saved so chips
+            // can render on the right bubble.
+            $table->foreignId('chat_message_id')->nullable()->constrained('chat_messages')->nullOnDelete();
+
+            $table->string('filepath', 2048);
+            $table->string('filename');
+            $table->string('mime_type', 100)->default('application/octet-stream');
+            $table->unsignedBigInteger('size_bytes')->default(0);
+
+            $table->timestamps();
+
+            $table->index(['chat_conversation_id', 'mime_type']);
         });
 
         $this->createPartialIndexes();
@@ -138,12 +167,13 @@ return new class extends Migration
         DB::statement("CREATE INDEX messages_assistant_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'assistant'");
         DB::statement("CREATE INDEX messages_user_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'user'");
         DB::statement('CREATE INDEX messages_feedback_date_idx ON chat_messages (feedback, created_at) WHERE feedback IS NOT NULL');
-        DB::statement('CREATE INDEX messages_expires_cleanup_idx ON chat_messages (expires_at) WHERE expires_at IS NOT NULL');
 
         DB::statement("CREATE INDEX conversations_handoff_pending_idx ON chat_conversations (created_at) WHERE handoff_status = 'pending'");
         DB::statement("CREATE INDEX conversations_handoff_human_idx ON chat_conversations (last_activity_at) WHERE handoff_status = 'human'");
 
         DB::statement('CREATE INDEX conversations_visible_active_idx ON chat_conversations (chat_session_id, updated_at) WHERE is_visible = true AND deleted_at IS NULL');
+        // Drives the daily prune query (`WHERE expires_at < now() AND deleted_at IS NULL`).
+        DB::statement('CREATE INDEX conversations_expires_cleanup_idx ON chat_conversations (expires_at) WHERE expires_at IS NOT NULL AND deleted_at IS NULL');
     }
 
     public function down(): void
@@ -152,16 +182,17 @@ return new class extends Migration
             'messages_assistant_active_idx',
             'messages_user_active_idx',
             'messages_feedback_date_idx',
-            'messages_expires_cleanup_idx',
             'conversations_handoff_pending_idx',
             'conversations_handoff_human_idx',
             'conversations_visible_active_idx',
+            'conversations_expires_cleanup_idx',
         ];
 
         foreach ($indexes as $index) {
             DB::statement("DROP INDEX IF EXISTS {$index}");
         }
 
+        Schema::dropIfExists('chat_attachments');
         Schema::dropIfExists('chat_messages');
         Schema::dropIfExists('chat_conversations');
         Schema::dropIfExists('chat_sessions');

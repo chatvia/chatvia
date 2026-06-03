@@ -2,7 +2,7 @@
 
 namespace Domain\Agent\Policies;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 
 class AgentPolicy

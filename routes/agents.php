@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Agent\AgentManagerController;
 use App\Http\Controllers\Agent\AgentController;
+use App\Http\Controllers\Agent\AgentManagerController;
 use App\Http\Controllers\Agent\Analytics\Metrics\AgentMetricsController;
 use App\Http\Controllers\Agent\Analytics\Metrics\AgentMetricsDataController;
 use App\Http\Controllers\Agent\Analytics\Overview\AgentAnalyticsController;
@@ -19,9 +19,9 @@ use App\Http\Controllers\Agent\Bar\BarPreviewController;
 use App\Http\Controllers\Agent\BusinessProfile\AgentBusinessProfileController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogReviseAnswerController;
+use App\Http\Controllers\Agent\ChatLog\ConversationController as ChatLogConversationsController;
 use App\Http\Controllers\Agent\ChatLog\ConversationMessageController as ChatLogConversationMessagesController;
 use App\Http\Controllers\Agent\ChatLog\ConversationPulseController as ChatLogConversationPulseController;
-use App\Http\Controllers\Agent\ChatLog\ConversationController as ChatLogConversationsController;
 use App\Http\Controllers\Agent\ChatLog\CountryController as ChatLogCountriesController;
 use App\Http\Controllers\Agent\ChatLog\TopicController as ChatLogTopicsController;
 use App\Http\Controllers\Agent\Handoff\AgentHandoffController;
@@ -33,8 +33,8 @@ use App\Http\Controllers\Agent\Handoff\TakeoverHandoffController;
 use App\Http\Controllers\Agent\Identity\AgentIdentityController;
 use App\Http\Controllers\Agent\Identity\RegenerateAgentAuthSecretController;
 use App\Http\Controllers\Agent\Lead\AgentLeadController;
-use App\Http\Controllers\Agent\Lead\AgentLeadsExportController;
 use App\Http\Controllers\Agent\Lead\AgentLeadSettingsController;
+use App\Http\Controllers\Agent\Lead\AgentLeadsExportController;
 use App\Http\Controllers\Agent\Member\AgentMemberController;
 use App\Http\Controllers\Agent\Persona\AgentShowPersonaController;
 use App\Http\Controllers\Agent\Playground\AgentPlaygroundController;
@@ -46,9 +46,9 @@ use App\Http\Controllers\Agent\Setup\UpdateAgentDomainController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentLlmController;
 use App\Http\Controllers\Agent\Source\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorAttachController;
+use App\Http\Controllers\Agent\Source\Connector\AgentConnectorController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorDisconnectController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorRefreshController;
-use App\Http\Controllers\Agent\Source\Connector\AgentConnectorController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorsListController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorToolController;
 use App\Http\Controllers\Agent\Source\File\Manage\AgentFileSummaryController;
@@ -64,8 +64,8 @@ use App\Http\Controllers\Agent\Source\File\Upload\AgentKnowledgeFilesAnalyzeCont
 use App\Http\Controllers\Agent\Source\File\Upload\AgentKnowledgeFilesProcessController;
 use App\Http\Controllers\Agent\Source\File\Upload\AgentKnowledgeFileUploadController;
 use App\Http\Controllers\Agent\Source\Function\AgentFunctionAttachController;
-use App\Http\Controllers\Agent\Source\Function\AgentFunctionDeleteController;
 use App\Http\Controllers\Agent\Source\Function\AgentFunctionController;
+use App\Http\Controllers\Agent\Source\Function\AgentFunctionDeleteController;
 use App\Http\Controllers\Agent\Source\Function\AgentFunctionsListController;
 use App\Http\Controllers\Agent\Source\Function\AgentFunctionTestController;
 use App\Http\Controllers\Agent\Source\Qa\AgentQaController;
@@ -78,8 +78,8 @@ use App\Http\Controllers\Agent\Source\Text\DetachAgentTextController;
 use App\Http\Controllers\Agent\Source\Video\AgentSourceFileDeleteController;
 use App\Http\Controllers\Agent\Source\Video\AgentSourceVideoController;
 use App\Http\Controllers\Agent\Source\Web\AgentTrainedWebsiteController;
-use App\Http\Controllers\Agent\Source\Web\AgentWebsiteLinkController;
 use App\Http\Controllers\Agent\Source\Web\AgentWebsiteController;
+use App\Http\Controllers\Agent\Source\Web\AgentWebsiteLinkController;
 use App\Http\Controllers\Agent\Source\Web\BulkDestroyAgentWebsiteLinksController;
 use App\Http\Controllers\Agent\Source\Web\RetrainAgentWebsiteLinkController;
 use App\Http\Controllers\Agent\Source\Web\TrainAgentWebsiteController;
@@ -90,7 +90,6 @@ use App\Http\Controllers\Agent\SubDomain\AgentsGenerateRandomSubDomainController
 use App\Http\Controllers\Agent\Team\AgentTeamController;
 use App\Http\Controllers\Agent\Topic\AgentTopicController as TopicsResourceController;
 use App\Http\Controllers\Agent\Widget\WidgetPreviewController;
-use App\Http\Controllers\Agent\Workflow\AgentWorkflowController;
 use App\Http\Controllers\Countries\CountriesListController;
 use Illuminate\Support\Facades\Route;
 
@@ -140,7 +139,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
 
         Route::get('persona', AgentShowPersonaController::class)->name('persona');
 
-        Route::get('business-profile', [AgentBusinessProfileController::class, 'show'])->name('business-profile');
         Route::patch('business-profile', [AgentBusinessProfileController::class, 'update'])->name('business-profile.update');
         Route::delete('business-profile', [AgentBusinessProfileController::class, 'destroy'])->name('business-profile.destroy');
 
@@ -274,9 +272,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
 
         // Members
         Route::get('team', AgentTeamController::class)->name('team');
-
-        // Workflow
-        Route::get('workflow', AgentWorkflowController::class)->name('workflow');
 
         // Rename Agent
         Route::patch('rename', RenameAgentController::class)->name('rename');

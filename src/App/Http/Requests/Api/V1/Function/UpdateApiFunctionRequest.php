@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Function;
 
-use Domain\Function\Data\ApiFunctionPayloadData;
+use Domain\Integration\Function\Data\ApiFunctionPayloadData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateApiFunctionRequest extends FormRequest
@@ -18,7 +18,8 @@ class UpdateApiFunctionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'string', 'max:64', 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/'],
+            'internal_name' => ['sometimes', 'string', 'max:64', 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/'],
+            'display_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'description' => ['sometimes', 'string', 'max:1024'],
             'parameters_schema' => ['sometimes', 'array'],
             'webhook_url' => ['sometimes', 'url', 'max:2048'],

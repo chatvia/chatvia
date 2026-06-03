@@ -1,7 +1,7 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
@@ -31,7 +31,7 @@ it('attaches a connector to an agent', function (): void {
             'slug' => $this->server->slug,
             'agent' => $this->agent->external_id,
         ]))
-        ->assertOk()
+        ->assertSuccessful()
         ->assertJsonCount(1, 'attached')
         ->assertJsonPath('attached.0.id', $this->agent->external_id);
 
@@ -67,7 +67,7 @@ it('lists and attaches agents from another team in the same account', function (
             'slug' => $this->server->slug,
             'agent' => $otherTeamAgent->external_id,
         ]))
-        ->assertOk();
+        ->assertSuccessful();
 
     expect($this->server->agents()->whereKey($otherTeamAgent->id)->exists())->toBeTrue();
 });

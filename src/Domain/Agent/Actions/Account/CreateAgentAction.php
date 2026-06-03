@@ -5,7 +5,7 @@ namespace Domain\Agent\Actions\Account;
 use Domain\Agent\Data\Account\CreateAgentData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\Agent as AgentService;
-use Domain\Topic\Models\ChatTopic;
+use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -28,7 +28,7 @@ class CreateAgentAction
                 'auth_secret' => 'cvsk_'.Str::random(56),
             ]);
 
-            $agent->topics()->attach(ChatTopic::pluck('id'));
+            $agent->topics()->attach(Topic::pluck('id'));
 
             return $agent;
         });

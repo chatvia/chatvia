@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware\Access;
 
-use App\Billing\Services\UserCreditSystem;
 use Closure;
+use Domain\Billing\Services\UserCreditSystem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

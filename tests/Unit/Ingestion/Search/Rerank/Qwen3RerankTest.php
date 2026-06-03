@@ -1,6 +1,6 @@
 <?php
 
-use App\Embedding\Qwen3;
+use Domain\Knowledge\Embedding\Qwen3;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 

@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Team\Invitations;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Team\AcceptInvitationRequest;
-use App\Team\Models\Invitation;
-use Domain\Team\Actions\Invitations\AcceptTeamInvitationAction;
-use Domain\Team\Data\AcceptInvitationData;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Membership\Team\Actions\Invitations\AcceptTeamInvitationAction;
+use Domain\Membership\Team\Data\AcceptInvitationData;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Domain\Membership\Team\Models\Invitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 

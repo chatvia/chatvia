@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Analytics\Tone;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;

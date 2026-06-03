@@ -9,7 +9,7 @@ import { toast } from 'vue-sonner';
 import Files from './Files.vue';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 interface UsageData {

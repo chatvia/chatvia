@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Settings\Connector\Catalog;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Connector\Actions\Account\ListAccountConnectorsAction;
-use Domain\Mcp\Actions\DeleteMcpServerAction;
-use Domain\Connector\Data\Account\AccountConnectorsResourceData;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Actions\Account\ListAccountConnectorsAction;
+use Domain\Integration\Connector\Data\Account\AccountConnectorsResourceData;
+use Domain\Integration\Mcp\Actions\DeleteMcpServerAction;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Workspace\Models\UserSocial;
 use App\Http\Controllers\Controller;
-use App\Workspace\Actions\Social\UnlinkSocialAccountAction;
+use App\Identity\Workspace\Actions\Social\UnlinkSocialAccountAction;
+use App\Identity\Workspace\Models\UserSocial;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,7 +32,7 @@ class SocialController extends Controller
             ->keyBy(fn (UserSocial $s) => $s->provider->value);
 
         return Inertia::render('settings/Social', [
-            'accounts' => collect(self::SUPPORTED)->map(fn (SocialProvider $p) => [
+            'accounts' => collect(self::SUPPORTED)->map(fn (SocialProvider $p): array => [
                 'provider' => $p->value,
                 'label' => ucfirst($p->value),
                 'connected' => $linked->has($p->value),
@@ -64,7 +64,7 @@ class SocialController extends Controller
         $unlink->execute($request->user(), $providerEnum);
 
         return to_route('settings.social.edit')
-            ->with('status', ucfirst($providerEnum->value).' disconnected.');
+            ->with('success', ucfirst($providerEnum->value).' disconnected.');
     }
 
     private function resolveProvider(string $provider): SocialProvider

@@ -1,6 +1,6 @@
 <?php
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -18,7 +18,8 @@ return new class extends Migration
 
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
 
-            $table->string('name', 64);
+            $table->string('internal_name', 64);
+            $table->string('display_name')->nullable();
             $table->text('description');
             $table->jsonb('parameters_schema');
 
@@ -29,6 +30,11 @@ return new class extends Migration
 
             $table->enum('auth_type', ['none', 'bearer', 'header', 'hmac'])->default('none');
             $table->text('auth_config')->nullable();
+
+            // Per-function human-in-the-loop switch. A function is a single
+            // tool, so this is its per-tool toggle. Seeded from webhook_method
+            // at create (GET → false, write verbs → true), then user-editable.
+            $table->boolean('requires_approval')->default(true);
 
             $table->unsignedSmallInteger('timeout_ms')->default(10000);
             $table->unsignedInteger('max_response_bytes')->default(65536);
@@ -44,7 +50,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['user_id', 'name']);
+            $table->unique(['user_id', 'internal_name']);
         });
 
         DB::statement('CREATE INDEX functions_embedding_bm25 ON functions USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');

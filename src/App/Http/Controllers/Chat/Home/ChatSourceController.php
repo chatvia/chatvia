@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Chat\Home;
 
-use Domain\Chat\Services\Memory\ChatMemory;
-use Domain\Chat\Services\Memory\ChatSession;
+use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Conversation\Services\Memory\TurnState;
 use Illuminate\Http\Request;
 
 class ChatSourceController
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $memory, ChatSession $session): array
+    public function __invoke(Request $request, string $conversationId, ChatMemory $memory, TurnState $session): array
     {
         $agent = current_agent();
 
         return $memory
             ->setAgent($agent)
-            ->setExternalSessionId($session->firstOrCreateChatSession($agent))
+            ->setExternalSessionId($session->firstOrCreateSession($agent))
             ->setConversationId($conversationId)
             ->getSources();
     }

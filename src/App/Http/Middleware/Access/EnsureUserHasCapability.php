@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware\Access;
 
-use App\Workspace\Models\User;
-use App\Billing\Enums\CapabilityEnum;
+use App\Identity\Workspace\Models\User;
 use Closure;
+use Domain\Billing\Enums\CapabilityEnum;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use ValueError;
@@ -36,7 +36,11 @@ class EnsureUserHasCapability
             return $next($request);
         }
 
-        if (! $user->hasCapability($case)) {
+        // Resolve against the user's current team (its plan), falling back to
+        // the user's own plan when there's no team context (e.g. API tokens).
+        $allowed = $user->currentTeam?->hasCapability($case) ?? $user->hasCapability($case);
+
+        if (! $allowed) {
             abort(403, "Your plan doesn't include {$case->label()}.");
         }
 

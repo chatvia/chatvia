@@ -39,12 +39,12 @@ const { hasPermission } = useTeamPermissions();
 const canDeleteSources = computed(() => hasPermission('agent.sources.delete'));
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
     fileType?: string; // 'pdf', 'word', or undefined for all files
     // Removed quota and usage props - will fetch from API
 }
 
-type KnowledgeFile = Domain.Agents.Data.Resources.SourceFileDataResource;
+type KnowledgeFile = Domain.Agent.Data.Resources.Sources.SourceFileDataResource;
 
 interface UploadedFile {
     id: number;
@@ -66,8 +66,8 @@ interface UploadingFileData extends BaseUploadingFileData {
 
 // Usage data interface - subset of the full usage resource with optional minutes
 type UsageData = {
-    pages: App.Auth.Data.Resources.My.Usage.UsageStatsData;
-    minutes?: App.Auth.Data.Resources.My.Usage.UsageStatsData;
+    pages: App.Workspace.Data.Resources.My.Usage.UsageStatsData;
+    minutes?: App.Workspace.Data.Resources.My.Usage.UsageStatsData;
 };
 
 // File summary data interface

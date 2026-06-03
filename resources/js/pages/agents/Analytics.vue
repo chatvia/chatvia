@@ -34,14 +34,14 @@ const isCountryDialogOpen = ref(false);
 const isDayOfWeekDialogOpen = ref(false);
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 const props = defineProps<Props>();
 
 const loading = ref(true);
 const isRefreshing = ref(false);
-const analytics = ref<Domain.Agents.Data.Resources.Stats.StatsResourceData | null>(null);
+const analytics = ref<Domain.Agent.Data.Resources.Stats.StatsResourceData | null>(null);
 const error = ref<string | null>(null);
 
 const { formatTimeAgo: _formatTimeAgo } = useTimeAgo();

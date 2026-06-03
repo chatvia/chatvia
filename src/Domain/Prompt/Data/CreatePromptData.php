@@ -2,7 +2,7 @@
 
 namespace Domain\Prompt\Data;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Spatie\LaravelData\Data;
 
 class CreatePromptData extends Data

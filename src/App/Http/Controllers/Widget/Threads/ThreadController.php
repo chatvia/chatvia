@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Widget\Threads;
 
-use App\Widget\WidgetVerification;
 use Domain\Widget\Actions\ListWidgetThreadsAction;
 use Domain\Widget\Data\Thread\WidgetThreadsResultData;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
 
 class ThreadController

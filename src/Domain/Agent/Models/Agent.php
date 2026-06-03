@@ -2,24 +2,26 @@
 
 namespace Domain\Agent\Models;
 
-use App\Workspace\Models\User;
-use App\Team\Models\Role;
-use App\Team\Models\Team;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\QueryBuilders\AgentQueryBuilder;
 use Domain\Agent\Services\FileAnalyzer;
-use Domain\Chat\Models\ChatSession;
-use Domain\Function\Models\AgentFunction;
+use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
+use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Memory\ChatCache;
+use Domain\Conversation\Topic\Models\Topic;
+use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Knowledge\Source\File\Enums\AgentFileStatusEnum;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Lead\Models\Lead;
 use Domain\Llm\Models\Llm;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Topic\Models\ChatTopic;
+use Domain\Membership\Team\Models\Role;
+use Domain\Membership\Team\Models\Team;
 use Domain\Prompt\Models\AgentPrompt;
-use Domain\Source\File\Enums\AgentFileStatusEnum;
-use Domain\Source\File\Models\SourceFile;
-use Domain\Source\Text\Models\SourceText;
-use Domain\Source\Web\Models\SourceWebsite;
-use Domain\Source\Youtube\Models\SourceYoutubeVideo;
 use Exception;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
@@ -67,7 +69,7 @@ use Support\Traits\HasSettings;
  * @property-read Collection<int, SourceFile> $audioFiles
  * @property-read int|null $audio_files_count
  * @property-read string $chat_embed_url
- * @property-read Collection<int, ChatSession> $chatSessions
+ * @property-read Collection<int, Session> $chatSessions
  * @property-read int|null $chat_sessions_count
  * @property-read string $chat_url
  * @property-read Collection<int, SourceFile> $files
@@ -87,7 +89,7 @@ use Support\Traits\HasSettings;
  * @property-read Team $team
  * @property-read Collection<int, SourceText> $texts
  * @property-read int|null $texts_count
- * @property-read Collection<int, ChatTopic> $topics
+ * @property-read Collection<int, Topic> $topics
  * @property-read int|null $topics_count
  * @property-read mixed $url
  * @property-read User $user
@@ -440,10 +442,18 @@ class Agent extends Model
         return $this->settings('llm_settings')->all();
     }
 
+    /**
+     * Per-plan conversation retention. Drives both the Redis TTL in
+     * {@see ChatCache::getMessageRetention()}
+     * and the `chat_conversations.expires_at` stamped on create. Resolves
+     * through the agent's team owner (billing is workspace-owner-scoped);
+     * falls back to the Starter floor when ownership can't be resolved so
+     * we never write a TTL shorter than what the user paid for.
+     */
     public function messageRetentionInDays(): int
     {
-        // TODO: Make this configurable as a setting
-        return 360;
+        return $this->team?->owner?->capabilities?->retentionDays
+            ?? BillingPackageCapabilitiesData::DEFAULT_RETENTION_DAYS;
     }
 
     public function url(): Attribute
@@ -475,11 +485,11 @@ class Agent extends Model
     }
 
     /**
-     * @return HasMany<ChatSession, $this>
+     * @return HasMany<Session, $this>
      */
     public function chatSessions(): HasMany
     {
-        return $this->hasMany(ChatSession::class);
+        return $this->hasMany(Session::class);
     }
 
     public function getUserId()
@@ -533,7 +543,7 @@ class Agent extends Model
 
     public function topics(): BelongsToMany
     {
-        return $this->belongsToMany(ChatTopic::class, 'agent_topic', 'agent_id', 'chat_topic_id');
+        return $this->belongsToMany(Topic::class, 'agent_topic', 'agent_id', 'chat_topic_id');
     }
 
     public function newEloquentBuilder($query): AgentQueryBuilder

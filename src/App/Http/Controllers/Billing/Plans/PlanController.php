@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Plans;
 
-use App\Billing\Services\Billing;
+use Domain\Billing\Services\Billing;
 use Domain\Llm\Models\Llm;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,7 +18,6 @@ class PlanController
         return Inertia::render('billing/Plans', [
             'packages' => $billing->getAvailablePackages()->values()->toArray(),
             'currentPackage' => $currentPackage['id'] ?? null,
-            'comparisonFeatures' => array_values($billing->comparisonFeatures()),
             'billingConfig' => [
                 'ui' => config('billing.ui'),
                 'commonFeatures' => config('billing.common_features'),

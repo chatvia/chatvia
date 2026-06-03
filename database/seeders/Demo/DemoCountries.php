@@ -2,7 +2,7 @@
 
 namespace Database\Seeders\Demo;
 
-use App\Country\Models\Country;
+use Support\Localization\Country\Models\Country;
 
 /**
  * Single source of truth for the country mix used by demo seeders.

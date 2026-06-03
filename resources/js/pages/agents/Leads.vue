@@ -16,7 +16,7 @@ import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
     settings?: {
         fields?: any;
     } | null;
@@ -32,7 +32,7 @@ const canManageLeadSettings = computed(() => hasPermission('agent.leads.settings
 const canExportLeads = computed(() => hasPermission('agent.leads.export'));
 
 // Leads data loaded via Axios
-const leads = ref<Domain.Agents.Data.Resources.LeadResourceData[]>([]);
+const leads = ref<Domain.Lead.Data.Resources.LeadResourceData[]>([]);
 const isLoadingLeads = ref(true);
 
 const fetchLeads = async () => {
@@ -92,7 +92,7 @@ const showDeleteDialog = ref(false);
 const isDeleting = ref(false);
 const isExporting = ref(false);
 const showLeadDetails = ref(false);
-const selectedLeadForView = ref<Domain.Agents.Data.Resources.LeadResourceData | null>(null);
+const selectedLeadForView = ref<Domain.Lead.Data.Resources.LeadResourceData | null>(null);
 
 // Settings dialog state
 const showSettingsDialog = ref(false);
@@ -169,7 +169,7 @@ const clearSelection = () => {
     selectedLeads.value = [];
 };
 
-const viewLead = (lead: Domain.Agents.Data.Resources.LeadResourceData) => {
+const viewLead = (lead: Domain.Lead.Data.Resources.LeadResourceData) => {
     selectedLeadForView.value = lead;
     showLeadDetails.value = true;
 };

@@ -1,10 +1,10 @@
 <?php
 
-use App\Workspace\Models\User;
 use App\Http\Middleware\Chat\RedirectToAgent;
 use App\Http\Middleware\Chat\ResolveAgentFromSubdomain;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Response as InertiaResponse;
@@ -20,7 +20,6 @@ function makeQueryParamAgent(bool $public = true): Agent
         'user_id' => $owner->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Query Param Agent',
-        'type' => 'knowledge_base',
         'external_id' => Str::random(14),
         'sub_domain' => Str::lower(Str::random(12)),
         'system_instructions' => 'You are a helpful assistant.',

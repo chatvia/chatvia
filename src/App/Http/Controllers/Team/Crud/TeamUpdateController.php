@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Team\Crud;
 
 use App\Http\Requests\Team\UpdateTeamRequest;
-use App\Team\Models\Team;
-use Domain\Team\Actions\Team\UpdateTeamAction;
+use Domain\Membership\Team\Actions\Team\UpdateTeamAction;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 
 class TeamUpdateController

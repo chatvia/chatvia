@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Website;
 
-use App\Marketing\Models\Post;
 use PHPUnit\Framework\Attributes\Test;
+use Support\Cms\Marketing\Models\Post;
 use Tests\TestCase;
 
 class HomeTest extends TestCase

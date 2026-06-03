@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Settings\Prompt;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Prompt\Data\UpdatePromptData;
 use Domain\Prompt\Models\AgentPrompt;

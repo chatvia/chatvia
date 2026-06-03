@@ -4,8 +4,8 @@ import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, ref, watch } from 'vue';
 
-type Message = Domain.Agents.Data.Resources.ChatLog.ChatLogMessageData;
-type Topic = Domain.Agents.Data.Resources.ChatLog.ChatLogTopicData;
+type Message = Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData;
+type Topic = Domain.Agent.Data.Resources.ChatLog.Topics.ChatLogTopicData;
 
 // Singleton state - shared across components
 const agent = ref<any>(null);

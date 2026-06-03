@@ -61,6 +61,29 @@ function toggleOnlineOnly() {
     fetchConversations(1);
 }
 
+// Relative-time string for the conversation's per-plan retention horizon.
+// Returns null when the date is missing or already past so we can hide the
+// row entirely; the prune command will sweep the row on its next run anyway.
+function formatExpiresIn(iso: string | null | undefined): string | null {
+    if (!iso) return null;
+    const ms = new Date(iso).getTime() - Date.now();
+    if (ms <= 0) return null;
+    const days = Math.ceil(ms / 86_400_000);
+    if (days <= 1) return 'Expires today';
+    if (days < 30) return `Expires in ${days} days`;
+    const months = Math.round(days / 30);
+    return months === 1 ? 'Expires in 1 month' : `Expires in ${months} months`;
+}
+
+function formatExpiresOn(iso: string | null | undefined): string {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
+
 const isRefreshingConversations = ref(false);
 
 async function refreshConversations() {
@@ -315,6 +338,22 @@ import { ref } from 'vue';
                             <span v-if="hasTopicsAccess && c.topic" class="opacity-50">•</span>
                             <span>{{ formatTimeAgo(c.last_at) }}</span>
                         </div>
+
+                        <!-- Per-plan retention horizon. Hidden when expires_at
+                             is null (legacy rows) or already in the past — the
+                             prune command sweeps those on its next run. -->
+                        <Tooltip v-if="formatExpiresIn(c.expires_at)">
+                            <TooltipTrigger as-child>
+                                <div
+                                    class="flex items-center gap-1 text-[11px]"
+                                    :class="currentConversationId === c.conversation_id ? 'opacity-60' : 'opacity-40'"
+                                >
+                                    <Calendar class="h-3 w-3 flex-shrink-0" />
+                                    <span>{{ formatExpiresIn(c.expires_at) }}</span>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top"> Deletes on {{ formatExpiresOn(c.expires_at) }} </TooltipContent>
+                        </Tooltip>
                     </button>
                 </li>
             </ul>

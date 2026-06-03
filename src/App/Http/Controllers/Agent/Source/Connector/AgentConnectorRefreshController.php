@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Agent\Source\Connector;
 
 use Domain\Agent\Models\Agent;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Connector\Actions\Agent\RefreshAgentConnectorCatalogAction;
-use Domain\Connector\Data\Agent\AgentConnectorRefreshResultData;
+use Domain\Integration\Connector\Actions\Agent\RefreshAgentConnectorCatalogAction;
+use Domain\Integration\Connector\Data\Agent\AgentConnectorRefreshResultData;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RuntimeException;

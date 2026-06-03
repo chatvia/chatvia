@@ -96,6 +96,7 @@ return [
                 'show_on_load_delay' => 500,
                 'bubbles' => [],
                 'language' => 'auto',
+                'handoff_enabled' => true,
             ],
             'embed' => [
                 'remove_sidebar' => false,
@@ -172,6 +173,7 @@ return [
             'show_on_load_delay' => ['nullable', 'integer'],
             'language' => ['nullable', 'string'],
             'bubbles' => ['nullable', 'array'],
+            'handoff_enabled' => ['nullable', 'boolean'],
         ],
         'embed' => [
             'remove_sidebar' => ['nullable', 'boolean'],

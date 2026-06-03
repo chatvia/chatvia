@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Billing\Payments;
 
-use App\Workspace\Models\User;
 use App\Http\Requests\Billing\PaymentMethodIdRequest;
+use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Account\SetDefaultPaymentMethodAction;
 use Exception;
 use Illuminate\Http\RedirectResponse;

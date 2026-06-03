@@ -12,7 +12,9 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
             $table->string('name');
-            $table->string('email')->unique();
+            // Nullable so API-provisioned chatters (no email at sign-up) can
+            // still own a users row. Unique constraint ignores NULLs in pgsql.
+            $table->string('email')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->text('two_factor_secret')->nullable();

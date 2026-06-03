@@ -2,10 +2,10 @@
 
 namespace Domain\Lead\Models;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Chat\Models\ChatMessage;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,8 +37,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Agent|null $agent
  * @property-read User|null $assignedTo
- * @property-read ChatConversation|null $conversation
- * @property-read Collection<int, ChatMessage> $messages
+ * @property-read Conversation|null $conversation
+ * @property-read Collection<int, Message> $messages
  * @property-read int|null $messages_count
  *
  * @method static \Database\Factories\LeadFactory factory($count = null, $state = [])
@@ -46,7 +46,7 @@ use Illuminate\Support\Carbon;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Lead newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Lead query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Lead whereAgentId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Lead whereChatConversationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Lead whereConversationId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Lead whereCompany($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Lead whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Lead whereEmail($value)
@@ -82,12 +82,12 @@ class Lead extends Model
 
     public function conversation(): BelongsTo
     {
-        return $this->belongsTo(ChatConversation::class, 'chat_conversation_id');
+        return $this->belongsTo(Conversation::class, 'chat_conversation_id');
     }
 
     public function messages(): HasMany
     {
-        return $this->hasMany(ChatMessage::class, 'chat_conversation_id', 'chat_conversation_id');
+        return $this->hasMany(Message::class, 'chat_conversation_id', 'chat_conversation_id');
     }
 
     public function assignedTo(): BelongsTo

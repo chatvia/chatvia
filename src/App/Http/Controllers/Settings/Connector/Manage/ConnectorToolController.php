@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Settings\Connector\Manage;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Mcp\Actions\ListConnectorToolsAction;
-use Domain\Connector\Data\Catalog\ConnectorToolsResourceData;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Data\Catalog\ConnectorToolsResourceData;
+use Domain\Integration\Mcp\Actions\ListConnectorToolsAction;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\Request;
 
 /**

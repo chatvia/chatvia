@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Widget;
 
-use Domain\Chat\Data\Messages\BroadcastChatTypingData;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Data\Messages\BroadcastChatTypingData;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class WidgetTypingRequest extends FormRequest
@@ -24,7 +24,7 @@ class WidgetTypingRequest extends FormRequest
         ];
     }
 
-    public function toData(ChatConversation $conversation): BroadcastChatTypingData
+    public function toData(Conversation $conversation): BroadcastChatTypingData
     {
         return new BroadcastChatTypingData(
             conversationId: $this->string('conversation_id')->toString(),

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
-use App\Workspace\Models\User;
-use App\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;

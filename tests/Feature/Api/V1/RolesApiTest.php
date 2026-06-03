@@ -1,14 +1,14 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Team\Models\Role;
-use App\Team\Services\TeamService;
+use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use App\Chatter\Actions\CreateChatterAction;
-use Domain\Team\Actions\Team\CreateTeamAction;
-use Domain\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Team\Data\CreateTeamData;
-use Domain\Team\Data\SaveTeamRoleData;
+use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
+use Domain\Membership\Team\Actions\Team\CreateTeamAction;
+use Domain\Membership\Team\Data\CreateTeamData;
+use Domain\Membership\Team\Data\SaveTeamRoleData;
+use Domain\Membership\Team\Models\Role;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {
@@ -29,7 +29,6 @@ function makeRoleAgent(User $user, string $name): Agent
         'user_id' => $user->id,
         'team_id' => $user->primaryTeam()->id,
         'name' => $name,
-        'type' => 'knowledge_base',
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'is_public' => false,

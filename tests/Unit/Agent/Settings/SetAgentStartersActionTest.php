@@ -1,6 +1,6 @@
 <?php
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Settings\SetAgentStartersAction;
 use Domain\Agent\Models\AgentStarter;
 

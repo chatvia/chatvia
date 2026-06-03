@@ -8,50 +8,50 @@
                 [
                     'img' => 'images/chatvia/chat-widget.png',
                     'tab_name' => 'Chat Widget',
-                    'title' => 'Embeddable Chat Widget',
-                    'description' => 'Add a beautiful, customizable chat widget to your website in seconds. Engage visitors instantly with AI-powered conversations that feel natural and helpful.',
+                    'title' => 'Deploy your agent anywhere',
+                    'description' => 'Embed your agent on any site, share a hosted chat link, or call it from your own app. The same agent works across every surface — live in minutes.',
                 ],
                 [
                     'img' => 'images/chatvia/gpt.png',
                     'tab_name' => 'ChatGPT-Style',
-                    'title' => 'ChatGPT-Style Interface',
-                    'description' => 'Provide your users with a familiar ChatGPT-like experience, powered by your own business data. Perfect for documentation, internal tools, and customer support.',
+                    'title' => 'A ChatGPT for your company',
+                    'description' => 'Give your team and customers a familiar chat experience powered by your own data and tools. Great for internal knowledge, product help, and research — not just support.',
                 ],
                 [
                     'img' => 'images/chatvia/training.png',
                     'tab_name' => 'Training',
-                    'title' => 'Train on Any Data Source',
-                    'description' => 'Upload documents, crawl your website, or connect your data sources. Your AI chatbot learns from your content and stays synchronized with your latest information.',
+                    'title' => 'Train on your own data',
+                    'description' => 'Upload documents, crawl your website, or connect your data sources. Your agent learns from your content and stays in sync with your latest information.',
                 ],
                 [
                     'img' => 'images/chatvia/control-panel.png',
                     'tab_name' => 'Control Panel',
-                    'title' => 'Comprehensive Control Panel',
-                    'description' => 'Manage all your AI agents from one powerful dashboard. Configure settings, monitor performance, and control multiple chatbots with ease.',
+                    'title' => 'Manage every agent in one place',
+                    'description' => 'Build and run all your AI agents from one dashboard. Configure behavior, connect tools, pick models, and control every agent across your workspace.',
                 ],
                 [
                     'img' => 'images/chatvia/stats.png',
                     'tab_name' => 'Analytics',
-                    'title' => 'Advanced Analytics & Insights',
-                    'description' => 'Track conversations, measure engagement, and understand user behavior with detailed analytics. Make data-driven decisions to improve your chatbot performance.',
+                    'title' => 'Analytics & insights',
+                    'description' => 'Track usage, measure engagement, and see exactly how your agents are used. Make data-driven decisions to improve their performance.',
                 ],
                 [
                     'img' => 'images/chatvia/chat-log.png',
                     'tab_name' => 'Chat Logs',
-                    'title' => 'Complete Conversation History',
-                    'description' => 'Review every conversation in detail. Identify common questions, discover knowledge gaps, and continuously refine your chatbot responses for better accuracy.',
+                    'title' => 'Complete conversation history',
+                    'description' => 'Review every conversation in detail. See how your agents respond, spot gaps in your data, and refine their instructions for better accuracy.',
                 ],
                 [
                     'img' => 'images/chatvia/pulse.png',
                     'tab_name' => 'Pulse',
-                    'title' => 'Tone & Sentiment Analysis',
-                    'description' => 'Monitor visitor emotions and sentiment in real-time throughout conversations. Detect frustration, satisfaction, and engagement levels to optimize responses and enhance customer experience.',
+                    'title' => 'Tone & sentiment analysis',
+                    'description' => 'Monitor sentiment and tone across conversations in real time, so you understand how people experience your agents and where to improve.',
                 ],
                 [
                     'img' => 'images/chatvia/leads.png',
                     'tab_name' => 'Leads',
-                    'title' => 'Intelligent Lead Capture',
-                    'description' => 'Turn conversations into qualified leads automatically. Capture contact information naturally during chat and integrate seamlessly with your CRM.',
+                    'title' => 'Capture leads in conversation',
+                    'description' => 'Let your agent capture and qualify leads mid-conversation, then push them to your CRM through an MCP server or a custom function.',
                 ],
             ],
         ],
@@ -61,11 +61,11 @@
             'slides' => [],
         ],
         'steps' => [
-            'title' => 'No coding platform, deploy instantly',
+            'title' => 'From idea to live agent in minutes',
             'steps' => [
-                ['title' => 'Create', 'description' => 'Just click on the Create Agent button to get started and choose between a widget and a custom GPT'],
-                ['title' => 'Train', 'description' => 'Upload documents, add website content, or connect your data sources to train your AI chatbot with your business data'],
-                ['title' => 'Deploy', 'description' => 'Embed the chatbot widget on your website or share a direct link to start answering customer questions instantly 24/7'],
+                ['title' => 'Create', 'description' => 'Create an agent in a click — name it, pick a model, and choose how you want to deploy it.'],
+                ['title' => 'Train & connect', 'description' => 'Train it on your data — upload documents, crawl your site, and connect MCP servers and custom functions so it can act in your tools.'],
+                ['title' => 'Deploy', 'description' => 'Deploy anywhere — embed it, share a hosted link, or call it from your app. Your agent is live and working in your existing tools.'],
             ],
         ],
     ];
@@ -484,8 +484,6 @@
         </section>
     @endif
 
-    @include('landing.partials.tone-detection')
-
     @if (isset($features['slide2']['slides']) && count($features['slide2']['slides']) !== 0)
         <section class="bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6">
@@ -574,7 +572,18 @@
                 </div>
 
                 <!-- Steps -->
-                <div class="grid md:grid-cols-3 gap-8 md:gap-12">
+                <div class="relative grid md:grid-cols-3 gap-8 md:gap-12">
+
+                    <!-- Dotted connectors between steps (desktop only) -->
+                    <div class="hidden md:grid grid-cols-6 items-center pointer-events-none absolute top-7 inset-x-0 -translate-y-1/2"
+                        aria-hidden="true">
+                        <div></div>
+                        <div class="ml-10 border-t-2 border-dotted border-indigo-400/50"></div>
+                        <div class="mr-10 border-t-2 border-dotted border-indigo-400/50"></div>
+                        <div class="ml-10 border-t-2 border-dotted border-indigo-400/50"></div>
+                        <div class="mr-10 border-t-2 border-dotted border-indigo-400/50"></div>
+                        <div></div>
+                    </div>
 
                     <!-- Step 1 -->
                     <div class="text-center" data-aos="fade-up">

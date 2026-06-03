@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Team\Roles;
 
-use App\Team\Models\Team;
-use Domain\Team\Data\SaveTeamRoleData;
+use Domain\Membership\Team\Data\SaveTeamRoleData;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SaveTeamRoleRequest extends FormRequest

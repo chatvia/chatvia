@@ -2,7 +2,7 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Handoff;
 
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Models\Conversation;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -20,7 +20,7 @@ class ChatLogHandoffStatusData extends Data
         public ?string $handoff_at,
     ) {}
 
-    public static function fromConversation(ChatConversation $conversation): self
+    public static function fromConversation(Conversation $conversation): self
     {
         $conversation->loadMissing('handoffUser');
 

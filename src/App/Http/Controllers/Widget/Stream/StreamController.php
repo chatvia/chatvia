@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Widget\Stream;
 
-use App\Widget\WidgetVerification;
-use Domain\Chat\Services\ChatStreamService;
-use Domain\Chat\Services\Streaming\Requests\StreamRequestDataFactory;
+use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

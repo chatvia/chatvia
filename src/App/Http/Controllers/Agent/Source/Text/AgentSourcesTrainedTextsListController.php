@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agent\Source\Text;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\Text\Actions\ListAttachableTextsForAgentAction;
-use Domain\Source\Text\Data\TrainedTextRowData;
+use Domain\Knowledge\Source\Text\Actions\ListAttachableTextsForAgentAction;
+use Domain\Knowledge\Source\Text\Data\TrainedTextRowData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 

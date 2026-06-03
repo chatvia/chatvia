@@ -13,6 +13,11 @@ final class ChatController
         $agent?->loadSettingsGroups(['appearance', 'embed']);
         $embed = $agent?->settings('embed');
 
+        // Attachments live on each message now (rendered under the user
+        // bubble by UserChatBubble), so the page render no longer needs a
+        // conversation-level chip strip — ConversationMessageController
+        // hydrates per-message `attachments` for the messages fetch.
+
         return Inertia::render('chat/Chat', [
             'agent_id' => $agent?->id,
             'conversation_id' => $conversationId,

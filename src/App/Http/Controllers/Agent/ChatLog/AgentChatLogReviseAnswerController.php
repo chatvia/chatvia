@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\ChatLog;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\QA\Actions\CreateQaFromMessageReviseAction;
+use Domain\Knowledge\Source\QA\Actions\CreateQaFromMessageReviseAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

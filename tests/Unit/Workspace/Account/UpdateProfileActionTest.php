@@ -1,8 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Actions\Account\UpdateProfileAction;
-use App\Workspace\Data\Account\UpdateProfileData;
+use App\Identity\Workspace\Actions\Account\UpdateProfileAction;
+use App\Identity\Workspace\Data\Account\UpdateProfileData;
+use App\Identity\Workspace\Models\User;
 
 it('updates name and email and returns the user', function (): void {
     $user = User::factory()->create([

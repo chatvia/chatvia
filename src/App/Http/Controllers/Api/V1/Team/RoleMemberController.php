@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1\Team;
 
-use App\Workspace\Models\User;
 use App\Http\Resources\Api\V1\Auth\UserData;
-use App\Team\Models\Role;
-use App\Team\Models\Team;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Team\Actions\Members\AssignUserToRoleAction;
+use Domain\Membership\Team\Actions\Members\AssignUserToRoleAction;
+use Domain\Membership\Team\Models\Role;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\Request;
 
 /**

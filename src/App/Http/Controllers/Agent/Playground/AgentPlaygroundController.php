@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Playground;
 
-use App\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;

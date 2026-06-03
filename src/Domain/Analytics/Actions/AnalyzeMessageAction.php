@@ -2,9 +2,9 @@
 
 namespace Domain\Analytics\Actions;
 
-use App\Billing\Enums\CapabilityEnum;
-use App\TextAnalysis\ToneAnalysis;
-use Domain\Chat\Models\ChatMessage;
+use Domain\Analytics\Services\ToneAnalysis;
+use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Conversation\Models\Message;
 
 class AnalyzeMessageAction
 {
@@ -14,7 +14,7 @@ class AnalyzeMessageAction
 
     public function execute(string $externalMessageId): void
     {
-        $message = ChatMessage::with('conversation.agent.user')
+        $message = Message::with('conversation.agent.user')
             ->where('external_id', $externalMessageId)
             ->first();
 
@@ -30,10 +30,10 @@ class AnalyzeMessageAction
         // call — gate together. Skip when the workspace owner can't see
         // either result so we don't burn inference on data the customer
         // will never view.
-        $owner = $message->conversation?->agent?->user;
-        if (! $owner || (
-            ! $owner->hasCapability(CapabilityEnum::SENTIMENT)
-            && ! $owner->hasCapability(CapabilityEnum::TONE)
+        $team = $message->conversation?->agent?->team;
+        if (! $team || (
+            ! $team->hasCapability(CapabilityEnum::SENTIMENT)
+            && ! $team->hasCapability(CapabilityEnum::TONE)
         )) {
             return;
         }

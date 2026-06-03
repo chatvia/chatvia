@@ -1,13 +1,13 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Services\AgentSignInTokenService;
-use App\Team\Services\TeamService;
+use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
-use Domain\Mcp\Models\AgentMcpServer;
-use App\Chatter\Actions\CreateChatterAction;
-use Domain\Team\Actions\Team\CreateTeamAction;
-use Domain\Team\Data\CreateTeamData;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Membership\Team\Actions\Team\CreateTeamAction;
+use Domain\Membership\Team\Data\CreateTeamData;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {
@@ -401,7 +401,6 @@ function createAgentInTeam(User $user, int $teamId, string $name = 'Test Agent')
         'user_id' => $user->id,
         'team_id' => $teamId,
         'name' => $name,
-        'type' => 'knowledge_base',
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'is_public' => false,

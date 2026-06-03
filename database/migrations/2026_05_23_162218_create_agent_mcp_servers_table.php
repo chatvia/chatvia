@@ -1,6 +1,6 @@
 <?php
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,7 +20,14 @@ return new class extends Migration
             $table->string('connector_slug', 40)->nullable();
 
             $table->string('name', 64);
+            $table->text('description')->nullable();
             $table->string('slug', 40);
+
+            // Master human-in-the-loop switch for this connector. When true,
+            // its write/destructive tools (per-tool `requires_approval`) pause
+            // for user confirmation before running. Turning it off auto-runs
+            // everything from this connector.
+            $table->boolean('requires_approval')->default(true);
 
             $table->text('url');
             $table->enum('transport', ['streamable_http', 'http_sse'])->default('streamable_http');

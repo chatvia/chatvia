@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Settings\Function;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Closure;
-use Domain\Function\Data\CreateAgentFunctionData;
+use Domain\Integration\Function\Data\CreateAgentFunctionData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateAgentFunctionRequest extends FormRequest
@@ -20,17 +20,18 @@ class CreateAgentFunctionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [
+            'internal_name' => [
                 'required',
                 'string',
                 'max:64',
                 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/',
                 function (string $attribute, mixed $value, Closure $fail): void {
-                    if ($this->user()->functions()->where('name', $value)->exists()) {
+                    if ($this->user()->functions()->where('internal_name', $value)->exists()) {
                         $fail('A function with this name already exists on your account.');
                     }
                 },
             ],
+            'display_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],
             'parameters_schema' => [
                 'required',
@@ -49,6 +50,7 @@ class CreateAgentFunctionRequest extends FormRequest
             // structured `auth_config` array per auth_type.
             'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],
             'auth_value' => ['nullable', 'required_if:auth_type,bearer,header,hmac', 'string', 'max:8192'],
+            'requires_approval' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -74,13 +76,15 @@ class CreateAgentFunctionRequest extends FormRequest
 
         return new CreateAgentFunctionData(
             user: $user,
-            name: $this->string('name')->toString(),
+            internal_name: $this->string('internal_name')->toString(),
+            display_name: $this->string('display_name')->toString() ?: null,
             description: $this->string('description')->toString(),
             parameters_schema: $schema,
             webhook_url: $this->string('webhook_url')->toString(),
             webhook_method: $this->string('webhook_method', 'POST')->toString(),
             auth_type: $authType,
             auth_config: $authConfig,
+            requires_approval: $this->has('requires_approval') ? $this->boolean('requires_approval') : null,
         );
     }
 }

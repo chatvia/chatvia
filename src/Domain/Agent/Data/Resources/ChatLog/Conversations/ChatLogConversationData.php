@@ -2,8 +2,8 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Conversations;
 
-use Domain\Chat\Enums\ConversationSource;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -13,6 +13,7 @@ class ChatLogConversationData extends Data
     public function __construct(
         public string $conversation_id,
         public string $last_at,
+        public ?string $expires_at,
         public int $messages_count,
         public ?string $first_message_excerpt,
         public ?string $title,
@@ -33,11 +34,12 @@ class ChatLogConversationData extends Data
         public ?string $tone,
     ) {}
 
-    public static function fromConversation(ChatConversation $conversation, ?string $excerpt = null): self
+    public static function fromConversation(Conversation $conversation, ?string $excerpt = null): self
     {
         return new self(
             conversation_id: $conversation->external_id,
             last_at: $conversation->updated_at->toISOString(),
+            expires_at: $conversation->expires_at?->toISOString(),
             messages_count: $conversation->messages_count ?? 0,
             first_message_excerpt: $excerpt,
             title: $conversation->title,

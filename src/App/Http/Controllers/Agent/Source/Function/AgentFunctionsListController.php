@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agent\Source\Function;
 
 use Domain\Agent\Models\Agent;
-use Domain\Function\Actions\ListAgentFunctionsAction;
-use Domain\Function\Data\Resources\AgentFunctionsListResourceData;
+use Domain\Integration\Function\Actions\ListAgentFunctionsAction;
+use Domain\Integration\Function\Data\Resources\AgentFunctionsListResourceData;
 use Illuminate\Http\Request;
 
 class AgentFunctionsListController

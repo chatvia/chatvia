@@ -1,7 +1,7 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Billing\Models\UserCredit;
+use App\Identity\Workspace\Models\User;
+use Domain\Billing\Models\UserCredit;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

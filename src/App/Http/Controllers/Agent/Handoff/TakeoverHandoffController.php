@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Agent\Handoff;
 
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Actions\Handoff\TakeoverConversationAction;
-use Domain\Chat\Data\Handoff\HandoffTakeoverResultData;
-use Domain\Chat\Exceptions\HandoffOperationException;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Actions\Handoff\TakeoverConversationAction;
+use Domain\Conversation\Data\Handoff\HandoffTakeoverResultData;
+use Domain\Conversation\Exceptions\HandoffOperationException;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -16,7 +16,7 @@ class TakeoverHandoffController
     public function __invoke(
         Request $request,
         Agent $agent,
-        ChatConversation $conversation,
+        Conversation $conversation,
         TakeoverConversationAction $takeover,
     ): JsonResponse|HandoffTakeoverResultData {
         try {
@@ -36,7 +36,7 @@ class TakeoverHandoffController
         }
     }
 
-    private function guard(Agent $agent, ChatConversation $conversation): void
+    private function guard(Agent $agent, Conversation $conversation): void
     {
         if (Gate::denies('access-agent', $agent) || $conversation->session->agent_id !== $agent->id) {
             throw HandoffOperationException::unauthorized();

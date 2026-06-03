@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\V1\Agent\AgentFunctionAttachmentController;
 use App\Http\Controllers\Api\V1\Agent\AgentMcpAttachmentController;
 use App\Http\Controllers\Api\V1\Agent\AgentSettingsController;
 use App\Http\Controllers\Api\V1\Agent\AgentSignInLinkController;
-use App\Http\Controllers\Api\V1\Chat\ChatConversationController;
+use App\Http\Controllers\Api\V1\Chat\ConversationController;
 use App\Http\Controllers\Api\V1\Function\FunctionController;
 use App\Http\Controllers\Api\V1\Mcp\McpServerController;
 use App\Http\Controllers\Api\V1\Source\SourceFileController;
@@ -105,8 +105,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
             Route::post('sign-in-links', [AgentSignInLinkController::class, 'store'])->name('sign-in-links.store');
 
             // Chat history
-            Route::get('conversations', [ChatConversationController::class, 'index'])->name('conversations.index');
-            Route::get('conversations/{conversation}', [ChatConversationController::class, 'show'])->name('conversations.show');
-            Route::delete('conversations/{conversation}', [ChatConversationController::class, 'destroy'])->name('conversations.destroy');
+            Route::get('conversations', [ConversationController::class, 'index'])->name('conversations.index');
+            Route::get('conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+            Route::delete('conversations/{conversation}', [ConversationController::class, 'destroy'])->name('conversations.destroy');
         });
     });

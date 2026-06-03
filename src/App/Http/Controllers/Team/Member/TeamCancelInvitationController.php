@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Team\Member;
 
-use App\Team\Models\Team;
-use Domain\Team\Actions\Invitations\CancelTeamInvitationAction;
+use Domain\Membership\Team\Actions\Invitations\CancelTeamInvitationAction;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

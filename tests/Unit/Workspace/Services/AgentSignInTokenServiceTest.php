@@ -1,9 +1,9 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Services\AgentSignInTokenService;
-use App\Team\Models\Role;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\AgentSignInTokenService;
+use Domain\Membership\Team\Models\Role;
+use Domain\Membership\Team\Services\TeamService;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Spatie\Permission\PermissionRegistrar;

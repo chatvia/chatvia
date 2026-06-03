@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Team\Crud;
 
-use App\Team\Data\Resources\Members\ManagedUserData;
-use App\Team\Data\Resources\Members\TeamInvitationData;
-use App\Team\Data\Resources\Members\TeamMemberData;
-use App\Team\Data\Resources\Team\TeamData;
-use App\Team\Models\Team;
-use App\Team\Services\TeamService;
+use Domain\Membership\Team\Data\Resources\Members\ManagedUserData;
+use Domain\Membership\Team\Data\Resources\Members\TeamInvitationData;
+use Domain\Membership\Team\Data\Resources\Members\TeamMemberData;
+use Domain\Membership\Team\Data\Resources\Team\TeamData;
+use Domain\Membership\Team\Models\Team;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

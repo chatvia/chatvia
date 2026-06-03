@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Team\Switching;
 
-use App\Team\Models\Team;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

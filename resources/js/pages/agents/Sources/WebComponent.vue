@@ -45,7 +45,7 @@ import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { useEcho } from '@laravel/echo-vue';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 interface WebSource {

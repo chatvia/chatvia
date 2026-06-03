@@ -1,8 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Models\UserSocial;
-use App\Workspace\Actions\Social\UnlinkSocialAccountAction;
+use App\Identity\Workspace\Actions\Social\UnlinkSocialAccountAction;
+use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\UserSocial;
 use Support\Enums\User\SocialProvider;
 
 it('deletes the matching social row for the given provider', function (): void {

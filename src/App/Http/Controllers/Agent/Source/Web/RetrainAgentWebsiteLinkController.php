@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Agent\Source\Web;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\Web\Actions\Url\RetrainAgentWebsiteUrlAction;
-use Domain\Source\Web\Models\AgentWebsiteUrl;
-use Domain\Source\Web\Models\SourceWebsite;
+use Domain\Knowledge\Source\Web\Actions\Url\RetrainAgentWebsiteUrlAction;
+use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\Request;
 
 /**

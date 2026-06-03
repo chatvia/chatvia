@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Api\V1\Team;
 
-use App\Workspace\Models\User;
 use App\Http\Resources\Api\V1\Team\RoleData;
-use App\Team\Models\Role;
-use App\Team\Models\Team;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Team\Actions\Roles\UpdateTeamRoleAction;
-use Domain\Team\Data\RolePayloadData;
-use Domain\Team\Data\SaveTeamRoleData;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
+use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
+use Domain\Membership\Team\Data\RolePayloadData;
+use Domain\Membership\Team\Data\SaveTeamRoleData;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Domain\Membership\Team\Models\Role;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 

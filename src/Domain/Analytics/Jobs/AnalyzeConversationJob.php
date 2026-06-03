@@ -3,7 +3,7 @@
 namespace Domain\Analytics\Jobs;
 
 use Domain\Analytics\Actions\AnalyzeConversationAction;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -13,7 +13,7 @@ class AnalyzeConversationJob implements ShouldQueue
 
     public bool $deleteWhenMissingModels = true;
 
-    public function __construct(public ChatConversation $conversation)
+    public function __construct(public Conversation $conversation)
     {
         $this->onQueue('analytics');
     }

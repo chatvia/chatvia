@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Models\Conversation;
 use Domain\Lead\Models\Lead;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -225,7 +225,7 @@ class LeadSeeder extends Seeder
 
         // Get conversations without leads for this user's agents
         $agentIds = $agents->pluck('id');
-        $conversationsWithoutLeads = ChatConversation::whereDoesntHave('lead')
+        $conversationsWithoutLeads = Conversation::whereDoesntHave('lead')
             ->whereHas('session', function ($query) use ($agentIds) {
                 $query->whereIn('agent_id', $agentIds);
             })
@@ -272,7 +272,7 @@ class LeadSeeder extends Seeder
      *
      * @param  array<string, mixed>  $leadData
      */
-    private function createLead(Agent $agent, ChatConversation $conversation, array $leadData): void
+    private function createLead(Agent $agent, Conversation $conversation, array $leadData): void
     {
         $referrerUrls = [
             'https://www.google.com/search?q=ai+chatbot+solutions',

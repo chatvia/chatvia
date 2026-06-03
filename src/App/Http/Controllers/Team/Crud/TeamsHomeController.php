@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Team\Crud;
 
-use App\Team\Data\Resources\Team\TeamListItemData;
-use App\Team\Services\TeamService;
+use Domain\Membership\Team\Data\Resources\Team\TeamListItemData;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

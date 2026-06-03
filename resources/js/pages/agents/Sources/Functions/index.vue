@@ -13,7 +13,7 @@ import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 const props = defineProps<Props>();
@@ -30,7 +30,11 @@ const filtered = computed(() => {
     const q = search.value.trim().toLowerCase();
     if (!q) return functions.value;
     return functions.value.filter(
-        (f) => f.name.toLowerCase().includes(q) || f.description.toLowerCase().includes(q) || f.webhook_url.toLowerCase().includes(q),
+        (f) =>
+            f.internal_name.toLowerCase().includes(q) ||
+            (f.display_name ?? '').toLowerCase().includes(q) ||
+            f.description.toLowerCase().includes(q) ||
+            f.webhook_url.toLowerCase().includes(q),
     );
 });
 
@@ -136,7 +140,8 @@ onMounted(fetchFunctions);
                                         <TableCell class="py-4 pl-5">
                                             <div class="min-w-0">
                                                 <div class="flex items-center gap-2">
-                                                    <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.name }}</code>
+                                                    <span v-if="fn.display_name" class="text-sm font-medium">{{ fn.display_name }}</span>
+                                                    <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.internal_name }}</code>
                                                     <Badge v-if="!fn.is_enabled" variant="secondary">disabled</Badge>
                                                     <Badge v-if="fn.last_error" variant="destructive" class="gap-1">
                                                         <AlertCircle class="h-3 w-3" />

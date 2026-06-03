@@ -11,7 +11,6 @@ class ChatterAgentController
         return $request
             ->user()
             ->accessibleAgents()
-            ->where('agents.type', 'knowledge_base')
             ->select(['agents.id', 'agents.external_id', 'agents.name', 'agents.sub_domain'])
             ->get();
     }

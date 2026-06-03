@@ -13,7 +13,7 @@ import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
     team_collaboration?: boolean;
     workspace_users_limit?: number;
     workspace_users_count?: number;
@@ -46,10 +46,7 @@ const workspaceUsersCount = computed(() => props.workspace_users_count ?? 0);
 const workspaceUsersLimit = computed(() => props.workspace_users_limit ?? 0);
 
 const canInviteMembers = computed(() => {
-    return (
-        props.team_collaboration &&
-        (workspaceUsersLimit.value === 0 || workspaceUsersCount.value < workspaceUsersLimit.value)
-    );
+    return props.team_collaboration && (workspaceUsersLimit.value === 0 || workspaceUsersCount.value < workspaceUsersLimit.value);
 });
 
 const hasReachedMemberLimit = computed(() => {

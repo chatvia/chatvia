@@ -10,10 +10,9 @@ return [
 
         'tables' => 'gemma-3-27b-it',
 
-        //        'chunker' => 'llama-3.1-70b-instruct',
         'chunker' => 'llama-3.1-70b-instruct',
 
-        'title' => 'gemma-3-27b-it',
+        'title' => 'llama-3.1-70b-instruct',
 
         'subdomain' => 'mistral-nemo-instruct-2407',
 

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Settings\Function;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Function\Actions\ToggleAgentFunctionAction;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Function\Actions\ToggleAgentFunctionAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

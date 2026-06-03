@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Widget\Threads;
 
-use App\Widget\WidgetVerification;
-use Domain\Chat\Services\Memory\ChatMemory;
+use Domain\Conversation\Data\Attachments\AttachmentData;
+use Domain\Conversation\Models\Attachment;
+use Domain\Conversation\Models\Message;
+use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
 
 class ThreadMessageController
@@ -41,6 +44,43 @@ class ThreadMessageController
             return [];
         }
 
-        return $chatMemory->getMessagesForConversation();
+        $messages = $chatMemory->getMessagesForConversation();
+
+        // Hydrate per-message attachments so chips render under each user
+        // bubble on history reload — mirrors ConversationMessageController
+        // for the hosted chat side. Orphans (chat_message_id still NULL
+        // because StoreMessageJob is queued) cluster onto the latest
+        // user message so the chip doesn't disappear until the queue
+        // catches up.
+        $attachments = Attachment::query()
+            ->where('chat_conversation_id', $conversation->id)
+            ->get();
+
+        $externalIdByMessageId = Message::query()
+            ->whereIn('id', $attachments->pluck('chat_message_id')->filter()->unique())
+            ->pluck('external_id', 'id');
+
+        $lastUserExternalId = null;
+        foreach ($messages as $msg) {
+            if (($msg['role'] ?? null) === 'user' && isset($msg['id'])) {
+                $lastUserExternalId = $msg['id'];
+            }
+        }
+
+        $attachmentsByMessageId = $attachments->groupBy(
+            fn (Attachment $a) => $a->chat_message_id !== null
+                ? ($externalIdByMessageId[$a->chat_message_id] ?? null)
+                : $lastUserExternalId
+        );
+
+        foreach ($messages as &$message) {
+            $externalId = $message['id'] ?? null;
+            $message['attachments'] = $externalId && isset($attachmentsByMessageId[$externalId])
+                ? $attachmentsByMessageId[$externalId]->map(fn ($a): array => AttachmentData::fromModel($a)->toArray())->all()
+                : [];
+        }
+        unset($message);
+
+        return $messages;
     }
 }

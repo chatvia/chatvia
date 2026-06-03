@@ -32,19 +32,36 @@
             <!-- Hero content -->
             <div class="text-center" data-aos="fade-up">
 
+                <!-- Badge -->
+                <div
+                    class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs sm:text-sm font-semibold text-indigo-700 uppercase tracking-wider mb-6">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    AI agents, made simple
+                </div>
+
                 <h1
                     class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 mb-6 sm:mb-8 leading-tight sm:leading-[1.15] md:leading-[1.1] tracking-tight px-2 sm:px-0">
-                    <span class="block">AI chatbot that knows</span>
-                    <span class="block">your business <span class="relative inline-block">
-                            <span class="relative z-10 text-indigo-600 font-extrabold">inside out</span>
+                    <span class="block">Building AI agents is hard.</span>
+                    <span class="block">We make it take <span class="relative inline-block">
+                            <span class="relative z-10 text-indigo-600 font-extrabold">minutes</span>
                             <span
                                 class="absolute bottom-1 left-0 right-0 h-3 sm:h-4 md:h-5 bg-linear-to-r from-indigo-200 via-indigo-300 to-purple-200 -rotate-1 opacity-60"></span>
-                        </span></span>
+                        </span>.</span>
                 </h1>
 
                 <p
-                    class="text-base sm:text-lg md:text-xl text-slate-600 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
-                    Create AI-powered chatbots trained on your content.
+                    class="text-base sm:text-2xl md:text-xl text-slate-600 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
+                    Create and train AI agents that book meetings, check inventory, and
+                    trigger workflows in your existing tools.
+                    <span class="block mt-3">
+                        <span class="relative inline-block">
+                            <span class="relative z-10 text-slate-900 font-extrabold">No code, no engineers.</span>
+                            <span
+                                class="absolute bottom-1 left-0 right-0 h-2.5 sm:h-3 bg-linear-to-r from-yellow-200 via-yellow-300 to-amber-200 -rotate-1 opacity-80"></span>
+                        </span>
+                    </span>
                 </p>
 
                 <!-- CTA Button -->

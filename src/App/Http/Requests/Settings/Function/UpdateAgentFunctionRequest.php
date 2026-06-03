@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Settings\Function;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Closure;
-use Domain\Function\Data\UpdateAgentFunctionData;
-use Domain\Function\Models\AgentFunction;
+use Domain\Integration\Function\Data\UpdateAgentFunctionData;
+use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -24,14 +24,14 @@ class UpdateAgentFunctionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [
+            'internal_name' => [
                 'required',
                 'string',
                 'max:64',
                 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/',
                 function (string $attribute, mixed $value, Closure $fail): void {
                     $exists = $this->user()->functions()
-                        ->where('name', $value)
+                        ->where('internal_name', $value)
                         ->where('external_id', '!=', $this->route('external_id'))
                         ->exists();
                     if ($exists) {
@@ -39,6 +39,7 @@ class UpdateAgentFunctionRequest extends FormRequest
                     }
                 },
             ],
+            'display_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],
             'parameters_schema' => [
                 'required',
@@ -55,6 +56,7 @@ class UpdateAgentFunctionRequest extends FormRequest
             'auth_type' => ['sometimes', 'in:none,bearer,header,hmac'],
             'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],
             'auth_value' => ['nullable', 'string', 'max:8192'],
+            'requires_approval' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -90,7 +92,8 @@ class UpdateAgentFunctionRequest extends FormRequest
         $authHeaderName = $this->input('auth_header_name');
 
         return new UpdateAgentFunctionData(
-            name: $this->string('name')->toString(),
+            internal_name: $this->string('internal_name')->toString(),
+            display_name: $this->string('display_name')->toString() ?: null,
             description: $this->string('description')->toString(),
             parameters_schema: $schema,
             webhook_url: $this->string('webhook_url')->toString(),
@@ -98,6 +101,7 @@ class UpdateAgentFunctionRequest extends FormRequest
             auth_type: $this->string('auth_type', 'none')->toString(),
             auth_header_name: filled($authHeaderName) ? (string) $authHeaderName : null,
             auth_value: filled($authValue) ? (string) $authValue : null,
+            requires_approval: $this->has('requires_approval') ? $this->boolean('requires_approval') : null,
         );
     }
 

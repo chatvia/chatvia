@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Agent\Handoff;
 
-use App\Workspace\Models\User;
-use Domain\Chat\Data\Handoff\SendHandoffAdminMessageData;
-use Domain\Chat\Models\ChatConversation;
+use App\Identity\Workspace\Models\User;
+use Domain\Conversation\Data\Handoff\SendHandoffAdminMessageData;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AgentHandoffMessageRequest extends FormRequest
@@ -24,7 +24,7 @@ class AgentHandoffMessageRequest extends FormRequest
         ];
     }
 
-    public function toData(ChatConversation $conversation): SendHandoffAdminMessageData
+    public function toData(Conversation $conversation): SendHandoffAdminMessageData
     {
         /** @var User $admin */
         $admin = $this->user();

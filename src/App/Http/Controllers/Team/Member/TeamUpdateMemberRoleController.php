@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Team\Member;
 
-use App\Workspace\Models\User;
 use App\Http\Requests\Team\UpdateMemberRoleRequest;
-use App\Team\Models\Team;
-use Domain\Team\Actions\Members\UpdateTeamMemberRoleAction;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Actions\Members\UpdateTeamMemberRoleAction;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 
 class TeamUpdateMemberRoleController

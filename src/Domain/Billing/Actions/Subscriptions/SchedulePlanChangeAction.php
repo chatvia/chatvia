@@ -2,9 +2,9 @@
 
 namespace Domain\Billing\Actions\Subscriptions;
 
-use App\Billing\Data\StripeScheduleData;
-use App\Billing\Services\Billing;
 use Domain\Billing\Data\SchedulePlanChangeData;
+use Domain\Billing\Data\StripeScheduleData;
+use Domain\Billing\Services\Billing;
 use Laravel\Cashier\Cashier;
 
 class SchedulePlanChangeAction

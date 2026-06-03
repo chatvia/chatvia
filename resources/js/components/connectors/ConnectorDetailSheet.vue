@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -255,6 +256,34 @@ async function toggleEnabled(): Promise<void> {
     }
 }
 
+// Master "require approval" switch for the connector (account-level only).
+async function toggleApproval(): Promise<void> {
+    if (isAgentMode.value || !server.value) return;
+    try {
+        const response = await axios.post(route('settings.connectors.approval', { slug: server.value.slug }));
+        emit('updated', response.data.data);
+    } catch (err) {
+        console.error(err);
+        toast.error('Failed to update approval setting');
+    }
+}
+
+// Per-tool approval override — only meaningful while the connector master
+// switch is on. Optimistic, reverting on failure (mirrors toggleToolEnabled).
+async function toggleToolApproval(tool: McpTool): Promise<void> {
+    if (isAgentMode.value || !server.value || tool.id === undefined) return;
+    const previous = tool.requires_approval;
+    tool.requires_approval = !previous;
+    try {
+        const response = await axios.post(route('settings.connectors.tools.approval', { slug: server.value.slug, tool: tool.id }));
+        tool.requires_approval = response.data.requires_approval;
+    } catch (e: unknown) {
+        tool.requires_approval = previous;
+        const err = e as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message ?? 'Failed to update tool approval');
+    }
+}
+
 function askDisconnect(): void {
     // Sheet + AlertDialog at the same z-index causes overlap glitches; close
     // the sheet first, then open the confirm a beat later.
@@ -385,6 +414,16 @@ const connectButtonLabel = computed(() => {
                                 {{ currentEnabled ? 'On' : 'Off' }}
                             </Button>
                         </div>
+                        <!-- Human-in-the-loop master switch. When on, the connector's
+                             write/destructive tools pause for the user's confirmation
+                             before running. Account-level only. -->
+                        <div v-if="!isAgentMode && server" class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <span class="text-sm font-medium">Require approval</span>
+                                <p class="text-muted-foreground mt-0.5 text-xs">Ask before this connector's write tools run.</p>
+                            </div>
+                            <Switch :model-value="server.requires_approval ?? true" @update:model-value="toggleApproval" />
+                        </div>
                         <Button variant="destructive" class="w-full" @click="askDisconnect">
                             <Unplug class="mr-2 h-4 w-4" />
                             Disconnect
@@ -427,26 +466,53 @@ const connectButtonLabel = computed(() => {
 
                         <div v-else class="divide-border divide-y">
                             <div v-for="tool in filteredTools" :key="tool.name" class="py-4 first:pt-0 last:pb-0">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div class="min-w-0 flex-1">
-                                        <p class="font-medium" :class="{ 'text-muted-foreground line-through': !tool.is_enabled }">
-                                            {{ tool.short_name }}
-                                        </p>
-                                        <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">{{ tool.description }}</p>
+                                <div class="min-w-0">
+                                    <p class="font-medium" :class="{ 'text-muted-foreground line-through': !tool.is_enabled }">
+                                        {{ tool.short_name }}
+                                    </p>
+                                    <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">{{ tool.description }}</p>
+                                </div>
+                                <!-- Per-tool controls on their own line: an enable checkbox
+                                     (flips `mcp_tools.is_enabled`, scoped to the server —
+                                     hidden when there's only one tool) and a "requires
+                                     approval" override (greyed when the connector's master
+                                     approval switch is off, since it gates this). -->
+                                <div v-if="!isAgentMode && tool.id !== undefined && server" class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
+                                    <div v-if="tools.length > 1" class="flex items-center gap-2">
+                                        <Checkbox
+                                            :id="`tool-enabled-${tool.id}`"
+                                            :model-value="tool.is_enabled"
+                                            :title="
+                                                tool.is_enabled
+                                                    ? 'Tool active — disable for all agents using this connector'
+                                                    : 'Tool disabled — re-enable'
+                                            "
+                                            @update:model-value="toggleToolEnabled(tool)"
+                                        />
+                                        <label :for="`tool-enabled-${tool.id}`" class="text-muted-foreground cursor-pointer text-xs select-none">
+                                            Enabled
+                                        </label>
                                     </div>
-                                    <!-- Per-tool enable toggle. Flips `mcp_tools.is_enabled`,
-                                         which is scoped to the server — every agent attached
-                                         to it sees the change immediately. Hidden when the
-                                         server has only one tool, since toggling it is
-                                         indistinguishable from disabling the whole connector. -->
-                                    <Switch
-                                        v-if="!isAgentMode && tool.id !== undefined && server && tools.length > 1"
-                                        :model-value="tool.is_enabled"
-                                        :title="
-                                            tool.is_enabled ? 'Tool active — disable for all agents using this connector' : 'Tool disabled — re-enable'
-                                        "
-                                        @update:model-value="toggleToolEnabled(tool)"
-                                    />
+                                    <div class="flex items-center gap-2">
+                                        <Checkbox
+                                            :id="`tool-approval-${tool.id}`"
+                                            :model-value="tool.requires_approval"
+                                            :disabled="!server.requires_approval"
+                                            :title="
+                                                server.requires_approval
+                                                    ? 'Require the user to approve before this tool runs'
+                                                    : 'Turn on “Require approval” for the connector first'
+                                            "
+                                            @update:model-value="toggleToolApproval(tool)"
+                                        />
+                                        <label
+                                            :for="`tool-approval-${tool.id}`"
+                                            class="cursor-pointer text-xs select-none"
+                                            :class="server.requires_approval ? 'text-muted-foreground' : 'text-muted-foreground/40'"
+                                        >
+                                            Approval
+                                        </label>
+                                    </div>
                                 </div>
                                 <button
                                     class="text-muted-foreground hover:text-foreground mt-3 inline-flex items-center gap-1 text-xs"

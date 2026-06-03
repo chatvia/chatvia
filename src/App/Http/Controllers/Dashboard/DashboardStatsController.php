@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Dashboard\Actions\GetDashboardStatsAction;
 use Illuminate\Http\Request;
 

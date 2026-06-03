@@ -1,10 +1,10 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Function\Models\AgentFunction;
-use Domain\Chat\Services\Tooling\Dispatcher\HttpToolDispatcher;
+use Domain\Conversation\Services\Tooling\Dispatcher\HttpToolDispatcher;
+use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -16,7 +16,6 @@ it('stamps the agent and owner identity headers on the webhook request', functio
         'user_id' => $user->id,
         'team_id' => $user->primaryTeam()->id,
         'name' => 'Support Agent',
-        'type' => 'knowledge_base',
         'external_id' => Str::random(14),
         'sub_domain' => Str::lower(Str::random(12)),
         'is_public' => false,
@@ -25,7 +24,7 @@ it('stamps the agent and owner identity headers on the webhook request', functio
 
     $function = new AgentFunction;
     $function->user_id = $user->id;
-    $function->name = 'lookup_order';
+    $function->internal_name = 'lookup_order';
     $function->description = 'Look up an order by id';
     $function->parameters_schema = ['type' => 'object', 'properties' => []];
     $function->webhook_url = 'https://hooks.example.test/fn';

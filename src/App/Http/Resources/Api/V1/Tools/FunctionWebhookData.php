@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Tools;
 
-use Domain\Function\Enums\FunctionWebhookMethod;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Spatie\LaravelData\Data;
 
 /**

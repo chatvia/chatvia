@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agent\Team;
 
-use App\Billing\Models\UserQuota;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Billing\Models\UserQuota;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

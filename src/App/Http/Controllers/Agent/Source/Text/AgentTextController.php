@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Agent\Source\Text;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Source\Text\Actions\CreateAgentSourceTextAction;
-use Domain\Source\Text\Actions\DeleteAgentSourceTextAction;
-use Domain\Source\Text\Actions\UpdateAgentSourceTextAction;
-use Domain\Source\Text\Models\SourceText;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
+use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
+use Domain\Knowledge\Source\Text\Actions\UpdateAgentSourceTextAction;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;

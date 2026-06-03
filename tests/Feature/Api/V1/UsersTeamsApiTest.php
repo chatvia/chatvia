@@ -1,10 +1,10 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Team\Models\Team;
-use App\Team\Services\TeamService;
-use Domain\Team\Actions\Team\CreateTeamAction;
-use Domain\Team\Data\CreateTeamData;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Actions\Team\CreateTeamAction;
+use Domain\Membership\Team\Data\CreateTeamData;
+use Domain\Membership\Team\Models\Team;
+use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();

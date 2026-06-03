@@ -8,13 +8,13 @@ import { Award, BarChart3, Coins, Cpu, LoaderCircle, MessageSquare, Sparkles, Ta
 import { computed, onMounted, ref } from 'vue';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 const props = defineProps<Props>();
 
 const loading = ref(true);
-const metrics = ref<Domain.Agents.Data.Stats.AgentMetricsData | null>(null);
+const metrics = ref<Domain.Agent.Data.Stats.AgentMetricsData | null>(null);
 const error = ref<string | null>(null);
 
 const satisfactionRate = computed(() => {

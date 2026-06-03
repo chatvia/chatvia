@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Agent\Handoff;
 
 use App\Http\Requests\Agent\Handoff\AgentHandoffTypingRequest;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Actions\Messages\BroadcastChatTypingAction;
-use Domain\Chat\Data\Handoff\HandoffTypingResultData;
-use Domain\Chat\Exceptions\HandoffOperationException;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Actions\Messages\BroadcastChatTypingAction;
+use Domain\Conversation\Data\Handoff\HandoffTypingResultData;
+use Domain\Conversation\Exceptions\HandoffOperationException;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 
@@ -16,7 +16,7 @@ class HandoffTypingController
     public function __invoke(
         AgentHandoffTypingRequest $request,
         Agent $agent,
-        ChatConversation $conversation,
+        Conversation $conversation,
         BroadcastChatTypingAction $broadcastTyping,
     ): JsonResponse|HandoffTypingResultData {
         try {
@@ -36,7 +36,7 @@ class HandoffTypingController
         }
     }
 
-    private function guard(Agent $agent, ChatConversation $conversation): void
+    private function guard(Agent $agent, Conversation $conversation): void
     {
         if (Gate::denies('access-agent', $agent) || $conversation->session->agent_id !== $agent->id) {
             throw HandoffOperationException::unauthorized();

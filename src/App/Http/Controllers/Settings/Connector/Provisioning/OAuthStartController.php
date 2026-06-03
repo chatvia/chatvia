@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Connector\Services\ConnectorCatalog;
-use Domain\Connector\Services\OAuth\McpOAuthException;
-use Domain\Connector\Services\OAuth\McpOAuthFlow;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

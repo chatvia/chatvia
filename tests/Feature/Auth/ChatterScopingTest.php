@@ -1,9 +1,9 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Team\Models\Team;
-use App\Team\Services\TeamService;
-use App\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Models\Team;
+use Domain\Membership\Team\Services\TeamService;
 use Support\Enums\User\UserSource;
 use Support\Enums\User\UserType;
 

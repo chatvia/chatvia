@@ -1,8 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Services\TeamService;
 use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Support\Str;
 
@@ -78,7 +78,6 @@ it('deletes a prompt and detaches it from agents', function (): void {
         'user_id' => $this->user->id,
         'team_id' => $this->user->primaryTeam()->id,
         'name' => 'Bot',
-        'type' => 'knowledge_base',
         'external_id' => Str::random(14),
         'sub_domain' => Str::random(14),
         'agent_prompt_id' => $prompt->id,

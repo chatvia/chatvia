@@ -2,20 +2,20 @@
 
 namespace Domain\Analytics\Services;
 
-use App\LLM\Contracts\LLMProviderInterface;
 use Domain\Agent\Models\Agent;
-use Domain\Topic\Models\ChatTopic;
+use Domain\Conversation\Topic\Models\Topic;
+use Domain\Llm\Contracts\LlmProviderInterface;
 
 class TopicAnalysis
 {
     public function __construct(
-        public LLMProviderInterface $provider
+        public LlmProviderInterface $provider
     ) {}
 
-    public function analyze(string $text, ?Agent $agent = null): ?ChatTopic
+    public function analyze(string $text, ?Agent $agent = null): ?Topic
     {
         // Get topics available for this agent
-        $query = ChatTopic::query()->select('id', 'topic');
+        $query = Topic::query()->select('id', 'topic');
 
         if ($agent) {
             // Get topics assigned to this agent
@@ -49,6 +49,6 @@ class TopicAnalysis
         // get the number from the response only
         $topicId = preg_match('/(\d+)/', $topicId, $matches) ? (int) $matches[1] : null;
 
-        return ChatTopic::find($topicId);
+        return Topic::find($topicId);
     }
 }

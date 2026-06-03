@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Agent\Source\Qa;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Source\QA\Actions\CreateAgentQaAction;
-use Domain\Source\QA\Actions\DeleteAgentQaAction;
-use Domain\Source\QA\Actions\UpdateAgentQaAction;
-use Domain\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\QA\Actions\CreateAgentQaAction;
+use Domain\Knowledge\Source\QA\Actions\DeleteAgentQaAction;
+use Domain\Knowledge\Source\QA\Actions\UpdateAgentQaAction;
+use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Billing;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Billing\Data\BuyExtraMessageCreditsData;
 use Illuminate\Foundation\Http\FormRequest;
 

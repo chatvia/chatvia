@@ -2,7 +2,7 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Topics;
 
-use Domain\Topic\Models\ChatTopic;
+use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
@@ -22,7 +22,7 @@ class ChatLogTopicsResourceData extends Data
         return new self(
             topics: new DataCollection(
                 ChatLogTopicData::class,
-                $topics->map(fn (ChatTopic $topic): ChatLogTopicData => ChatLogTopicData::fromTopic($topic)),
+                $topics->map(fn (Topic $topic): ChatLogTopicData => ChatLogTopicData::fromTopic($topic)),
             ),
         );
     }

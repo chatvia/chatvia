@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Connector\OAuth;
 
-use Domain\Connector\Services\OAuth\McpOAuthDiscoverer;
-use Domain\Connector\Services\OAuth\McpOAuthException;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 

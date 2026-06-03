@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\CreateApiKeyRequest;
-use App\ApiKey\Actions\CreateApiKeyAction;
-use App\ApiKey\Actions\DeleteApiKeyAction;
+use App\Identity\ApiKey\Actions\CreateApiKeyAction;
+use App\Identity\ApiKey\Actions\DeleteApiKeyAction;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

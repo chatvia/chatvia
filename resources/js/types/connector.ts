@@ -10,6 +10,7 @@ export interface Connector {
     brandColor: string;
     authStrategy: 'token' | 'oauth' | 'none';
     mcpUrl: string;
+    provider: 'chatvia' | 'featured';
     logoUrl: string | null;
     authType: string | null;
     tokenLabel: string | null;
@@ -27,6 +28,8 @@ export interface AgentMcpServer {
     name: string;
     slug: string;
     connector_slug: string | null;
+    description: string | null;
+    requires_approval: boolean;
     url: string;
     transport: 'streamable_http' | 'http_sse';
     auth_type: 'none' | 'bearer' | 'header';
@@ -63,6 +66,7 @@ export interface McpTool {
     description: string;
     parameters: Record<string, unknown>;
     is_enabled: boolean;
+    requires_approval: boolean;
 }
 
 export interface ConnectorToolsResponse {

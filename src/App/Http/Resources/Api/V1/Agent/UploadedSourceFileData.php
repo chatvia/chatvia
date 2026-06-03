@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Agent;
 
-use Domain\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Models\SourceFile;
 use Spatie\LaravelData\Data;
 
 /**

@@ -1,7 +1,7 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Chatter\Actions\DeleteChatterAction;
+use App\Identity\Chatter\Actions\DeleteChatterAction;
+use App\Identity\Workspace\Models\User;
 
 it('hard-deletes the chatter row', function (): void {
     $workspace = User::factory()->workspace()->create();

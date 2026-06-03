@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Connector\AddCustomConnectorRequest;
-use Domain\Mcp\Data\Resources\AgentMcpServerData;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Mcp\Services\McpException;
-use Domain\Mcp\Actions\ProvisionCustomMcpServerAction;
-use Domain\Mcp\Data\ProvisionCustomMcpServerData;
-use Domain\Connector\Services\OAuth\McpOAuthException;
-use Domain\Connector\Services\OAuth\McpOAuthFlow;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
+use Domain\Integration\Mcp\Actions\ProvisionCustomMcpServerAction;
+use Domain\Integration\Mcp\Data\ProvisionCustomMcpServerData;
+use Domain\Integration\Mcp\Data\Resources\AgentMcpServerData;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Mcp\Services\McpException;
 use Illuminate\Http\JsonResponse;
 use Throwable;
 

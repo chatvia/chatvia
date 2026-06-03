@@ -2,7 +2,7 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Topics;
 
-use Domain\Topic\Models\ChatTopic;
+use Domain\Conversation\Topic\Models\Topic;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -15,7 +15,7 @@ class ChatLogTopicData extends Data
         public ?string $description,
     ) {}
 
-    public static function fromTopic(ChatTopic $topic): self
+    public static function fromTopic(Topic $topic): self
     {
         return new self(
             id: $topic->id,

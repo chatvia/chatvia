@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Agent\Source\Connector;
 
 use Domain\Agent\Models\Agent;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Mcp\Actions\ListConnectorToolsAction;
-use Domain\Connector\Data\Catalog\ConnectorToolsResourceData;
+use Domain\Integration\Connector\Data\Catalog\ConnectorToolsResourceData;
+use Domain\Integration\Mcp\Actions\ListConnectorToolsAction;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\Request;
 
 class AgentConnectorToolController

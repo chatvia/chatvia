@@ -1,9 +1,9 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Services\WidgetAuthSessionService;
-use App\Team\Services\TeamService;
-use App\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\WidgetAuthSessionService;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 
 beforeEach(function (): void {

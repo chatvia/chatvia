@@ -4,7 +4,7 @@ namespace Domain\Lead\Actions;
 
 use Domain\Agent\Models\Agent;
 use Domain\Lead\Models\Lead;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Database\Eloquent\Collection;
 
 class ExportAgentLeadsToCsvAction

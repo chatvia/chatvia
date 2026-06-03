@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Team;
 
-use App\Team\Models\Team;
+use Domain\Membership\Team\Models\Team;
 use Spatie\LaravelData\Data;
 
 /**

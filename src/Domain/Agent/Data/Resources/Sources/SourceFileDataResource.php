@@ -3,7 +3,7 @@
 namespace Domain\Agent\Data\Resources\Sources;
 
 use Carbon\CarbonInterface;
-use Domain\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;

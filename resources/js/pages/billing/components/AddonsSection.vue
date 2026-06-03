@@ -266,7 +266,9 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                             <span class="font-medium">Each recharge:</span>
                                             <span class="font-bold">${{ autoRechargeChargeEstimate }}</span>
                                         </div>
-                                        <p class="text-muted-foreground mt-1 text-xs">Charged immediately to your default payment method when triggered.</p>
+                                        <p class="text-muted-foreground mt-1 text-xs">
+                                            Charged immediately to your default payment method when triggered.
+                                        </p>
                                     </div>
                                 </div>
                                 <DialogFooter class="gap-2">
@@ -501,9 +503,7 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                             <Globe class="text-primary h-5 w-5" />
                                             {{ addons.custom_domains.active ? 'Change Custom Domains' : 'Subscribe to Custom Domain' }}
                                         </DialogTitle>
-                                        <DialogDescription>
-                                            Use your own domain for AI agents. Billed monthly at $29 per domain.
-                                        </DialogDescription>
+                                        <DialogDescription> Use your own domain for AI agents. Billed monthly at $29 per domain. </DialogDescription>
                                     </DialogHeader>
                                     <div class="space-y-4 py-4">
                                         <div class="space-y-2">

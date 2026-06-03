@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Widget\Threads;
 
-use App\Widget\WidgetVerification;
-use Domain\Chat\Services\Memory\ChatMemory;
+use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Data\Auth\WidgetAckData;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

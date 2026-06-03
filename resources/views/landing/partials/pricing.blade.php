@@ -110,8 +110,10 @@
                                 <div class="grow">
                                     <!-- Monthly Features -->
                                     <ul class="text-slate-500 space-y-3 absolute" x-show="!annual">
-                                        @foreach ($package['features_monthly'] as $feature)
+                                        @foreach ($package['features_monthly'] as $key => $feature)
                                             @php
+                                                $featureLabel = $feature;
+
                                                 $isNewFeature = false;
                                                 if ($numericIndex > 0) {
                                                     $previousPackage = $packages->values()[$numericIndex - 1];
@@ -124,7 +126,7 @@
                                                 // Check if the feature needs a tooltip
                                                 $tooltipText = null;
                                                 $tooltipIsList = false;
-                                                $featureLower = strtolower($feature);
+                                                $featureLower = strtolower($featureLabel);
 
                                                 if (stripos($featureLower, 'model') !== false) {
                                                     $tooltipText = $llmModels;
@@ -157,7 +159,7 @@
                                                     <div class="relative group" x-data="{ tooltipOpen: false }" @click.away="tooltipOpen = false">
                                                         <span
                                                             @click="tooltipOpen = !tooltipOpen"
-                                                            class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 cursor-help">{{ $feature }}</span>
+                                                            class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 cursor-help">{{ $featureLabel }}</span>
 
                                                         <!-- Tooltip -->
                                                         <div
@@ -194,9 +196,12 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                @elseif ($key === 'api')
+                                                    <a href="https://chatvia.ai/docs/api" target="_blank" rel="noopener noreferrer"
+                                                        class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 hover:text-blue-600">{{ $featureLabel }}</a>
                                                 @else
                                                     <span
-                                                        @if ($isNewFeature) class="font-medium text-slate-700" @endif>{{ $feature }}</span>
+                                                        @if ($isNewFeature) class="font-medium text-slate-700" @endif>{{ $featureLabel }}</span>
                                                 @endif
                                             </li>
                                         @endforeach
@@ -204,8 +209,10 @@
 
                                     <!-- Yearly Features -->
                                     <ul class="text-slate-500 space-y-3 absolute" x-show="annual">
-                                        @foreach ($package['features_yearly'] as $feature)
+                                        @foreach ($package['features_yearly'] as $key => $feature)
                                             @php
+                                                $featureLabel = $feature;
+
                                                 $isNewFeature = false;
                                                 if ($numericIndex > 0) {
                                                     $previousPackage = $packages->values()[$numericIndex - 1];
@@ -218,11 +225,11 @@
                                                 // Check if the feature needs a tooltip
                                                 $tooltipText = null;
                                                 $tooltipIsList = false;
-                                                $featureLower = strtolower($feature);
+                                                $featureLower = strtolower($featureLabel);
 
-                                                if (stripos($feature, 'message') !== false) {
+                                                if (stripos($featureLower, 'message') !== false) {
                                                     $tooltipText =
-                                                        $feature . ' will be credited to your account yearly';
+                                                        $featureLabel . ' will be credited to your account yearly';
                                                 } elseif (stripos($featureLower, 'model') !== false) {
                                                     $tooltipText = $llmModels;
                                                     $tooltipIsList = true;
@@ -254,7 +261,7 @@
                                                     <div class="relative group" x-data="{ tooltipOpen: false }" @click.away="tooltipOpen = false">
                                                         <span
                                                             @click="tooltipOpen = !tooltipOpen"
-                                                            class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 cursor-help">{{ $feature }}</span>
+                                                            class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 cursor-help">{{ $featureLabel }}</span>
 
                                                         <!-- Tooltip -->
                                                         <div
@@ -291,9 +298,12 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                @elseif ($key === 'api')
+                                                    <a href="https://chatvia.ai/docs/api" target="_blank" rel="noopener noreferrer"
+                                                        class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 hover:text-blue-600">{{ $featureLabel }}</a>
                                                 @else
                                                     <span
-                                                        @if ($isNewFeature) class="font-medium text-slate-700" @endif>{{ $feature }}</span>
+                                                        @if ($isNewFeature) class="font-medium text-slate-700" @endif>{{ $featureLabel }}</span>
                                                 @endif
                                             </li>
                                         @endforeach
@@ -326,29 +336,6 @@
                     </div>
 
                 </div>
-
-                <!-- Common Features -->
-                @if (isset($billingConfig['commonFeatures']) && count($billingConfig['commonFeatures']) > 0)
-                    <div class="mt-16 max-w-4xl mx-auto">
-                        <div class="bg-white rounded-lg shadow-sm p-8">
-                            <h3 class="text-lg font-medium text-slate-800 mb-6 text-center">
-                                What's included with all plans
-                            </h3>
-                            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                @foreach ($billingConfig['commonFeatures'] as $feature)
-                                    <div class="flex items-center gap-3">
-                                        <svg class="w-4 h-4 fill-current text-emerald-500 shrink-0" viewBox="0 0 12 12"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <path
-                                                d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                                        </svg>
-                                        <span class="text-slate-600 text-sm">{{ $feature }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                @endif
 
             </div>
         </div>

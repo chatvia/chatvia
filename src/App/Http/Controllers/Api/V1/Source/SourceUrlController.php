@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1\Source;
 
-use App\Workspace\Models\User;
 use App\Http\Requests\Api\V1\Source\CrawlSourceUrlRequest;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
-use Domain\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
-use Domain\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
-use Domain\Source\Web\Models\SourceWebsite;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Knowledge\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
+use Domain\Knowledge\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

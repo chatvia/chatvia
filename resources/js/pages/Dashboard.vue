@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
-import { Bot, MessageSquare, MessagesSquare, Plus, UserPlus } from 'lucide-vue-next';
+import { Activity, Bot, MessageSquare, MessagesSquare, Plus } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 // Types for the dashboard data
@@ -31,7 +31,6 @@ interface DashboardData {
         };
     };
     conversations: number;
-    leads: number;
     active_sessions: number;
     knowledge_sources: {
         files: number;
@@ -68,7 +67,6 @@ const dashboardData = ref<DashboardData>({
         },
     },
     conversations: 0,
-    leads: 0,
     active_sessions: 0,
     knowledge_sources: {
         files: 0,
@@ -215,22 +213,22 @@ const formatNumber = (num: number): string => {
                             <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ formatNumber(dashboardData.conversations) }}</div>
-                                <p class="text-muted-foreground text-xs">{{ dashboardData.active_sessions }} active today</p>
+                                <p class="text-muted-foreground text-xs">All-time across agents</p>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <!-- Leads Card -->
+                    <!-- Active Sessions Card -->
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium">Leads Captured</CardTitle>
-                            <UserPlus class="text-muted-foreground h-4 w-4" />
+                            <CardTitle class="text-sm font-medium">Active Sessions</CardTitle>
+                            <Activity class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
                             <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
-                                <div class="text-2xl font-bold">{{ formatNumber(dashboardData.leads) }}</div>
-                                <p class="text-muted-foreground text-xs">From agent conversations</p>
+                                <div class="text-2xl font-bold">{{ formatNumber(dashboardData.active_sessions) }}</div>
+                                <p class="text-muted-foreground text-xs">Visitors in the last 24h</p>
                             </div>
                         </CardContent>
                     </Card>

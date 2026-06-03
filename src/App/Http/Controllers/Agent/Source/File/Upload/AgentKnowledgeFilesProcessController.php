@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\Source\File\Upload;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\File\Actions\ProcessAgentUploadedFilesAction;
+use Domain\Knowledge\Source\File\Actions\ProcessAgentUploadedFilesAction;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeFilesProcessController

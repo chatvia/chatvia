@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Workspace\Models\User;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -13,6 +13,8 @@ use Illuminate\Support\Str;
  */
 class AgentFactory extends Factory
 {
+    protected $model = Agent::class;
+
     /**
      * Define the model's default state.
      *
@@ -20,13 +22,7 @@ class AgentFactory extends Factory
      */
     public function definition(): array
     {
-        // Use demo user instead of creating a new one
-        $user = User::where('email', 'ahmad@mayahi.net')->first();
-
-        if (! $user) {
-            throw new \RuntimeException('Demo user (ahmad@mayahi.net) not found. Please run DatabaseSeeder first.');
-        }
-
+        $user = User::factory()->create();
         $team = $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
 
         return [

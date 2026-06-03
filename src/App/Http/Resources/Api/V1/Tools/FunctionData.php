@@ -3,9 +3,9 @@
 namespace App\Http\Resources\Api\V1\Tools;
 
 use Carbon\CarbonInterface;
-use Domain\Function\Enums\FunctionAuthType;
-use Domain\Function\Enums\FunctionWebhookMethod;
-use Domain\Function\Models\AgentFunction;
+use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
+use Domain\Integration\Function\Models\AgentFunction;
 use Spatie\LaravelData\Data;
 
 /**
@@ -21,9 +21,13 @@ class FunctionData extends Data
          */
         public string $id,
         /**
-         * The function name the model calls.
+         * The internal name the model calls.
          */
-        public string $name,
+        public string $internal_name,
+        /**
+         * Human-friendly label shown to users (falls back to name when unset).
+         */
+        public ?string $display_name,
         /**
          * What the function does, shown to the model.
          */
@@ -72,7 +76,8 @@ class FunctionData extends Data
     {
         return new self(
             id: $function->external_id,
-            name: $function->name,
+            internal_name: $function->internal_name,
+            display_name: $function->display_name,
             description: $function->description,
             parameters_schema: $function->parameters_schema ?? [],
             webhook: new FunctionWebhookData(

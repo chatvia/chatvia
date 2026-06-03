@@ -1,8 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Billing\Models\UserAddon;
-use App\Billing\Models\UserCredit;
+use App\Identity\Workspace\Models\User;
+use Domain\Billing\Models\UserAddon;
+use Domain\Billing\Models\UserCredit;
 
 it('returns 0 when user has no credit row', function (): void {
     $user = User::factory()->create();

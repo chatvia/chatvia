@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Agent\Source\Youtube;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Source\Youtube\Actions\AddAgentYoutubeVideoAction;
-use Domain\Source\Youtube\Actions\DeleteAgentYoutubeVideoAction;
-use Domain\Source\Youtube\Models\SourceYoutubeVideo;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Knowledge\Source\Youtube\Actions\AddAgentYoutubeVideoAction;
+use Domain\Knowledge\Source\Youtube\Actions\DeleteAgentYoutubeVideoAction;
+use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

@@ -10,10 +10,10 @@
 
                 <div class="relative">
                     <h2 class="text-3xl sm:text-4xl md:text-5xl font-display text-slate-900 mb-5">
-                        {!! $landing['cta']['headline'] ?? 'Stop losing customers to <span class="text-emerald-500">unanswered questions</span>.' !!}
+                        {!! $landing['cta']['headline'] ?? 'Ship your first AI agent in <span class="text-emerald-500">minutes</span>.' !!}
                     </h2>
                     <p class="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
-                        {!! $landing['cta']['description'] ?? 'Deploy an AI chatbot that knows your business inside out — in minutes, not weeks.' !!}
+                        {!! $landing['cta']['description'] ?? 'Build agents trained on your data that connect MCP servers, call your APIs, and act in your existing tools — no code, no engineers.' !!}
                     </p>
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <a class="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5"

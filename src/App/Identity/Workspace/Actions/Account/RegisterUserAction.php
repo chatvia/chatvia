@@ -5,12 +5,18 @@ namespace App\Identity\Workspace\Actions\Account;
 use App\Identity\Workspace\Data\Account\RegisterUserData;
 use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Services\IP2Country;
+use Domain\Membership\Team\Actions\Team\CreateTeamAction;
+use Domain\Membership\Team\Data\CreateTeamData;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class RegisterUserAction
 {
+    public function __construct(
+        private readonly CreateTeamAction $createTeam,
+    ) {}
+
     public function execute(RegisterUserData $data): User
     {
         return DB::transaction(function () use ($data): User {
@@ -24,6 +30,11 @@ class RegisterUserAction
             ]);
 
             event(new Registered($user));
+
+            $this->createTeam->execute(new CreateTeamData(
+                owner: $user,
+                name: $data->name."'s Team",
+            ));
 
             $user->ensureCurrentTeam();
 

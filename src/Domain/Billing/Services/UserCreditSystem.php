@@ -33,8 +33,6 @@ class UserCreditSystem
      */
     public function addCredit(array $quotaLimit, Carbon $endsAt): UserCredit
     {
-        $startedAt = now();
-
         /** @var User $user */
         $user = User::find($this->userId);
 
@@ -43,6 +41,13 @@ class UserCreditSystem
         $user->credits()
             ->where('ends_at', '>=', now())
             ->update(['ends_at' => now()->subSecond()]);
+
+        // Pick a started_at past any existing row for this user. The
+        // (user_id, started_at) unique index would otherwise collide when two
+        // grants land in the same second (e.g. plan-upgrade webhooks fired
+        // back-to-back).
+        $lastStartedAt = $user->credits()->max('started_at');
+        $startedAt = $lastStartedAt ? max(now(), Carbon::parse($lastStartedAt)->addSecond()) : now();
 
         /** @var UserCredit $credit */
         $credit = $user->credits()->create([

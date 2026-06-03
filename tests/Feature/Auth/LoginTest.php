@@ -175,15 +175,16 @@ describe('User Logout', function (): void {
             'remember' => true,
         ]);
 
-        expect($user->fresh()->remember_token)->not->toBeNull();
+        $originalToken = $user->fresh()->remember_token;
+        expect($originalToken)->not->toBeNull();
 
         // Logout
         $this->post(route('logout'));
 
-        // Laravel clears the remember_token on logout. Depending on the
-        // framework version this is either null or an empty string — accept
-        // both, since the contract is "no longer a valid token".
-        expect($user->fresh()->remember_token)->toBeIn([null, '']);
+        // Laravel rotates the remember_token on logout (since v5), so the old
+        // token can no longer authenticate. Confirm it changed from what we saw
+        // before logout.
+        expect($user->fresh()->remember_token)->not->toBe($originalToken);
     });
 });
 

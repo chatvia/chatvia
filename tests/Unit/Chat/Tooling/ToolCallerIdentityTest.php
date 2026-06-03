@@ -15,5 +15,6 @@ it('maps the agent and owner external ids to identity headers', function (): voi
     expect(ToolCallerIdentity::headers($agent))->toBe([
         'X-Chatvia-Agent-Id' => 'agent-uuid',
         'X-Chatvia-User-Id' => 'user-uuid',
+        'X-Chatvia-Metadata' => 'null',
     ]);
 });

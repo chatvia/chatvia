@@ -1,8 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Gate;
 
@@ -56,7 +56,7 @@ Broadcast::channel('chat.{conversationId}', function ($user, $conversationId) {
         return false;
     }
 
-    $conversation = ChatConversation::with('session.agent')
+    $conversation = Conversation::with('session.agent')
         ->where('external_id', $conversationId)->first();
 
     if (! $conversation) {

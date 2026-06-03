@@ -84,6 +84,7 @@ const props = defineProps({
 
 const loadingMessages = ref(true);
 const messages = ref([]);
+
 const isSidebarOpen = ref(false);
 const isAutoScrollEnabled = ref(true);
 const scrollTimeout = ref(null);
@@ -114,6 +115,19 @@ const hasActiveFunctionCalls = computed(() => activeFunctionCalls.value.size > 0
 // the icons in arrival order and show the most-recently-started one as
 // the current label.
 const activeFunctionCallsList = computed(() => Array.from(activeFunctionCalls.value.values()).sort((a, b) => a.started_at - b.started_at));
+
+// Human-in-the-loop tool approval. `pendingApprovals` holds the ToolApprovalCall
+// cards awaiting the user's decision, keyed by assistant message UUID. Set by the
+// `awaiting_approval` tool event; cleared when the user resolves them (which
+// re-opens the stream) or when a new turn supersedes them.
+const pendingApprovals = ref(new Map());
+// approval_ids currently being resolved — their cards show a spinner + disable.
+const resolvingApprovalIds = ref([]);
+// approval_id -> { [tool_call_id]: 'approve' | 'deny' }. A checkpoint may gate
+// several calls; we accumulate decisions until all are made, then post together.
+const approvalDecisions = new Map();
+
+const hasPendingApprovals = computed(() => pendingApprovals.value.size > 0);
 
 // Usage checking
 const USAGE_CHECK_INTERVAL = 60000; // 1 minute
@@ -211,12 +225,13 @@ const stopUsageChecking = () => {
     }
 };
 
-async function messageAdded(message) {
+async function messageAdded(message, attachments = []) {
     const userIndex = messages.value.length;
     messages.value.push({
         role: 'user',
         content: message,
         id: 0,
+        attachments,
     });
 
     const assistantIndex = messages.value.length;
@@ -239,6 +254,7 @@ async function messageAdded(message) {
             message,
             userIndex,
             assistantIndex,
+            attachments,
             isNewConversation: getQueryParam('new') === '1',
         });
     });
@@ -409,6 +425,9 @@ onMounted(async () => {
                     message: messages.value[0].content,
                     userIndex,
                     assistantIndex,
+                    // Forward attachments from the just-loaded user message so the
+                    // LLM sees the file URLs on the very first turn.
+                    attachments: messages.value[0].metadata?.attachments ?? [],
                     isNewConversation: true,
                 });
             }
@@ -457,28 +476,13 @@ function scrollWhileStreaming() {
 }
 
 /**
- * Single entry point for all stream invocations (compose / edit / regenerate).
- *
- * The caller mutates `messages` first (push or replace user + assistant stubs)
- * and tells us the indices. We own the stream lifecycle and route every
- * incoming envelope event to the right message via the assistant UUID that
- * the server emits in the `start` event.
+ * Build the SSE callback set for a stream targeting the message at
+ * `assistantIndex`. Shared by submitChat (new / edited / regenerated turns) and
+ * resumeApproval (the continuation after a human approves/denies a gated tool),
+ * so both paths route envelope events to the right message identically.
  */
-function submitChat({
-    message,
-    userIndex,
-    assistantIndex,
-    updatedMessageInfo = {},
-    saveUserMessageImmediately = false,
-    createdAt = null,
-    isNewConversation = false,
-    autoScrollOnDone = true,
-}) {
-    const requestId = window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-    streamingAssistantId.value = null;
-
-    const callbacks = {
+function buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation = false, autoScrollOnDone = true }) {
+    return {
         onStart: (data) => {
             if (messages.value[assistantIndex] && messages.value[assistantIndex].role === 'assistant') {
                 messages.value[assistantIndex].id = data.assistant_message_id;
@@ -487,6 +491,10 @@ function submitChat({
                 messages.value[userIndex].id = data.user_message_id;
             }
             streamingAssistantId.value = data.assistant_message_id;
+
+            // A (resume) stream beginning supersedes any approval cards on this
+            // message — the continuation now drives the UI.
+            clearApprovalsFor(data.assistant_message_id);
         },
         onDelta: (text) => {
             const msg = findStreamingAssistant(streamingAssistantId.value, assistantIndex);
@@ -506,13 +514,33 @@ function submitChat({
             if (id) messageSources.value.set(id, sources);
         },
         onTool: (data, assistantMessageId) => {
-            // Drives the branded "Calling <service>…" indicator. The
-            // backend yields `tool { phase: 'start' }` before dispatching
-            // and `{ phase: 'end' }` after — synchronous + in order with
-            // the LLM stream. The start payload carries display metadata
-            // (kind, label, icon_url, brand_color) resolved server-side
-            // against the connector catalog.
             if (!data?.tool_call_id) return;
+
+            // Gated call: surface an Approve/Deny card instead of running it.
+            if (data.phase === 'awaiting_approval') {
+                if (!assistantMessageId || !data.approval_id) return;
+                const list = pendingApprovals.value.get(assistantMessageId) ?? [];
+                if (!list.some((c) => c.tool_call_id === data.tool_call_id)) {
+                    list.push({
+                        tool_call_id: data.tool_call_id,
+                        approval_id: data.approval_id,
+                        name: data.name ?? '',
+                        label: data.label ?? data.name ?? '',
+                        kind: data.kind ?? 'function',
+                        icon_url: data.icon_url ?? null,
+                        brand_color: data.brand_color ?? null,
+                        args: typeof data.args === 'string' ? data.args : '',
+                        reason: data.reason ?? null,
+                    });
+                }
+                pendingApprovals.value.set(assistantMessageId, list);
+                nextTick(() => scrollWhileStreaming());
+                return;
+            }
+
+            // Drives the branded "Calling <service>…" indicator. The backend
+            // yields `tool { phase: 'start' }` before dispatching and
+            // `{ phase: 'end' }` after — synchronous + in order with the stream.
             if (data.phase === 'start') {
                 activeFunctionCalls.value.set(data.tool_call_id, {
                     tool_call_id: data.tool_call_id,
@@ -556,9 +584,7 @@ function submitChat({
             activeFunctionCalls.value.clear();
 
             if (isNewConversation) {
-                setTimeout(() => {
-                    chatEventBus.emitConversationCreated(props.conversation_id);
-                }, 2000);
+                void generateTitleThenRefresh();
             }
 
             if (getQueryParam('new') === '1') {
@@ -572,6 +598,122 @@ function submitChat({
             }
         },
     };
+}
+
+/** Drop any approval cards (and resolving state) for an assistant message. */
+function clearApprovalsFor(assistantMessageId) {
+    const list = pendingApprovals.value.get(assistantMessageId);
+    if (!list) return;
+    const ids = list.map((c) => c.approval_id);
+    pendingApprovals.value.delete(assistantMessageId);
+    resolvingApprovalIds.value = resolvingApprovalIds.value.filter((x) => !ids.includes(x));
+}
+
+function approveTool(call) {
+    decideApproval(call, 'approve');
+}
+
+function denyTool(call) {
+    decideApproval(call, 'deny');
+}
+
+/**
+ * Record one card's decision. Once every gated call sharing the same checkpoint
+ * (approval_id) has been decided, post them together and re-open the stream.
+ */
+function decideApproval(call, decision) {
+    if (resolvingApprovalIds.value.includes(call.approval_id)) return;
+
+    const decisions = approvalDecisions.get(call.approval_id) ?? {};
+    decisions[call.tool_call_id] = decision;
+    approvalDecisions.set(call.approval_id, decisions);
+
+    let assistantMessageId = null;
+    for (const [mid, calls] of pendingApprovals.value.entries()) {
+        if (calls.some((c) => c.approval_id === call.approval_id)) {
+            assistantMessageId = mid;
+            break;
+        }
+    }
+    if (assistantMessageId === null) return;
+
+    const siblings = (pendingApprovals.value.get(assistantMessageId) ?? []).filter((c) => c.approval_id === call.approval_id);
+    if (siblings.every((c) => decisions[c.tool_call_id])) {
+        resolveApproval(call.approval_id, assistantMessageId, decisions);
+    }
+}
+
+/**
+ * Re-open the stream against the resolve endpoint with the collected decisions.
+ * The continuation streams under the original assistant message id; its
+ * `onStart` clears the cards (see clearApprovalsFor).
+ */
+function resolveApproval(approvalId, assistantMessageId, decisions) {
+    resolvingApprovalIds.value = [...resolvingApprovalIds.value, approvalId];
+    approvalDecisions.delete(approvalId);
+
+    const assistantIndex = messages.value.findIndex((m) => m.id === assistantMessageId);
+    if (assistantIndex === -1) {
+        clearApprovalsFor(assistantMessageId);
+        return;
+    }
+
+    userHasScrolledUp.value = false;
+    isAutoScrollEnabled.value = true;
+    streamingAssistantId.value = null;
+
+    startStream(
+        route('chat.tools.resolve', { approval: approvalId }),
+        JSON.stringify({ decisions }),
+        buildStreamCallbacks({ userIndex: assistantIndex - 1, assistantIndex, isNewConversation: false, autoScrollOnDone: true }),
+    );
+}
+
+/**
+ * Title the conversation, then refresh the sidebar. Titling is a quick
+ * synchronous endpoint (no queue); we call it async so it never blocks the UI,
+ * and only reload the conversation list once the real title has landed — no
+ * fixed delay guessing whether a background job finished. Best-effort: the
+ * sidebar still refreshes (showing "New Chat") if titling fails.
+ */
+async function generateTitleThenRefresh() {
+    try {
+        await axios.post(route('conversations.title', { conversationId: props.conversation_id }));
+    } catch {
+        // ignore — titling is best-effort
+    } finally {
+        chatEventBus.emitConversationCreated(props.conversation_id);
+    }
+}
+
+/**
+ * Single entry point for all stream invocations (compose / edit / regenerate).
+ *
+ * The caller mutates `messages` first (push or replace user + assistant stubs)
+ * and tells us the indices. We own the stream lifecycle and route every
+ * incoming envelope event to the right message via the assistant UUID that
+ * the server emits in the `start` event.
+ */
+function submitChat({
+    message,
+    userIndex,
+    assistantIndex,
+    updatedMessageInfo = {},
+    saveUserMessageImmediately = false,
+    createdAt = null,
+    isNewConversation = false,
+    autoScrollOnDone = true,
+    attachments = [],
+}) {
+    const requestId = window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    streamingAssistantId.value = null;
+    // A fresh turn supersedes any pending approval cards.
+    pendingApprovals.value.clear();
+    resolvingApprovalIds.value = [];
+    approvalDecisions.clear();
+
+    const callbacks = buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation, autoScrollOnDone });
 
     startStream(
         route('chat.stream', { conversationId: props.conversation_id }),
@@ -581,6 +723,7 @@ function submitChat({
             save_user_message_immediately: saveUserMessageImmediately,
             created_at: createdAt,
             request_id: requestId,
+            attachments,
         }),
         callbacks,
     );
@@ -856,9 +999,13 @@ const handleScrollToBottomClick = () => {
                                     :activeCalls="isMessageStreaming(message) ? activeFunctionCallsList : []"
                                     :avatar="props.appearance?.avatar"
                                     :isRTL="isMessageRTL(message)"
+                                    :pendingApprovals="message.id ? pendingApprovals.get(message.id) || [] : []"
+                                    :resolvingApprovalIds="resolvingApprovalIds"
                                     @messageDeleted="messageDeleted"
                                     @feedbackProvided="feedbackProvided"
                                     @regenerate="handleRegenerate"
+                                    @approveTool="approveTool"
+                                    @denyTool="denyTool"
                                 />
                             </div>
                         </div>
@@ -887,7 +1034,9 @@ const handleScrollToBottomClick = () => {
                         <ChatComposer
                             :isThinking="isStreaming"
                             :placeholder="appearance.composer_placeholder"
-                            :disabled="!canSendMessages"
+                            :disabled="!canSendMessages || hasPendingApprovals"
+                            :upload-endpoint="route('chat.messages.attachments.store')"
+                            :upload-headers="{ 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': props.conversation_id }"
                             @messageAdded="messageAdded"
                             @stopStreaming="stopStreaming"
                         />

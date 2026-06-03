@@ -2,13 +2,12 @@
 
 namespace Domain\Dashboard\Actions;
 
-use App\Workspace\Models\User;
-use App\Billing\Models\UserQuota;
-use App\Team\Models\Team;
+use App\Identity\Workspace\Models\User;
 use Carbon\Carbon;
-use Domain\Lead\Models\Lead;
-use Domain\Source\File\Models\SourceFile;
-use Domain\Source\Web\Models\SourceWebsite;
+use Domain\Billing\Models\UserQuota;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -28,8 +27,6 @@ class GetDashboardStatsAction
             ->whereIn('agent_id', $agentIds)
             ->sum('conversations_started');
 
-        $totalLeads = Lead::whereIn('agent_id', $agentIds)->count();
-
         // "Active sessions" intentionally still reads chat_sessions: this is a
         // recency indicator ("who pinged us in the last 24h"), not a preserved
         // counter — survives-deletion semantics aren't what we want here.
@@ -44,7 +41,6 @@ class GetDashboardStatsAction
             ],
             'messages' => $this->getMessagesPanel($user, $agentIds, $team),
             'conversations' => (int) $totalConversations,
-            'leads' => $totalLeads,
             'active_sessions' => $activeSessions,
             'knowledge_sources' => $this->getKnowledgeSourcesBreakdown($agentIds),
             'team' => [

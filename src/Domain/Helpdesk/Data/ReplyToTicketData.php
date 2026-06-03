@@ -2,8 +2,8 @@
 
 namespace Domain\Helpdesk\Data;
 
-use App\Workspace\Models\User;
-use App\Helpdesk\Models\Ticket;
+use App\Identity\Workspace\Models\User;
+use Domain\Helpdesk\Models\Ticket;
 use Spatie\LaravelData\Data;
 
 class ReplyToTicketData extends Data

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agent\Source\Connector;
 
 use Domain\Agent\Models\Agent;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Connector\Actions\Agent\DetachGenericConnectorFromAgentAction;
+use Domain\Integration\Connector\Actions\Agent\DetachGenericConnectorFromAgentAction;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

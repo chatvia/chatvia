@@ -15,7 +15,8 @@ import { computed, ref, watch } from 'vue';
 
 export interface FunctionRow {
     id: string;
-    name: string;
+    internal_name: string;
+    display_name: string | null;
     description: string;
     parameters_schema: string;
     webhook_url: string;
@@ -24,6 +25,7 @@ export interface FunctionRow {
     auth_header_name: string;
     has_auth_value: boolean;
     is_enabled: boolean;
+    requires_approval: boolean;
     created_at: string | null;
     agents_count: number;
 }
@@ -51,7 +53,8 @@ const exampleSchema = `{
 }`;
 
 const form = useForm({
-    name: '',
+    internal_name: '',
+    display_name: '',
     description: '',
     parameters_schema: exampleSchema,
     webhook_url: '',
@@ -59,6 +62,7 @@ const form = useForm({
     auth_type: 'none' as 'none' | 'bearer' | 'header' | 'hmac',
     auth_header_name: '',
     auth_value: '',
+    requires_approval: true,
 });
 
 watch(
@@ -70,7 +74,8 @@ watch(
         agentsLoaded.value = false;
         agents.reset();
         if (props.func) {
-            form.name = props.func.name;
+            form.internal_name = props.func.internal_name;
+            form.display_name = props.func.display_name ?? '';
             form.description = props.func.description;
             form.parameters_schema = props.func.parameters_schema;
             form.webhook_url = props.func.webhook_url;
@@ -78,11 +83,13 @@ watch(
             form.auth_type = props.func.auth_type;
             form.auth_header_name = props.func.auth_header_name ?? '';
             form.auth_value = '';
+            form.requires_approval = props.func.requires_approval;
         } else {
             form.reset();
             form.parameters_schema = exampleSchema;
             form.webhook_method = 'POST';
             form.auth_type = 'none';
+            form.requires_approval = true;
         }
     },
 );
@@ -193,13 +200,23 @@ async function copyId(): Promise<void> {
                         </div>
 
                         <div class="grid gap-2">
-                            <Label for="name">Name</Label>
+                            <Label for="internal_name">Name</Label>
                             <div class="relative">
                                 <Hash class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                                <Input id="name" v-model="form.name" placeholder="get_order_status" class="pl-9" required />
+                                <Input id="internal_name" v-model="form.internal_name" placeholder="get_order_status" class="pl-9" required />
                             </div>
                             <p class="text-muted-foreground text-xs">Letters, numbers, underscore. Must start with a letter.</p>
-                            <InputError :message="form.errors.name" />
+                            <InputError :message="form.errors.internal_name" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="display_name">Display name <span class="text-muted-foreground font-normal">(optional)</span></Label>
+                            <div class="relative">
+                                <Hash class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                                <Input id="display_name" v-model="form.display_name" placeholder="Get order status" class="pl-9" />
+                            </div>
+                            <p class="text-muted-foreground text-xs">Friendly name shown to users in chat. Falls back to the name above.</p>
+                            <InputError :message="form.errors.display_name" />
                         </div>
 
                         <div class="grid gap-2">
@@ -255,6 +272,18 @@ async function copyId(): Promise<void> {
                                     </select>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Human-in-the-loop: pause for the user's confirmation before
+                             this function runs. Seeded from the method (writes default on). -->
+                        <div class="flex items-start justify-between gap-3 rounded-lg border p-3">
+                            <div class="min-w-0">
+                                <Label class="text-sm font-medium">Require approval</Label>
+                                <p class="text-muted-foreground mt-0.5 text-xs">
+                                    Ask the user before this function runs — recommended for actions that write or change data.
+                                </p>
+                            </div>
+                            <Switch :model-value="form.requires_approval" @update:model-value="(v) => (form.requires_approval = v)" />
                         </div>
 
                         <div class="grid gap-2">
@@ -390,7 +419,7 @@ async function copyId(): Promise<void> {
 
     <DeleteConfirmationDialog
         :open="deleteOpen"
-        :title="`Delete ${func?.name ?? 'function'}?`"
+        :title="`Delete ${func?.internal_name ?? 'function'}?`"
         description="It will be detached from any agents using it. This action cannot be undone."
         confirm-text="Delete"
         cancel-text="Keep"

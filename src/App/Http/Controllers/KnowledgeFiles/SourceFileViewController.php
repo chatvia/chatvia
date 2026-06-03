@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\KnowledgeFiles;
 
-use Domain\Source\File\Models\SourceFile;
-use Domain\Source\Text\Models\SourceText;
-use Domain\Source\Web\Models\SourceWebsite;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

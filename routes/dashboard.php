@@ -7,7 +7,6 @@ use App\Http\Controllers\Dashboard\DashboardStatsController;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesDownload;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesListController;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesShowController;
-use App\Http\Controllers\Landing\Marketing\FeatureController;
 use App\Http\Controllers\Support\SupportController;
 use App\Http\Controllers\Tickets\ChangeTicketPriorityController;
 use App\Http\Controllers\Tickets\ReplyToTicketController;
@@ -17,7 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified', 'can.access.dashboard'])->group(function (): void {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('my/stats', DashboardStatsController::class)->name('dashboard.stats');
-    Route::get('my/features', FeatureController::class)->name('dashboard.features');
 
     Route::get('my/knowledge-base', KnowledgeFilesShowController::class)->name('knowledge-base.show');
     Route::get('my/knowledge-base/list', KnowledgeFilesListController::class)->name('knowledge-base.list');

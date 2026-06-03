@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\DeleteAccountRequest;
 use App\Http\Requests\Settings\Account\ProfileUpdateRequest;
-use App\Workspace\Actions\Account\DeleteUserAccountAction;
-use App\Workspace\Actions\Account\UpdateProfileAction;
+use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
+use App\Identity\Workspace\Actions\Account\UpdateProfileAction;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

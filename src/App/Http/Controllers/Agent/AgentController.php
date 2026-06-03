@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Agent;
 
-use App\Workspace\Models\User;
 use App\Http\Requests\Agent\Crud\CreateAgentRequest;
-use App\Team\Models\Team;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Account\CreateAgentAction;
 use Domain\Agent\Actions\Account\DeleteAgentAction;
 use Domain\Agent\Actions\Account\UpdateAgentAction;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Models\Team;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

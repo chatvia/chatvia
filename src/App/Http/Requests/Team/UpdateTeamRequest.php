@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Team;
 
-use App\Team\Models\Team;
-use Domain\Team\Data\UpdateTeamData;
+use Domain\Membership\Team\Data\UpdateTeamData;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateTeamRequest extends FormRequest

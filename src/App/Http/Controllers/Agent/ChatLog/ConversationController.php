@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Agent\ChatLog;
 
 use Domain\Agent\Data\Resources\ChatLog\Conversations\ChatLogConversationsResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Actions\Conversations\AdminDeleteConversationAction;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Actions\Conversations\AdminDeleteConversationAction;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -46,7 +46,7 @@ class ConversationController
         abort_if($request->user()->cannot('view', $agent), 404);
         abort_if(! has_permission_to_agent($agent, 'agent.chat.delete'), 403);
 
-        $conversation = ChatConversation::query()
+        $conversation = Conversation::query()
             ->whereHas('session', fn ($q) => $q->where('agent_id', $agent->id))
             ->where('external_id', $conversationId)
             ->firstOrFail();

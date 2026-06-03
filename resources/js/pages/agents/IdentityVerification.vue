@@ -31,7 +31,7 @@ hljs.registerLanguage('php', php);
 hljs.registerLanguage('xml', xml);
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
     auth_secret: string;
     embed_script_url: string;
 }

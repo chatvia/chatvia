@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Chat\Stream;
 
 use App\Http\Requests\Chat\ChatStreamRequest;
-use Domain\Chat\Services\ChatStreamService;
-use Domain\Chat\Services\Memory\ChatSession;
-use Domain\Chat\Services\Streaming\Requests\StreamRequestDataFactory;
+use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\Memory\TurnState;
+use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 readonly class ChatStreamController
 {
     public function __construct(
         private ChatStreamService $chatStreamService,
-        private ChatSession $session,
+        private TurnState $session,
         private StreamRequestDataFactory $factory,
     ) {}
 
@@ -24,7 +24,7 @@ readonly class ChatStreamController
             $this->factory->forChat(
                 $request,
                 $agent,
-                $this->session->firstOrCreateChatSession($agent),
+                $this->session->firstOrCreateSession($agent),
                 $conversationId,
             ),
         );

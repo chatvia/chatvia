@@ -6,7 +6,7 @@ use Domain\Agent\Actions\Sources\LinkSourceFileToAgentAction;
 use Domain\Agent\Actions\Sources\UnlinkSourceFileFromAgentAction;
 use Domain\Agent\Data\Resources\Sources\AgentSourcesListData;
 use Domain\Agent\Models\Agent;
-use Domain\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Http\Request;
 
 class AgentTrainedFileController

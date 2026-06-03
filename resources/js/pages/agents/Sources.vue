@@ -8,7 +8,7 @@ import { Activity, Database, FileText, Globe, LoaderCircle, Plug, Type, Wrench, 
 import { computed, onMounted, ref } from 'vue';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 const props = defineProps<Props>();

@@ -6,7 +6,7 @@ use App\Http\Requests\Api\V1\Agent\AttachAgentMcpRequest;
 use App\Http\Resources\Api\V1\Tools\McpServerData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
-use Domain\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

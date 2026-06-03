@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Api\V1\Function;
 
-use App\Workspace\Models\User;
 use App\Http\Requests\Api\V1\Function\StoreApiFunctionRequest;
 use App\Http\Requests\Api\V1\Function\UpdateApiFunctionRequest;
 use App\Http\Resources\Api\V1\Tools\FunctionData;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Function\Actions\CreateApiFunctionAction;
-use Domain\Function\Actions\DeleteApiFunctionAction;
-use Domain\Function\Actions\UpdateApiFunctionAction;
-use Domain\Function\Models\AgentFunction;
+use Domain\Integration\Function\Actions\CreateApiFunctionAction;
+use Domain\Integration\Function\Actions\DeleteApiFunctionAction;
+use Domain\Integration\Function\Actions\UpdateApiFunctionAction;
+use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

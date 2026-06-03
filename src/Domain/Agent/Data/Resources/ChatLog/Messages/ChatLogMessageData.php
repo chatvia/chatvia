@@ -2,7 +2,7 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Messages;
 
-use Domain\Chat\Models\ChatMessage;
+use Domain\Conversation\Models\Message;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -33,7 +33,7 @@ class ChatLogMessageData extends Data
         public ?string $read_at = null,
     ) {}
 
-    public static function fromMessage(ChatMessage $message): self
+    public static function fromMessage(Message $message): self
     {
         $artifacts = $message->metadata['artifacts'] ?? null;
 

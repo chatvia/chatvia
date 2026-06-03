@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Ingestion;
 
-use Domain\Ingestion\Actions\Documents\IngestDocumentChunkAction;
-use Domain\Ingestion\Data\DocumentData;
+use Domain\Knowledge\Ingestion\Actions\Documents\IngestDocumentChunkAction;
+use Domain\Knowledge\Ingestion\Data\DocumentData;
 use Illuminate\Http\Request;
 
 class IngestionDocumentController

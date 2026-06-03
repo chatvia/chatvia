@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agent\Source\File\Manage;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Source\File\Actions\DeleteAgentUploadedFilesAction;
+use Domain\Knowledge\Source\File\Actions\DeleteAgentUploadedFilesAction;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeUploadedFilesDeleteController

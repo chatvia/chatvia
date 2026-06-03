@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Settings\Prompt;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Prompt\CreatePromptRequest;
 use App\Http\Requests\Settings\Prompt\UpdatePromptRequest;
+use App\Identity\Workspace\Models\User;
 use Domain\Prompt\Actions\CreatePromptAction;
 use Domain\Prompt\Actions\DeletePromptAction;
 use Domain\Prompt\Actions\ListPromptsForManagementPageAction;

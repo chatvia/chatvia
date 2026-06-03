@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Tickets;
 
-use App\Helpdesk\Models\Ticket;
 use App\Http\Requests\Tickets\ReplyToTicketRequest;
 use Domain\Helpdesk\Actions\ReplyToTicketAction;
+use Domain\Helpdesk\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 
 /**

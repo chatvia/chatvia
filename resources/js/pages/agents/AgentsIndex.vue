@@ -13,7 +13,7 @@ import { computed, onMounted, ref } from 'vue';
 
 const page = usePage<SharedData>();
 
-type Agent = Domain.Agents.Data.Resources.AgentResourceData;
+type Agent = Domain.Agent.Data.Resources.Account.AgentResourceData;
 
 const agents = ref<Agent[]>([]);
 const isLoading = ref(true);

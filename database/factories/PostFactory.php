@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Marketing\Models\Post;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Support\Cms\Marketing\Models\Post;
 
 class PostFactory extends Factory
 {

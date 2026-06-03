@@ -1,18 +1,5 @@
 [
     {
-        "internal_name": "gpt-oss-120b",
-        "external_name": "gpt-oss",
-        "descriptive_name": "GPT OSS",
-        "description": "Open-source GPT model from OpenAI. Powerful and versatile for a wide range of tasks.",
-        "context_window": 128000,
-        "icon": "gpt.svg",
-        "location": "eu",
-        "credits": 1,
-        "input_price_per_1m_tokens": 0.15,
-        "output_price_per_1m_tokens": 0.60,
-        "provider": "scaleway"
-    },
-    {
         "internal_name": "qwen3.6-35b-a3b",
         "external_name": "qwen3",
         "descriptive_name": "Qwen3",

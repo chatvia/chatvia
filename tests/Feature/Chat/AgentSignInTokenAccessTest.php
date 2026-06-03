@@ -1,11 +1,11 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Services\AgentSignInTokenService;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
-use App\Team\Services\TeamService;
+use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
-use App\Chatter\Actions\CreateChatterAction;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -85,7 +85,6 @@ function makeSignInAgent(User $owner): Agent
         'user_id' => $owner->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Private Agent',
-        'type' => 'knowledge_base',
         'external_id' => Str::random(14),
         'sub_domain' => Str::lower(Str::random(12)),
         'is_public' => false,

@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware\Access;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\JsonResponse;

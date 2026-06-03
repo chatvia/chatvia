@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Api\V1\Agent;
 
 use Domain\Agent\Models\Agent;
-use Domain\Function\Data\AttachAgentFunctionData;
+use Domain\Integration\Function\Data\AttachAgentFunctionData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AttachAgentFunctionRequest extends FormRequest

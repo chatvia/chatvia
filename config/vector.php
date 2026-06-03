@@ -11,7 +11,11 @@ return [
         // Search accuracy mode: 'default', 'high_accuracy', or 'high_speed'
         'mode' => env('VECTOR_SEARCH_MODE', 'default'),
 
-        'rerank' => env('VECTOR_SEARCH_RERANK', false),
+        // Rerank is the relevance gate: chunks scoring below
+        // relevance_threshold are dropped. Turning this off means every query
+        // injects the top max_chunks regardless of how well they match —
+        // greetings and acknowledgments will pull in noise.
+        'rerank' => env('VECTOR_SEARCH_RERANK', true),
 
         'relevance_threshold' => env('VECTOR_SEARCH_RELEVANCE_THRESHOLD', 0.55),
 

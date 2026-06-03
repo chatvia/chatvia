@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Tickets;
 
-use App\Helpdesk\Models\Ticket;
 use App\Http\Requests\Tickets\CreateTicketRequest;
 use Domain\Helpdesk\Actions\CreateTicketAction;
+use Domain\Helpdesk\Models\Ticket;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

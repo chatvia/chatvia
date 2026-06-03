@@ -51,5 +51,9 @@ class WidgetSettingsResourceData extends Data
         // check important info"). Optional — when null/empty the widget hides
         // the strip entirely.
         public ?string $chat_footer_text,
+        // Whether visitors can hand off to a human (Live Chat). Widget-only; the
+        // widget hides the "Talk to a human" affordance when false. Already
+        // ANDed with the workspace's handoff capability on the server.
+        public bool $handoff_enabled,
     ) {}
 }

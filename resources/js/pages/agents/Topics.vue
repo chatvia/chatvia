@@ -31,7 +31,7 @@ import { toast } from 'vue-sonner';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, ChartTooltip, Legend, Filler);
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 const props = defineProps<Props>();
@@ -40,7 +40,7 @@ const { hasCapability } = useCapabilityGuard();
 const hasAccess = computed(() => hasCapability('topics'));
 
 const loading = ref(true);
-const topicsData = ref<Domain.Agents.Data.Topics.TopicsResourceData | null>(null);
+const topicsData = ref<Domain.Topic.Data.TopicsResourceData | null>(null);
 const error = ref<string | null>(null);
 const activeView = ref<'graph' | 'pie'>('graph');
 
@@ -97,13 +97,13 @@ const formatDate = (dateStr: string): string => {
 const lineChartData = computed(() => {
     if (!topicsData.value) return null;
 
-    const datasets = (topicsData.value.topics_by_date as Domain.Agents.Data.Topics.TopicTrendData[]).map(
-        (topic: Domain.Agents.Data.Topics.TopicTrendData, index: number) => {
+    const datasets = (topicsData.value.topics_by_date as Domain.Topic.Data.TopicTrendData[]).map(
+        (topic: Domain.Topic.Data.TopicTrendData, index: number) => {
             const color = colors[index % colors.length];
 
             return {
                 label: topic.topic_name,
-                data: topic.counts.map((d: Domain.Agents.Data.Topics.TopicCountByDateData) => d.count),
+                data: topic.counts.map((d: Domain.Topic.Data.TopicCountByDateData) => d.count),
                 borderColor: color,
                 backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
                 fill: true,
@@ -116,8 +116,8 @@ const lineChartData = computed(() => {
         },
     );
 
-    const firstTopic = (topicsData.value.topics_by_date as Domain.Agents.Data.Topics.TopicTrendData[])[0];
-    const labels = firstTopic ? firstTopic.counts.map((d: Domain.Agents.Data.Topics.TopicCountByDateData) => formatDate(d.date)) : [];
+    const firstTopic = (topicsData.value.topics_by_date as Domain.Topic.Data.TopicTrendData[])[0];
+    const labels = firstTopic ? firstTopic.counts.map((d: Domain.Topic.Data.TopicCountByDateData) => formatDate(d.date)) : [];
 
     return {
         labels,
@@ -195,13 +195,13 @@ const lineChartOptions: ChartOptions<'line'> = {
 const pieChartData = computed(() => {
     if (!topicsData.value) return null;
 
-    const totals = topicsData.value.total_topics as Domain.Agents.Data.Topics.TopicSummaryData[];
+    const totals = topicsData.value.total_topics as Domain.Topic.Data.TopicSummaryData[];
 
     return {
-        labels: totals.map((t: Domain.Agents.Data.Topics.TopicSummaryData) => t.name),
+        labels: totals.map((t: Domain.Topic.Data.TopicSummaryData) => t.name),
         datasets: [
             {
-                data: totals.map((t: Domain.Agents.Data.Topics.TopicSummaryData) => t.count),
+                data: totals.map((t: Domain.Topic.Data.TopicSummaryData) => t.count),
                 backgroundColor: colors,
                 borderColor: '#fff',
                 borderWidth: 2,
@@ -241,8 +241,8 @@ const pieChartOptions: ChartOptions<'pie'> = {
                     const label = context.label || '';
                     const value = context.parsed || 0;
                     const total =
-                        (topicsData.value?.total_topics as Domain.Agents.Data.Topics.TopicSummaryData[] | undefined)?.reduce(
-                            (sum: number, t: Domain.Agents.Data.Topics.TopicSummaryData) => sum + t.count,
+                        (topicsData.value?.total_topics as Domain.Topic.Data.TopicSummaryData[] | undefined)?.reduce(
+                            (sum: number, t: Domain.Topic.Data.TopicSummaryData) => sum + t.count,
                             0,
                         ) ?? 0;
                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;

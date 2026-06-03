@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Agent\Invitations;
 
-use App\Chatter\Services\ChatterAuthTokenService;
 use App\Http\Controllers\Controller;
-use Domain\Member\Exceptions\AgentMemberInvitationRejectedException;
-use Domain\Member\Actions\AcceptAgentInvitationAction;
-use Domain\Member\Models\AgentMemberInvitation;
+use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
+use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
+use Domain\Membership\Agent\Models\AgentMemberInvitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;

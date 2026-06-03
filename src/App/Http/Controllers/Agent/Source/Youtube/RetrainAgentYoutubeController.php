@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agent\Source\Youtube;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\Youtube\Actions\RetrainAgentYoutubeVideoAction;
-use Domain\Source\Youtube\Models\SourceYoutubeVideo;
+use Domain\Knowledge\Source\Youtube\Actions\RetrainAgentYoutubeVideoAction;
+use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Chunks;
 
-use Domain\Ingestion\Models\Chunk;
+use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 

@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
+use Database\Seeders\Demo\DemoCountries;
 use Domain\Agent\Models\Agent;
-use Domain\Llm\Models\Llm;
 use Domain\Analytics\Actions\RecordFeedbackGivenAction;
 use Domain\Analytics\Actions\RecordMessageSentAction;
 use Domain\Analytics\Events\FeedbackGiven;
 use Domain\Analytics\Events\MessageSent;
-use Domain\Chat\Enums\ConversationSource;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Chat\Models\ChatMessage;
-use Domain\Chat\Models\ChatSession;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
+use Domain\Conversation\Models\Session;
+use Domain\Llm\Models\Llm;
 use Illuminate\Database\Seeder;
-use Database\Seeders\Demo\DemoCountries;
 
 class ChatSeeder extends Seeder
 {
@@ -308,7 +308,7 @@ class ChatSeeder extends Seeder
                 );
                 $sessionsCreated++;
 
-                $conversation = ChatConversation::create([
+                $conversation = Conversation::create([
                     'chat_session_id' => $session->id,
                     'source' => ConversationSource::cases()[array_rand(ConversationSource::cases())],
                     'title' => $scenario['title'],
@@ -336,7 +336,7 @@ class ChatSeeder extends Seeder
                     $completionTokens = $isAssistant ? fake()->numberBetween(50, 400) : null;
                     $responseMs = $isAssistant ? fake()->numberBetween(500, 3000) : null;
 
-                    $message = ChatMessage::create([
+                    $message = Message::create([
                         'chat_conversation_id' => $conversation->id,
                         'content' => str_replace('\\n', "\n", $messageData['content']),
                         'role' => $messageData['role'],
@@ -408,7 +408,7 @@ class ChatSeeder extends Seeder
         User $user,
         ?int $countryId,
         bool $withUser = false
-    ): ChatSession {
+    ): Session {
         $cities = [
             'New York', 'San Francisco', 'Los Angeles', 'Chicago', 'Austin',
             'Seattle', 'Boston', 'Denver', 'Portland', 'Miami',
@@ -447,6 +447,6 @@ class ChatSeeder extends Seeder
             $sessionData['user_id'] = $user->id;
         }
 
-        return ChatSession::create($sessionData);
+        return Session::create($sessionData);
     }
 }

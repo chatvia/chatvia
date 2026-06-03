@@ -2,7 +2,7 @@
 
 namespace Domain\Helpdesk\Data;
 
-use App\Helpdesk\Models\Ticket;
+use Domain\Helpdesk\Models\Ticket;
 use Spatie\LaravelData\Data;
 
 class ChangeTicketPriorityData extends Data

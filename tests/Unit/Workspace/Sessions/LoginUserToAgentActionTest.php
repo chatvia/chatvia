@@ -1,8 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Actions\Sessions\LoginUserToAgentAction;
-use App\Workspace\Data\Sessions\LoginData;
+use App\Identity\Workspace\Actions\Sessions\LoginUserToAgentAction;
+use App\Identity\Workspace\Data\Sessions\LoginData;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 beforeEach(function (): void {

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Team\Member;
 
 use App\Http\Requests\Team\InviteTeamMemberRequest;
-use App\Team\Models\Team;
-use Domain\Team\Actions\Members\InviteTeamMemberAction;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Membership\Team\Actions\Members\InviteTeamMemberAction;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 
 class TeamInviteMemberController

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Connector;
 
 use Domain\Agent\Models\Agent;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Connector\Services\OAuth\McpOAuthException;
-use Domain\Connector\Services\OAuth\McpOAuthFlow;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
+use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

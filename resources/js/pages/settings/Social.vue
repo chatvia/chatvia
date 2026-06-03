@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -9,12 +10,11 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { CheckCircle2, Link2, Link2Off, Share2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -32,9 +32,9 @@ defineProps<{
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Social accounts', href: '/settings/social' }];
 
-const page = usePage();
-const status = computed(() => page.props.flash?.status as string | undefined);
-const providerError = computed(() => page.props.errors?.provider as string | undefined);
+const page = usePage<SharedData>();
+const status = computed(() => page.props.flash?.success ?? undefined);
+const providerError = computed(() => page.props.errors?.provider);
 
 const accountToDisconnect = ref<SocialAccount | null>(null);
 
@@ -80,9 +80,7 @@ const providerSvg = (provider: SocialAccount['provider']): string => {
                         </div>
                         <h1 class="text-2xl font-bold tracking-tight">Social accounts</h1>
                     </div>
-                    <p class="text-muted-foreground">
-                        Connect Google, Microsoft, or Slack to sign in with one click and keep your accounts in sync.
-                    </p>
+                    <p class="text-muted-foreground">Connect Google, Microsoft, or Slack to sign in with one click and keep your accounts in sync.</p>
                 </div>
 
                 <Separator />
@@ -97,11 +95,7 @@ const providerSvg = (provider: SocialAccount['provider']): string => {
                 </Alert>
 
                 <div class="space-y-3">
-                    <div
-                        v-for="account in accounts"
-                        :key="account.provider"
-                        class="flex items-center justify-between gap-4 rounded-lg border p-4"
-                    >
+                    <div v-for="account in accounts" :key="account.provider" class="flex items-center justify-between gap-4 rounded-lg border p-4">
                         <div class="flex items-center gap-3">
                             <div class="size-9 shrink-0" v-html="providerSvg(account.provider)" />
                             <div>
@@ -109,9 +103,7 @@ const providerSvg = (provider: SocialAccount['provider']): string => {
                                 <p class="text-muted-foreground text-xs">
                                     <span v-if="account.connected">
                                         Connected
-                                        <span v-if="account.connected_at">
-                                            since {{ new Date(account.connected_at).toLocaleDateString() }}
-                                        </span>
+                                        <span v-if="account.connected_at"> since {{ new Date(account.connected_at).toLocaleDateString() }} </span>
                                     </span>
                                     <span v-else>Not connected</span>
                                 </p>
@@ -141,10 +133,7 @@ const providerSvg = (provider: SocialAccount['provider']): string => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                        class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        @click="confirmDisconnect"
-                    >
+                    <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmDisconnect">
                         Disconnect
                     </AlertDialogAction>
                 </AlertDialogFooter>

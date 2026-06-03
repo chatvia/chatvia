@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Models\Conversation;
 use Domain\Lead\Models\Lead;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class LeadFactory extends Factory
 {
+    protected $model = Lead::class;
+
     /**
      * Define the model's default state.
      *
@@ -48,7 +50,7 @@ class LeadFactory extends Factory
         ]);
     }
 
-    public function withConversation(ChatConversation $conversation): static
+    public function withConversation(Conversation $conversation): static
     {
         return $this->state(fn (array $attributes) => [
             'chat_conversation_id' => $conversation->id,

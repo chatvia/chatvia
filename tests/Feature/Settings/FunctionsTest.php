@@ -1,7 +1,7 @@
 <?php
 
-use App\Workspace\Models\User;
-use Domain\Function\Models\AgentFunction;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Function\Models\AgentFunction;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
@@ -10,7 +10,7 @@ beforeEach(function (): void {
 function makeFunction(User $user, array $overrides = []): AgentFunction
 {
     return $user->functions()->create(array_merge([
-        'name' => 'get_order_status',
+        'internal_name' => 'get_order_status',
         'description' => 'Get the order status',
         'parameters_schema' => ['type' => 'object', 'properties' => ['order_id' => ['type' => 'string']]],
         'webhook_url' => 'https://example.com/webhook',
@@ -24,7 +24,7 @@ function makeFunction(User $user, array $overrides = []): AgentFunction
 function updatePayload(array $overrides = []): array
 {
     return array_merge([
-        'name' => 'get_order_status',
+        'internal_name' => 'get_order_status',
         'description' => 'Updated description',
         'parameters_schema' => json_encode(['type' => 'object', 'properties' => []]),
         'webhook_url' => 'https://example.com/webhook',
@@ -95,14 +95,14 @@ it('requires a credential when switching to an auth type with no stored secret',
 });
 
 it('rejects a duplicate name from another function', function (): void {
-    makeFunction($this->user, ['name' => 'existing_fn']);
-    $fn = makeFunction($this->user, ['name' => 'editable_fn']);
+    makeFunction($this->user, ['internal_name' => 'existing_fn']);
+    $fn = makeFunction($this->user, ['internal_name' => 'editable_fn']);
 
     $this->actingAs($this->user)
         ->patch(route('settings.functions.update', ['external_id' => $fn->external_id]), updatePayload([
-            'name' => 'existing_fn',
+            'internal_name' => 'existing_fn',
         ]))
-        ->assertSessionHasErrors('name');
+        ->assertSessionHasErrors('internal_name');
 });
 
 it('cannot update a function owned by another user', function (): void {

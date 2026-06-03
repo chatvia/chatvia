@@ -1,60 +1,53 @@
 @php
     $faqs = $landing['faqs'] ?? [
         [
-            'question' => 'What is ChatVIA?',
-            'answer' => 'ChatVIA is an AI platform that lets you create custom AI chatbots trained on your own data. Upload your documents to create AI chatbots that understand your business knowledge and can answer questions about your content.',
+            'question' => 'What is Chatvia?',
+            'answer' => 'Chatvia is a B2B platform for building and training your own AI agents on your data. Your agents answer from your knowledge and act in your tools — connect MCP servers, call your APIs with custom functions, and deploy anywhere.',
         ],
         [
-            'question' => 'How does ChatVIA work?',
-            'answer' => 'Upload your documents (PDFs, Word docs, Audio, Video, etc.) and ChatVIA processes them using advanced AI. The system creates AI chatbots that can answer questions about your content, provide insights, and help users find information quickly.',
+            'question' => 'Is Chatvia just a support chatbot?',
+            'answer' => 'No. Chatvia is for building AI agents for any workflow — internal knowledge assistants, research tools, data lookups, booking and ordering flows, and more. Customer support is one use case you can build, not the whole product.',
         ],
         [
-            'question' => 'Can I crawl my website?',
-            'answer' => 'Yes! You can crawl your website and create a chatbot that is trained on your website content, so your customers can get instant answers to repetitive questions such as contact information, opening hours, and more.',
+            'question' => 'Can my agents call our APIs and tools?',
+            'answer' => 'Yes. Define custom functions (webhooks) so an agent can call any HTTP endpoint, and connect MCP servers to give it whole toolsets at once. The agent decides when to call them during a conversation to fetch data or take action.',
+        ],
+        [
+            'question' => 'What is MCP, and can I connect my own servers?',
+            'answer' => 'MCP (Model Context Protocol) is an open standard for giving agents tools. You can connect any remote MCP server in seconds and pick which tools each agent can use — including your own internal servers.',
         ],
         [
             'question' => 'What does training mean?',
-            'answer' => 'Training means we take your data and feed it through an advanced AI pipeline to understand it and create a chatbot based on the training data. This allows you to have your own custom chatbot that understands your specific business knowledge.',
+            'answer' => 'Training feeds your data through a retrieval pipeline (RAG) so the agent understands it and answers from your real content instead of guessing. We never train third-party models on your data, so it stays private.',
         ],
         [
-            'question' => 'What training technology do you use?',
-            'answer' => 'We use RAG (Retrieval-Augmented Generation) technology to retrieve and ingest your data. We will never train your data or use any third party to do so, which makes your data 100% safe and private.',
+            'question' => 'Can I train on my website, documents, audio and video?',
+            'answer' => 'Yes. Upload documents (PDF, Word, Text), crawl your website, or connect data sources — and audio and video are transcribed automatically. Your agent learns from your content and stays in sync as it changes.',
         ],
         [
-            'question' => 'Does it support Audio and Video files?',
-            'answer' => 'Yes! ChatVIA supports both audio and video files using advanced transcription technology. The system automatically transcribes the content and makes it available for your chatbot to use.',
+            'key' => 'models',
+            'question' => 'What AI models does Chatvia use?',
+            'answer' => 'You can choose the best model for each agent and switch anytime.',
         ],
         [
-            'question' => 'What types of files can I upload?',
-            'answer' => 'ChatVIA supports PDF, Word, Text, Video, and Audio files. You can also crawl your website to add its content automatically.',
+            'question' => 'How many AI agents can I create?',
+            'answer' => 'It depends on your plan. See the pricing section for the number of agents included in each plan.',
         ],
         [
-            'question' => 'How many AI chatbots can I create?',
-            'answer' => 'The number of chatbots you can create depends on your plan. Please refer to the pricing section for details on chatbot limits for each plan.',
-        ],
-        [
-            'question' => 'What AI models does ChatVIA use?',
-            'answer' => 'ChatVIA supports multiple open-source AI models including GPT OSS, Llama, DeepSeek, Qwen, Mistral, Gemma, and Holo2. You can choose the best model for your needs and switch between them anytime.',
+            'question' => 'Can I customize and white-label my agents?',
+            'answer' => "Yes. Customize each agent's name, persona, branding, and logo, and serve it on your own domain for a fully white-label experience.",
         ],
         [
             'question' => 'Is my data secure and private?',
-            'answer' => 'ChatVIA is GDPR compliant, hosted in the EU, and uses enterprise-grade security. Your documents and conversations remain private and encrypted. Please read our privacy policy for more information.',
+            'answer' => 'Chatvia is GDPR compliant, hosted in the EU, and uses enterprise-grade security. We never train third-party models on your data, and your documents and conversations stay private and encrypted.',
         ],
         [
-            'question' => "Can I customize the AI chatbot's appearance?",
-            'answer' => "Yes! You can customize your agent's name, personality, and add custom branding, logos, and even use your own domain for a white-label experience.",
+            'question' => 'Do you offer team collaboration?',
+            'answer' => 'Yes. All plans include team collaboration — invite team members and share agents across your team.',
         ],
         [
             'question' => 'What payment methods do you accept?',
-            'answer' => 'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal. All payments are processed securely through Stripe. You can upgrade, downgrade, or cancel your plan anytime.',
-        ],
-        [
-            'question' => 'Do you offer team collaboration features?',
-            'answer' => 'Yes! All plans include team collaboration features. You can invite team members and share agents with your team.',
-        ],
-        [
-            'question' => 'How fast is document processing?',
-            'answer' => 'Document processing times vary based on file size and type. Most documents are processed within minutes, but larger files may take longer. You will be notified once processing is complete.',
+            'answer' => 'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal, processed securely through Stripe. Upgrade, downgrade, or cancel anytime.',
         ],
     ];
 @endphp
@@ -71,7 +64,7 @@
                         Frequently Asked Questions
                     </h2>
                     <p class="text-lg md:text-xl text-slate-500">
-                        Everything you need to know about our AI chatbot platform.
+                        Everything you need to know about building AI agents with Chatvia.
                     </p>
                 </div>
 
@@ -118,7 +111,11 @@
                                      x-transition:leave-end="opacity-0 -translate-y-2">
                                     <div class="px-6 pb-5">
                                         <div class="text-slate-600 leading-relaxed">
-                                            {!! nl2br(e($faq['answer'])) !!}
+                                            @if (($faq['key'] ?? '') === 'models' && ! empty($models ?? []))
+                                                @include('landing.partials.faq-models')
+                                            @else
+                                                {!! nl2br(e($faq['answer'])) !!}
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

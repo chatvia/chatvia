@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Team\Roles;
 
-use App\Team\Data\Resources\Roles\TeamRoleData;
-use App\Team\Data\Resources\Team\TeamData;
-use App\Team\Models\Team;
-use App\Team\Services\TeamService;
+use Domain\Membership\Team\Data\Resources\Roles\TeamRoleData;
+use Domain\Membership\Team\Data\Resources\Team\TeamData;
+use Domain\Membership\Team\Models\Team;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

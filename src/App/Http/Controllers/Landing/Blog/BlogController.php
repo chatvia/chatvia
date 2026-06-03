@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Landing\Blog;
 
-use App\Marketing\Models\Post;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Support\Cms\Marketing\Models\Post;
 
 class BlogController
 {

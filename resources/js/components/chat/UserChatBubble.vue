@@ -16,7 +16,7 @@ import type { Message } from '@/types/chat';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Check, Copy, Edit3, Trash2 } from 'lucide-vue-next';
-import { nextTick, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -40,6 +40,33 @@ const _user = (page.props as any).auth?.user;
 const isEditing = ref(false);
 const editedContent = ref('');
 const isCopied = ref(false);
+
+// Read attachments from the message itself. The backend hydrates this
+// field per-message in ConversationMessageController; freshly-sent
+// messages get them from Chat.vue's messageAdded (ChatComposer emit).
+const attachments = computed<Array<{ id: string; url: string; filename: string; mime_type: string; size_bytes: number }>>(
+    () => (props.message as any).attachments ?? props.message.metadata?.attachments ?? [],
+);
+
+function formatBytes(bytes: number): string {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+// Resolve a chip icon from public/images/icons/files/{ext}.svg, with a
+// generic fallback when we don't ship an icon for that type yet. Add a
+// new SVG to that folder and the chip picks it up automatically.
+const KNOWN_EXTENSIONS = new Set(['pdf']);
+function iconForFile(att: { filename: string; mime_type: string }): string {
+    const ext = att.filename.split('.').pop()?.toLowerCase();
+    if (ext && KNOWN_EXTENSIONS.has(ext)) {
+        return `/images/icons/files/${ext}.svg`;
+    }
+    if (att.mime_type === 'application/pdf') return '/images/icons/files/pdf.svg';
+    return '/images/icons/files/file.svg';
+}
 
 function startEditing() {
     editedContent.value = props.message.content;
@@ -139,9 +166,33 @@ async function deleteMessage() {
                 </div>
             </div>
 
-            <!-- Normal display mode -->
-            <div v-else class="bg-primary text-primary-foreground max-w-[75%] rounded-2xl rounded-br-md px-4 py-3 shadow-sm">
-                <p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap" :data-rtl="isRTL">{{ message.content }}</p>
+            <!-- Normal display mode. Attachment chips render BELOW the
+                 bubble (user just sent these — they should appear after
+                 the message text). Each chip uses a custom file icon
+                 from public/images/icons/files/ keyed off the extension. -->
+            <div v-else class="flex max-w-[75%] flex-col items-end gap-2">
+                <!-- Text bubble -->
+                <div v-if="message.content?.trim()" class="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-3 shadow-sm">
+                    <p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap" :data-rtl="isRTL">{{ message.content }}</p>
+                </div>
+
+                <!-- Attachment chips -->
+                <div v-if="attachments.length > 0" class="flex flex-wrap justify-end gap-2">
+                    <a
+                        v-for="att in attachments"
+                        :key="att.id"
+                        :href="att.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="bg-card text-foreground hover:bg-muted/50 inline-flex max-w-[260px] items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors"
+                    >
+                        <img :src="iconForFile(att)" :alt="att.mime_type" class="h-6 w-6 shrink-0" />
+                        <div class="flex min-w-0 flex-col items-start leading-tight">
+                            <span class="max-w-[180px] truncate font-medium">{{ att.filename }}</span>
+                            <span class="text-muted-foreground text-[11px]">{{ formatBytes(att.size_bytes) }}</span>
+                        </div>
+                    </a>
+                </div>
             </div>
 
             <div v-if="!isEditing" class="mt-1 flex items-center gap-0.5 pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
@@ -155,6 +206,7 @@ async function deleteMessage() {
                     <Copy v-else class="h-3.5 w-3.5" />
                 </Button>
                 <Button
+                    v-if="attachments.length === 0"
                     size="icon"
                     variant="ghost"
                     class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"

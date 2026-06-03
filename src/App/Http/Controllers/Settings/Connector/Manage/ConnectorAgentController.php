@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Settings\Connector\Manage;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Member\Data\Resources\AgentMembershipAssignmentData;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Connector\Actions\Agent\AttachGenericConnectorToAgentAction;
-use Domain\Connector\Actions\Agent\DetachGenericConnectorFromAgentAction;
-use Domain\Connector\Actions\Agent\ListConnectorAgentAssignmentAction;
+use Domain\Integration\Connector\Actions\Agent\AttachGenericConnectorToAgentAction;
+use Domain\Integration\Connector\Actions\Agent\DetachGenericConnectorFromAgentAction;
+use Domain\Integration\Connector\Actions\Agent\ListConnectorAgentAssignmentAction;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Membership\Agent\Data\Resources\AgentMembershipAssignmentData;
 use Illuminate\Http\Request;
 
 /**

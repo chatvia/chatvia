@@ -12,10 +12,13 @@ it('interpolates variables without HTML-escaping the content', function (): void
 });
 
 it('accepts nested slash-style names', function (): void {
-    $rendered = prompt('knowledge/follow-up/user', [
-        'retrieved_chunks' => 'CHUNK_ONE',
-        'user_query' => 'QUESTION?',
+    $rendered = prompt('business/profile', [
+        'email' => 'hi@example.com',
+        'phone' => null,
+        'website' => null,
+        'address' => null,
+        'opening_hours' => null,
     ]);
 
-    expect($rendered)->toContain('CHUNK_ONE')->toContain('QUESTION?');
+    expect($rendered)->toContain('hi@example.com');
 });

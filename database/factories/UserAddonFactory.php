@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Billing\Models\UserAddon;
+use Domain\Billing\Models\UserAddon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class UserAddonFactory extends Factory
 {
+    protected $model = UserAddon::class;
+
     public function definition(): array
     {
         return [

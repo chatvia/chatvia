@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Settings\Function;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Function\Actions\AttachFunctionToAgentAction;
-use Domain\Function\Actions\DetachFunctionFromAgentAction;
-use Domain\Function\Actions\ListFunctionAgentAssignmentAction;
-use Domain\Function\Models\AgentFunction;
-use Domain\Member\Data\Resources\AgentMembershipAssignmentData;
+use Domain\Integration\Function\Actions\AttachFunctionToAgentAction;
+use Domain\Integration\Function\Actions\DetachFunctionFromAgentAction;
+use Domain\Integration\Function\Actions\ListFunctionAgentAssignmentAction;
+use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Membership\Agent\Data\Resources\AgentMembershipAssignmentData;
 use Illuminate\Http\Request;
 
 /**

@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Chat\Streaming;
 
-use Domain\Chat\Services\Streaming\Sse\SseStreamer;
-use Domain\Chat\Services\Streaming\Sse\StreamEvent;
+use Domain\Conversation\Services\Streaming\Sse\SseStreamer;
+use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

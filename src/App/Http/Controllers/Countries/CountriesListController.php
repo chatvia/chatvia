@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Countries;
 
-use App\Country\Models\Country;
 use Illuminate\Http\Request;
+use Support\Localization\Country\Models\Country;
 
 class CountriesListController
 {

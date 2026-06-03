@@ -15,12 +15,19 @@ export interface Message {
      */
     metadata?: {
         artifacts?: import('./stream').ToolArtifact[];
+        attachments?: Array<{
+            id: string;
+            url: string;
+            filename: string;
+            mime_type: string;
+            size_bytes: number;
+        }>;
     } | null;
     errorCode?: import('./stream').StreamErrorCode;
     errorRetryable?: boolean;
 }
 
-export type AIModel = Domain.Chat.Data.LlmModelData;
+export type AIModel = Domain.Llm.Data.LlmModelData;
 
 export interface Conversation {
     id: string;

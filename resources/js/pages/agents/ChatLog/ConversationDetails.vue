@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { Link } from '@inertiajs/vue3';
-import { MessageSquare, Zap } from 'lucide-vue-next';
+import { CalendarClock, MessageSquare, Zap } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useChatLog } from './useChatLog';
 
@@ -24,6 +24,29 @@ const { hasCapability } = useCapabilityGuard();
 const hasSentimentAccess = computed(() => hasCapability('sentiment'));
 const hasToneAccess = computed(() => hasCapability('tone'));
 const hasTopicsAccess = computed(() => hasCapability('topics'));
+
+// "Aug 15, 2026" — explicit calendar date for the detail panel. The sidebar
+// shows the relative form ("in 5 months"); here the user is reading the
+// conversation in depth so the exact date is more useful.
+function formatExpiresOn(iso: string | null | undefined): string {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
+
+function formatExpiresRelative(iso: string | null | undefined): string {
+    if (!iso) return '';
+    const ms = new Date(iso).getTime() - Date.now();
+    if (ms <= 0) return 'past expiration';
+    const days = Math.ceil(ms / 86_400_000);
+    if (days <= 1) return 'today';
+    if (days < 30) return `in ${days} days`;
+    const months = Math.round(days / 30);
+    return months === 1 ? 'in 1 month' : `in ${months} months`;
+}
 </script>
 
 <template>
@@ -45,6 +68,21 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
                     <tr>
                         <td class="text-muted-foreground px-4 py-3 font-medium">Last Activity</td>
                         <td class="px-4 py-3">{{ formatTimeAgo(currentConversationData.last_at) }}</td>
+                    </tr>
+
+                    <!-- Expires — driven by the workspace's plan retention
+                         (Starter 90 / Standard 180 / Pro 366). The daily
+                         prune command wipes the conversation, its messages,
+                         and any attachments on this date. -->
+                    <tr v-if="currentConversationData.expires_at">
+                        <td class="text-muted-foreground px-4 py-3 font-medium">Expires</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <CalendarClock class="text-muted-foreground h-4 w-4" />
+                                <span>{{ formatExpiresOn(currentConversationData.expires_at) }}</span>
+                                <span class="text-muted-foreground text-xs">({{ formatExpiresRelative(currentConversationData.expires_at) }})</span>
+                            </div>
+                        </td>
                     </tr>
 
                     <!-- Topic -->

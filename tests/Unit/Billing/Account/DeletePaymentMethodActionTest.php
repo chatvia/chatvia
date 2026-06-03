@@ -1,7 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Account\DeletePaymentMethodAction;
+use Domain\Billing\Models\UserBilling;
 
 it('returns false when no matching payment method can be resolved', function (): void {
     // The workspace owner has a UserBilling row (auto-provisioned by the
@@ -19,7 +20,7 @@ it('throws when called on a user without any billing row at all', function (): v
     // owner has a UserBilling row. We force the situation by wiping the row
     // the observer would normally provision.
     $user = User::factory()->workspace()->create();
-    \App\Billing\Models\UserBilling::query()->where('user_id', $user->id)->delete();
+    UserBilling::query()->where('user_id', $user->id)->delete();
 
     app(DeletePaymentMethodAction::class)->execute($user, 'pm_does_not_exist');
-})->throws(\RuntimeException::class);
+})->throws(RuntimeException::class);

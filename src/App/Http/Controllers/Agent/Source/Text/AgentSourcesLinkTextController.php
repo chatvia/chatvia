@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Agent\Source\Text;
 
 use App\Http\Requests\Agent\Source\LinkSourceTextRequest;
 use Domain\Agent\Models\Agent;
-use Domain\Source\Text\Actions\AttachSourceTextToAgentAction;
-use Domain\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Text\Actions\AttachSourceTextToAgentAction;
+use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Http\JsonResponse;
 
 class AgentSourcesLinkTextController

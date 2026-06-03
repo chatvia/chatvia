@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1\Mcp;
 
-use App\Workspace\Models\User;
 use App\Http\Resources\Api\V1\Tools\McpServerData;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Mcp\Actions\DeleteMcpServerAction;
+use Domain\Integration\Mcp\Actions\DeleteMcpServerAction;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;

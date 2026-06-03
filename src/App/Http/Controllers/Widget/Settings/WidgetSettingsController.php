@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Widget\Settings;
 
-use App\Widget\WidgetVerification;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
 use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

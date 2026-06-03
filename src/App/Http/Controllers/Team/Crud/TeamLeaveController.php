@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Team\Crud;
 
-use App\Workspace\Models\User;
-use App\Team\Models\Team;
-use Domain\Team\Actions\Team\LeaveTeamAction;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Actions\Team\LeaveTeamAction;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

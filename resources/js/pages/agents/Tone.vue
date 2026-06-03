@@ -27,7 +27,7 @@ import { Line, Pie } from 'vue-chartjs';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, ChartTooltip, Legend, Filler);
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 const props = defineProps<Props>();

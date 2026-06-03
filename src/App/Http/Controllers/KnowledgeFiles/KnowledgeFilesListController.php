@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\KnowledgeFiles;
 
-use App\Workspace\Models\User;
-use Domain\Source\File\Actions\ListUserKnowledgeFilesAction;
+use App\Identity\Workspace\Models\User;
+use Domain\Knowledge\Source\File\Actions\ListUserKnowledgeFilesAction;
 use Illuminate\Http\Request;
 
 class KnowledgeFilesListController

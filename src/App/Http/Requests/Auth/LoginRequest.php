@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Workspace\Data\Sessions\LoginData;
+use App\Identity\Workspace\Data\Sessions\LoginData;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;

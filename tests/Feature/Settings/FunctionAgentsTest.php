@@ -1,17 +1,14 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Team\Models\Team;
-use App\Team\Services\TeamService;
-use Domain\Agent\Models\Agent;
-use Illuminate\Support\Str;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
     $this->function = $this->user->functions()->create([
-        'name' => 'get_order_status',
+        'internal_name' => 'get_order_status',
         'description' => 'Get the order status',
         'parameters_schema' => ['type' => 'object', 'properties' => []],
         'webhook_url' => 'https://example.com/webhook',
@@ -21,20 +18,6 @@ beforeEach(function (): void {
         'is_enabled' => true,
     ]);
 });
-
-function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
-{
-    return Agent::create([
-        'user_id' => $user->id,
-        'team_id' => ($team ?? $user->primaryTeam())->id,
-        'name' => $name,
-        'type' => 'knowledge_base',
-        'external_id' => Str::random(14),
-        'sub_domain' => Str::random(14),
-        'is_public' => false,
-        'source' => 'api',
-    ]);
-}
 
 it('lists accessible agents as available when none are attached', function (): void {
     $this->actingAs($this->user)
@@ -51,7 +34,7 @@ it('attaches a function to an agent', function (): void {
             'external_id' => $this->function->external_id,
             'agent' => $this->agent->external_id,
         ]))
-        ->assertOk()
+        ->assertSuccessful()
         ->assertJsonCount(1, 'attached')
         ->assertJsonCount(0, 'available')
         ->assertJsonPath('attached.0.id', $this->agent->external_id);
@@ -88,7 +71,7 @@ it('lists and attaches agents from another team in the same account', function (
             'external_id' => $this->function->external_id,
             'agent' => $otherTeamAgent->external_id,
         ]))
-        ->assertOk();
+        ->assertSuccessful();
 
     expect($this->function->agents()->whereKey($otherTeamAgent->id)->exists())->toBeTrue();
 });
@@ -96,7 +79,7 @@ it('lists and attaches agents from another team in the same account', function (
 it('cannot manage agents for a function owned by someone else', function (): void {
     $other = User::factory()->create();
     $foreign = $other->functions()->create([
-        'name' => 'foreign_fn',
+        'internal_name' => 'foreign_fn',
         'description' => 'x',
         'parameters_schema' => ['type' => 'object'],
         'webhook_url' => 'https://example.com/x',

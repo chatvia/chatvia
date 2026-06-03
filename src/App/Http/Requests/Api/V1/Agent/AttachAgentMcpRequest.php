@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Api\V1\Agent;
 
-use Domain\Mcp\Data\Agent\AttachAgentMcpData;
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Mcp\Data\Agent\AttachAgentMcpData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AttachAgentMcpRequest extends FormRequest

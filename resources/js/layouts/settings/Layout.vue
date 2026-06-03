@@ -4,7 +4,20 @@ import { Separator } from '@/components/ui/separator';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Code, Fingerprint, KeyRound, Lock, MessageSquareText, Palette, Plug, Share2, Smartphone, User, Users, type LucideIcon } from 'lucide-vue-next';
+import {
+    Code,
+    Fingerprint,
+    KeyRound,
+    Lock,
+    MessageSquareText,
+    Palette,
+    Plug,
+    Share2,
+    Smartphone,
+    User,
+    Users,
+    type LucideIcon,
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface NavItem {

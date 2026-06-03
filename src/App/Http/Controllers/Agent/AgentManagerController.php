@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agent;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 

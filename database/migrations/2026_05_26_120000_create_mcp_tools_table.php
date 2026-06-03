@@ -21,6 +21,17 @@ return new class extends Migration
             $table->text('description');
             $table->jsonb('input_schema');
 
+            // MCP tool annotations from `tools/list` (readOnlyHint,
+            // destructiveHint, idempotentHint, openWorldHint). Untrusted hints
+            // — used only to seed the per-tool `requires_approval` default.
+            $table->jsonb('annotations')->nullable();
+
+            // Per-tool human-in-the-loop override. Seeded from `annotations`
+            // on first catalog (readOnly → false, write/unknown → true), then
+            // user-toggleable. Only effective when the parent server's
+            // `requires_approval` is also true.
+            $table->boolean('requires_approval')->default(true);
+
             $table->boolean('is_enabled')->default(true);
 
             $table->vector('embedding', 1024)->nullable();

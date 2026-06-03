@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Settings\Account;
 
-use App\ApiKey\Data\CreateApiKeyData;
-use App\Workspace\Models\User;
+use App\Identity\ApiKey\Data\CreateApiKeyData;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateApiKeyRequest extends FormRequest

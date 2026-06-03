@@ -140,10 +140,7 @@ if (props.enabled && !props.confirmed) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                        class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        @click="confirmDisable2fa"
-                    >
+                    <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmDisable2fa">
                         Disable
                     </AlertDialogAction>
                 </AlertDialogFooter>
@@ -159,9 +156,7 @@ if (props.enabled && !props.confirmed) {
                         </div>
                         <h1 class="text-2xl font-bold tracking-tight">Two-factor authentication</h1>
                     </div>
-                    <p class="text-muted-foreground">
-                        Require a 6-digit code from an authenticator app at sign-in, in addition to your password.
-                    </p>
+                    <p class="text-muted-foreground">Require a 6-digit code from an authenticator app at sign-in, in addition to your password.</p>
                 </div>
 
                 <Separator />
@@ -191,8 +186,8 @@ if (props.enabled && !props.confirmed) {
                     <Alert>
                         <AlertTitle>Finish setup</AlertTitle>
                         <AlertDescription>
-                            Scan the QR code with your authenticator app (1Password, Authy, Google Authenticator, etc.),
-                            then enter the 6-digit code it generates to confirm.
+                            Scan the QR code with your authenticator app (1Password, Authy, Google Authenticator, etc.), then enter the 6-digit code
+                            it generates to confirm.
                         </AlertDescription>
                     </Alert>
 
@@ -229,9 +224,7 @@ if (props.enabled && !props.confirmed) {
                                 <Loader2 v-if="confirmForm.processing" class="mr-2 size-4 animate-spin" />
                                 Confirm
                             </Button>
-                            <Button type="button" variant="ghost" :disabled="disableForm.processing" @click="disable2fa">
-                                Cancel setup
-                            </Button>
+                            <Button type="button" variant="ghost" :disabled="disableForm.processing" @click="disable2fa"> Cancel setup </Button>
                         </div>
                     </form>
                 </div>

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Widget\Activity;
 
-use App\Widget\WidgetVerification;
-use Domain\Chat\Actions\Conversations\FindWidgetConversationAction;
-use Domain\Chat\Services\Memory\ChatMemory;
+use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Data\Thread\WidgetMarkReadResultData;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

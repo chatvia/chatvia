@@ -5,11 +5,12 @@ namespace Domain\Agent\Observers;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Agent\Services\Agent as AgentHelper;
-use Domain\Chat\Models\ChatSession;
-use Domain\Source\File\Models\SourceFile;
-use Domain\Source\Text\Models\SourceText;
-use Domain\Source\Web\Models\SourceWebsite;
-use Domain\Source\Youtube\Models\SourceYoutubeVideo;
+use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Memory\TurnState;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Facades\Storage;
 
 class AgentObserver
@@ -61,17 +62,17 @@ class AgentObserver
             }
         }
 
-        $memory = app(\Domain\Chat\Services\Memory\ChatSession::class);
+        $memory = app(TurnState::class);
 
-        ChatSession::query()
+        Session::query()
             ->where('agent_id', $agent->id)
             ->select(['id'])
             ->cursor()
-            ->each(function (ChatSession $session) use ($memory): void {
+            ->each(function (Session $session) use ($memory): void {
                 $memory->deleteSession($session->id);
             });
 
-        ChatSession::query()->where('agent_id', $agent->id)->delete();
+        Session::query()->where('agent_id', $agent->id)->delete();
     }
 
     public function deleted(Agent $agent): void

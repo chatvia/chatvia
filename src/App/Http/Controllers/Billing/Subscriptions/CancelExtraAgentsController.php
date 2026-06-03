@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Subscriptions;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Subscriptions\CancelExtraAgentsAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

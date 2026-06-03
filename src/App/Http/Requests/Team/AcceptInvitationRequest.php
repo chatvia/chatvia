@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Team;
 
-use App\Workspace\Models\User;
-use App\Team\Models\Invitation;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Models\Invitation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 

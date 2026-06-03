@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources\Api\V1\Team;
 
-use App\Team\Models\Role;
 use Carbon\CarbonInterface;
+use Domain\Membership\Team\Models\Role;
 use Spatie\LaravelData\Data;
 
 /**

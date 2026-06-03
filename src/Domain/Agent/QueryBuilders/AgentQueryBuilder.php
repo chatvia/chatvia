@@ -380,7 +380,7 @@ SQL;
             ->where('agent_function.agent_id', $agentId)
             ->where('agent_function.invocation_count', '>', 0)
             ->select([
-                'functions.name',
+                DB::raw('COALESCE(functions.display_name, functions.internal_name) as name'),
                 'functions.description',
                 'agent_function.invocation_count as count',
                 'agent_function.last_invoked_at as last_used_at',

@@ -2,8 +2,8 @@
 
 namespace Domain\Helpdesk\Actions;
 
-use App\Helpdesk\Models\Ticket;
 use Domain\Helpdesk\Data\CreateTicketData;
+use Domain\Helpdesk\Models\Ticket;
 
 class CreateTicketAction
 {

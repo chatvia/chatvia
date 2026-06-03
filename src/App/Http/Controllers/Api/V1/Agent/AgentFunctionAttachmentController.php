@@ -6,7 +6,7 @@ use App\Http\Requests\Api\V1\Agent\AttachAgentFunctionRequest;
 use App\Http\Resources\Api\V1\Tools\FunctionData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
-use Domain\Function\Models\AgentFunction;
+use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\Analytics\Topic;
 
 use Domain\Agent\Models\Agent;
-use Domain\Topic\Data\TopicsResourceData;
+use Domain\Conversation\Topic\Data\TopicsResourceData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 

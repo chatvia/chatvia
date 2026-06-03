@@ -3,7 +3,7 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import TextComponent from './TextComponent.vue';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 defineProps<Props>();

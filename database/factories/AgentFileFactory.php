@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class AgentFileFactory extends Factory
 {
+    protected $model = SourceFile::class;
+
     /**
      * Define the model's default state.
      *

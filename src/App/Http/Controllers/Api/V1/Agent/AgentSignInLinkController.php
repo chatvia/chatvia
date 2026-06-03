@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api\V1\Agent;
 
-use App\Workspace\Models\User;
-use App\Workspace\Services\AgentSignInTokenService;
 use App\Http\Resources\Api\V1\Auth\SignInLinkData;
+use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Data\Api\SignInLinkPayloadData;
 use Domain\Agent\Models\Agent;

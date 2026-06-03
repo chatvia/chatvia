@@ -1,8 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Chatter\Actions\UpdateChatterProfileAction;
-use App\Chatter\Data\UpdateChatterProfileData;
+use App\Identity\Chatter\Actions\UpdateChatterProfileAction;
+use App\Identity\Chatter\Data\UpdateChatterProfileData;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 

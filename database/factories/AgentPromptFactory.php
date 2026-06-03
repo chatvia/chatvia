@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

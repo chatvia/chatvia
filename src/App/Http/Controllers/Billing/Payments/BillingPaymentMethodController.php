@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Payments;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Laravel\Cashier\PaymentMethod;

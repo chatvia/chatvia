@@ -4,7 +4,7 @@ import { ExternalLink, Globe, MessageSquare, Monitor, Search, Smartphone, Tablet
 import { computed, ref } from 'vue';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
     authToken?: string | null;
 }
 

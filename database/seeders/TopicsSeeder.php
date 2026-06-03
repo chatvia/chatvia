@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Topic\Models\ChatTopic;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -38,7 +38,7 @@ class TopicsSeeder extends Seeder
         }
 
         // Get topics for this user
-        $topics = ChatTopic::where('user_id', $user->id)->get();
+        $topics = Topic::where('user_id', $user->id)->get();
 
         if ($topics->isEmpty()) {
             $this->command->warn('No topics found. Please check the topics table.');
@@ -134,7 +134,7 @@ class TopicsSeeder extends Seeder
         ];
 
         foreach ($topics as $topic) {
-            ChatTopic::firstOrCreate(
+            Topic::firstOrCreate(
                 [
                     'user_id' => $user->id,
                     'topic' => $topic['topic'],
@@ -152,7 +152,7 @@ class TopicsSeeder extends Seeder
     private function assignTopicsToConversations(User $user): void
     {
         // Get topics for mapping
-        $topics = ChatTopic::where('user_id', $user->id)->pluck('id', 'topic')->toArray();
+        $topics = Topic::where('user_id', $user->id)->pluck('id', 'topic')->toArray();
 
         // Map conversation titles to topics
         $titleToTopic = [
@@ -175,7 +175,7 @@ class TopicsSeeder extends Seeder
 
         // Get all conversations for this user's agents
         $agentIds = Agent::where('user_id', $user->id)->pluck('id');
-        $conversations = ChatConversation::whereHas('session', function ($query) use ($agentIds) {
+        $conversations = Conversation::whereHas('session', function ($query) use ($agentIds) {
             $query->whereIn('agent_id', $agentIds);
         })->whereNull('chat_topic_id')->get();
 

@@ -1,12 +1,12 @@
 <?php
 
-use App\Documents\LibreOffice;
-use App\Embedding\Contracts\EmbeddingsProviderInterface;
 use App\Hosting\HostConfig;
-use App\Team\Models\Team;
-use App\Team\Services\TeamService;
 use Domain\Agent\Models\Agent as AgentModel;
 use Domain\Agent\Services\Agent;
+use Domain\Knowledge\Document\LibreOffice;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Membership\Team\Models\Team;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 
@@ -113,8 +113,8 @@ if (! function_exists('prompt')) {
     /**
      * Render a prompt Blade view (markdown + Blade) to a string.
      *
-     * Accepts slash- or dot-style names: prompt('knowledge/follow-up/user')
-     * resolves resources/prompts/knowledge/follow-up/user.blade.php via the
+     * Accepts slash- or dot-style names: prompt('business/profile')
+     * resolves resources/prompts/business/profile.blade.php via the
      * `prompts::` view namespace. Pass variables as the second argument; use
      * {!! $var !!} in the prompt file so text isn't HTML-escaped.
      *

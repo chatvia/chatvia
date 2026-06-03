@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Agent\Source\Function;
 
 use Domain\Agent\Models\Agent;
-use Domain\Function\Actions\AttachFunctionToAgentAction;
-use Domain\Function\Data\Resources\AgentFunctionAttachResultData;
-use Domain\Function\Data\Resources\AgentFunctionData;
-use Domain\Function\Models\AgentFunction;
+use Domain\Integration\Function\Actions\AttachFunctionToAgentAction;
+use Domain\Integration\Function\Data\Resources\AgentFunctionAttachResultData;
+use Domain\Integration\Function\Data\Resources\AgentFunctionData;
+use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\Request;
 
 class AgentFunctionAttachController

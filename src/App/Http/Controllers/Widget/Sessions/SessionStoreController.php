@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Widget\Sessions;
 
-use App\Widget\WidgetVerification;
 use Domain\Analytics\Services\UserAgentParser;
-use Domain\Chat\Services\Memory\ChatSession;
+use Domain\Conversation\Services\Memory\TurnState;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
 
 class SessionStoreController
 {
-    public function __invoke(Request $request, WidgetVerification $widgetVerification, ChatSession $session)
+    public function __invoke(Request $request, WidgetVerification $widgetVerification, TurnState $session)
     {
         $agentId = $request->header('X-AGENT-ID');
         $sessionId = $request->header('X-SESSION-ID');

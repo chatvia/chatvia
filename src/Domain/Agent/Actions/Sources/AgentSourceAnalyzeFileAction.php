@@ -2,11 +2,11 @@
 
 namespace Domain\Agent\Actions\Sources;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Sources\KnowledgeAnalyzeResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\FileAnalyzer;
-use Domain\Ingestion\Services\Tidy\TextCleaner;
+use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
 use Illuminate\Http\UploadedFile;
 
 class AgentSourceAnalyzeFileAction

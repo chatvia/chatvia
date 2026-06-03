@@ -1,7 +1,7 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Actions\Account\DeleteUserAccountAction;
+use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
+use App\Identity\Workspace\Models\User;
 
 it('hard-deletes the user row', function (): void {
     $user = User::factory()->create();

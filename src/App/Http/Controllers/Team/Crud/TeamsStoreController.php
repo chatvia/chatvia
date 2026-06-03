@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Team\Crud;
 
-use App\Workspace\Models\User;
 use App\Http\Requests\Team\CreateTeamRequest;
-use Domain\Team\Actions\Team\CreateTeamAction;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Illuminate\Http\RedirectResponse;
 
 class TeamsStoreController

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Source;
 
-use Domain\Source\Web\Data\Crawler\CrawlerData;
+use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CrawlSourceUrlRequest extends FormRequest

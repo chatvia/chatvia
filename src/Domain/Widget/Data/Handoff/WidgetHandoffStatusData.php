@@ -2,7 +2,7 @@
 
 namespace Domain\Widget\Data\Handoff;
 
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Models\Conversation;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -26,7 +26,7 @@ class WidgetHandoffStatusData extends Data
         );
     }
 
-    public static function fromConversation(ChatConversation $conversation, string $conversationId): self
+    public static function fromConversation(Conversation $conversation, string $conversationId): self
     {
         $conversation->loadMissing('handoffUser');
         $handedOff = $conversation->isHandedOff();

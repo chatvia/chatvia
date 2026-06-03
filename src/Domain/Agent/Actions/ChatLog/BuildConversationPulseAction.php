@@ -9,8 +9,8 @@ use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseResourceData;
 use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseSnapshotData;
 use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseSummaryData;
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Chat\Models\ChatMessage;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\DataCollection;
 
@@ -23,7 +23,7 @@ use Spatie\LaravelData\DataCollection;
  */
 class BuildConversationPulseAction
 {
-    public function execute(Agent $agent, ChatConversation $conversation): ChatLogPulseResourceData
+    public function execute(Agent $agent, Conversation $conversation): ChatLogPulseResourceData
     {
         $allMessages = $conversation->messages()
             ->orderBy('created_at')
@@ -32,7 +32,7 @@ class BuildConversationPulseAction
         $userMessages = $allMessages->where('role', 'user')->values();
 
         $points = $userMessages
-            ->map(fn (ChatMessage $message, int $index): ChatLogPulseMessageData => $this->point($message, $index));
+            ->map(fn (Message $message, int $index): ChatLogPulseMessageData => $this->point($message, $index));
 
         return new ChatLogPulseResourceData(
             messages: new DataCollection(ChatLogPulseMessageData::class, $points),
@@ -47,7 +47,7 @@ class BuildConversationPulseAction
         );
     }
 
-    private function point(ChatMessage $message, int $index): ChatLogPulseMessageData
+    private function point(Message $message, int $index): ChatLogPulseMessageData
     {
         $toneScore = $this->toneScore($message->tone);
         $sentimentScore = $this->sentimentScore($message->sentiment);

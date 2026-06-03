@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Settings\Function;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Function\CreateAgentFunctionRequest;
 use App\Http\Requests\Settings\Function\UpdateAgentFunctionRequest;
-use Domain\Function\Actions\CreateAgentFunctionAction;
-use Domain\Function\Actions\DeleteAgentFunctionAction;
-use Domain\Function\Actions\UpdateAgentFunctionAction;
-use Domain\Function\Models\AgentFunction;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
+use Domain\Integration\Function\Actions\DeleteAgentFunctionAction;
+use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
+use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -30,7 +30,8 @@ class FunctionController extends Controller
             ->get()
             ->map(fn (AgentFunction $f): array => [
                 'id' => $f->external_id,
-                'name' => $f->name,
+                'internal_name' => $f->internal_name,
+                'display_name' => $f->display_name,
                 'description' => $f->description,
                 'parameters_schema' => json_encode($f->parameters_schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
                 'webhook_url' => $f->webhook_url,
@@ -40,6 +41,7 @@ class FunctionController extends Controller
                 'auth_header_name' => $f->auth_type === 'header' ? ($f->auth_config['name'] ?? '') : '',
                 'has_auth_value' => $f->auth_config !== null,
                 'is_enabled' => $f->is_enabled,
+                'requires_approval' => $f->requires_approval,
                 'created_at' => $f->created_at?->toFormattedDateString(),
                 'agents_count' => $f->agents_count,
             ])

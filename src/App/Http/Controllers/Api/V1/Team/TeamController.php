@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Api\V1\Team;
 
-use App\Workspace\Models\User;
 use App\Http\Resources\Api\V1\Team\TeamData;
-use App\Team\Models\Team;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Team\Actions\Team\CreateTeamAction;
-use Domain\Team\Actions\Team\UpdateTeamAction;
-use Domain\Team\Data\CreateTeamData;
-use Domain\Team\Data\TeamPayloadData;
-use Domain\Team\Data\UpdateTeamData;
+use Domain\Membership\Team\Actions\Team\CreateTeamAction;
+use Domain\Membership\Team\Actions\Team\UpdateTeamAction;
+use Domain\Membership\Team\Data\CreateTeamData;
+use Domain\Membership\Team\Data\TeamPayloadData;
+use Domain\Membership\Team\Data\UpdateTeamData;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 

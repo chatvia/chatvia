@@ -38,7 +38,6 @@
         "laravel/mcp": "^0.7.0",
         "laravel/nightwatch": "^1.11",
         "laravel/octane": "^2.9",
-        "laravel/pennant": "^1.18",
         "laravel/pulse": "^1.4",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",

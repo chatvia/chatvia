@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Agent\Member;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Agent\Member\InviteAgentMemberRequest;
-use Domain\Member\Actions\RevokeAgentMembershipAction;
-use Domain\Member\Actions\GrantAgentMembershipAction;
-use Domain\Member\Actions\InviteAgentMemberAction;
-use Domain\Member\Data\Resources\AgentMemberRowData;
-use Domain\Member\Exceptions\AgentMemberInvitationRejectedException;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
+use Domain\Membership\Agent\Actions\InviteAgentMemberAction;
+use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
+use Domain\Membership\Agent\Data\Resources\AgentMemberRowData;
+use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

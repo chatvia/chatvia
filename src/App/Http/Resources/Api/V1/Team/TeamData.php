@@ -3,10 +3,10 @@
 namespace App\Http\Resources\Api\V1\Team;
 
 use App\Http\Resources\Api\V1\Agent\AgentRefData;
-use App\Team\Models\Role;
-use App\Team\Models\Team;
 use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Models\Role;
+use Domain\Membership\Team\Models\Team;
 use Spatie\LaravelData\Data;
 
 /**

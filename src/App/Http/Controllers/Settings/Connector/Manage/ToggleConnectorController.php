@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Settings\Connector\Manage;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Mcp\Data\Resources\AgentMcpServerData;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Mcp\Actions\ToggleMcpServerAction;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Mcp\Actions\ToggleMcpServerAction;
+use Domain\Integration\Mcp\Data\Resources\AgentMcpServerData;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

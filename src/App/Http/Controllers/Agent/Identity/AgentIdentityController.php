@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agent\Identity;
 
-use App\Workspace\Services\AgentSignInTokenService;
 use App\Http\Controllers\Controller;
+use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Trials;
 
-use App\Billing\Models\UserBilling;
+use Domain\Billing\Models\UserBilling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Cashier\Cashier;

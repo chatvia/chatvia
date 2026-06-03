@@ -2,7 +2,6 @@
     $navigation = landing('navigation') ?? [
         ['label' => 'Home', 'link' => '/'],
         ['label' => 'Features', 'link' => '/#features'],
-        ['label' => 'Why Chatvia?', 'link' => '/#why-chatvia'],
         ['label' => 'Pricing', 'link' => '/pricing'],
     ];
 @endphp

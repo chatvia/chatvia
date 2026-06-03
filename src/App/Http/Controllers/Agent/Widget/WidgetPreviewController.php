@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Widget;
 
-use App\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;

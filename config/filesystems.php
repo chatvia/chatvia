@@ -81,7 +81,10 @@ return [
             'secret' => env('SCALEWAY_SECRET_ACCESS_KEY'),
             'region' => env('SCALEWAY_DEFAULT_REGION'),
             'bucket' => env('SCALEWAY_BUCKET_PUBLIC', 'chatvia-public'),
-            'url' => env('SCALEWAY_URL'),
+            // Separate URL env so `Storage::disk('scaleway-public')->url(...)`
+            // returns the public bucket's host (not the private `scaleway`
+            // disk's host, which would 403 for external fetchers like Mistral).
+            'url' => env('SCALEWAY_PUBLIC_URL'),
             'endpoint' => env('SCALEWAY_ENDPOINT'),
             'use_path_style_endpoint' => env('SCALEWAY_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => true,

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\Invitations;
 
 use App\Http\Controllers\Controller;
-use Domain\Member\Models\AgentMemberInvitation;
+use Domain\Membership\Agent\Models\AgentMemberInvitation;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;

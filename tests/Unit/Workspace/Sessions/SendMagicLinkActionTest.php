@@ -1,9 +1,9 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Notifications\MagicLinkNotification;
-use App\Workspace\Actions\Sessions\SendMagicLinkAction;
-use App\Workspace\Data\Sessions\SendMagicLinkData;
+use App\Identity\Workspace\Actions\Sessions\SendMagicLinkAction;
+use App\Identity\Workspace\Data\Sessions\SendMagicLinkData;
+use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Notifications\MagicLinkNotification;
 use Illuminate\Support\Facades\Notification;
 
 it('sends a magic link to a user that matches the email', function (): void {

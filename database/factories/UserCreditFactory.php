@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Billing\Models\UserCredit;
+use Domain\Billing\Models\UserCredit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class UserCreditFactory extends Factory
 {
+    protected $model = UserCredit::class;
+
     /**
      * Define the model's default state.
      *

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Widget\Auth;
 
-use App\Widget\WidgetVerification;
 use Domain\Widget\Data\Auth\WidgetAgentVerifyResultData;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

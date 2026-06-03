@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agent\Source\Text;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\Text\Actions\DetachSourceTextFromAgentAction;
-use Domain\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Text\Actions\DetachSourceTextFromAgentAction;
+use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

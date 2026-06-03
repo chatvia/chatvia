@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Team;
 
-use App\Workspace\Models\User;
-use Domain\Team\Data\CreateTeamData;
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Data\CreateTeamData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateTeamRequest extends FormRequest

@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Workspace\Actions\Fortify\ResetUserPassword;
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Actions\Fortify\ResetUserPassword;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -38,7 +38,7 @@ class FortifyServiceProvider extends ServiceProvider
 
     private function registerAuthPipeline(): void
     {
-        Fortify::authenticateThrough(fn () => array_filter([
+        Fortify::authenticateThrough(fn (): array => array_filter([
             config('fortify.limiters.login') ? null : EnsureLoginIsNotThrottled::class,
             config('fortify.lowercase_usernames') ? CanonicalizeUsername::class : null,
             Features::enabled(Features::twoFactorAuthentication()) ? RedirectIfTwoFactorAuthenticatable::class : null,

@@ -1,13 +1,13 @@
 import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 
-type Capability = keyof App.Billing.Data.Resources.BillingPackageCapabilitiesData;
+type Capability = keyof App.Billing.Data.Resources.Package.BillingPackageCapabilitiesData;
 
 export function useCapabilityGuard() {
     const page = usePage<SharedData>();
 
     const hasCapability = (capability: Capability): boolean => {
-        const capabilities = (page.props.auth?.user?.capabilities as Record<string, boolean>) || {};
+        const capabilities = (page.props.auth?.user?.capabilities as unknown as Record<string, boolean>) || {};
         return capabilities[capability] === true;
     };
 

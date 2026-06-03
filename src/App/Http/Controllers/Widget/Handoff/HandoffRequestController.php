@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Widget\Handoff;
 
 use App\Http\Requests\Widget\WidgetHandoffRequest;
-use App\Widget\WidgetVerification;
-use Domain\Chat\Actions\Conversations\FindWidgetConversationAction;
-use Domain\Chat\Actions\Handoff\RequestHandoffAction;
+use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Conversation\Actions\Handoff\RequestHandoffAction;
 use Domain\Widget\Data\Handoff\WidgetHandoffRequestResultData;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 
 readonly class HandoffRequestController

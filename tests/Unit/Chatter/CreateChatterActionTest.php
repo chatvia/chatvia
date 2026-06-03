@@ -1,9 +1,9 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Billing\Models\UserQuota;
-use App\Chatter\Actions\CreateChatterAction;
-use App\Chatter\Exceptions\ChatterQuotaExceededException;
+use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Exceptions\ChatterQuotaExceededException;
+use App\Identity\Workspace\Models\User;
+use Domain\Billing\Models\UserQuota;
 use Illuminate\Support\Facades\Hash;
 use Support\Enums\User\UserSource;
 use Support\Enums\User\UserType;

@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1\Source;
 
-use App\Workspace\Models\User;
 use App\Http\Requests\Api\V1\Source\StoreSourceTextRequest;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
-use Domain\Source\Text\Actions\CreateAgentSourceTextAction;
-use Domain\Source\Text\Actions\DeleteAgentSourceTextAction;
-use Domain\Source\Text\Models\SourceText;
-use Domain\Team\Exceptions\InviteRejectedException;
+use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
+use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

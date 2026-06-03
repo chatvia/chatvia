@@ -15,7 +15,7 @@ import { onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData;
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
 interface YoutubeVideo {

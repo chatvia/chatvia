@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Team\Crud;
 
-use App\Team\Models\Team;
-use Domain\Team\Actions\Team\DeleteTeamAction;
+use Domain\Membership\Team\Actions\Team\DeleteTeamAction;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

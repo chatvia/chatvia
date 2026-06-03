@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Widget\Activity;
 
 use App\Http\Requests\Widget\WidgetTypingRequest;
-use App\Widget\WidgetVerification;
-use Domain\Chat\Actions\Messages\BroadcastChatTypingAction;
-use Domain\Chat\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Conversation\Actions\Messages\BroadcastChatTypingAction;
 use Domain\Widget\Data\Auth\WidgetAckData;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 
 class TypingController

@@ -1,6 +1,6 @@
 <?php
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Event;
@@ -31,7 +31,7 @@ describe('Email Verification', function (): void {
     });
 
     it('verifies email with valid signed URL', function (): void {
-        Event::fake();
+        Event::fake([Verified::class]);
 
         $user = User::factory()->unverified()->create();
 
@@ -113,7 +113,7 @@ describe('Email Verification', function (): void {
     });
 
     it('does not verify already verified email', function (): void {
-        Event::fake();
+        Event::fake([Verified::class]);
 
         $user = User::factory()->create(['email_verified_at' => now()]);
 

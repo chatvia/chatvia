@@ -1,18 +1,20 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Billing\Models\UserCredit;
 use App\Console\Commands\UpdateFreeUsersQuotas;
+use App\Identity\Workspace\Models\User;
+use Domain\Billing\Models\UserCredit;
 use Illuminate\Support\Facades\Event;
 
 beforeEach(function (): void {
-    Event::fake();
+    // Suppress side-effect listeners (broadcasts, notifications) without
+    // muting Eloquent model events — the HasExternalId trait relies on them.
+    Event::fakeExcept(fn (string $event): bool => str_starts_with($event, 'eloquent.'));
 });
 
 test('updates credit for user with expiring credit', function (): void {
     $quotaLimit = config('billing.packages.starter.quota_limits.monthly');
 
-    $user = User::factory()->create(['trial_ends_at' => now()->addDays(7)]);
+    $user = User::factory()->create();
 
     // Create an expiring credit (expires within a day)
     $expiringCredit = UserCredit::factory()->create([
@@ -38,7 +40,7 @@ test('updates credit for user with expiring credit', function (): void {
 test('updates credit for user without credit', function (): void {
     $quotaLimit = config('billing.packages.starter.quota_limits.monthly');
 
-    $user = User::factory()->create(['trial_ends_at' => now()->addDays(7)]);
+    $user = User::factory()->create();
 
     $this->artisan(UpdateFreeUsersQuotas::class);
 
@@ -52,9 +54,7 @@ test('updates credit for user without credit', function (): void {
 });
 
 test('does not update credit for user with valid credit', function (): void {
-    Event::fake();
-
-    $user = User::factory()->create(['trial_ends_at' => now()->addDays(7)]);
+    $user = User::factory()->create();
 
     $validCredit = UserCredit::factory()->create([
         'user_id' => $user->id,

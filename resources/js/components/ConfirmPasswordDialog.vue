@@ -71,22 +71,13 @@ defineExpose({ open });
         <DialogContent class="sm:max-w-md">
             <DialogHeader>
                 <DialogTitle>Confirm your password</DialogTitle>
-                <DialogDescription>
-                    For your security, please confirm your password before changing security settings.
-                </DialogDescription>
+                <DialogDescription> For your security, please confirm your password before changing security settings. </DialogDescription>
             </DialogHeader>
 
             <form @submit.prevent="submit" class="space-y-4">
                 <div class="space-y-2">
                     <Label for="confirm-password">Password</Label>
-                    <Input
-                        id="confirm-password"
-                        ref="passwordInput"
-                        v-model="password"
-                        type="password"
-                        autocomplete="current-password"
-                        required
-                    />
+                    <Input id="confirm-password" ref="passwordInput" v-model="password" type="password" autocomplete="current-password" required />
                     <p v-if="error" class="text-destructive text-sm">{{ error }}</p>
                 </div>
 

@@ -27,7 +27,10 @@ const search = ref('');
 const filtered = computed(() => {
     const q = search.value.trim().toLowerCase();
     if (!q) return props.functions;
-    return props.functions.filter((f) => f.name.toLowerCase().includes(q) || f.description.toLowerCase().includes(q));
+    return props.functions.filter(
+        (f) =>
+            f.internal_name.toLowerCase().includes(q) || (f.display_name ?? '').toLowerCase().includes(q) || f.description.toLowerCase().includes(q),
+    );
 });
 
 const sheetOpen = ref(false);
@@ -106,7 +109,12 @@ function refreshFunctions(): void {
                                             <Code class="text-muted-foreground h-5 w-5" />
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="truncate font-mono text-sm font-medium">{{ fn.name }}</p>
+                                            <p class="truncate text-sm font-medium" :class="{ 'font-mono': !fn.display_name }">
+                                                {{ fn.display_name || fn.internal_name }}
+                                            </p>
+                                            <p v-if="fn.display_name" class="text-muted-foreground truncate font-mono text-xs">
+                                                {{ fn.internal_name }}
+                                            </p>
                                             <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ fn.description }}</p>
                                         </div>
                                     </div>

@@ -5,14 +5,13 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { type BreadcrumbItem } from '@/types';
-import { AlertTriangle, CheckCircle, KeyRound, Lock, Save, Shield } from 'lucide-vue-next';
+import { CheckCircle, KeyRound, Lock, Save, Shield } from 'lucide-vue-next';
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {

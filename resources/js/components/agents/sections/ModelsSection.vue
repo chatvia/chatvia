@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Brain, Check, ChevronDown, Search, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
-type AIModel = Domain.Chat.Data.LlmModelData;
+type AIModel = Domain.Llm.Data.LlmModelData;
 
 interface LlmSettings {
     temperature: number;
@@ -82,9 +82,7 @@ function remove(id: string): void {
         <div class="space-y-3">
             <div class="space-y-1">
                 <Label>{{ single ? 'Model' : 'Models' }}</Label>
-                <p class="text-muted-foreground text-xs">
-                    {{ single ? 'The agent runs this single model.' : 'Users can switch between the models you enable.' }}
-                </p>
+                <p class="text-muted-foreground text-xs">Select the model you want to use</p>
             </div>
 
             <Popover v-model:open="isOpen">

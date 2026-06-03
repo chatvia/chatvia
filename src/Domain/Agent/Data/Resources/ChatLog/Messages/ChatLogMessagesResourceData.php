@@ -2,7 +2,9 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Messages;
 
-use Domain\Chat\Models\ChatMessage;
+use Domain\Agent\Data\Resources\ChatLog\Handoff\ChatLogHandoffStatusData;
+use Domain\Agent\Data\Resources\ChatLog\Handoff\ChatLogLeadData;
+use Domain\Conversation\Models\Message;
 use Domain\Lead\Models\Lead;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\LaravelData\Data;
@@ -26,12 +28,12 @@ class ChatLogMessagesResourceData extends Data
         $conversationTitle = null;
         if ($messages->isNotEmpty()) {
             $firstMessage = $messages->first();
-            if ($firstMessage instanceof ChatMessage) {
+            if ($firstMessage instanceof Message) {
                 $conversationTitle = str($firstMessage->content)->stripTags()->limit(80)->value();
             }
         }
 
-        $messages->through(fn (ChatMessage $message): ChatLogMessageData => ChatLogMessageData::fromMessage($message));
+        $messages->through(fn (Message $message): ChatLogMessageData => ChatLogMessageData::fromMessage($message));
 
         return new self(
             messages: $messages,

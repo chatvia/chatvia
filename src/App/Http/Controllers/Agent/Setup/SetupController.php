@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Agent\Setup;
 
-use App\Chatter\Services\ChatterAuthTokenService;
-use App\Workspace\Models\User;
+use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Llm\Data\LlmModelData;
 use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Http\Request;
@@ -27,6 +28,8 @@ class SetupController
         abort_if(! $request->user()->can('view', $agent), 404);
 
         $agent->loadMissing(['llm', 'agentPrompt']);
+
+        $business = $agent->settings('business')->toArray();
 
         $prompts = $request->user()->prompts()
             ->latest()
@@ -56,6 +59,15 @@ class SetupController
             'starters' => $agent->resolvedStarters(),
             'prompts' => $prompts,
             'hasPermission' => has_permission_to_agent($agent, 'agent.setup'),
+            'canManageContact' => has_permission_to_agent($agent, 'agent.business_profile.manage'),
+            'canUseHandoff' => $agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false,
+            'businessProfile' => [
+                'email' => $business['email'] ?? null,
+                'phone' => $business['phone'] ?? null,
+                'website' => $business['website'] ?? null,
+                'address' => $business['address'] ?? null,
+                'opening_hours' => $business['opening_hours'] ?? null,
+            ],
 
             // Shared content settings + their defaults — written across all surfaces.
             'appearanceSettings' => $agent->settings('appearance'),

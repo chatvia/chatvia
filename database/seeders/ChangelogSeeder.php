@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Changelog\Models\Changelog;
-use App\Changelog\Models\ChangelogItem;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Support\Cms\Changelog\Models\Changelog;
+use Support\Cms\Changelog\Models\ChangelogItem;
 
 class ChangelogSeeder extends Seeder
 {

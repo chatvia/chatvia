@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware\Auth;
 
-use App\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\Agent as AgentService;

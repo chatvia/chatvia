@@ -2,14 +2,10 @@
 
 namespace App\Http\Middleware\Web;
 
-use App\Features\Actions;
-use App\Features\Widget;
-use App\Features\Workflow;
-use App\Team\Models\Team;
-use App\Team\Services\TeamService;
+use Domain\Membership\Team\Models\Team;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Laravel\Pennant\Feature;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -65,11 +61,6 @@ class HandleInertiaRequests extends Middleware
 
             'domain' => $request->domain(),
             'subdomain' => $request->subdomain(),
-            'features' => [
-                //                'widget' => Feature::active(Widget::class),
-                //                'workflow' => Feature::active(Workflow::class),
-                //                'actions' => Feature::active(Actions::class),
-            ],
             'permissions' => $this->getTeamPermissions($request),
             'currentTeam' => $user ? $this->getCurrentTeam($request) : null,
         ];

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Chat\Export;
 
-use Domain\Chat\Services\Memory\ChatMemory;
-use Domain\Chat\Services\Memory\ChatSession;
+use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Conversation\Services\Memory\TurnState;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 readonly class ChatExportController
 {
-    public function __construct(private ChatMemory $memory, private ChatSession $session) {}
+    public function __construct(private ChatMemory $memory, private TurnState $session) {}
 
     public function __invoke(Request $request, string $conversationId)
     {
@@ -29,7 +29,7 @@ readonly class ChatExportController
         $this
             ->memory
             ->setAgent($agent)
-            ->setExternalSessionId($this->session->firstOrCreateChatSession($agent))
+            ->setExternalSessionId($this->session->firstOrCreateSession($agent))
             ->setConversationId($conversationId);
 
         $type = $request->input('type');

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Tickets;
 
-use App\Helpdesk\Models\Ticket;
 use Domain\Helpdesk\Data\ChangeTicketPriorityData;
+use Domain\Helpdesk\Models\Ticket;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ChangeTicketPriorityRequest extends FormRequest

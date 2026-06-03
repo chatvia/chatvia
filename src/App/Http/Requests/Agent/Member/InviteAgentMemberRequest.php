@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Agent\Member;
 
-use Domain\Member\Data\InviteAgentMemberData;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Agent\Data\InviteAgentMemberData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class InviteAgentMemberRequest extends FormRequest

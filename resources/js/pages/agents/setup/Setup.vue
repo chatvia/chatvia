@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
 import BrandingSection from '@/components/agents/sections/BrandingSection.vue';
+import ContactDetailsSection from '@/components/agents/sections/ContactDetailsSection.vue';
 import ModelsSection from '@/components/agents/sections/ModelsSection.vue';
 import StartersSection from '@/components/agents/sections/StartersSection.vue';
 import TextSection from '@/components/agents/sections/TextSection.vue';
@@ -59,7 +60,7 @@ import { toast } from 'vue-sonner';
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('xml', xml);
 
-type Llm = Domain.Chat.Data.LlmModelData;
+type Llm = Domain.Llm.Data.LlmModelData;
 type Surface = 'hosted_chat' | 'widget' | 'bar';
 type Device = 'desktop' | 'tablet' | 'mobile';
 
@@ -70,11 +71,20 @@ interface PromptOption {
 }
 
 interface Props {
-    agent: Domain.Agents.Data.Resources.AgentResourceData & { id?: number | string };
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData & { id?: number | string };
     authToken: string | null;
     starters: string[];
     prompts: PromptOption[];
     hasPermission: boolean;
+    canManageContact: boolean;
+    canUseHandoff: boolean;
+    businessProfile: {
+        email: string | null;
+        phone: string | null;
+        website: string | null;
+        address: string | null;
+        opening_hours: string | null;
+    };
 
     appearanceSettings: Record<string, unknown>;
     defaultAppearance: Record<string, unknown>;
@@ -133,7 +143,7 @@ const surfaceTabs: { value: Surface; label: string; icon: typeof MessageSquare }
 ];
 
 // ── Left sidebar
-type MenuValue = 'info' | 'persona' | 'starters' | 'model' | 'branding' | 'behavior' | 'embed' | 'domain';
+type MenuValue = 'info' | 'persona' | 'contact' | 'starters' | 'model' | 'branding' | 'behavior' | 'embed' | 'domain';
 const activeTab = ref<MenuValue>('info');
 
 const menuItems = computed(() => {
@@ -146,6 +156,11 @@ const menuItems = computed(() => {
         { value: 'behavior', label: 'Behavior', icon: Settings },
         { value: 'embed', label: 'Embed', icon: Code },
     ];
+
+    // Contact details — only when the viewer can manage the business profile.
+    if (props.canManageContact) {
+        items.splice(2, 0, { value: 'contact', label: 'Contact', icon: MapPin });
+    }
 
     // Domain is a Hosted-Chat-only concern: the custom hostname points at
     // the agent's hosted chat URL, so it doesn't apply to Widget/Bar.
@@ -354,6 +369,7 @@ const widgetBehaviorForm = useForm({
     show_on_load_delay: num(w.show_on_load_delay, num(wd.show_on_load_delay, 500)),
     language: str(w.language, str(wd.language, 'auto')),
     sites: arr<string>(w.sites, arr<string>(wd.sites)),
+    handoff_enabled: bool(w.handoff_enabled, bool(wd.handoff_enabled, true)),
 });
 
 // ── Chat Bubbles — quick-message prompts shown next to the widget bubble.
@@ -725,6 +741,11 @@ const copyApiCode = async (code: string) => {
                                     />
                                 </div>
 
+                                <!-- Contact details -->
+                                <div v-if="activeTab === 'contact'" class="space-y-6 p-6">
+                                    <ContactDetailsSection :agent-id="agent.external_id" :profile="businessProfile" :disabled="!canManageContact" />
+                                </div>
+
                                 <!-- Starters -->
                                 <div v-if="activeTab === 'starters'" class="space-y-6 p-6">
                                     <StartersSection v-model:starters="starters" :disabled="locked" />
@@ -987,6 +1008,18 @@ const copyApiCode = async (code: string) => {
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
+                                            </div>
+                                            <div
+                                                v-if="canUseHandoff"
+                                                class="bg-muted/40 flex items-center justify-between gap-3 rounded-md border px-4 py-3 sm:col-span-2"
+                                            >
+                                                <div>
+                                                    <Label for="widget-handoff" class="cursor-pointer text-sm font-medium">Live Chat</Label>
+                                                    <p class="text-muted-foreground mt-0.5 text-xs">
+                                                        Let visitors hand off to a human. Works on the website widget only.
+                                                    </p>
+                                                </div>
+                                                <Switch id="widget-handoff" v-model="widgetBehaviorForm.handoff_enabled" :disabled="locked" />
                                             </div>
                                             <div
                                                 class="bg-muted/40 flex items-center justify-between gap-3 rounded-md border px-4 py-3 sm:col-span-2"
@@ -1259,7 +1292,8 @@ const copyApiCode = async (code: string) => {
                                         <h3 class="text-sm font-medium">Custom Domain</h3>
                                         <p class="text-muted-foreground mt-1 text-xs">
                                             Serve this agent's Hosted Chat from your own domain instead of
-                                            <code class="bg-muted rounded px-1 py-0.5 text-xs">{{ domain.cname_target }}</code>.
+                                            <code class="bg-muted rounded px-1 py-0.5 text-xs">{{ domain.cname_target }}</code
+                                            >.
                                         </p>
                                     </div>
 
@@ -1275,13 +1309,11 @@ const copyApiCode = async (code: string) => {
                                     </Alert>
 
                                     <!-- Quota counter -->
-                                    <div
-                                        v-else
-                                        class="bg-muted/40 flex items-center justify-between rounded-lg border p-3 text-sm"
-                                    >
+                                    <div v-else class="bg-muted/40 flex items-center justify-between rounded-lg border p-3 text-sm">
                                         <span class="text-muted-foreground">
-                                            Using <span class="text-foreground font-semibold">{{ domain.quota.used + (domain.value ? 1 : 0) }}</span>
-                                            of <span class="text-foreground font-semibold">{{ domain.quota.total }}</span> custom domain<span
+                                            Using
+                                            <span class="text-foreground font-semibold">{{ domain.quota.used + (domain.value ? 1 : 0) }}</span> of
+                                            <span class="text-foreground font-semibold">{{ domain.quota.total }}</span> custom domain<span
                                                 v-if="domain.quota.total !== 1"
                                                 >s</span
                                             >
@@ -1305,13 +1337,7 @@ const copyApiCode = async (code: string) => {
                                                 <span class="text-muted-foreground">Value</span>
                                                 <span class="flex items-center gap-2">
                                                     <code class="font-semibold">{{ domain.cname_target }}</code>
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        class="h-6 gap-1 px-2"
-                                                        @click="copyCnameTarget"
-                                                    >
+                                                    <Button type="button" variant="ghost" size="sm" class="h-6 gap-1 px-2" @click="copyCnameTarget">
                                                         <component :is="isCnameCopied ? Check : Copy" class="h-3 w-3" />
                                                         {{ isCnameCopied ? 'Copied' : 'Copy' }}
                                                     </Button>

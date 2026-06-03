@@ -3,7 +3,7 @@
 namespace Domain\Agent\Data\Resources\Sources;
 
 use Domain\Agent\Models\Agent;
-use Domain\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;

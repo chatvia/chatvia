@@ -2,7 +2,7 @@
 
 namespace Domain\Agent\Actions\Account;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\UpdateApiAgentData;
 use Domain\Agent\Models\Agent;
 use Domain\Prompt\Actions\ResolveAgentPromptIdAction;

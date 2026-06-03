@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agent\Source\Connector;
 
 use Domain\Agent\Models\Agent;
-use Domain\Connector\Actions\Agent\ListAgentConnectorsAction;
-use Domain\Connector\Data\Agent\AgentConnectorsResourceData;
+use Domain\Integration\Connector\Actions\Agent\ListAgentConnectorsAction;
+use Domain\Integration\Connector\Data\Agent\AgentConnectorsResourceData;
 use Illuminate\Http\Request;
 
 class AgentConnectorsListController

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Landing\Marketing;
 
-use App\Marketing\Mail\RequestDemoMail;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
+use Support\Cms\Marketing\Mail\RequestDemoMail;
 
 class RequestDemoController
 {

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Agent\Crud;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\RenameAgentData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;

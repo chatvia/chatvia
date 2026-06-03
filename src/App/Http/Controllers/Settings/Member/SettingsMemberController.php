@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Settings\Member;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Member\Actions\RevokeAgentMembershipAction;
-use Domain\Member\Actions\GrantAgentMembershipAction;
+use App\Identity\Chatter\Actions\DeleteChatterAction;
+use App\Identity\Chatter\Actions\ResetChatterPasswordAction;
+use App\Identity\Chatter\Data\WorkspaceChatterRowData;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use App\Chatter\Actions\DeleteChatterAction;
-use App\Chatter\Actions\ResetChatterPasswordAction;
-use App\Chatter\Data\WorkspaceChatterRowData;
+use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
+use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

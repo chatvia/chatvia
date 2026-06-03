@@ -2,12 +2,12 @@
 
 namespace Domain\Agent\Data\Resources\Stats;
 
-use App\Country\Models\Country;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Carbon;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+use Support\Localization\Country\Models\Country;
 
 #[TypeScript]
 class StatsResourceData extends Data

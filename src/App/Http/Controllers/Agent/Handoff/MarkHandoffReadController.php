@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Agent\Handoff;
 
 use Domain\Agent\Models\Agent;
-use Domain\Chat\Actions\Handoff\MarkHandoffConversationReadAction;
-use Domain\Chat\Data\Handoff\HandoffMarkReadResultData;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Conversation\Actions\Handoff\MarkHandoffConversationReadAction;
+use Domain\Conversation\Data\Handoff\HandoffMarkReadResultData;
+use Domain\Conversation\Models\Conversation;
 
 class MarkHandoffReadController
 {
     public function __invoke(
         Agent $agent,
-        ChatConversation $conversation,
+        Conversation $conversation,
         MarkHandoffConversationReadAction $markRead,
     ): HandoffMarkReadResultData {
         $session = $conversation->session;

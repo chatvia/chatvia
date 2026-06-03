@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Tickets;
 
-use App\Helpdesk\Models\Ticket;
 use App\Http\Requests\Tickets\ChangeTicketPriorityRequest;
 use Domain\Helpdesk\Actions\ChangeTicketPriorityAction;
+use Domain\Helpdesk\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 
 /**

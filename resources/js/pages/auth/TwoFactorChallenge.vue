@@ -95,12 +95,7 @@ const switchTo = async (next: Mode) => {
                 >
                     Use a recovery code
                 </button>
-                <button
-                    v-else
-                    type="button"
-                    @click="switchTo('code')"
-                    class="text-primary hover:text-primary/80 text-sm font-medium"
-                >
+                <button v-else type="button" @click="switchTo('code')" class="text-primary hover:text-primary/80 text-sm font-medium">
                     Use an authenticator code
                 </button>
             </div>

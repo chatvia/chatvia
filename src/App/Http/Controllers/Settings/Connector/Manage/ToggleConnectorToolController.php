@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Settings\Connector\Manage;
 
-use App\Workspace\Models\User;
 use App\Http\Controllers\Controller;
-use Domain\Mcp\Models\AgentMcpServer;
-use Domain\Mcp\Actions\ToggleMcpToolAction;
-use Domain\Mcp\Data\ToggledConnectorToolData;
+use App\Identity\Workspace\Models\User;
+use Domain\Integration\Mcp\Actions\ToggleMcpToolAction;
+use Domain\Integration\Mcp\Data\ToggledConnectorToolData;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\Request;
 use RuntimeException;
 

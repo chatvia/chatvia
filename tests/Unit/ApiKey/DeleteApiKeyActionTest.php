@@ -1,9 +1,9 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\ApiKey\Actions\CreateApiKeyAction;
-use App\ApiKey\Actions\DeleteApiKeyAction;
-use App\ApiKey\Data\CreateApiKeyData;
+use App\Identity\ApiKey\Actions\CreateApiKeyAction;
+use App\Identity\ApiKey\Actions\DeleteApiKeyAction;
+use App\Identity\ApiKey\Data\CreateApiKeyData;
+use App\Identity\Workspace\Models\User;
 
 it('deletes the token belonging to the user', function (): void {
     $user = User::factory()->create();

@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Workspace\Models\User;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Seeder;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Telescope\Telescope;

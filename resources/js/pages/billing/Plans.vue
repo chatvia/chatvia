@@ -4,28 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import Table from '@/components/ui/table/Table.vue';
-import TableBody from '@/components/ui/table/TableBody.vue';
-import TableCell from '@/components/ui/table/TableCell.vue';
-import TableHead from '@/components/ui/table/TableHead.vue';
-import TableHeader from '@/components/ui/table/TableHeader.vue';
-import TableRow from '@/components/ui/table/TableRow.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import {
-    ArrowLeft,
-    Bot,
-    Building,
-    Check,
-    Crown,
-    Gift,
-    Package,
-    Sparkles,
-    Star,
-    X,
-    Zap,
-} from 'lucide-vue-next';
+import { ArrowLeft, Bot, Building, Check, Crown, Gift, Package, Sparkles, Star, Zap } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 import { usePage } from '@inertiajs/vue3';
@@ -51,13 +33,6 @@ interface Package {
     is_popular: boolean;
 }
 
-interface ComparisonFeature {
-    key: string;
-    name: string;
-    description: string;
-    capability_key: string;
-}
-
 interface LLM {
     name: string;
     icon: string;
@@ -67,7 +42,6 @@ interface LLM {
 const props = defineProps<{
     packages: Package[];
     currentPackage: string;
-    comparisonFeatures: ComparisonFeature[];
     llms?: LLM[];
     billingConfig: {
         ui: {
@@ -340,23 +314,11 @@ const getPackageFeatures = (pkg: Package) => {
     return isYearly.value ? pkg.features_yearly : pkg.features_monthly;
 };
 
-const formatFeatureValue = (value: string | number | boolean) => {
-    if (typeof value === 'boolean') {
-        return value;
-    }
-    if (typeof value === 'number') {
-        if (value >= 1000) {
-            return (value / 1000).toFixed(0) + 'K';
-        }
-        return value.toString();
-    }
-    return value; // string
-};
-
 const handleFeatureClick = (feature: string, index: number, packageKey: string) => {
     // Only first feature (index 0) in first two packages (free and starter)
     if (index === 0 && (packageKey === 'free' || packageKey === 'starter')) {
-        if (feature.includes('fast')) {
+        const label = feature;
+        if (label.includes('fast')) {
             // Free package: show only free models
             currentLLMs.value = (props.llms || []).filter((llm) => !llm.paid);
         } else {
@@ -545,12 +507,22 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                     <h4 class="text-sm font-semibold">{{ getFeatureHeader(pkg.id, packages) }}</h4>
                                     <div class="space-y-2">
                                         <div
-                                            v-for="(feature, index) in Object.values(getPackageFeatures(pkg))"
-                                            :key="feature"
+                                            v-for="([key, feature], index) in Object.entries(getPackageFeatures(pkg))"
+                                            :key="key"
                                             class="flex items-start gap-2"
                                         >
                                             <Check class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" />
+                                            <a
+                                                v-if="key === 'api'"
+                                                href="https://chatvia.ai/docs/api"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="text-sm leading-relaxed text-blue-600 underline decoration-dotted underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                            >
+                                                {{ feature }}
+                                            </a>
                                             <span
+                                                v-else
                                                 :class="[
                                                     'text-sm leading-relaxed',
                                                     index === 0 && (String(packageKey) === 'free' || String(packageKey) === 'starter')
@@ -571,64 +543,6 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
 
                 <!-- Custom Enterprise Section -->
                 <!-- Removing the old enterprise section since we moved it to a banner -->
-
-                <!-- Comparison Table -->
-                <div class="bg-muted/50 space-y-6 rounded-lg p-6">
-                    <h3 class="flex items-center gap-2 text-xl font-semibold">
-                        <Package class="text-primary h-5 w-5" />
-                        Feature Comparison
-                    </h3>
-
-                    <div class="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead class="w-[200px]">Feature</TableHead>
-                                    <TableHead v-for="pkg in packages" :key="pkg.id" class="text-center">
-                                        {{ pkg.name }}
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="feature in comparisonFeatures" :key="feature.key">
-                                    <TableCell class="font-medium">
-                                        <div>
-                                            <div class="font-semibold">{{ feature.name }}</div>
-                                            <div class="text-muted-foreground text-xs">{{ feature.description }}</div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell v-for="pkg in packages" :key="pkg.id" class="text-center">
-                                        <div class="flex items-center justify-center">
-                                            <template v-if="typeof pkg.capabilities?.[feature.capability_key] === 'boolean'">
-                                                <Check v-if="pkg.capabilities[feature.capability_key]" class="h-4 w-4 text-green-500" />
-                                                <X v-else class="h-4 w-4 text-red-500" />
-                                            </template>
-                                            <template v-else>
-                                                <span class="text-sm font-medium">
-                                                    {{ formatFeatureValue(pkg.capabilities?.[feature.capability_key]) }}
-                                                </span>
-                                            </template>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-                </div>
-
-                <!-- Additional Information -->
-                <div class="bg-muted/50 space-y-4 rounded-lg p-6">
-                    <h3 class="flex items-center gap-2 font-semibold">
-                        <Package class="text-primary h-5 w-5" />
-                        What's included with all plans
-                    </h3>
-                    <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                        <div v-for="feature in billingConfig.commonFeatures" :key="feature" class="flex items-center gap-2">
-                            <Check class="h-4 w-4 text-green-500" />
-                            <span class="text-sm">{{ feature }}</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 

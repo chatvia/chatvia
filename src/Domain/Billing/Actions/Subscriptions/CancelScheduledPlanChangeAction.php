@@ -2,8 +2,8 @@
 
 namespace Domain\Billing\Actions\Subscriptions;
 
-use App\Workspace\Models\User;
-use App\Billing\Data\StripeScheduleData;
+use App\Identity\Workspace\Models\User;
+use Domain\Billing\Data\StripeScheduleData;
 use Stripe\SubscriptionSchedule;
 
 class CancelScheduledPlanChangeAction

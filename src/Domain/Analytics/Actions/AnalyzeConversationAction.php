@@ -2,11 +2,11 @@
 
 namespace Domain\Analytics\Actions;
 
-use App\Billing\Enums\CapabilityEnum;
-use App\TextAnalysis\LanguageDetection;
-use App\TextAnalysis\ToneAnalysis;
+use Domain\Analytics\Services\LanguageDetection;
+use Domain\Analytics\Services\ToneAnalysis;
 use Domain\Analytics\Services\TopicAnalysis;
-use Domain\Chat\Models\ChatConversation;
+use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Conversation\Models\Conversation;
 
 class AnalyzeConversationAction
 {
@@ -16,7 +16,7 @@ class AnalyzeConversationAction
         private readonly LanguageDetection $languageDetection,
     ) {}
 
-    public function execute(ChatConversation $conversation): void
+    public function execute(Conversation $conversation): void
     {
         $messages = $conversation
             ->messages()
@@ -49,7 +49,7 @@ class AnalyzeConversationAction
         }
     }
 
-    private function detectLanguage(ChatConversation $conversation, string $messages, array &$updates): void
+    private function detectLanguage(Conversation $conversation, string $messages, array &$updates): void
     {
         if ($conversation->language_id) {
             return;
@@ -62,7 +62,7 @@ class AnalyzeConversationAction
         }
     }
 
-    private function detectTopic(ChatConversation $conversation, string $messages, array &$updates): void
+    private function detectTopic(Conversation $conversation, string $messages, array &$updates): void
     {
         if ($conversation->chat_topic_id) {
             return;
@@ -72,7 +72,7 @@ class AnalyzeConversationAction
             return;
         }
 
-        if (! $this->ownerHasCapability($conversation, CapabilityEnum::TOPICS)) {
+        if (! $this->teamHasCapability($conversation, CapabilityEnum::TOPICS)) {
             return;
         }
 
@@ -83,7 +83,7 @@ class AnalyzeConversationAction
         }
     }
 
-    private function detectToneAndSentiment(ChatConversation $conversation, string $userMessages, array &$updates): void
+    private function detectToneAndSentiment(Conversation $conversation, string $userMessages, array &$updates): void
     {
         if ($conversation->tone && $conversation->sentiment) {
             return;
@@ -96,8 +96,8 @@ class AnalyzeConversationAction
         // Sentiment + tone share a single LLM call — skip when the owner
         // can't see either result, so a Starter conversation doesn't burn
         // inference on data the customer will never view.
-        if (! $this->ownerHasCapability($conversation, CapabilityEnum::SENTIMENT)
-            && ! $this->ownerHasCapability($conversation, CapabilityEnum::TONE)
+        if (! $this->teamHasCapability($conversation, CapabilityEnum::SENTIMENT)
+            && ! $this->teamHasCapability($conversation, CapabilityEnum::TONE)
         ) {
             return;
         }
@@ -108,8 +108,8 @@ class AnalyzeConversationAction
         $updates['sentiment'] = $analysis['sentiment']->value;
     }
 
-    private function ownerHasCapability(ChatConversation $conversation, CapabilityEnum $capability): bool
+    private function teamHasCapability(Conversation $conversation, CapabilityEnum $capability): bool
     {
-        return $conversation->agent?->user?->hasCapability($capability) ?? false;
+        return $conversation->agent?->team?->hasCapability($capability) ?? false;
     }
 }

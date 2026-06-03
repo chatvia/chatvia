@@ -1,8 +1,8 @@
 <?php
 
-use App\Workspace\Models\User;
-use App\Workspace\Actions\Account\UpdatePasswordAction;
-use App\Workspace\Data\Account\UpdatePasswordData;
+use App\Identity\Workspace\Actions\Account\UpdatePasswordAction;
+use App\Identity\Workspace\Data\Account\UpdatePasswordData;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 it('hashes and stores the new password', function (): void {

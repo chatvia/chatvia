@@ -1,6 +1,6 @@
 <?php
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Subscriptions\CancelScheduledPlanChangeAction;
 
 it('returns false when the user has no subscription', function (): void {

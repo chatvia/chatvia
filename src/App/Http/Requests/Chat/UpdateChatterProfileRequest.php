@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Chat;
 
-use App\Workspace\Models\User;
-use App\Chatter\Data\UpdateChatterProfileData;
+use App\Identity\Chatter\Data\UpdateChatterProfileData;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateChatterProfileRequest extends FormRequest

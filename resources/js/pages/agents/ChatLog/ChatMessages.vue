@@ -7,7 +7,7 @@ import { LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } 
 import { computed } from 'vue';
 import { useChatLog } from './useChatLog';
 
-type Message = Domain.Agents.Data.Resources.ChatLog.ChatLogMessageData;
+type Message = Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData;
 
 const { hasCapability } = useCapabilityGuard();
 const hasToneAccess = computed(() => hasCapability('tone'));

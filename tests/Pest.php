@@ -11,9 +11,10 @@
 |
 */
 
-use App\Workspace\Models\User;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Models\Team;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 use Tests\RefreshTestDatabases;
 use Tests\TestCase;
@@ -62,18 +63,30 @@ function something(): void
  */
 function createAgent(User $user, array $overrides = []): Agent
 {
-    if (! $user->primaryTeam()) {
-        app(TeamService::class)->createDefaultTeam($user);
-    }
+    $team = $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
 
     return Agent::create(array_merge([
         'user_id' => $user->id,
-        'team_id' => $user->primaryTeam()->id,
+        'team_id' => $team->id,
         'name' => 'Bot',
-        'type' => 'knowledge_base',
         'external_id' => Str::random(20),
         'sub_domain' => Str::random(14),
         'is_public' => false,
         'source' => 'dashboard',
     ], $overrides));
+}
+
+function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
+{
+    $team ??= $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
+
+    return Agent::create([
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'name' => $name,
+        'external_id' => Str::random(14),
+        'sub_domain' => Str::random(14),
+        'is_public' => false,
+        'source' => 'api',
+    ]);
 }

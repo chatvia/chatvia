@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Workspace\Models\User;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -14,6 +14,8 @@ use Support\Enums\User\UserType;
  */
 class UserFactory extends Factory
 {
+    protected $model = User::class;
+
     /**
      * The current password being used by the factory.
      */
@@ -36,6 +38,21 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'type' => UserType::Workspace,
             'source' => UserSource::Dashboard,
+            // Explicitly seed nullable columns so the model is queryable
+            // under Model::preventAccessingMissingAttributes() without an
+            // extra refresh() call in every test.
+            'workspace_id' => null,
+            'current_team_id' => null,
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+            'registered_ip' => null,
+            'registered_country_code' => null,
+            'domain' => null,
+            'billing_address' => null,
+            'deactivation_reason' => null,
+            'deactivated_at' => null,
+            'last_login_at' => null,
         ];
     }
 

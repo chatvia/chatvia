@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import type { Message } from '@/types/chat';
-import type { ToolArtifact } from '@/types/stream';
+import type { ToolApprovalCall, ToolArtifact } from '@/types/stream';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Check, Copy, Plug, RefreshCw, ThumbsDown, ThumbsUp, Trash2, Webhook } from 'lucide-vue-next';
@@ -20,6 +20,7 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AssistantMessageBody from './AssistantMessageBody.vue';
 import SourcesDialog from './SourcesDialog.vue';
+import ToolApprovalCard from './ToolApprovalCard.vue';
 import WaitingIndicator from './WaitingIndicator.vue';
 
 interface ActiveCall {
@@ -51,12 +52,18 @@ const props = defineProps<{
     conversationId?: string;
     avatar?: string | null;
     isRTL?: boolean;
+    /** Tool calls in this turn paused awaiting the user's approve/deny. */
+    pendingApprovals?: ToolApprovalCall[];
+    /** approval_ids currently being resolved (buttons show a spinner + disable). */
+    resolvingApprovalIds?: string[];
 }>();
 
 const emit = defineEmits<{
     messageDeleted: [id: string | number];
     feedbackProvided: [id: string | number, type: 'thumbs-up' | 'thumbs-down'];
     regenerate: [userMessageId: string | number, assistantMessageId: string | number, onDone: () => void];
+    approveTool: [call: ToolApprovalCall];
+    denyTool: [call: ToolApprovalCall];
 }>();
 
 const { t } = useI18n();
@@ -75,7 +82,7 @@ const currentCall = computed<ActiveCall | null>(() => {
 const currentCallLabel = computed(() => {
     const call = currentCall.value;
     if (!call) return t('messages.calling_external');
-    return call.kind === 'mcp' ? t('messages.fetching_data', { label: call.label }) : t('messages.calling', { label: call.label });
+    return t('messages.calling', { label: call.label });
 });
 
 const isRegenerating = ref(false);
@@ -170,8 +177,9 @@ watch(
             />
             <!-- Empty body: show the "still working" indicator. WaitingIndicator
                  if the model is just thinking; branded tool-call icon stack if
-                 it's calling an MCP server or webhook function. -->
-            <div v-if="!message.content" class="flex items-center gap-2 py-1">
+                 it's calling an MCP server or webhook function. Suppressed while
+                 an approval card is pending — the card is the content then. -->
+            <div v-if="!message.content && !(pendingApprovals && pendingApprovals.length)" class="flex items-center gap-2 py-1">
                 <template v-if="isCallingExternal">
                     <div class="external-call-stack flex items-center">
                         <div
@@ -210,6 +218,19 @@ watch(
                     <span v-if="overflowCount > 0" class="text-muted-foreground ml-1 text-xs">+{{ overflowCount }}</span>
                 </div>
                 <span class="external-call-shimmer italic">{{ currentCallLabel }}</span>
+            </div>
+
+            <!-- Human-in-the-loop: gated tool calls awaiting the user's go-ahead. -->
+            <div v-if="pendingApprovals && pendingApprovals.length" class="mt-2 space-y-2">
+                <ToolApprovalCard
+                    v-for="call in pendingApprovals"
+                    :key="call.tool_call_id"
+                    :call="call"
+                    :is-rtl="isRTL ?? false"
+                    :resolving="(resolvingApprovalIds ?? []).includes(call.approval_id)"
+                    @approve="(c) => emit('approveTool', c)"
+                    @deny="(c) => emit('denyTool', c)"
+                />
             </div>
 
             <div v-if="message.content && !hideFeedback" class="mt-2 flex flex-wrap items-center justify-between gap-2">

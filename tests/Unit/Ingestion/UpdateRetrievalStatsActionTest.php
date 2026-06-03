@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Ingestion\Actions\Stats\UpdateRetrievalStatsAction;
+use Domain\Knowledge\Ingestion\Actions\Stats\UpdateRetrievalStatsAction;
 
 it('no-ops when the results array is empty', function (): void {
     // No DB touches expected: the action should return immediately

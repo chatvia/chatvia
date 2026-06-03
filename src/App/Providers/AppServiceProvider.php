@@ -2,69 +2,68 @@
 
 namespace App\Providers;
 
-use App\Workspace\Listeners\RecordKnownDeviceListener;
-use App\Workspace\Models\User;
-use App\Workspace\Observers\UserObserver;
-use App\Billing\Models\UserBilling;
-use App\Documents\Contracts\DocumentOCRInterface;
-use App\Embedding\Cohere;
-use App\Embedding\Contracts\EmbeddingsProviderInterface;
-use App\Embedding\Jina;
-use App\Embedding\Qwen3;
-use App\LLM\Contracts\LLMProviderInterface;
-use App\LLM\Groq;
-use App\LLM\Mistral;
-use App\LLM\OpenRouter;
-use App\LLM\Scaleway;
-use App\Marketing\Models\Post;
-use App\Marketing\Observers\PostObserver;
-use App\Team\Services\TeamService;
+use App\Identity\Workspace\Events\MagicLinkRequested;
+use App\Identity\Workspace\Listeners\RecordKnownDevice;
+use App\Identity\Workspace\Listeners\SendMagicLinkEmail;
+use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Observers\UserObserver;
+use App\Identity\Workspace\Services\PasswordAuthenticator;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Domain\Agent\Models\Agent;
-use Domain\Mcp\Models\AgentMcpServer;
 use Domain\Agent\Models\ModelSetting;
-use Domain\Mcp\Observers\AgentMcpServerObserver;
 use Domain\Agent\Observers\AgentObserver;
 use Domain\Agent\Observers\ModelSettingObserver;
-use Domain\Function\Models\AgentFunction;
-use Domain\Function\Observers\AgentFunctionObserver;
 use Domain\Agent\Services\Agent as AgentService;
+use Domain\Analytics\Listeners\RecordAnalytics;
 use Domain\Billing\Events\MessageCreditsLow;
 use Domain\Billing\Listeners\TriggerAutoRecharge;
-use Domain\Member\Events\AgentMemberInvited;
-use Domain\Member\Listeners\SendAgentMemberInvitationEmail;
-use Domain\Analytics\Listeners\RecordAnalyticsListener;
-use App\Workspace\Events\MagicLinkRequested;
-use App\Workspace\Listeners\SendMagicLinkEmail;
-use App\Workspace\Services\PasswordAuthenticator;
-use Domain\Chat\Models\ChatConversation;
-use Domain\Chat\Models\ChatMessage;
-use Domain\Chat\Models\ChatSession;
-use Domain\Chat\Observers\ChatConversationObserver;
-use Domain\Chat\Observers\ChatMessageObserver;
-use Domain\Chat\Observers\ChatSessionObserver;
-use Domain\Chat\Services\Tooling\Dispatcher\RoutingToolDispatcher;
-use Domain\Chat\Services\Tooling\Dispatcher\ToolDispatcherInterface;
-use Domain\Ingestion\Services\Clients\MistralOCR;
-use Domain\Source\File\Models\SourceFile;
-use Domain\Source\File\Observers\SourceFileObserver;
-use Domain\Source\Text\Models\SourceText;
-use Domain\Source\Text\Observers\AgentTextObserver;
-use Domain\Source\Web\Models\AgentWebsiteUrl;
-use Domain\Source\Web\Models\SourceWebsite;
-use Domain\Source\Web\Observers\AgentWebsiteObserver;
-use Domain\Source\Youtube\Models\SourceYoutubeVideo;
-use Domain\Source\Youtube\Observers\SourceYoutubeVideoObserver;
+use Domain\Billing\Models\UserBilling;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
+use Domain\Conversation\Models\Session;
+use Domain\Conversation\Observers\ConversationObserver;
+use Domain\Conversation\Observers\MessageObserver;
+use Domain\Conversation\Observers\SessionObserver;
+use Domain\Conversation\Services\Tooling\Dispatcher\RoutingToolDispatcher;
+use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
+use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Function\Observers\AgentFunctionObserver;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Mcp\Observers\AgentMcpServerObserver;
+use Domain\Knowledge\Document\Contracts\DocumentOCRInterface;
+use Domain\Knowledge\Embedding\Cohere;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Jina;
+use Domain\Knowledge\Embedding\Qwen3;
+use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Observers\SourceFileObserver;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Text\Observers\AgentTextObserver;
+use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Knowledge\Source\Web\Observers\AgentWebsiteObserver;
+use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
+use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
+use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Providers\Groq;
+use Domain\Llm\Providers\Mistral;
+use Domain\Llm\Providers\OpenRouter;
+use Domain\Llm\Providers\Scaleway;
+use Domain\Membership\Agent\Events\AgentMemberInvited;
+use Domain\Membership\Agent\Listeners\SendAgentMemberInvitationEmail;
+use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Routing\Route;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\ParallelTesting;
@@ -81,6 +80,8 @@ use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNClient;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
 use Stripe\Stripe;
+use Support\Cms\Marketing\Models\Post;
+use Support\Cms\Marketing\Observers\PostObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -97,7 +98,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         // Bind the LLM provider interface based on configuration
-        $this->app->bind(LLMProviderInterface::class, function ($app) {
+        $this->app->bind(LlmProviderInterface::class, function ($app) {
             $provider = config('ai.provider', 'openrouter');
 
             return match ($provider) {
@@ -115,7 +116,7 @@ class AppServiceProvider extends ServiceProvider
             return match ($provider) {
                 'jina' => $app->make(Jina::class),
                 'qwen' => $app->make(Qwen3::class),
-                'mistral' => $app->make(\App\Embedding\Mistral::class),
+                'mistral' => $app->make(\Domain\Knowledge\Embedding\Mistral::class),
                 default => $app->make(Cohere::class),
             };
         });
@@ -231,8 +232,8 @@ class AppServiceProvider extends ServiceProvider
         // `\Policies\` in the FQCN to find the corresponding policy.
         // Examples:
         //   Domain\Agent\Models\Agent              → Domain\Agent\Policies\AgentPolicy
-        //   Domain\Source\File\Models\SourceFile  → Domain\Source\File\Policies\SourceFilePolicy
-        //   App\Team\Models\Team                   → App\Team\Policies\TeamPolicy
+        //   Domain\Knowledge\Source\File\Models\SourceFile  → Domain\Knowledge\Source\File\Policies\SourceFilePolicy
+        //   Domain\Membership\Team\Models\Team                   → Domain\Membership\Team\Policies\TeamPolicy
         Gate::guessPolicyNamesUsing(function (string $modelClass): ?string {
             if (! str_contains($modelClass, '\\Models\\')) {
                 return null;
@@ -242,53 +243,14 @@ class AppServiceProvider extends ServiceProvider
             return class_exists($policy) ? $policy : null;
         });
 
-        // Factories live flat at database/factories/ regardless of which
-        // domain/module owns the model. Map any model's class basename to
-        // Database\Factories\<Name>Factory.
+        // Models live across many App\* and Domain\* namespaces, but every
+        // factory lives flat under Database\Factories\. Map a model to its
+        // factory by basename. The reverse (factory → model) is declared
+        // explicitly on each factory via `protected $model`, so no namespace
+        // guessing is needed there.
         Factory::guessFactoryNamesUsing(
             fn (string $modelClass): string => 'Database\\Factories\\'.class_basename($modelClass).'Factory'
         );
-
-        // The inverse — given a factory class, find the matching model in
-        // either the App-module or Domain-context layout. Factories declare
-        // their model implicitly via their basename; we search the known
-        // locations under App\* and Domain\* for a class match.
-        Factory::guessModelNamesUsing(function ($factory) {
-            $base = preg_replace('/Factory$/', '', class_basename($factory));
-            $candidates = [
-                "App\\Workspace\\Models\\$base",
-                "App\\Billing\\Models\\$base",
-                "App\\Team\\Models\\$base",
-                "App\\Marketing\\Models\\$base",
-                "App\\Helpdesk\\Models\\$base",
-                "App\\Changelog\\Models\\$base",
-                "App\\Country\\Models\\$base",
-                "App\\Language\\Models\\$base",
-                "Domain\\Agent\\Models\\$base",
-                "Domain\\Chat\\Models\\$base",
-                "Domain\\Connector\\Models\\$base",
-                "Domain\\Function\\Models\\$base",
-                "Domain\\Ingestion\\Models\\$base",
-                "Domain\\Lead\\Models\\$base",
-                "Domain\\Llm\\Models\\$base",
-                "Domain\\Mcp\\Models\\$base",
-                "Domain\\Member\\Models\\$base",
-                "Domain\\Prompt\\Models\\$base",
-                "Domain\\Topic\\Models\\$base",
-                "Domain\\Source\\File\\Models\\$base",
-                "Domain\\Source\\Text\\Models\\$base",
-                "Domain\\Source\\Web\\Models\\$base",
-                "Domain\\Source\\QA\\Models\\$base",
-                "Domain\\Source\\Youtube\\Models\\$base",
-            ];
-            foreach ($candidates as $fqcn) {
-                if (class_exists($fqcn)) {
-                    return $fqcn;
-                }
-            }
-
-            return "App\\Models\\$base";
-        });
 
         User::observe(UserObserver::class);
         Agent::observe(AgentObserver::class);
@@ -300,9 +262,9 @@ class AppServiceProvider extends ServiceProvider
         SourceYoutubeVideo::observe(SourceYoutubeVideoObserver::class);
         ModelSetting::observe(ModelSettingObserver::class);
         Post::observe(PostObserver::class);
-        ChatSession::observe(ChatSessionObserver::class);
-        ChatConversation::observe(ChatConversationObserver::class);
-        ChatMessage::observe(ChatMessageObserver::class);
+        Session::observe(SessionObserver::class);
+        Conversation::observe(ConversationObserver::class);
+        Message::observe(MessageObserver::class);
 
         if (app()->isProduction()) {
             URL::forceScheme('https');
@@ -338,12 +300,12 @@ class AppServiceProvider extends ServiceProvider
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
         });
 
-        Event::listen(\Illuminate\Auth\Events\Login::class, RecordKnownDeviceListener::class);
+        Event::listen(Login::class, RecordKnownDevice::class);
         Event::listen(AgentMemberInvited::class, SendAgentMemberInvitationEmail::class);
         Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
         Event::listen(MessageCreditsLow::class, TriggerAutoRecharge::class);
 
-        Event::subscribe(RecordAnalyticsListener::class);
+        Event::subscribe(RecordAnalytics::class);
 
         // Bulk gate for every /widget/* endpoint. Per-IP because widget
         // traffic is unauthenticated for public agents and we want a single

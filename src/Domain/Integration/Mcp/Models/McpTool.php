@@ -2,6 +2,8 @@
 
 namespace Domain\Integration\Mcp\Models;
 
+use Domain\Integration\Mcp\Enums\McpToolPermission;
+use Domain\Integration\Mcp\Enums\McpToolScope;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,14 +13,15 @@ use Pgvector\Laravel\Vector;
 
 /**
  * One row per tool discovered on an MCP server. Tools are first-class so
- * we can attach embeddings, expose them as FKs, toggle per-tool enable
- * state, and query them directly.
+ * we can attach embeddings, expose them as FKs, set per-tool permission,
+ * and query them directly.
  *
  * `name` is the raw MCP tool name (unprefixed). The `mcp__{slug}__` prefix
  * is reapplied at compile time so stored selections survive slug renames.
  *
- * `is_enabled` is scoped to the parent server — flipping it affects every
- * agent attached to that server.
+ * `permission` is the tri-state shown in the UI — `Blocked` hides the tool
+ * from the catalog, `Approval` routes through ToolApprovalCheckpoint,
+ * `Allow` runs inline.
  *
  * @property int $id
  * @property int $mcp_server_id
@@ -26,8 +29,8 @@ use Pgvector\Laravel\Vector;
  * @property string $description
  * @property array<array-key, mixed> $input_schema
  * @property array<array-key, mixed>|null $annotations
- * @property bool $requires_approval
- * @property bool $is_enabled
+ * @property McpToolScope $scope
+ * @property McpToolPermission $permission
  * @property Vector|null $embedding
  * @property string|null $embedding_bm25
  * @property Carbon $fetched_at
@@ -47,8 +50,8 @@ class McpTool extends Model
         return [
             'input_schema' => 'array',
             'annotations' => 'array',
-            'requires_approval' => 'boolean',
-            'is_enabled' => 'boolean',
+            'scope' => McpToolScope::class,
+            'permission' => McpToolPermission::class,
             'embedding' => Vector::class,
             'fetched_at' => 'datetime',
         ];

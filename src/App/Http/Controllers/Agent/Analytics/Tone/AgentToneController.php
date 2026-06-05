@@ -22,6 +22,8 @@ class AgentToneController
 
         return Inertia::render('agents/Tone', [
             'agent' => AgentResourceData::fromModel($agent),
+            'enabled' => $agent->analyticsEnabled('tone'),
+            'chatlogEnabled' => $agent->chatlogEnabled(),
         ]);
     }
 }

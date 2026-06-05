@@ -5,8 +5,10 @@ namespace Database\Seeders;
 use Database\Seeders\Demo\DemoCountries;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\RecordFeedbackGivenAction;
+use Domain\Analytics\Actions\RecordMessageAnalyzedAction;
 use Domain\Analytics\Actions\RecordMessageSentAction;
 use Domain\Analytics\Events\FeedbackGiven;
+use Domain\Analytics\Events\MessageAnalyzed;
 use Domain\Analytics\Events\MessageSent;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Seeder;
@@ -39,6 +41,12 @@ class AnalyticsDemoSeeder extends Seeder
         9 => 7, 10 => 8, 11 => 8, 12 => 7, 13 => 7, 14 => 9, 15 => 9, 16 => 8,
         17 => 6, 18 => 5, 19 => 4, 20 => 3, 21 => 3, 22 => 2, 23 => 2,
     ];
+
+    /** Synthetic sentiment distribution (skews positive). */
+    private const SENTIMENT_WEIGHTS = ['positive' => 55, 'neutral' => 30, 'negative' => 15];
+
+    /** Synthetic tone distribution. */
+    private const TONE_WEIGHTS = ['neutral' => 40, 'satisfied' => 30, 'confused' => 12, 'frustrated' => 10, 'urgent' => 8];
 
     public function run(): void
     {
@@ -76,6 +84,8 @@ class AnalyticsDemoSeeder extends Seeder
         $messageSent = app(RecordMessageSentAction::class);
         /** @var RecordFeedbackGivenAction $feedbackGiven */
         $feedbackGiven = app(RecordFeedbackGivenAction::class);
+        /** @var RecordMessageAnalyzedAction $messageAnalyzed */
+        $messageAnalyzed = app(RecordMessageAnalyzedAction::class);
 
         foreach ($agents as $agent) {
             $this->command->info(sprintf(
@@ -84,7 +94,7 @@ class AnalyticsDemoSeeder extends Seeder
             ));
 
             [$convs, $msgs, $fbs] = $this->seedAgent(
-                $agent, $messageSent, $feedbackGiven, $modelWeights
+                $agent, $messageSent, $feedbackGiven, $messageAnalyzed, $modelWeights
             );
 
             $this->command->info(sprintf('  → %d conversations, %d messages, %d feedback events', $convs, $msgs, $fbs));
@@ -119,6 +129,7 @@ class AnalyticsDemoSeeder extends Seeder
         Agent $agent,
         RecordMessageSentAction $messageSent,
         RecordFeedbackGivenAction $feedbackGiven,
+        RecordMessageAnalyzedAction $messageAnalyzed,
         array $modelWeights,
     ): array {
         $startDate = now()->subDays(self::DAYS - 1)->startOfDay();
@@ -165,6 +176,7 @@ class AnalyticsDemoSeeder extends Seeder
 
                     $messageSent->execute(new MessageSent(
                         agentId: $agent->id,
+                        userId: $agent->user_id,
                         conversationExternalId: $convId,
                         messageExternalId: $msgId,
                         sessionExternalId: $sessionId,
@@ -178,15 +190,28 @@ class AnalyticsDemoSeeder extends Seeder
                     ));
                     $msgCount++;
 
+                    // ~85% of user messages get synthetic sentiment + tone so the
+                    // Sentiment and Tone analytics pages have demo data; the rest
+                    // stay "unspecified" (derived from total user messages).
+                    if ($isUser && random_int(1, 100) <= 85) {
+                        $messageAnalyzed->execute(new MessageAnalyzed(
+                            agentId: $agent->id,
+                            userId: $agent->user_id,
+                            sentiment: (string) $this->weightedPick(self::SENTIMENT_WEIGHTS),
+                            tone: (string) $this->weightedPick(self::TONE_WEIGHTS),
+                            occurredAt: $cursor,
+                        ));
+                    }
+
                     // ~25% of assistant turns get a reaction; positive skews 70/30.
                     if (! $isUser && random_int(1, 100) <= 25) {
                         $feedback = random_int(1, 100) <= 70 ? 'positive' : 'negative';
                         $feedbackGiven->execute(new FeedbackGiven(
                             agentId: $agent->id,
+                            userId: $agent->user_id,
                             conversationExternalId: $convId,
                             messageExternalId: $msgId,
-                            priorFeedback: null,
-                            newFeedback: $feedback,
+                            feedback: $feedback,
                             llmExternalName: $modelUsed,
                             countryCode: $country,
                             occurredAt: $cursor->copy()->addSeconds(random_int(5, 60)),
@@ -215,6 +240,10 @@ class AnalyticsDemoSeeder extends Seeder
             'analytics_agent_hourly_rollups',
             'analytics_conversation_metrics',
             'analytics_session_firsts',
+            'analytics_agent_sentiment_daily',
+            'analytics_agent_tone_daily',
+            'analytics_agent_topic_daily',
+            'analytics_agent_source_daily',
         ] as $table) {
             $db->table($table)->truncate();
         }

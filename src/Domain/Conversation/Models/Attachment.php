@@ -34,7 +34,7 @@ use Throwable;
  * @property int $size_bytes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read string $url Public URL on the scaleway-public disk
+ * @property-read string $url Public URL on the public disk
  * @property-read Conversation|null $conversation
  * @property-read Message|null $message
  */
@@ -57,7 +57,7 @@ class Attachment extends Model
      * fetch them server-side); a private disk would need pre-signing per
      * request, which is wasted overhead for the use case.
      */
-    public const DISK = 'scaleway-public';
+    public const DISK = 'public';
 
     public function getRouteKeyName(): string
     {
@@ -81,7 +81,7 @@ class Attachment extends Model
 
     /**
      * Derived public URL. HasStorageFile's read helpers operate on the
-     * default disk; ours live on scaleway-public, so we expose the URL via
+     * default disk; ours live on the public disk, so we expose the URL via
      * an accessor instead of storing it.
      */
     public function url(): Attribute

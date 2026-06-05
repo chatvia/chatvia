@@ -16,7 +16,6 @@ class AgentManagerController
 
         // Analytics
         'agent.analytics.chats' => 'agents.analytics',
-        'agent.analytics.metrics' => 'agents.analytics.metrics',
         'agent.analytics.sentiment' => 'agents.analytics.sentiment',
         'agent.analytics.tone' => 'agents.analytics.tone',
         'agent.analytics.topics' => 'agents.analytics.topics',

@@ -19,7 +19,7 @@ class AttachAgentFunctionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'function_id' => ['required', 'string'],
+            'function_id' => ['required', 'string', 'uuid'],
         ];
     }
 

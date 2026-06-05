@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import AnalyticsDisabled from '@/components/AnalyticsDisabled.vue';
 import LockedFeature from '@/components/LockedFeature.vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,12 +29,38 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcEleme
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
+    // Per-agent on/off switch (Setup → Settings). Independent of the plan
+    // capability below: the plan must allow it AND the owner must not have
+    // switched it off.
+    enabled: boolean;
+    // Master switch: when the chat log is off there are no stored messages to
+    // analyze, so analytics can't be enabled until it's turned back on.
+    chatlogEnabled: boolean;
 }
 
 const props = defineProps<Props>();
 
 const { hasCapability } = useCapabilityGuard();
 const hasAccess = computed(() => hasCapability('tone'));
+
+// Local mirror of the per-agent switch so flipping it on from the disabled
+// state swaps straight to the charts without a full page reload.
+const isEnabled = ref(props.enabled);
+const enabling = ref(false);
+
+const enableTone = async () => {
+    if (!props.chatlogEnabled) return;
+    enabling.value = true;
+    try {
+        await axios.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'analytics' }), { tone: true });
+        isEnabled.value = true;
+        fetchToneData();
+    } catch (err) {
+        console.error('Could not enable tone analysis:', err);
+    } finally {
+        enabling.value = false;
+    }
+};
 
 const loading = ref(true);
 const toneData = ref<any>(null);
@@ -278,7 +305,7 @@ const summaryStats = computed(() => {
 });
 
 onMounted(() => {
-    if (hasAccess.value) {
+    if (hasAccess.value && props.chatlogEnabled && isEnabled.value) {
         fetchToneData();
     }
 });
@@ -294,6 +321,17 @@ onMounted(() => {
         <LockedFeature
             v-if="!hasAccess"
             description="Upgrade your plan to access advanced tone analysis and understand the communication style in your conversations."
+        />
+
+        <!-- Plan allows it, but the owner switched it off for this agent -->
+        <AnalyticsDisabled
+            v-else-if="!chatlogEnabled || !isEnabled"
+            title="Tone analysis"
+            description="Turn it on to track the communication style — friendly, frustrated, curious and more — across conversations."
+            :can-enable="chatlogEnabled"
+            blocked-reason="Chat log is off, so there's nothing to analyze. Turn it on in Setup → Settings to start collecting tone."
+            :enabling="enabling"
+            @enable="enableTone"
         />
 
         <!-- Show content if user has access -->

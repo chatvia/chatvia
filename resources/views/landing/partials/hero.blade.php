@@ -35,10 +35,7 @@
                 <!-- Badge -->
                 <div
                     class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs sm:text-sm font-semibold text-indigo-700 uppercase tracking-wider mb-6">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    AI agents, made simple
+                    The best B2B AI Agents
                 </div>
 
                 <h1

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import type { ToolApprovalCall } from '@/types/stream';
-import { Check, ChevronDown, Loader2, Plug, ShieldQuestion, Webhook, X } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { Check, Loader2, Plug, ShieldQuestion, Webhook, X } from 'lucide-vue-next';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -19,8 +18,6 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-
-const detailsOpen = ref(false);
 
 // brand_color arrives as a hex, sometimes without the leading '#'. It's a
 // literal colour (not a theme token), so an inline style is correct here.
@@ -59,35 +56,6 @@ const provider = computed(() => {
     if (props.call.kind === 'mcp') return props.call.label || t('approval.mcp_tool');
     return props.call.label && props.call.label !== toolName.value ? props.call.label : t('approval.function');
 });
-
-const argRows = computed<Array<{ key: string; value: string }>>(() => {
-    const raw = props.call.args;
-    if (!raw) return [];
-    try {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            return Object.entries(parsed).map(([key, value]) => ({
-                key,
-                value: typeof value === 'string' ? value : JSON.stringify(value),
-            }));
-        }
-        return [{ key: '', value: JSON.stringify(parsed) }];
-    } catch {
-        return [{ key: '', value: raw }];
-    }
-});
-
-// The exact identifier the model called (e.g. create_coupon), shown in the
-// details — the header shows the humanized title instead.
-const rawName = computed(() => {
-    const n = props.call.name || props.call.label || '';
-    if (n.startsWith('mcp__')) {
-        const rest = n.slice(5);
-        const idx = rest.indexOf('__');
-        return idx >= 0 ? rest.slice(idx + 2) : rest;
-    }
-    return n;
-});
 </script>
 
 <template>
@@ -115,50 +83,23 @@ const rawName = computed(() => {
         <!-- The clear call to action -->
         <p class="text-foreground/90 px-3.5 pb-2.5 text-sm">{{ t('approval.prompt') }}</p>
 
-        <!-- Collapsible details: the exact function + arguments that will run -->
-        <Collapsible v-model:open="detailsOpen">
-            <CollapsibleContent>
-                <dl class="bg-muted/50 mx-3.5 mb-2 space-y-1 rounded-lg p-2.5 text-[11px]">
-                    <div class="border-border/60 mb-1 flex gap-2 border-b pb-1">
-                        <dt class="text-muted-foreground shrink-0 font-medium">{{ t('approval.function') }}</dt>
-                        <dd class="text-foreground/90 min-w-0 font-mono break-words" dir="ltr">{{ rawName }}</dd>
-                    </div>
-                    <div v-for="(row, i) in argRows" :key="i" class="flex gap-2">
-                        <dt v-if="row.key" class="text-muted-foreground shrink-0 font-medium">{{ row.key }}</dt>
-                        <dd class="text-foreground/90 min-w-0 break-words" dir="ltr">{{ row.value }}</dd>
-                    </div>
-                </dl>
-            </CollapsibleContent>
-        </Collapsible>
-
-        <!-- Footer: details toggle + actions, on one compact row -->
-        <div class="border-border/60 bg-muted/30 flex items-center justify-between gap-2 border-t px-3 py-2">
-            <button
-                type="button"
-                class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs transition-colors"
-                @click="detailsOpen = !detailsOpen"
+        <!-- Footer: deny/approve actions -->
+        <div class="border-border/60 bg-muted/30 flex items-center justify-end gap-1.5 border-t px-3 py-2">
+            <Button
+                variant="ghost"
+                size="sm"
+                class="text-muted-foreground hover:text-foreground h-7 gap-1.5 px-2.5"
+                :disabled="resolving"
+                @click="emit('deny', call)"
             >
-                <ChevronDown class="h-3.5 w-3.5 transition-transform" :class="{ 'rotate-180': detailsOpen }" />
-                {{ detailsOpen ? t('approval.hide_details') : t('approval.view_details') }}
-            </button>
-
-            <div class="flex items-center gap-1.5">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    class="text-muted-foreground hover:text-foreground h-7 gap-1.5 px-2.5"
-                    :disabled="resolving"
-                    @click="emit('deny', call)"
-                >
-                    <X class="h-3.5 w-3.5" />
-                    {{ t('approval.deny') }}
-                </Button>
-                <Button size="sm" class="h-7 gap-1.5 px-3" :disabled="resolving" @click="emit('approve', call)">
-                    <Loader2 v-if="resolving" class="h-3.5 w-3.5 animate-spin" />
-                    <Check v-else class="h-3.5 w-3.5" />
-                    {{ t('approval.approve') }}
-                </Button>
-            </div>
+                <X class="h-3.5 w-3.5" />
+                {{ t('approval.deny') }}
+            </Button>
+            <Button size="sm" class="h-7 gap-1.5 px-3" :disabled="resolving" @click="emit('approve', call)">
+                <Loader2 v-if="resolving" class="h-3.5 w-3.5 animate-spin" />
+                <Check v-else class="h-3.5 w-3.5" />
+                {{ t('approval.approve') }}
+            </Button>
         </div>
     </div>
 </template>

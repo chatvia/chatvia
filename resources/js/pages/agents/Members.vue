@@ -28,7 +28,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-type ChatterRow = Domain.Member.Data.Resources.AgentMemberRowData;
+type ChatterRow = Domain.Membership.Agent.Data.Resources.AgentMemberRowData;
 
 const members = ref<ChatterRow[]>([]);
 const isLoading = ref(true);

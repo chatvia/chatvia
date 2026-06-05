@@ -1,18 +1,23 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Switch from '@/components/ui/switch/Switch.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAgentAttachments } from '@/composables/useAgentAttachments';
-import type { AgentMcpServer, Connector, McpTool } from '@/types/connector';
+import type { AgentMcpServer, Connector, McpTool, McpToolPermission, McpToolScope } from '@/types/connector';
 import axios from 'axios';
-import { Check, CheckCircle2, ChevronRight, Copy, LoaderCircle, Plug, RefreshCw, Search, Unplug } from 'lucide-vue-next';
+import hljs from 'highlight.js/lib/core';
+import json from 'highlight.js/lib/languages/json';
+import { Ban, Check, CheckCircle2, ChevronDown, ChevronRight, Copy, Hand, LoaderCircle, Plug, RefreshCw, Search, Unplug } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
+
+hljs.registerLanguage('json', json);
 
 /**
  * The same sheet drives Settings → Connectors AND an agent's Connectors
@@ -71,6 +76,18 @@ const filteredTools = computed(() => {
     if (!q) return tools.value;
     return tools.value.filter((t) => t.short_name.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q));
 });
+
+// Section groupings shown in the Tools tab — read-only on top, write/destructive
+// below, matching the Anthropic connector layout. Scope is derived from the
+// MCP server's `readOnlyHint` annotation at catalog time.
+const toolSections = computed<Array<{ key: McpToolScope; title: string; items: McpTool[] }>>(() => [
+    { key: 'read', title: 'Read-only tools', items: filteredTools.value.filter((t) => t.scope === 'read') },
+    { key: 'write', title: 'Write/delete tools', items: filteredTools.value.filter((t) => t.scope === 'write') },
+]);
+
+// Both sections start collapsed — the user opens whichever one they want
+// to tune.
+const sectionsOpen = ref<Record<McpToolScope, boolean>>({ read: false, write: false });
 const disconnectOpen = ref(false);
 
 const connector = computed(() => props.row?.connector ?? null);
@@ -231,20 +248,6 @@ async function refreshTools(): Promise<void> {
     }
 }
 
-async function toggleToolEnabled(tool: McpTool): Promise<void> {
-    if (isAgentMode.value || !server.value || tool.id === undefined) return;
-    const previous = tool.is_enabled;
-    tool.is_enabled = !previous;
-    try {
-        const response = await axios.post(route('settings.connectors.tools.toggle', { slug: server.value.slug, tool: tool.id }));
-        tool.is_enabled = response.data.is_enabled;
-    } catch (e: unknown) {
-        tool.is_enabled = previous;
-        const err = e as { response?: { data?: { message?: string } } };
-        toast.error(err.response?.data?.message ?? 'Failed to update tool');
-    }
-}
-
 async function toggleEnabled(): Promise<void> {
     if (!server.value) return;
     try {
@@ -256,31 +259,45 @@ async function toggleEnabled(): Promise<void> {
     }
 }
 
-// Master "require approval" switch for the connector (account-level only).
-async function toggleApproval(): Promise<void> {
-    if (isAgentMode.value || !server.value) return;
+// Tri-state permission options shown per tool. The icon set mirrors the
+// Anthropic connector UX: check = always allow, hand = needs approval,
+// ban = blocked (excluded from the catalog).
+const permissionOptions: Array<{ value: McpToolPermission; label: string; icon: typeof Check }> = [
+    { value: 'allow', label: 'Always allow', icon: Check },
+    { value: 'approval', label: 'Needs approval', icon: Hand },
+    { value: 'blocked', label: 'Blocked', icon: Ban },
+];
+
+// `create_event` → `Create Event`. Matches Laravel's Str::title for snake/
+// kebab-cased tool names; non-separated camelCase keeps its existing casing.
+function toTitle(name: string): string {
+    return name.replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// Render the tool's JSON schema with highlight.js. The result is injected
+// via v-html — hljs escapes the input itself, so this is safe.
+function highlightSchema(parameters: unknown): string {
+    const source = JSON.stringify(parameters, null, 2) ?? '';
     try {
-        const response = await axios.post(route('settings.connectors.approval', { slug: server.value.slug }));
-        emit('updated', response.data.data);
-    } catch (err) {
-        console.error(err);
-        toast.error('Failed to update approval setting');
+        return hljs.highlight(source, { language: 'json', ignoreIllegals: true }).value;
+    } catch {
+        return source.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 }
 
-// Per-tool approval override — only meaningful while the connector master
-// switch is on. Optimistic, reverting on failure (mirrors toggleToolEnabled).
-async function toggleToolApproval(tool: McpTool): Promise<void> {
+// Optimistic per-tool permission change, reverting on failure.
+async function setToolPermission(tool: McpTool, permission: McpToolPermission): Promise<void> {
     if (isAgentMode.value || !server.value || tool.id === undefined) return;
-    const previous = tool.requires_approval;
-    tool.requires_approval = !previous;
+    if (tool.permission === permission) return;
+    const previous = tool.permission;
+    tool.permission = permission;
     try {
-        const response = await axios.post(route('settings.connectors.tools.approval', { slug: server.value.slug, tool: tool.id }));
-        tool.requires_approval = response.data.requires_approval;
+        const response = await axios.put(route('settings.connectors.tools.permission', { slug: server.value.slug, tool: tool.id }), { permission });
+        tool.permission = response.data.permission;
     } catch (e: unknown) {
-        tool.requires_approval = previous;
+        tool.permission = previous;
         const err = e as { response?: { data?: { message?: string } } };
-        toast.error(err.response?.data?.message ?? 'Failed to update tool approval');
+        toast.error(err.response?.data?.message ?? 'Failed to update tool permission');
     }
 }
 
@@ -414,16 +431,6 @@ const connectButtonLabel = computed(() => {
                                 {{ currentEnabled ? 'On' : 'Off' }}
                             </Button>
                         </div>
-                        <!-- Human-in-the-loop master switch. When on, the connector's
-                             write/destructive tools pause for the user's confirmation
-                             before running. Account-level only. -->
-                        <div v-if="!isAgentMode && server" class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <span class="text-sm font-medium">Require approval</span>
-                                <p class="text-muted-foreground mt-0.5 text-xs">Ask before this connector's write tools run.</p>
-                            </div>
-                            <Switch :model-value="server.requires_approval ?? true" @update:model-value="toggleApproval" />
-                        </div>
                         <Button variant="destructive" class="w-full" @click="askDisconnect">
                             <Unplug class="mr-2 h-4 w-4" />
                             Disconnect
@@ -447,85 +454,105 @@ const connectButtonLabel = computed(() => {
                     </div>
 
                     <div v-else>
-                        <div class="relative mb-3">
+                        <div class="relative mb-4">
                             <Search class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
                             <Input v-model="toolSearch" placeholder="Search tools" class="pl-9" />
-                        </div>
-
-                        <div class="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
-                            <span>Interactive tools</span>
-                            <Badge variant="secondary"
-                                >{{ filteredTools.length
-                                }}<template v-if="filteredTools.length !== tools.length"> / {{ tools.length }}</template></Badge
-                            >
                         </div>
 
                         <div v-if="filteredTools.length === 0" class="text-muted-foreground py-6 text-center text-sm">
                             No tools match your search.
                         </div>
 
-                        <div v-else class="divide-border divide-y">
-                            <div v-for="tool in filteredTools" :key="tool.name" class="py-4 first:pt-0 last:pb-0">
-                                <div class="min-w-0">
-                                    <p class="font-medium" :class="{ 'text-muted-foreground line-through': !tool.is_enabled }">
-                                        {{ tool.short_name }}
-                                    </p>
-                                    <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">{{ tool.description }}</p>
-                                </div>
-                                <!-- Per-tool controls on their own line: an enable checkbox
-                                     (flips `mcp_tools.is_enabled`, scoped to the server —
-                                     hidden when there's only one tool) and a "requires
-                                     approval" override (greyed when the connector's master
-                                     approval switch is off, since it gates this). -->
-                                <div v-if="!isAgentMode && tool.id !== undefined && server" class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
-                                    <div v-if="tools.length > 1" class="flex items-center gap-2">
-                                        <Checkbox
-                                            :id="`tool-enabled-${tool.id}`"
-                                            :model-value="tool.is_enabled"
-                                            :title="
-                                                tool.is_enabled
-                                                    ? 'Tool active — disable for all agents using this connector'
-                                                    : 'Tool disabled — re-enable'
-                                            "
-                                            @update:model-value="toggleToolEnabled(tool)"
-                                        />
-                                        <label :for="`tool-enabled-${tool.id}`" class="text-muted-foreground cursor-pointer text-xs select-none">
-                                            Enabled
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <Checkbox
-                                            :id="`tool-approval-${tool.id}`"
-                                            :model-value="tool.requires_approval"
-                                            :disabled="!server.requires_approval"
-                                            :title="
-                                                server.requires_approval
-                                                    ? 'Require the user to approve before this tool runs'
-                                                    : 'Turn on “Require approval” for the connector first'
-                                            "
-                                            @update:model-value="toggleToolApproval(tool)"
-                                        />
-                                        <label
-                                            :for="`tool-approval-${tool.id}`"
-                                            class="cursor-pointer text-xs select-none"
-                                            :class="server.requires_approval ? 'text-muted-foreground' : 'text-muted-foreground/40'"
-                                        >
-                                            Approval
-                                        </label>
-                                    </div>
-                                </div>
-                                <button
-                                    class="text-muted-foreground hover:text-foreground mt-3 inline-flex items-center gap-1 text-xs"
-                                    @click="expanded[tool.name] = !expanded[tool.name]"
-                                >
-                                    <ChevronRight class="h-3 w-3 transition-transform" :class="{ 'rotate-90': expanded[tool.name] }" />
-                                    View tool input schema
-                                </button>
-                                <pre v-if="expanded[tool.name]" class="bg-muted mt-2 overflow-x-auto rounded p-3 text-xs">{{
-                                    JSON.stringify(tool.parameters, null, 2)
-                                }}</pre>
+                        <template v-else>
+                            <!-- Read-only and Write/delete sections. `scope` comes from the
+                                 MCP server's `readOnlyHint` annotation at catalog time, so
+                                 the split mirrors what the server itself declares about
+                                 each tool's blast radius. -->
+                            <div v-for="section in toolSections" :key="section.key" class="border-b last:border-b-0">
+                                <Collapsible v-model:open="sectionsOpen[section.key]">
+                                    <CollapsibleTrigger
+                                        class="hover:bg-muted/40 flex w-full items-center justify-between gap-3 rounded-md px-2 py-3 transition-colors"
+                                        :disabled="section.items.length === 0"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            <ChevronRight v-if="!sectionsOpen[section.key]" class="text-muted-foreground h-4 w-4" />
+                                            <ChevronDown v-else class="text-muted-foreground h-4 w-4" />
+                                            <span class="text-sm font-medium">{{ section.title }}</span>
+                                            <Badge variant="secondary" class="text-xs">{{ section.items.length }}</Badge>
+                                        </div>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                        <div v-if="section.items.length === 0" class="text-muted-foreground px-2 py-4 text-center text-xs">None.</div>
+                                        <div v-else class="divide-border divide-y pl-6">
+                                            <div v-for="tool in section.items" :key="tool.name" class="py-4 first:pt-0 last:pb-0">
+                                                <div class="flex items-start justify-between gap-3">
+                                                    <div class="min-w-0">
+                                                        <p
+                                                            class="text-sm font-medium"
+                                                            :class="{ 'text-muted-foreground line-through': tool.permission === 'blocked' }"
+                                                        >
+                                                            {{ toTitle(tool.short_name) }}
+                                                        </p>
+                                                    </div>
+                                                    <!-- Tri-state permission segmented control (settings mode only).
+                                                         Allow → tool runs inline; Approval → pauses for user
+                                                         confirmation; Blocked → excluded from the catalog. -->
+                                                    <TooltipProvider v-if="!isAgentMode && tool.id !== undefined" :delay-duration="200">
+                                                        <div class="bg-muted/40 mt-0.5 flex shrink-0 items-center gap-0.5 rounded-md border p-0.5">
+                                                            <Tooltip v-for="option in permissionOptions" :key="option.value">
+                                                                <TooltipTrigger as-child>
+                                                                    <button
+                                                                        type="button"
+                                                                        class="rounded px-1.5 py-1 transition-colors"
+                                                                        :class="
+                                                                            tool.permission === option.value
+                                                                                ? 'bg-background text-foreground shadow-sm'
+                                                                                : 'text-muted-foreground hover:text-foreground'
+                                                                        "
+                                                                        :aria-label="option.label"
+                                                                        :aria-pressed="tool.permission === option.value"
+                                                                        @click="setToolPermission(tool, option.value)"
+                                                                    >
+                                                                        <component :is="option.icon" class="h-3.5 w-3.5" />
+                                                                    </button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent side="top">{{ option.label }}</TooltipContent>
+                                                            </Tooltip>
+                                                        </div>
+                                                    </TooltipProvider>
+                                                </div>
+                                                <button
+                                                    class="text-muted-foreground hover:text-foreground mt-3 inline-flex items-center gap-1 text-xs"
+                                                    @click="expanded[tool.name] = !expanded[tool.name]"
+                                                >
+                                                    <ChevronRight
+                                                        class="h-3 w-3 transition-transform"
+                                                        :class="{ 'rotate-90': expanded[tool.name] }"
+                                                    />
+                                                    View details
+                                                </button>
+                                                <div v-if="expanded[tool.name]" class="mt-3 space-y-3">
+                                                    <div>
+                                                        <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Function</p>
+                                                        <code class="mt-1 block font-mono text-xs break-all">{{ tool.short_name }}</code>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Description</p>
+                                                        <p class="mt-1 text-sm leading-relaxed">{{ tool.description }}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Input schema</p>
+                                                        <pre
+                                                            class="bg-muted mt-1 overflow-x-auto rounded p-3 font-mono text-xs leading-relaxed"
+                                                        ><code class="hljs language-json" v-html="highlightSchema(tool.parameters)"></code></pre>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
                             </div>
-                        </div>
+                        </template>
                     </div>
                 </TabsContent>
 
@@ -572,3 +599,37 @@ const connectButtonLabel = computed(() => {
         @confirm="confirmDisconnect"
     />
 </template>
+
+<style scoped>
+/* Highlight.js JSON colors — VS Code light palette by default, "dark+"
+   palette in dark mode. Mirrors JsonCodeEditor so highlighted JSON looks
+   the same across the app. */
+:deep(.hljs) {
+    color: var(--foreground);
+    background: transparent;
+}
+:deep(.hljs-attr) {
+    color: #0451a5;
+}
+:deep(.hljs-string) {
+    color: #a31515;
+}
+:deep(.hljs-number),
+:deep(.hljs-literal) {
+    color: #098658;
+}
+:deep(.hljs-punctuation) {
+    color: var(--muted-foreground);
+}
+
+:global(html.dark) :deep(.hljs-attr) {
+    color: #9cdcfe;
+}
+:global(html.dark) :deep(.hljs-string) {
+    color: #ce9178;
+}
+:global(html.dark) :deep(.hljs-number),
+:global(html.dark) :deep(.hljs-literal) {
+    color: #b5cea8;
+}
+</style>

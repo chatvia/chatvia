@@ -17,12 +17,12 @@ class SessionInitController
         InitializeWidgetSessionAction $initialize,
     ): JsonResponse|WidgetSessionInitResultData {
         if (! $widgetVerification->verifyByAgentExternalId($request->header('X-AGENT-ID'), $request)) {
-            return response()->json(['error' => 'Could not verify the agent'], 403);
+            return response()->json(['error' => 'Domain not allowed'], 403);
         }
 
         $data = new WidgetSessionInitData(
             existingSessionId: $request->header('X-SESSION-ID'),
-            existingThreadId: $request->header('X-THREAD-ID'),
+            existingConversationId: $request->header('X-CONVERSATION-ID'),
             ipAddress: $request->ip(),
             userAgent: $request->userAgent(),
             acceptLanguage: $request->header('Accept-Language'),

@@ -5,6 +5,7 @@ namespace Domain\Conversation\Services;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Services\Data\StreamRequestData;
 use Illuminate\Support\Collection;
+use Spectra\Support\Tracking\StreamingTracker;
 
 class ChatContext
 {
@@ -17,6 +18,14 @@ class ChatContext
     public ?float $confidenceScore = null;
 
     public ?object $qaMatch = null;
+
+    /**
+     * Spectra cost/usage tracker bound to the current LLM stream. Set by
+     * LlmSource around its stream() call; left null on paths that don't
+     * route through it (e.g. MistralPdfSource, which calls the transformer
+     * directly). Transformers null-coalesce via `?->`.
+     */
+    public ?StreamingTracker $spectraTracker = null;
 
     /**
      * Tool calls accumulated from the LLM stream within the current tool-loop

@@ -2,6 +2,8 @@
 
 namespace Domain\Conversation\Services\Tooling\Registry;
 
+use stdClass;
+
 /**
  * A single tool an agent can call, in a shape that decouples the
  * storage layer (McpTool / AgentFunction Eloquent rows) from the
@@ -16,6 +18,9 @@ namespace Domain\Conversation\Services\Tooling\Registry;
  */
 final class ToolEntry
 {
+    /** JSON-Schema keys whose value is an object map (string-keyed). */
+    private const OBJECT_KEYS = ['properties', '$defs', 'definitions', 'patternProperties'];
+
     /**
      * @param  array<string, mixed>  $parameters  JSON schema
      * @param  array<int, float>|null  $embedding
@@ -39,8 +44,36 @@ final class ToolEntry
             'function' => [
                 'name' => $this->name,
                 'description' => $this->description,
-                'parameters' => $this->parameters === [] ? ['type' => 'object', 'properties' => (object) []] : $this->parameters,
+                'parameters' => $this->parameters === []
+                    ? ['type' => 'object', 'properties' => new stdClass]
+                    : self::normalizeSchema($this->parameters),
             ],
         ];
+    }
+
+    /**
+     * PHP collapses `{}` and `[]` to the same empty array, so an MCP tool's
+     * `{properties: {}}` round-trips through json_decode/json_encode as
+     * `{properties: []}` — which Mistral rejects ("[] is not of type
+     * 'object'", error 3260). Walk the schema and reinstate `stdClass` at
+     * known object positions so the wire shape stays valid.
+     */
+    private static function normalizeSchema(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        $out = [];
+        foreach ($value as $key => $child) {
+            if (is_string($key) && in_array($key, self::OBJECT_KEYS, true) && $child === []) {
+                $out[$key] = new stdClass;
+
+                continue;
+            }
+            $out[$key] = self::normalizeSchema($child);
+        }
+
+        return $out;
     }
 }

@@ -29,12 +29,12 @@ use Illuminate\Support\Str;
  */
 class WidgetAuthSessionService
 {
-    private const PREFIX = 'widget-auth:';
+    private const string PREFIX = 'user:{userId}:widget:auth:';
 
     // Four hours. Long enough for a typical chat session; short enough that an
     // exfiltrated token has a small useful life. The customer's backend
     // re-issues the bootstrap JWT per page load anyway.
-    public const TTL_SECONDS = 14400;
+    public const int TTL_SECONDS = 14400;
 
     /**
      * @param  array<string, mixed>  $meta  optional context attached to the
@@ -47,7 +47,7 @@ class WidgetAuthSessionService
         $token = Str::random(64);
         $expiresAt = Carbon::now()->addSeconds(self::TTL_SECONDS);
 
-        Cache::put(self::PREFIX.$token, [
+        Cache::put(template(self::PREFIX.$token, ['userId' => $user->id]), [
             'user_id' => $user->id,
             'agent_id' => $agent->id,
             'fingerprint' => $this->fingerprint($request),
@@ -72,7 +72,7 @@ class WidgetAuthSessionService
      */
     public function resolveWithMeta(string $token, Agent $agent, Request $request): ?array
     {
-        $payload = Cache::get(self::PREFIX.$token);
+        $payload = Cache::get(template(self::PREFIX.$token, ['userId' => $agent->user_id]));
 
         if (! is_array($payload) || ! isset($payload['user_id'], $payload['agent_id'])) {
             return null;

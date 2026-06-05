@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -59,9 +58,9 @@ class Topic extends Model
         return $this->belongsToMany(Agent::class, 'agent_topic', 'chat_topic_id', 'agent_id');
     }
 
-    public function conversations(): HasMany
+    public function conversations(): BelongsToMany
     {
-        return $this->hasMany(Conversation::class, 'chat_topic_id');
+        return $this->belongsToMany(Conversation::class, 'conversation_topics', 'chat_topic_id', 'chat_conversation_id');
     }
 
     #[Scope]

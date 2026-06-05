@@ -12,5 +12,6 @@ it('is a silent no-op when the user has no billing row at all', function (): voi
 
     app(SetDefaultPaymentMethodAction::class)->execute($chatter, 'pm_fake');
 
-    expect(true)->toBeTrue();
+    // The no-op must not have provisioned a billing row as a side effect.
+    expect($chatter->fresh()->billing)->toBeNull();
 });

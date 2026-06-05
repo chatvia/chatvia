@@ -15,11 +15,13 @@ return new class extends Migration
     {
         Schema::connection($this->getConnection())->create('analytics_session_firsts', function (Blueprint $table): void {
             $table->unsignedBigInteger('agent_id');
+            $table->unsignedBigInteger('user_id');
             $table->uuid('session_external_id');
             $table->timestampTz('first_seen_at');
 
             $table->primary(['agent_id', 'session_external_id']);
             $table->index(['agent_id', 'first_seen_at']);
+            $table->index(['user_id', 'first_seen_at']);
         });
     }
 

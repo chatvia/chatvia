@@ -17,7 +17,7 @@ const surface = ref<Surface>('hosted_chat');
 const device = ref<Device>('desktop');
 
 const surfaceTabs: { value: Surface; label: string; icon: typeof MessageSquare }[] = [
-    { value: 'hosted_chat', label: 'Hosted Chat', icon: MessageSquare },
+    { value: 'hosted_chat', label: 'Chat', icon: MessageSquare },
     { value: 'widget', label: 'Widget', icon: Globe },
     { value: 'bar', label: 'Bar', icon: Search },
 ];

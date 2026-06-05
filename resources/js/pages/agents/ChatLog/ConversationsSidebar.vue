@@ -14,7 +14,7 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
 type ConversationSource = 'hosted_chat' | 'widget' | 'bar';
 
 const sourceMeta: Record<ConversationSource, { label: string; icon: typeof Globe }> = {
-    hosted_chat: { label: 'Hosted Chat', icon: MessageSquare },
+    hosted_chat: { label: 'Chat', icon: MessageSquare },
     widget: { label: 'Widget', icon: Globe },
     bar: { label: 'Bar', icon: Search },
 };
@@ -334,8 +334,8 @@ import { ref } from 'vue';
                                 class="h-3 w-3 rounded-sm object-cover"
                                 :title="c.country.toUpperCase()"
                             />
-                            <span v-if="hasTopicsAccess && c.topic" class="max-w-[100px] truncate">{{ c.topic }}</span>
-                            <span v-if="hasTopicsAccess && c.topic" class="opacity-50">•</span>
+                            <span v-if="hasTopicsAccess && c.topics?.length" class="max-w-[100px] truncate">{{ c.topics.join(', ') }}</span>
+                            <span v-if="hasTopicsAccess && c.topics?.length" class="opacity-50">•</span>
                             <span>{{ formatTimeAgo(c.last_at) }}</span>
                         </div>
 

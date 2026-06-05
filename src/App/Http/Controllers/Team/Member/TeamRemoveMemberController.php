@@ -3,19 +3,14 @@
 namespace App\Http\Controllers\Team\Member;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Actions\Members\RemoveTeamMemberAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TeamRemoveMemberController
 {
-    public function __invoke(
-        Request $request,
-        Team $team,
-        User $member,
-        RemoveTeamMemberAction $remove,
-    ): RedirectResponse {
+    public function __invoke(Request $request, Team $team, User $member): RedirectResponse
+    {
         $user = $request->user();
 
         if (! $user->ownsTeam($team)) {
@@ -26,7 +21,7 @@ class TeamRemoveMemberController
             abort(403, 'Cannot remove the team owner.');
         }
 
-        $remove->execute($team, $member);
+        $team->removeMember($member);
 
         return back()->with('success', 'Member removed from team.');
     }

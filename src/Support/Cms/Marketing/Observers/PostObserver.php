@@ -24,7 +24,7 @@ class PostObserver
     public function deleted(Post $post): void
     {
         if ($post->image_path) {
-            Storage::disk('scaleway')->delete($post->image_path);
+            Storage::disk('private')->delete($post->image_path);
         }
     }
 
@@ -33,7 +33,7 @@ class PostObserver
      */
     protected function optimizeImage(Post $post): void
     {
-        $disk = Storage::disk('scaleway');
+        $disk = Storage::disk('private');
         $imagePath = $post->image_path;
 
         if (! $disk->exists($imagePath)) {

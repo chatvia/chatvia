@@ -48,7 +48,6 @@ import {
     Plug,
     ShieldCheck,
     SmilePlus,
-    Sparkles,
     Trash2,
     UserCheck,
     Users,
@@ -150,7 +149,6 @@ const hasAnySourcePermission = computed(() =>
 const hasAnyAnalyticsPermission = computed(() =>
     hasAnyPermission([
         'agent.analytics.chats',
-        'agent.analytics.metrics',
         'agent.analytics.sentiment',
         'agent.analytics.tone',
         'agent.analytics.topics',
@@ -171,9 +169,6 @@ const managementGroups = computed(() => {
 
         if (hasPermission('agent.analytics.chats')) {
             analyticsSubItems.push({ id: 'analytics-overview', label: 'Chats', icon: BarChart3, route: 'agents.analytics' });
-        }
-        if (hasPermission('agent.analytics.metrics')) {
-            analyticsSubItems.push({ id: 'analytics-metrics', label: 'Metrics', icon: Sparkles, route: 'agents.analytics.metrics' });
         }
         if (hasPermission('agent.analytics.sentiment')) {
             analyticsSubItems.push({ id: 'analytics-sentiment', label: 'Sentiment', icon: SmilePlus, route: 'agents.analytics.sentiment' });
@@ -354,7 +349,7 @@ const isActiveRoute = (routeName: string) => {
 };
 
 // Ziggy's `*` wildcard only matches characters AFTER the literal prefix, so
-// `'agents.analytics.*'` matches `agents.analytics.metrics` but NOT
+// `'agents.analytics.*'` matches `agents.analytics.sentiment` but NOT
 // `agents.analytics` itself. OR with the bare name so the Chats route
 // (`agents.analytics`) keeps the parent menu expanded.
 const analyticsSubmenuOpen = ref(isActiveRoute('agents.analytics') || isActiveRoute('agents.analytics.*'));

@@ -177,13 +177,13 @@ class TopicsSeeder extends Seeder
         $agentIds = Agent::where('user_id', $user->id)->pluck('id');
         $conversations = Conversation::whereHas('session', function ($query) use ($agentIds) {
             $query->whereIn('agent_id', $agentIds);
-        })->whereNull('chat_topic_id')->get();
+        })->whereDoesntHave('topics')->get();
 
         foreach ($conversations as $conversation) {
             $topicName = $titleToTopic[$conversation->title] ?? null;
 
             if ($topicName && isset($topics[$topicName])) {
-                $conversation->update(['chat_topic_id' => $topics[$topicName]]);
+                $conversation->topics()->syncWithoutDetaching([$topics[$topicName]]);
                 $conversationsUpdated++;
             }
         }

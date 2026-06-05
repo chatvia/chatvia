@@ -3,24 +3,68 @@
 namespace Domain\Knowledge\Source\File\Actions;
 
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\FileAnalyzer;
 use Domain\Knowledge\Source\File\Enums\AgentFileStatusEnum;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
+use Throwable;
 
 /**
  * Persist a knowledge-source upload to disk, attach it to the agent, and
  * queue ingestion. Throws when the file type is not one of the supported
  * kinds (PDF / Word / audio / video) — the controller maps that to a 422.
+ *
+ * Body previously lived on Agent::addFile() — moved here so the model
+ * carries data + relations and the orchestration (storage write, analyzer
+ * call, pivot attach, S3 cleanup on failure) lives in an Action.
  */
 class UploadKnowledgeSourceFileAction
 {
-    public function execute(Agent $agent, UploadedFile $file): SourceFile
-    {
+    public function execute(
+        Agent $agent,
+        UploadedFile $file,
+        AgentFileStatusEnum $status = AgentFileStatusEnum::UPLOADED,
+    ): SourceFile {
         if (! is_pdf_file($file) && ! is_word_file($file) && ! is_audio_file($file) && ! is_video_file($file)) {
             throw new RuntimeException('Unsupported file type. Accepted: PDF, Word, audio, video.');
         }
 
-        return $agent->addFile($file, AgentFileStatusEnum::UPLOADED);
+        $path = Storage::putFile(
+            path: 'users/'.$agent->user_id.'/agents/'.$agent->id.'/files',
+            file: $file,
+        );
+
+        try {
+            return DB::transaction(function () use ($agent, $file, $path, $status): SourceFile {
+                $analyzer = FileAnalyzer::analyze($file);
+
+                /** @var SourceFile $sourceFile */
+                $sourceFile = SourceFile::create([
+                    'user_id' => $agent->user_id,
+                    'filename' => $file->getClientOriginalName(),
+                    'filetype' => get_file_type($file->getMimeType()),
+                    'filepath' => $path,
+                    'size_in_kb' => round($file->getSize() / 1024),
+                    'mime_type' => $file->getClientMimeType(),
+                    'checksum' => md5_file($file->getPathname()),
+                    'status' => $status->value,
+                    'length' => $analyzer->length,
+                    'metadata' => $analyzer->toArray(),
+                ]);
+
+                $sourceFile->agents()->attach($agent->id);
+
+                return $sourceFile;
+            });
+        } catch (Throwable $e) {
+            // The transaction rolled back, but Storage::putFile is outside the
+            // DB scope — clean up the orphaned S3 object before bubbling.
+            Storage::delete($path);
+
+            throw $e;
+        }
     }
 }

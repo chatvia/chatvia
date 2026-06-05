@@ -1,0 +1,106 @@
+{
+    "common": {
+        "cancel": "İptal",
+        "delete": "Sil",
+        "close": "Kapat",
+        "save": "Kaydet",
+        "saving": "Kaydediliyor…"
+    },
+    "approval": {
+        "badge": "Onay gerekiyor",
+        "prompt": "Devam etmek istiyor musunuz?",
+        "mcp_tool": "MCP aracı",
+        "function": "İşlev",
+        "approve": "Onayla",
+        "deny": "Reddet"
+    },
+    "composer": {
+        "default_placeholder": "Mesaj…",
+        "disabled": "Sohbet devre dışı",
+        "stop_recording": "Kaydı durdur",
+        "start_voice_input": "Sesli girişi başlat"
+    },
+    "header": {
+        "toggle_sidebar": "Kenar çubuğunu aç/kapat",
+        "toggle_expand": "Tam ekranı aç/kapat",
+        "incognito_mode": "Gizli",
+        "delete_conversation": "Konuşmayı sil",
+        "delete_dialog_title": "Konuşma silinsin mi?",
+        "delete_dialog_description": "Bu işlem geri alınamaz."
+    },
+    "sidebar": {
+        "open_sidebar": "Kenar çubuğunu aç",
+        "new_chat": "Yeni sohbet",
+        "your_chats": "Sohbetleriniz",
+        "loading": "Yükleniyor…",
+        "no_conversations": "Henüz konuşma yok",
+        "rename_conversation": "Yeniden adlandır",
+        "clear_all_chats": "Tüm sohbetleri temizle",
+        "delete_all_title": "Tüm konuşmalar silinsin mi?",
+        "delete_all_description": "Bu işlem geri alınamaz. Tüm konuşmalarınız kalıcı olarak silinecek.",
+        "delete_all_confirm": "Tümünü Sil",
+        "profile": "Profil",
+        "my_agents": "Aracılarım",
+        "logout": "Çıkış yap",
+        "delete_conversation_title": "Konuşmayı Sil",
+        "delete_conversation_description": "Bu konuşmayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "profile_settings_title": "Profil Ayarları",
+        "profile_settings_description": "Hesap bilgilerinizi ve parolanızı güncelleyin.",
+        "profile_name": "Ad",
+        "name_input_placeholder": "Adınızı girin",
+        "profile_email": "E-posta",
+        "email_input_placeholder": "E-posta adresinizi girin",
+        "current_password": "Mevcut Parola",
+        "current_password_placeholder": "Mevcut parolayı girin",
+        "new_password": "Yeni Parola",
+        "new_password_placeholder": "Yeni parolayı girin",
+        "confirm_password": "Parolayı Doğrula",
+        "confirm_password_placeholder": "Yeni parolayı doğrulayın",
+        "save_changes": "Değişiklikleri Kaydet",
+        "agents_dialog_title": "Aracılarım",
+        "agents_dialog_description": "AI aracılarınızı ve yapılandırmalarını yönetin.",
+        "loading_agents": "Aracılar yükleniyor…",
+        "no_agents": "Aracı bulunamadı.",
+        "switching_agent": "Geçiş yapılıyor…",
+        "switch_to_agent": "{name} aracısına geç"
+    },
+    "chat": {
+        "message_limit_reached": "Mesaj sınırına ulaştınız",
+        "upgrade_prompt": "Sohbete devam etmek için lütfen planınızı yükseltin",
+        "regenerate_failed": "Yanıt yeniden oluşturulamadı. Lütfen tekrar deneyin.",
+        "loading_conversation": "Konuşma yükleniyor"
+    },
+    "messages": {
+        "send": "Gönder",
+        "delete_user_message_title": "Bu mesaj silinsin mi?",
+        "delete_user_message_description": "AI yanıtı da silinecek.",
+        "delete_assistant_message_title": "Bu mesaj silinsin mi?",
+        "delete_assistant_message_description": "Orijinal mesajınız da silinecek.",
+        "calling_external": "Harici veri kaynağı çağrılıyor…",
+        "fetching_data": "{label} kaynağından veri alınıyor",
+        "calling": "{label} çağrılıyor…",
+        "regenerate_tooltip": "Yanıtı yeniden oluştur"
+    },
+    "errors": {
+        "subscription_expired": "Abonelik süresi doldu",
+        "renew_subscription": "Aboneliği yenile",
+        "message_limit_reached": "Mesaj sınırına ulaşıldı",
+        "upgrade_plan": "Planı yükselt",
+        "model_unavailable": "Model kullanılamıyor",
+        "too_many_requests": "Çok fazla istek",
+        "connection_lost": "Bağlantı kesildi",
+        "unexpected_response": "Beklenmeyen yanıt",
+        "something_went_wrong": "Bir şeyler ters gitti",
+        "try_again": "Tekrar dene"
+    },
+    "sources": {
+        "title": "Bilgi Kaynakları",
+        "source_count": "{count} kaynak",
+        "description": "Bu yanıtı oluşturmak için {count} kaynak kullanıldı",
+        "page_label": "Sayfa {page}"
+    },
+    "home": {
+        "logo_alt": "Logo",
+        "welcome_message": "Bugün size nasıl yardımcı olabilirim?"
+    }
+}

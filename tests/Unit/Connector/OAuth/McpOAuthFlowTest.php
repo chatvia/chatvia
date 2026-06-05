@@ -40,6 +40,7 @@ class McpOAuthFlowTest extends TestCase
             'brand_color' => '000000',
             'auth_strategy' => 'oauth',
             'mcp_url' => 'https://mcp.example.test/rpc',
+            'priority' => 999,
         ]);
     }
 

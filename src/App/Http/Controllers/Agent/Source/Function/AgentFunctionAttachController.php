@@ -18,7 +18,7 @@ class AgentFunctionAttachController
         AttachFunctionToAgentAction $attach,
     ): AgentFunctionAttachResultData {
         abort_if($request->user()->cannot('update', $agent), 403);
-        abort_unless($function->user_id === $agent->user_id, 404);
+        abort_unless($agent->ownsFunction($function), 404);
 
         $attached = $attach->execute($agent, $function);
 

@@ -3,15 +3,13 @@
 namespace App\Http\Controllers\Settings\Account;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Settings\Account\DeleteAccountRequest;
 use App\Http\Requests\Settings\Account\ProfileUpdateRequest;
-use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
+use App\Identity\Workspace\Actions\Account\RemoveProfilePhotoAction;
 use App\Identity\Workspace\Actions\Account\UpdateProfileAction;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,18 +30,13 @@ class ProfileController extends Controller
         return to_route('profile.edit');
     }
 
-    public function destroy(DeleteAccountRequest $request, DeleteUserAccountAction $deleteAccount): RedirectResponse
+    public function destroyPhoto(Request $request, RemoveProfilePhotoAction $removePhoto): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        Auth::logout();
+        $removePhoto->execute($user);
 
-        $deleteAccount->execute($user);
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect('/');
+        return to_route('profile.edit');
     }
 }

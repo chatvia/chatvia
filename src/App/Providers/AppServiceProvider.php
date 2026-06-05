@@ -2,67 +2,25 @@
 
 namespace App\Providers;
 
-use App\Identity\Workspace\Events\MagicLinkRequested;
-use App\Identity\Workspace\Listeners\RecordKnownDevice;
-use App\Identity\Workspace\Listeners\SendMagicLinkEmail;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Observers\UserObserver;
-use App\Identity\Workspace\Services\PasswordAuthenticator;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Models\ModelSetting;
-use Domain\Agent\Observers\AgentObserver;
-use Domain\Agent\Observers\ModelSettingObserver;
 use Domain\Agent\Services\Agent as AgentService;
-use Domain\Analytics\Listeners\RecordAnalytics;
-use Domain\Billing\Events\MessageCreditsLow;
-use Domain\Billing\Listeners\TriggerAutoRecharge;
 use Domain\Billing\Models\UserBilling;
-use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Message;
-use Domain\Conversation\Models\Session;
-use Domain\Conversation\Observers\ConversationObserver;
-use Domain\Conversation\Observers\MessageObserver;
-use Domain\Conversation\Observers\SessionObserver;
-use Domain\Conversation\Services\Tooling\Dispatcher\RoutingToolDispatcher;
-use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
-use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Integration\Function\Observers\AgentFunctionObserver;
-use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Mcp\Observers\AgentMcpServerObserver;
-use Domain\Knowledge\Document\Contracts\DocumentOCRInterface;
-use Domain\Knowledge\Embedding\Cohere;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Embedding\Jina;
-use Domain\Knowledge\Embedding\Qwen3;
-use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Knowledge\Source\File\Observers\SourceFileObserver;
 use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Knowledge\Source\Text\Observers\AgentTextObserver;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Web\Observers\AgentWebsiteObserver;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
-use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
-use Domain\Llm\Contracts\LlmProviderInterface;
-use Domain\Llm\Providers\Groq;
-use Domain\Llm\Providers\Mistral;
-use Domain\Llm\Providers\OpenRouter;
-use Domain\Llm\Providers\Scaleway;
-use Domain\Membership\Agent\Events\AgentMemberInvited;
-use Domain\Membership\Agent\Listeners\SendAgentMemberInvitationEmail;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Routing\Route;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -80,59 +38,40 @@ use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNClient;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
 use Stripe\Stripe;
-use Support\Cms\Marketing\Models\Post;
-use Support\Cms\Marketing\Observers\PostObserver;
 
+/**
+ * Framework-only concerns: request macros, rate limiters, Stripe, Cashier,
+ * Scramble, morph map, gates, parallel testing, BunnyCDN driver, and the
+ * Microsoft socialite extension. All domain wiring (observers, DI against
+ * contracts, event listeners) lives in {@see DomainServiceProvider}.
+ */
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        // Tool dispatcher: routes by tool name to either the webhook
-        // (AgentFunctions) or MCP backend.
-        $this->app->bind(
-            ToolDispatcherInterface::class,
-            RoutingToolDispatcher::class,
-        );
+        $this->registerRequestMacros();
+    }
 
-        // Bind the LLM provider interface based on configuration
-        $this->app->bind(LlmProviderInterface::class, function ($app) {
-            $provider = config('ai.provider', 'openrouter');
+    public function boot(): void
+    {
+        $this->configureStripe();
+        $this->enforceMorphMap();
+        $this->configureModelStrictness();
+        $this->configureCashier();
+        $this->registerPromptViewNamespace();
+        $this->configurePolicyResolution();
+        $this->configureFactoryResolution();
+        $this->forceHttpsInProduction();
+        $this->defineGates();
+        $this->extendSocialiteProviders();
+        $this->configureRateLimiters();
+        $this->configureScramble();
+        $this->configureParallelTesting();
+        $this->registerBunnyCdnDriver();
+    }
 
-            return match ($provider) {
-                'groq' => $app->make(Groq::class),
-                'mistral' => $app->make(Mistral::class),
-                'scaleway' => $app->make(Scaleway::class),
-                default => $app->make(OpenRouter::class),
-            };
-        });
-
-        // Bind the Embeddings provider interface based on configuration
-        $this->app->bind(EmbeddingsProviderInterface::class, function ($app) {
-            $provider = config('ai.models.embedding', 'mistral');
-
-            return match ($provider) {
-                'jina' => $app->make(Jina::class),
-                'qwen' => $app->make(Qwen3::class),
-                'mistral' => $app->make(\Domain\Knowledge\Embedding\Mistral::class),
-                default => $app->make(Cohere::class),
-            };
-        });
-
-        $this->app->bind(DocumentOCRInterface::class, function ($app) {
-            return $app->make(MistralOCR::class);
-        });
-
-        // PasswordAuthenticator wraps the `web` guard so domain Actions don't
-        // have to reach for the Auth facade. We bind it explicitly because
-        // StatefulGuard has multiple implementations and Laravel can't auto-
-        // resolve which one we want.
-        $this->app->bind(PasswordAuthenticator::class, function (): PasswordAuthenticator {
-            return new PasswordAuthenticator(Auth::guard('web'));
-        });
-
+    private function registerRequestMacros(): void
+    {
         Request::macro('subdomain', function () {
             $host = $this->getHost();
             $dots = substr_count($host, '.');
@@ -189,20 +128,16 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
-    public function boot(): void
+    private function configureStripe(): void
     {
-        //        Cashier::calculateTaxes();
-
-        //        Cashier::keepIncompleteSubscriptionsActive();
-
         Stripe::setApiKey(config('cashier.secret'));
+    }
 
-        // Short morph keys instead of FQCNs. Saves ~50 bytes per row on chunks
-        // (billions of rows = real disk) and decouples persisted data from
-        // namespace renames.
+    // Short morph keys instead of FQCNs. Saves ~50 bytes per row on chunks
+    // (billions of rows = real disk) and decouples persisted data from
+    // namespace renames.
+    private function enforceMorphMap(): void
+    {
         Relation::enforceMorphMap([
             'agent' => Agent::class,
             'user' => User::class,
@@ -212,28 +147,36 @@ class AppServiceProvider extends ServiceProvider
             'source_youtube_video' => SourceYoutubeVideo::class,
             'agent_website_url' => AgentWebsiteUrl::class,
         ]);
+    }
 
-        // Catch lazy loading in dev/test — N+1s should fail loudly in CI
-        // rather than ship to production. Disabled in production so a missed
-        // `with(...)` still serves traffic.
+    // Catch lazy loading in dev/test — N+1s should fail loudly in CI
+    // rather than ship to production. Disabled in production so a missed
+    // `with(...)` still serves traffic.
+    private function configureModelStrictness(): void
+    {
         Model::shouldBeStrict(! app()->isProduction());
+    }
 
-        // The `Billable` trait lives on `UserBilling`, not `User`, so Cashier
-        // resolves customers (e.g. `Cashier::findBillable($stripeId)`) to a
-        // `UserBilling` row. The owning `User` is reachable via
-        // `$billing->user` / `User::billing()` HasOne.
+    // The `Billable` trait lives on `UserBilling`, not `User`, so Cashier
+    // resolves customers (e.g. `Cashier::findBillable($stripeId)`) to a
+    // `UserBilling` row. The owning `User` is reachable via
+    // `$billing->user` / `User::billing()` HasOne.
+    private function configureCashier(): void
+    {
         Cashier::useCustomerModel(UserBilling::class);
+    }
 
-        // Prompts are Blade views (markdown + Blade) loaded via the `prompt()`
-        // helper, e.g. prompt('knowledge/system') → resources/prompts/knowledge/system.blade.php.
+    // Prompts are Blade views (markdown + Blade) loaded via the `prompt()`
+    // helper, e.g. prompt('knowledge/system') → resources/prompts/knowledge/system.blade.php.
+    private function registerPromptViewNamespace(): void
+    {
         View::addNamespace('prompts', resource_path('prompts'));
+    }
 
-        // Policies travel with their models — replace `\Models\` with
-        // `\Policies\` in the FQCN to find the corresponding policy.
-        // Examples:
-        //   Domain\Agent\Models\Agent              → Domain\Agent\Policies\AgentPolicy
-        //   Domain\Knowledge\Source\File\Models\SourceFile  → Domain\Knowledge\Source\File\Policies\SourceFilePolicy
-        //   Domain\Membership\Team\Models\Team                   → Domain\Membership\Team\Policies\TeamPolicy
+    // Policies travel with their models — replace `\Models\` with
+    // `\Policies\` in the FQCN to find the corresponding policy.
+    private function configurePolicyResolution(): void
+    {
         Gate::guessPolicyNamesUsing(function (string $modelClass): ?string {
             if (! str_contains($modelClass, '\\Models\\')) {
                 return null;
@@ -242,37 +185,28 @@ class AppServiceProvider extends ServiceProvider
 
             return class_exists($policy) ? $policy : null;
         });
+    }
 
-        // Models live across many App\* and Domain\* namespaces, but every
-        // factory lives flat under Database\Factories\. Map a model to its
-        // factory by basename. The reverse (factory → model) is declared
-        // explicitly on each factory via `protected $model`, so no namespace
-        // guessing is needed there.
+    // Models live across many App\* and Domain\* namespaces, but every
+    // factory lives flat under Database\Factories\. Map a model to its
+    // factory by basename.
+    private function configureFactoryResolution(): void
+    {
         Factory::guessFactoryNamesUsing(
             fn (string $modelClass): string => 'Database\\Factories\\'.class_basename($modelClass).'Factory'
         );
+    }
 
-        User::observe(UserObserver::class);
-        Agent::observe(AgentObserver::class);
-        AgentFunction::observe(AgentFunctionObserver::class);
-        AgentMcpServer::observe(AgentMcpServerObserver::class);
-        SourceFile::observe(SourceFileObserver::class);
-        SourceText::observe(AgentTextObserver::class);
-        SourceWebsite::observe(AgentWebsiteObserver::class);
-        SourceYoutubeVideo::observe(SourceYoutubeVideoObserver::class);
-        ModelSetting::observe(ModelSettingObserver::class);
-        Post::observe(PostObserver::class);
-        Session::observe(SessionObserver::class);
-        Conversation::observe(ConversationObserver::class);
-        Message::observe(MessageObserver::class);
-
+    private function forceHttpsInProduction(): void
+    {
         if (app()->isProduction()) {
             URL::forceScheme('https');
         }
+    }
 
-        Gate::define('viewPulse', function (User $user) {
-            return $user->isAdmin();
-        });
+    private function defineGates(): void
+    {
+        Gate::define('viewPulse', fn (User $user): bool => $user->isAdmin());
 
         Gate::define('access-agent', function (User $user, Agent $agent) {
             if ($user->isAdmin()) {
@@ -283,36 +217,32 @@ class AppServiceProvider extends ServiceProvider
                 return $agent->user_id === $user->id;
             }
 
-            // Employee users: check team-based access with permissions
-            // Use the user's current_team_id from the database (works in all contexts including broadcasting)
+            // Employee users: check team-based access with permissions.
+            // Use the user's current_team_id from the database (works in all
+            // contexts including broadcasting).
             $team = $user->currentTeam ?? $user->ensureCurrentTeam();
 
             if (! $team) {
                 return false;
             }
 
-            // Use TeamService to check if staff user can access this agent
-            // This checks: agent belongs to team + user has correct permissions
             return app(TeamService::class)->canAccessAgent($user, $team, $agent);
         });
+    }
 
+    private function extendSocialiteProviders(): void
+    {
         Event::listen(function (SocialiteWasCalled $event): void {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
         });
+    }
 
-        Event::listen(Login::class, RecordKnownDevice::class);
-        Event::listen(AgentMemberInvited::class, SendAgentMemberInvitationEmail::class);
-        Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
-        Event::listen(MessageCreditsLow::class, TriggerAutoRecharge::class);
-
-        Event::subscribe(RecordAnalytics::class);
-
+    private function configureRateLimiters(): void
+    {
         // Bulk gate for every /widget/* endpoint. Per-IP because widget
         // traffic is unauthenticated for public agents and we want a single
         // ceiling regardless of how many sessions an IP spins up.
-        RateLimiter::for('widgets', function ($request) {
-            return Limit::perMinute(90)->by($request->ip());
-        });
+        RateLimiter::for('widgets', fn ($request) => Limit::perMinute(90)->by($request->ip()));
 
         // Stream endpoint specifically — every call costs an LLM invocation,
         // so we throttle by session (or IP when there's no session) at a
@@ -326,46 +256,56 @@ class AppServiceProvider extends ServiceProvider
         // Auth exchange runs once per page load for protected widgets. A
         // tight per-IP cap removes JWT-verification brute force as a DoS
         // surface (defence in depth — verify() is already constant-time).
-        RateLimiter::for('widget-exchange', function ($request) {
-            return Limit::perMinute(10)->by('widget-exchange|'.$request->ip());
-        });
+        RateLimiter::for(
+            'widget-exchange',
+            fn ($request) => Limit::perMinute(10)->by('widget-exchange|'.$request->ip()),
+        );
 
-        RateLimiter::for('api', function ($request) {
-            return $request->user()
-                ? Limit::perMinute(300)->by($request->user()->getAuthIdentifier().'|'.$request->user()::class)
-                : Limit::perMinute(60)->by($request->ip());
-        });
+        RateLimiter::for('api', fn ($request) => $request->user()
+            ? Limit::perMinute(300)->by($request->user()->getAuthIdentifier().'|'.$request->user()::class)
+            : Limit::perMinute(60)->by($request->ip()));
+    }
 
-        // Scramble — scope OpenAPI discovery to /api/v1/* and declare the
-        // Sanctum bearer token as the single security requirement.
+    // Scramble — scope OpenAPI discovery to /api/v1/* and declare the
+    // bearer token as the single security requirement.
+    private function configureScramble(): void
+    {
         Scramble::routes(fn (Route $route): bool => str_starts_with($route->uri, 'api/v1/'));
         Scramble::configure()->withDocumentTransformers(function (OpenApi $openApi): void {
             $openApi->secure(
                 SecurityScheme::http('bearer', 'Bearer'),
             );
         });
+    }
 
-        // Parallel testing creates per-worker databases (testing_test_N) and
-        // migrates them before the first test runs. Our schema relies on
-        // PostgreSQL extensions (vector, vchord, vchord_bm25, pg_tokenizer,
-        // pg_trgm) that aren't created by the migrations themselves, so we
-        // install them on each fresh test DB before migrations execute.
-        if ($this->app->environment('testing')) {
-            ParallelTesting::setUpTestDatabaseBeforeMigrating(function (): void {
-                $extensions = [
-                    'vector',
-                    'pg_trgm',
-                    'pg_tokenizer',
-                    'vchord',
-                    'vchord_bm25',
-                ];
-
-                foreach ($extensions as $extension) {
-                    rescue(fn () => DB::statement("CREATE EXTENSION IF NOT EXISTS {$extension} CASCADE"));
-                }
-            });
+    // Parallel testing creates per-worker databases (testing_test_N) and
+    // migrates them before the first test runs. Our schema relies on
+    // PostgreSQL extensions (vector, vchord, vchord_bm25, pg_tokenizer,
+    // pg_trgm) that aren't created by the migrations themselves, so we
+    // install them on each fresh test DB before migrations execute.
+    private function configureParallelTesting(): void
+    {
+        if (! $this->app->environment('testing')) {
+            return;
         }
 
+        ParallelTesting::setUpTestDatabaseBeforeMigrating(function (): void {
+            $extensions = [
+                'vector',
+                'pg_trgm',
+                'pg_tokenizer',
+                'vchord',
+                'vchord_bm25',
+            ];
+
+            foreach ($extensions as $extension) {
+                rescue(fn () => DB::statement("CREATE EXTENSION IF NOT EXISTS {$extension} CASCADE"));
+            }
+        });
+    }
+
+    private function registerBunnyCdnDriver(): void
+    {
         Storage::extend('bunnycdn', function ($app, $config) {
             $bunnyConfig = config('filesystems.disks.bunnycdn');
 
@@ -373,15 +313,15 @@ class AppServiceProvider extends ServiceProvider
                 new BunnyCDNClient(
                     $bunnyConfig['storage_zone'],
                     $bunnyConfig['api_key'],
-                    $bunnyConfig['region']
+                    $bunnyConfig['region'],
                 ),
-                $bunnyConfig['pull_zone']
+                $bunnyConfig['pull_zone'],
             );
 
             return new FilesystemAdapter(
                 new Filesystem($adapter, $config),
                 $adapter,
-                $config
+                $config,
             );
         });
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agent;
 
 use App\Http\Requests\Agent\Crud\CreateAgentRequest;
+use App\Http\Requests\Agent\Crud\UpdateAgentRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Account\CreateAgentAction;
 use Domain\Agent\Actions\Account\DeleteAgentAction;
@@ -70,52 +71,19 @@ class AgentController
                 ->withInput();
         }
 
-        return to_route('agents.sources', ['agent' => $agent, 'new' => true])
+        return to_route('agents.setup', ['agent' => $agent])
             ->with('success', 'Agent created successfully.');
     }
 
-    public function update(Request $request, Agent $agent, UpdateAgentAction $updateAgent): JsonResponse
+    public function update(UpdateAgentRequest $request, Agent $agent, UpdateAgentAction $updateAgent): JsonResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
+        // Route param `agent` is read by UpdateAgentRequest::authorize/toData,
+        // so accept it positionally here to keep route-model-binding wired.
+        unset($agent); // unused: data flows through $request->toData()->agent
 
-        $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'min:3', 'max:255'],
-            'sub_domain' => ['sometimes', 'nullable', 'string', 'min:3', 'max:255', 'alpha_dash'],
-            'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
-            'prompt_id' => ['sometimes', 'nullable', 'string', 'prohibits:system_instructions'],
-        ]);
-
-        $attributes = collect($validated)->except('prompt_id')->all();
-
-        // A saved library prompt and a custom prompt are mutually exclusive:
-        // whichever the request carries wins and clears the other.
-        if ($request->has('prompt_id')) {
-            $attributes['agent_prompt_id'] = $this->resolvePromptId($request, $validated['prompt_id'] ?? null);
-            $attributes['system_instructions'] = null;
-        } elseif ($request->has('system_instructions')) {
-            $attributes['agent_prompt_id'] = null;
-        }
-
-        $updateAgent->execute($agent, $attributes);
+        $updateAgent->execute($request->toData());
 
         return response()->json(['success' => true]);
-    }
-
-    /**
-     * Resolve a library prompt's external id to its internal id, scoped to the
-     * current user. Returns null when no prompt is selected.
-     */
-    private function resolvePromptId(Request $request, ?string $promptExternalId): ?int
-    {
-        if ($promptExternalId === null || $promptExternalId === '') {
-            return null;
-        }
-
-        $prompt = $request->user()->prompts()->where('external_id', $promptExternalId)->first();
-
-        abort_if($prompt === null, 422, 'Prompt not found.');
-
-        return $prompt->id;
     }
 
     public function destroy(Request $request, Agent $agent, DeleteAgentAction $deleteAgent): RedirectResponse

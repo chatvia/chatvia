@@ -11,8 +11,6 @@
         "prompt": "Do you want to proceed?",
         "mcp_tool": "MCP tool",
         "function": "Function",
-        "view_details": "View details",
-        "hide_details": "Hide details",
         "approve": "Approve",
         "deny": "Deny"
     },

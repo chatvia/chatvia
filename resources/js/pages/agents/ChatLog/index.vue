@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import LeadDetailsSheet from '@/components/LeadDetailsSheet.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Activity, LoaderCircle, MessageSquare, Phone, RefreshCcw, Search, Tag, Trash2, UserCheck, X } from 'lucide-vue-next';
+import { Activity, Info, LoaderCircle, MessageSquare, Phone, RefreshCcw, Search, Tag, Trash2, UserCheck, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -51,6 +52,11 @@ const canDeleteConversation = computed(() => hasPermission('agent.chat.delete'))
 // Live Chat (handoff) is widget-only + gated by the handoff capability; the
 // controller resolves both into a single flag passed as a page prop.
 const handoffEnabled = computed(() => Boolean(usePage().props.handoffEnabled));
+
+// Whether conversations are still being logged for this agent. When off we show
+// a banner so the user understands why no new chats are appearing (existing
+// ones still render).
+const chatlogEnabled = computed(() => usePage().props.chatlogEnabled !== false);
 
 // Page title
 const title = computed(() => (conversationTitle.value ? `Chat Log – ${conversationTitle.value}` : 'Chat Log'));
@@ -177,7 +183,7 @@ async function updateAnswer() {
         currentReviseMessageId.value = null;
     } catch (error: any) {
         console.error('Failed to save Q&A:', error);
-        alert(error.response?.data?.message || 'Failed to save Q&A entry');
+        toast.error(error.response?.data?.message || 'Failed to save Q&A entry');
     } finally {
         isUpdatingAnswer.value = false;
     }
@@ -209,129 +215,146 @@ watch(
 
 <template>
     <AgentLayout :agent="agent" :title="title" hide-header no-padding full-height>
-        <div class="relative h-full w-full">
-            <div class="absolute inset-0 flex gap-0 overflow-hidden">
-                <!-- Conversations Sidebar -->
-                <ConversationsSidebar />
+        <div class="flex h-full w-full flex-col">
+            <!-- Chat log disabled banner — shown when the owner switched logging
+                 off (Setup → Settings). Existing conversations still render below. -->
+            <Alert v-if="!chatlogEnabled" class="text-foreground flex-shrink-0 rounded-none border-x-0 border-t-0">
+                <Info class="h-4 w-4" />
+                <AlertTitle>Chat log is off</AlertTitle>
+                <AlertDescription>
+                    New conversations aren't being saved. Turn the chat log back on in Setup → Settings to resume logging — existing conversations are
+                    still shown below.
+                </AlertDescription>
+            </Alert>
 
-                <!-- Messages Column -->
-                <div class="bg-background flex h-full flex-1 flex-col overflow-hidden">
-                    <!-- Header -->
-                    <div class="flex-shrink-0 space-y-3 border-b px-5 py-4">
-                        <div class="flex items-center gap-3">
-                            <!-- Search Bar -->
-                            <div class="relative max-w-md flex-1">
-                                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                                <Input
-                                    v-model="search"
-                                    placeholder="Search messages..."
-                                    class="bg-muted/50 h-9 border-0 pr-9 pl-9 focus-visible:ring-1"
-                                    :disabled="!currentConversationId"
-                                />
-                                <button
-                                    v-if="search"
-                                    @click="clearSearch"
-                                    class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
+            <div class="relative min-h-0 flex-1">
+                <div class="absolute inset-0 flex gap-0 overflow-hidden">
+                    <!-- Conversations Sidebar -->
+                    <ConversationsSidebar />
+
+                    <!-- Messages Column -->
+                    <div class="bg-background flex h-full flex-1 flex-col overflow-hidden">
+                        <!-- Header -->
+                        <div class="flex-shrink-0 space-y-3 border-b px-5 py-4">
+                            <div class="flex items-center gap-3">
+                                <!-- Search Bar -->
+                                <div class="relative max-w-md flex-1">
+                                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <Input
+                                        v-model="search"
+                                        placeholder="Search messages..."
+                                        class="bg-muted/50 h-9 border-0 pr-9 pl-9 focus-visible:ring-1"
+                                        :disabled="!currentConversationId"
+                                    />
+                                    <button
+                                        v-if="search"
+                                        @click="clearSearch"
+                                        class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
+                                    >
+                                        <X class="h-4 w-4" />
+                                    </button>
+                                </div>
+
+                                <!-- Refresh Messages -->
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="h-9 w-9"
+                                    @click="refreshMessages"
+                                    :disabled="isRefreshingMessages || !currentConversationId"
                                 >
-                                    <X class="h-4 w-4" />
-                                </button>
+                                    <RefreshCcw class="h-4 w-4" :class="{ 'animate-spin': isRefreshingMessages }" />
+                                </Button>
+
+                                <!-- Delete Conversation -->
+                                <Button
+                                    v-if="canDeleteConversation"
+                                    variant="ghost"
+                                    size="icon"
+                                    class="text-destructive hover:text-destructive/80 h-9 w-9"
+                                    @click="confirmDeleteConversation"
+                                    :disabled="!currentConversationId"
+                                >
+                                    <Trash2 class="h-4 w-4" />
+                                </Button>
+
+                                <!-- Lead Button -->
+                                <Button
+                                    size="sm"
+                                    class="ml-auto h-9"
+                                    :variant="hasLeadForCurrentConversation ? 'default' : 'outline'"
+                                    :disabled="!hasLeadForCurrentConversation"
+                                    @click="openLeadPanel"
+                                >
+                                    <UserCheck class="mr-1.5 h-4 w-4" /> Lead
+                                </Button>
+                            </div>
+                        </div>
+
+                        <!-- Tabs -->
+                        <Tabs v-model="activeTab" class="flex min-h-0 flex-1 flex-col overflow-hidden">
+                            <div class="flex-shrink-0 px-5">
+                                <TabsList class="h-11 w-full justify-start gap-0 border-b bg-transparent p-0">
+                                    <TabsTrigger
+                                        value="chat"
+                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                    >
+                                        <MessageSquare class="mr-2 h-4 w-4" />
+                                        Chat
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        v-if="canViewPulse"
+                                        value="pulse"
+                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                    >
+                                        <Activity class="mr-2 h-4 w-4" />
+                                        Pulse
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="details"
+                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                    >
+                                        <Tag class="mr-2 h-4 w-4" />
+                                        Details
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        v-if="canTakeover && handoffEnabled"
+                                        value="handoff"
+                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                        :class="{ 'text-amber-600 dark:text-amber-400': handoff.isHandedOff.value }"
+                                    >
+                                        <Phone class="mr-2 h-4 w-4" />
+                                        Live Chat
+                                        <span v-if="handoff.userIsOnline.value" class="ml-1.5 h-2 w-2 animate-pulse rounded-full bg-green-500" />
+                                    </TabsTrigger>
+                                </TabsList>
                             </div>
 
-                            <!-- Refresh Messages -->
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                class="h-9 w-9"
-                                @click="refreshMessages"
-                                :disabled="isRefreshingMessages || !currentConversationId"
-                            >
-                                <RefreshCcw class="h-4 w-4" :class="{ 'animate-spin': isRefreshingMessages }" />
-                            </Button>
+                            <!-- Chat Tab Content -->
+                            <TabsContent value="chat" class="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+                                <ChatMessages @open-revise="openReviseDialog" />
+                            </TabsContent>
 
-                            <!-- Delete Conversation -->
-                            <Button
-                                v-if="canDeleteConversation"
-                                variant="ghost"
-                                size="icon"
-                                class="text-destructive hover:text-destructive/80 h-9 w-9"
-                                @click="confirmDeleteConversation"
-                                :disabled="!currentConversationId"
-                            >
-                                <Trash2 class="h-4 w-4" />
-                            </Button>
+                            <!-- Pulse Tab Content -->
+                            <TabsContent v-if="canViewPulse" value="pulse" class="mt-0 min-h-0 flex-1 overflow-auto">
+                                <ConversationPulse />
+                            </TabsContent>
 
-                            <!-- Lead Button -->
-                            <Button
-                                size="sm"
-                                class="ml-auto h-9"
-                                :variant="hasLeadForCurrentConversation ? 'default' : 'outline'"
-                                :disabled="!hasLeadForCurrentConversation"
-                                @click="openLeadPanel"
+                            <!-- Details Tab Content -->
+                            <TabsContent value="details" class="mt-0 min-h-0 flex-1 overflow-auto">
+                                <ConversationDetails />
+                            </TabsContent>
+
+                            <!-- Handoff/Live Chat Tab Content -->
+                            <TabsContent
+                                v-if="canTakeover && handoffEnabled"
+                                value="handoff"
+                                class="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
                             >
-                                <UserCheck class="mr-1.5 h-4 w-4" /> Lead
-                            </Button>
-                        </div>
+                                <HandoffPanel />
+                            </TabsContent>
+                        </Tabs>
                     </div>
-
-                    <!-- Tabs -->
-                    <Tabs v-model="activeTab" class="flex min-h-0 flex-1 flex-col overflow-hidden">
-                        <div class="flex-shrink-0 px-5">
-                            <TabsList class="h-11 w-full justify-start gap-0 border-b bg-transparent p-0">
-                                <TabsTrigger
-                                    value="chat"
-                                    class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                                >
-                                    <MessageSquare class="mr-2 h-4 w-4" />
-                                    Chat
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    v-if="canViewPulse"
-                                    value="pulse"
-                                    class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                                >
-                                    <Activity class="mr-2 h-4 w-4" />
-                                    Pulse
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="details"
-                                    class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                                >
-                                    <Tag class="mr-2 h-4 w-4" />
-                                    Details
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    v-if="canTakeover && handoffEnabled"
-                                    value="handoff"
-                                    class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                                    :class="{ 'text-amber-600 dark:text-amber-400': handoff.isHandedOff.value }"
-                                >
-                                    <Phone class="mr-2 h-4 w-4" />
-                                    Live Chat
-                                    <span v-if="handoff.userIsOnline.value" class="ml-1.5 h-2 w-2 animate-pulse rounded-full bg-green-500" />
-                                </TabsTrigger>
-                            </TabsList>
-                        </div>
-
-                        <!-- Chat Tab Content -->
-                        <TabsContent value="chat" class="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
-                            <ChatMessages @open-revise="openReviseDialog" />
-                        </TabsContent>
-
-                        <!-- Pulse Tab Content -->
-                        <TabsContent v-if="canViewPulse" value="pulse" class="mt-0 min-h-0 flex-1 overflow-auto">
-                            <ConversationPulse />
-                        </TabsContent>
-
-                        <!-- Details Tab Content -->
-                        <TabsContent value="details" class="mt-0 min-h-0 flex-1 overflow-auto">
-                            <ConversationDetails />
-                        </TabsContent>
-
-                        <!-- Handoff/Live Chat Tab Content -->
-                        <TabsContent v-if="canTakeover && handoffEnabled" value="handoff" class="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
-                            <HandoffPanel />
-                        </TabsContent>
-                    </Tabs>
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalPolicy;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Membership\Team\Services\TeamService;
@@ -27,7 +28,7 @@ function approvalAgent(): array
     return [$user, $agent];
 }
 
-function makeMcpTool(User $user, bool $serverApproval, bool $toolApproval): string
+function makeMcpTool(User $user, McpToolPermission $permission): string
 {
     $server = AgentMcpServer::create([
         'user_id' => $user->id,
@@ -36,7 +37,6 @@ function makeMcpTool(User $user, bool $serverApproval, bool $toolApproval): stri
         'url' => 'https://mcp.example.test',
         'transport' => 'streamable_http',
         'auth_type' => 'none',
-        'requires_approval' => $serverApproval,
         'is_enabled' => true,
     ]);
 
@@ -45,8 +45,7 @@ function makeMcpTool(User $user, bool $serverApproval, bool $toolApproval): stri
         'name' => 'do_thing',
         'description' => 'Does a thing',
         'input_schema' => ['type' => 'object', 'properties' => []],
-        'requires_approval' => $toolApproval,
-        'is_enabled' => true,
+        'permission' => $permission,
         'fetched_at' => now(),
     ]);
 
@@ -70,28 +69,21 @@ function makeApprovalFunction(User $user, bool $requiresApproval): AgentFunction
     return $function;
 }
 
-it('gates an MCP tool only when both the server and the tool require approval', function (): void {
+it('gates an MCP tool whose permission is Approval', function (): void {
     [$user, $agent] = approvalAgent();
-    $name = makeMcpTool($user, serverApproval: true, toolApproval: true);
+    $name = makeMcpTool($user, McpToolPermission::Approval);
 
     expect(app(ToolApprovalPolicy::class)->requiresApproval($agent, $name))->toBeTrue();
 });
 
-it('auto-runs an MCP tool when the connector master switch is off', function (): void {
+it('auto-runs an MCP tool whose permission is Allow', function (): void {
     [$user, $agent] = approvalAgent();
-    $name = makeMcpTool($user, serverApproval: false, toolApproval: true);
+    $name = makeMcpTool($user, McpToolPermission::Allow);
 
     expect(app(ToolApprovalPolicy::class)->requiresApproval($agent, $name))->toBeFalse();
 });
 
-it('auto-runs an MCP tool when the per-tool override is off', function (): void {
-    [$user, $agent] = approvalAgent();
-    $name = makeMcpTool($user, serverApproval: true, toolApproval: false);
-
-    expect(app(ToolApprovalPolicy::class)->requiresApproval($agent, $name))->toBeFalse();
-});
-
-it('gates an unknown MCP tool under an approval-on server (stale catalog is treated as risky)', function (): void {
+it('gates an unknown MCP tool (stale catalog is treated as risky)', function (): void {
     [$user, $agent] = approvalAgent();
     AgentMcpServer::create([
         'user_id' => $user->id,
@@ -100,7 +92,6 @@ it('gates an unknown MCP tool under an approval-on server (stale catalog is trea
         'url' => 'https://mcp.example.test',
         'transport' => 'streamable_http',
         'auth_type' => 'none',
-        'requires_approval' => true,
         'is_enabled' => true,
     ]);
 
@@ -125,7 +116,7 @@ it('bypasses approval entirely when the global kill-switch is off', function ():
     config(['agent.tools.approval_enabled' => false]);
 
     [$user, $agent] = approvalAgent();
-    $name = makeMcpTool($user, serverApproval: true, toolApproval: true);
+    $name = makeMcpTool($user, McpToolPermission::Approval);
 
     expect(app(ToolApprovalPolicy::class)->requiresApproval($agent, $name))->toBeFalse();
 });

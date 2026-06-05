@@ -3,6 +3,7 @@
 namespace Domain\Agent\Data\Resources\Stats;
 
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Data\DateRangeData;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Carbon;
 use Spatie\LaravelData\Data;
@@ -59,7 +60,7 @@ class StatsResourceData extends Data
 
     public static function fromAgent(Agent $agent, ?Carbon $startDate = null, ?Carbon $endDate = null): self
     {
-        $startDate = $startDate ?? now()->subDays(6)->startOfDay();
+        $startDate = $startDate ?? DateRangeData::defaultStart();
         $endDate = $endDate ?? now()->endOfDay();
 
         $days = (int) $startDate->diffInDays($endDate) + 1;
@@ -226,7 +227,7 @@ class StatsResourceData extends Data
 
     public static function getConversationsTrend(Agent $agent, ?Carbon $startDate = null, ?Carbon $endDate = null): array
     {
-        $startDate = $startDate ?? now()->subDays(6)->startOfDay();
+        $startDate = $startDate ?? DateRangeData::defaultStart();
         $endDate = $endDate ?? now()->endOfDay();
 
         $days = (int) $startDate->diffInDays($endDate) + 1;

@@ -9,10 +9,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Ingest a raw block of text as a knowledge source. After upload the text is
@@ -36,11 +34,7 @@ class SourceTextController
         /** @var User $owner */
         $owner = $agent->user;
 
-        try {
-            $text = $createText->execute($agent, $owner, (string) $request->input('content'));
-        } catch (InviteRejectedException $e) {
-            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
-        }
+        $text = $createText->execute($agent, $owner, (string) $request->input('content'));
 
         return response()->json([
             'data' => [

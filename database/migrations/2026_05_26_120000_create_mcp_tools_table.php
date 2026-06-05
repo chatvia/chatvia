@@ -23,16 +23,23 @@ return new class extends Migration
 
             // MCP tool annotations from `tools/list` (readOnlyHint,
             // destructiveHint, idempotentHint, openWorldHint). Untrusted hints
-            // — used only to seed the per-tool `requires_approval` default.
+            // — used to derive `scope` and seed the per-tool `permission` default.
             $table->jsonb('annotations')->nullable();
 
-            // Per-tool human-in-the-loop override. Seeded from `annotations`
-            // on first catalog (readOnly → false, write/unknown → true), then
-            // user-toggleable. Only effective when the parent server's
-            // `requires_approval` is also true.
-            $table->boolean('requires_approval')->default(true);
+            // Whether the tool reads or mutates state. Re-synced on every
+            // catalog refresh from `annotations.readOnlyHint` (true → read,
+            // missing/false → write). Drives the section split in the
+            // Connectors UI ("Read-only" vs "Write/delete").
+            $table->enum('scope', ['read', 'write'])->default('write');
 
-            $table->boolean('is_enabled')->default(true);
+            // Per-tool permission. Tri-state shown in the Connectors UI:
+            //   - allow    → tool runs inline, no prompt
+            //   - approval → tool pauses for the user via ToolApprovalCheckpoint
+            //   - blocked  → tool is excluded from the catalog
+            // Seeded from `annotations` on first catalog (readOnly → 'allow',
+            // write/unknown → 'approval'), then user-toggleable.
+            $table->enum('permission', ['allow', 'approval', 'blocked'])
+                ->default('approval');
 
             $table->vector('embedding', 1024)->nullable();
             $table->bm25vector('embedding_bm25')->nullable();

@@ -93,6 +93,7 @@ return [
         'redis:ingestion.youtube' => 300,
         'redis:ingestion.text' => 60,
         'redis:ingestion.markdown' => 60,
+        'redis:exports' => 600,
     ],
 
     /*
@@ -253,6 +254,19 @@ return [
             'timeout' => 60,
             'nice' => 0,
         ],
+        'exports' => [
+            'connection' => 'redis',
+            'queue' => ['exports'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 1800,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
@@ -282,6 +296,11 @@ return [
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
+            'exports' => [
+                'maxProcesses' => 5,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
         ],
 
         'local' => [
@@ -296,6 +315,9 @@ return [
             ],
             'ingestion-light' => [
                 'maxProcesses' => 3,
+            ],
+            'exports' => [
+                'maxProcesses' => 1,
             ],
         ],
     ],

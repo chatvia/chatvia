@@ -1,0 +1,106 @@
+{
+    "common": {
+        "cancel": "Отмена",
+        "delete": "Удалить",
+        "close": "Закрыть",
+        "save": "Сохранить",
+        "saving": "Сохранение…"
+    },
+    "approval": {
+        "badge": "Требуется одобрение",
+        "prompt": "Хотите продолжить?",
+        "mcp_tool": "Инструмент MCP",
+        "function": "Функция",
+        "approve": "Одобрить",
+        "deny": "Отклонить"
+    },
+    "composer": {
+        "default_placeholder": "Сообщение…",
+        "disabled": "Чат отключён",
+        "stop_recording": "Остановить запись",
+        "start_voice_input": "Начать голосовой ввод"
+    },
+    "header": {
+        "toggle_sidebar": "Переключить боковую панель",
+        "toggle_expand": "Полноэкранный режим",
+        "incognito_mode": "Инкогнито",
+        "delete_conversation": "Удалить беседу",
+        "delete_dialog_title": "Удалить беседу?",
+        "delete_dialog_description": "Это действие нельзя отменить."
+    },
+    "sidebar": {
+        "open_sidebar": "Открыть боковую панель",
+        "new_chat": "Новый чат",
+        "your_chats": "Ваши чаты",
+        "loading": "Загрузка…",
+        "no_conversations": "Бесед пока нет",
+        "rename_conversation": "Переименовать",
+        "clear_all_chats": "Очистить все чаты",
+        "delete_all_title": "Удалить все беседы?",
+        "delete_all_description": "Это действие нельзя отменить. Все ваши беседы будут удалены навсегда.",
+        "delete_all_confirm": "Удалить всё",
+        "profile": "Профиль",
+        "my_agents": "Мои агенты",
+        "logout": "Выйти",
+        "delete_conversation_title": "Удалить беседу",
+        "delete_conversation_description": "Вы уверены, что хотите удалить эту беседу? Это действие нельзя отменить.",
+        "profile_settings_title": "Настройки профиля",
+        "profile_settings_description": "Обновите данные учётной записи и пароль.",
+        "profile_name": "Имя",
+        "name_input_placeholder": "Введите ваше имя",
+        "profile_email": "Эл. почта",
+        "email_input_placeholder": "Введите эл. почту",
+        "current_password": "Текущий пароль",
+        "current_password_placeholder": "Введите текущий пароль",
+        "new_password": "Новый пароль",
+        "new_password_placeholder": "Введите новый пароль",
+        "confirm_password": "Подтвердите пароль",
+        "confirm_password_placeholder": "Подтвердите новый пароль",
+        "save_changes": "Сохранить изменения",
+        "agents_dialog_title": "Мои агенты",
+        "agents_dialog_description": "Управляйте вашими ИИ-агентами и их настройками.",
+        "loading_agents": "Загрузка агентов…",
+        "no_agents": "Агенты не найдены.",
+        "switching_agent": "Переключение…",
+        "switch_to_agent": "Переключиться на {name}"
+    },
+    "chat": {
+        "message_limit_reached": "Вы достигли лимита сообщений",
+        "upgrade_prompt": "Чтобы продолжить, обновите тарифный план",
+        "regenerate_failed": "Не удалось сгенерировать ответ повторно. Попробуйте снова.",
+        "loading_conversation": "Загрузка беседы"
+    },
+    "messages": {
+        "send": "Отправить",
+        "delete_user_message_title": "Удалить это сообщение?",
+        "delete_user_message_description": "Это также удалит ответ ИИ.",
+        "delete_assistant_message_title": "Удалить это сообщение?",
+        "delete_assistant_message_description": "Это также удалит ваше исходное сообщение.",
+        "calling_external": "Обращение к внешнему источнику…",
+        "fetching_data": "Получение данных из {label}",
+        "calling": "Вызов {label}…",
+        "regenerate_tooltip": "Перегенерировать ответ"
+    },
+    "errors": {
+        "subscription_expired": "Подписка истекла",
+        "renew_subscription": "Продлить подписку",
+        "message_limit_reached": "Лимит сообщений исчерпан",
+        "upgrade_plan": "Обновить тариф",
+        "model_unavailable": "Модель недоступна",
+        "too_many_requests": "Слишком много запросов",
+        "connection_lost": "Соединение потеряно",
+        "unexpected_response": "Неожиданный ответ",
+        "something_went_wrong": "Что-то пошло не так",
+        "try_again": "Повторить"
+    },
+    "sources": {
+        "title": "Источники знаний",
+        "source_count": "{count} источник | {count} источника | {count} источников",
+        "description": "Использован {count} источник для этого ответа | Использовано {count} источника для этого ответа | Использовано {count} источников для этого ответа",
+        "page_label": "Страница {page}"
+    },
+    "home": {
+        "logo_alt": "Логотип",
+        "welcome_message": "Чем я могу помочь сегодня?"
+    }
+}

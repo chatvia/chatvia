@@ -1,0 +1,106 @@
+{
+    "common": {
+        "cancel": "Hủy",
+        "delete": "Xoá",
+        "close": "Đóng",
+        "save": "Lưu",
+        "saving": "Đang lưu…"
+    },
+    "approval": {
+        "badge": "Cần phê duyệt",
+        "prompt": "Bạn có muốn tiếp tục không?",
+        "mcp_tool": "Công cụ MCP",
+        "function": "Hàm",
+        "approve": "Phê duyệt",
+        "deny": "Từ chối"
+    },
+    "composer": {
+        "default_placeholder": "Tin nhắn…",
+        "disabled": "Đã tắt trò chuyện",
+        "stop_recording": "Dừng ghi âm",
+        "start_voice_input": "Bắt đầu nhập giọng nói"
+    },
+    "header": {
+        "toggle_sidebar": "Bật/tắt thanh bên",
+        "toggle_expand": "Bật/tắt toàn màn hình",
+        "incognito_mode": "Ẩn danh",
+        "delete_conversation": "Xoá cuộc trò chuyện",
+        "delete_dialog_title": "Xoá cuộc trò chuyện?",
+        "delete_dialog_description": "Hành động này không thể hoàn tác."
+    },
+    "sidebar": {
+        "open_sidebar": "Mở thanh bên",
+        "new_chat": "Trò chuyện mới",
+        "your_chats": "Cuộc trò chuyện của bạn",
+        "loading": "Đang tải…",
+        "no_conversations": "Chưa có cuộc trò chuyện nào",
+        "rename_conversation": "Đổi tên",
+        "clear_all_chats": "Xoá tất cả cuộc trò chuyện",
+        "delete_all_title": "Xoá tất cả cuộc trò chuyện?",
+        "delete_all_description": "Hành động này không thể hoàn tác. Tất cả cuộc trò chuyện sẽ bị xoá vĩnh viễn.",
+        "delete_all_confirm": "Xoá tất cả",
+        "profile": "Hồ sơ",
+        "my_agents": "Trợ lý của tôi",
+        "logout": "Đăng xuất",
+        "delete_conversation_title": "Xoá cuộc trò chuyện",
+        "delete_conversation_description": "Bạn có chắc muốn xoá cuộc trò chuyện này? Hành động này không thể hoàn tác.",
+        "profile_settings_title": "Cài đặt hồ sơ",
+        "profile_settings_description": "Cập nhật thông tin tài khoản và mật khẩu.",
+        "profile_name": "Tên",
+        "name_input_placeholder": "Nhập tên của bạn",
+        "profile_email": "Email",
+        "email_input_placeholder": "Nhập email của bạn",
+        "current_password": "Mật khẩu hiện tại",
+        "current_password_placeholder": "Nhập mật khẩu hiện tại",
+        "new_password": "Mật khẩu mới",
+        "new_password_placeholder": "Nhập mật khẩu mới",
+        "confirm_password": "Xác nhận mật khẩu",
+        "confirm_password_placeholder": "Xác nhận mật khẩu mới",
+        "save_changes": "Lưu thay đổi",
+        "agents_dialog_title": "Trợ lý của tôi",
+        "agents_dialog_description": "Quản lý các trợ lý AI và cấu hình của chúng.",
+        "loading_agents": "Đang tải trợ lý…",
+        "no_agents": "Không tìm thấy trợ lý.",
+        "switching_agent": "Đang chuyển…",
+        "switch_to_agent": "Chuyển sang {name}"
+    },
+    "chat": {
+        "message_limit_reached": "Bạn đã đạt giới hạn tin nhắn",
+        "upgrade_prompt": "Vui lòng nâng cấp gói để tiếp tục trò chuyện",
+        "regenerate_failed": "Không thể tạo lại phản hồi. Vui lòng thử lại.",
+        "loading_conversation": "Đang tải cuộc trò chuyện"
+    },
+    "messages": {
+        "send": "Gửi",
+        "delete_user_message_title": "Xoá tin nhắn này?",
+        "delete_user_message_description": "Phản hồi của AI cũng sẽ bị xoá.",
+        "delete_assistant_message_title": "Xoá tin nhắn này?",
+        "delete_assistant_message_description": "Tin nhắn gốc của bạn cũng sẽ bị xoá.",
+        "calling_external": "Đang gọi nguồn dữ liệu bên ngoài…",
+        "fetching_data": "Đang lấy dữ liệu từ {label}",
+        "calling": "Đang gọi {label}…",
+        "regenerate_tooltip": "Tạo lại phản hồi"
+    },
+    "errors": {
+        "subscription_expired": "Gói đăng ký đã hết hạn",
+        "renew_subscription": "Gia hạn gói",
+        "message_limit_reached": "Đã đạt giới hạn tin nhắn",
+        "upgrade_plan": "Nâng cấp gói",
+        "model_unavailable": "Mô hình không khả dụng",
+        "too_many_requests": "Quá nhiều yêu cầu",
+        "connection_lost": "Mất kết nối",
+        "unexpected_response": "Phản hồi không mong đợi",
+        "something_went_wrong": "Đã xảy ra lỗi",
+        "try_again": "Thử lại"
+    },
+    "sources": {
+        "title": "Nguồn tri thức",
+        "source_count": "{count} nguồn",
+        "description": "Đã dùng {count} nguồn để tạo phản hồi này",
+        "page_label": "Trang {page}"
+    },
+    "home": {
+        "logo_alt": "Logo",
+        "welcome_message": "Hôm nay tôi có thể giúp gì cho bạn?"
+    }
+}

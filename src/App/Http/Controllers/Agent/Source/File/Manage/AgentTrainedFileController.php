@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Source\File\Manage;
 
-use Domain\Agent\Actions\Sources\LinkSourceFileToAgentAction;
 use Domain\Agent\Actions\Sources\UnlinkSourceFileFromAgentAction;
 use Domain\Agent\Data\Resources\Sources\AgentSourcesListData;
 use Domain\Agent\Models\Agent;
@@ -34,7 +33,7 @@ class AgentTrainedFileController
         return AgentSourcesListData::fromSources($data);
     }
 
-    public function store(Request $request, Agent $agent, int $fileId, LinkSourceFileToAgentAction $link): void
+    public function store(Request $request, Agent $agent, int $fileId): void
     {
         abort_if($request->user()->cannot('update', $agent), 403);
 
@@ -45,7 +44,7 @@ class AgentTrainedFileController
 
         abort_if($request->user()->cannot('view', $file), 403);
 
-        $link->execute($agent, $file);
+        $agent->files()->attach($file->id);
     }
 
     public function destroy(Request $request, Agent $agent, SourceFile $file, UnlinkSourceFileFromAgentAction $unlink): void

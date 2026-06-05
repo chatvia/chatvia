@@ -7,11 +7,12 @@ use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Agent\Models\AgentSource;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Support\Traits\Chunkable;
 
@@ -80,14 +81,22 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
 {
     use Chunkable;
 
-    protected $casts = [
-        'duration' => 'integer',
-        'length' => 'integer',
-    ];
-
-    public function agents(): BelongsToMany
+    protected function casts(): array
     {
-        return $this->belongsToMany(Agent::class, 'agent_youtube_video', 'source_youtube_video_id', 'agent_id');
+        return [
+            'duration' => 'integer',
+            'length' => 'integer',
+            'metadata' => 'array',
+        ];
+    }
+
+    /**
+     * @return MorphToMany<Agent, $this, AgentSource>
+     */
+    public function agents(): MorphToMany
+    {
+        return $this->morphToMany(Agent::class, 'sourceable', 'agent_sources')
+            ->using(AgentSource::class);
     }
 
     public function user(): BelongsTo

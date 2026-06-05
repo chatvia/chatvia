@@ -1,0 +1,106 @@
+{
+    "common": {
+        "cancel": "취소",
+        "delete": "삭제",
+        "close": "닫기",
+        "save": "저장",
+        "saving": "저장 중…"
+    },
+    "approval": {
+        "badge": "승인 필요",
+        "prompt": "계속하시겠습니까?",
+        "mcp_tool": "MCP 도구",
+        "function": "함수",
+        "approve": "승인",
+        "deny": "거부"
+    },
+    "composer": {
+        "default_placeholder": "메시지…",
+        "disabled": "채팅이 비활성화되었습니다",
+        "stop_recording": "녹음 중지",
+        "start_voice_input": "음성 입력 시작"
+    },
+    "header": {
+        "toggle_sidebar": "사이드바 전환",
+        "toggle_expand": "전체 화면 전환",
+        "incognito_mode": "시크릿",
+        "delete_conversation": "대화 삭제",
+        "delete_dialog_title": "대화를 삭제할까요?",
+        "delete_dialog_description": "이 작업은 취소할 수 없습니다."
+    },
+    "sidebar": {
+        "open_sidebar": "사이드바 열기",
+        "new_chat": "새 채팅",
+        "your_chats": "내 채팅",
+        "loading": "불러오는 중…",
+        "no_conversations": "아직 대화가 없습니다",
+        "rename_conversation": "이름 변경",
+        "clear_all_chats": "모든 채팅 지우기",
+        "delete_all_title": "모든 대화를 삭제할까요?",
+        "delete_all_description": "이 작업은 취소할 수 없습니다. 모든 대화가 영구적으로 삭제됩니다.",
+        "delete_all_confirm": "모두 삭제",
+        "profile": "프로필",
+        "my_agents": "내 에이전트",
+        "logout": "로그아웃",
+        "delete_conversation_title": "대화 삭제",
+        "delete_conversation_description": "이 대화를 정말 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+        "profile_settings_title": "프로필 설정",
+        "profile_settings_description": "계정 정보와 비밀번호를 업데이트합니다.",
+        "profile_name": "이름",
+        "name_input_placeholder": "이름을 입력하세요",
+        "profile_email": "이메일",
+        "email_input_placeholder": "이메일을 입력하세요",
+        "current_password": "현재 비밀번호",
+        "current_password_placeholder": "현재 비밀번호를 입력하세요",
+        "new_password": "새 비밀번호",
+        "new_password_placeholder": "새 비밀번호를 입력하세요",
+        "confirm_password": "비밀번호 확인",
+        "confirm_password_placeholder": "새 비밀번호를 다시 입력하세요",
+        "save_changes": "변경 사항 저장",
+        "agents_dialog_title": "내 에이전트",
+        "agents_dialog_description": "AI 에이전트와 그 구성을 관리합니다.",
+        "loading_agents": "에이전트를 불러오는 중…",
+        "no_agents": "에이전트를 찾을 수 없습니다.",
+        "switching_agent": "전환 중…",
+        "switch_to_agent": "{name}(으)로 전환"
+    },
+    "chat": {
+        "message_limit_reached": "메시지 한도에 도달했습니다",
+        "upgrade_prompt": "채팅을 계속하려면 요금제를 업그레이드하세요",
+        "regenerate_failed": "응답을 다시 생성할 수 없습니다. 다시 시도하세요.",
+        "loading_conversation": "대화를 불러오는 중"
+    },
+    "messages": {
+        "send": "보내기",
+        "delete_user_message_title": "이 메시지를 삭제할까요?",
+        "delete_user_message_description": "AI 응답도 함께 삭제됩니다.",
+        "delete_assistant_message_title": "이 메시지를 삭제할까요?",
+        "delete_assistant_message_description": "원본 메시지도 함께 삭제됩니다.",
+        "calling_external": "외부 데이터 소스를 호출하는 중…",
+        "fetching_data": "{label}에서 데이터를 가져오는 중",
+        "calling": "{label} 호출 중…",
+        "regenerate_tooltip": "응답 다시 생성"
+    },
+    "errors": {
+        "subscription_expired": "구독이 만료되었습니다",
+        "renew_subscription": "구독 갱신",
+        "message_limit_reached": "메시지 한도에 도달했습니다",
+        "upgrade_plan": "요금제 업그레이드",
+        "model_unavailable": "모델을 사용할 수 없습니다",
+        "too_many_requests": "요청이 너무 많습니다",
+        "connection_lost": "연결이 끊겼습니다",
+        "unexpected_response": "예상치 못한 응답",
+        "something_went_wrong": "문제가 발생했습니다",
+        "try_again": "다시 시도"
+    },
+    "sources": {
+        "title": "지식 소스",
+        "source_count": "{count}개 소스",
+        "description": "이 응답을 생성하는 데 {count}개 소스를 사용했습니다",
+        "page_label": "{page} 페이지"
+    },
+    "home": {
+        "logo_alt": "로고",
+        "welcome_message": "오늘은 어떻게 도와드릴까요?"
+    }
+}

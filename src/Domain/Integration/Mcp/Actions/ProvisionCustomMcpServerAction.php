@@ -28,7 +28,7 @@ class ProvisionCustomMcpServerAction
                 'auth_type' => $data->strategy === 'token' ? 'bearer' : 'none',
                 'auth_value' => $data->strategy === 'token' ? ($data->token ?? '') : null,
                 'headers' => null,
-                'timeout_ms' => 30000,
+                'timeout_ms' => 300000,
                 'is_enabled' => true,
             ]);
 

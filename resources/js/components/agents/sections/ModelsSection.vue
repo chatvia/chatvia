@@ -184,8 +184,6 @@ function remove(id: string): void {
                                                 {{ feature }}
                                             </span>
                                         </div>
-
-                                        <div v-if="model.is_reasoning" class="text-xs text-emerald-600">✓ Reasoning model</div>
                                     </div>
                                 </TooltipContent>
                             </Tooltip>

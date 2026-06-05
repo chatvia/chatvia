@@ -107,38 +107,44 @@ class MessageManager
         foreach ($messages as &$message) {
             if ($message['id'] === $messageId) {
                 foreach ($values as $key => $value) {
+                    // Capture the prior feedback BEFORE the cache overwrite
+                    // below; otherwise $priorFeedback reads back the value we
+                    // just wrote, the change check is always false, and the
+                    // FeedbackGiven analytics event never fires.
+                    $priorFeedback = $key === 'feedback' ? ($message['feedback'] ?? null) : null;
+
                     $message[$key] = $value;
 
                     // Handle feedback persistence to database.
                     // $value is 'positive', 'negative', or null (cleared).
                     if ($key === 'feedback') {
-                        $prior = $message['feedback'] ?? null;
-
                         Message::where('external_id', $message['id'])->update([
                             'feedback' => $value,
                         ]);
 
-                        if ($prior !== $value) {
+                        if ($priorFeedback !== $value) {
                             $this->dispatchFeedbackAnalytics(
                                 $conversationId,
                                 $message['id'],
-                                $prior,
                                 $value,
                                 $message['model'] ?? null,
                             );
                         }
                     }
 
-                    // Handle read_at persistence to database
+                    // Handle read_at persistence to database. The cached
+                    // message id is the external UUID, so match on external_id
+                    // (matching the feedback branch above) — keying on the
+                    // integer PK `id` silently matches zero rows.
                     if ($key === 'read_at') {
-                        Message::where('id', $message['id'])->update([
+                        Message::where('external_id', $message['id'])->update([
                             'read_at' => $value,
                         ]);
                     }
 
                     // Handle has_llm_found_answer persistence to database
                     if ($key === 'has_llm_found_answer') {
-                        Message::where('id', $message['id'])->update([
+                        Message::where('external_id', $message['id'])->update([
                             'has_llm_found_answer' => $value,
                         ]);
                     }
@@ -172,8 +178,9 @@ class MessageManager
                 $message['read_at'] = $now->timestamp;
                 $markedCount++;
 
-                // Persist to database
-                Message::where('id', $message['id'])->update([
+                // Persist to database. Match on external_id — the cached
+                // message id is the external UUID, not the integer PK.
+                Message::where('external_id', $message['id'])->update([
                     'read_at' => $now,
                 ]);
             }
@@ -205,7 +212,7 @@ class MessageManager
         // Wipe attachments (and their S3 objects) tied to the removed pair
         // so uploaded files don't linger after the user erases the turn
         // from view. Deleting via Eloquent fires Attachment::booted,
-        // which removes the underlying file from scaleway-public.
+        // which removes the underlying file from the public disk.
         if ($removedExternalIds !== []) {
             $messageIds = Message::query()
                 ->whereIn('external_id', $removedExternalIds)
@@ -334,16 +341,16 @@ class MessageManager
     private function dispatchFeedbackAnalytics(
         string $conversationExternalId,
         string $messageExternalId,
-        ?string $prior,
-        ?string $new,
+        ?string $feedback,
         ?string $llmExternalName,
     ): void {
         $context = DB::table('chat_messages as m')
             ->join('chat_conversations as c', 'c.id', '=', 'm.chat_conversation_id')
             ->join('chat_sessions as s', 's.id', '=', 'c.chat_session_id')
+            ->join('agents as ag', 'ag.id', '=', 's.agent_id')
             ->leftJoin('countries as co', 'co.id', '=', 's.country_id')
             ->where('m.external_id', $messageExternalId)
-            ->select('s.agent_id', 'co.code as country_code')
+            ->select('s.agent_id', 'ag.user_id', 'co.code as country_code')
             ->first();
 
         if (! $context) {
@@ -352,10 +359,10 @@ class MessageManager
 
         FeedbackGiven::dispatch(
             (int) $context->agent_id,
+            (int) $context->user_id,
             $conversationExternalId,
             $messageExternalId,
-            $prior,
-            $new,
+            $feedback,
             $llmExternalName,
             $context->country_code,
             now()->toDateTimeImmutable(),

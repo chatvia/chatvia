@@ -25,3 +25,10 @@ Schedule::command('app:prune-expired-conversations')->dailyAt('03:30');
 // their TTL lapses. Each row stores a full conversation snapshot, so they would
 // bloat the table fast; this runs after the conversation prune.
 Schedule::command('app:prune-tool-approvals')->dailyAt('03:45');
+
+// Consolidated end-of-life conversation analysis: one LLM call per conversation
+// sets topic(s), sentiment, tone and language and records emergent-topic
+// suggestions. Each conversation is analyzed once, ~6h after creation
+// (config: analytics.analysis.scan_age_hours); the hourly cadence just picks up
+// whatever has newly crossed that age.
+Schedule::command('app:analyze-conversations')->hourly();

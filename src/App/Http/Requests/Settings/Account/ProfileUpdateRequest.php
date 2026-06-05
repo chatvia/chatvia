@@ -32,6 +32,7 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
         ];
     }
 
@@ -44,6 +45,7 @@ class ProfileUpdateRequest extends FormRequest
             user: $user,
             name: $this->string('name')->toString(),
             email: $this->string('email')->toString(),
+            photo: $this->file('photo'),
         );
     }
 }

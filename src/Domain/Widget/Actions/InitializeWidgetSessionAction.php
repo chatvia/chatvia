@@ -14,8 +14,8 @@ use Illuminate\Support\Str;
 
 /**
  * Bootstrap a widget session: validate (or mint) the session, validate (or
- * mint) the thread, and return both identifiers along with flags that tell
- * the widget whether either was just created.
+ * mint) the conversation, and return both identifiers along with flags that
+ * tell the widget whether either was just created.
  */
 class InitializeWidgetSessionAction
 {
@@ -28,7 +28,7 @@ class InitializeWidgetSessionAction
     public function execute(Agent $agent, WidgetSessionInitData $data): WidgetSessionInitResultData
     {
         $isNewSession = false;
-        $isNewThread = false;
+        $isNewConversation = false;
 
         $session = null;
         if ($data->existingSessionId) {
@@ -54,29 +54,29 @@ class InitializeWidgetSessionAction
             $isNewSession = true;
         }
 
-        $thread = null;
-        if ($data->existingThreadId) {
-            // Same agent-scoping rule: a thread from another agent never
+        $conversation = null;
+        if ($data->existingConversationId) {
+            // Same agent-scoping rule: a conversation from another agent never
             // resurfaces here, even if the visitor (or attacker) sends it.
-            $thread = $this->widgetVerification->verifyThreadId($data->existingThreadId, $agent);
-            $thread?->update(['last_activity_at' => now()]);
+            $conversation = $this->widgetVerification->verifyConversationId($data->existingConversationId, $agent);
+            $conversation?->update(['last_activity_at' => now()]);
         }
 
-        $threadExternalId = $thread?->external_id;
+        $conversationExternalId = $conversation?->external_id;
 
-        if (! $thread) {
-            $threadExternalId = $this->memory
+        if (! $conversationExternalId) {
+            $conversationExternalId = $this->memory
                 ->setAgent($agent)
                 ->setExternalSessionId($session->external_id)
                 ->createConversation('New Chat', ConversationSource::Widget);
-            $isNewThread = true;
+            $isNewConversation = true;
         }
 
         return new WidgetSessionInitResultData(
             session_id: $session->external_id,
-            thread_id: $threadExternalId,
+            conversation_id: $conversationExternalId,
             is_new_session: $isNewSession,
-            is_new_thread: $isNewThread,
+            is_new_conversation: $isNewConversation,
         );
     }
 }

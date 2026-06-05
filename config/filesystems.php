@@ -40,15 +40,6 @@ return [
             'report' => false,
         ],
 
-        'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
-            'visibility' => 'public',
-            'throw' => true,
-            'report' => true,
-        ],
-
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -62,7 +53,7 @@ return [
             'report' => true,
         ],
 
-        'scaleway' => [
+        'private' => [
             'driver' => 's3',
             'key' => env('SCALEWAY_ACCESS_KEY_ID'),
             'secret' => env('SCALEWAY_SECRET_ACCESS_KEY'),
@@ -75,15 +66,15 @@ return [
             'report' => true,
         ],
 
-        'scaleway-public' => [
+        'public' => [
             'driver' => 's3',
             'key' => env('SCALEWAY_ACCESS_KEY_ID'),
             'secret' => env('SCALEWAY_SECRET_ACCESS_KEY'),
             'region' => env('SCALEWAY_DEFAULT_REGION'),
             'bucket' => env('SCALEWAY_BUCKET_PUBLIC', 'chatvia-public'),
-            // Separate URL env so `Storage::disk('scaleway-public')->url(...)`
-            // returns the public bucket's host (not the private `scaleway`
-            // disk's host, which would 403 for external fetchers like Mistral).
+            // Separate URL env so `Storage::disk('public')->url(...)` returns
+            // the public bucket's host (not the `private` disk's host, which
+            // would 403 for external fetchers like Mistral).
             'url' => env('SCALEWAY_PUBLIC_URL'),
             'endpoint' => env('SCALEWAY_ENDPOINT'),
             'use_path_style_endpoint' => env('SCALEWAY_USE_PATH_STYLE_ENDPOINT', false),
@@ -116,7 +107,7 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
+        //
     ],
 
 ];

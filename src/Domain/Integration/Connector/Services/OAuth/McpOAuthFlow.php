@@ -173,7 +173,7 @@ class McpOAuthFlow
                 'auth_type' => 'bearer',
                 'auth_value' => $tokens['access_token'],
                 'headers' => null,
-                'timeout_ms' => 30000,
+                'timeout_ms' => 300000,
                 'is_enabled' => true,
                 'last_error' => null,
                 'oauth_authorization_server' => $pending->authServerUrl,

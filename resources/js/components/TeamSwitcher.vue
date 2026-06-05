@@ -22,6 +22,7 @@ import { computed, ref, watch } from 'vue';
 
 interface Team {
     id: number;
+    external_id: string;
     name: string;
     is_owner: boolean;
     is_primary: boolean;
@@ -58,14 +59,17 @@ const createForm = useForm({
 
 const isSwitching = ref(false);
 
-const switchTeam = (teamId: number) => {
-    if (teamId === currentTeam.value?.id || isSwitching.value) return;
+const switchTeam = (team: Team) => {
+    if (team.id === currentTeam.value?.id || isSwitching.value) return;
 
     isSwitching.value = true;
     isOpen.value = false;
 
     router.post(
-        route('teams.switch', teamId),
+        // Route binding is by external_id (see Team::getRouteKeyName) — keep
+        // the in-memory id around for the currentTeam comparison above but
+        // hand Stripe-friendly UUIDs to Ziggy.
+        route('teams.switch', team.external_id),
         {},
         {
             preserveState: false,
@@ -115,7 +119,7 @@ const createTeam = () => {
                         <Loader2 class="text-muted-foreground size-4 animate-spin" />
                     </div>
                     <template v-else>
-                        <DropdownMenuItem v-for="team in teams" :key="team.id" class="cursor-pointer gap-2" @select.prevent="switchTeam(team.id)">
+                        <DropdownMenuItem v-for="team in teams" :key="team.id" class="cursor-pointer gap-2" @select.prevent="switchTeam(team)">
                             <Avatar class="size-6">
                                 <AvatarFallback class="bg-primary/10 text-primary text-[10px] font-medium">
                                     {{ getInitials(team.name) }}

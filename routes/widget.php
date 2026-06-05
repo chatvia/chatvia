@@ -7,17 +7,17 @@ use App\Http\Controllers\Widget\Activity\TypingController;
 use App\Http\Controllers\Widget\Auth\AgentVerifyController;
 use App\Http\Controllers\Widget\Auth\AuthExchangeController;
 use App\Http\Controllers\Widget\Auth\BroadcastAuthController;
+use App\Http\Controllers\Widget\Conversations\ConversationAttachmentController;
+use App\Http\Controllers\Widget\Conversations\ConversationController;
+use App\Http\Controllers\Widget\Conversations\ConversationCreateController;
+use App\Http\Controllers\Widget\Conversations\ConversationDeleteController;
+use App\Http\Controllers\Widget\Conversations\ConversationMessageController;
 use App\Http\Controllers\Widget\Handoff\EndChatController;
 use App\Http\Controllers\Widget\Handoff\HandoffRequestController;
 use App\Http\Controllers\Widget\Handoff\HandoffStatusController;
 use App\Http\Controllers\Widget\Sessions\SessionInitController;
 use App\Http\Controllers\Widget\Settings\WidgetSettingsController;
 use App\Http\Controllers\Widget\Stream\StreamController;
-use App\Http\Controllers\Widget\Threads\ThreadAttachmentController;
-use App\Http\Controllers\Widget\Threads\ThreadController;
-use App\Http\Controllers\Widget\Threads\ThreadMessageController;
-use App\Http\Controllers\Widget\Threads\ThreadsDeleteController;
-use App\Http\Controllers\Widget\Threads\ThreadsStoreController;
 use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
 use Illuminate\Support\Facades\Route;
 
@@ -43,18 +43,18 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
     Route::middleware(EnsureWidgetIsAccessible::class)->group(function (): void {
         Route::post('/sessions/init', SessionInitController::class)->name('widget.sessions.init');
 
-        Route::get('/threads', ThreadController::class)->name('widget.threads');
-        Route::post('/threads', ThreadsStoreController::class)->name('widget.threads.store');
-        Route::delete('/threads', ThreadsDeleteController::class)->name('widget.threads.delete');
+        Route::get('/conversations', ConversationController::class)->name('widget.conversations');
+        Route::post('/conversations', ConversationCreateController::class)->name('widget.conversations.create');
+        Route::delete('/conversations', ConversationDeleteController::class)->name('widget.conversations.delete');
 
-        Route::post('/threads/messages', ThreadMessageController::class)->name('widget.threads.messages.store');
-        Route::get('/threads/messages', ThreadMessageController::class)->name('widget.threads.messages');
+        Route::post('/conversations/messages', ConversationMessageController::class)->name('widget.conversations.messages.store');
+        Route::get('/conversations/messages', ConversationMessageController::class)->name('widget.conversations.messages');
 
         // Visitor uploads (PDFs for now). Returns a public URL the LLM-side
         // tools (PDF Reader, etc.) can fetch.
-        Route::post('/threads/attachments', ThreadAttachmentController::class)
+        Route::post('/conversations/attachments', ConversationAttachmentController::class)
             ->middleware('throttle:widget-stream')
-            ->name('widget.threads.attachments.store');
+            ->name('widget.conversations.attachments.store');
 
         // Stream is the LLM-cost endpoint — separate, tighter, session-
         // keyed limiter on top of the bulk widget gate.

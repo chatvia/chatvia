@@ -14,7 +14,6 @@ class AgentLeadsExportController
     public function __invoke(Request $request, Agent $agent, ExportAgentLeadsToCsvAction $export): Response
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.leads.export'), 403);
 
         $request->validate([
             'lead_ids' => ['required', 'array', 'min:1'],

@@ -22,6 +22,17 @@ class SubscribeUserAction
 
         $billing = $data->user->accountBilling();
 
+        // Push our local email/name onto the Stripe customer BEFORE the
+        // checkout session is created. Without this, customers that were
+        // created without an email (or before {@see UserBilling::stripeEmail()}
+        // was added) show an empty email field in Stripe Checkout because
+        // Cashier passes `customer: <id>` and Stripe reads the email from
+        // the customer record. createAsStripeCustomer fires only when
+        // stripe_id is null — for everyone else we sync explicitly.
+        if ($billing->hasStripeId()) {
+            $billing->syncStripeCustomerDetails();
+        }
+
         return $billing
             ->newSubscription(type: 'default', prices: $stripePriceId)
             ->withMetadata([

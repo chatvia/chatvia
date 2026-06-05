@@ -16,11 +16,11 @@ import { type BreadcrumbItem } from '@/types';
 import { Bot, Check, ChevronDown, Info, Loader2, Tag } from 'lucide-vue-next';
 
 // Use generated TypeScript types from DTOs
-type TeamData = App.Team.Data.Resources.Team.TeamData;
-type TeamAgentData = App.Team.Data.Resources.Team.TeamAgentData;
-type PermissionMetaData = App.Team.Data.Resources.Permissions.PermissionMetaData;
-type PermissionGroupData = App.Team.Data.Resources.Permissions.PermissionGroupData;
-type PermissionScopeData = App.Team.Data.Resources.Permissions.PermissionScopeData;
+type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
+type TeamAgentData = Domain.Membership.Team.Data.Resources.Team.TeamAgentData;
+type PermissionMetaData = Domain.Membership.Team.Data.Resources.Permissions.PermissionMetaData;
+type PermissionGroupData = Domain.Membership.Team.Data.Resources.Permissions.PermissionGroupData;
+type PermissionScopeData = Domain.Membership.Team.Data.Resources.Permissions.PermissionScopeData;
 
 interface Props {
     team: TeamData;
@@ -50,11 +50,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: props.team.name,
-        href: `/my/teams/${props.team.id}`,
+        href: `/my/teams/${props.team.external_id}`,
     },
     {
         title: 'Create Role',
-        href: `/my/teams/${props.team.id}/roles/create`,
+        href: `/my/teams/${props.team.external_id}/roles/create`,
     },
 ];
 
@@ -71,7 +71,7 @@ const isAgentSelectionValid = computed(() => {
 });
 
 const submit = () => {
-    form.post(route('teams.create-role', props.team.id));
+    form.post(route('teams.create-role', props.team.external_id));
 };
 
 // Get all required permissions recursively
@@ -360,7 +360,7 @@ const toggleAgentSelection = (agentId: string) => {
 
                     <!-- Actions -->
                     <div class="flex items-center justify-end gap-3 pt-4">
-                        <Link :href="route('teams.show', team.id)">
+                        <Link :href="route('teams.show', team.external_id)">
                             <Button type="button" variant="outline"> Cancel </Button>
                         </Link>
                         <Button type="submit" :disabled="form.processing || !isAgentSelectionValid">

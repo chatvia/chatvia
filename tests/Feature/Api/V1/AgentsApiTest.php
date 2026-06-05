@@ -28,10 +28,12 @@ describe('POST /api/v1/agents', function (): void {
 
     it('creates a knowledge-base agent and returns just the agent', function (): void {
         $response = $this->withHeaders(authHeaders($this->token))
-            ->postJson('/api/v1/agents', ['name' => 'Support Bot'])
+            ->postJson('/api/v1/agents', [
+                'name' => 'Support Bot',
+                'team_id' => $this->user->primaryTeam()->external_id,
+            ])
             ->assertOk()
             ->assertJsonPath('data.name', 'Support Bot')
-            ->assertJsonPath('data.type', 'knowledge_base')
             ->assertJsonPath('data.source', 'api')
             ->assertJsonStructure(['data' => ['id', 'url', 'permanent_url']]);
 
@@ -52,11 +54,19 @@ describe('POST /api/v1/agents', function (): void {
         expect($team->agents()->where('name', 'Team Bot')->exists())->toBeTrue();
     });
 
+    it('requires team_id', function (): void {
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson('/api/v1/agents', ['name' => 'Bot'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['team_id']);
+    });
+
     it('rejects a team_id the caller does not own', function (): void {
-        $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        // UserObserver auto-provisions a default team on factory create.
+        $otherUser = User::factory()->create();
 
         $this->withHeaders(authHeaders($this->token))
-            ->postJson('/api/v1/agents', ['name' => 'X', 'team_id' => $otherUser->primaryTeam()->external_id])
+            ->postJson('/api/v1/agents', ['name' => 'Bot', 'team_id' => $otherUser->primaryTeam()->external_id])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['team_id']);
     });
@@ -67,7 +77,10 @@ describe('POST /api/v1/agents', function (): void {
 
     it('validates name', function (): void {
         $this->withHeaders(authHeaders($this->token))
-            ->postJson('/api/v1/agents', ['name' => 'x'])
+            ->postJson('/api/v1/agents', [
+                'name' => 'x',
+                'team_id' => $this->user->primaryTeam()->external_id,
+            ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
     });
@@ -284,7 +297,7 @@ describe('Account-level Functions CRUD', function (): void {
 
         $created = $this->withHeaders($headers)
             ->postJson('/api/v1/functions', [
-                'name' => 'get_order_status',
+                'internal_name' => 'get_order_status',
                 'description' => 'Look up an order by id',
                 'parameters_schema' => ['type' => 'object', 'properties' => (object) []],
                 'webhook_url' => 'https://acme.example.com/webhooks/orders',
@@ -292,7 +305,7 @@ describe('Account-level Functions CRUD', function (): void {
             ->assertOk()
             ->json('data');
 
-        expect($created['name'])->toBe('get_order_status');
+        expect($created['internal_name'])->toBe('get_order_status');
         expect($created['webhook']['method'])->toBe('POST');
 
         $this->withHeaders($headers)

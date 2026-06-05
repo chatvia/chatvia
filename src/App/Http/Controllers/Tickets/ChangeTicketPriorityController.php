@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Tickets;
 
 use App\Http\Requests\Tickets\ChangeTicketPriorityRequest;
-use Domain\Helpdesk\Actions\ChangeTicketPriorityAction;
 use Domain\Helpdesk\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 
@@ -12,12 +11,9 @@ use Illuminate\Http\RedirectResponse;
  */
 class ChangeTicketPriorityController
 {
-    public function __invoke(
-        ChangeTicketPriorityRequest $request,
-        Ticket $ticket,
-        ChangeTicketPriorityAction $changePriority,
-    ): RedirectResponse {
-        $changePriority->execute($request->toData($ticket));
+    public function __invoke(ChangeTicketPriorityRequest $request, Ticket $ticket): RedirectResponse
+    {
+        $ticket->update(['priority' => $request->toData($ticket)->priority]);
 
         return back()->with('success', 'Ticket priority updated successfully.');
     }

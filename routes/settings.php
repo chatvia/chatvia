@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Settings\Account\ApiKeyController;
+use App\Http\Controllers\Settings\Account\DataExportController;
+use App\Http\Controllers\Settings\Account\DeleteAccountController;
 use App\Http\Controllers\Settings\Account\PasskeyController;
 use App\Http\Controllers\Settings\Account\PasswordController;
 use App\Http\Controllers\Settings\Account\ProfileController;
@@ -10,10 +12,8 @@ use App\Http\Controllers\Settings\Connector\Catalog\ConnectController;
 use App\Http\Controllers\Settings\Connector\Catalog\ConnectorController;
 use App\Http\Controllers\Settings\Connector\Manage\ConnectorAgentController;
 use App\Http\Controllers\Settings\Connector\Manage\ConnectorToolController;
-use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorApprovalController;
+use App\Http\Controllers\Settings\Connector\Manage\SetConnectorToolPermissionController;
 use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorController;
-use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorToolApprovalController;
-use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorToolController;
 use App\Http\Controllers\Settings\Connector\Provisioning\CustomAddController;
 use App\Http\Controllers\Settings\Connector\Provisioning\OAuthStartController;
 use App\Http\Controllers\Settings\Connector\Provisioning\RefreshConnectorController;
@@ -49,7 +49,12 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('settings/profile/photo', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
+
+    // Account deletion lives on its own page in the Account section so the
+    // destructive flow has the user's full attention.
+    Route::get('settings/delete-account', [DeleteAccountController::class, 'edit'])->name('settings.account.delete');
+    Route::delete('settings/delete-account', [DeleteAccountController::class, 'destroy'])->name('settings.account.destroy');
 
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('settings.password.edit');
     Route::put('settings/password', [PasswordController::class, 'update'])->name('settings.password.update');
@@ -69,6 +74,19 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::post('settings/api-keys', [ApiKeyController::class, 'store'])->name('api-keys.store');
     Route::delete('settings/api-keys/{tokenId}', [ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
 
+    // GDPR Art. 15/20 — let the user request a copy of their personal data
+    // and download it for 24 hours before it's pruned by
+    // `app:prune-expired-data-exports`.
+    Route::get('settings/data-export', [DataExportController::class, 'edit'])
+        ->name('settings.data-export.edit');
+    Route::post('settings/data-export', [DataExportController::class, 'store'])
+        ->middleware('throttle:5,60')
+        ->name('settings.data-export.store');
+    Route::get('settings/data-export/{export}/download', [DataExportController::class, 'download'])
+        ->name('settings.data-export.download');
+    Route::delete('settings/data-export/{export}', [DataExportController::class, 'destroy'])
+        ->name('settings.data-export.destroy');
+
     // Account-level Connectors — the same shape as the per-agent connectors
     // page, but at the user level. Featured catalog connectors + custom MCP
     // servers, with the existing OAuth/token flows pointed at the user.
@@ -81,15 +99,12 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::delete('settings/connectors/{slug}', [ConnectorController::class, 'destroy'])->name('settings.connectors.destroy');
     Route::post('settings/connectors/{slug}/refresh', RefreshConnectorController::class)->name('settings.connectors.refresh');
     Route::get('settings/connectors/{slug}/tools', ConnectorToolController::class)->name('settings.connectors.tools');
-    Route::post('settings/connectors/{slug}/tools/{tool}/toggle', ToggleConnectorToolController::class)
-        ->whereNumber('tool')
-        ->name('settings.connectors.tools.toggle');
 
-    // Human-in-the-loop approval switches: connector master + per-tool override.
-    Route::post('settings/connectors/{slug}/approval', ToggleConnectorApprovalController::class)->name('settings.connectors.approval');
-    Route::post('settings/connectors/{slug}/tools/{tool}/approval', ToggleConnectorToolApprovalController::class)
+    // Per-tool permission (allow / approval / blocked) — the tri-state shown
+    // in the Connectors UI.
+    Route::put('settings/connectors/{slug}/tools/{tool}/permission', SetConnectorToolPermissionController::class)
         ->whereNumber('tool')
-        ->name('settings.connectors.tools.approval');
+        ->name('settings.connectors.tools.permission');
 
     // Manage which agents use a connector (from the Connectors sheet).
     Route::get('settings/connectors/{slug}/agents', [ConnectorAgentController::class, 'index'])->name('settings.connectors.agents.index');

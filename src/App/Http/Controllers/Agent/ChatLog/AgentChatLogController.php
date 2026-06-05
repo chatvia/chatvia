@@ -19,11 +19,11 @@ class AgentChatLogController
     public function index(Request $request, Agent $agent): Response
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
 
         return Inertia::render('agents/ChatLog/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'current_conversation_id' => $request->query('conversation_id'),
+            'chatlogEnabled' => $agent->chatlogEnabled(),
             'handoffEnabled' => ($agent->settings('widget')['handoff_enabled'] ?? true)
                 && ($agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false),
         ]);

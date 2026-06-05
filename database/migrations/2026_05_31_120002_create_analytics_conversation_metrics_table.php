@@ -16,14 +16,14 @@ return new class extends Migration
         Schema::connection($this->getConnection())->create('analytics_conversation_metrics', function (Blueprint $table): void {
             $table->uuid('conversation_external_id')->primary();
             $table->unsignedBigInteger('agent_id');
+            $table->unsignedBigInteger('user_id');
             $table->timestampTz('started_at');
             $table->timestampTz('ended_at')->nullable();
             $table->unsignedInteger('message_count')->default(0);
             $table->unsignedInteger('duration_seconds')->default(0);
-            $table->boolean('had_feedback')->default(false);
 
             $table->index(['agent_id', 'started_at']);
-            $table->index(['agent_id', 'had_feedback']);
+            $table->index(['user_id', 'started_at']);
         });
     }
 

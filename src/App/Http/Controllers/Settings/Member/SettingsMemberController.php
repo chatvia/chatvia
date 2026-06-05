@@ -37,7 +37,7 @@ class SettingsMemberController extends Controller
         abort_unless(has_team_permission('account.members.manage'), 404);
 
         if ($request->wantsJson()) {
-            $chatters = $this->workspaceOwner($request)
+            $chatters = $request->user()->effectiveUser()
                 ->chatters()
                 ->withCount('accessibleAgents')
                 ->orderBy('name')
@@ -139,7 +139,7 @@ class SettingsMemberController extends Controller
     {
         // Only protected agents can have members — public agents are open
         // to anyone so per-chatter grants are meaningless.
-        $workspaceAgents = $this->workspaceOwner($request)
+        $workspaceAgents = $request->user()->effectiveUser()
             ->agents()
             ->where('is_public', false)
             ->orderBy('agents.name')
@@ -168,7 +168,7 @@ class SettingsMemberController extends Controller
     private function findChatter(Request $request, string $externalId): User
     {
         /** @var User $member */
-        $member = $this->workspaceOwner($request)
+        $member = $request->user()->effectiveUser()
             ->chatters()
             ->where('external_id', $externalId)
             ->firstOrFail();
@@ -179,7 +179,7 @@ class SettingsMemberController extends Controller
     private function findWorkspaceAgent(Request $request, string $externalId): Agent
     {
         /** @var Agent $agent */
-        $agent = $this->workspaceOwner($request)
+        $agent = $request->user()->effectiveUser()
             ->agents()
             ->where('external_id', $externalId)
             ->firstOrFail();
@@ -187,20 +187,4 @@ class SettingsMemberController extends Controller
         return $agent;
     }
 
-    /**
-     * The User whose `chatters()` relation owns the rows visible on this
-     * page. For a workspace owner that's themselves; for an employee with
-     * the permission it's the workspace they belong to.
-     */
-    private function workspaceOwner(Request $request): User
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        if ($user->type === UserType::Workspace || $user->type === UserType::Admin) {
-            return $user;
-        }
-
-        return $user->workspace ?? $user;
-    }
 }

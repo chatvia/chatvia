@@ -52,6 +52,17 @@ class Team extends Model
     use HasExternalId;
 
     /**
+     * Route-bind by external_id so `/my/teams/{team}` URLs use the opaque
+     * UUID instead of the auto-increment id — same convention as Agent /
+     * Conversation. The explicit `{team:external_id}` overrides on the
+     * V1 API routes keep working (they pin to the same column).
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'external_id';
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function owner(): BelongsTo
@@ -124,25 +135,6 @@ class Team extends Model
     {
         $role = $this->roles()->where('code', $roleCode)->firstOrFail();
         $this->members()->updateExistingPivot($user->id, ['role_id' => $role->id]);
-    }
-
-    /**
-     * Get a user's role in this team.
-     */
-    public function userRole(User $user): ?Role
-    {
-        // Team owner doesn't have a role in the pivot table
-        if ($this->user_id === $user->id) {
-            return null;
-        }
-
-        $membership = $this->members()->where('users.id', $user->id)->first();
-
-        if (! $membership) {
-            return null;
-        }
-
-        return Role::find($membership->pivot->getAttribute('role_id'));
     }
 
     /**

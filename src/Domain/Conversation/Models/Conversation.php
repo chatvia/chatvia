@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Services\Memory\ChatCache;
+use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Lead\Models\Lead;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
@@ -30,12 +32,12 @@ use Support\Traits\SupportsExternalId;
  * @property string $external_id
  * @property int $chat_session_id
  * @property int|null $language_id
- * @property int|null $chat_topic_id
  * @property ConversationSource $source
  * @property bool $is_visible
  * @property string|null $title
  * @property string|null $sentiment
  * @property string|null $tone
+ * @property Carbon|null $analyzed_at
  * @property int|null $handoff_user_id
  * @property string $handoff_status
  * @property Carbon|null $handoff_at
@@ -52,7 +54,8 @@ use Support\Traits\SupportsExternalId;
  * @property-read Collection<int, Message> $messages
  * @property-read int|null $messages_count
  * @property-read Session $session
- * @property-read Topic|null $topic
+ * @property-read Collection<int, Topic> $topics
+ * @property-read Collection<int, ConversationTopic> $suggestedTopics
  *
  * @method static \Database\Factories\ConversationFactory factory($count = null, $state = [])
  * @method static ConversationQueryBuilder<static>|Conversation filterByConfidenceScore(?string $confidenceScore)
@@ -72,7 +75,7 @@ use Support\Traits\SupportsExternalId;
  * @method static ConversationQueryBuilder<static>|Conversation orderByLatestActivity()
  * @method static ConversationQueryBuilder<static>|Conversation query()
  * @method static ConversationQueryBuilder<static>|Conversation whereSessionId($value)
- * @method static ConversationQueryBuilder<static>|Conversation whereTopicId($value)
+ * @method static ConversationQueryBuilder<static>|Conversation whereAnalyzedAt($value)
  * @method static ConversationQueryBuilder<static>|Conversation whereCreatedAt($value)
  * @method static ConversationQueryBuilder<static>|Conversation whereDeletedAt($value)
  * @method static ConversationQueryBuilder<static>|Conversation whereDeletedBy($value)
@@ -99,12 +102,12 @@ use Support\Traits\SupportsExternalId;
     'external_id',
     'chat_session_id',
     'language_id',
-    'chat_topic_id',
     'source',
     'is_visible',
     'title',
     'sentiment',
     'tone',
+    'analyzed_at',
     'handoff_user_id',
     'handoff_status',
     'handoff_at',
@@ -140,6 +143,7 @@ class Conversation extends Model
             'handoff_at' => 'datetime',
             'last_activity_at' => 'datetime',
             'expires_at' => 'datetime',
+            'analyzed_at' => 'datetime',
         ];
     }
 
@@ -218,11 +222,25 @@ class Conversation extends Model
     }
 
     /**
-     * @return BelongsTo<Topic, $this>
+     * Committed topics this conversation belongs to (multi-label). Suggestion
+     * rows in the pivot (chat_topic_id NULL) don't join here.
+     *
+     * @return BelongsToMany<Topic, $this>
      */
-    public function topic(): BelongsTo
+    public function topics(): BelongsToMany
     {
-        return $this->belongsTo(Topic::class, 'chat_topic_id');
+        return $this->belongsToMany(Topic::class, 'conversation_topics', 'chat_conversation_id', 'chat_topic_id');
+    }
+
+    /**
+     * Emergent topic suggestions for this conversation (chat_topic_id NULL,
+     * suggested_label set) — surfaced for promotion, not yet real topics.
+     *
+     * @return HasMany<ConversationTopic, $this>
+     */
+    public function suggestedTopics(): HasMany
+    {
+        return $this->hasMany(ConversationTopic::class, 'chat_conversation_id')->whereNotNull('suggested_label');
     }
 
     /**
@@ -316,6 +334,17 @@ class Conversation extends Model
     public function canBeReturnedBy(User $admin): bool
     {
         return $this->isHandedOff() && $this->handoff_user_id === $admin->id;
+    }
+
+    /**
+     * Admin-side operability check used by handoff-write endpoints.
+     * Bundles the `access-agent` Gate with a session-agent equality guard
+     * so the 4 handoff controllers don't each duplicate the same `if`.
+     */
+    public function isOperableBy(User $admin, Agent $agent): bool
+    {
+        return Gate::forUser($admin)->allows('access-agent', $agent)
+            && $this->session?->agent_id === $agent->id;
     }
 
     /**

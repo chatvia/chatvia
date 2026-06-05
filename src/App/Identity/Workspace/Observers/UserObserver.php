@@ -45,8 +45,13 @@ class UserObserver
         }
     }
 
-    public function deleted(User $user): void
+    public function deleting(User $user): void
     {
+        // Must run on `deleting`, not `deleted`: `user_billing.user_id` and
+        // `subscriptions.user_billing_id` both `ON DELETE CASCADE`, so by the
+        // time `deleted` fires the billing row (and the Subscription->owner
+        // relation it backs) is already gone and `cancel()` blows up trying
+        // to reach Stripe through a null owner.
         $billing = $user->billing;
 
         if ($billing?->hasStripeId() && $billing->subscribed()) {
@@ -55,9 +60,4 @@ class UserObserver
     }
 
     public function restored(User $user): void {}
-
-    public function forceDeleted(User $user): void
-    {
-        $this->deleted($user);
-    }
 }

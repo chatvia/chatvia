@@ -77,6 +77,12 @@ return [
                 'chat_window_title' => 'Chat',
                 'chat_footer_text' => 'Consider checking important information',
                 'composer_placeholder' => 'Ask anything...',
+                // Composer affordances. Default on so existing behaviour is
+                // preserved; agent owners can turn either off in Setup when
+                // the use case (e.g. compliance, FAQ-only bots) doesn't want
+                // visitors uploading files or recording voice notes.
+                'allow_file_uploads' => true,
+                'allow_voice_input' => true,
             ],
             // Bar surface — surface-specific behaviour only (text/branding now
             // come from `appearance`). Single model lives on `agents.llm_id`.
@@ -114,6 +120,20 @@ return [
                 'top_p' => 1.0,
                 'presence_penalty' => 0.0,
                 'frequency_penalty' => 0.0,
+            ],
+            // Per-agent data & insight switches (Setup → Settings). All default
+            // on so existing agents keep working; owners can switch any off.
+            //  - chatlog: master switch for persisting conversations. Off stops
+            //    StoreMessageJob, so nothing is logged — and the insights below
+            //    get no data to work with.
+            //  - sentiment/tone/topics: the optional LLM-powered insights. These
+            //    also gate on the plan-tier capability — a dimension runs only
+            //    when the plan allows it AND the agent hasn't switched it off.
+            'analytics' => [
+                'chatlog' => true,
+                'sentiment' => true,
+                'tone' => true,
+                'topics' => true,
             ],
             'leads' => [
                 'fields' => [
@@ -158,6 +178,8 @@ return [
             'chat_window_title' => ['nullable', 'string'],
             'chat_footer_text' => ['nullable', 'string'],
             'composer_placeholder' => ['nullable', 'string'],
+            'allow_file_uploads' => ['nullable', 'boolean'],
+            'allow_voice_input' => ['nullable', 'boolean'],
         ],
         'widget' => [
             'enabled' => ['nullable', 'boolean'],
@@ -200,6 +222,12 @@ return [
             'top_p' => ['nullable', 'numeric', 'min:0', 'max:1'],
             'presence_penalty' => ['nullable', 'numeric', 'min:-2', 'max:2'],
             'frequency_penalty' => ['nullable', 'numeric', 'min:-2', 'max:2'],
+        ],
+        'analytics' => [
+            'chatlog' => ['nullable', 'boolean'],
+            'sentiment' => ['nullable', 'boolean'],
+            'tone' => ['nullable', 'boolean'],
+            'topics' => ['nullable', 'boolean'],
         ],
     ],
 ];

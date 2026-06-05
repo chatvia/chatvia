@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Settings\Connector\Catalog;
 
 use App\Http\Controllers\Controller;
-use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\Account\ListAccountConnectorsAction;
 use Domain\Integration\Connector\Data\Account\AccountConnectorsResourceData;
 use Domain\Integration\Mcp\Actions\DeleteMcpServerAction;
@@ -38,19 +37,8 @@ class ConnectorController extends Controller
     {
         abort_unless(has_team_permission('account.connectors'), 404);
 
-        $delete->execute($this->find($request, $slug));
+        $delete->execute(AgentMcpServer::forSlugScoped($slug, $request->user()));
 
         return response()->json(['ok' => true]);
-    }
-
-    private function find(Request $request, string $slug): AgentMcpServer
-    {
-        /** @var User $user */
-        $user = $request->user();
-        $server = $user->mcpServers()->where('slug', $slug)->first();
-
-        abort_unless($server !== null, 404);
-
-        return $server;
     }
 }

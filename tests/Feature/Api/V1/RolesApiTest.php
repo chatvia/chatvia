@@ -4,16 +4,14 @@ use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Actions\Team\CreateTeamAction;
-use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {
+    // UserObserver::created auto-provisions the default team + billing + quota.
     $this->user = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->user);
     $this->team = $this->user->primaryTeam();
     $this->token = $this->user->createToken('account')->plainTextToken;
 });
@@ -60,7 +58,7 @@ describe('GET /api/v1/teams', function (): void {
             ->assertJsonPath('data.0.id', $this->team->external_id)
             ->assertJsonStructure(['data' => [[
                 'id', 'name', 'created_at',
-                'agents' => [['id', 'name', 'type']],
+                'agents' => [['id', 'name']],
                 'roles' => [['id', 'name', 'all_agents', 'agent_ids', 'permissions']],
             ]]]);
     });
@@ -188,25 +186,5 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
 
         expect($this->team->members()->where('users.id', $endUser->id)->count())->toBe(1)
             ->and($this->team->members()->where('users.id', $endUser->id)->wherePivot('role_id', $roleB->id)->exists())->toBeTrue();
-    });
-});
-
-describe('chat-only team roles', function (): void {
-
-    it('drops dashboard permissions but keeps agent access', function (): void {
-        $team = app(CreateTeamAction::class)->execute(
-            new CreateTeamData(owner: $this->user, name: 'Customers', canAccessDashboard: false),
-        );
-        $agent = makeRoleAgent($this->user, 'Bot');
-
-        $this->withHeaders(roleHeaders($this->token))
-            ->postJson("/api/v1/teams/{$team->external_id}/roles", [
-                'name' => 'Support',
-                'agent_ids' => [$agent->external_id],
-                'permissions' => ['agent.chat.view'],
-            ])
-            ->assertOk()
-            ->assertJsonPath('data.permissions', [])
-            ->assertJsonPath('data.agent_ids', [$agent->external_id]);
     });
 });

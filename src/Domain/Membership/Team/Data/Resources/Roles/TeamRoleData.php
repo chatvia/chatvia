@@ -11,6 +11,7 @@ class TeamRoleData extends Data
 {
     public function __construct(
         public int $id,
+        public string $external_id,
         public string $code,
         public string $name,
         public ?string $description,
@@ -25,6 +26,7 @@ class TeamRoleData extends Data
     {
         return new self(
             id: $role->id,
+            external_id: $role->external_id,
             code: $role->code,
             name: $role->name,
             description: $role->description,

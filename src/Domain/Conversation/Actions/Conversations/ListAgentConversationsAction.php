@@ -2,8 +2,8 @@
 
 namespace Domain\Conversation\Actions\Conversations;
 
-use App\Http\Resources\Api\V1\Conversations\ConversationSummaryData;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Conversations\ConversationSummaryData;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 

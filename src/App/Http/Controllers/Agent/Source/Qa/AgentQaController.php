@@ -5,14 +5,12 @@ namespace App\Http\Controllers\Agent\Source\Qa;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\QA\Actions\CreateAgentQaAction;
-use Domain\Knowledge\Source\QA\Actions\DeleteAgentQaAction;
 use Domain\Knowledge\Source\QA\Actions\UpdateAgentQaAction;
 use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,7 +19,6 @@ class AgentQaController
     public function index(Request $request, Agent $agent): Response|JsonResponse
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.sources.train.qa'), 403);
 
         if ($request->wantsJson()) {
             return response()->json(['data' => $this->buildQaList($agent)]);
@@ -55,7 +52,6 @@ class AgentQaController
     {
         abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($request->user()->cannot('update', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.sources.train.qa'), 403);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -100,16 +96,15 @@ class AgentQaController
         return back();
     }
 
-    public function destroy(Request $request, Agent $agent, int $id, DeleteAgentQaAction $deleteQa): JsonResponse
+    public function destroy(Request $request, Agent $agent, int $id): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.sources.delete'), 403);
 
         $qa = AgentQuestionAnswer::query()
             ->where('agent_id', $agent->id)
             ->findOrFail($id);
 
-        $deleteQa->execute($qa);
+        $qa->delete();
 
         return response()->json(['message' => 'Q&A entry deleted successfully']);
     }
@@ -137,13 +132,14 @@ class AgentQaController
             return [];
         }
 
-        return collect(explode(', ', $questions))
+        return collect(explode("\n", $questions))
+            ->map(fn (string $question): string => trim($question))
             ->filter()
-            ->map(fn (string $question): array => [
-                'id' => Str::uuid()->toString(),
-                'question' => trim($question),
-            ])
             ->values()
+            ->map(fn (string $question): array => [
+                'id' => md5($question),
+                'question' => $question,
+            ])
             ->toArray();
     }
 }

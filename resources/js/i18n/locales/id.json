@@ -1,0 +1,106 @@
+{
+    "common": {
+        "cancel": "Batal",
+        "delete": "Hapus",
+        "close": "Tutup",
+        "save": "Simpan",
+        "saving": "Menyimpan…"
+    },
+    "approval": {
+        "badge": "Perlu persetujuan",
+        "prompt": "Apakah Anda ingin melanjutkan?",
+        "mcp_tool": "Alat MCP",
+        "function": "Fungsi",
+        "approve": "Setujui",
+        "deny": "Tolak"
+    },
+    "composer": {
+        "default_placeholder": "Pesan…",
+        "disabled": "Obrolan dinonaktifkan",
+        "stop_recording": "Hentikan perekaman",
+        "start_voice_input": "Mulai input suara"
+    },
+    "header": {
+        "toggle_sidebar": "Alihkan sidebar",
+        "toggle_expand": "Alihkan layar penuh",
+        "incognito_mode": "Penyamaran",
+        "delete_conversation": "Hapus percakapan",
+        "delete_dialog_title": "Hapus percakapan?",
+        "delete_dialog_description": "Tindakan ini tidak dapat dibatalkan."
+    },
+    "sidebar": {
+        "open_sidebar": "Buka sidebar",
+        "new_chat": "Obrolan baru",
+        "your_chats": "Obrolan Anda",
+        "loading": "Memuat…",
+        "no_conversations": "Belum ada percakapan",
+        "rename_conversation": "Ganti nama",
+        "clear_all_chats": "Hapus semua obrolan",
+        "delete_all_title": "Hapus semua percakapan?",
+        "delete_all_description": "Tindakan ini tidak dapat dibatalkan. Semua percakapan Anda akan dihapus permanen.",
+        "delete_all_confirm": "Hapus Semua",
+        "profile": "Profil",
+        "my_agents": "Agen Saya",
+        "logout": "Keluar",
+        "delete_conversation_title": "Hapus Percakapan",
+        "delete_conversation_description": "Apakah Anda yakin ingin menghapus percakapan ini? Tindakan ini tidak dapat dibatalkan.",
+        "profile_settings_title": "Pengaturan Profil",
+        "profile_settings_description": "Perbarui informasi akun dan kata sandi Anda.",
+        "profile_name": "Nama",
+        "name_input_placeholder": "Masukkan nama Anda",
+        "profile_email": "Email",
+        "email_input_placeholder": "Masukkan email Anda",
+        "current_password": "Kata Sandi Saat Ini",
+        "current_password_placeholder": "Masukkan kata sandi saat ini",
+        "new_password": "Kata Sandi Baru",
+        "new_password_placeholder": "Masukkan kata sandi baru",
+        "confirm_password": "Konfirmasi Kata Sandi",
+        "confirm_password_placeholder": "Konfirmasi kata sandi baru",
+        "save_changes": "Simpan Perubahan",
+        "agents_dialog_title": "Agen Saya",
+        "agents_dialog_description": "Kelola agen AI Anda dan konfigurasinya.",
+        "loading_agents": "Memuat agen…",
+        "no_agents": "Tidak ada agen ditemukan.",
+        "switching_agent": "Beralih…",
+        "switch_to_agent": "Beralih ke {name}"
+    },
+    "chat": {
+        "message_limit_reached": "Anda telah mencapai batas pesan",
+        "upgrade_prompt": "Silakan tingkatkan paket Anda untuk melanjutkan obrolan",
+        "regenerate_failed": "Tidak dapat membuat ulang respons. Silakan coba lagi.",
+        "loading_conversation": "Memuat percakapan"
+    },
+    "messages": {
+        "send": "Kirim",
+        "delete_user_message_title": "Hapus pesan ini?",
+        "delete_user_message_description": "Ini juga akan menghapus respons AI.",
+        "delete_assistant_message_title": "Hapus pesan ini?",
+        "delete_assistant_message_description": "Ini juga akan menghapus pesan asli Anda.",
+        "calling_external": "Memanggil sumber data eksternal…",
+        "fetching_data": "Mengambil data dari {label}",
+        "calling": "Memanggil {label}…",
+        "regenerate_tooltip": "Buat ulang respons"
+    },
+    "errors": {
+        "subscription_expired": "Langganan kedaluwarsa",
+        "renew_subscription": "Perpanjang langganan",
+        "message_limit_reached": "Batas pesan tercapai",
+        "upgrade_plan": "Tingkatkan paket",
+        "model_unavailable": "Model tidak tersedia",
+        "too_many_requests": "Terlalu banyak permintaan",
+        "connection_lost": "Koneksi terputus",
+        "unexpected_response": "Respons tidak terduga",
+        "something_went_wrong": "Terjadi kesalahan",
+        "try_again": "Coba lagi"
+    },
+    "sources": {
+        "title": "Sumber Pengetahuan",
+        "source_count": "{count} Sumber",
+        "description": "{count} sumber digunakan untuk membuat respons ini",
+        "page_label": "Halaman {page}"
+    },
+    "home": {
+        "logo_alt": "Logo",
+        "welcome_message": "Bagaimana saya bisa membantu Anda hari ini?"
+    }
+}

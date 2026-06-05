@@ -66,8 +66,8 @@ interface UploadingFileData extends BaseUploadingFileData {
 
 // Usage data interface - subset of the full usage resource with optional minutes
 type UsageData = {
-    pages: App.Workspace.Data.Resources.My.Usage.UsageStatsData;
-    minutes?: App.Workspace.Data.Resources.My.Usage.UsageStatsData;
+    pages: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
+    minutes?: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
 };
 
 // File summary data interface
@@ -626,7 +626,7 @@ const clearAllFiles = async () => {
         }
 
         // Show user-friendly error message
-        alert(`Failed to clear uploaded files from server: ${error.response?.data?.message || error.message}`);
+        toast.error(`Failed to clear uploaded files from server: ${error.response?.data?.message || error.message}`);
     }
 
     clearAllDialogOpen.value = false;
@@ -731,7 +731,7 @@ const processAllFiles = async () => {
 
         // Show user-friendly error message
         const errorMessage = error.response?.data?.message || error.message;
-        alert(`Failed to process files: ${errorMessage}`);
+        toast.error(`Failed to process files: ${errorMessage}`);
 
         // Still refresh to show any successfully processed files
         await fetchKnowledgeFiles();

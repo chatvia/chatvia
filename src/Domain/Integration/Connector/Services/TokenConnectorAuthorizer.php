@@ -49,7 +49,7 @@ class TokenConnectorAuthorizer
                 'auth_type' => $noAuth ? 'none' : ($connector->authType ?? 'bearer'),
                 'auth_value' => $noAuth ? null : $token,
                 'headers' => null,
-                'timeout_ms' => 30000,
+                'timeout_ms' => 300000,
                 'is_enabled' => true,
                 'last_error' => null,
             ];

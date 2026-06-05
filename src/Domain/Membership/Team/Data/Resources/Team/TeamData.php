@@ -11,6 +11,7 @@ class TeamData extends Data
 {
     public function __construct(
         public int $id,
+        public string $external_id,
         public string $name,
         public TeamOwnerData $owner,
     ) {}
@@ -19,6 +20,7 @@ class TeamData extends Data
     {
         return new self(
             id: $team->id,
+            external_id: $team->external_id,
             name: $team->name,
             owner: TeamOwnerData::fromModel($team->owner),
         );

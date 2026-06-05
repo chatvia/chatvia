@@ -5,14 +5,12 @@ namespace Domain\Agent\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\QueryBuilders\AgentQueryBuilder;
-use Domain\Agent\Services\FileAnalyzer;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Knowledge\Source\File\Enums\AgentFileStatusEnum;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -22,7 +20,6 @@ use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Domain\Prompt\Models\AgentPrompt;
-use Exception;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -36,10 +33,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as SupportCollection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Support\Enums\CreatedVia;
@@ -104,21 +99,12 @@ use Support\Traits\HasSettings;
  *
  * @method static AgentCollection<int, static> all($columns = ['*'])
  * @method static AgentQueryBuilder<static>|Agent aggregateStats()
- * @method static AgentQueryBuilder<static>|Agent avgConversationDuration()
- * @method static AgentQueryBuilder<static>|Agent avgFirstResponseTime()
- * @method static AgentQueryBuilder<static>|Agent avgMessagesPerConversation()
- * @method static AgentQueryBuilder<static>|Agent avgResponseTime()
- * @method static AgentQueryBuilder<static>|Agent avgTokensPerMessage()
  * @method static AgentQueryBuilder<static>|Agent conversationsByCountry()
  * @method static AgentQueryBuilder<static>|Agent conversationsByDayOfWeek()
  * @method static AgentQueryBuilder<static>|Agent conversationsByHour()
  * @method static AgentQueryBuilder<static>|Agent conversationsTrend(int $days = 30)
- * @method static AgentQueryBuilder<static>|Agent conversationsWithFeedback()
- * @method static AgentQueryBuilder<static>|Agent countAssistantMessages()
- * @method static AgentQueryBuilder<static>|Agent countConversations()
  * @method static AgentQueryBuilder<static>|Agent dailyMessages(int $days)
  * @method static \Database\Factories\AgentFactory factory($count = null, $state = [])
- * @method static AgentQueryBuilder<static>|Agent firstDataDate()
  * @method static AgentCollection<int, static> get($columns = ['*'])
  * @method static AgentQueryBuilder<static>|Agent messagesByData(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate)
  * @method static AgentQueryBuilder<static>|Agent mostAccessedFiles()
@@ -128,14 +114,9 @@ use Support\Traits\HasSettings;
  * @method static AgentQueryBuilder<static>|Agent mostUsedModels()
  * @method static AgentQueryBuilder<static>|Agent newModelQuery()
  * @method static AgentQueryBuilder<static>|Agent newQuery()
- * @method static AgentQueryBuilder<static>|Agent peakActivityHour()
  * @method static AgentQueryBuilder<static>|Agent query()
- * @method static AgentQueryBuilder<static>|Agent satisfactionRate()
  * @method static AgentQueryBuilder<static>|Agent topTopics(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate, int $limit = 10)
  * @method static AgentQueryBuilder<static>|Agent topicsByDateRange(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate)
- * @method static AgentQueryBuilder<static>|Agent totalTokensUsed()
- * @method static AgentQueryBuilder<static>|Agent totalUserMessages()
- * @method static AgentQueryBuilder<static>|Agent uniqueSessionsCount()
  * @method static AgentQueryBuilder<static>|Agent whereCollectLeads($value)
  * @method static AgentQueryBuilder<static>|Agent whereCreatedAt($value)
  * @method static AgentQueryBuilder<static>|Agent whereDomain($value)
@@ -224,6 +205,32 @@ class Agent extends Model
     }
 
     /**
+     * Whether an optional analytics dimension (`sentiment`, `tone`, `topics`)
+     * is actively collecting for this agent. Requires BOTH the chat log (the
+     * master switch — with no stored messages there's nothing to analyze) and
+     * the dimension's own switch to be on. The dimension switches are stored
+     * independently of the chat log, so flipping the chat log back on restores
+     * whatever per-dimension preferences were set before. Defaults to on — the
+     * `analytics` settings group carries `true` defaults. This is the per-agent
+     * half of the gate; the plan-tier capability is the other (see CapabilityEnum).
+     */
+    public function analyticsEnabled(string $dimension): bool
+    {
+        return $this->chatlogEnabled()
+            && (bool) $this->settings('analytics')->get($dimension, true);
+    }
+
+    /**
+     * Whether conversations are persisted for this agent. Off (Setup → Settings
+     * → Chat log) stops StoreMessageJob, so nothing reaches the chat log and the
+     * analytics dimensions get no data to work with. Defaults to on.
+     */
+    public function chatlogEnabled(): bool
+    {
+        return (bool) $this->settings('analytics')->get('chatlog', true);
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
@@ -285,51 +292,6 @@ class Agent extends Model
         return $this->belongsToMany(Role::class);
     }
 
-    public function addFile(
-        UploadedFile $file,
-        AgentFileStatusEnum $status = AgentFileStatusEnum::UPLOADED,
-        array $options = []): SourceFile
-    {
-        $path = Storage::putFile(
-            path: 'users/'.$this->user_id.'/agents/'.$this->id.'/files',
-            file: $file
-        );
-
-        try {
-            DB::beginTransaction();
-
-            $analyzer = FileAnalyzer::analyze($file);
-
-            $sourceFile = SourceFile::create(array_merge([
-                'user_id' => $this->user_id,
-                'filename' => $file->getClientOriginalName(),
-                'filetype' => get_file_type($file->getMimeType()),
-                'filepath' => $path,
-                'size_in_kb' => round($file->getSize() / 1024),
-                'mime_type' => $file->getClientMimeType(),
-                'checksum' => md5_file($file->getPathname()),
-                'status' => $status->value,
-                'length' => $analyzer->length,
-                'metadata' => $analyzer->toArray(),
-            ], $options));
-
-            // Attach the file to this agent
-            $sourceFile->agents()->attach($this->id);
-
-            DB::commit();
-
-            return $sourceFile;
-        } catch (Exception $e) {
-            DB::rollBack();
-
-            if (isset($path)) {
-                Storage::delete($path);
-            }
-
-            throw $e;
-        }
-    }
-
     /**
      * @return MorphToMany<SourceFile, $this, AgentSource>
      */
@@ -376,6 +338,16 @@ class Agent extends Model
     public function functions(): BelongsToMany
     {
         return $this->belongsToMany(AgentFunction::class, 'agent_function', 'agent_id', 'function_id');
+    }
+
+    /**
+     * Account-scoped ownership check: does this function belong to the same
+     * workspace as the agent? Used by the function attach/detach/test
+     * controllers to gate "I can only attach functions I own to my agents".
+     */
+    public function ownsFunction(AgentFunction $function): bool
+    {
+        return $function->user_id === $this->user_id;
     }
 
     /**

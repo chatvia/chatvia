@@ -20,7 +20,7 @@ class CreateAgentSourceTextAction
         $content = Str::of(TextCleaner::clean($rawContent))->trim()->toString();
         $numberOfPages = (int) ceil(str_word_count($content) / 450);
 
-        if ($user->canUploadPages($numberOfPages)) {
+        if (! $user->canUploadPages($numberOfPages)) {
             throw new InviteRejectedException('content', 'This document requires '.$numberOfPages.' pages.');
         }
 

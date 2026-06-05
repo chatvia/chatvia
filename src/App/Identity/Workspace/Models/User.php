@@ -12,7 +12,6 @@ use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserBilling;
 use Domain\Billing\Models\UserCredit;
 use Domain\Billing\Models\UserQuota;
-use Domain\Billing\Models\UserUsage;
 use Domain\Billing\Services\Billing;
 use Domain\Billing\Services\UserCreditSystem;
 use Domain\Helpdesk\Models\Ticket;
@@ -39,13 +38,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -72,7 +70,7 @@ use Support\Traits\HasSettings;
  * @property string|null $registered_ip
  * @property string|null $registered_country_code
  * @property string|null $domain
- * @property array<string, mixed>|null $billing_address
+ * @property string|null $profile_image_path
  * @property string|null $deactivation_reason
  * @property string|null $deactivated_at
  * @property Carbon|null $last_login_at
@@ -112,11 +110,8 @@ use Support\Traits\HasSettings;
  * @property-read int|null $roles_count
  * @property-read Collection<int, UserSocial> $socials
  * @property-read int|null $socials_count
- * @property-read Collection<int, User> $staff
- * @property-read int|null $staff_count
  * @property-read Collection<int, Ticket> $tickets
  * @property-read int|null $tickets_count
- * @property-read UserUsage|null $usage
  *
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
@@ -149,7 +144,7 @@ use Support\Traits\HasSettings;
  *
  * @mixin \Eloquent
  */
-#[Appends(['plan', 'is_paid', 'capabilities'])]
+#[Appends(['plan', 'is_paid', 'capabilities', 'avatar'])]
 #[Guarded(['id'])]
 #[Hidden([
     'password',
@@ -181,7 +176,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'last_login_at' => 'datetime',
             'type' => UserType::class,
             'source' => UserSource::class,
-            'billing_address' => 'array',
+            'marketing_consent' => 'boolean',
+            'analytics_consent' => 'boolean',
+            'consent_given_at' => 'datetime',
         ];
     }
 
@@ -224,9 +221,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      * Get the effective user (workspace owner if this is an employee/chatter,
      * otherwise self). Used for resource access like quota, agents, credits, etc.
      */
-    protected function effectiveUser(): self
+    public function effectiveUser(): self
     {
-        return $this->workspace_id ? $this->workspace : $this;
+        return $this->workspace ?? $this;
     }
 
     /**
@@ -270,6 +267,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         );
     }
 
+    /**
+     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * (`with('agents')` / `load('agents')`) builds the relation on a bare
+     * instance and returns the wrong rows for an employee/chatter; eager-load
+     * through the workspace leg instead: `loadMissing(['workspace.agents', 'agents'])`.
+     */
     public function agents(): HasMany
     {
         $effectiveUser = $this->effectiveUser();
@@ -353,7 +356,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
     public function canUploadPages(int $amount): bool
     {
-        return ($this->quota->pages_limit - $this->pagesConsumed()) <= $amount;
+        return ($this->quota->pages_limit - $this->pagesConsumed()) >= $amount;
     }
 
     public function formattedLlms()
@@ -369,23 +372,18 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return Llm::catalog();
     }
 
-    public function agentFiles()
-    {
-        $effectiveUserId = $this->effectiveUser()->id;
-
-        return SourceFile::query()
-            ->join('agent_sources', function ($join): void {
-                $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', SourceFile::class);
-            })
-            ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
-            ->where('agents.user_id', $effectiveUserId)
-            ->select('source_files.*');
-    }
-
     public function plan(): Attribute
     {
         return Attribute::get(fn () => $this->getCurrentPackage()['id']);
+    }
+
+    public const PROFILE_IMAGE_DISK = 'public';
+
+    public function avatar(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->profile_image_path
+            ? Storage::disk(self::PROFILE_IMAGE_DISK)->url($this->profile_image_path)
+            : null);
     }
 
     public function isPaid(): Attribute
@@ -394,6 +392,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return Attribute::get(fn (): bool => $this->hasActiveSubscription());
     }
 
+    /**
+     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
+     * through the workspace leg instead: `loadMissing(['workspace.credits', 'credits'])`.
+     */
     public function credits(): HasMany
     {
         $effectiveUser = $this->effectiveUser();
@@ -401,6 +404,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $effectiveUser->hasMany(UserCredit::class);
     }
 
+    /**
+     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
+     * through the workspace leg instead: `loadMissing(['workspace.credit', 'credit'])`.
+     */
     public function credit(): HasOne
     {
         $effectiveUser = $this->effectiveUser();
@@ -410,64 +418,16 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             ->latestOfMany('ends_at');
     }
 
+    /**
+     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
+     * through the workspace leg instead: `loadMissing(['workspace.addons', 'addons'])`.
+     */
     public function addons(): HasMany
     {
         $effectiveUser = $this->effectiveUser();
 
         return $effectiveUser->hasMany(UserAddon::class);
-    }
-
-    public function syncPendingPlanChanges(): ?array
-    {
-        $subscription = $this->effectiveUser()->billing?->subscription();
-
-        if (! $subscription) {
-            return null;
-        }
-
-        try {
-            // Sync subscription data first
-            $subscription->syncStripeStatus();
-
-            // Get fresh metadata from Stripe
-            $stripeSubscription = $subscription->asStripeSubscription();
-            $metadata = $stripeSubscription->metadata->toArray();
-
-            if (isset($metadata['pending_change']) && $metadata['pending_change'] === 'true') {
-                return [
-                    'from_package' => $metadata['from_package'] ?? null,
-                    'to_package' => $metadata['to_package'] ?? null,
-                    'new_price_id' => $metadata['new_price_id'] ?? null,
-                    'is_yearly' => ($metadata['is_yearly'] ?? 'false') === 'true',
-                    'scheduled_at' => $metadata['scheduled_at'] ?? null,
-                    'effective_date' => $stripeSubscription->items->data[0]->current_period_end * 1000, // Convert to milliseconds for JS
-                ];
-            }
-
-            return null;
-
-        } catch (\Exception $e) {
-            Log::warning('Failed to sync pending plan changes', [
-                'user_id' => $this->id,
-                'error' => $e->getMessage(),
-            ]);
-
-            return null;
-        }
-    }
-
-    public function usage(): HasOneThrough
-    {
-        $effectiveUser = $this->effectiveUser();
-
-        return $effectiveUser->hasOneThrough(
-            UserUsage::class,           // Final model we want
-            UserCredit::class,          // Intermediate model
-            'user_id',             // Foreign key on credits table (credits.user_id)
-            'credit_id',          // Foreign key on usages table (usages.credit_id)
-            'id',                  // Local key on users table (users.id)
-            'id'              // Local key on credits table (credits.id)
-        )->latest('ends_at');
     }
 
     public function creditSystem(): UserCreditSystem
@@ -489,33 +449,36 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->id;
     }
 
-    public function pagesConsumed(): int
+    /**
+     * `whereIn('id', ...)` closure selecting the ids of $sourceableType rows
+     * attached (via agent_sources) to any agent this account owns. Shared by
+     * pagesConsumed()/minutesConsumed() so the multi-join account-scoping lives
+     * in one place instead of being hand-copied per source type.
+     */
+    private function ownedSourceIds(string $sourceableType): \Closure
     {
         $effectiveUserId = $this->effectiveUser()->id;
 
-        // Get unique SourceFiles (avoid counting duplicates when file is linked to multiple agents)
+        return function ($query) use ($effectiveUserId, $sourceableType): void {
+            $query->select('agent_sources.sourceable_id')
+                ->from('agent_sources')
+                ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
+                ->where('agents.user_id', $effectiveUserId)
+                ->where('agent_sources.sourceable_type', '=', $sourceableType)
+                ->distinct();
+        };
+    }
+
+    public function pagesConsumed(): int
+    {
+        // Unique sources (a file/text linked to several agents counts once).
         $sourceFilesPages = SourceFile::query()
-            ->whereIn('id', function ($query) use ($effectiveUserId): void {
-                $query->select('agent_sources.sourceable_id')
-                    ->from('agent_sources')
-                    ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
-                    ->where('agents.user_id', $effectiveUserId)
-                    ->where('agent_sources.sourceable_type', '=', SourceFile::class)
-                    ->distinct();
-            })
+            ->whereIn('id', $this->ownedSourceIds(SourceFile::class))
             ->whereIn('filetype', ['pdf', 'word', 'markdown', 'text'])
             ->sum('length');
 
-        // Get unique SourceTexts (avoid counting duplicates when text is linked to multiple agents)
         $sourceTextsPages = SourceText::query()
-            ->whereIn('id', function ($query) use ($effectiveUserId): void {
-                $query->select('agent_sources.sourceable_id')
-                    ->from('agent_sources')
-                    ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
-                    ->where('agents.user_id', $effectiveUserId)
-                    ->where('agent_sources.sourceable_type', '=', SourceText::class)
-                    ->distinct();
-            })
+            ->whereIn('id', $this->ownedSourceIds(SourceText::class))
             ->sum('length');
 
         return (int) ($sourceFilesPages + $sourceTextsPages);
@@ -523,18 +486,8 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
     public function minutesConsumed(): int
     {
-        $effectiveUserId = $this->effectiveUser()->id;
-
-        // Get unique SourceFiles (avoid counting duplicates when file is linked to multiple agents)
         return (int) SourceFile::query()
-            ->whereIn('id', function ($query) use ($effectiveUserId): void {
-                $query->select('agent_sources.sourceable_id')
-                    ->from('agent_sources')
-                    ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
-                    ->where('agents.user_id', $effectiveUserId)
-                    ->where('agent_sources.sourceable_type', '=', SourceFile::class)
-                    ->distinct();
-            })
+            ->whereIn('id', $this->ownedSourceIds(SourceFile::class))
             ->whereIn('filetype', ['audio', 'video'])
             ->sum('length');
     }
@@ -567,8 +520,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasMany(Ticket::class);
     }
 
-    public function managerQuota() {}
-
+    /**
+     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * (`with('quota')` / `load('quota')`) builds the relation on a bare instance
+     * and returns null for an employee/chatter; eager-load through the workspace
+     * leg instead: `loadMissing(['workspace.quota', 'quota'])` (see AgentTeamController).
+     */
     public function quota(): HasOne
     {
         $effectiveUser = $this->effectiveUser();
@@ -576,6 +533,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $effectiveUser->hasOne(UserQuota::class);
     }
 
+    /**
+     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
+     * through the workspace leg instead: `loadMissing(['workspace.sourceFiles', 'sourceFiles'])`.
+     */
     public function sourceFiles()
     {
         $effectiveUser = $this->effectiveUser();
@@ -904,7 +866,14 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function canCreateTeam(): bool
     {
-        return $this->teamsCreatedCount() < $this->quota->teams_limit;
+        // Fall back to the default-package limit when the user has no quota row
+        // yet (fresh signup before the first plan or webhook lands one). Without
+        // this, brand-new accounts get a misleading "team limit reached" error
+        // when they try to create their first team.
+        $limit = $this->quota?->teams_limit
+            ?? (int) (config('billing.packages.'.config('billing.default_package', 'starter').'.quota_limits.fixed.teams_limit') ?? 1);
+
+        return $this->teamsCreatedCount() < $limit;
     }
 
     /**
@@ -914,11 +883,6 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function canAddWorkspaceUser(): bool
     {
         return $this->workspaceUsersCount() < $this->quota->workspace_users_limit;
-    }
-
-    public function staff(): HasMany
-    {
-        return $this->hasMany(User::class, 'workspace_id')->where('type', UserType::Employee);
     }
 
     /**

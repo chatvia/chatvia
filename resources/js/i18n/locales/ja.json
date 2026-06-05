@@ -1,0 +1,106 @@
+{
+    "common": {
+        "cancel": "キャンセル",
+        "delete": "削除",
+        "close": "閉じる",
+        "save": "保存",
+        "saving": "保存中…"
+    },
+    "approval": {
+        "badge": "承認が必要",
+        "prompt": "続行しますか?",
+        "mcp_tool": "MCP ツール",
+        "function": "関数",
+        "approve": "承認",
+        "deny": "拒否"
+    },
+    "composer": {
+        "default_placeholder": "メッセージ…",
+        "disabled": "チャットは無効です",
+        "stop_recording": "録音を停止",
+        "start_voice_input": "音声入力を開始"
+    },
+    "header": {
+        "toggle_sidebar": "サイドバーを切り替え",
+        "toggle_expand": "全画面表示を切り替え",
+        "incognito_mode": "シークレット",
+        "delete_conversation": "会話を削除",
+        "delete_dialog_title": "会話を削除しますか?",
+        "delete_dialog_description": "この操作は取り消せません。"
+    },
+    "sidebar": {
+        "open_sidebar": "サイドバーを開く",
+        "new_chat": "新しいチャット",
+        "your_chats": "あなたのチャット",
+        "loading": "読み込み中…",
+        "no_conversations": "まだ会話はありません",
+        "rename_conversation": "名前を変更",
+        "clear_all_chats": "すべてのチャットを消去",
+        "delete_all_title": "すべての会話を削除しますか?",
+        "delete_all_description": "この操作は取り消せません。すべての会話が永久に削除されます。",
+        "delete_all_confirm": "すべて削除",
+        "profile": "プロフィール",
+        "my_agents": "マイエージェント",
+        "logout": "ログアウト",
+        "delete_conversation_title": "会話を削除",
+        "delete_conversation_description": "この会話を本当に削除しますか?この操作は取り消せません。",
+        "profile_settings_title": "プロフィール設定",
+        "profile_settings_description": "アカウント情報とパスワードを更新します。",
+        "profile_name": "名前",
+        "name_input_placeholder": "名前を入力",
+        "profile_email": "メール",
+        "email_input_placeholder": "メールを入力",
+        "current_password": "現在のパスワード",
+        "current_password_placeholder": "現在のパスワードを入力",
+        "new_password": "新しいパスワード",
+        "new_password_placeholder": "新しいパスワードを入力",
+        "confirm_password": "パスワードの確認",
+        "confirm_password_placeholder": "新しいパスワードを再入力",
+        "save_changes": "変更を保存",
+        "agents_dialog_title": "マイエージェント",
+        "agents_dialog_description": "AI エージェントとその設定を管理します。",
+        "loading_agents": "エージェントを読み込み中…",
+        "no_agents": "エージェントが見つかりません。",
+        "switching_agent": "切り替え中…",
+        "switch_to_agent": "{name} に切り替え"
+    },
+    "chat": {
+        "message_limit_reached": "メッセージの上限に達しました",
+        "upgrade_prompt": "チャットを続けるにはプランをアップグレードしてください",
+        "regenerate_failed": "応答を再生成できませんでした。もう一度お試しください。",
+        "loading_conversation": "会話を読み込み中"
+    },
+    "messages": {
+        "send": "送信",
+        "delete_user_message_title": "このメッセージを削除しますか?",
+        "delete_user_message_description": "AI の応答も削除されます。",
+        "delete_assistant_message_title": "このメッセージを削除しますか?",
+        "delete_assistant_message_description": "あなたの元のメッセージも削除されます。",
+        "calling_external": "外部データソースを呼び出し中…",
+        "fetching_data": "{label} からデータを取得中",
+        "calling": "{label} を呼び出し中…",
+        "regenerate_tooltip": "応答を再生成"
+    },
+    "errors": {
+        "subscription_expired": "サブスクリプションが期限切れです",
+        "renew_subscription": "サブスクリプションを更新",
+        "message_limit_reached": "メッセージの上限に達しました",
+        "upgrade_plan": "プランをアップグレード",
+        "model_unavailable": "モデルを利用できません",
+        "too_many_requests": "リクエストが多すぎます",
+        "connection_lost": "接続が切れました",
+        "unexpected_response": "予期しない応答",
+        "something_went_wrong": "問題が発生しました",
+        "try_again": "再試行"
+    },
+    "sources": {
+        "title": "ナレッジソース",
+        "source_count": "{count} 件のソース",
+        "description": "この応答の生成に {count} 件のソースが使用されました",
+        "page_label": "{page} ページ"
+    },
+    "home": {
+        "logo_alt": "ロゴ",
+        "welcome_message": "今日はどのようなお手伝いをしましょうか?"
+    }
+}

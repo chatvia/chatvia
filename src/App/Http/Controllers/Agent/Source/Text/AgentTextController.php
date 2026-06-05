@@ -9,11 +9,9 @@ use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\UpdateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,7 +20,6 @@ class AgentTextController
     public function index(Request $request, Agent $agent): Response|Collection
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.sources.train.text'), 403);
 
         if ($request->wantsJson()) {
             return $this->buildTextList($agent);
@@ -51,18 +48,13 @@ class AgentTextController
     public function store(Request $request, Agent $agent, CreateAgentSourceTextAction $create): void
     {
         abort_if($request->user()->cannot('update', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.sources.train.text'), 403);
 
         $request->validate(['content' => ['required', 'min:500']]);
 
         /** @var User $user */
         $user = $request->user();
 
-        try {
-            $create->execute($agent, $user, $request->input('content'));
-        } catch (InviteRejectedException $e) {
-            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
-        }
+        $create->execute($agent, $user, $request->input('content'));
     }
 
     public function update(Request $request, Agent $agent, int $id, UpdateAgentSourceTextAction $update): void
@@ -80,17 +72,12 @@ class AgentTextController
         /** @var User $user */
         $user = $request->user();
 
-        try {
-            $update->execute($agent, $user, $sourceText, $request->input('content'));
-        } catch (InviteRejectedException $e) {
-            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
-        }
+        $update->execute($agent, $user, $sourceText, $request->input('content'));
     }
 
     public function destroy(Request $request, Agent $agent, int $id, DeleteAgentSourceTextAction $delete): void
     {
         abort_if($request->user()->cannot('delete', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.sources.delete'), 403);
 
         /** @var SourceText $text */
         $text = $agent->texts()->where('source_texts.id', $id)->firstOrFail();

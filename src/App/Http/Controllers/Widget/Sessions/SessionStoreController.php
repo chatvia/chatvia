@@ -15,7 +15,7 @@ class SessionStoreController
         $sessionId = $request->header('X-SESSION-ID');
 
         if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
-            return response()->json(data: ['error' => 'Could not verify the agent'], status: 403);
+            return response()->json(data: ['error' => 'Domain not allowed'], status: 403);
         }
 
         $agent = current_agent_from_widget();

@@ -66,6 +66,7 @@
         "spatie/laravel-ray": "^1.40",
         "spatie/laravel-typescript-transformer": "^2.5",
         "spatie/typescript-transformer": "^2.5",
+        "spectra-php/laravel-spectra": "^1.0.0",
         "symfony/browser-kit": "^7.3",
         "symfony/dom-crawler": "^7.3",
         "tightenco/ziggy": "^2.5",

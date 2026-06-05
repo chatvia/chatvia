@@ -10,13 +10,12 @@ use Domain\Membership\Team\Data\Resources\Permissions\PermissionScopeData;
 use Domain\Membership\Team\Data\Resources\Roles\RoleConfigData;
 use Domain\Membership\Team\Data\Resources\Roles\TeamRoleData;
 use Domain\Membership\Team\Data\Resources\Team\TeamAgentData;
+use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Notifications\TeamInvitationNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use RuntimeException;
 
 class TeamService
@@ -59,8 +58,10 @@ class TeamService
             'role_id' => $role->id,
         ]);
 
-        Notification::route('mail', $email)
-            ->notify(new TeamInvitationNotification($invitation));
+        // The mail send lives in a listener (SendTeamInvitationEmail) so this
+        // service is now free of inline Notification dispatches — matches the
+        // codebase rule that side effects flow through events + listeners.
+        TeamInvitationCreated::dispatch($invitation, $email);
     }
 
     /**

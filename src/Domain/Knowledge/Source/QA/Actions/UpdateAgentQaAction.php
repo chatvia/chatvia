@@ -13,7 +13,7 @@ class UpdateAgentQaAction
     {
         $qa->update([
             'title' => $title,
-            'questions' => collect($questions)->pluck('question')->filter()->implode(', '),
+            'questions' => collect($questions)->pluck('question')->filter()->implode("\n"),
             'answer' => $answer,
         ]);
 

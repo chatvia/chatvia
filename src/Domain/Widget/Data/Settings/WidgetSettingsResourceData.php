@@ -55,5 +55,18 @@ class WidgetSettingsResourceData extends Data
         // widget hides the "Talk to a human" affordance when false. Already
         // ANDed with the workspace's handoff capability on the server.
         public bool $handoff_enabled,
+        // Whether to show the paperclip / attach-file button in the composer.
+        // Owners turn this off when the agent shouldn't accept uploads (e.g.
+        // FAQ-only, compliance). Default true.
+        public bool $allow_file_uploads,
+        // Whether to show the microphone / voice-input button in the composer.
+        // Owners turn this off when the agent shouldn't expose speech-to-text.
+        // Default true.
+        public bool $allow_voice_input,
+        // Per-chat upload ceiling (config: agent.files.upload.max_files).
+        // Widget gates the paperclip button on this; the server enforces the
+        // same value via MaxConversationAttachments so a forged request
+        // still gets a 422.
+        public int $max_files_per_chat,
     ) {}
 }

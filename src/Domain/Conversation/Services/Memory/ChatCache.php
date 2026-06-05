@@ -81,6 +81,46 @@ class ChatCache
         return "conversation:{$conversationId}";
     }
 
+    /**
+     * Cache key proving `$userId` owns `$conversationId`. The key itself
+     * encodes the (user, conversation) pair — a different user resolves
+     * to a different key, so a `has()` under the wrong user is a cache
+     * miss. Guests bucket under `user:guest` so an anonymous owner
+     * doesn't collide with a real user id.
+     */
+    public static function ownerKey(int|string|null $userId, string $conversationId): string
+    {
+        $user = $userId === null || $userId === '' ? 'guest' : $userId;
+
+        return "user:{$user}:{$conversationId}";
+    }
+
+    /**
+     * Stamp an ownership marker for (user, conversation). Tagged with
+     * the per-conversation tag so it gets swept by `flushConversation`
+     * when the conversation is deleted. Stored `forever` because
+     * chatters on protected agents keep their conversations until
+     * explicitly deleted — matching how {@see TurnState::initializeSession()}
+     * stores the session itself.
+     */
+    public static function rememberOwner(string $conversationId, int|string|null $userId): void
+    {
+        Cache::driver('chat')
+            ->tags(self::conversationTag($conversationId))
+            ->forever(self::ownerKey($userId, $conversationId), true);
+    }
+
+    /**
+     * True iff the ownership marker for (user, conversation) exists —
+     * i.e. the same user created it. Wrong user → different key → miss.
+     */
+    public static function isOwnedBy(string $conversationId, int|string|null $userId): bool
+    {
+        return Cache::driver('chat')
+            ->tags(self::conversationTag($conversationId))
+            ->has(self::ownerKey($userId, $conversationId));
+    }
+
     public function generateConversationKey(string $conversationId): string
     {
         return "{$this->sessionId}:conversations:{$conversationId}";

@@ -3,12 +3,18 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import { useColorTheme } from '@/composables/useColorTheme';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+
+// Per-chat upload ceiling — sourced from `agent.files.upload.max_files`
+// via Inertia shared props (ChatHandleInertiaRequests). Falls back to 2
+// (the config default) for the brief window before the prop hydrates.
+const page = usePage();
+const maxFilesPerChat = computed(() => page.props.maxFilesPerChat ?? 2);
 
 const props = defineProps({
     appearance: {
@@ -181,6 +187,9 @@ function handleStarterClick(starter) {
                             v-if="canSendMessages"
                             :text="selectedStarter"
                             :placeholder="appearance.composer_placeholder"
+                            :allow-file-uploads="appearance.allow_file_uploads !== false"
+                            :allow-voice-input="appearance.allow_voice_input !== false"
+                            :max-files="maxFilesPerChat"
                             :upload-endpoint="props.agent_id ? route('chat.messages.attachments.store') : undefined"
                             :upload-headers="props.agent_id ? { 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': 'pending' } : undefined"
                             @messageAdded="createNewConversation"

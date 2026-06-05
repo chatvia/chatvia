@@ -2,35 +2,52 @@
 
 namespace App\Http\Requests\Agent\Crud;
 
-use App\Hosting\Rules\SubdomainRule;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\UpdateAgentData;
+use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
 class UpdateAgentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check();
+        /** @var User $user */
+        $user = $this->user();
+        /** @var Agent $agent */
+        $agent = $this->route('agent');
+
+        return $user->can('update', $agent);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string'],
-            'sub_domain' => ['required', new SubdomainRule],
-            'system_instructions' => ['required', 'string'],
-            'is_public' => ['required', 'boolean'],
+            'name' => ['sometimes', 'string', 'min:3', 'max:255'],
+            'sub_domain' => ['sometimes', 'nullable', 'string', 'min:3', 'max:255', 'alpha_dash'],
+            'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
+            'prompt_id' => ['sometimes', 'nullable', 'string', 'prohibits:system_instructions'],
         ];
     }
 
     public function toData(): UpdateAgentData
     {
+        /** @var User $actor */
+        $actor = $this->user();
+        /** @var Agent $agent */
+        $agent = $this->route('agent');
+
         return new UpdateAgentData(
-            name: $this->string('name')->toString(),
-            sub_domain: $this->string('sub_domain')->toString(),
-            system_instructions: $this->string('system_instructions')->toString(),
-            is_public: $this->boolean('is_public'),
+            agent: $agent,
+            actor: $actor,
+            name: $this->has('name') ? $this->string('name')->toString() : null,
+            sub_domain: $this->has('sub_domain') ? $this->input('sub_domain') : null,
+            changePrompt: $this->has('prompt_id'),
+            promptExternalId: $this->input('prompt_id'),
+            changeSystemInstructions: $this->has('system_instructions'),
+            systemInstructions: $this->input('system_instructions'),
         );
     }
 }

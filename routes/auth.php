@@ -4,6 +4,7 @@ use App\Http\Controllers\Agent\Invitations\AcceptAgentInvitationController;
 use App\Http\Controllers\Agent\Invitations\AgentInvitationController;
 use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialCallbackController;
 use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialStartController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\Sessions\MagicLinkController;
 use App\Http\Controllers\Team\Invitations\AcceptTeamInvitationController;
 use App\Http\Controllers\Team\Invitations\TeamInvitationController;
@@ -44,4 +45,12 @@ Route::middleware('guest')->group(function (): void {
     Route::post('magic-link', [MagicLinkController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('magic-link.send');
+
+    // Overrides Fortify's auto-registered POST /forgot-password. The wrapper
+    // never leaks whether the email exists in our DB, and a tight per-IP
+    // throttle caps account-enumeration attempts. Re-using `password.email`
+    // means every existing call site (route name + URL) keeps working.
+    Route::post('forgot-password', ForgotPasswordController::class)
+        ->middleware('throttle:5,1')
+        ->name('password.email');
 });

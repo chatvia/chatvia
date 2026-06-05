@@ -38,15 +38,19 @@ return new class extends Migration
 
             $table->string('domain')->nullable();
 
-            // Mirrors the address Stripe stores on the customer record. Kept
-            // locally so the billing settings page can render it without a
-            // round-trip to Stripe; written by UpdateBillingInformationAction.
-            $table->jsonb('billing_address')->nullable();
+            $table->string('profile_image_path')->nullable();
 
             $table->string('deactivation_reason')->nullable();
 
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
+
+            // Cookie/consent preferences captured on the public consent page.
+            $table->string('data_region')->nullable();
+            $table->boolean('marketing_consent')->default(false);
+            $table->boolean('analytics_consent')->default(false);
+            $table->timestamp('consent_given_at')->nullable();
+
             $table->timestamps();
         });
 

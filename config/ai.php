@@ -12,7 +12,7 @@ return [
 
         'chunker' => 'llama-3.1-70b-instruct',
 
-        'title' => 'llama-3.1-70b-instruct',
+        'title' => 'qwen3.6-35b-a3b',
 
         'subdomain' => 'mistral-nemo-instruct-2407',
 

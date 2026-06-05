@@ -1,0 +1,106 @@
+{
+    "common": {
+        "cancel": "لغو",
+        "delete": "حذف",
+        "close": "بستن",
+        "save": "ذخیره",
+        "saving": "در حال ذخیره…"
+    },
+    "approval": {
+        "badge": "نیاز به تأیید",
+        "prompt": "آیا می‌خواهید ادامه دهید؟",
+        "mcp_tool": "ابزار MCP",
+        "function": "تابع",
+        "approve": "تأیید",
+        "deny": "رد"
+    },
+    "composer": {
+        "default_placeholder": "پیام…",
+        "disabled": "گفتگو غیرفعال است",
+        "stop_recording": "توقف ضبط",
+        "start_voice_input": "شروع ورودی صوتی"
+    },
+    "header": {
+        "toggle_sidebar": "تغییر وضعیت نوار کناری",
+        "toggle_expand": "تغییر وضعیت تمام‌صفحه",
+        "incognito_mode": "ناشناس",
+        "delete_conversation": "حذف گفتگو",
+        "delete_dialog_title": "گفتگو حذف شود؟",
+        "delete_dialog_description": "این عمل قابل بازگشت نیست."
+    },
+    "sidebar": {
+        "open_sidebar": "باز کردن نوار کناری",
+        "new_chat": "گفتگوی جدید",
+        "your_chats": "گفتگوهای شما",
+        "loading": "در حال بارگذاری…",
+        "no_conversations": "هنوز گفتگویی نیست",
+        "rename_conversation": "تغییر نام",
+        "clear_all_chats": "پاک کردن همه گفتگوها",
+        "delete_all_title": "همه گفتگوها حذف شوند؟",
+        "delete_all_description": "این عمل قابل بازگشت نیست. همه گفتگوهای شما برای همیشه حذف خواهند شد.",
+        "delete_all_confirm": "حذف همه",
+        "profile": "پروفایل",
+        "my_agents": "ایجنت‌های من",
+        "logout": "خروج",
+        "delete_conversation_title": "حذف گفتگو",
+        "delete_conversation_description": "آیا مطمئن هستید می‌خواهید این گفتگو را حذف کنید؟ این عمل قابل بازگشت نیست.",
+        "profile_settings_title": "تنظیمات پروفایل",
+        "profile_settings_description": "اطلاعات حساب و رمز عبور خود را به‌روزرسانی کنید.",
+        "profile_name": "نام",
+        "name_input_placeholder": "نام خود را وارد کنید",
+        "profile_email": "ایمیل",
+        "email_input_placeholder": "ایمیل خود را وارد کنید",
+        "current_password": "رمز عبور فعلی",
+        "current_password_placeholder": "رمز عبور فعلی را وارد کنید",
+        "new_password": "رمز عبور جدید",
+        "new_password_placeholder": "رمز عبور جدید را وارد کنید",
+        "confirm_password": "تأیید رمز عبور",
+        "confirm_password_placeholder": "رمز عبور جدید را تأیید کنید",
+        "save_changes": "ذخیره تغییرات",
+        "agents_dialog_title": "ایجنت‌های من",
+        "agents_dialog_description": "ایجنت‌های هوش مصنوعی و پیکربندی آن‌ها را مدیریت کنید.",
+        "loading_agents": "در حال بارگذاری ایجنت‌ها…",
+        "no_agents": "ایجنتی یافت نشد.",
+        "switching_agent": "در حال تعویض…",
+        "switch_to_agent": "تعویض به {name}"
+    },
+    "chat": {
+        "message_limit_reached": "به سقف پیام‌های خود رسیده‌اید",
+        "upgrade_prompt": "برای ادامه گفتگو لطفاً اشتراک خود را ارتقا دهید",
+        "regenerate_failed": "بازتولید پاسخ امکان‌پذیر نبود. لطفاً دوباره تلاش کنید.",
+        "loading_conversation": "در حال بارگذاری گفتگو"
+    },
+    "messages": {
+        "send": "ارسال",
+        "delete_user_message_title": "این پیام حذف شود؟",
+        "delete_user_message_description": "پاسخ هوش مصنوعی نیز حذف خواهد شد.",
+        "delete_assistant_message_title": "این پیام حذف شود؟",
+        "delete_assistant_message_description": "پیام اصلی شما نیز حذف خواهد شد.",
+        "calling_external": "در حال فراخوانی منبع داده خارجی…",
+        "fetching_data": "در حال دریافت داده از {label}",
+        "calling": "در حال فراخوانی {label}…",
+        "regenerate_tooltip": "بازتولید پاسخ"
+    },
+    "errors": {
+        "subscription_expired": "اشتراک منقضی شده است",
+        "renew_subscription": "تمدید اشتراک",
+        "message_limit_reached": "سقف پیام پر شد",
+        "upgrade_plan": "ارتقای اشتراک",
+        "model_unavailable": "مدل در دسترس نیست",
+        "too_many_requests": "درخواست‌های بیش از حد",
+        "connection_lost": "ارتباط قطع شد",
+        "unexpected_response": "پاسخ غیرمنتظره",
+        "something_went_wrong": "خطایی رخ داد",
+        "try_again": "تلاش دوباره"
+    },
+    "sources": {
+        "title": "منابع دانش",
+        "source_count": "{count} منبع",
+        "description": "برای تولید این پاسخ از {count} منبع استفاده شد",
+        "page_label": "صفحه {page}"
+    },
+    "home": {
+        "logo_alt": "لوگو",
+        "welcome_message": "امروز چگونه می‌توانم به شما کمک کنم؟"
+    }
+}

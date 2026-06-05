@@ -3,7 +3,6 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Enums\ToneEnum;
-use Domain\Conversation\Topic\Models\Topic;
 use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Migrations\Migration;
@@ -62,7 +61,6 @@ return new class extends Migration
 
             $table->foreignId('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
             $table->foreignIdFor(Language::class)->nullable()->index()->constrained()->nullOnDelete();
-            $table->foreignIdFor(Topic::class, 'chat_topic_id')->nullable()->constrained('chat_topics')->nullOnDelete();
 
             $table->enum('source', ['hosted_chat', 'widget', 'bar']);
             $table->boolean('is_visible')->default(false);
@@ -70,6 +68,11 @@ return new class extends Migration
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
             $table->enum('tone', ToneEnum::values())->nullable();
+
+            // Stamped by the scheduled consolidated analysis pass (app:analyze-conversations)
+            // ~6h after creation. Its presence means "analysis done" — the idempotency marker
+            // that keeps the batch from re-processing a conversation.
+            $table->timestamp('analyzed_at')->nullable();
 
             $table->foreignIdFor(User::class, 'handoff_user_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $table->enum('handoff_status', ['ai', 'pending', 'human', 'returned'])->default('ai');
@@ -89,7 +92,6 @@ return new class extends Migration
 
             $table->index(['chat_session_id', 'created_at']);
             $table->index(['chat_session_id', 'updated_at']);
-            $table->index('chat_topic_id');
         });
 
         Schema::create('chat_messages', function (Blueprint $table) {
@@ -174,6 +176,8 @@ return new class extends Migration
         DB::statement('CREATE INDEX conversations_visible_active_idx ON chat_conversations (chat_session_id, updated_at) WHERE is_visible = true AND deleted_at IS NULL');
         // Drives the daily prune query (`WHERE expires_at < now() AND deleted_at IS NULL`).
         DB::statement('CREATE INDEX conversations_expires_cleanup_idx ON chat_conversations (expires_at) WHERE expires_at IS NOT NULL AND deleted_at IS NULL');
+        // Drives the consolidated-analysis scan (`WHERE analyzed_at IS NULL AND created_at < ? AND deleted_at IS NULL`).
+        DB::statement('CREATE INDEX conversations_pending_analysis_idx ON chat_conversations (created_at) WHERE analyzed_at IS NULL AND deleted_at IS NULL');
     }
 
     public function down(): void
@@ -186,6 +190,7 @@ return new class extends Migration
             'conversations_handoff_human_idx',
             'conversations_visible_active_idx',
             'conversations_expires_cleanup_idx',
+            'conversations_pending_analysis_idx',
         ];
 
         foreach ($indexes as $index) {

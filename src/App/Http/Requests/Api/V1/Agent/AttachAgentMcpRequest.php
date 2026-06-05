@@ -19,7 +19,7 @@ class AttachAgentMcpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mcp_id' => ['required', 'string'],
+            'mcp_id' => ['required', 'string', 'uuid'],
         ];
     }
 

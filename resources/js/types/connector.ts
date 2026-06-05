@@ -29,7 +29,6 @@ export interface AgentMcpServer {
     slug: string;
     connector_slug: string | null;
     description: string | null;
-    requires_approval: boolean;
     url: string;
     transport: 'streamable_http' | 'http_sse';
     auth_type: 'none' | 'bearer' | 'header';
@@ -59,14 +58,17 @@ export interface ConnectorListResponse {
     custom: ConnectorRow[];
 }
 
+export type McpToolPermission = 'allow' | 'approval' | 'blocked';
+export type McpToolScope = 'read' | 'write';
+
 export interface McpTool {
     id?: number;
     name: string;
     short_name: string;
     description: string;
     parameters: Record<string, unknown>;
-    is_enabled: boolean;
-    requires_approval: boolean;
+    scope: McpToolScope;
+    permission: McpToolPermission;
 }
 
 export interface ConnectorToolsResponse {

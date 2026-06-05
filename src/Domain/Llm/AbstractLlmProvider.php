@@ -3,7 +3,9 @@
 namespace Domain\Llm;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Providers\Mistral;
 use Domain\Llm\Providers\OpenRouter;
+use Domain\Llm\Providers\Scaleway;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
@@ -28,10 +30,24 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
             'stream' => true,
         ], $settings);
 
+        if (static::class === Scaleway::class) {
+            $json['reasoning_effort'] = 'none';
+        }
+
+        // Force the upstream to emit a final chunk with token usage so Spectra
+        // can record cost/tokens. Caller-provided stream_options keys win.
+        $json['stream_options'] = ($json['stream_options'] ?? []) + ['include_usage' => true];
+
         if (static::class === OpenRouter::class) {
             $json['provider'] = [
                 'sort' => 'throughput',
             ];
+        }
+
+        if (static::class === Mistral::class) {
+            // Mistral chat completions rejects `top_k` (error 3051), but the
+            // agent's stored llmSettings always include it.
+            unset($json['top_k']);
         }
 
         return app(GuzzleClient::class)->post($this->getCompletionEndpoint(), [
@@ -50,6 +66,14 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
      */
     public function completion(array $data)
     {
+        if (static::class === Scaleway::class) {
+            $data += ['reasoning_effort' => 'none'];
+        }
+
+        if (static::class === Mistral::class) {
+            unset($data['top_k']);
+        }
+
         return $this->client()
             ->timeout(600)
             ->post($this->getCompletionEndpoint(), $data)

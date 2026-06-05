@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Team\Crud;
 
-use Domain\Membership\Team\Actions\Team\DeleteTeamAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TeamDeleteController
 {
-    public function __invoke(Request $request, Team $team, DeleteTeamAction $delete): RedirectResponse
+    public function __invoke(Request $request, Team $team): RedirectResponse
     {
         $user = $request->user();
 
@@ -29,7 +28,9 @@ class TeamDeleteController
             return back()->withErrors(['team' => 'You cannot delete a team that has agents. Please delete or move all agents first.']);
         }
 
-        $delete->execute($team);
+        // Trivial single-call state change — inlined per the "trivial writes
+        // don't need an Action" rule; the guard rules above are the real logic.
+        $team->delete();
 
         return redirect()->route('teams.index')->with('success', 'Team deleted successfully.');
     }

@@ -1,0 +1,106 @@
+{
+    "common": {
+        "cancel": "रद्द करें",
+        "delete": "हटाएँ",
+        "close": "बंद करें",
+        "save": "सहेजें",
+        "saving": "सहेजा जा रहा है…"
+    },
+    "approval": {
+        "badge": "अनुमोदन आवश्यक",
+        "prompt": "क्या आप आगे बढ़ना चाहते हैं?",
+        "mcp_tool": "MCP टूल",
+        "function": "फ़ंक्शन",
+        "approve": "अनुमोदित करें",
+        "deny": "अस्वीकार करें"
+    },
+    "composer": {
+        "default_placeholder": "संदेश…",
+        "disabled": "चैट अक्षम है",
+        "stop_recording": "रिकॉर्डिंग रोकें",
+        "start_voice_input": "वॉइस इनपुट शुरू करें"
+    },
+    "header": {
+        "toggle_sidebar": "साइडबार टॉगल करें",
+        "toggle_expand": "पूर्ण स्क्रीन टॉगल करें",
+        "incognito_mode": "इनकॉग्निटो",
+        "delete_conversation": "बातचीत हटाएँ",
+        "delete_dialog_title": "बातचीत हटाएँ?",
+        "delete_dialog_description": "यह क्रिया वापस नहीं की जा सकती।"
+    },
+    "sidebar": {
+        "open_sidebar": "साइडबार खोलें",
+        "new_chat": "नई चैट",
+        "your_chats": "आपकी चैट्स",
+        "loading": "लोड हो रहा है…",
+        "no_conversations": "अभी कोई बातचीत नहीं",
+        "rename_conversation": "नाम बदलें",
+        "clear_all_chats": "सभी चैट्स साफ़ करें",
+        "delete_all_title": "सभी बातचीत हटाएँ?",
+        "delete_all_description": "यह क्रिया वापस नहीं की जा सकती। आपकी सभी बातचीत स्थायी रूप से हटा दी जाएँगी।",
+        "delete_all_confirm": "सभी हटाएँ",
+        "profile": "प्रोफ़ाइल",
+        "my_agents": "मेरे एजेंट",
+        "logout": "लॉग आउट",
+        "delete_conversation_title": "बातचीत हटाएँ",
+        "delete_conversation_description": "क्या आप वाकई इस बातचीत को हटाना चाहते हैं? यह क्रिया वापस नहीं की जा सकती।",
+        "profile_settings_title": "प्रोफ़ाइल सेटिंग्स",
+        "profile_settings_description": "अपनी खाता जानकारी और पासवर्ड अपडेट करें।",
+        "profile_name": "नाम",
+        "name_input_placeholder": "अपना नाम दर्ज करें",
+        "profile_email": "ईमेल",
+        "email_input_placeholder": "अपना ईमेल दर्ज करें",
+        "current_password": "वर्तमान पासवर्ड",
+        "current_password_placeholder": "वर्तमान पासवर्ड दर्ज करें",
+        "new_password": "नया पासवर्ड",
+        "new_password_placeholder": "नया पासवर्ड दर्ज करें",
+        "confirm_password": "पासवर्ड की पुष्टि करें",
+        "confirm_password_placeholder": "नए पासवर्ड की पुष्टि करें",
+        "save_changes": "परिवर्तन सहेजें",
+        "agents_dialog_title": "मेरे एजेंट",
+        "agents_dialog_description": "अपने AI एजेंट और उनके कॉन्फ़िगरेशन प्रबंधित करें।",
+        "loading_agents": "एजेंट लोड हो रहे हैं…",
+        "no_agents": "कोई एजेंट नहीं मिला।",
+        "switching_agent": "स्विच हो रहा है…",
+        "switch_to_agent": "{name} पर स्विच करें"
+    },
+    "chat": {
+        "message_limit_reached": "आप अपनी संदेश सीमा तक पहुँच गए हैं",
+        "upgrade_prompt": "चैट जारी रखने के लिए कृपया अपना प्लान अपग्रेड करें",
+        "regenerate_failed": "उत्तर पुनः उत्पन्न नहीं किया जा सका। कृपया पुनः प्रयास करें।",
+        "loading_conversation": "बातचीत लोड हो रही है"
+    },
+    "messages": {
+        "send": "भेजें",
+        "delete_user_message_title": "यह संदेश हटाएँ?",
+        "delete_user_message_description": "इससे AI का उत्तर भी हट जाएगा।",
+        "delete_assistant_message_title": "यह संदेश हटाएँ?",
+        "delete_assistant_message_description": "इससे आपका मूल संदेश भी हट जाएगा।",
+        "calling_external": "बाहरी डेटा स्रोत को कॉल किया जा रहा है…",
+        "fetching_data": "{label} से डेटा प्राप्त किया जा रहा है",
+        "calling": "{label} को कॉल किया जा रहा है…",
+        "regenerate_tooltip": "उत्तर पुनः उत्पन्न करें"
+    },
+    "errors": {
+        "subscription_expired": "सदस्यता समाप्त हो गई",
+        "renew_subscription": "सदस्यता नवीनीकृत करें",
+        "message_limit_reached": "संदेश सीमा तक पहुँच गए",
+        "upgrade_plan": "प्लान अपग्रेड करें",
+        "model_unavailable": "मॉडल उपलब्ध नहीं है",
+        "too_many_requests": "बहुत अधिक अनुरोध",
+        "connection_lost": "कनेक्शन टूट गया",
+        "unexpected_response": "अप्रत्याशित प्रतिक्रिया",
+        "something_went_wrong": "कुछ गलत हो गया",
+        "try_again": "पुनः प्रयास करें"
+    },
+    "sources": {
+        "title": "ज्ञान स्रोत",
+        "source_count": "{count} स्रोत",
+        "description": "इस उत्तर को उत्पन्न करने के लिए {count} स्रोतों का उपयोग किया गया",
+        "page_label": "पृष्ठ {page}"
+    },
+    "home": {
+        "logo_alt": "लोगो",
+        "welcome_message": "आज मैं आपकी कैसे मदद कर सकता हूँ?"
+    }
+}

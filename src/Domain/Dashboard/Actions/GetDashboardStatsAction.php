@@ -4,6 +4,7 @@ namespace Domain\Dashboard\Actions;
 
 use App\Identity\Workspace\Models\User;
 use Carbon\Carbon;
+use Domain\Agent\Models\Agent;
 use Domain\Billing\Models\UserQuota;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -19,58 +20,72 @@ class GetDashboardStatsAction
      */
     public function execute(User $user, ?Team $team): array
     {
-        // One round-trip for the agents id list — reused for every per-actor
-        // count below and for the messages trend.
-        $agentIds = $team ? $team->agents()->pluck('id') : collect();
+        // Resolve the workspace owner. agent.user_id — and therefore every
+        // analytics row — is stamped with it (see CreateAgentAction), so all
+        // account-level stats key on this id and stay correct no matter which
+        // member is viewing the dashboard.
+        $owner = $user->effectiveUser();
+        $userId = $owner->id;
+
+        // Every agent the workspace owns, by user_id. Drives the "Total Agents"
+        // count and the knowledge-sources breakdown — scoped the same way as the
+        // rest of the dashboard.
+        $agentIds = Agent::where('user_id', $userId)->pluck('id');
 
         $totalConversations = $this->rollup()
-            ->whereIn('agent_id', $agentIds)
+            ->where('user_id', $userId)
             ->sum('conversations_started');
-
-        // "Active sessions" intentionally still reads chat_sessions: this is a
-        // recency indicator ("who pinged us in the last 24h"), not a preserved
-        // counter — survives-deletion semantics aren't what we want here.
-        $activeSessions = DB::table('chat_sessions')
-            ->whereIn('agent_id', $agentIds)
-            ->where('created_at', '>=', now()->subDay())
-            ->count();
 
         return [
             'agents' => [
                 'total' => $agentIds->count(),
             ],
-            'messages' => $this->getMessagesPanel($user, $agentIds, $team),
+            'messages' => $this->getMessagesPanel($owner, $team),
             'conversations' => (int) $totalConversations,
-            'active_sessions' => $activeSessions,
+            'active_sessions' => $this->getActiveSessions($userId),
             'knowledge_sources' => $this->getKnowledgeSourcesBreakdown($agentIds),
             'team' => [
                 'members' => $team ? $team->members()->count() : 0,
             ],
-            'weekly_usage' => $this->getDailyMessagesVolume($agentIds, 7, 'D'),
-            'monthly_usage' => $this->getDailyMessagesVolume($agentIds, 30, 'j'),
-            'usage' => $this->getUsageStats($user, $agentIds),
+            'weekly_usage' => $this->getDailyMessagesVolume($userId, 7, 'D'),
+            'monthly_usage' => $this->getDailyMessagesVolume($userId, 30, 'j'),
+            'usage' => $this->getUsageStats($owner),
         ];
+    }
+
+    /**
+     * Visitors seen in the last 24h, across all the user's agents. Sourced from
+     * the analytics event stream by user_id — a recency indicator that no longer
+     * depends on the agent rows still existing.
+     */
+    private function getActiveSessions(int $userId): int
+    {
+        return DB::connection(config('analytics.connection'))
+            ->table('analytics_events')
+            ->where('user_id', $userId)
+            ->where('occurred_at', '>=', now()->subDay())
+            ->distinct()
+            ->count('session_external_id');
     }
 
     /**
      * Build the headline "Messages This Cycle" panel.
      *
-     * `used` is sourced from the analytics rollup so it survives chat deletions
-     * — but the cycle bounds and base quota still come from the user's active
-     * UserCredit row (billing source of truth). Addons are a SEPARATE pool that
-     * survives base-quota overrun: matches the long-standing
+     * `used` is sourced from the analytics rollup (by user_id) so it survives
+     * chat deletions — but the cycle bounds and base quota still come from the
+     * user's active UserCredit row (billing source of truth). Addons are a
+     * SEPARATE pool that survives base-quota overrun: matches the long-standing
      * UserCreditSystem::calculateAvailableMessages semantics where addons stay
      * intact even when base usage > base quota.
      *
-     * @param  Collection<int, int>  $agentIds
      * @return array<string, mixed>
      */
-    private function getMessagesPanel(User $user, Collection $agentIds, ?Team $team): array
+    private function getMessagesPanel(User $user, ?Team $team): array
     {
         $credit = $user->credit;
 
         $used = $credit
-            ? (int) $this->cycleUsage($agentIds, $credit->started_at)
+            ? (int) $this->cycleUsage($user->id, $credit->started_at)
             : 0;
 
         $baseLimit = $credit ? (int) $credit->messages : 0;
@@ -90,17 +105,14 @@ class GetDashboardStatsAction
                     'ends_at' => $credit->ends_at,
                 ]
                 : null,
-            'trend' => $this->getMessagesTrend($agentIds, $team !== null),
+            'trend' => $this->getMessagesTrend($user->id, $team !== null),
         ];
     }
 
-    /**
-     * @param  Collection<int, int>  $agentIds
-     */
-    private function cycleUsage(Collection $agentIds, Carbon $cycleStart): int
+    private function cycleUsage(int $userId, Carbon $cycleStart): int
     {
         return (int) $this->rollup()
-            ->whereIn('agent_id', $agentIds)
+            ->where('user_id', $userId)
             ->where('bucket_hour', '>=', $cycleStart)
             ->sum('assistant_messages');
     }
@@ -116,13 +128,13 @@ class GetDashboardStatsAction
     /**
      * @return array<string, mixed>
      */
-    private function getUsageStats(User $user, Collection $agentIds): array
+    private function getUsageStats(User $user): array
     {
         /** @var UserQuota $quota */
         $quota = $user->quota;
         $credit = $user->credit;
 
-        $cycleMessages = $credit ? $this->cycleUsage($agentIds, $credit->started_at) : 0;
+        $cycleMessages = $credit ? $this->cycleUsage($user->id, $credit->started_at) : 0;
         $baseLimit = $credit ? (int) $credit->messages : 0;
         $addons = $this->activeAddonsTotal($user);
         $quotaMessages = $baseLimit + $addons;
@@ -201,17 +213,16 @@ class GetDashboardStatsAction
     }
 
     /**
-     * @param  Collection<int, int>  $agentIds
      * @return array<string, int|float>
      */
-    private function getMessagesTrend(Collection $agentIds, bool $hasTeam): array
+    private function getMessagesTrend(int $userId, bool $hasTeam): array
     {
         if (! $hasTeam) {
             return ['this_month' => 0, 'last_month' => 0, 'percent_change' => 0];
         }
 
-        $thisMonth = $this->assistantMessagesInRange($agentIds, now()->startOfMonth(), null);
-        $lastMonth = $this->assistantMessagesInRange($agentIds, now()->subMonth()->startOfMonth(), now()->startOfMonth());
+        $thisMonth = $this->assistantMessagesInRange($userId, now()->startOfMonth(), null);
+        $lastMonth = $this->assistantMessagesInRange($userId, now()->subMonth()->startOfMonth(), now()->startOfMonth());
 
         $percentChange = $lastMonth > 0
             ? round((($thisMonth - $lastMonth) / $lastMonth) * 100)
@@ -224,13 +235,10 @@ class GetDashboardStatsAction
         ];
     }
 
-    /**
-     * @param  Collection<int, int>  $agentIds
-     */
-    private function assistantMessagesInRange(Collection $agentIds, Carbon $from, ?Carbon $to): int
+    private function assistantMessagesInRange(int $userId, Carbon $from, ?Carbon $to): int
     {
         $query = $this->rollup()
-            ->whereIn('agent_id', $agentIds)
+            ->where('user_id', $userId)
             ->where('bucket_hour', '>=', $from);
 
         if ($to) {
@@ -241,32 +249,23 @@ class GetDashboardStatsAction
     }
 
     /**
-     * @param  Collection<int, int>  $agentIds
      * @return array<int, array{label: string, value: int}>
      */
-    private function getDailyMessagesVolume(Collection $agentIds, int $days, string $labelFormat): array
+    private function getDailyMessagesVolume(int $userId, int $days, string $labelFormat): array
     {
-        $data = [];
-
-        if ($agentIds->isEmpty()) {
-            for ($i = $days - 1; $i >= 0; $i--) {
-                $data[] = ['label' => now()->subDays($i)->format($labelFormat), 'value' => 0];
-            }
-
-            return $data;
-        }
-
         $startDate = now()->subDays($days - 1)->startOfDay();
         $endDate = now()->endOfDay();
 
         $dailyMessages = $this->rollup()
-            ->whereIn('agent_id', $agentIds)
+            ->where('user_id', $userId)
             ->whereRaw('bucket_hour::date BETWEEN ? AND ?', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->selectRaw('bucket_hour::date as date, SUM(assistant_messages) as count')
             ->groupBy('date')
             ->orderBy('date')
             ->pluck('count', 'date')
             ->toArray();
+
+        $data = [];
 
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = now()->subDays($i);

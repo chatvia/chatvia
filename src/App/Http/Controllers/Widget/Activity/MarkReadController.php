@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Widget\Activity;
 
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Widget\Data\Thread\WidgetMarkReadResultData;
+use Domain\Widget\Data\Conversation\WidgetMarkReadResultData;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,7 +22,7 @@ readonly class MarkReadController
     ): JsonResponse|WidgetMarkReadResultData {
         $sessionId = $request->header('X-SESSION-ID');
         $agentId = $request->header('X-AGENT-ID');
-        $conversationId = $request->input('conversation_id') ?? $request->header('X-THREAD-ID');
+        $conversationId = $request->input('conversation_id') ?? $request->header('X-CONVERSATION-ID');
 
         if (! $sessionId || ! $conversationId) {
             return response()->json(['error' => 'Missing required parameters'], 400);

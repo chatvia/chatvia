@@ -20,7 +20,11 @@ it('creates an agent attached to a library prompt via prompt_id', function (): v
     $prompt = $this->user->prompts()->create(['name' => 'Persona', 'prompt' => 'Be helpful.']);
 
     $this->withHeaders(promptApiHeaders($this->token))
-        ->postJson('/api/v1/agents', ['name' => 'Bot', 'prompt_id' => $prompt->external_id])
+        ->postJson('/api/v1/agents', [
+            'name' => 'Bot',
+            'team_id' => $this->user->primaryTeam()->external_id,
+            'prompt_id' => $prompt->external_id,
+        ])
         ->assertOk()
         ->assertJsonPath('data.prompt_id', $prompt->external_id)
         ->assertJsonPath('data.system_instructions', null);
@@ -32,7 +36,11 @@ it('creates an agent attached to a library prompt via prompt_id', function (): v
 
 it('creates an agent with custom system_instructions', function (): void {
     $this->withHeaders(promptApiHeaders($this->token))
-        ->postJson('/api/v1/agents', ['name' => 'Bot', 'system_instructions' => 'Custom prompt'])
+        ->postJson('/api/v1/agents', [
+            'name' => 'Bot',
+            'team_id' => $this->user->primaryTeam()->external_id,
+            'system_instructions' => 'Custom prompt',
+        ])
         ->assertOk()
         ->assertJsonPath('data.system_instructions', 'Custom prompt')
         ->assertJsonPath('data.prompt_id', null);
@@ -44,6 +52,7 @@ it('rejects sending both prompt_id and system_instructions', function (): void {
     $this->withHeaders(promptApiHeaders($this->token))
         ->postJson('/api/v1/agents', [
             'name' => 'Bot',
+            'team_id' => $this->user->primaryTeam()->external_id,
             'prompt_id' => $prompt->external_id,
             'system_instructions' => 'Custom prompt',
         ])
@@ -53,7 +62,11 @@ it('rejects sending both prompt_id and system_instructions', function (): void {
 
 it('rejects an unknown prompt_id', function (): void {
     $this->withHeaders(promptApiHeaders($this->token))
-        ->postJson('/api/v1/agents', ['name' => 'Bot', 'prompt_id' => 'does-not-exist'])
+        ->postJson('/api/v1/agents', [
+            'name' => 'Bot',
+            'team_id' => $this->user->primaryTeam()->external_id,
+            'prompt_id' => 'does-not-exist',
+        ])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['prompt_id']);
 });

@@ -4,6 +4,8 @@ namespace Domain\Integration\Mcp\Services;
 
 use Domain\Conversation\Jobs\EmbedMcpToolsJob;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Integration\Mcp\Enums\McpToolPermission;
+use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Illuminate\Database\Eloquent\Collection;
@@ -90,17 +92,22 @@ class McpCatalog
 
                 $annotations = is_array($tool['annotations'] ?? null) ? $tool['annotations'] : null;
                 $description = (string) ($tool['description'] ?? '');
+                $scope = ($annotations['readOnlyHint'] ?? false) === true
+                    ? McpToolScope::Read
+                    : McpToolScope::Write;
 
                 $row = McpTool::query()->firstOrNew([
                     'mcp_server_id' => $server->id,
                     'name' => $tool['name'],
                 ]);
 
-                // Seed the per-tool approval default from annotations on first
-                // sight only — a re-sync must never clobber a user's toggle.
-                // readOnly → no approval; destructive/unknown → approval.
+                // Seed the per-tool permission from scope on first sight only —
+                // a re-sync must never clobber a user's choice.
+                // Read → Allow; Write → Approval.
                 if (! $row->exists) {
-                    $row->requires_approval = ! (bool) ($annotations['readOnlyHint'] ?? false);
+                    $row->permission = $scope === McpToolScope::Read
+                        ? McpToolPermission::Allow
+                        : McpToolPermission::Approval;
                 }
 
                 // Re-embed when the embed-relevant text (description) changes.
@@ -113,6 +120,10 @@ class McpCatalog
                     'description' => $description,
                     'input_schema' => is_array($tool['inputSchema'] ?? null) ? $tool['inputSchema'] : ['type' => 'object', 'properties' => (object) []],
                     'annotations' => $annotations,
+                    // Scope re-syncs every refresh — it's a fact about the tool,
+                    // not a user choice. If the server upgrades a read tool to a
+                    // write tool, the section split should follow.
+                    'scope' => $scope,
                     'fetched_at' => $now,
                 ])->save();
             }

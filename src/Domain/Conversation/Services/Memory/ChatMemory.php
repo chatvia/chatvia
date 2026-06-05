@@ -4,7 +4,6 @@ namespace Domain\Conversation\Services\Memory;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Contracts\ChatMemoryInterface;
 use Domain\Conversation\Data\Memory\ConversationData;
 use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
@@ -20,7 +19,7 @@ use InvalidArgumentException;
  * This class acts as a facade that orchestrates the different managers responsible for
  * conversation state, message handling, and source tracking within chat sessions.
  */
-class ChatMemory implements ChatMemoryInterface
+class ChatMemory
 {
     private ?string $conversationId = null;
 
@@ -138,16 +137,6 @@ class ChatMemory implements ChatMemoryInterface
     }
 
     /**
-     * Check if the current conversation exists.
-     *
-     * @deprecated Use conversationExists() instead
-     */
-    public function conversationExist(): bool
-    {
-        return $this->conversationExists();
-    }
-
-    /**
      * Get a specific conversation by ID.
      */
     public function getConversationById(string $conversationId): ?ConversationData
@@ -198,7 +187,13 @@ class ChatMemory implements ChatMemoryInterface
 
         $messageId = $this->messageManager->addMessageFromPayload($this->conversationId, $payload);
 
-        StoreMessageJob::dispatch($this->agent, $payload);
+        // Persist to the chat log unless the owner switched logging off for this
+        // agent (Setup → Settings → Chat log). The in-memory turn state above is
+        // untouched, so the live conversation still works — we just never write
+        // it to the database, which also skips every downstream analytic.
+        if ($this->agent?->chatlogEnabled() ?? true) {
+            StoreMessageJob::dispatch($this->agent, $payload);
+        }
 
         return $messageId;
     }
@@ -343,65 +338,6 @@ class ChatMemory implements ChatMemoryInterface
     public function isMemberAuth(): bool
     {
         return Auth::guard('web')->check();
-    }
-
-    /**
-     * @deprecated Use the specific manager methods instead
-     */
-    public function getChatCache()
-    {
-        $this->ensureInitialized();
-
-        return $this->cache->getTaggedCache();
-    }
-
-    /**
-     * @deprecated Use the specific manager methods instead
-     */
-    public function cachePut($key, $value): void
-    {
-        $this->ensureInitialized();
-        $this->cache->put($key, $value);
-    }
-
-    /**
-     * @deprecated Use the specific manager methods instead
-     */
-    public function cacheGet($cacheId)
-    {
-        $this->ensureInitialized();
-
-        return $this->cache->get($cacheId);
-    }
-
-    /**
-     * @deprecated Use the specific manager methods instead
-     */
-    public function cacheHas($cacheId): bool
-    {
-        $this->ensureInitialized();
-
-        return $this->cache->has($cacheId);
-    }
-
-    /**
-     * @deprecated Use the specific manager methods instead
-     */
-    public function cacheForget($cacheId): bool
-    {
-        $this->ensureInitialized();
-
-        return $this->cache->forget($cacheId);
-    }
-
-    /**
-     * @deprecated Use the specific manager methods instead
-     */
-    public function cacheFlush(): bool
-    {
-        $this->ensureInitialized();
-
-        return $this->cache->flush();
     }
 
     /**

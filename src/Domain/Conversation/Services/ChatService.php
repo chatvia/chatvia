@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services;
 
 use Carbon\Carbon;
+use Domain\Agent\Models\Agent;
 use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
@@ -10,16 +11,31 @@ use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Knowledge\Ingestion\Services\Search\KnowledgeBase;
+use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Query\QueryRewriter;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
+/**
+ * Chat turn lifecycle: build the context, enrich with knowledge / Q&A, prepare
+ * the LLM message stack, persist the assistant's output. The agentic loop
+ * (tool calls + iterations + approval-gating) lives in ToolLoopRunner; LlmSource
+ * orchestrates the SSE envelope around the loop.
+ *
+ * MessageProcessor's surface was folded in (H11). The private helpers below
+ * (`prepareSystemMessage`, `searchQA`, `searchKnowledgeBaseFor`,
+ * `buildContextualUserMessage`, `enrichSourcesWithMetadata`) were its public
+ * methods; nothing else consumed them, so removing the indirection saves one
+ * class without changing behaviour.
+ */
 readonly class ChatService
 {
     public function __construct(
         private ChatMemory $memory,
-        private MessageProcessor $messageProcessor
+        private KnowledgeBase $knowledgeBase,
     ) {}
 
     public function initializeChatContext(StreamRequestData $data): ChatContext
@@ -101,10 +117,10 @@ readonly class ChatService
 
     public function prepareLlmMessages(ChatContext $context): array
     {
-        return $this->messageProcessor->prepareLlmMessages(
+        return $this->prepareLlmMessagesFor(
             $context->requestData,
             $context->payload,
-            $context->llmMessages
+            $context->llmMessages,
         );
     }
 
@@ -164,7 +180,7 @@ readonly class ChatService
     public function enrichContextWithKnowledge(ChatContext $context): ChatContext
     {
         // First, check for high-confidence Q&A match using ORIGINAL message (not rewritten)
-        $qaMatch = $this->messageProcessor->searchQA(
+        $qaMatch = $this->searchQA(
             $context->requestData->agent->id,
             $context->payload->message  // Use original message for Q&A matching
         );
@@ -178,7 +194,7 @@ readonly class ChatService
         }
 
         // No Q&A match - search knowledge base chunks
-        $sources = $this->messageProcessor->searchKnowledgeBase(
+        $sources = $this->searchKnowledgeBaseFor(
             $context->requestData->agent,
             $context->payload,
         );
@@ -194,7 +210,7 @@ readonly class ChatService
         $avgConfidence = $this->calculateAverageConfidence($sources);
         $context->setConfidenceScore($avgConfidence);
 
-        $contextualMessage = $this->messageProcessor->buildContextualUserMessage(
+        $contextualMessage = $this->buildContextualUserMessage(
             $context->payload,
             $sources
         );
@@ -256,17 +272,6 @@ readonly class ChatService
         }
     }
 
-    /**
-     * Legacy hook from the pre-envelope StreamHandler path. The old behavior
-     * was to delete the user's message on disconnect, which was destructive
-     * on flaky networks. Under the envelope path, partial state is preserved
-     * via LlmSource::events()'s catch block — so this is now a no-op.
-     */
-    public function handleClientDisconnection(ChatContext $context): void
-    {
-        // Intentionally no-op. See LlmSource for the envelope-path equivalent.
-    }
-
     private function saveAssistantMessage(ChatContext $context): void
     {
         $this
@@ -299,11 +304,6 @@ readonly class ChatService
     /**
      * Decide whether this turn produced an answer, using deterministic
      * retrieval signals — never the LLM's self-report.
-     *
-     * Q&A hits are answers by definition. Otherwise we look at the chunk
-     * search: empty sources or low average confidence (< 0.65, matching the
-     * "low" bucket in ConversationQueryBuilder) means we have no
-     * grounding to claim the LLM answered the user's question.
      */
     private function didFindAnswer(ChatContext $context): bool
     {
@@ -337,5 +337,161 @@ readonly class ChatService
         }
 
         return round($confidenceScores->avg(), 4);
+    }
+
+    // ===========================================================
+    // ===  Folded-in from MessageProcessor (H11 consolidation) ===
+    // ===========================================================
+
+    private function prepareLlmMessagesFor(StreamRequestData $data, ChatInputPayload $payload, array $messages): array
+    {
+        $systemPrompt = $this->buildSystemPrompt($data);
+
+        // Get the current user message content (may include retrieved context)
+        $userMessageContent = $payload->message_for_llm;
+
+        // Check if the last message is already a user message
+        $lastMessage = end($messages);
+        $hasUserMessage = $lastMessage && $lastMessage['role'] === 'user';
+
+        if ($hasUserMessage) {
+            // Replace the last user message with the enriched one
+            array_pop($messages);
+        }
+
+        // Add the current user message (either new or updated with context)
+        $userMessage = [
+            'role' => 'user',
+            'content' => $userMessageContent,
+        ];
+
+        return array_merge([$systemPrompt], $messages, [$userMessage]);
+    }
+
+    /**
+     * Strict-phrase Q&A match. Exact phrase, word order matters.
+     */
+    private function searchQA(int $agentId, string $query): ?object
+    {
+        $results = AgentQuestionAnswer::query()->phraseSearch($agentId, $query);
+
+        if (empty($results)) {
+            return null;
+        }
+
+        $qa = $results[0];
+        $qa->confidence_score = 0.99;
+
+        return $qa;
+    }
+
+    private function searchKnowledgeBaseFor(Agent $agent, ChatInputPayload $payload): Collection
+    {
+        // Always search. The reranker's relevance_threshold drops chunks that
+        // don't actually match — greetings/acknowledgments produce an empty
+        // result set without needing a separate LLM gate to short-circuit.
+        $searchResults = $this->knowledgeBase->search($agent, $payload->message_for_llm);
+
+        return $this->enrichSourcesWithMetadata($searchResults);
+    }
+
+    private function buildSystemPrompt(StreamRequestData $data): array
+    {
+        $systemPrompt = $data->agent->resolveSystemInstructions();
+
+        $systemPrompt .= prompt('knowledge/preconditions');
+
+        $business = array_filter($data->agent->settings('business')->toArray(), static fn ($v): bool => filled($v));
+        if ($business !== []) {
+            $systemPrompt .= "\n\n".prompt('business/profile', [
+                'email' => $business['email'] ?? null,
+                'phone' => $business['phone'] ?? null,
+                'website' => $business['website'] ?? null,
+                'address' => $business['address'] ?? null,
+                'opening_hours' => $business['opening_hours'] ?? null,
+            ]);
+        }
+
+        return [
+            'role' => 'system',
+            'content' => $systemPrompt,
+        ];
+    }
+
+    private function buildContextualUserMessage(ChatInputPayload $payload, Collection $sources): string
+    {
+        if ($sources->isEmpty()) {
+            return $payload->message_for_llm;
+        }
+
+        $message = Str::of("### User Question:\n")
+            ->append($payload->message_for_llm)
+            ->append("\n\n### Retrieved Context\n");
+
+        // Check if any sources have images
+        $hasImages = $sources->contains(fn ($chunk): bool => ! empty($chunk['images']));
+
+        if ($hasImages) {
+            $message = $message->append("\n⚠️ CRITICAL INSTRUCTION: This context includes images. You MUST include relevant images in your response using markdown format: ![description](url)\n\n");
+        }
+
+        $message = $message->append($sources->map(function ($chunk, $i) {
+            $text = "Context {$i}:\n".$chunk['content']."\n";
+
+            if (! empty($chunk['images'])) {
+                $text .= "\n📷 IMAGES FOR THIS CONTEXT (REQUIRED - Include in response):\n";
+
+                $imageIndex = 0;
+                foreach ($chunk['images'] as $description) {
+                    // Always use main domain URL instead of subdomain-based route()
+                    $path = '/my/chunks/'.$chunk['external_id'].'/'.$imageIndex.'.png';
+                    $imageUrl = rtrim(config('app.url'), '/').$path;
+                    $text .= "- Image {$imageIndex}: {$description}\n";
+                    $text .= "  Markdown: ![{$description}]({$imageUrl})\n";
+                    $imageIndex++;
+                }
+                $text .= "\n";
+            }
+
+            return $text;
+        })->implode("\n"));
+
+        return $message->toString();
+    }
+
+    private function enrichSourcesWithMetadata(array $searchResults): Collection
+    {
+        if (empty($searchResults)) {
+            return collect();
+        }
+
+        // Get unique chunkable IDs and their types
+        $chunkableItems = collect($searchResults)
+            ->groupBy('chunkable_type')
+            ->map(function ($results, string $type) {
+                $ids = $results->pluck('chunkable_id')->unique();
+
+                /** @var class-string<Model> $type */
+                return $type::whereIn('id', $ids)->get()->keyBy('id');
+            });
+
+        return collect($searchResults)->map(function ($result) use ($chunkableItems) {
+            $chunkable = $chunkableItems[$result->chunkable_type]?->get($result->chunkable_id);
+            $metadata = json_decode($result->metadata, true);
+
+            return [
+                'id' => $result->id,
+                'external_id' => $result->external_id,
+                'content' => $result->chunk,
+                'confidence_score' => $result->confidence_score ?? null,
+                'metadata' => [
+                    'filename' => $chunkable->filename ?? ($chunkable->url ?? 'Unknown'),
+                    'document_id' => $result->id,
+                    'chunkable_type' => $result->chunkable_type,
+                    'chunkable_id' => $result->chunkable_id,
+                ],
+                'images' => $metadata['images'] ?? [],
+            ];
+        });
     }
 }

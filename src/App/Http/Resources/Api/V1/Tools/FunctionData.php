@@ -79,7 +79,7 @@ class FunctionData extends Data
             internal_name: $function->internal_name,
             display_name: $function->display_name,
             description: $function->description,
-            parameters_schema: $function->parameters_schema ?? [],
+            parameters_schema: (array) ($function->parameters_schema ?? []),
             webhook: new FunctionWebhookData(
                 url: $function->webhook_url,
                 method: FunctionWebhookMethod::from($function->webhook_method),

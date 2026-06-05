@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Middleware\Access\EnsureAgentHasMessagesCapacity;
+use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureCanAccessApiAgent;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
+use App\Http\Middleware\Access\EnsureTeamPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Http\Middleware\Access\EnsureUserHasCapability;
 use App\Http\Middleware\Access\EnsureUserHasSubscription;
@@ -18,12 +20,14 @@ use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\ForceWww;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
+use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 use Sentry\Laravel\Integration as SentryIntegration;
 
 $app = Application::configure(basePath: dirname(__DIR__))
@@ -43,7 +47,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('telescope:prune --hours=24')->dailyAt('00:00');
         $schedule->command('app:cache-message-usage')->everyFiveMinutes();
-        $schedule->command('app:update-free-users-quotas')->dailyAt('01:00');
+        $schedule->command('app:prune-expired-data-exports')->dailyAt('00:15');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
@@ -76,6 +80,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'api.agent' => EnsureCanAccessApiAgent::class,
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
             'capability' => EnsureUserHasCapability::class,
+            'agent.permission' => EnsureAgentPermission::class,
+            'team.permission' => EnsureTeamPermission::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
@@ -98,6 +104,15 @@ $app = Application::configure(basePath: dirname(__DIR__))
         if (app()->isProduction()) {
             SentryIntegration::handles($exceptions);
         }
+
+        // Canonical HTTP translation for the domain's field-keyed rejection
+        // exception: render it as a 422 validation error — JSON gets
+        // {message, errors:{field:[...]}}, web/Inertia redirects back with the
+        // field error. Controllers no longer hand-translate it; they only catch
+        // it when they intentionally need a different shape (e.g. a 403 or a flash).
+        $exceptions->map(fn (InviteRejectedException $e) => ValidationException::withMessages([
+            $e->field => [$e->getMessage()],
+        ]));
     })->create();
 
 // DDD layout: the Laravel framework surface lives at src/App/ rather than

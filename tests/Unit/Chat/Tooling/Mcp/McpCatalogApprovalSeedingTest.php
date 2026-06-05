@@ -1,6 +1,8 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Integration\Mcp\Enums\McpToolPermission;
+use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Mcp\Services\McpCatalog;
@@ -21,7 +23,6 @@ function approvalServer(): AgentMcpServer
         'url' => 'https://mcp.example.test',
         'transport' => 'streamable_http',
         'auth_type' => 'none',
-        'requires_approval' => true,
         'is_enabled' => true,
     ]);
 }
@@ -35,7 +36,7 @@ function fakeTools(): array
     ];
 }
 
-it('seeds per-tool requires_approval from annotations on first catalog', function (): void {
+it('seeds per-tool permission from annotations on first catalog', function (): void {
     Queue::fake();
 
     $server = approvalServer();
@@ -44,12 +45,12 @@ it('seeds per-tool requires_approval from annotations on first catalog', functio
 
     app(McpCatalog::class)->refresh($server);
 
-    expect(McpTool::where('name', 'read_tool')->first()->requires_approval)->toBeFalse()
-        ->and(McpTool::where('name', 'write_tool')->first()->requires_approval)->toBeTrue()
-        ->and(McpTool::where('name', 'unknown_tool')->first()->requires_approval)->toBeTrue();
+    expect(McpTool::where('name', 'read_tool')->first()->permission)->toBe(McpToolPermission::Allow)
+        ->and(McpTool::where('name', 'write_tool')->first()->permission)->toBe(McpToolPermission::Approval)
+        ->and(McpTool::where('name', 'unknown_tool')->first()->permission)->toBe(McpToolPermission::Approval);
 });
 
-it('does not clobber a user-toggled requires_approval on a re-sync', function (): void {
+it('derives scope from the readOnlyHint annotation', function (): void {
     Queue::fake();
 
     $server = approvalServer();
@@ -58,11 +59,46 @@ it('does not clobber a user-toggled requires_approval on a re-sync', function ()
 
     app(McpCatalog::class)->refresh($server);
 
-    // User turns approval OFF for the write tool.
-    McpTool::where('mcp_server_id', $server->id)->where('name', 'write_tool')->update(['requires_approval' => false]);
+    expect(McpTool::where('name', 'read_tool')->first()->scope)->toBe(McpToolScope::Read)
+        ->and(McpTool::where('name', 'write_tool')->first()->scope)->toBe(McpToolScope::Write)
+        ->and(McpTool::where('name', 'unknown_tool')->first()->scope)->toBe(McpToolScope::Write);
+});
 
-    // Re-sync must preserve the user's override.
+it('does not clobber a user-set permission on a re-sync', function (): void {
+    Queue::fake();
+
+    $server = approvalServer();
+
+    $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(fakeTools()));
+
+    app(McpCatalog::class)->refresh($server);
+
+    // User flips the write tool to Allow.
+    McpTool::where('mcp_server_id', $server->id)->where('name', 'write_tool')->update(['permission' => McpToolPermission::Allow->value]);
+
+    // Re-sync must preserve the user's choice.
     app(McpCatalog::class)->refresh($server->fresh());
 
-    expect(McpTool::where('mcp_server_id', $server->id)->where('name', 'write_tool')->first()->requires_approval)->toBeFalse();
+    expect(McpTool::where('mcp_server_id', $server->id)->where('name', 'write_tool')->first()->permission)
+        ->toBe(McpToolPermission::Allow);
+});
+
+it('re-syncs scope when the server upgrades a tool from read to write', function (): void {
+    Queue::fake();
+
+    $server = approvalServer();
+    $client = $this->mock(McpClient::class);
+
+    $client->shouldReceive('fetchTools')->once()->andReturn([
+        ['name' => 'thing', 'description' => 'reads', 'inputSchema' => ['type' => 'object', 'properties' => []], 'annotations' => ['readOnlyHint' => true]],
+    ]);
+    app(McpCatalog::class)->refresh($server);
+    expect(McpTool::where('name', 'thing')->first()->scope)->toBe(McpToolScope::Read);
+
+    $client->shouldReceive('fetchTools')->once()->andReturn([
+        ['name' => 'thing', 'description' => 'now writes', 'inputSchema' => ['type' => 'object', 'properties' => []], 'annotations' => ['readOnlyHint' => false]],
+    ]);
+    app(McpCatalog::class)->refresh($server->fresh());
+
+    expect(McpTool::where('name', 'thing')->first()->scope)->toBe(McpToolScope::Write);
 });

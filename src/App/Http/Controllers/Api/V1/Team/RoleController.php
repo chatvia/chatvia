@@ -9,11 +9,9 @@ use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
 use Domain\Membership\Team\Data\RolePayloadData;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Roles live inside a team. A role grants access to a set of agents — all of
@@ -31,13 +29,9 @@ class RoleController
      */
     public function store(Request $request, Team $team, RolePayloadData $payload, CreateTeamRoleAction $action): array
     {
-        abort_unless($this->accountOwner($request)->ownsTeam($team), 403);
+        abort_unless($request->user()->effectiveUser()->ownsTeam($team), 403);
 
-        try {
-            $role = $action->execute($this->toSaveData($team, $payload));
-        } catch (InviteRejectedException $e) {
-            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
-        }
+        $role = $action->execute($this->toSaveData($team, $payload));
 
         return ['data' => RoleData::fromModel($role)];
     }
@@ -52,14 +46,10 @@ class RoleController
      */
     public function update(Request $request, Team $team, Role $role, RolePayloadData $payload, UpdateTeamRoleAction $action): array
     {
-        abort_unless($this->accountOwner($request)->ownsTeam($team), 403);
+        abort_unless($request->user()->effectiveUser()->ownsTeam($team), 403);
         abort_unless($role->team_id === $team->id, 404);
 
-        try {
-            $updated = $action->execute($role, $this->toSaveData($team, $payload));
-        } catch (InviteRejectedException $e) {
-            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
-        }
+        $updated = $action->execute($role, $this->toSaveData($team, $payload));
 
         return ['data' => RoleData::fromModel($updated)];
     }
@@ -75,11 +65,4 @@ class RoleController
         );
     }
 
-    private function accountOwner(Request $request): User
-    {
-        /** @var User $account */
-        $account = $request->user();
-
-        return $account->belongsToWorkspace() ? $account->workspace : $account;
-    }
 }

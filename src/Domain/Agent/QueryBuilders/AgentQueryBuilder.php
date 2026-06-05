@@ -85,8 +85,6 @@ WITH agent_rollup AS (
         COALESCE(SUM(user_messages), 0)             AS total_user,
         COALESCE(SUM(assistant_messages), 0)        AS total_assistant,
         COALESCE(SUM(conversations_started), 0)     AS total_conversations,
-        COALESCE(SUM(positive_feedback), 0)         AS positive_feedback,
-        COALESCE(SUM(negative_feedback), 0)         AS negative_feedback,
         CASE WHEN SUM(response_ms_count) > 0
              THEN SUM(response_ms_sum)::float / SUM(response_ms_count)
         END                                         AS avg_response_ms,
@@ -110,8 +108,7 @@ hour_bucket AS (
 conv_metrics AS (
     SELECT
         AVG(message_count)                                    AS avg_messages_per_conversation,
-        AVG(NULLIF(duration_seconds, 0))                      AS avg_conversation_duration_seconds,
-        COUNT(*) FILTER (WHERE had_feedback)                  AS conversations_with_feedback
+        AVG(NULLIF(duration_seconds, 0))                      AS avg_conversation_duration_seconds
     FROM analytics_conversation_metrics
     WHERE agent_id = ?
 ),
@@ -137,6 +134,16 @@ first_response AS (
         GROUP BY conversation_external_id
     ) a ON a.conversation_external_id = u.conversation_external_id
     WHERE a.occurred_at > u.occurred_at
+),
+-- Feedback is current-state (one upserted row per message), so totals are a
+-- plain COUNT over the live rows rather than a lifetime rollup counter.
+feedback AS (
+    SELECT
+        COUNT(*) FILTER (WHERE feedback = 'positive')   AS positive_feedback,
+        COUNT(*) FILTER (WHERE feedback = 'negative')   AS negative_feedback,
+        COUNT(DISTINCT conversation_external_id)        AS conversations_with_feedback
+    FROM analytics_events
+    WHERE agent_id = ? AND event_type = 'feedback_given'
 )
 SELECT
     ar.total_assistant,
@@ -145,23 +152,24 @@ SELECT
     ar.avg_response_ms,
     ar.total_tokens,
     ar.avg_tokens,
-    ar.positive_feedback,
-    ar.negative_feedback,
+    fb.positive_feedback,
+    fb.negative_feedback,
     ar.first_data_date,
     (SELECT hour FROM hour_bucket)                       AS peak_hour,
     cm.avg_messages_per_conversation,
     cm.avg_conversation_duration_seconds,
-    cm.conversations_with_feedback,
+    fb.conversations_with_feedback,
     sc.unique_sessions,
     fr.avg_first_response_seconds
 FROM agent_rollup ar
 CROSS JOIN conv_metrics cm
 CROSS JOIN session_count sc
 CROSS JOIN first_response fr
+CROSS JOIN feedback fb
 SQL;
 
         return DB::connection($connection)->selectOne($sql, [
-            $agentId, $agentId, $agentId, $agentId, $agentId, $agentId,
+            $agentId, $agentId, $agentId, $agentId, $agentId, $agentId, $agentId,
         ]) ?? (object) [
             'total_assistant' => 0, 'total_user' => 0, 'total_conversations' => 0,
             'avg_response_ms' => null, 'total_tokens' => 0, 'avg_tokens' => null,
@@ -169,70 +177,6 @@ SQL;
             'conversations_with_feedback' => 0, 'avg_messages_per_conversation' => null,
             'avg_conversation_duration_seconds' => null, 'avg_first_response_seconds' => null,
             'peak_hour' => null, 'first_data_date' => null, 'unique_sessions' => 0,
-        ];
-    }
-
-    public function countAssistantMessages()
-    {
-        $agentId = $this->getModel()->id;
-
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->where('chat_messages.role', 'assistant')
-            ->count('chat_messages.id');
-    }
-
-    public function countConversations()
-    {
-        $agentId = $this->getModel()->id;
-
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->distinct()
-            ->count('chat_conversations.id');
-    }
-
-    public function avgResponseTime()
-    {
-        $agentId = $this->getModel()->id;
-
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->where('chat_messages.role', 'assistant')
-            ->selectRaw('ROUND(AVG(chat_messages.response_time_ms) / 1000, 1) as avg_response_time')
-            ->value('avg_response_time');
-    }
-
-    public function satisfactionRate(): array
-    {
-        $agentId = $this->getModel()->id;
-
-        $result = DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->where('chat_messages.role', 'assistant')
-            ->whereNotNull('chat_messages.feedback')
-            ->selectRaw('
-                COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as positive_count,
-                COUNT(CASE WHEN chat_messages.feedback = ? THEN 1 END) as negative_count,
-                COUNT(*) as total_feedback
-            ', ['positive', 'negative'])
-            ->first();
-
-        return [
-            'positive' => $result->positive_count ?? 0,
-            'negative' => $result->negative_count ?? 0,
-            'total' => $result->total_feedback ?? 0,
         ];
     }
 
@@ -263,8 +207,8 @@ SQL;
             ->selectRaw(
                 'llm_external_name as model_external_name,
                  SUM(assistant_messages) as usage_count,
-                 SUM(positive_feedback) as positive_feedback,
-                 SUM(negative_feedback) as negative_feedback,
+                 0 as positive_feedback,
+                 0 as negative_feedback,
                  ROUND(
                      (SUM(assistant_messages) * 100.0) / NULLIF((
                          SELECT SUM(assistant_messages)
@@ -448,19 +392,6 @@ SQL;
             ->orderByRaw('SUM(conversations_started) DESC');
     }
 
-    public function avgMessagesPerConversation()
-    {
-        $agentId = $this->getModel()->id;
-
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->selectRaw('ROUND(COUNT(chat_messages.id)::numeric / NULLIF(COUNT(DISTINCT chat_conversations.id), 0), 1) as avg_messages')
-            ->value('avg_messages') ?? 0;
-    }
-
     public function conversationsByHour()
     {
         $agentId = $this->getModel()->id;
@@ -473,22 +404,6 @@ SQL;
             ->orderBy('hour');
     }
 
-    public function peakActivityHour(): ?int
-    {
-        $agentId = $this->getModel()->id;
-
-        $result = DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->selectRaw('EXTRACT(HOUR FROM chat_conversations.created_at) as hour, COUNT(DISTINCT chat_conversations.id) as conversation_count')
-            ->groupBy('hour')
-            ->orderByDesc('conversation_count')
-            ->first();
-
-        return $result ? (int) $result->hour : null;
-    }
-
     public function conversationsByDayOfWeek()
     {
         $agentId = $this->getModel()->id;
@@ -499,54 +414,6 @@ SQL;
             ->selectRaw('EXTRACT(DOW FROM bucket_hour)::int as day_of_week, SUM(conversations_started) as conversation_count')
             ->groupBy('day_of_week')
             ->orderBy('day_of_week');
-    }
-
-    public function avgConversationDuration()
-    {
-        $agentId = $this->getModel()->id;
-
-        $durations = DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->selectRaw('
-                chat_conversations.id,
-                EXTRACT(EPOCH FROM (
-                    MAX(chat_messages.created_at) - MIN(chat_messages.created_at)
-                )) as duration_seconds
-            ')
-            ->groupBy('chat_conversations.id')
-            ->get();
-
-        return $durations->avg('duration_seconds');
-    }
-
-    public function totalUserMessages()
-    {
-        $agentId = $this->getModel()->id;
-
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->where('chat_messages.role', 'user')
-            ->count('chat_messages.id');
-    }
-
-    public function conversationsWithFeedback()
-    {
-        $agentId = $this->getModel()->id;
-
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->whereNotNull('chat_messages.feedback')
-            ->distinct()
-            ->count('chat_conversations.id');
     }
 
     public function conversationsTrend(int $days = 30)
@@ -563,51 +430,6 @@ SQL;
             ->orderBy('date');
     }
 
-    public function uniqueSessionsCount()
-    {
-        $agentId = $this->getModel()->id;
-
-        return DB::table('chat_sessions')
-            ->where('agent_id', $agentId)
-            ->count('id');
-    }
-
-    public function avgFirstResponseTime()
-    {
-        $agentId = $this->getModel()->id;
-
-        // Get the first user message and first assistant response for each conversation
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages as user_msg', 'user_msg.chat_conversation_id', '=', 'chat_conversations.id')
-            ->join('chat_messages as assistant_msg', 'assistant_msg.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->where('user_msg.role', 'user')
-            ->where('assistant_msg.role', 'assistant')
-            ->where('assistant_msg.created_at', '>', DB::raw('user_msg.created_at'))
-            ->selectRaw('
-                AVG(
-                    EXTRACT(EPOCH FROM (assistant_msg.created_at - user_msg.created_at))
-                ) as avg_first_response_seconds
-            ')
-            ->value('avg_first_response_seconds');
-    }
-
-    public function firstDataDate(): ?Carbon
-    {
-        $agentId = $this->getModel()->id;
-
-        $result = DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->selectRaw('MIN(DATE(chat_conversations.created_at)) as first_date')
-            ->value('first_date');
-
-        return $result ? Carbon::parse($result) : null;
-    }
-
     /**
      * Get topics grouped by date within a date range.
      */
@@ -615,20 +437,18 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_topics', 'chat_topics.id', '=', 'chat_conversations.chat_topic_id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->whereNotNull('chat_conversations.chat_topic_id')
-            ->whereRaw('DATE(chat_conversations.created_at) >= ?', [$startDate->format('Y-m-d')])
-            ->whereRaw('DATE(chat_conversations.created_at) <= ?', [$endDate->format('Y-m-d')])
-            ->groupBy('date', 'chat_topics.id', 'chat_topics.topic')
+        return DB::connection(config('analytics.connection'))
+            ->table('analytics_agent_topic_daily')
+            ->join('chat_topics', 'chat_topics.id', '=', 'analytics_agent_topic_daily.chat_topic_id')
+            ->where('analytics_agent_topic_daily.agent_id', $agentId)
+            ->whereRaw('analytics_agent_topic_daily.bucket_day >= ?', [$startDate->format('Y-m-d')])
+            ->whereRaw('analytics_agent_topic_daily.bucket_day <= ?', [$endDate->format('Y-m-d')])
+            ->groupBy('analytics_agent_topic_daily.bucket_day', 'chat_topics.id', 'chat_topics.topic')
             ->select([
-                DB::raw('DATE(chat_conversations.created_at) as date'),
+                DB::raw('analytics_agent_topic_daily.bucket_day::text as date'),
                 'chat_topics.id as topic_id',
                 'chat_topics.topic as topic_name',
-                DB::raw('COUNT(chat_conversations.id) as count'),
+                DB::raw('SUM(analytics_agent_topic_daily.conversation_count) as count'),
             ])
             ->orderBy('date')
             ->orderBy('topic_name')
@@ -642,60 +462,20 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        return DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_topics', 'chat_topics.id', '=', 'chat_conversations.chat_topic_id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->whereNotNull('chat_conversations.chat_topic_id')
-            ->whereRaw('DATE(chat_conversations.created_at) >= ?', [$startDate->format('Y-m-d')])
-            ->whereRaw('DATE(chat_conversations.created_at) <= ?', [$endDate->format('Y-m-d')])
+        return DB::connection(config('analytics.connection'))
+            ->table('analytics_agent_topic_daily')
+            ->join('chat_topics', 'chat_topics.id', '=', 'analytics_agent_topic_daily.chat_topic_id')
+            ->where('analytics_agent_topic_daily.agent_id', $agentId)
+            ->whereRaw('analytics_agent_topic_daily.bucket_day >= ?', [$startDate->format('Y-m-d')])
+            ->whereRaw('analytics_agent_topic_daily.bucket_day <= ?', [$endDate->format('Y-m-d')])
             ->groupBy('chat_topics.id', 'chat_topics.topic')
             ->select([
                 'chat_topics.id as topic_id',
                 'chat_topics.topic as topic_name',
-                DB::raw('COUNT(chat_conversations.id) as total_count'),
+                DB::raw('SUM(analytics_agent_topic_daily.conversation_count) as total_count'),
             ])
             ->orderByDesc('total_count')
             ->limit($limit)
             ->get();
-    }
-
-    /**
-     * Get the average tokens per message (prompt_tokens + completion_tokens).
-     */
-    public function avgTokensPerMessage(): ?int
-    {
-        $agentId = $this->getModel()->id;
-
-        $result = DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->where('chat_messages.role', 'assistant')
-            ->selectRaw('ROUND(AVG(COALESCE(chat_messages.prompt_tokens, 0) + COALESCE(chat_messages.completion_tokens, 0))) as avg_tokens')
-            ->value('avg_tokens');
-
-        return $result ? (int) $result : null;
-    }
-
-    /**
-     * Get the total tokens used (sum of prompt_tokens + completion_tokens).
-     */
-    public function totalTokensUsed(): ?int
-    {
-        $agentId = $this->getModel()->id;
-
-        $result = DB::table('chat_sessions')
-            ->join('chat_conversations', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-            ->join('chat_messages', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-            ->where('chat_sessions.agent_id', $agentId)
-            ->where('chat_conversations.is_visible', true)
-            ->where('chat_messages.role', 'assistant')
-            ->selectRaw('SUM(COALESCE(chat_messages.prompt_tokens, 0) + COALESCE(chat_messages.completion_tokens, 0)) as total_tokens')
-            ->value('total_tokens');
-
-        return $result ? (int) $result : null;
     }
 }

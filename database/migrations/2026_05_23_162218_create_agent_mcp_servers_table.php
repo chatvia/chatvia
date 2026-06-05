@@ -23,12 +23,6 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('slug', 40);
 
-            // Master human-in-the-loop switch for this connector. When true,
-            // its write/destructive tools (per-tool `requires_approval`) pause
-            // for user confirmation before running. Turning it off auto-runs
-            // everything from this connector.
-            $table->boolean('requires_approval')->default(true);
-
             $table->text('url');
             $table->enum('transport', ['streamable_http', 'http_sse'])->default('streamable_http');
 
@@ -36,7 +30,7 @@ return new class extends Migration
             $table->text('auth_value')->nullable();
             $table->text('headers')->nullable();
 
-            $table->unsignedSmallInteger('timeout_ms')->default(30000);
+            $table->unsignedInteger('timeout_ms')->default(300000);
             $table->boolean('is_enabled')->default(true);
 
             $table->timestamp('catalog_cached_at')->nullable();

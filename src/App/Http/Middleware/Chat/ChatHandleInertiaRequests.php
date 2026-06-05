@@ -36,6 +36,11 @@ class ChatHandleInertiaRequests extends Middleware
             'environment' => app()->environment(),
             'domain' => $request->domain(),
             'subdomain' => $request->subdomain(),
+            // Per-chat upload ceiling (config: agent.files.upload.max_files).
+            // The composer gates the paperclip on this; the server enforces
+            // the same value via MaxConversationAttachments so a frontend
+            // bypass still gets a 422.
+            'maxFilesPerChat' => (int) config('agent.files.upload.max_files'),
         ];
     }
 }

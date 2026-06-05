@@ -6,7 +6,9 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatchResult;
 use Domain\Conversation\Services\Tooling\Registry\ToolCallerIdentity;
+use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Mcp\Models\McpTool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -46,6 +48,17 @@ class McpToolDispatcher implements ToolDispatcherInterface
 
         if (! $server) {
             return $this->error("MCP server \"{$slug}\" is not attached to this agent or is disabled.");
+        }
+
+        // Reject a blocked tool the LLM might emit from prior turns — the
+        // catalog excludes blocked rows so the model shouldn't see them, but
+        // turn history can still surface them.
+        $catalogRow = McpTool::query()
+            ->where('mcp_server_id', $server->id)
+            ->where('name', $toolName)
+            ->first();
+        if ($catalogRow !== null && $catalogRow->permission === McpToolPermission::Blocked) {
+            return $this->error("Tool \"{$name}\" is blocked.");
         }
 
         $args = $this->decodeArgs($arguments);

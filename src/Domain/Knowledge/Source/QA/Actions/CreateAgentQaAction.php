@@ -28,6 +28,6 @@ class CreateAgentQaAction
         return collect($questions)
             ->pluck('question')
             ->filter()
-            ->implode(', ');
+            ->implode("\n");
     }
 }

@@ -3,78 +3,19 @@
  * Renders an interactive Apache ECharts chart from a raw option spec
  * delivered as a `tool` artifact (kind: 'echarts_option').
  *
- * Why a thin wrapper:
- *   - vue-echarts ships ECharts itself, but on-demand registration of
- *     renderers/charts keeps the bundle small. We register canvas +
- *     every chart type the LLM might emit (bar/line/pie/scatter/etc.)
- *     and the standard set of components (title, tooltip, legend, grid,
- *     dataZoom).
- *   - The chart auto-sizes to the bubble; height stays fixed so a long
- *     thread doesn't collapse on tall charts.
- *   - We treat `option` as untrusted (the LLM produced it) — the ECharts
- *     runtime is pure JSON-to-canvas, no eval, so this is safe to render
- *     directly.
+ * The renderer is lazy: chart-type and component modules are imported only
+ * when an option that needs them lands here (see prepareEcharts). The first
+ * chart in a session pays a one-time async-chunk load; subsequent charts
+ * resolve instantly from the cache. The initial page bundle ships none of
+ * this code.
+ *
+ * We treat `option` as untrusted (the LLM produced it) — the ECharts runtime
+ * is pure JSON-to-canvas, no eval, so it's safe to render directly.
  */
-import {
-    BarChart,
-    FunnelChart,
-    GaugeChart,
-    HeatmapChart,
-    LineChart,
-    PieChart,
-    RadarChart,
-    ScatterChart,
-    SunburstChart,
-    TreemapChart,
-} from 'echarts/charts';
-import {
-    DatasetComponent,
-    DataZoomComponent,
-    GridComponent,
-    LegendComponent,
-    MarkAreaComponent,
-    MarkLineComponent,
-    MarkPointComponent,
-    PolarComponent,
-    TitleComponent,
-    ToolboxComponent,
-    TooltipComponent,
-    TransformComponent,
-    VisualMapComponent,
-} from 'echarts/components';
-import { use } from 'echarts/core';
-import { CanvasRenderer } from 'echarts/renderers';
-import { computed, onBeforeUnmount, onMounted, provide, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import VChart, { THEME_KEY } from 'vue-echarts';
 
-use([
-    CanvasRenderer,
-    // Chart series types
-    BarChart,
-    LineChart,
-    PieChart,
-    ScatterChart,
-    RadarChart,
-    GaugeChart,
-    HeatmapChart,
-    FunnelChart,
-    TreemapChart,
-    SunburstChart,
-    // Components
-    TitleComponent,
-    TooltipComponent,
-    LegendComponent,
-    GridComponent,
-    DataZoomComponent,
-    PolarComponent,
-    VisualMapComponent,
-    ToolboxComponent,
-    MarkLineComponent,
-    MarkPointComponent,
-    MarkAreaComponent,
-    DatasetComponent,
-    TransformComponent,
-]);
+import { prepareEcharts } from '@/lib/echartsLazy';
 
 const props = defineProps<{
     /**
@@ -87,6 +28,8 @@ const props = defineProps<{
     height?: number;
 }>();
 
+const ready = ref(false);
+
 // Match the chart theme to the *actual* applied site theme. useAppearance
 // toggles a `dark` class on <html> as the single source of truth — reading
 // Inertia's shared prop is unreliable here because some chat surfaces
@@ -97,18 +40,31 @@ const props = defineProps<{
 const isDark = ref(false);
 let observer: MutationObserver | null = null;
 
-onMounted(() => {
+onMounted(async () => {
+    await prepareEcharts(props.option);
     isDark.value = document.documentElement.classList.contains('dark');
     observer = new MutationObserver(() => {
         isDark.value = document.documentElement.classList.contains('dark');
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    ready.value = true;
 });
 
 onBeforeUnmount(() => {
     observer?.disconnect();
     observer = null;
 });
+
+// If the option is swapped live (e.g. a follow-up tool call replaces the
+// artifact), make sure any newly-referenced series types are registered
+// before the chart re-renders. prepareEcharts is idempotent via its cache,
+// so re-calling is cheap when nothing new is needed.
+watch(
+    () => props.option,
+    async (opt) => {
+        await prepareEcharts(opt);
+    },
+);
 
 const theme = computed<'dark' | undefined>(() => (isDark.value ? 'dark' : undefined));
 
@@ -121,7 +77,10 @@ const heightPx = computed(() => `${props.height ?? 320}px`);
     <!-- The container is `not-prose` so the `.prose` wrapper around message
          content doesn't apply paragraph spacing / typography to the chart. -->
     <div class="echarts-block not-prose bg-card my-3 overflow-hidden rounded-md border" :style="{ height: heightPx }">
-        <VChart :option="option" :autoresize="true" class="h-full w-full" />
+        <VChart v-if="ready" :option="option" :autoresize="true" class="h-full w-full" />
+        <div v-else class="text-muted-foreground flex h-full w-full items-center justify-center text-sm">
+            <span class="animate-pulse">Loading chart…</span>
+        </div>
     </div>
 </template>
 

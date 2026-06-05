@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $ticket_id
- * @property int $user_id
+ * @property int|null $user_id
  * @property string $type
  * @property string $message
  * @property Carbon|null $created_at

@@ -28,8 +28,8 @@ class ChatLogConversationData extends Data
         public ?string $referrer_url,
         public ?string $page_url,
         public ?string $locale,
-        public ?string $topic,
-        public ?string $topic_id,
+        /** @var string[] */
+        public array $topics,
         public ?string $sentiment,
         public ?string $tone,
     ) {}
@@ -54,8 +54,7 @@ class ChatLogConversationData extends Data
             referrer_url: $conversation->session->referrer_url,
             page_url: $conversation->session->page_url,
             locale: $conversation->session->locale,
-            topic: $conversation->topic?->topic,
-            topic_id: $conversation->chat_topic_id !== null ? (string) $conversation->chat_topic_id : null,
+            topics: $conversation->topics->pluck('topic')->values()->all(),
             sentiment: $conversation->sentiment,
             tone: $conversation->tone,
         );

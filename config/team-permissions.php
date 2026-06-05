@@ -101,10 +101,6 @@ return [
             'label' => 'Chat analytics',
             'description' => 'View conversation volume and trends',
         ],
-        'agent.analytics.metrics' => [
-            'label' => 'Metrics',
-            'description' => 'View performance metrics and KPIs',
-        ],
         'agent.analytics.sentiment' => [
             'label' => 'Sentiment',
             'description' => 'View sentiment analysis of conversations',
@@ -148,10 +144,6 @@ return [
         'agent.members.manage' => [
             'label' => 'Agent Members',
             'description' => 'Invite, view, and remove people granted access to this agent',
-        ],
-        'agent.business_profile.manage' => [
-            'label' => 'Agent Business Profile',
-            'description' => 'Edit the real business contact details the agent quotes when asked',
         ],
         'agent.identity.manage' => [
             'label' => 'Agent Identity Verification',
@@ -270,7 +262,6 @@ return [
             'description' => 'Inspect usage, sentiment, tone, topics, and source performance.',
             'permissions' => [
                 'agent.analytics.chats',
-                'agent.analytics.metrics',
                 'agent.analytics.sentiment',
                 'agent.analytics.tone',
                 'agent.analytics.topics',
@@ -298,10 +289,9 @@ return [
         'administration' => [
             'scope' => 'agent',
             'label' => 'Administration',
-            'description' => 'Owner-style per-agent tasks — members, business identity, signing secret.',
+            'description' => 'Owner-style per-agent tasks — members and signing secret.',
             'permissions' => [
                 'agent.members.manage',
-                'agent.business_profile.manage',
                 'agent.identity.manage',
             ],
         ],

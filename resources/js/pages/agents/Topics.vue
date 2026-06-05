@@ -1,5 +1,16 @@
 <script lang="ts" setup>
+import AnalyticsDisabled from '@/components/AnalyticsDisabled.vue';
 import LockedFeature from '@/components/LockedFeature.vue';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +33,7 @@ import {
     Title,
     type ChartOptions,
 } from 'chart.js';
-import { ChevronLeft, ChevronRight, Info, LoaderCircle, Maximize2, MessageSquare, Plus, Search, X } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, Info, LoaderCircle, Maximize2, MessageSquare, Plus, Search, Sparkles, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { Line, Pie } from 'vue-chartjs';
 import { toast } from 'vue-sonner';
@@ -32,6 +43,13 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcEleme
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
+    // Per-agent on/off switch (Setup → Settings). Independent of the plan
+    // capability below: the plan must allow it AND the owner must not have
+    // switched it off.
+    enabled: boolean;
+    // Master switch: when the chat log is off there are no stored messages to
+    // analyze, so analytics can't be enabled until it's turned back on.
+    chatlogEnabled: boolean;
 }
 
 const props = defineProps<Props>();
@@ -39,8 +57,28 @@ const props = defineProps<Props>();
 const { hasCapability } = useCapabilityGuard();
 const hasAccess = computed(() => hasCapability('topics'));
 
+// Local mirror of the per-agent switch so flipping it on from the disabled
+// state swaps straight to the charts without a full page reload.
+const isEnabled = ref(props.enabled);
+const enabling = ref(false);
+
+const enableTopics = async () => {
+    if (!props.chatlogEnabled) return;
+    enabling.value = true;
+    try {
+        await axios.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'analytics' }), { topics: true });
+        isEnabled.value = true;
+        fetchTopicsData();
+        fetchSuggestions();
+    } catch (err) {
+        console.error('Could not enable topic analysis:', err);
+    } finally {
+        enabling.value = false;
+    }
+};
+
 const loading = ref(true);
-const topicsData = ref<Domain.Topic.Data.TopicsResourceData | null>(null);
+const topicsData = ref<Domain.Conversation.Topic.Data.TopicsResourceData | null>(null);
 const error = ref<string | null>(null);
 const activeView = ref<'graph' | 'pie'>('graph');
 
@@ -87,6 +125,58 @@ const fetchTopicsData = async () => {
     }
 };
 
+// --- Suggested (discovered) topics -------------------------------------------
+interface TopicSuggestion {
+    label: string;
+    count: number;
+    examples: { conversation_id: string; title: string | null }[];
+}
+
+const suggestions = ref<TopicSuggestion[]>([]);
+const promotingLabel = ref<string | null>(null);
+const dismissTarget = ref<string | null>(null);
+const dismissing = ref(false);
+
+const fetchSuggestions = async () => {
+    try {
+        const response = await axios.get(route('agents.topics.suggestions', props.agent.external_id));
+        suggestions.value = response.data.suggestions ?? [];
+    } catch (err: any) {
+        console.error('Error fetching topic suggestions:', err);
+    }
+};
+
+const promoteSuggestion = async (label: string) => {
+    promotingLabel.value = label;
+    try {
+        await axios.post(route('agents.topics.suggestions.promote', props.agent.external_id), { label });
+        await Promise.all([fetchSuggestions(), fetchTopicsData()]);
+        toast.success(`"${label}" added to your topics`);
+    } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Failed to add topic');
+    } finally {
+        promotingLabel.value = null;
+    }
+};
+
+const confirmDismiss = async () => {
+    if (!dismissTarget.value) return;
+
+    dismissing.value = true;
+    try {
+        await axios.delete(route('agents.topics.suggestions.dismiss', props.agent.external_id), {
+            data: { label: dismissTarget.value },
+        });
+        suggestions.value = suggestions.value.filter((s) => s.label !== dismissTarget.value);
+        toast.success('Suggestion dismissed');
+    } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Failed to dismiss suggestion');
+    } finally {
+        dismissing.value = false;
+        dismissTarget.value = null;
+    }
+};
+
 // Format date for display (e.g., "Dec 3")
 const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);
@@ -97,13 +187,13 @@ const formatDate = (dateStr: string): string => {
 const lineChartData = computed(() => {
     if (!topicsData.value) return null;
 
-    const datasets = (topicsData.value.topics_by_date as Domain.Topic.Data.TopicTrendData[]).map(
-        (topic: Domain.Topic.Data.TopicTrendData, index: number) => {
+    const datasets = (topicsData.value.topics_by_date as Domain.Conversation.Topic.Data.TopicTrendData[]).map(
+        (topic: Domain.Conversation.Topic.Data.TopicTrendData, index: number) => {
             const color = colors[index % colors.length];
 
             return {
                 label: topic.topic_name,
-                data: topic.counts.map((d: Domain.Topic.Data.TopicCountByDateData) => d.count),
+                data: topic.counts.map((d: Domain.Conversation.Topic.Data.TopicCountByDateData) => d.count),
                 borderColor: color,
                 backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
                 fill: true,
@@ -116,8 +206,8 @@ const lineChartData = computed(() => {
         },
     );
 
-    const firstTopic = (topicsData.value.topics_by_date as Domain.Topic.Data.TopicTrendData[])[0];
-    const labels = firstTopic ? firstTopic.counts.map((d: Domain.Topic.Data.TopicCountByDateData) => formatDate(d.date)) : [];
+    const firstTopic = (topicsData.value.topics_by_date as Domain.Conversation.Topic.Data.TopicTrendData[])[0];
+    const labels = firstTopic ? firstTopic.counts.map((d: Domain.Conversation.Topic.Data.TopicCountByDateData) => formatDate(d.date)) : [];
 
     return {
         labels,
@@ -195,13 +285,13 @@ const lineChartOptions: ChartOptions<'line'> = {
 const pieChartData = computed(() => {
     if (!topicsData.value) return null;
 
-    const totals = topicsData.value.total_topics as Domain.Topic.Data.TopicSummaryData[];
+    const totals = topicsData.value.total_topics as Domain.Conversation.Topic.Data.TopicSummaryData[];
 
     return {
-        labels: totals.map((t: Domain.Topic.Data.TopicSummaryData) => t.name),
+        labels: totals.map((t: Domain.Conversation.Topic.Data.TopicSummaryData) => t.name),
         datasets: [
             {
-                data: totals.map((t: Domain.Topic.Data.TopicSummaryData) => t.count),
+                data: totals.map((t: Domain.Conversation.Topic.Data.TopicSummaryData) => t.count),
                 backgroundColor: colors,
                 borderColor: '#fff',
                 borderWidth: 2,
@@ -241,8 +331,8 @@ const pieChartOptions: ChartOptions<'pie'> = {
                     const label = context.label || '';
                     const value = context.parsed || 0;
                     const total =
-                        (topicsData.value?.total_topics as Domain.Topic.Data.TopicSummaryData[] | undefined)?.reduce(
-                            (sum: number, t: Domain.Topic.Data.TopicSummaryData) => sum + t.count,
+                        (topicsData.value?.total_topics as Domain.Conversation.Topic.Data.TopicSummaryData[] | undefined)?.reduce(
+                            (sum: number, t: Domain.Conversation.Topic.Data.TopicSummaryData) => sum + t.count,
                             0,
                         ) ?? 0;
                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
@@ -387,8 +477,9 @@ watch(showTopicsDialog, (newValue) => {
 });
 
 onMounted(() => {
-    if (hasAccess.value) {
+    if (hasAccess.value && props.chatlogEnabled && isEnabled.value) {
         fetchTopicsData();
+        fetchSuggestions();
     }
 });
 </script>
@@ -402,6 +493,17 @@ onMounted(() => {
         <LockedFeature
             v-if="!hasAccess"
             description="Upgrade your plan to access topic analysis and automatically detect and categorize conversation topics."
+        />
+
+        <!-- Plan allows it, but the owner switched it off for this agent -->
+        <AnalyticsDisabled
+            v-else-if="!chatlogEnabled || !isEnabled"
+            title="Topic analysis"
+            description="Turn it on to automatically detect and group what your visitors ask about across conversations."
+            :can-enable="chatlogEnabled"
+            blocked-reason="Chat log is off, so there's nothing to analyze. Turn it on in Setup → Settings to start collecting topics."
+            :enabling="enabling"
+            @enable="enableTopics"
         />
 
         <template v-else>
@@ -424,6 +526,53 @@ onMounted(() => {
 
             <!-- Content -->
             <div v-else-if="topicsData">
+                <!-- Suggested (discovered) topics -->
+                <Card v-if="suggestions.length > 0" class="mb-6">
+                    <CardHeader>
+                        <div class="flex items-center gap-2">
+                            <Sparkles class="text-primary h-4 w-4" />
+                            <CardTitle>Suggested topics</CardTitle>
+                        </div>
+                        <p class="text-muted-foreground text-sm">
+                            Emerging themes from recent conversations that aren't in your topics yet. Add one to start tracking it.
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="space-y-3">
+                            <div v-for="s in suggestions" :key="s.label" class="flex items-start justify-between gap-4 rounded-lg border p-3">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-medium">{{ s.label }}</span>
+                                        <Badge variant="secondary" class="text-xs">
+                                            {{ s.count }} {{ s.count === 1 ? 'conversation' : 'conversations' }}
+                                        </Badge>
+                                    </div>
+                                    <p v-if="s.examples.length" class="text-muted-foreground mt-1 truncate text-xs">
+                                        e.g.
+                                        {{
+                                            s.examples
+                                                .slice(0, 3)
+                                                .map((e) => e.title || 'Untitled')
+                                                .join(' · ')
+                                        }}
+                                    </p>
+                                </div>
+                                <div class="flex flex-shrink-0 gap-2">
+                                    <Button @click="promoteSuggestion(s.label)" :disabled="promotingLabel === s.label" size="sm">
+                                        <LoaderCircle v-if="promotingLabel === s.label" class="mr-1 h-4 w-4 animate-spin" />
+                                        <Plus v-else class="mr-1 h-4 w-4" />
+                                        Add
+                                    </Button>
+                                    <Button @click="dismissTarget = s.label" variant="outline" size="sm">
+                                        <X class="mr-1 h-4 w-4" />
+                                        Dismiss
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <!-- Topics Chart with Sidebar -->
                 <Card>
                     <CardHeader>
@@ -631,7 +780,7 @@ onMounted(() => {
                             <h3 class="mb-2 font-semibold">📊 Overview</h3>
                             <p class="text-muted-foreground">
                                 Topics are categories that help you understand what your users are talking about. Each conversation is automatically
-                                assigned one topic based on its content.
+                                assigned one or more topics based on its content.
                             </p>
                         </div>
 
@@ -641,7 +790,7 @@ onMounted(() => {
                                 <li>Conversations are analyzed and categorized into topics</li>
                                 <li>You can customize which topics are available for your agent</li>
                                 <li>Topics help you identify trends and common issues</li>
-                                <li>Each conversation belongs to exactly one topic</li>
+                                <li>A conversation can belong to several topics</li>
                             </ul>
                         </div>
 
@@ -679,6 +828,29 @@ onMounted(() => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <!-- Dismiss suggestion confirmation -->
+            <AlertDialog
+                :open="dismissTarget !== null"
+                @update:open="
+                    (v) => {
+                        if (!v) dismissTarget = null;
+                    }
+                "
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Dismiss this suggestion?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            "{{ dismissTarget }}" won't be suggested again. You can still create it manually later.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel :disabled="dismissing">Cancel</AlertDialogCancel>
+                        <AlertDialogAction :disabled="dismissing" @click="confirmDismiss">Dismiss</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </template>
     </AgentLayout>
 </template>

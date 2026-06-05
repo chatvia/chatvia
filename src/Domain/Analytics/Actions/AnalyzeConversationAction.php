@@ -2,114 +2,122 @@
 
 namespace Domain\Analytics\Actions;
 
-use Domain\Analytics\Services\LanguageDetection;
-use Domain\Analytics\Services\ToneAnalysis;
-use Domain\Analytics\Services\TopicAnalysis;
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Analytics\Events\ConversationTopicAssigned;
+use Domain\Analytics\Services\ConversationAnalyzer;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Topic\Models\ConversationTopic;
+use Illuminate\Support\Facades\DB;
+use Support\Localization\Language\Models\Language;
 
+/**
+ * End-of-life conversation analysis. Run once per conversation by the scheduled
+ * `app:analyze-conversations` pass (~6h after creation), it makes a SINGLE
+ * structured LLM call over the full transcript and records, in one shot:
+ *  - language, tone and sentiment on the conversation
+ *  - every existing topic that applies (multi-label) → conversation_topics rows
+ *    + a ConversationTopicAssigned event each (rolls up analytics_agent_topic_daily)
+ *  - emergent topic suggestions (no existing topic fit) → suggested_label rows
+ *
+ * Everything the one call produces is stored — plan capabilities gate what the
+ * customer can VIEW (enforced on the analytics routes), not what we analyze:
+ * the inference is already spent, so discarding results would only waste it.
+ * `analyzed_at` is stamped exactly once, making the batch idempotent.
+ */
 class AnalyzeConversationAction
 {
     public function __construct(
-        private readonly TopicAnalysis $topicAnalysis,
-        private readonly ToneAnalysis $toneAnalysis,
-        private readonly LanguageDetection $languageDetection,
+        private readonly ConversationAnalyzer $analyzer,
     ) {}
 
     public function execute(Conversation $conversation): void
     {
-        $messages = $conversation
-            ->messages()
-            ->select('content', 'role')
-            ->get();
-
-        if ($messages->isEmpty()) {
+        if ($conversation->analyzed_at !== null) {
             return;
         }
 
-        $allMessages = $messages
-            ->pluck('content')
-            ->implode("\n");
+        $agent = $conversation->agent;
 
-        $userMessages = $messages
+        $messages = $conversation->messages()->select('content', 'role')->get();
+
+        $hasUserContent = $messages
             ->where('role', 'user')
-            ->pluck('content')
+            ->contains(fn ($message) => filled($message->content));
+
+        // Nothing classifiable (no owning agent, or no user turns) — still stamp
+        // analyzed_at so the scheduled scan stops re-selecting this conversation.
+        if (! $agent || ! $hasUserContent) {
+            $conversation->update(['analyzed_at' => now()]);
+
+            return;
+        }
+
+        $transcript = $messages
+            ->map(fn ($message) => ucfirst($message->role).': '.$message->content)
             ->implode("\n");
 
-        $updates = [];
+        $analysis = $this->analyzer->analyze($transcript, $agent);
 
-        $this->detectLanguage($conversation, $allMessages, $updates);
+        // Topics are the one dimension recorded straight from this batch call
+        // (sentiment/tone roll up from the per-message pass instead). Honour the
+        // agent's per-dimension opt-out: when topics are switched off we still
+        // store the already-spent language/tone/sentiment results, but skip
+        // creating topic rows and their rollup events so the Topics analytics
+        // surface reflects the toggle.
+        $topicsEnabled = $agent->analyticsEnabled('topics');
 
-        $this->detectTopic($conversation, $allMessages, $updates);
+        $newlyAssignedTopicIds = DB::transaction(function () use ($conversation, $analysis, $topicsEnabled): array {
+            $updates = [
+                'analyzed_at' => now(),
+                'sentiment' => $analysis->sentiment->value,
+                'tone' => $analysis->tone->value,
+            ];
 
-        $this->detectToneAndSentiment($conversation, $userMessages, $updates);
+            if ($languageId = $this->resolveLanguageId($analysis->language)) {
+                $updates['language_id'] = $languageId;
+            }
 
-        if (! empty($updates)) {
             $conversation->update($updates);
+
+            if (! $topicsEnabled) {
+                return [];
+            }
+
+            $assigned = [];
+
+            foreach ($analysis->topicIds as $topicId) {
+                $row = ConversationTopic::firstOrCreate([
+                    'chat_conversation_id' => $conversation->id,
+                    'chat_topic_id' => $topicId,
+                ]);
+
+                if ($row->wasRecentlyCreated) {
+                    $assigned[] = $topicId;
+                }
+            }
+
+            foreach ($analysis->suggestedTopics as $label) {
+                ConversationTopic::firstOrCreate([
+                    'chat_conversation_id' => $conversation->id,
+                    'suggested_label' => $label,
+                ]);
+            }
+
+            return $assigned;
+        });
+
+        // Dispatch after commit so a rolled-back transaction never enqueues a
+        // rollup increment for a topic row that didn't actually persist.
+        foreach ($newlyAssignedTopicIds as $topicId) {
+            ConversationTopicAssigned::dispatch($agent->id, $agent->user_id, $topicId, $conversation->created_at);
         }
     }
 
-    private function detectLanguage(Conversation $conversation, string $messages, array &$updates): void
+    private function resolveLanguageId(?string $code): ?int
     {
-        if ($conversation->language_id) {
-            return;
+        if ($code === null) {
+            return null;
         }
 
-        $language = $this->languageDetection->detect($messages);
-
-        if ($language) {
-            $updates['language_id'] = $language->id;
-        }
-    }
-
-    private function detectTopic(Conversation $conversation, string $messages, array &$updates): void
-    {
-        if ($conversation->chat_topic_id) {
-            return;
-        }
-
-        if ($conversation->messages()->count() < 4) {
-            return;
-        }
-
-        if (! $this->teamHasCapability($conversation, CapabilityEnum::TOPICS)) {
-            return;
-        }
-
-        $topic = $this->topicAnalysis->analyze($messages, $conversation->agent);
-
-        if ($topic) {
-            $updates['chat_topic_id'] = $topic->id;
-        }
-    }
-
-    private function detectToneAndSentiment(Conversation $conversation, string $userMessages, array &$updates): void
-    {
-        if ($conversation->tone && $conversation->sentiment) {
-            return;
-        }
-
-        if (empty($userMessages)) {
-            return;
-        }
-
-        // Sentiment + tone share a single LLM call — skip when the owner
-        // can't see either result, so a Starter conversation doesn't burn
-        // inference on data the customer will never view.
-        if (! $this->teamHasCapability($conversation, CapabilityEnum::SENTIMENT)
-            && ! $this->teamHasCapability($conversation, CapabilityEnum::TONE)
-        ) {
-            return;
-        }
-
-        $analysis = $this->toneAnalysis->analyze($userMessages);
-
-        $updates['tone'] = $analysis['tone']->value;
-        $updates['sentiment'] = $analysis['sentiment']->value;
-    }
-
-    private function teamHasCapability(Conversation $conversation, CapabilityEnum $capability): bool
-    {
-        return $conversation->agent?->team?->hasCapability($capability) ?? false;
+        return Language::where('code', $code)->value('id');
     }
 }

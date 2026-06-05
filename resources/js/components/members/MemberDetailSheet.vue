@@ -6,7 +6,7 @@ import { useAgentAttachments } from '@/composables/useAgentAttachments';
 import { Check, Copy, KeyRound, LoaderCircle, Trash2, Users } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
-type ChatterRow = App.Chatter.Data.WorkspaceChatterRowData;
+type ChatterRow = App.Identity.Chatter.Data.WorkspaceChatterRowData;
 
 interface Props {
     open: boolean;

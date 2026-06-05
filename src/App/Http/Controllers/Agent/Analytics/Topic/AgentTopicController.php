@@ -18,6 +18,8 @@ class AgentTopicController
 
         return Inertia::render('agents/Topics', [
             'agent' => AgentResourceData::fromModel($agent),
+            'enabled' => $agent->analyticsEnabled('topics'),
+            'chatlogEnabled' => $agent->chatlogEnabled(),
         ]);
     }
 }

@@ -29,8 +29,6 @@ class SetupController
 
         $agent->loadMissing(['llm', 'agentPrompt']);
 
-        $business = $agent->settings('business')->toArray();
-
         $prompts = $request->user()->prompts()
             ->latest()
             ->get()
@@ -59,15 +57,7 @@ class SetupController
             'starters' => $agent->resolvedStarters(),
             'prompts' => $prompts,
             'hasPermission' => has_permission_to_agent($agent, 'agent.setup'),
-            'canManageContact' => has_permission_to_agent($agent, 'agent.business_profile.manage'),
             'canUseHandoff' => $agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false,
-            'businessProfile' => [
-                'email' => $business['email'] ?? null,
-                'phone' => $business['phone'] ?? null,
-                'website' => $business['website'] ?? null,
-                'address' => $business['address'] ?? null,
-                'opening_hours' => $business['opening_hours'] ?? null,
-            ],
 
             // Shared content settings + their defaults — written across all surfaces.
             'appearanceSettings' => $agent->settings('appearance'),
@@ -80,6 +70,11 @@ class SetupController
             'defaultBar' => config('model-settings.defaults.'.Agent::class.'.bar'),
             'embedSettings' => $agent->settings('embed'),
             'defaultEmbed' => config('model-settings.defaults.'.Agent::class.'.embed'),
+
+            // Agent-wide analytics opt-outs (Settings tab) — sentiment / tone /
+            // topics on-off switches, default on.
+            'analyticsSettings' => $agent->settings('analytics'),
+            'defaultAnalytics' => config('model-settings.defaults.'.Agent::class.'.analytics'),
 
             // Single-model picker + hyperparameters.
             'catalog' => $catalog,

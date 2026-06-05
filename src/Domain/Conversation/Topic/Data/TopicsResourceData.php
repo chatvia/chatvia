@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Topic\Data;
 
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Data\DateRangeData;
 use Illuminate\Support\Carbon;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
@@ -22,7 +23,7 @@ class TopicsResourceData extends Data
 
     public static function fromAgent(Agent $agent, ?Carbon $startDate = null, ?Carbon $endDate = null): self
     {
-        $startDate = $startDate ?? now()->subDays(6)->startOfDay();
+        $startDate = $startDate ?? DateRangeData::defaultStart();
         $endDate = $endDate ?? now()->endOfDay();
 
         $topicsByDate = $agent->topicsByDateRange($startDate, $endDate);

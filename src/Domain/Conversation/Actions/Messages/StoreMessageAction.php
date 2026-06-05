@@ -4,7 +4,6 @@ namespace Domain\Conversation\Actions\Messages;
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\MessageSent;
-use Domain\Analytics\Jobs\AnalyzeConversationJob;
 use Domain\Analytics\Jobs\AnalyzeMessageJob;
 use Domain\Analytics\Services\IP2Country;
 use Domain\Analytics\Services\UserAgentParser;
@@ -66,7 +65,6 @@ class StoreMessageAction
             $agent,
             $payload,
             $session,
-            $conversation,
             $isUserMessage,
             $promptTokens,
             $completionTokens,
@@ -221,7 +219,6 @@ class StoreMessageAction
         Agent $agent,
         ChatInputPayload|ChatOutputPayload $payload,
         Session $session,
-        Conversation $conversation,
         bool $isUserMessage,
         ?int $promptTokens,
         ?int $completionTokens,
@@ -233,6 +230,7 @@ class StoreMessageAction
         // and the "by country" panel sees the resolved country instead of null.
         MessageSent::dispatch(
             $agent->id,
+            $agent->user_id,
             (string) $payload->external_conversation_id,
             (string) $payload->external_message_id,
             (string) $payload->external_session_id,
@@ -247,12 +245,9 @@ class StoreMessageAction
 
         AnalyzeMessageJob::dispatchIf($isUserMessage, $payload->external_message_id);
 
-        $messagesCount = $conversation->messages()->count();
-
-        AnalyzeConversationJob::dispatchIf(
-            $messagesCount >= 5 && $messagesCount < 20,
-            $conversation
-        );
+        // Conversation-level analysis (topics, sentiment, tone, language) runs
+        // once at end-of-life via the scheduled app:analyze-conversations pass —
+        // not here on the hot message-write path.
     }
 
     private function updateSessionLocation(Session $session): void

@@ -17,7 +17,6 @@ class AgentLeadController
     public function index(Request $request, Agent $agent): Response|JsonResponse
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.leads.view'), 403);
 
         if ($request->wantsJson()) {
             $perPage = (int) min((int) $request->integer('per_page', 50), 200);
@@ -49,7 +48,6 @@ class AgentLeadController
     public function destroy(Request $request, Agent $agent, BulkDeleteAgentLeadsAction $bulkDelete): RedirectResponse|JsonResponse
     {
         abort_if($request->user()->cannot('delete', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.leads.view'), 403);
 
         $request->validate([
             'lead_ids' => ['required', 'array', 'min:1'],

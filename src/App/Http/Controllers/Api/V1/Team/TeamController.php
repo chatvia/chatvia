@@ -31,7 +31,7 @@ class TeamController
      */
     public function index(Request $request): array
     {
-        $teams = $this->accountOwner($request)
+        $teams = $request->user()->effectiveUser()
             ->ownedTeams()
             ->with(['agents', 'roles.permissions', 'roles.agents'])
             ->latest()
@@ -47,7 +47,7 @@ class TeamController
      */
     public function store(Request $request, TeamPayloadData $payload, CreateTeamAction $action): array
     {
-        $owner = $this->accountOwner($request);
+        $owner = $request->user()->effectiveUser();
 
         if (! $owner->canCreateTeam()) {
             throw ValidationException::withMessages([
@@ -67,18 +67,11 @@ class TeamController
      */
     public function update(Request $request, Team $team, TeamPayloadData $payload, UpdateTeamAction $action): array
     {
-        abort_unless($this->accountOwner($request)->ownsTeam($team), 403);
+        abort_unless($request->user()->effectiveUser()->ownsTeam($team), 403);
 
         return ['data' => TeamData::fromModel($action->execute(
             new UpdateTeamData(team: $team, name: $payload->name),
         ))];
     }
 
-    private function accountOwner(Request $request): User
-    {
-        /** @var User $account */
-        $account = $request->user();
-
-        return $account->belongsToWorkspace() ? $account->workspace : $account;
-    }
 }

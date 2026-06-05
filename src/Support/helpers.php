@@ -309,7 +309,11 @@ if (! function_exists('is_video_file')) {
 if (! function_exists('current_agent_from_widget')) {
     function current_agent_from_widget(): ?AgentModel
     {
-        $agentId = request()->header('x-agent_id');
+        // Header is `X-AGENT-ID` (hyphenated) — matches what the widget sends
+        // and what every other widget controller looks up. The previous
+        // `x-agent_id` (underscore) never matched, so this helper always
+        // returned null on endpoints that route through it.
+        $agentId = request()->header('X-AGENT-ID');
 
         if ($agentId === null) {
             return null;

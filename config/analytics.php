@@ -56,4 +56,23 @@ return [
 
     'unknown_country_code' => '--',
     'unknown_llm_external_name' => '',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Consolidated conversation analysis
+    |--------------------------------------------------------------------------
+    |
+    | The scheduled app:analyze-conversations pass analyzes each conversation
+    | once, this many hours after creation (end-of-life), over its full
+    | transcript. Emergent-topic suggestions are surfaced once they recur across
+    | at least `min_occurrences` conversations; `max_examples` caps the example
+    | conversations returned per suggested label.
+    |
+    */
+
+    'analysis' => [
+        'scan_age_hours' => env('ANALYSIS_SCAN_AGE_HOURS', 6),
+        'min_occurrences' => env('TOPIC_SUGGESTION_MIN', 3),
+        'max_examples' => 10,
+    ],
 ];

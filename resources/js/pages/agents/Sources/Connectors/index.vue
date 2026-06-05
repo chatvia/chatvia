@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import type { AgentMcpServer, Connector } from '@/types/connector';
 import axios from 'axios';
@@ -49,18 +48,16 @@ function matches(row: { name: string; description?: string | null; url?: string 
     return row.name.toLowerCase().includes(q) || (row.description ?? '').toLowerCase().includes(q) || (row.url ?? '').toLowerCase().includes(q);
 }
 
+// Backend returns rows pre-sorted by ConnectorData.priority. We re-sort here
+// only to float attached ("enabled") rows above the rest while preserving the
+// priority order within each group — `sort` is stable in modern JS engines.
 const filteredFeatured = computed(() =>
     featured.value
-        .filter((f) => f.connector.provider !== 'chatvia')
-        .filter((f) => matches({ name: f.connector.name, description: f.connector.description })),
-);
-const filteredChatvia = computed(() =>
-    featured.value
-        .filter((f) => f.connector.provider === 'chatvia')
-        .filter((f) => matches({ name: f.connector.name, description: f.connector.description })),
+        .filter((f) => matches({ name: f.connector.name, description: f.connector.description }))
+        .slice()
+        .sort((a, b) => Number(b.state === 'attached') - Number(a.state === 'attached')),
 );
 const filteredCustom = computed(() => customConnectors.value.filter(matches));
-const activeTab = ref<'featured' | 'chatvia'>('featured');
 
 async function fetchAll(): Promise<void> {
     loading.value = true;
@@ -197,124 +194,58 @@ onMounted(fetchAll);
                                 </div>
                             </section>
 
-                            <Tabs v-model="activeTab">
-                                <TabsList class="grid w-full max-w-md grid-cols-2">
-                                    <TabsTrigger value="featured">
-                                        Featured connectors
-                                        <span class="text-muted-foreground ml-1 text-xs">({{ filteredFeatured.length }})</span>
-                                    </TabsTrigger>
-                                    <TabsTrigger value="chatvia">
-                                        Chatvia connectors
-                                        <span class="text-muted-foreground ml-1 text-xs">({{ filteredChatvia.length }})</span>
-                                    </TabsTrigger>
-                                </TabsList>
-
-                                <TabsContent value="featured" class="mt-4">
-                                    <div
-                                        v-if="filteredFeatured.length === 0"
-                                        class="text-muted-foreground rounded-md border py-12 text-center text-sm"
-                                    >
-                                        No featured connectors match.
-                                    </div>
-                                    <div v-else class="rounded-lg border">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead class="h-11 pl-5">Connector</TableHead>
-                                                    <TableHead class="h-11 w-32">Tools</TableHead>
-                                                    <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                <TableRow v-for="row in filteredFeatured" :key="row.connector.slug">
-                                                    <TableCell class="py-4 pl-5">
-                                                        <div class="flex items-center gap-4">
-                                                            <div
-                                                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
-                                                                :style="{ backgroundColor: '#' + row.connector.brandColor + '15' }"
-                                                            >
-                                                                <img :src="logoUrl(row.connector)" :alt="row.connector.name" class="h-5 w-5" />
-                                                            </div>
-                                                            <div class="min-w-0">
-                                                                <p class="leading-tight font-medium">{{ row.connector.name }}</p>
-                                                                <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
-                                                                    {{ row.connector.description }}
-                                                                </p>
-                                                            </div>
+                            <section>
+                                <div
+                                    v-if="filteredFeatured.length === 0"
+                                    class="text-muted-foreground rounded-md border py-12 text-center text-sm"
+                                >
+                                    No connectors match.
+                                </div>
+                                <div v-else class="rounded-lg border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead class="h-11 pl-5">Connector</TableHead>
+                                                <TableHead class="h-11 w-32">Tools</TableHead>
+                                                <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            <TableRow v-for="row in filteredFeatured" :key="row.connector.slug">
+                                                <TableCell class="py-4 pl-5">
+                                                    <div class="flex items-center gap-4">
+                                                        <div
+                                                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
+                                                            :style="{ backgroundColor: '#' + row.connector.brandColor + '15' }"
+                                                        >
+                                                            <img :src="logoUrl(row.connector)" :alt="row.connector.name" class="h-5 w-5" />
                                                         </div>
-                                                    </TableCell>
-                                                    <TableCell class="py-4 text-sm">
-                                                        {{ row.server ? row.server.catalog_tools_count : '—' }}
-                                                    </TableCell>
-                                                    <TableCell class="py-4 pr-5">
-                                                        <Badge v-if="row.connector.comingSoon" variant="outline">Soon</Badge>
-                                                        <Switch
-                                                            v-else
-                                                            :model-value="row.state === 'attached'"
-                                                            :disabled="row.state === 'available'"
-                                                            :title="row.state === 'available' ? 'Connect this MCP in Settings first' : undefined"
-                                                            @update:model-value="toggleFeatured(row)"
-                                                        />
-                                                    </TableCell>
-                                                </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </TabsContent>
-
-                                <TabsContent value="chatvia" class="mt-4">
-                                    <div
-                                        v-if="filteredChatvia.length === 0"
-                                        class="text-muted-foreground rounded-md border py-12 text-center text-sm"
-                                    >
-                                        No Chatvia connectors match.
-                                    </div>
-                                    <div v-else class="rounded-lg border">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead class="h-11 pl-5">Connector</TableHead>
-                                                    <TableHead class="h-11 w-32">Tools</TableHead>
-                                                    <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                <TableRow v-for="row in filteredChatvia" :key="row.connector.slug">
-                                                    <TableCell class="py-4 pl-5">
-                                                        <div class="flex items-center gap-4">
-                                                            <div
-                                                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
-                                                                :style="{ backgroundColor: '#' + row.connector.brandColor + '15' }"
-                                                            >
-                                                                <img :src="logoUrl(row.connector)" :alt="row.connector.name" class="h-5 w-5" />
-                                                            </div>
-                                                            <div class="min-w-0">
-                                                                <p class="leading-tight font-medium">{{ row.connector.name }}</p>
-                                                                <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
-                                                                    {{ row.connector.description }}
-                                                                </p>
-                                                            </div>
+                                                        <div class="min-w-0">
+                                                            <p class="leading-tight font-medium">{{ row.connector.name }}</p>
+                                                            <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
+                                                                {{ row.connector.description }}
+                                                            </p>
                                                         </div>
-                                                    </TableCell>
-                                                    <TableCell class="py-4 text-sm">
-                                                        {{ row.server ? row.server.catalog_tools_count : '—' }}
-                                                    </TableCell>
-                                                    <TableCell class="py-4 pr-5">
-                                                        <Badge v-if="row.connector.comingSoon" variant="outline">Soon</Badge>
-                                                        <Switch
-                                                            v-else
-                                                            :model-value="row.state === 'attached'"
-                                                            :disabled="row.state === 'available'"
-                                                            :title="row.state === 'available' ? 'Connect this MCP in Settings first' : undefined"
-                                                            @update:model-value="toggleFeatured(row)"
-                                                        />
-                                                    </TableCell>
-                                                </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </TabsContent>
-                            </Tabs>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell class="py-4 text-sm">
+                                                    {{ row.server ? row.server.catalog_tools_count : '—' }}
+                                                </TableCell>
+                                                <TableCell class="py-4 pr-5">
+                                                    <Badge v-if="row.connector.comingSoon" variant="outline">Soon</Badge>
+                                                    <Switch
+                                                        v-else
+                                                        :model-value="row.state === 'attached'"
+                                                        :disabled="row.state === 'available'"
+                                                        :title="row.state === 'available' ? 'Connect this MCP in Settings first' : undefined"
+                                                        @update:model-value="toggleFeatured(row)"
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </section>
                         </div>
                     </CardContent>
                 </Card>

@@ -19,7 +19,6 @@ class ConversationController
     public function index(Request $request, Agent $agent): ChatLogConversationsResourceData
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
 
         return ChatLogConversationsResourceData::fromAgent(
             agent: $agent,
@@ -44,7 +43,6 @@ class ConversationController
         AdminDeleteConversationAction $deleteConversation,
     ): JsonResponse {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.chat.delete'), 403);
 
         $conversation = Conversation::query()
             ->whereHas('session', fn ($q) => $q->where('agent_id', $agent->id))

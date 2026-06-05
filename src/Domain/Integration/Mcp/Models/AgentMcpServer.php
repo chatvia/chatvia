@@ -24,7 +24,6 @@ use Support\Concerns\HasExternalId;
  * @property string|null $connector_slug
  * @property string $name
  * @property string|null $description
- * @property bool $requires_approval
  * @property string $slug
  * @property string $url
  * @property string $transport
@@ -91,7 +90,6 @@ class AgentMcpServer extends Model
             'auth_value' => 'encrypted',
             'oauth_refresh_token' => 'encrypted',
             'is_enabled' => 'boolean',
-            'requires_approval' => 'boolean',
             'timeout_ms' => 'int',
             'catalog_tools_count' => 'int',
             'invocation_count' => 'int',
@@ -154,6 +152,16 @@ class AgentMcpServer extends Model
     public function getRouteKeyName(): string
     {
         return 'external_id';
+    }
+
+    /**
+     * Resolve a workspace-scoped MCP server by slug or 404 if the slug is
+     * unknown to that workspace. Replaces the per-controller `find()` helper
+     * that was copy-pasted across the Settings/Connector controllers.
+     */
+    public static function forSlugScoped(string $slug, \App\Identity\Workspace\Models\User $user): self
+    {
+        return $user->mcpServers()->where('slug', $slug)->firstOrFail();
     }
 
     /**

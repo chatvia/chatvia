@@ -1,0 +1,106 @@
+{
+    "common": {
+        "cancel": "取消",
+        "delete": "删除",
+        "close": "关闭",
+        "save": "保存",
+        "saving": "正在保存…"
+    },
+    "approval": {
+        "badge": "需要批准",
+        "prompt": "是否继续?",
+        "mcp_tool": "MCP 工具",
+        "function": "函数",
+        "approve": "批准",
+        "deny": "拒绝"
+    },
+    "composer": {
+        "default_placeholder": "消息…",
+        "disabled": "聊天已禁用",
+        "stop_recording": "停止录音",
+        "start_voice_input": "开始语音输入"
+    },
+    "header": {
+        "toggle_sidebar": "切换侧边栏",
+        "toggle_expand": "切换全屏",
+        "incognito_mode": "无痕模式",
+        "delete_conversation": "删除对话",
+        "delete_dialog_title": "删除对话?",
+        "delete_dialog_description": "此操作无法撤销。"
+    },
+    "sidebar": {
+        "open_sidebar": "打开侧边栏",
+        "new_chat": "新对话",
+        "your_chats": "你的对话",
+        "loading": "加载中…",
+        "no_conversations": "暂无对话",
+        "rename_conversation": "重命名",
+        "clear_all_chats": "清除所有对话",
+        "delete_all_title": "删除所有对话?",
+        "delete_all_description": "此操作无法撤销。你的所有对话将被永久删除。",
+        "delete_all_confirm": "全部删除",
+        "profile": "个人资料",
+        "my_agents": "我的智能体",
+        "logout": "退出登录",
+        "delete_conversation_title": "删除对话",
+        "delete_conversation_description": "你确定要删除这个对话吗?此操作无法撤销。",
+        "profile_settings_title": "个人资料设置",
+        "profile_settings_description": "更新你的账号信息和密码。",
+        "profile_name": "姓名",
+        "name_input_placeholder": "请输入姓名",
+        "profile_email": "邮箱",
+        "email_input_placeholder": "请输入邮箱",
+        "current_password": "当前密码",
+        "current_password_placeholder": "请输入当前密码",
+        "new_password": "新密码",
+        "new_password_placeholder": "请输入新密码",
+        "confirm_password": "确认密码",
+        "confirm_password_placeholder": "请确认新密码",
+        "save_changes": "保存更改",
+        "agents_dialog_title": "我的智能体",
+        "agents_dialog_description": "管理你的 AI 智能体及其配置。",
+        "loading_agents": "正在加载智能体…",
+        "no_agents": "未找到智能体。",
+        "switching_agent": "切换中…",
+        "switch_to_agent": "切换到 {name}"
+    },
+    "chat": {
+        "message_limit_reached": "你已达到消息上限",
+        "upgrade_prompt": "请升级套餐以继续聊天",
+        "regenerate_failed": "无法重新生成回复,请重试。",
+        "loading_conversation": "正在加载对话"
+    },
+    "messages": {
+        "send": "发送",
+        "delete_user_message_title": "删除这条消息?",
+        "delete_user_message_description": "这也会删除 AI 的回复。",
+        "delete_assistant_message_title": "删除这条消息?",
+        "delete_assistant_message_description": "这也会删除你的原始消息。",
+        "calling_external": "正在调用外部数据源…",
+        "fetching_data": "正在从 {label} 获取数据",
+        "calling": "正在调用 {label}…",
+        "regenerate_tooltip": "重新生成回复"
+    },
+    "errors": {
+        "subscription_expired": "订阅已过期",
+        "renew_subscription": "续订",
+        "message_limit_reached": "已达到消息上限",
+        "upgrade_plan": "升级套餐",
+        "model_unavailable": "模型不可用",
+        "too_many_requests": "请求过多",
+        "connection_lost": "连接中断",
+        "unexpected_response": "意外响应",
+        "something_went_wrong": "出错了",
+        "try_again": "重试"
+    },
+    "sources": {
+        "title": "知识来源",
+        "source_count": "{count} 个来源",
+        "description": "使用了 {count} 个来源生成此回复",
+        "page_label": "第 {page} 页"
+    },
+    "home": {
+        "logo_alt": "标志",
+        "welcome_message": "今天我能帮你什么?"
+    }
+}

@@ -20,7 +20,7 @@ import {
     Title,
     type ChartOptions,
 } from 'chart.js';
-import { BarChart3, Globe2, LoaderCircle, MessageCircle, MessageSquare, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-vue-next';
+import { BarChart3, Coins, Globe2, LoaderCircle, MessageCircle, MessageSquare, ThumbsDown, ThumbsUp, TrendingUp, Zap } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { Bar, Line } from 'vue-chartjs';
 
@@ -147,7 +147,7 @@ onMounted(() => {
 });
 
 // Helper functions
-const _formatDuration = (seconds: number | null): string => {
+const formatDuration = (seconds: number | null): string => {
     if (!seconds) return 'N/A';
     const minutes = Math.floor(seconds / 60);
     const secs = Math.round(seconds % 60);
@@ -684,6 +684,48 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                     <div v-if="!analytics?.country_usage?.length" class="text-muted-foreground py-8 text-center">No geographic data available</div>
                     <div v-else class="overflow-hidden">
                         <WorldMap :country-data="analytics?.country_usage ?? []" />
+                    </div>
+                </CardContent>
+            </Card>
+
+            <!-- Performance & resource usage (folded in from the former Metrics tab) -->
+            <Card class="mb-6">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <Zap class="h-5 w-5" />
+                        Performance & usage
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div class="grid grid-cols-2 gap-6 md:grid-cols-4">
+                        <div>
+                            <p class="text-muted-foreground mb-1 text-sm">Avg response time</p>
+                            <p class="text-2xl font-bold">{{ analytics?.avg_response_time ?? 0 }}s</p>
+                        </div>
+                        <div>
+                            <p class="text-muted-foreground mb-1 text-sm">First response time</p>
+                            <p class="text-2xl font-bold">{{ formatDuration(analytics?.avg_first_response_time ?? null) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-muted-foreground mb-1 text-sm">Avg session duration</p>
+                            <p class="text-2xl font-bold">{{ formatDuration(analytics?.avg_conversation_duration ?? null) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-muted-foreground mb-1 text-sm">Avg messages / chat</p>
+                            <p class="text-2xl font-bold">{{ Number(analytics?.avg_messages_per_conversation ?? 0).toFixed(1) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-muted-foreground mb-1 text-sm">Unique sessions</p>
+                            <p class="text-2xl font-bold">{{ (analytics?.unique_sessions ?? 0).toLocaleString() }}</p>
+                        </div>
+                        <div>
+                            <p class="text-muted-foreground mb-1 flex items-center gap-1 text-sm"><Coins class="h-3.5 w-3.5" /> Total tokens</p>
+                            <p class="text-2xl font-bold">{{ (analytics?.total_tokens_used ?? 0).toLocaleString() }}</p>
+                        </div>
+                        <div>
+                            <p class="text-muted-foreground mb-1 text-sm">Avg tokens / message</p>
+                            <p class="text-2xl font-bold">{{ Math.round(analytics?.avg_tokens_per_message ?? 0).toLocaleString() }}</p>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

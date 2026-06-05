@@ -14,6 +14,7 @@ class MessageSent
      */
     public function __construct(
         public readonly int $agentId,
+        public readonly int $userId,
         public readonly string $conversationExternalId,
         public readonly string $messageExternalId,
         public readonly string $sessionExternalId,

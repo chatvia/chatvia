@@ -22,8 +22,8 @@ use Illuminate\Support\Facades\Log;
  * the absolute pool sizes differ wildly.
  *
  * Pool scoping happens inside each channel's CTE:
- *   - MCP rows require `mcp_servers.is_enabled` + `mcp_tools.is_enabled` +
- *     an `agent_mcp_server` pivot row for this agent.
+ *   - MCP rows require `mcp_servers.is_enabled` + `mcp_tools.permission`
+ *     other than `blocked` + an `agent_mcp_server` pivot row for this agent.
  *   - Function rows require `functions.is_enabled` + an `agent_function`
  *     pivot row for this agent.
  */
@@ -58,7 +58,7 @@ WITH mcp_vector AS (
     INNER JOIN mcp_servers s ON s.id = t.mcp_server_id
     INNER JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
     WHERE s.is_enabled = true
-      AND t.is_enabled = true
+      AND t.permission != 'blocked'
       AND t.embedding IS NOT NULL
     ORDER BY t.embedding <-> ?::vector({$dims})
     LIMIT ?
@@ -75,7 +75,7 @@ mcp_bm25 AS (
     INNER JOIN mcp_servers s ON s.id = t.mcp_server_id
     INNER JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
     WHERE s.is_enabled = true
-      AND t.is_enabled = true
+      AND t.permission != 'blocked'
       AND t.embedding_bm25 IS NOT NULL
     ORDER BY rank
     LIMIT ?

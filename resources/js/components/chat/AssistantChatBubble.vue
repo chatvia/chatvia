@@ -233,7 +233,12 @@ watch(
                 />
             </div>
 
-            <div v-if="message.content && !hideFeedback" class="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <!-- Suppressed while an approval card is pending — feedback on a turn
+                 whose tool call hasn't run yet is misleading. -->
+            <div
+                v-if="message.content && !hideFeedback && !(pendingApprovals && pendingApprovals.length)"
+                class="mt-2 flex flex-wrap items-center justify-between gap-2"
+            >
                 <div class="flex items-center gap-0.5">
                     <Button
                         size="icon"

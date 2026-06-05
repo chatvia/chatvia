@@ -30,7 +30,7 @@ class SourceYoutubeVideoObserver
         // Chunks (incl. summary) cleaned up by Chunkable::bootChunkable() via the
         // deleting event — FK cascade handles chunk_references.
 
-        // Detach all agents (removes agent_youtube_video pivot records)
+        // Detach all agents (removes agent_sources polymorphic pivot rows)
         $youtubeVideo->agents()->detach();
     }
 

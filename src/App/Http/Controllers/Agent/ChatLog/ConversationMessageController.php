@@ -21,7 +21,6 @@ class ConversationMessageController
         ListConversationMessagesAction $list,
     ): ChatLogMessagesResourceData {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
         abort_if($conversation->session->agent_id !== $agent->id, 404);
 
         return $list->execute($agent, $conversation, $request->integer('page', 1));

@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Integration\Function\Data\CreateAgentFunctionData;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CreateAgentFunctionRequest extends FormRequest
 {
@@ -25,11 +26,8 @@ class CreateAgentFunctionRequest extends FormRequest
                 'string',
                 'max:64',
                 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if ($this->user()->functions()->where('internal_name', $value)->exists()) {
-                        $fail('A function with this name already exists on your account.');
-                    }
-                },
+                Rule::unique('functions', 'internal_name')
+                    ->where('user_id', $this->user()->id),
             ],
             'display_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],

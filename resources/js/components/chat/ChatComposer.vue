@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useVoiceRecorder } from '@/composables/useVoiceRecorder';
 import axios from 'axios';
 import { ArrowUp, FileText, Loader2, Mic, Paperclip, Square, X } from 'lucide-vue-next';
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
@@ -27,10 +27,24 @@ interface Props {
     uploadHeaders?: Record<string, string>;
     /** Accept attribute for the file picker; defaults to PDF only. */
     uploadAccept?: string;
+    /** Show the paperclip / file-upload button. Defaults to on. Set false to
+     *  hide it for FAQ-only / compliance agents that don't accept uploads. */
+    allowFileUploads?: boolean;
+    /** Show the mic / speech-to-text button. Defaults to on. Set false to
+     *  hide it for agents that shouldn't expose voice recording. */
+    allowVoiceInput?: boolean;
+    /** Per-chat upload ceiling. Mirrors `agent.files.upload.max_files` —
+     *  pass it through from `$page.props.maxFilesPerChat`. The composer
+     *  greys out the paperclip once the local attachments list hits this,
+     *  but the server enforces the same value so a bypass still 422s. */
+    maxFiles?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     uploadAccept: 'application/pdf',
+    allowFileUploads: true,
+    allowVoiceInput: true,
+    maxFiles: 2,
 });
 const { t } = useI18n();
 
@@ -74,7 +88,19 @@ const fileInput = ref<HTMLInputElement>();
 const attachments = ref<Attachment[]>([]);
 const isUploading = ref(false);
 
+// True while the local attachments list is below the per-chat ceiling.
+// Server enforces the same value (MaxConversationAttachments), but gating
+// here saves a roundtrip and avoids a confusing error toast on the click
+// after the user already saw the chips fill up. Tracks only the current
+// turn — if the conversation already has files from prior turns, the
+// server's 422 surfaces via the catch block below.
+const canUploadMore = computed(() => attachments.value.length < props.maxFiles);
+
 const triggerFilePicker = () => {
+    if (!canUploadMore.value) {
+        toast.error(t('composer.upload_limit_reached', { count: props.maxFiles }, `You can attach up to ${props.maxFiles} files.`));
+        return;
+    }
     fileInput.value?.click();
 };
 
@@ -82,6 +108,15 @@ const handleFileSelected = async (event: Event) => {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
     if (!file || !props.uploadEndpoint) return;
+
+    // Defensive double-check — covers the edge case where another tab or
+    // a race appended an attachment between triggerFilePicker() and the
+    // OS file dialog returning.
+    if (!canUploadMore.value) {
+        target.value = '';
+        toast.error(t('composer.upload_limit_reached', { count: props.maxFiles }, `You can attach up to ${props.maxFiles} files.`));
+        return;
+    }
 
     target.value = '';
 
@@ -250,23 +285,30 @@ const toggleRecording = async () => {
 
                 <!-- Right side: Attach, Mic, and Send/Stop buttons -->
                 <div class="flex items-center gap-1.5 p-3">
-                    <!-- File upload button -->
+                    <!-- File upload button — hidden when the agent disables uploads.
+                         Disabled (greyed) once the local attachments list hits
+                         the per-chat ceiling; the click handler also re-checks
+                         and surfaces a toast as a fallback. -->
                     <Button
-                        v-if="uploadEndpoint && !isThinking && !disabled"
+                        v-if="allowFileUploads && uploadEndpoint && !isThinking && !disabled"
                         @click="triggerFilePicker"
-                        :disabled="isUploading"
+                        :disabled="isUploading || !canUploadMore"
                         size="icon"
                         variant="ghost"
                         class="hover:bg-muted text-muted-foreground hover:text-foreground h-10 w-10 shrink-0 rounded-full transition-all duration-200"
-                        :title="t('composer.attach_file', 'Attach a PDF')"
+                        :title="
+                            !canUploadMore
+                                ? t('composer.upload_limit_reached', { count: maxFiles }, `You can attach up to ${maxFiles} files.`)
+                                : t('composer.attach_file', 'Attach a PDF')
+                        "
                     >
                         <Paperclip class="h-5 w-5" />
                     </Button>
                     <input ref="fileInput" type="file" :accept="uploadAccept" class="hidden" @change="handleFileSelected" />
 
-                    <!-- Voice recording button -->
+                    <!-- Voice recording button — hidden when the agent disables voice. -->
                     <Button
-                        v-if="isVoiceSupported && !isThinking && !disabled"
+                        v-if="allowVoiceInput && isVoiceSupported && !isThinking && !disabled"
                         @click="toggleRecording"
                         :disabled="isTranscribing"
                         size="icon"

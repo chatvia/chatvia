@@ -174,22 +174,6 @@ class UserCreditSystem
         );
     }
 
-    /**
-     * @deprecated Use UpdateUserCreditsJob instead for proper locking
-     */
-    public function incrementMessagesUsage(int $amount = 1): void
-    {
-        Cache::increment(
-            key: template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]),
-            value: $amount
-        );
-
-        /** @var User $user */
-        $user = User::find($this->userId);
-
-        $user->credit?->usage()?->increment('messages', $amount);
-    }
-
     public function getTotalSentMessages(): int
     {
         return Cache::get(

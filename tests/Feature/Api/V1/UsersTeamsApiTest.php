@@ -7,8 +7,12 @@ use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
+    // UserObserver::created auto-provisions the default team + billing + quota.
     $this->user = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->user);
+    // Bump the team quota so tests that POST /api/v1/teams aren't blocked by
+    // the default plan's starter ceiling of 1 (which the auto-provisioned
+    // default team already fills).
+    $this->user->quota()->update(['teams_limit' => 10]);
     $this->agent = createAgent($this->user);
     $this->token = $this->user->createToken('account')->plainTextToken;
 });

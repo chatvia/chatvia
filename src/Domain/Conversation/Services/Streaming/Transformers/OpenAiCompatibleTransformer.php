@@ -71,6 +71,13 @@ class OpenAiCompatibleTransformer implements StreamTransformer
                         yield StreamEvent::meta($context->assistantMessageId, 'generation_id', $json['id']);
                     }
 
+                    // OpenAI-compatible providers emit a final chunk with `usage`
+                    // when the request includes `stream_options.include_usage`.
+                    // Forward to the Spectra streaming tracker if present.
+                    if (isset($json['usage']) && is_array($json['usage'])) {
+                        $context->spectraTracker?->setUsage($json['usage']);
+                    }
+
                     $delta = $json['choices'][0]['delta']['content'] ?? null;
                     if (is_string($delta) && $delta !== '') {
                         // Some open-weight models on OpenAI-compatible endpoints
@@ -90,6 +97,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
                                 } else {
                                     $contentMode = 'text';
                                     $context->appendStreamedMessage($contentBuffer);
+                                    $context->spectraTracker?->appendContent($contentBuffer);
                                     yield StreamEvent::delta($context->assistantMessageId, $contentBuffer);
                                     $contentBuffer = '';
                                 }
@@ -98,6 +106,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
                             $contentBuffer .= $delta;
                         } else {
                             $context->appendStreamedMessage($delta);
+                            $context->spectraTracker?->appendContent($delta);
                             yield StreamEvent::delta($context->assistantMessageId, $delta);
                         }
                     }
@@ -165,6 +174,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         }
 
         $context->appendStreamedMessage($contentBuffer);
+        $context->spectraTracker?->appendContent($contentBuffer);
         yield StreamEvent::delta($context->assistantMessageId, $contentBuffer);
     }
 

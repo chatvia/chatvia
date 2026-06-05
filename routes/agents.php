@@ -2,8 +2,6 @@
 
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\Agent\AgentManagerController;
-use App\Http\Controllers\Agent\Analytics\Metrics\AgentMetricsController;
-use App\Http\Controllers\Agent\Analytics\Metrics\AgentMetricsDataController;
 use App\Http\Controllers\Agent\Analytics\Overview\AgentAnalyticsController;
 use App\Http\Controllers\Agent\Analytics\Overview\AgentAnalyticsDataController;
 use App\Http\Controllers\Agent\Analytics\Overview\AgentChartDataController;
@@ -15,8 +13,10 @@ use App\Http\Controllers\Agent\Analytics\Tone\AgentToneController;
 use App\Http\Controllers\Agent\Analytics\Tone\AgentToneDataController;
 use App\Http\Controllers\Agent\Analytics\Topic\AgentTopicController;
 use App\Http\Controllers\Agent\Analytics\Topic\AgentTopicsDataController;
+use App\Http\Controllers\Agent\Analytics\Topic\DismissSuggestedTopicController;
+use App\Http\Controllers\Agent\Analytics\Topic\PromoteSuggestedTopicController;
+use App\Http\Controllers\Agent\Analytics\Topic\SuggestedTopicsDataController;
 use App\Http\Controllers\Agent\Bar\BarPreviewController;
-use App\Http\Controllers\Agent\BusinessProfile\AgentBusinessProfileController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogReviseAnswerController;
 use App\Http\Controllers\Agent\ChatLog\ConversationController as ChatLogConversationsController;
@@ -104,22 +104,29 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
         Route::get('analytics/data', AgentAnalyticsDataController::class)->name('analytics.data');
         Route::get('analytics/chart-data', AgentChartDataController::class)->name('analytics.chart-data');
-        Route::get('analytics/metrics', AgentMetricsController::class)->name('analytics.metrics');
-        Route::get('analytics/metrics/data', AgentMetricsDataController::class)->name('metrics.data');
         Route::get('analytics/sentiment', AgentSentimentController::class)->name('analytics.sentiment');
         Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->middleware('capability:sentiment')->name('sentiment.data');
         Route::get('analytics/tone', AgentToneController::class)->name('analytics.tone');
         Route::get('analytics/tone/data', AgentToneDataController::class)->middleware('capability:tone')->name('tone.data');
         Route::get('analytics/topics', AgentTopicController::class)->name('analytics.topics');
         Route::get('analytics/topics/data', AgentTopicsDataController::class)->middleware('capability:topics')->name('topics.data');
+
+        // Emergent (discovered) topic suggestions — surfaced from the consolidated
+        // analysis pass; promotion turns one into a real, agent-attached topic.
+        Route::get('analytics/topics/suggestions', SuggestedTopicsDataController::class)->middleware('capability:topics')->name('topics.suggestions');
+        Route::middleware(['capability:topics', 'agent.permission:agent.topics.manage'])->group(function (): void {
+            Route::post('analytics/topics/suggestions/promote', PromoteSuggestedTopicController::class)->name('topics.suggestions.promote');
+            Route::delete('analytics/topics/suggestions', DismissSuggestedTopicController::class)->name('topics.suggestions.dismiss');
+        });
         Route::get('analytics/sources', AgentSourceController::class)->name('analytics.sources');
         Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
 
         // Topics Management — the index page is allowed through so the Vue
         // LockedFeature card can render on Starter/Standard; the mutations
         // are hard-gated.
-        Route::get('topics', [TopicsResourceController::class, 'index'])->name('topics.index');
-        Route::middleware('capability:topics')->group(function (): void {
+        Route::get('topics', [TopicsResourceController::class, 'index'])
+            ->middleware('agent.permission:agent.topics.manage')->name('topics.index');
+        Route::middleware(['capability:topics', 'agent.permission:agent.topics.manage'])->group(function (): void {
             Route::post('topics', [TopicsResourceController::class, 'store'])->name('topics.store');
             Route::patch('topics/{topic}', [TopicsResourceController::class, 'update'])->name('topics.update');
             Route::delete('topics/{topic}', [TopicsResourceController::class, 'destroy'])->name('topics.destroy');
@@ -139,9 +146,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
 
         Route::get('persona', AgentShowPersonaController::class)->name('persona');
 
-        Route::patch('business-profile', [AgentBusinessProfileController::class, 'update'])->name('business-profile.update');
-        Route::delete('business-profile', [AgentBusinessProfileController::class, 'destroy'])->name('business-profile.destroy');
-
         // Knowledge
         Route::get('sources', AgentKnowledgeSourceController::class)->name('sources');
         Route::get('sources/stats', AgentKnowledgeSourcesStatsController::class)->name('sources.stats');
@@ -156,17 +160,17 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::delete('sources/youtube/{youtube}', [AgentYoutubeController::class, 'destroy'])->name('sources.youtube.destroy');
         Route::post('sources/youtube/{youtube}/retrain', RetrainAgentYoutubeController::class)->name('sources.youtube.retrain');
 
-        Route::get('sources/text', [AgentTextController::class, 'index'])->name('sources.text.index');
-        Route::post('sources/text', [AgentTextController::class, 'store'])->name('sources.text.store');
+        Route::get('sources/text', [AgentTextController::class, 'index'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.index');
+        Route::post('sources/text', [AgentTextController::class, 'store'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.store');
         Route::get('sources/text/{id}', [AgentTextController::class, 'show'])->name('sources.text.show');
         Route::patch('sources/text/{id}', [AgentTextController::class, 'update'])->name('sources.text.update');
         Route::post('sources/text/{id}/unlink', DetachAgentTextController::class)->name('sources.text.unlink');
 
-        Route::get('sources/qa', [AgentQaController::class, 'index'])->name('sources.qa.index');
-        Route::post('sources/qa', [AgentQaController::class, 'store'])->name('sources.qa.store');
+        Route::get('sources/qa', [AgentQaController::class, 'index'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.index');
+        Route::post('sources/qa', [AgentQaController::class, 'store'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.store');
         Route::get('sources/qa/{id}', [AgentQaController::class, 'show'])->name('sources.qa.show');
         Route::patch('sources/qa/{id}', [AgentQaController::class, 'update'])->name('sources.qa.update');
-        Route::delete('sources/qa/{id}', [AgentQaController::class, 'destroy'])->name('sources.qa.destroy');
+        Route::delete('sources/qa/{id}', [AgentQaController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.qa.destroy');
         Route::post('sources/qa/{id}/unlink', DetachAgentQaController::class)->name('sources.qa.unlink');
 
         // Functions (LLM tool calls — webhook-backed). Functions are owned at
@@ -190,15 +194,15 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)->name('sources.connectors.refresh');
 
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
-        Route::delete('sources/text/{id}', [AgentTextController::class, 'destroy'])->name('sources.text.destroy');
-        Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->name('sources.files.delete');
-        Route::delete('sources/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->name('sources.uploaded-files');
-        Route::post('sources/files/process', AgentKnowledgeFilesProcessController::class)->name('sources.files.process');
+        Route::delete('sources/text/{id}', [AgentTextController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.text.destroy');
+        Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.files.delete');
+        Route::delete('sources/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.uploaded-files');
+        Route::post('sources/files/process', AgentKnowledgeFilesProcessController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files.process');
         Route::get('sources/files/{file}/summary', AgentFileSummaryController::class)->name('agent.files.summary');
 
-        Route::get('sources/websites', [AgentWebsiteController::class, 'index'])->name('sources.websites.index');
-        Route::post('sources/websites', [AgentWebsiteController::class, 'store'])->name('sources.websites.store');
-        Route::delete('sources/websites/{website}', [AgentWebsiteController::class, 'destroy'])->name('sources.websites.destroy');
+        Route::get('sources/websites', [AgentWebsiteController::class, 'index'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.index');
+        Route::post('sources/websites', [AgentWebsiteController::class, 'store'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.store');
+        Route::delete('sources/websites/{website}', [AgentWebsiteController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.websites.destroy');
         Route::post('sources/websites/{website}/train', TrainAgentWebsiteController::class)->name('sources.websites.train');
 
         Route::get('sources/websites/{website}/links', [AgentWebsiteLinkController::class, 'index'])->name('sources.websites.links.index');
@@ -209,10 +213,10 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Starters API endpoint (used by Widget and Embed components)
         Route::put('starters', [AgentStarterController::class, 'update'])->name('starters.update');
 
-        Route::get('leads', [AgentLeadController::class, 'index'])->name('leads.index');
-        Route::delete('leads', [AgentLeadController::class, 'destroy'])->name('leads.destroy');
-        Route::patch('leads/settings', AgentLeadSettingsController::class)->name('leads.settings');
-        Route::post('leads/export', AgentLeadsExportController::class)->name('leads.export');
+        Route::get('leads', [AgentLeadController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('leads.index');
+        Route::delete('leads', [AgentLeadController::class, 'destroy'])->middleware('agent.permission:agent.leads.view')->name('leads.destroy');
+        Route::patch('leads/settings', AgentLeadSettingsController::class)->middleware('agent.permission:agent.leads.settings')->name('leads.settings');
+        Route::post('leads/export', AgentLeadsExportController::class)->middleware('agent.permission:agent.leads.export')->name('leads.export');
 
         // Chatter members. index lists every workspace chatter (with a
         // `has_access` flag for this agent); store invites a brand-new
@@ -223,14 +227,14 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::post('members/{chatter}/grant', [AgentMemberController::class, 'grant'])->name('members.grant');
         Route::delete('members/{chatter}', [AgentMemberController::class, 'destroy'])->name('members.destroy');
 
-        Route::get('logs', [AgentChatLogController::class, 'index'])->name('logs');
-        Route::get('logs/conversations', [ChatLogConversationsController::class, 'index'])->name('logs.conversations');
-        Route::get('logs/messages/{conversation}', ChatLogConversationMessagesController::class)->name('logs.messages');
-        Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware('capability:pulse')->name('logs.pulse');
-        Route::get('logs/topics', ChatLogTopicsController::class)->name('logs.topics');
-        Route::get('logs/countries', ChatLogCountriesController::class)->name('logs.countries');
-        Route::delete('logs/conversations/{conversation}', [ChatLogConversationsController::class, 'destroy'])->name('logs.delete-conversation');
-        Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->name('logs.revise-answer');
+        Route::get('logs', [AgentChatLogController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('logs');
+        Route::get('logs/conversations', [ChatLogConversationsController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('logs.conversations');
+        Route::get('logs/messages/{conversation}', ChatLogConversationMessagesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.messages');
+        Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware(['capability:pulse', 'agent.permission:agent.chat.pulse'])->name('logs.pulse');
+        Route::get('logs/topics', ChatLogTopicsController::class)->middleware('agent.permission:agent.chat.view')->name('logs.topics');
+        Route::get('logs/countries', ChatLogCountriesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.countries');
+        Route::delete('logs/conversations/{conversation}', [ChatLogConversationsController::class, 'destroy'])->middleware('agent.permission:agent.chat.delete')->name('logs.delete-conversation');
+        Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->middleware('agent.permission:agent.chat.view')->name('logs.revise-answer');
 
         // Handoff (Admin Takeover) Routes — Pro-only capability.
         Route::middleware('capability:handoff')->group(function (): void {

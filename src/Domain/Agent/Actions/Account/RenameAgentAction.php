@@ -11,10 +11,6 @@ use Domain\Agent\Models\Agent;
  */
 class RenameAgentAction
 {
-    public function __construct(
-        private readonly UpdateAgentAction $updateAgent,
-    ) {}
-
     public function execute(Agent $agent, RenameAgentData $data): Agent
     {
         $attributes = ['name' => $data->name];
@@ -23,7 +19,7 @@ class RenameAgentAction
             $attributes['sub_domain'] = $data->sub_domain;
         }
 
-        $this->updateAgent->execute($agent, $attributes);
+        $agent->update($attributes);
 
         return $agent->fresh();
     }

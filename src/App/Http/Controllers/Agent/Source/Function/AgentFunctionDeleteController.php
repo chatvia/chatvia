@@ -23,7 +23,7 @@ class AgentFunctionDeleteController
         DetachFunctionFromAgentAction $detach,
     ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 403);
-        abort_unless($function->user_id === $agent->user_id, 404);
+        abort_unless($agent->ownsFunction($function), 404);
 
         $detach->execute($agent, $function);
 

@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Agent\Source\File\Upload;
 
 use Domain\Agent\Actions\Sources\AgentSourceAnalyzeFileAction;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\File\Actions\UploadKnowledgeSourceFileAction;
 use Illuminate\Http\Request;
 
 class AgentKnowledgeFileUploadController
 {
-    public function __invoke(Request $request, Agent $agent, AgentSourceAnalyzeFileAction $action): array
-    {
+    public function __invoke(
+        Request $request,
+        Agent $agent,
+        AgentSourceAnalyzeFileAction $analyze,
+        UploadKnowledgeSourceFileAction $upload,
+    ): array {
         abort_if(
             boolean: $request->user()->cannot('view', $agent),
             code: 404,
@@ -28,9 +33,9 @@ class AgentKnowledgeFileUploadController
             message: 'File upload failed'
         );
 
-        $info = $action->execute($uploadedFile, $request->user(), $agent);
+        $info = $analyze->execute($uploadedFile, $request->user(), $agent);
 
-        $file = $agent->addFile($uploadedFile);
+        $file = $upload->execute($agent, $uploadedFile);
 
         return [
             'id' => $file->id,

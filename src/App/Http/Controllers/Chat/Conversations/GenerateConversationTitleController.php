@@ -24,7 +24,7 @@ class GenerateConversationTitleController
             ->setExternalSessionId($session->firstOrCreateSession($agent))
             ->setConversationId($conversationId);
 
-        abort_if(! $memory->conversationExist(), 404);
+        abort_if(! $memory->conversationExists(), 404);
 
         $conversation = Conversation::where('external_id', $conversationId)->first();
 

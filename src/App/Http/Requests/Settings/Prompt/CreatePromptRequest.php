@@ -3,9 +3,9 @@
 namespace App\Http\Requests\Settings\Prompt;
 
 use App\Identity\Workspace\Models\User;
-use Closure;
 use Domain\Prompt\Data\CreatePromptData;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CreatePromptRequest extends FormRequest
 {
@@ -24,11 +24,8 @@ class CreatePromptRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if ($this->user()->prompts()->where('name', $value)->exists()) {
-                        $fail('A prompt with this name already exists on your account.');
-                    }
-                },
+                Rule::unique('agent_prompts', 'name')
+                    ->where('user_id', $this->user()->id),
             ],
             'prompt' => ['required', 'string', 'max:10000'],
         ];

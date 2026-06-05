@@ -15,13 +15,13 @@ class FeedbackController
         $agentId = $request->header('X-AGENT-ID');
 
         if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
-            return response()->json(['error' => 'Could not verify the agent'], 403);
+            return response()->json(['error' => 'Domain not allowed'], 403);
         }
 
         $memory
             ->setAgent(current_agent_from_widget())
             ->setExternalSessionId($request->header('X-SESSION-ID'))
-            ->setConversationId($request->header('X-THREAD-ID'))
+            ->setConversationId($request->header('X-CONVERSATION-ID'))
             ->feedback($request->header('X-MESSAGE-ID'), $request->boolean('feedback') ? 'positive' : 'negative');
 
         return new WidgetAckData;

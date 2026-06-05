@@ -28,10 +28,12 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import {
     Bot,
+    Check,
     CheckCircle,
     ChevronLeft,
     ChevronRight,
     Clock,
+    Copy,
     Edit,
     Info,
     Loader2,
@@ -49,15 +51,15 @@ import {
 } from 'lucide-vue-next';
 
 // Use generated TypeScript types from DTOs
-type TeamData = App.Team.Data.Resources.Team.TeamData;
-type TeamMemberData = App.Team.Data.Resources.Members.TeamMemberData;
-type TeamRoleData = App.Team.Data.Resources.Roles.TeamRoleData;
-type TeamAgentData = App.Team.Data.Resources.Team.TeamAgentData;
-type TeamInvitationData = App.Team.Data.Resources.Members.TeamInvitationData;
-type ManagedUserData = App.Team.Data.Resources.Members.ManagedUserData;
-type PermissionMetaData = App.Team.Data.Resources.Permissions.PermissionMetaData;
-type PermissionGroupData = App.Team.Data.Resources.Permissions.PermissionGroupData;
-type RoleConfigData = App.Team.Data.Resources.Roles.RoleConfigData;
+type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
+type TeamMemberData = Domain.Membership.Team.Data.Resources.Members.TeamMemberData;
+type TeamRoleData = Domain.Membership.Team.Data.Resources.Roles.TeamRoleData;
+type TeamAgentData = Domain.Membership.Team.Data.Resources.Team.TeamAgentData;
+type TeamInvitationData = Domain.Membership.Team.Data.Resources.Members.TeamInvitationData;
+type ManagedUserData = Domain.Membership.Team.Data.Resources.Members.ManagedUserData;
+type PermissionMetaData = Domain.Membership.Team.Data.Resources.Permissions.PermissionMetaData;
+type PermissionGroupData = Domain.Membership.Team.Data.Resources.Permissions.PermissionGroupData;
+type RoleConfigData = Domain.Membership.Team.Data.Resources.Roles.RoleConfigData;
 
 interface Props {
     team: TeamData;
@@ -82,9 +84,22 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: props.team.name,
-        href: `/my/teams/${props.team.id}`,
+        href: `/my/teams/${props.team.external_id}`,
     },
 ];
+
+// Two-second "Copied!" flash after clicking the team-id copy button.
+const copiedExternalId = ref(false);
+const copyExternalId = async () => {
+    try {
+        await navigator.clipboard.writeText(props.team.external_id);
+        copiedExternalId.value = true;
+        setTimeout(() => (copiedExternalId.value = false), 2000);
+    } catch {
+        // Clipboard API can fail under permissions / non-HTTPS — fail silently
+        // rather than throwing a toast for what's just a convenience copy.
+    }
+};
 
 const page = usePage<SharedData>();
 const currentUser = page.props.auth.user;
@@ -109,7 +124,7 @@ const startEditingName = () => {
 };
 
 const updateTeamName = () => {
-    updateTeamForm.put(route('teams.update', props.team.id), {
+    updateTeamForm.put(route('teams.update', props.team.external_id), {
         onSuccess: () => {
             isEditingName.value = false;
         },
@@ -118,6 +133,19 @@ const updateTeamName = () => {
 
 // Expanded roles (for permissions toggle)
 const expandedRoles = ref<Set<number>>(new Set());
+
+// Two-second "Copied!" flash per role, keyed by role id. A Set lets multiple
+// rapid copies coexist without overwriting each other's flash state.
+const copiedRoleIds = ref<Set<number>>(new Set());
+const copyRoleExternalId = async (role: TeamRoleData) => {
+    try {
+        await navigator.clipboard.writeText(role.external_id);
+        copiedRoleIds.value.add(role.id);
+        setTimeout(() => copiedRoleIds.value.delete(role.id), 2000);
+    } catch {
+        // Clipboard API can fail under permissions / non-HTTPS — fail silently.
+    }
+};
 
 const toggleRoleExpanded = (roleId: number) => {
     if (expandedRoles.value.has(roleId)) {
@@ -144,7 +172,7 @@ const inviteMember = () => {
         .transform((current) =>
             inviteType.value === 'existing' ? { user_id: current.user_id, role: current.role } : { email: current.email, role: current.role },
         )
-        .post(route('teams.invite', props.team.id), {
+        .post(route('teams.invite', props.team.external_id), {
             onSuccess: () => {
                 isInviteDialogOpen.value = false;
                 inviteForm.reset();
@@ -162,7 +190,7 @@ const openInviteDialogForRole = (role: TeamRoleData) => {
 // Cancel invitation
 const cancelInvitationForm = useForm({});
 const cancelInvitation = (invitationId: number) => {
-    cancelInvitationForm.delete(route('teams.cancel-invitation', { team: props.team.id, invitationId }));
+    cancelInvitationForm.delete(route('teams.cancel-invitation', { team: props.team.external_id, invitationId }));
 };
 
 // Update member role
@@ -179,7 +207,7 @@ const openEditMemberDialog = (member: TeamMemberData) => {
 const updateMemberRole = () => {
     if (!memberToEdit.value) return;
 
-    updateMemberForm.put(route('teams.update-member', { team: props.team.id, member: memberToEdit.value.id }), {
+    updateMemberForm.put(route('teams.update-member', { team: props.team.external_id, member: memberToEdit.value.id }), {
         onSuccess: () => {
             memberToEdit.value = null;
             updateMemberForm.reset();
@@ -194,7 +222,7 @@ const memberToRemove = ref<TeamMemberData | null>(null);
 const removeMember = () => {
     if (!memberToRemove.value) return;
 
-    removeMemberForm.delete(route('teams.remove-member', { team: props.team.id, member: memberToRemove.value.id }), {
+    removeMemberForm.delete(route('teams.remove-member', { team: props.team.external_id, member: memberToRemove.value.id }), {
         onSuccess: () => {
             memberToRemove.value = null;
         },
@@ -229,7 +257,7 @@ const getRoleMembers = (roleCode: string) => {
 const deleteRole = () => {
     if (!roleToDelete.value) return;
 
-    deleteRoleForm.delete(route('teams.delete-role', { team: props.team.id, roleId: roleToDelete.value.id }), {
+    deleteRoleForm.delete(route('teams.delete-role', { team: props.team.external_id, roleId: roleToDelete.value.id }), {
         onSuccess: () => {
             roleToDelete.value = null;
         },
@@ -321,6 +349,30 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                             <X class="size-4" />
                                         </Button>
                                     </form>
+
+                                    <!-- Team identifier — the opaque UUID API callers reference. Click
+                                         the chip OR the copy icon to put it on the clipboard. -->
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger as-child>
+                                                <button
+                                                    type="button"
+                                                    class="text-muted-foreground hover:bg-muted/60 hover:text-foreground mt-2 inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs transition-colors"
+                                                    @click="copyExternalId"
+                                                >
+                                                    <span class="truncate" dir="ltr">{{ team.external_id }}</span>
+                                                    <component
+                                                        :is="copiedExternalId ? Check : Copy"
+                                                        class="size-3.5 shrink-0"
+                                                        :class="copiedExternalId ? 'text-green-500' : ''"
+                                                    />
+                                                </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="bottom">
+                                                {{ copiedExternalId ? 'Copied!' : 'Copy team ID' }}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
                             </div>
                         </div>
@@ -341,7 +393,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                 </CardTitle>
                                 <CardDescription> Define roles and their permissions for team members. </CardDescription>
                             </div>
-                            <Link v-if="isOwner" :href="route('teams.roles.create', team.id)">
+                            <Link v-if="isOwner" :href="route('teams.roles.create', team.external_id)">
                                 <Button class="gap-2">
                                     <Plus class="size-4" />
                                     Create Role
@@ -363,8 +415,26 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                 :class="expandedRoles.has(role.id) ? 'rotate-90' : ''"
                                             />
                                         </Button>
-                                        <div class="flex items-center gap-1.5">
+                                        <div class="flex flex-wrap items-center gap-1.5">
                                             <span class="text-base font-semibold">{{ role.name }}</span>
+                                            <TooltipProvider :delay-duration="0">
+                                                <Tooltip>
+                                                    <TooltipTrigger as-child>
+                                                        <button
+                                                            type="button"
+                                                            class="bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[11px] transition-colors"
+                                                            @click="copyRoleExternalId(role)"
+                                                        >
+                                                            <span class="max-w-[140px] truncate">{{ role.external_id }}</span>
+                                                            <Check v-if="copiedRoleIds.has(role.id)" class="size-3 text-green-600" />
+                                                            <Copy v-else class="size-3" />
+                                                        </button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>{{ copiedRoleIds.has(role.id) ? 'Copied!' : 'Copy role ID' }}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-1">
@@ -402,7 +472,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                             <Tooltip>
                                                 <TooltipTrigger as-child>
                                                     <Button variant="ghost" size="icon" class="size-8" as-child>
-                                                        <Link :href="route('teams.roles.edit', { team: team.id, roleId: role.id })">
+                                                        <Link :href="route('teams.roles.edit', { team: team.external_id, roleId: role.id })">
                                                             <Edit class="size-4" />
                                                         </Link>
                                                     </Button>

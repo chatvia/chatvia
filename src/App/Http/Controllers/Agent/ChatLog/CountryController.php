@@ -15,7 +15,6 @@ class CountryController
     public function __invoke(Request $request, Agent $agent, ListAgentVisitorCountriesAction $list): ChatLogCountriesResourceData
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
 
         return $list->execute($agent);
     }

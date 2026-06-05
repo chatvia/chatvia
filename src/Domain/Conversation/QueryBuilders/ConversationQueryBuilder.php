@@ -19,12 +19,12 @@ class ConversationQueryBuilder extends Builder
 
     public function withSessionAndTopic(): self
     {
-        return $this->with(['session.country', 'topic']);
+        return $this->with(['session.country', 'topics']);
     }
 
     public function filterByTopic(?string $topicId): self
     {
-        return $this->when($topicId, fn ($query) => $query->where('chat_topic_id', $topicId));
+        return $this->when($topicId, fn ($query) => $query->whereHas('topics', fn ($q) => $q->where('chat_topics.id', $topicId)));
     }
 
     public function filterBySentiment(?string $sentiment): self

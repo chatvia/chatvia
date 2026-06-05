@@ -20,7 +20,7 @@ class UpdateApiAgentRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'min:3', 'max:255'],
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
-            'prompt_id' => ['sometimes', 'nullable', 'string', 'prohibits:system_instructions'],
+            'prompt_id' => ['sometimes', 'nullable', 'string', 'uuid', 'prohibits:system_instructions'],
             'metadata' => ['sometimes', 'nullable', 'array'],
             'is_public' => ['sometimes', 'boolean'],
         ];

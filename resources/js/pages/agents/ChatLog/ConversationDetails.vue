@@ -97,8 +97,8 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                                     </Link>
                                 </Button>
                             </template>
-                            <template v-else-if="currentConversationData.topic">
-                                {{ currentConversationData.topic }}
+                            <template v-else-if="currentConversationData.topics?.length">
+                                {{ currentConversationData.topics.join(', ') }}
                             </template>
                             <span v-else class="text-muted-foreground text-sm italic">Waiting...</span>
                         </td>

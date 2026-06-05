@@ -18,7 +18,7 @@ readonly class StreamController
     public function __invoke(Request $request, WidgetVerification $verification): StreamedResponse
     {
         $sessionId = $request->header('X-SESSION-ID');
-        $threadId = $request->header('X-THREAD-ID');
+        $conversationId = $request->header('X-CONVERSATION-ID');
         $agent = current_agent_from_widget();
 
         // Session must belong to THIS agent — without scoping a caller can
@@ -38,7 +38,7 @@ readonly class StreamController
                 $request,
                 $agent,
                 $sessionId,
-                $threadId,
+                $conversationId,
                 $isPlayground,
             ),
         );

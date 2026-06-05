@@ -18,6 +18,8 @@ class AgentSentimentController
 
         return Inertia::render('agents/Sentiment', [
             'agent' => AgentResourceData::fromModel($agent),
+            'enabled' => $agent->analyticsEnabled('sentiment'),
+            'chatlogEnabled' => $agent->chatlogEnabled(),
         ]);
     }
 }

@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
-import DeleteUser from '@/components/DeleteUser.vue';
 import InputError from '@/components/InputError.vue';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,7 +23,7 @@ import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
-import { CheckCircle, Mail, Save, User as UserIcon } from 'lucide-vue-next';
+import { CheckCircle, Loader2, Mail, Save, Trash2, Upload, User as UserIcon } from 'lucide-vue-next';
 
 interface Props {
     mustVerifyEmail: boolean;
@@ -31,16 +40,67 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const page = usePage<SharedData>();
-const user = page.props.auth.user as User;
+const user = computed(() => page.props.auth.user as User);
 
 const form = useForm({
-    name: user.name,
-    email: user.email,
+    name: user.value.name,
+    email: user.value.email,
 });
 
 const submit = () => {
     form.patch(route('profile.update'), {
         preserveScroll: true,
+    });
+};
+
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const photoForm = useForm({
+    name: user.value.name,
+    email: user.value.email,
+    photo: null as File | null,
+});
+
+const openFilePicker = () => {
+    if (photoForm.processing) return;
+    fileInput.value?.click();
+};
+
+const onPhotoSelected = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (!file) return;
+
+    photoForm.name = user.value.name;
+    photoForm.email = user.value.email;
+    photoForm.photo = file;
+
+    photoForm.patch(route('profile.update'), {
+        forceFormData: true,
+        preserveScroll: true,
+        onFinish: () => {
+            photoForm.reset('photo');
+            if (fileInput.value) {
+                fileInput.value.value = '';
+            }
+        },
+    });
+};
+
+const removeOpen = ref(false);
+const removing = ref(false);
+
+const confirmRemovePhoto = () => {
+    router.delete(route('profile.photo.destroy'), {
+        preserveScroll: true,
+        onStart: () => {
+            removing.value = true;
+        },
+        onFinish: () => {
+            removing.value = false;
+            removeOpen.value = false;
+        },
     });
 };
 </script>
@@ -53,12 +113,31 @@ const submit = () => {
             <div class="flex flex-col space-y-8">
                 <!-- Profile Header with Avatar -->
                 <div class="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
-                    <Avatar class="border-background size-24 border-4 shadow-md">
-                        <AvatarImage v-if="user.avatar" :src="user.avatar" :alt="user.name" />
-                        <AvatarFallback class="bg-primary/10 text-primary text-xl font-semibold">
-                            {{ getInitials(user.name) }}
-                        </AvatarFallback>
-                    </Avatar>
+                    <button
+                        type="button"
+                        @click="openFilePicker"
+                        :disabled="photoForm.processing"
+                        class="group focus-visible:ring-primary/50 relative cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-wait"
+                        :aria-label="user.avatar ? 'Change profile photo' : 'Upload profile photo'"
+                    >
+                        <Avatar :key="user.avatar ?? 'no-avatar'" class="border-background size-24 border-4 shadow-md">
+                            <AvatarImage v-if="user.avatar" :src="user.avatar" :alt="user.name" />
+                            <AvatarFallback class="bg-primary/10 text-primary text-xl font-semibold">
+                                {{ getInitials(user.name) }}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div
+                            class="pointer-events-none absolute inset-1 flex flex-col items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+                            :class="{ '!opacity-100': photoForm.processing }"
+                        >
+                            <Loader2 v-if="photoForm.processing" class="size-6 animate-spin" />
+                            <template v-else>
+                                <Upload class="size-6" />
+                                <span class="mt-1 text-[10px] font-medium tracking-wide uppercase">Upload</span>
+                            </template>
+                        </div>
+                    </button>
+                    <input ref="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden" @change="onPhotoSelected" />
                     <div class="space-y-1 text-center sm:text-left">
                         <h1 class="text-2xl font-bold tracking-tight">{{ user.name }}</h1>
                         <div class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
@@ -66,17 +145,42 @@ const submit = () => {
                                 <Mail class="mr-1 size-3.5" />
                                 {{ user.email }}
                             </p>
-                            <Badge
-                                v-if="user.email_verified_at"
-                                variant="outline"
-                                class="flex items-center gap-1 border-green-200 bg-green-50 px-2 py-0.5 text-green-600 dark:border-green-800 dark:bg-green-950/30"
-                            >
-                                <CheckCircle class="size-3" />
-                                <span class="text-xs">Verified</span>
-                            </Badge>
                         </div>
+                        <InputError :message="photoForm.errors.photo" />
+                        <button
+                            v-if="user.avatar"
+                            type="button"
+                            @click="removeOpen = true"
+                            :disabled="removing || photoForm.processing"
+                            class="text-muted-foreground hover:text-destructive inline-flex cursor-pointer items-center gap-1 text-xs transition-colors disabled:cursor-wait disabled:opacity-60"
+                        >
+                            <Trash2 class="size-3" />
+                            Remove photo
+                        </button>
                     </div>
                 </div>
+
+                <AlertDialog v-model:open="removeOpen">
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Remove profile photo</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Your avatar will revert to your initials. You can upload a new photo at any time.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel :disabled="removing">Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                :disabled="removing"
+                                @click="confirmRemovePhoto"
+                            >
+                                <Loader2 v-if="removing" class="mr-2 size-4 animate-spin" />
+                                Remove
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
 
                 <Separator />
 
@@ -166,11 +270,6 @@ const submit = () => {
                         </form>
                     </CardContent>
                 </Card>
-
-                <!-- Delete Account Section -->
-                <div class="mt-4">
-                    <DeleteUser />
-                </div>
             </div>
         </SettingsLayout>
     </AppLayout>

@@ -6,6 +6,7 @@ import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Code,
+    Download,
     Fingerprint,
     KeyRound,
     Lock,
@@ -14,6 +15,7 @@ import {
     Plug,
     Share2,
     Smartphone,
+    Trash2,
     User,
     Users,
     type LucideIcon,
@@ -25,6 +27,7 @@ interface NavItem {
     href: string;
     icon: LucideIcon;
     permission?: string;
+    variant?: 'default' | 'danger';
 }
 
 interface NavSection {
@@ -43,6 +46,8 @@ const allSections: NavSection[] = [
             { title: 'Two-factor', href: '/settings/two-factor', icon: Smartphone },
             { title: 'Passkeys', href: '/settings/passkeys', icon: Fingerprint },
             { title: 'Social accounts', href: '/settings/social', icon: Share2 },
+            { title: 'Download my data', href: '/settings/data-export', icon: Download },
+            { title: 'Delete account', href: '/settings/delete-account', icon: Trash2, variant: 'danger' },
         ],
     },
     {
@@ -113,16 +118,24 @@ function isActive(href: string): boolean {
                             :href="item.href"
                             :class="[
                                 'group inline-flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                                isActive(item.href)
-                                    ? 'bg-accent text-accent-foreground font-medium'
-                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                                item.variant === 'danger'
+                                    ? isActive(item.href)
+                                        ? 'bg-red-50 font-medium text-red-600 dark:bg-red-950/30 dark:text-red-400'
+                                        : 'text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30'
+                                    : isActive(item.href)
+                                      ? 'bg-accent text-accent-foreground font-medium'
+                                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                             ]"
                         >
                             <component
                                 :is="item.icon"
                                 :class="[
                                     'h-4 w-4 shrink-0',
-                                    isActive(item.href) ? 'text-accent-foreground' : 'text-muted-foreground group-hover:text-foreground',
+                                    item.variant === 'danger'
+                                        ? 'text-red-600 dark:text-red-400'
+                                        : isActive(item.href)
+                                          ? 'text-accent-foreground'
+                                          : 'text-muted-foreground group-hover:text-foreground',
                                 ]"
                             />
                             {{ item.title }}

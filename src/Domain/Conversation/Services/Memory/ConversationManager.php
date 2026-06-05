@@ -52,6 +52,12 @@ readonly class ConversationManager
 
         $conversationId = $conversation->external_id;
 
+        // Stamp the ownership marker under (conversation, user) tags so
+        // EnsureChatIsAccessible can confirm the current chatter owns
+        // this conversation on protected agents without a DB join. See
+        // ChatCache::rememberOwner() for the tag scheme.
+        ChatCache::rememberOwner($conversationId, $this->getCurrentUser()?->id);
+
         // Analytics fires from the first MessageSent event (in StoreMessageJob)
         // — country is known by then. Firing here with null country would bucket
         // every conversation under the "--" sentinel and miss the country panel.

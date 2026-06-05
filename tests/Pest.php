@@ -24,6 +24,11 @@ pest()
     ->use(RefreshTestDatabases::class)
     ->in('Feature', 'Unit');
 
+// Architecture tests are framework-free guardrails (e.g. "every Action has a
+// test"). They don't need a TestCase or DB; binding them to the bare PHPUnit
+// TestCase keeps them fast and avoids RefreshTestDatabases overhead.
+pest()->in('Architecture');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
@@ -89,4 +94,46 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
         'is_public' => false,
         'source' => 'api',
     ]);
+}
+
+/**
+ * Stub the LLM provider's chat-completion HTTP call so analysis tests get a
+ * deterministic assistant message instead of hitting a real model.
+ */
+function fakeLlmCompletion(string $content): void
+{
+    // The LLM provider builds an Authorization header from its (typed string)
+    // API key before the request is made, so give it a value even though the
+    // HTTP call itself is faked.
+    config(['services.scalewayai.api_key' => 'test-key']);
+
+    \Illuminate\Support\Facades\Http::fake([
+        '*' => \Illuminate\Support\Facades\Http::response([
+            'choices' => [['message' => ['content' => $content]]],
+        ]),
+    ]);
+}
+
+/**
+ * Create an agent whose owning workspace is on the Pro plan — which grants the
+ * topics, tone and sentiment capabilities. Mirrors the subscription seeding
+ * used by the other capability-gated action tests.
+ */
+function proPlanAgent(): Agent
+{
+    $priceId = 'price_test_pro_'.Str::random(6);
+    config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+
+    $agent = Agent::factory()->create();
+
+    $agent->user->billing->subscriptions()->create([
+        'type' => 'default',
+        'stripe_id' => 'sub_test_'.Str::random(8),
+        'stripe_status' => 'active',
+        'stripe_price' => $priceId,
+        'quantity' => 1,
+    ]);
+    $agent->user->refresh();
+
+    return $agent;
 }

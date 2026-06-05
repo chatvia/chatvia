@@ -9,10 +9,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
 use Domain\Knowledge\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Crawl a website and ingest its content. The crawler follows links inside
@@ -32,11 +30,7 @@ class SourceUrlController
         /** @var User $owner */
         $owner = $agent->user;
 
-        try {
-            $website = $startCrawl->execute($agent, $owner, $request->toData());
-        } catch (InviteRejectedException $e) {
-            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
-        }
+        $website = $startCrawl->execute($agent, $owner, $request->toData());
 
         return response()->json([
             'data' => [

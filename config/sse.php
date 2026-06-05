@@ -6,19 +6,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Envelope v1 feature flag
-    |--------------------------------------------------------------------------
-    |
-    | When true, ChatStreamService routes through the typed envelope path
-    | (SseStreamer + Source generators). When false, the legacy StreamHandler
-    | path is used. Flip on per-environment to migrate incrementally.
-    |
-    */
-
-    'envelope_v1' => env('SSE_ENVELOPE_V1', true),
-
-    /*
-    |--------------------------------------------------------------------------
     | Request-id idempotency
     |--------------------------------------------------------------------------
     |

@@ -70,9 +70,12 @@ class Lead extends Model
 {
     use HasFactory;
 
-    protected $casts = [
-        'contacted_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'contacted_at' => 'datetime',
+        ];
+    }
 
     // Relationships
     public function agent(): BelongsTo

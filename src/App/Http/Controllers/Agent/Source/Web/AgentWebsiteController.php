@@ -8,18 +8,15 @@ use Domain\Knowledge\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
 use Domain\Knowledge\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Validation\ValidationException;
 
 class AgentWebsiteController
 {
     public function index(Request $request, Agent $agent): Collection
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.sources.train.web'), 403);
 
         $websites = $agent
             ->websites()
@@ -37,7 +34,6 @@ class AgentWebsiteController
     public function store(Request $request, Agent $agent, StartAgentWebsiteCrawlAction $startCrawl): void
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.sources.train.web'), 403);
 
         $validated = $request->validate([
             'url' => ['required', 'url'],
@@ -57,17 +53,12 @@ class AgentWebsiteController
         /** @var User $user */
         $user = $request->user();
 
-        try {
-            $startCrawl->execute($agent, $user, CrawlerData::from($validated));
-        } catch (InviteRejectedException $e) {
-            throw ValidationException::withMessages([$e->field => $e->getMessage()]);
-        }
+        $startCrawl->execute($agent, $user, CrawlerData::from($validated));
     }
 
     public function destroy(Request $request, Agent $agent, SourceWebsite $website, DeleteSourceWebsiteAction $delete): void
     {
         abort_if($request->user()->cannot('delete', $website), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.sources.delete'), 403);
 
         $delete->execute($website);
     }

@@ -20,9 +20,11 @@ use Laravel\Cashier\Subscription;
  * @property int $id
  * @property int $user_id
  * @property string|null $stripe_id
+ * @property string|null $plan
  * @property string|null $pm_type
  * @property string|null $pm_last_four
  * @property Carbon|null $trial_ends_at
+ * @property array<string, mixed>|null $billing_address
  * @property bool $auto_recharge_enabled
  * @property int $auto_recharge_threshold
  * @property int $auto_recharge_amount
@@ -40,6 +42,7 @@ class UserBilling extends Model
     {
         return [
             'trial_ends_at' => 'datetime',
+            'billing_address' => 'array',
             'auto_recharge_enabled' => 'boolean',
             'auto_recharge_threshold' => 'integer',
             'auto_recharge_amount' => 'integer',
@@ -50,5 +53,24 @@ class UserBilling extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Cashier reads {@see stripeEmail()} and {@see stripeName()} when it
+     * auto-creates a Stripe customer on first checkout. Without these the
+     * defaults look for `email`/`name` properties on UserBilling itself —
+     * which doesn't have either, so Stripe gets an anonymous customer and
+     * the checkout page renders with an empty email field. Delegate to the
+     * related User so the prefill works and Stripe receipts go to the right
+     * address.
+     */
+    public function stripeEmail(): ?string
+    {
+        return $this->user?->email;
+    }
+
+    public function stripeName(): ?string
+    {
+        return $this->user?->name;
     }
 }

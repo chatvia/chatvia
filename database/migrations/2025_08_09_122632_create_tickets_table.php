@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class)->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();
             $table->string('title');
             $table->text('message');
@@ -27,7 +27,7 @@ return new class extends Migration
         Schema::create('ticket_replies', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ticket_id')->constrained('tickets')->onDelete('cascade');
-            $table->foreignIdFor(User::class)->index()->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class)->nullable()->index()->constrained()->nullOnDelete();
             $table->enum('type', ['user', 'staff']);
             $table->text('message');
             $table->timestamps();

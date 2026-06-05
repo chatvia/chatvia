@@ -4,15 +4,27 @@ import da from './locales/da.json';
 import de from './locales/de.json';
 import en from './locales/en.json';
 import es from './locales/es.json';
+import fa from './locales/fa.json';
 import fr from './locales/fr.json';
+import hi from './locales/hi.json';
+import id from './locales/id.json';
+import ja from './locales/ja.json';
+import ko from './locales/ko.json';
 import pt from './locales/pt.json';
+import ru from './locales/ru.json';
+import tr from './locales/tr.json';
+import vi from './locales/vi.json';
+import zh from './locales/zh.json';
 
-export const SUPPORTED_LOCALES = ['en', 'ar', 'da', 'de', 'es', 'fr', 'pt'] as const;
+export const SUPPORTED_LOCALES = ['en', 'ar', 'da', 'de', 'es', 'fa', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'tr', 'vi', 'zh'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
+// `ar` (Arabic), `fa` (Farsi/Persian), `he` (Hebrew), `ur` (Urdu) all use the
+// Arabic script and require right-to-left layout — listed even if not yet in
+// SUPPORTED_LOCALES so the dir flip kicks in if the locale ever shows up.
 export const RTL_LOCALES: ReadonlySet<string> = new Set(['ar', 'he', 'fa', 'ur']);
 
-const messages = { en, ar, da, de, es, fr, pt } as const;
+const messages = { en, ar, da, de, es, fa, fr, hi, id, ja, ko, pt, ru, tr, vi, zh } as const;
 
 export function normalizeLocale(input?: string | null): SupportedLocale {
     if (!input) return 'en';

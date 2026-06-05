@@ -20,7 +20,6 @@ class AgentTopicController
     public function index(Request $request, Agent $agent): Response|JsonResponse
     {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
 
         if ($request->wantsJson()) {
             $search = $request->input('search');
@@ -58,7 +57,6 @@ class AgentTopicController
         CreateAgentTopicAction $createTopic,
     ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
 
         if ($request->has('topic_id')) {
             $validated = $request->validate([
@@ -97,7 +95,6 @@ class AgentTopicController
         UpdateTopicAction $updateTopic,
     ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
 
         abort_unless(
             $agent->topics()->where('chat_topics.id', $topic->id)->exists(),
@@ -128,7 +125,6 @@ class AgentTopicController
         DetachTopicFromAgentAction $detach,
     ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.topics.manage'), 403);
 
         abort_unless(
             $agent->topics()->where('chat_topics.id', $topic->id)->exists(),

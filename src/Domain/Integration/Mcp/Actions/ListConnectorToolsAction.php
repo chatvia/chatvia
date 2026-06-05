@@ -25,8 +25,8 @@ class ListConnectorToolsAction
             short_name: $tool->name,
             description: $tool->description,
             parameters: $tool->input_schema,
-            is_enabled: (bool) $tool->is_enabled,
-            requires_approval: (bool) $tool->requires_approval,
+            scope: $tool->scope,
+            permission: $tool->permission,
         ));
 
         return new ConnectorToolsResourceData(

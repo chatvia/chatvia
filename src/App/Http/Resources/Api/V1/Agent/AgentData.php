@@ -38,8 +38,8 @@ class AgentData extends Data
          */
         public array $metadata,
         /**
-         * Origin of the agent — `external` when created through the API,
-         * `internal` otherwise.
+         * Origin of the agent — `api` when created through the API,
+         * `dashboard` otherwise.
          */
         public CreatedVia $source,
         /**

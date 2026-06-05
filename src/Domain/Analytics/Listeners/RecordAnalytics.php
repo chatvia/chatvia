@@ -2,10 +2,16 @@
 
 namespace Domain\Analytics\Listeners;
 
+use Domain\Analytics\Actions\RecordConversationTopicAction;
 use Domain\Analytics\Actions\RecordFeedbackGivenAction;
+use Domain\Analytics\Actions\RecordMessageAnalyzedAction;
 use Domain\Analytics\Actions\RecordMessageSentAction;
+use Domain\Analytics\Actions\RecordSourceRetrievalAction;
+use Domain\Analytics\Events\ConversationTopicAssigned;
 use Domain\Analytics\Events\FeedbackGiven;
+use Domain\Analytics\Events\MessageAnalyzed;
 use Domain\Analytics\Events\MessageSent;
+use Domain\Analytics\Events\SourceRetrieved;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Events\Dispatcher;
 use Throwable;
@@ -15,6 +21,9 @@ class RecordAnalytics implements ShouldQueue
     public function __construct(
         private readonly RecordMessageSentAction $recordMessageSent,
         private readonly RecordFeedbackGivenAction $recordFeedbackGiven,
+        private readonly RecordMessageAnalyzedAction $recordMessageAnalyzed,
+        private readonly RecordConversationTopicAction $recordConversationTopic,
+        private readonly RecordSourceRetrievalAction $recordSourceRetrieval,
     ) {}
 
     public function viaQueue(): string
@@ -27,6 +36,9 @@ class RecordAnalytics implements ShouldQueue
         return [
             MessageSent::class => 'onMessageSent',
             FeedbackGiven::class => 'onFeedbackGiven',
+            MessageAnalyzed::class => 'onMessageAnalyzed',
+            ConversationTopicAssigned::class => 'onConversationTopicAssigned',
+            SourceRetrieved::class => 'onSourceRetrieved',
         ];
     }
 
@@ -46,6 +58,33 @@ class RecordAnalytics implements ShouldQueue
         }
 
         $this->recordFeedbackGiven->execute($event);
+    }
+
+    public function onMessageAnalyzed(MessageAnalyzed $event): void
+    {
+        if (! config('analytics.enabled')) {
+            return;
+        }
+
+        $this->recordMessageAnalyzed->execute($event);
+    }
+
+    public function onConversationTopicAssigned(ConversationTopicAssigned $event): void
+    {
+        if (! config('analytics.enabled')) {
+            return;
+        }
+
+        $this->recordConversationTopic->execute($event);
+    }
+
+    public function onSourceRetrieved(SourceRetrieved $event): void
+    {
+        if (! config('analytics.enabled')) {
+            return;
+        }
+
+        $this->recordSourceRetrieval->execute($event);
     }
 
     public function failed(object $event, Throwable $exception): void

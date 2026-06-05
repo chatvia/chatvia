@@ -12,6 +12,7 @@ import {
     Bot,
     Calendar,
     CheckCircle,
+    ChevronDown,
     Clock,
     CreditCard,
     CreditCardIcon,
@@ -45,11 +46,11 @@ const resumeForm = useForm({});
 const cancelScheduleForm = useForm({});
 
 // Billing data
-const billingData = ref<App.Billing.Data.Resources.Subscription.BillingResourceData | null>(null);
+const billingData = ref<Domain.Billing.Data.Resources.Subscription.BillingResourceData | null>(null);
 const isLoadingBilling = ref(true);
 
 // Usage data
-const usageData = ref<App.Workspace.Data.Resources.My.Usage.UsageResourceData | null>(null);
+const usageData = ref<App.Identity.Workspace.Data.Resources.My.Usage.UsageResourceData | null>(null);
 const isLoadingUsage = ref(true);
 
 const fetchBillingData = async () => {
@@ -171,6 +172,16 @@ const currentFeatures = computed(() => {
     if (!billingData.value?.current_package?.features) return [];
     return isYearly.value ? billingData.value.current_package.features.yearly : billingData.value.current_package.features.monthly;
 });
+
+// Plan feature lists are long (~17 entries on the higher tiers). Show the
+// first 3 by default so the billing card stays scannable and let the user
+// expand to see the rest. The DTO types `features` as a union of array /
+// numeric-keyed object, so coerce to a plain array before slicing.
+const FEATURES_PREVIEW_COUNT = 3;
+const featuresExpanded = ref(false);
+const featuresList = computed<string[]>(() => Object.values(currentFeatures.value ?? {}) as string[]);
+const visibleFeatures = computed<string[]>(() => (featuresExpanded.value ? featuresList.value : featuresList.value.slice(0, FEATURES_PREVIEW_COUNT)));
+const hiddenFeaturesCount = computed(() => Math.max(0, featuresList.value.length - FEATURES_PREVIEW_COUNT));
 
 const refreshAll = () => {
     fetchBillingData();
@@ -473,11 +484,20 @@ const cancelScheduledPlanChange = () => {
                                         <Separator />
                                         <h4 class="font-semibold">Plan Features</h4>
                                         <div class="grid gap-2">
-                                            <div v-for="feature in currentFeatures" :key="feature" class="flex items-center gap-2">
+                                            <div v-for="feature in visibleFeatures" :key="feature" class="flex items-center gap-2">
                                                 <CheckCircle class="h-4 w-4 text-green-500" />
                                                 <span class="text-sm">{{ feature }}</span>
                                             </div>
                                         </div>
+                                        <button
+                                            v-if="hiddenFeaturesCount > 0"
+                                            type="button"
+                                            class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs transition-colors"
+                                            @click="featuresExpanded = !featuresExpanded"
+                                        >
+                                            <ChevronDown class="h-3.5 w-3.5 transition-transform" :class="{ 'rotate-180': featuresExpanded }" />
+                                            {{ featuresExpanded ? 'Show less' : `Show ${hiddenFeaturesCount} more` }}
+                                        </button>
                                     </div>
                                 </CardContent>
                             </Card>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import AnalyticsDisabled from '@/components/AnalyticsDisabled.vue';
 import LockedFeature from '@/components/LockedFeature.vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,12 +29,38 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcEleme
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
+    // Per-agent on/off switch (Setup → Settings). Independent of the plan
+    // capability below: the plan must allow it AND the owner must not have
+    // switched it off.
+    enabled: boolean;
+    // Master switch: when the chat log is off there are no stored messages to
+    // analyze, so analytics can't be enabled until it's turned back on.
+    chatlogEnabled: boolean;
 }
 
 const props = defineProps<Props>();
 
 const { hasCapability } = useCapabilityGuard();
 const hasAccess = computed(() => hasCapability('sentiment'));
+
+// Local mirror of the per-agent switch so flipping it on from the disabled
+// state swaps straight to the charts without a full page reload.
+const isEnabled = ref(props.enabled);
+const enabling = ref(false);
+
+const enableSentiment = async () => {
+    if (!props.chatlogEnabled) return;
+    enabling.value = true;
+    try {
+        await axios.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'analytics' }), { sentiment: true });
+        isEnabled.value = true;
+        fetchSentimentData();
+    } catch (err) {
+        console.error('Could not enable sentiment analysis:', err);
+    } finally {
+        enabling.value = false;
+    }
+};
 
 const loading = ref(true);
 const sentimentData = ref<any>(null);
@@ -269,7 +296,7 @@ const summaryStats = computed(() => {
 });
 
 onMounted(() => {
-    if (hasAccess.value) {
+    if (hasAccess.value && props.chatlogEnabled && isEnabled.value) {
         fetchSentimentData();
     }
 });
@@ -277,7 +304,6 @@ onMounted(() => {
 
 <template>
     <AgentLayout :agent="agent" title="Sentiment Analysis" description="Analyze user sentiment patterns and trends">
-        {{ hasAccess }}
         <template #header-icon>
             <SmilePlus class="h-5 w-5" />
         </template>
@@ -285,6 +311,16 @@ onMounted(() => {
         <LockedFeature
             v-if="!hasAccess"
             description="Upgrade your plan to access sentiment analysis and understand the emotional tone in your conversations."
+        />
+
+        <AnalyticsDisabled
+            v-else-if="!chatlogEnabled || !isEnabled"
+            title="Sentiment analysis"
+            description="Turn it on to track how positive, neutral or negative your visitors feel across conversations."
+            :can-enable="chatlogEnabled"
+            blocked-reason="Chat log is off, so there's nothing to analyze. Turn it on in Setup → Settings to start collecting sentiment."
+            :enabling="enabling"
+            @enable="enableSentiment"
         />
 
         <template v-else>

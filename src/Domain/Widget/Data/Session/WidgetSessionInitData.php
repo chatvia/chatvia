@@ -13,7 +13,7 @@ class WidgetSessionInitData extends Data
 {
     public function __construct(
         public ?string $existingSessionId,
-        public ?string $existingThreadId,
+        public ?string $existingConversationId,
         public ?string $ipAddress,
         public ?string $userAgent,
         public ?string $acceptLanguage,

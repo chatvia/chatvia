@@ -28,6 +28,7 @@ class RecordMessageSentAction
         ): void {
             $db->table('analytics_events')->insert([
                 'agent_id' => $event->agentId,
+                'user_id' => $event->userId,
                 'event_type' => 'message_sent',
                 'role' => $event->role,
                 'llm_external_name' => $event->llmExternalName,
@@ -50,11 +51,11 @@ class RecordMessageSentAction
             // is known at this point, unlike at row-creation time).
             $convResult = $db->select(<<<'SQL'
                 INSERT INTO analytics_conversation_metrics (
-                    conversation_external_id, agent_id, started_at, ended_at,
-                    message_count, duration_seconds, had_feedback
+                    conversation_external_id, agent_id, user_id, started_at, ended_at,
+                    message_count, duration_seconds
                 ) VALUES (
-                    ?, ?, ?, ?,
-                    1, 0, FALSE
+                    ?, ?, ?, ?, ?,
+                    1, 0
                 )
                 ON CONFLICT (conversation_external_id) DO UPDATE SET
                     started_at      = LEAST(analytics_conversation_metrics.started_at, EXCLUDED.started_at),
@@ -68,6 +69,7 @@ class RecordMessageSentAction
             SQL, [
                 $event->conversationExternalId,
                 $event->agentId,
+                $event->userId,
                 $event->occurredAt,
                 $event->occurredAt,
             ]);
@@ -75,12 +77,12 @@ class RecordMessageSentAction
 
             $db->statement(<<<'SQL'
                 INSERT INTO analytics_agent_hourly_rollups (
-                    agent_id, bucket_hour, country_code, llm_external_name,
+                    agent_id, user_id, bucket_hour, country_code, llm_external_name,
                     conversations_started,
                     user_messages, assistant_messages,
                     total_tokens, response_ms_sum, response_ms_count
                 ) VALUES (
-                    ?, date_trunc('hour', ?::timestamptz), ?, ?,
+                    ?, ?, date_trunc('hour', ?::timestamptz), ?, ?,
                     ?,
                     ?, ?,
                     ?, ?, ?
@@ -94,6 +96,7 @@ class RecordMessageSentAction
                     response_ms_count     = analytics_agent_hourly_rollups.response_ms_count     + EXCLUDED.response_ms_count
             SQL, [
                 $event->agentId,
+                $event->userId,
                 $event->occurredAt,
                 $countryCode,
                 $llmName,
@@ -106,11 +109,12 @@ class RecordMessageSentAction
             ]);
 
             $db->statement(<<<'SQL'
-                INSERT INTO analytics_session_firsts (agent_id, session_external_id, first_seen_at)
-                VALUES (?, ?, ?)
+                INSERT INTO analytics_session_firsts (agent_id, user_id, session_external_id, first_seen_at)
+                VALUES (?, ?, ?, ?)
                 ON CONFLICT (agent_id, session_external_id) DO NOTHING
             SQL, [
                 $event->agentId,
+                $event->userId,
                 $event->sessionExternalId,
                 $event->occurredAt,
             ]);

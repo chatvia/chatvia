@@ -24,7 +24,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Loader2, LogOut, MoreHorizontal, Plus, Search, Settings, Trash2, Users } from 'lucide-vue-next';
 
-type Team = App.Team.Data.Resources.Team.TeamListItemData;
+type Team = Domain.Membership.Team.Data.Resources.Team.TeamListItemData;
 
 interface Props {
     teams: Team[];
@@ -74,7 +74,7 @@ const createTeam = () => {
 const leaveTeam = () => {
     if (!teamToLeave.value) return;
 
-    leaveForm.post(route('teams.leave', teamToLeave.value.id), {
+    leaveForm.post(route('teams.leave', teamToLeave.value.external_id), {
         onSuccess: () => {
             teamToLeave.value = null;
         },
@@ -89,7 +89,7 @@ const openDelete = (team: Team) => {
 const deleteTeam = () => {
     if (!teamToDelete.value) return;
 
-    deleteForm.delete(route('teams.destroy', teamToDelete.value.id), {
+    deleteForm.delete(route('teams.destroy', teamToDelete.value.external_id), {
         onSuccess: () => {
             teamToDelete.value = null;
         },
@@ -166,7 +166,7 @@ const formatDate = (dateString: string) => {
                             v-for="team in filteredTeams"
                             :key="team.id"
                             class="hover:bg-muted/40 cursor-pointer"
-                            @click="router.visit(route('teams.show', team.id))"
+                            @click="router.visit(route('teams.show', team.external_id))"
                         >
                             <TableCell class="py-4 pl-5">
                                 <div class="flex items-center gap-4">
@@ -195,7 +195,7 @@ const formatDate = (dateString: string) => {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem as-child>
-                                            <Link :href="route('teams.show', team.id)" class="cursor-pointer">
+                                            <Link :href="route('teams.show', team.external_id)" class="cursor-pointer">
                                                 <Settings class="mr-2 h-4 w-4" />
                                                 Manage
                                             </Link>

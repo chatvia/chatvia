@@ -76,6 +76,14 @@ class CreateConversationAction
             return;
         }
 
+        // Cap orphan claims at the same per-chat ceiling enforced by
+        // MaxConversationAttachments — otherwise a script that bypassed
+        // the composer and uploaded N orphans pre-conversation could
+        // smuggle them all in here, defeating the upload-side limit on
+        // every subsequent turn.
+        $max = (int) config('agent.files.upload.max_files');
+        $attachmentIds = array_slice($attachmentIds, 0, $max);
+
         Attachment::query()
             ->whereIn('external_id', $attachmentIds)
             ->whereNull('chat_conversation_id')

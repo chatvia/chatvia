@@ -95,7 +95,7 @@ class ToolRegistry
                     ->where('agent_mcp_server.agent_id', $agentId);
             })
             ->where('mcp_servers.is_enabled', true)
-            ->where('mcp_tools.is_enabled', true)
+            ->where('mcp_tools.permission', '!=', 'blocked')
             ->orderBy('mcp_servers.slug')
             ->orderBy('mcp_tools.name')
             ->get();

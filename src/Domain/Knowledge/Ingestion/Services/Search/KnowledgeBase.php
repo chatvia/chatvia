@@ -36,7 +36,7 @@ class KnowledgeBase
         // document-style cache entries can't collide.
         $embeddingProvider = app(EmbeddingsProviderInterface::class);
         $embedding = Cache::store($this->cacheStore)->remember(
-            'search_embedding:q:'.md5($query).':'.$embeddingProvider->getModelName(),
+            'embed:query:'.$embeddingProvider->getModelName().':'.sha1($query),
             3600 * 24,
             fn (): string|array => embed_query($query)
         );

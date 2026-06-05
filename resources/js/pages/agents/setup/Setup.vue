@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
 import BrandingSection from '@/components/agents/sections/BrandingSection.vue';
-import ContactDetailsSection from '@/components/agents/sections/ContactDetailsSection.vue';
 import ModelsSection from '@/components/agents/sections/ModelsSection.vue';
 import StartersSection from '@/components/agents/sections/StartersSection.vue';
 import TextSection from '@/components/agents/sections/TextSection.vue';
@@ -47,8 +46,10 @@ import {
     Search,
     Settings,
     Shield,
+    SlidersHorizontal,
     Smartphone,
-    Sparkles,
+    // Sparkles — only used by the temporarily-hidden Model tab (see menuItems); restore alongside it.
+    // Sparkles,
     Tablet,
     Terminal,
     Type,
@@ -76,15 +77,7 @@ interface Props {
     starters: string[];
     prompts: PromptOption[];
     hasPermission: boolean;
-    canManageContact: boolean;
     canUseHandoff: boolean;
-    businessProfile: {
-        email: string | null;
-        phone: string | null;
-        website: string | null;
-        address: string | null;
-        opening_hours: string | null;
-    };
 
     appearanceSettings: Record<string, unknown>;
     defaultAppearance: Record<string, unknown>;
@@ -94,6 +87,9 @@ interface Props {
     defaultBar: Record<string, unknown>;
     embedSettings: Record<string, unknown>;
     defaultEmbed: Record<string, unknown>;
+
+    analyticsSettings: Record<string, unknown>;
+    defaultAnalytics: Record<string, unknown>;
 
     catalog: Llm[];
     selectedModel: string | null;
@@ -126,6 +122,8 @@ const b = props.barSettings;
 const bd = props.defaultBar;
 const e = props.embedSettings;
 const ed = props.defaultEmbed;
+const anl = props.analyticsSettings;
+const anlDefault = props.defaultAnalytics;
 
 const canEdit = computed(() => props.hasPermission);
 const locked = computed(() => !canEdit.value);
@@ -137,13 +135,13 @@ const previewSurface = ref<Surface>('hosted_chat');
 const device = ref<Device>('desktop');
 
 const surfaceTabs: { value: Surface; label: string; icon: typeof MessageSquare }[] = [
-    { value: 'hosted_chat', label: 'Hosted Chat', icon: MessageSquare },
+    { value: 'hosted_chat', label: 'Chat', icon: MessageSquare },
     { value: 'widget', label: 'Widget', icon: Globe },
     { value: 'bar', label: 'Bar', icon: Search },
 ];
 
 // ── Left sidebar
-type MenuValue = 'info' | 'persona' | 'contact' | 'starters' | 'model' | 'branding' | 'behavior' | 'embed' | 'domain';
+type MenuValue = 'info' | 'persona' | 'starters' | 'model' | 'branding' | 'behavior' | 'settings' | 'embed' | 'domain';
 const activeTab = ref<MenuValue>('info');
 
 const menuItems = computed(() => {
@@ -151,16 +149,14 @@ const menuItems = computed(() => {
         { value: 'info', label: 'Info', icon: Type },
         { value: 'persona', label: 'Persona', icon: Bot },
         { value: 'starters', label: 'Starters', icon: MessageSquare },
-        { value: 'model', label: 'Model', icon: Sparkles },
+        // Model tab temporarily hidden — the `model` content block and all its
+        // save logic stay intact below; uncomment this line to restore the tab.
+        // { value: 'model', label: 'Model', icon: Sparkles },
         { value: 'branding', label: 'Branding', icon: ImageIcon },
         { value: 'behavior', label: 'Behavior', icon: Settings },
+        { value: 'settings', label: 'Settings', icon: SlidersHorizontal },
         { value: 'embed', label: 'Embed', icon: Code },
     ];
-
-    // Contact details — only when the viewer can manage the business profile.
-    if (props.canManageContact) {
-        items.splice(2, 0, { value: 'contact', label: 'Contact', icon: MapPin });
-    }
 
     // Domain is a Hosted-Chat-only concern: the custom hostname points at
     // the agent's hosted chat URL, so it doesn't apply to Widget/Bar.
@@ -197,6 +193,95 @@ const saveText = () => {
         },
         onError: () => toast.error('Could not save text'),
         onFinish: () => (isSavingText.value = false),
+    });
+};
+
+// ── Settings › Composer affordances — default on. Owners can turn either off
+// when the agent shouldn't accept file uploads / shouldn't expose voice
+// recording. Same `appearance` group as the text fields, saved on its own.
+const composerForm = useForm({
+    allow_file_uploads: bool(a.allow_file_uploads, bool(ad.allow_file_uploads, true)),
+    allow_voice_input: bool(a.allow_voice_input, bool(ad.allow_voice_input, true)),
+});
+const isSavingComposer = ref(false);
+const saveComposer = () => {
+    isSavingComposer.value = true;
+    composerForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Composer options saved');
+            bumpPreview();
+        },
+        onError: () => toast.error('Could not save composer options'),
+        onFinish: () => (isSavingComposer.value = false),
+    });
+};
+
+// ── Settings › Chat log — master switch for persisting conversations. Off
+// stops StoreMessageJob, so nothing is logged (and the analytics below get no
+// data to work with). → analytics group.
+const chatlogForm = useForm({
+    chatlog: bool(anl.chatlog, bool(anlDefault.chatlog, true)),
+});
+const isSavingChatlog = ref(false);
+
+// ── Settings › Analytics — agent-wide on/off switches for the optional
+// conversation insights. Chat log is their master switch: with no stored
+// messages there's nothing to analyze, so the dimensions initialise off
+// whenever the chat log is off, regardless of their saved value. → analytics group.
+const analyticsForm = useForm({
+    sentiment: chatlogForm.chatlog && bool(anl.sentiment, bool(anlDefault.sentiment, true)),
+    tone: chatlogForm.chatlog && bool(anl.tone, bool(anlDefault.tone, true)),
+    topics: chatlogForm.chatlog && bool(anl.topics, bool(anlDefault.topics, true)),
+});
+const isSavingAnalytics = ref(false);
+
+// Flip every analytics dimension off in the form state — used whenever the chat
+// log is off so the toggles drop immediately and a save persists them off.
+const disableAllAnalytics = () => {
+    analyticsForm.sentiment = false;
+    analyticsForm.tone = false;
+    analyticsForm.topics = false;
+};
+
+// Switching the chat log off cascades to the analytics toggles right away.
+watch(
+    () => chatlogForm.chatlog,
+    (on) => {
+        if (!on) {
+            disableAllAnalytics();
+        }
+    },
+);
+
+const saveChatlog = () => {
+    // When logging is off the analytics can't run — persist them off in the same
+    // write so storage matches the UI.
+    if (!chatlogForm.chatlog) {
+        disableAllAnalytics();
+    }
+    isSavingChatlog.value = true;
+    chatlogForm
+        .transform((data) => (data.chatlog ? data : { chatlog: false, sentiment: false, tone: false, topics: false }))
+        .post(route('agents.settings.update', { agent: props.agent.external_id, group: 'analytics' }), {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Chat log settings saved'),
+            onError: () => toast.error('Could not save chat log settings'),
+            onFinish: () => (isSavingChatlog.value = false),
+        });
+};
+
+const saveAnalytics = () => {
+    // The dimensions can only be on when the chat log is on.
+    if (!chatlogForm.chatlog) {
+        disableAllAnalytics();
+    }
+    isSavingAnalytics.value = true;
+    analyticsForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'analytics' }), {
+        preserveScroll: true,
+        onSuccess: () => toast.success('Analytics settings saved'),
+        onError: () => toast.error('Could not save analytics settings'),
+        onFinish: () => (isSavingAnalytics.value = false),
     });
 };
 
@@ -721,10 +806,145 @@ const copyApiCode = async (code: string) => {
                                             :errors="textForm.errors as Record<string, string>"
                                             :disabled="locked"
                                         />
+
                                         <div v-if="!locked" class="border-t pt-4">
                                             <Button type="submit" :disabled="!canEdit || isSavingText" size="sm">
                                                 <Save class="mr-2 h-4 w-4" />
                                                 {{ isSavingText ? 'Saving...' : 'Save' }}
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Settings — agent-wide options that aren't tied to a single
+                                     surface: composer affordances + which analytics this agent collects. -->
+                                <div v-if="activeTab === 'settings'" class="max-w-3xl space-y-8 p-6">
+                                    <!-- Composer options — show/hide the paperclip + mic buttons in
+                                         the chat composer. Same appearance group as the text fields. -->
+                                    <form @submit.prevent="saveComposer" class="space-y-3">
+                                        <div>
+                                            <h3 class="text-sm font-medium">Composer options</h3>
+                                            <p class="text-muted-foreground mt-1 text-xs">
+                                                Hide the file-upload or voice-input button if your agent shouldn't accept those inputs.
+                                            </p>
+                                        </div>
+                                        <div class="divide-y rounded-md border">
+                                            <div class="flex items-center justify-between gap-3 px-4 py-3">
+                                                <div>
+                                                    <Label for="allow-file-uploads" class="cursor-pointer text-sm font-medium"
+                                                        >Allow file uploads</Label
+                                                    >
+                                                    <p class="text-muted-foreground mt-0.5 text-xs">
+                                                        Show the paperclip button so visitors can attach PDFs.
+                                                    </p>
+                                                </div>
+                                                <Switch id="allow-file-uploads" v-model="composerForm.allow_file_uploads" :disabled="locked" />
+                                            </div>
+                                            <div class="flex items-center justify-between gap-3 px-4 py-3">
+                                                <div>
+                                                    <Label for="allow-voice-input" class="cursor-pointer text-sm font-medium"
+                                                        >Allow voice input</Label
+                                                    >
+                                                    <p class="text-muted-foreground mt-0.5 text-xs">
+                                                        Show the microphone button so visitors can dictate messages.
+                                                    </p>
+                                                </div>
+                                                <Switch id="allow-voice-input" v-model="composerForm.allow_voice_input" :disabled="locked" />
+                                            </div>
+                                        </div>
+                                        <div v-if="!locked">
+                                            <Button type="submit" :disabled="!canEdit || isSavingComposer" size="sm">
+                                                <Save class="mr-2 h-4 w-4" />
+                                                {{ isSavingComposer ? 'Saving...' : 'Save' }}
+                                            </Button>
+                                        </div>
+                                    </form>
+
+                                    <Separator />
+
+                                    <!-- Chat log — master switch for persisting conversations. Off
+                                         stops StoreMessageJob, so nothing is logged. -->
+                                    <form @submit.prevent="saveChatlog" class="space-y-3">
+                                        <div>
+                                            <h3 class="text-sm font-medium">Chat log</h3>
+                                            <p class="text-muted-foreground mt-1 text-xs">
+                                                Store conversations so they show up in Chat Logs and feed analytics.
+                                            </p>
+                                        </div>
+                                        <div class="divide-y rounded-md border">
+                                            <div class="flex items-center justify-between gap-3 px-4 py-3">
+                                                <div>
+                                                    <Label for="chatlog-enabled" class="cursor-pointer text-sm font-medium"
+                                                        >Store conversations</Label
+                                                    >
+                                                    <p class="text-muted-foreground mt-0.5 text-xs">
+                                                        When off, messages aren't saved — so the analytics below can't collect data either.
+                                                    </p>
+                                                </div>
+                                                <Switch id="chatlog-enabled" v-model="chatlogForm.chatlog" :disabled="locked" />
+                                            </div>
+                                        </div>
+                                        <div v-if="!locked">
+                                            <Button type="submit" :disabled="!canEdit || isSavingChatlog" size="sm">
+                                                <Save class="mr-2 h-4 w-4" />
+                                                {{ isSavingChatlog ? 'Saving...' : 'Save' }}
+                                            </Button>
+                                        </div>
+                                    </form>
+
+                                    <Separator />
+
+                                    <!-- Analytics — per-agent on/off for the optional LLM-powered
+                                         conversation insights. Default on; off stops the analysis. -->
+                                    <form @submit.prevent="saveAnalytics" class="space-y-3">
+                                        <div>
+                                            <h3 class="text-sm font-medium">Analytics</h3>
+                                            <p class="text-muted-foreground mt-1 text-xs">
+                                                Choose which conversation insights this agent collects. Turning one off stops the analysis and hides
+                                                its dashboard.
+                                            </p>
+                                        </div>
+                                        <div class="divide-y rounded-md border" :class="{ 'opacity-60': !chatlogForm.chatlog }">
+                                            <div class="flex items-center justify-between gap-3 px-4 py-3">
+                                                <div>
+                                                    <Label for="analytics-sentiment" class="cursor-pointer text-sm font-medium">Sentiment</Label>
+                                                    <p class="text-muted-foreground mt-0.5 text-xs">
+                                                        Track whether visitors feel positive, neutral or negative.
+                                                    </p>
+                                                </div>
+                                                <Switch
+                                                    id="analytics-sentiment"
+                                                    v-model="analyticsForm.sentiment"
+                                                    :disabled="locked || !chatlogForm.chatlog"
+                                                />
+                                            </div>
+                                            <div class="flex items-center justify-between gap-3 px-4 py-3">
+                                                <div>
+                                                    <Label for="analytics-tone" class="cursor-pointer text-sm font-medium">Tone</Label>
+                                                    <p class="text-muted-foreground mt-0.5 text-xs">
+                                                        Track the communication style — friendly, frustrated, curious and more.
+                                                    </p>
+                                                </div>
+                                                <Switch id="analytics-tone" v-model="analyticsForm.tone" :disabled="locked || !chatlogForm.chatlog" />
+                                            </div>
+                                            <div class="flex items-center justify-between gap-3 px-4 py-3">
+                                                <div>
+                                                    <Label for="analytics-topics" class="cursor-pointer text-sm font-medium">Topics</Label>
+                                                    <p class="text-muted-foreground mt-0.5 text-xs">
+                                                        Automatically detect and group what visitors ask about.
+                                                    </p>
+                                                </div>
+                                                <Switch
+                                                    id="analytics-topics"
+                                                    v-model="analyticsForm.topics"
+                                                    :disabled="locked || !chatlogForm.chatlog"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div v-if="!locked">
+                                            <Button type="submit" :disabled="!canEdit || isSavingAnalytics || !chatlogForm.chatlog" size="sm">
+                                                <Save class="mr-2 h-4 w-4" />
+                                                {{ isSavingAnalytics ? 'Saving...' : 'Save' }}
                                             </Button>
                                         </div>
                                     </form>
@@ -741,11 +961,6 @@ const copyApiCode = async (code: string) => {
                                     />
                                 </div>
 
-                                <!-- Contact details -->
-                                <div v-if="activeTab === 'contact'" class="space-y-6 p-6">
-                                    <ContactDetailsSection :agent-id="agent.external_id" :profile="businessProfile" :disabled="!canManageContact" />
-                                </div>
-
                                 <!-- Starters -->
                                 <div v-if="activeTab === 'starters'" class="space-y-6 p-6">
                                     <StartersSection v-model:starters="starters" :disabled="locked" />
@@ -756,33 +971,39 @@ const copyApiCode = async (code: string) => {
                                         </Button>
                                     </div>
 
-                                    <Separator />
+                                    <!-- Chat Bubbles — widget surface only. Hosted Chat and Bar don't
+                                         render quick-message bubbles next to the launcher, so the field
+                                         would just be dead settings noise on those tabs. -->
+                                    <template v-if="previewSurface === 'widget'">
+                                        <Separator />
 
-                                    <!-- Chat Bubbles — widget-only, but edited here next to Starters. -->
-                                    <div class="space-y-4">
-                                        <div>
-                                            <h3 class="text-sm font-medium">Chat Bubbles</h3>
-                                            <p class="text-muted-foreground mt-1 text-xs">
-                                                Quick message prompts shown next to the widget bubble. Press Enter to add each one.
+                                        <div class="space-y-4">
+                                            <div>
+                                                <h3 class="text-sm font-medium">Chat Bubbles</h3>
+                                                <p class="text-muted-foreground mt-1 text-xs">
+                                                    Quick message prompts shown next to the widget bubble. Press Enter to add each one.
+                                                </p>
+                                            </div>
+
+                                            <TagsInput v-model="bubblesForm.bubbles" :disabled="locked" class="w-full">
+                                                <TagsInputItem v-for="(bubble, index) in bubblesForm.bubbles" :key="index" :value="bubble">
+                                                    <TagsInputItemText />
+                                                    <TagsInputItemDelete />
+                                                </TagsInputItem>
+                                                <TagsInputInput placeholder="e.g., How can I help you?" />
+                                            </TagsInput>
+                                            <p v-if="bubblesForm.errors.bubbles" class="text-destructive text-sm">
+                                                {{ bubblesForm.errors.bubbles }}
                                             </p>
-                                        </div>
 
-                                        <TagsInput v-model="bubblesForm.bubbles" :disabled="locked" class="w-full">
-                                            <TagsInputItem v-for="(bubble, index) in bubblesForm.bubbles" :key="index" :value="bubble">
-                                                <TagsInputItemText />
-                                                <TagsInputItemDelete />
-                                            </TagsInputItem>
-                                            <TagsInputInput placeholder="e.g., How can I help you?" />
-                                        </TagsInput>
-                                        <p v-if="bubblesForm.errors.bubbles" class="text-destructive text-sm">{{ bubblesForm.errors.bubbles }}</p>
-
-                                        <div v-if="!locked">
-                                            <Button type="button" size="sm" :disabled="!canEdit || isSavingBubbles" @click="saveBubbles">
-                                                <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingBubbles ? 'Saving...' : 'Save' }}
-                                            </Button>
+                                            <div v-if="!locked">
+                                                <Button type="button" size="sm" :disabled="!canEdit || isSavingBubbles" @click="saveBubbles">
+                                                    <Save class="mr-2 h-4 w-4" />
+                                                    {{ isSavingBubbles ? 'Saving...' : 'Save' }}
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </template>
                                 </div>
 
                                 <!-- Model — single picker + hyperparams -->
@@ -1501,14 +1722,14 @@ const copyApiCode = async (code: string) => {
                             <code class="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">window.chatvia.on(event, callback)</code>
                         </p>
                         <div class="relative">
-                            <div class="overflow-hidden rounded-lg bg-zinc-950">
-                                <div class="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-4 py-2">
-                                    <span class="text-xs font-medium text-zinc-400">JavaScript</span>
+                            <div class="border-border bg-muted/40 overflow-hidden rounded-lg border">
+                                <div class="border-border bg-muted text-muted-foreground flex items-center justify-between border-b px-4 py-2">
+                                    <span class="text-xs font-medium">JavaScript</span>
                                     <Button
                                         type="button"
                                         variant="ghost"
                                         size="sm"
-                                        class="h-7 px-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                                        class="hover:bg-background h-7 px-2"
                                         @click="copyApiCode(eventsCodeExample)"
                                     >
                                         <Copy class="mr-1.5 h-3.5 w-3.5" />

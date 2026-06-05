@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
  *      Every sensitive operation must additionally be agent-scoped (see #2)
  *      and rate-limited (see routes/widget.php throttle middleware).
  *
- *   2. `verifySessionExternalId` / `verifyThreadId` — resolve a session/thread
+ *   2. `verifySessionExternalId` / `verifyConversationId` — resolve a session/conversation
  *      by external id AND confirm it belongs to the agent on the request.
  *      Calling these without an agent argument is reserved for the legacy
  *      paths we still need to migrate and emits no scoping at all; new code
@@ -83,13 +83,13 @@ class WidgetVerification
      * specific agent. Same warning as {@see verifySessionExternalId} — new
      * code must pass the agent.
      */
-    public function verifyThreadId(?string $threadId, ?Agent $agent = null): ?Conversation
+    public function verifyConversationId(?string $conversationId, ?Agent $agent = null): ?Conversation
     {
-        if (! $threadId) {
+        if (! $conversationId) {
             return null;
         }
 
-        $query = Conversation::where('external_id', $threadId);
+        $query = Conversation::where('external_id', $conversationId);
 
         if ($agent !== null) {
             $query->whereHas('session', fn ($q) => $q->where('agent_id', $agent->id));

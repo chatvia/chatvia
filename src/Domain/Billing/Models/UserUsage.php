@@ -40,12 +40,4 @@ class UserUsage extends Model
     {
         return $this->belongsTo(UserCredit::class);
     }
-
-    protected function casts(): array
-    {
-        return [
-            'started_at' => 'datetime',
-            'ends_at' => 'datetime',
-        ];
-    }
 }

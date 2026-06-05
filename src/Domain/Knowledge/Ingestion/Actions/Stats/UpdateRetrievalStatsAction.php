@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Stats;
 
+use Domain\Analytics\Events\SourceRetrieved;
 use Illuminate\Support\Facades\DB;
 
 class UpdateRetrievalStatsAction
@@ -16,6 +17,8 @@ class UpdateRetrievalStatsAction
         }
 
         $resultsByType = collect($results)->groupBy('chunkable_type');
+
+        $retrieved = [];
 
         foreach ($resultsByType as $type => $typeResults) {
             $ids = collect($typeResults)->pluck('chunkable_id')->unique()->values();
@@ -41,6 +44,19 @@ class UpdateRetrievalStatsAction
                     'retrieval_count' => DB::raw('retrieval_count + 1'),
                     'last_retrieved_at' => now(),
                 ]);
+
+            foreach ($ids as $id) {
+                $retrieved[] = ['type' => $type, 'id' => (int) $id];
+            }
+        }
+
+        // Per-day retrieval rollup (date-bucketed, unlike the all-time counter
+        // updated above) so the Sources analytics page can filter by date range.
+        if ($retrieved !== []) {
+            // Denormalise the workspace owner onto the rollup so it survives
+            // agent deletion and is queryable for account-wide stats.
+            $userId = (int) DB::table('agents')->where('id', $agentId)->value('user_id');
+            SourceRetrieved::dispatch($agentId, $userId, $retrieved, now());
         }
     }
 }

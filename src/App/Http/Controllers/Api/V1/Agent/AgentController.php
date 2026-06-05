@@ -57,8 +57,7 @@ class AgentController
     /**
      * Create agent
      *
-     * Provisions a new knowledge-base agent. Pass `team_id` to place it in a
-     * specific team; omit it to use your primary team.
+     * Create a new agent
      *
      * @return array{data: AgentData}
      */

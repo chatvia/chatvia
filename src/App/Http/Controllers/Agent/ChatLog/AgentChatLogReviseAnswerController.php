@@ -15,7 +15,6 @@ class AgentChatLogReviseAnswerController
         CreateQaFromMessageReviseAction $createQa,
     ): JsonResponse {
         abort_if($request->user()->cannot('update', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.chat.view'), 403);
 
         $validated = $request->validate([
             'message_id' => ['required', 'string'],

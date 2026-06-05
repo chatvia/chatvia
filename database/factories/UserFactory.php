@@ -49,7 +49,7 @@ class UserFactory extends Factory
             'registered_ip' => null,
             'registered_country_code' => null,
             'domain' => null,
-            'billing_address' => null,
+            'profile_image_path' => null,
             'deactivation_reason' => null,
             'deactivated_at' => null,
             'last_login_at' => null,

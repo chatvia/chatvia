@@ -77,7 +77,7 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All sources</SelectItem>
-                                <SelectItem value="hosted_chat">Hosted Chat</SelectItem>
+                                <SelectItem value="hosted_chat">Chat</SelectItem>
                                 <SelectItem value="widget">Widget</SelectItem>
                                 <SelectItem value="bar">Bar</SelectItem>
                             </SelectContent>

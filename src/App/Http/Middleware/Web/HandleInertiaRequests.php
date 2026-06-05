@@ -83,6 +83,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             'id' => $team->id,
+            'external_id' => $team->external_id,
             'name' => $team->name,
             'is_owner' => $user->ownsTeam($team),
             'is_primary' => $team->id === $user->primaryTeam()?->id,

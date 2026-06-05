@@ -4,6 +4,7 @@ namespace App\Http\Middleware\Chat;
 
 use Closure;
 use Domain\Agent\Services\Agent;
+use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -45,6 +46,19 @@ class EnsureChatIsAccessible
 
         if ($request->route()?->getName() === 'chat.login.show' && $agent->is_public) {
             return to_route('chat.home');
+        }
+
+        // Per-conversation ownership check on protected agents. The
+        // ownership marker is keyed `user:<auth-id>:<conv-id>` at
+        // conversation creation (see ChatCache::rememberOwner) — a
+        // `has()` under the current chatter's id proves the same user
+        // created it, no DB hit. Different user → different key → miss → 403.
+        if ($agent->is_public === false && $userAuthenticated) {
+            $conversationId = $request->route('conversationId');
+
+            if (! blank($conversationId) && ! ChatCache::isOwnedBy($conversationId, Auth::id())) {
+                abort(403);
+            }
         }
 
         return $next($request);

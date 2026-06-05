@@ -27,7 +27,7 @@ class UpdateAgentSourceTextAction
             return false;
         }
 
-        if ($user->canUploadPages($numberOfPages)) {
+        if (! $user->canUploadPages($numberOfPages)) {
             throw new InviteRejectedException('content', 'This document requires '.$numberOfPages.' pages.');
         }
 

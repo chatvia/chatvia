@@ -21,7 +21,6 @@ class ConversationPulseController
         BuildConversationPulseAction $build,
     ): ChatLogPulseResourceData {
         abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if(! has_permission_to_agent($agent, 'agent.chat.pulse'), 403);
         abort_if($conversation->session->agent_id !== $agent->id, 404);
 
         return $build->execute($agent, $conversation);

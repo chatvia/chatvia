@@ -13,7 +13,7 @@ class WidgetSettingsController
     public function __invoke(Request $request, WidgetVerification $widgetVerification, BuildWidgetSettingsAction $build): JsonResponse|WidgetSettingsResourceData
     {
         if (! $widgetVerification->verifyByAgentExternalId($request->header('X-AGENT-ID'), $request)) {
-            return response()->json(['error' => 'Could not verify the agent'], 403);
+            return response()->json(['error' => 'Domain not allowed'], 403);
         }
 
         return $build->execute(current_agent_from_widget());

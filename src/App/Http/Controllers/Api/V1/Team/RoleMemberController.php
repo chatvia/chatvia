@@ -27,7 +27,7 @@ class RoleMemberController
      */
     public function store(Request $request, Team $team, Role $role, AssignUserToRoleAction $action): array
     {
-        $owner = $this->accountOwner($request);
+        $owner = $request->user()->effectiveUser();
 
         abort_unless($owner->ownsTeam($team), 403);
         abort_unless($role->team_id === $team->id, 404);
@@ -45,11 +45,4 @@ class RoleMemberController
         return ['data' => UserData::fromModel($user)];
     }
 
-    private function accountOwner(Request $request): User
-    {
-        /** @var User $account */
-        $account = $request->user();
-
-        return $account->belongsToWorkspace() ? $account->workspace : $account;
-    }
 }

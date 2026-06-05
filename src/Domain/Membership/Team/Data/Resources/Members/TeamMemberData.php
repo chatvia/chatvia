@@ -22,7 +22,7 @@ class TeamMemberData extends Data
 
     public static function fromUser(User $user, Team $team): self
     {
-        $role = $team->userRole($user);
+        $role = $user->teamRole($team);
 
         return new self(
             id: $user->id,

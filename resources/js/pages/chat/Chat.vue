@@ -6,7 +6,7 @@ import ChatLayout from '@/components/chat/ChatLayout.vue';
 import UserChatBubble from '@/components/chat/UserChatBubble.vue';
 import { useChatStream } from '@/composables/useChatStream';
 import { useColorTheme } from '@/composables/useColorTheme';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { useScroll } from '@vueuse/core';
 import axios from 'axios';
 import { ChevronDown } from 'lucide-vue-next';
@@ -17,6 +17,12 @@ import { toast } from 'vue-sonner';
 const { t } = useI18n();
 
 const chatEventBus = inject('chatEventBus');
+
+// Per-chat upload ceiling — sourced from `agent.files.upload.max_files`
+// via Inertia shared props (ChatHandleInertiaRequests). Falls back to 2
+// (the config default) for the brief window before the prop hydrates.
+const page = usePage();
+const maxFilesPerChat = computed(() => page.props.maxFilesPerChat ?? 2);
 
 const { state: streamState, error: streamError, start: startStream, stop: stopStream } = useChatStream();
 
@@ -1034,6 +1040,9 @@ const handleScrollToBottomClick = () => {
                         <ChatComposer
                             :isThinking="isStreaming"
                             :placeholder="appearance.composer_placeholder"
+                            :allow-file-uploads="appearance.allow_file_uploads !== false"
+                            :allow-voice-input="appearance.allow_voice_input !== false"
+                            :max-files="maxFilesPerChat"
                             :disabled="!canSendMessages || hasPendingApprovals"
                             :upload-endpoint="route('chat.messages.attachments.store')"
                             :upload-headers="{ 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': props.conversation_id }"

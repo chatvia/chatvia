@@ -7,6 +7,7 @@ use Closure;
 use Domain\Integration\Function\Data\UpdateAgentFunctionData;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class UpdateAgentFunctionRequest extends FormRequest
@@ -29,15 +30,9 @@ class UpdateAgentFunctionRequest extends FormRequest
                 'string',
                 'max:64',
                 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    $exists = $this->user()->functions()
-                        ->where('internal_name', $value)
-                        ->where('external_id', '!=', $this->route('external_id'))
-                        ->exists();
-                    if ($exists) {
-                        $fail('A function with this name already exists on your account.');
-                    }
-                },
+                Rule::unique('functions', 'internal_name')
+                    ->where('user_id', $this->user()->id)
+                    ->ignore($this->route('external_id'), 'external_id'),
             ],
             'display_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],

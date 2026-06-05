@@ -5,18 +5,19 @@ namespace Domain\Conversation\Services\Tooling\Approval;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Tooling\Routing\ToolRouter;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 
 /**
  * Decides whether a given tool call must pause for human approval before it
- * runs. The decision reads stored booleans only:
+ * runs. The decision reads stored values only:
  *
- *   - MCP tool  → server.requires_approval && tool.requires_approval
+ *   - MCP tool  → mcp_tools.permission === Approval
  *   - function  → function.requires_approval
  *
  * The write/destructive heuristic (annotations / webhook_method) is applied
- * once, at catalog/create time, to seed those booleans — not here. A global
+ * once, at catalog/create time, to seed those values — not here. A global
  * kill-switch (`agent.tools.approval_enabled`) short-circuits everything.
  *
  * Resolution mirrors the dispatchers so the policy gates exactly the calls the
@@ -66,8 +67,7 @@ class ToolApprovalPolicy
             ->where('slug', $slug)
             ->first();
 
-        // The connector master switch gates the whole server. Off → auto-run.
-        if (! $server || ! $server->requires_approval) {
+        if (! $server) {
             return false;
         }
 
@@ -76,13 +76,12 @@ class ToolApprovalPolicy
             ->where('name', $tool)
             ->first();
 
-        // Unknown tool (catalog out of sync) under an approval-on server →
-        // be safe and gate it.
+        // Unknown tool (catalog out of sync) → be safe and gate it.
         if (! $mcpTool) {
             return true;
         }
 
-        return $mcpTool->requires_approval;
+        return $mcpTool->permission === McpToolPermission::Approval;
     }
 
     private function functionRequiresApproval(Agent $agent, string $name): bool

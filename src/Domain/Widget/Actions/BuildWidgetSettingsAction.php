@@ -51,6 +51,9 @@ class BuildWidgetSettingsAction
             composer_placeholder: $appearance['composer_placeholder'] ?? null,
             chat_footer_text: $appearance['chat_footer_text'] ?? null,
             handoff_enabled: ($widget['handoff_enabled'] ?? true) && ($agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false),
+            allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true),
+            allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true),
+            max_files_per_chat: (int) config('agent.files.upload.max_files'),
         );
     }
 }

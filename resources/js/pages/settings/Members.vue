@@ -22,7 +22,7 @@ import { KeyRound, LoaderCircle, Search, Trash2, Users } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
-type ChatterRow = App.Chatter.Data.WorkspaceChatterRowData;
+type ChatterRow = App.Identity.Chatter.Data.WorkspaceChatterRowData;
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Members', href: '/settings/members' }];
 

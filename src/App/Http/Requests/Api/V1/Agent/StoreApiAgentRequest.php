@@ -19,10 +19,10 @@ class StoreApiAgentRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:3', 'max:255'],
+            'team_id' => ['required', 'string', 'uuid'],
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
-            'prompt_id' => ['sometimes', 'nullable', 'string', 'prohibits:system_instructions'],
+            'prompt_id' => ['sometimes', 'nullable', 'string', 'uuid', 'prohibits:system_instructions'],
             'metadata' => ['sometimes', 'nullable', 'array'],
-            'team_id' => ['sometimes', 'nullable', 'string'],
         ];
     }
 
